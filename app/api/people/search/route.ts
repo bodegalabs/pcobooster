@@ -10,10 +10,10 @@ const querySchema = z.object({
   q: z.string().trim().min(2).max(80),
 });
 
-export async function GET(request: Request) {
+export const GET = async (request: Request) => {
   const log = logger.withRequest(request);
 
-  return handlePlanningCenterRoute(request, async () => {
+  return await handlePlanningCenterRoute(request, async () => {
     const { searchParams } = new URL(request.url);
     const parsed = querySchema.safeParse({
       q: searchParams.get("q") ?? "",
@@ -33,4 +33,4 @@ export async function GET(request: Request) {
 
     return results;
   });
-}
+};

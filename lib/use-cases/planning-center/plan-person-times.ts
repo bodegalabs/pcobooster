@@ -9,13 +9,13 @@ export interface UpdatePlanPersonTimesInput {
   planTimeIds: string[];
 }
 
-export async function updatePlanPersonTimes({
+export const updatePlanPersonTimes = async ({
   serviceTypeId,
   planId,
   personId,
   planPersonId,
   planTimeIds,
-}: UpdatePlanPersonTimesInput) {
+}: UpdatePlanPersonTimesInput) => {
   const result = await planningCenterPeopleService.updatePlanPersonTimes({
     serviceTypeId,
     planId,
@@ -26,4 +26,4 @@ export async function updatePlanPersonTimes({
   planningCenterPeopleService.invalidatePlanTimeSensitiveReadCaches(planId);
   invalidatePlanWindowHistory();
   return result;
-}
+};

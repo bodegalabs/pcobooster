@@ -15,9 +15,9 @@ const querySchema = z.object({
   date: z.string().optional(),
 });
 
-export async function GET(request: Request) {
+export const GET = async (request: Request) => {
   const log = logger.withRequest(request);
-  return handlePlanningCenterRoute(request, async () => {
+  return await handlePlanningCenterRoute(request, async () => {
     const { searchParams } = new URL(request.url);
     const parsed = querySchema.safeParse({
       position_id: searchParams.get("position_id") ?? undefined,
@@ -36,9 +36,12 @@ export async function GET(request: Request) {
     const serviceTypeId = parsed.data.service_type_id ?? null;
     const teamId = parsed.data.team_id ?? null;
     const planId = parsed.data.plan_id ?? null;
-    const date = parsed.data.date;
+    const { date } = parsed.data;
 
-    if (!positionId || !serviceTypeId) {
+    if (
+      !(positionId !== null && positionId !== "") ||
+      !(serviceTypeId !== null && serviceTypeId !== "")
+    ) {
       log.debug(
         { positionId, serviceTypeId },
         "People request missing position_id or service_type_id"
@@ -64,6 +67,6 @@ export async function GET(request: Request) {
       "People fetched"
     );
 
-    return presentPeople(people);
+    return await presentPeople(people);
   });
-}
+};

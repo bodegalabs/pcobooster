@@ -4,12 +4,41 @@ import { ZodError } from "zod";
 import { ApiError } from "@/lib/http/api-error";
 import { elapsedMs, setRouteTimingHeaders, nowMs } from "@/lib/http/timing";
 import { logger } from "@/lib/logger";
-import { PlanningCenterApiError } from "@/lib/planning-center/core-client";
+import { PlanningCenterApiError } from "@/lib/planning-center/api-error";
 import { isPresentationMode } from "@/lib/presentation-mode";
 
 const log = logger.for("http/route-handler");
 
-export async function handleRoute<T>(handler: () => Promise<T>) {
+const withRouteTiming = (response: Response, startedAtMs: number): Response => {
+  const durationMs = elapsedMs(startedAtMs);
+
+  try {
+    setRouteTimingHeaders(response.headers, durationMs);
+    return response;
+  } catch {
+    const headers = new Headers(response.headers);
+    setRouteTimingHeaders(headers, durationMs);
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  }
+};
+
+const jsonWithRouteTiming = (
+  startedAtMs: number,
+  body: {
+    error: string;
+    code: string;
+    details?: ApiError["details"] | PlanningCenterApiError["details"];
+    retryAfterSeconds?: number | null;
+    rateLimit?: PlanningCenterApiError["rateLimit"];
+  },
+  init?: ResponseInit
+) => withRouteTiming(NextResponse.json(body, init), startedAtMs);
+
+export const handleRoute = async <T>(handler: () => Promise<T>) => {
   const startedAtMs = nowMs();
 
   try {
@@ -57,10 +86,13 @@ export async function handleRoute<T>(handler: () => Promise<T>) {
         error.status === 429
           ? "Planning Center rate limit exceeded. Please wait and try again."
           : "Planning Center request failed.";
-      const retryAfterSeconds = error.retryAfterSeconds;
-      const headers = retryAfterSeconds
-        ? { "Retry-After": String(retryAfterSeconds) }
-        : undefined;
+      const { retryAfterSeconds } = error;
+      const headers =
+        retryAfterSeconds !== undefined &&
+        retryAfterSeconds !== 0 &&
+        !Number.isNaN(retryAfterSeconds)
+          ? { "Retry-After": String(retryAfterSeconds) }
+          : undefined;
 
       log.warn(
         {
@@ -100,29 +132,4 @@ export async function handleRoute<T>(handler: () => Promise<T>) {
       { status: 500 }
     );
   }
-}
-
-function jsonWithRouteTiming(
-  startedAtMs: number,
-  body: unknown,
-  init?: ResponseInit
-) {
-  return withRouteTiming(NextResponse.json(body, init), startedAtMs);
-}
-
-function withRouteTiming(response: Response, startedAtMs: number): Response {
-  const durationMs = elapsedMs(startedAtMs);
-
-  try {
-    setRouteTimingHeaders(response.headers, durationMs);
-    return response;
-  } catch {
-    const headers = new Headers(response.headers);
-    setRouteTimingHeaders(headers, durationMs);
-    return new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers,
-    });
-  }
-}
+};

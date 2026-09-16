@@ -17,7 +17,7 @@ export const peopleQuerySchema = z.object({
   plan_id: z.string().trim().min(1).optional(),
   date: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .regex(/^\d{4}-\d{2}-\d{2}$/u)
     .optional(),
 });
 
@@ -45,8 +45,8 @@ export const updatePlanTimeBodySchema = z.object({
   service_type_id: requiredId,
   plan_id: requiredId,
   name: optionalText,
-  starts_at: z.string().datetime().optional(),
-  ends_at: z.string().datetime().nullable().optional(),
+  starts_at: z.iso.datetime().optional(),
+  ends_at: z.iso.datetime().nullable().optional(),
   time_type: z.enum(["service", "rehearsal", "other"]).optional(),
   assigned_team_ids: z.array(requiredId).optional(),
   assigned_position_ids: z.array(requiredId).optional(),
@@ -59,8 +59,8 @@ export const updatePlanTimeBodySchema = z.object({
 export const createPlanTimeBodySchema = z.object({
   service_type_id: requiredId,
   name: optionalText,
-  starts_at: z.string().datetime(),
-  ends_at: z.string().datetime().nullable().optional(),
+  starts_at: z.iso.datetime(),
+  ends_at: z.iso.datetime().nullable().optional(),
   time_type: z.enum(["service", "rehearsal", "other"]),
   assigned_team_ids: z.array(requiredId).optional(),
   assigned_position_ids: z.array(requiredId).optional(),

@@ -1,23 +1,20 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { searchSongs } from "@/lib/use-cases/planning-center/search-songs";
+import type { SongCatalogReader } from "@/lib/use-cases/planning-center/search-songs";
 
-const { getSongsCatalogCachedMock } = vi.hoisted(() => ({
-  getSongsCatalogCachedMock: vi.fn(),
-}));
-
-vi.mock("@/lib/planning-center/services/songs-service", () => ({
-  planningCenterSongsService: {
+const createFixture = () => {
+  const getSongsCatalogCachedMock =
+    vi.fn<SongCatalogReader["getSongsCatalogCached"]>();
+  const songCatalogReader = {
     getSongsCatalogCached: getSongsCatalogCachedMock,
-  },
-}));
+  } satisfies SongCatalogReader;
+  return { getSongsCatalogCachedMock, songCatalogReader };
+};
 
-describe("searchSongs", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
+describe(searchSongs, () => {
   it("keeps fuzzy relevance first and orders ties by title", async () => {
+    const { getSongsCatalogCachedMock, songCatalogReader } = createFixture();
     getSongsCatalogCachedMock.mockResolvedValue([
       {
         id: "song-1",
@@ -59,20 +56,26 @@ describe("searchSongs", () => {
       },
     ]);
 
-    const songs = await searchSongs("account-1", "service-1", "lord");
+    const songs = await searchSongs(
+      "account-1",
+      "service-1",
+      "lord",
+      songCatalogReader
+    );
 
-    expect(songs.map((song) => song.id)).toEqual([
+    expect(songs.map((song) => song.id)).toStrictEqual([
       "song-4",
       "song-2",
       "song-1",
     ]);
-    expect(songs.some((song) => song.id === "song-3")).toBe(false);
+    expect(songs.some((song) => song.id === "song-3")).toBeFalsy();
     expect(getSongsCatalogCachedMock).toHaveBeenCalledWith(
       "account-1:service-1"
     );
   });
 
   it("caches normalized result sets and returns mutation-safe copies", async () => {
+    const { getSongsCatalogCachedMock, songCatalogReader } = createFixture();
     getSongsCatalogCachedMock.mockResolvedValue([
       {
         id: "song-1",
@@ -84,12 +87,22 @@ describe("searchSongs", () => {
       },
     ]);
 
-    const first = await searchSongs("account-2", "service-1", "  BUILD  ");
+    const first = await searchSongs(
+      "account-2",
+      "service-1",
+      "  BUILD  ",
+      songCatalogReader
+    );
     first[0].title = "Changed locally";
-    const second = await searchSongs("account-2", "service-1", "build");
+    const second = await searchSongs(
+      "account-2",
+      "service-1",
+      "build",
+      songCatalogReader
+    );
 
-    expect(getSongsCatalogCachedMock).toHaveBeenCalledTimes(1);
-    expect(second).toEqual([
+    expect(getSongsCatalogCachedMock).toHaveBeenCalledOnce();
+    expect(second).toStrictEqual([
       expect.objectContaining({
         id: "song-1",
         title: "Build My Life",

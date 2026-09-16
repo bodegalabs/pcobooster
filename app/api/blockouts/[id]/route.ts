@@ -12,12 +12,12 @@ const paramsSchema = z.object({
   id: z.string().min(1),
 });
 
-export async function GET(
+export const GET = async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const log = logger.withRequest(request);
-  return handlePlanningCenterRoute(request, async () => {
+  return await handlePlanningCenterRoute(request, async () => {
     const parsedParams = paramsSchema.safeParse(await params);
     if (!parsedParams.success) {
       log.warn(
@@ -38,4 +38,4 @@ export async function GET(
     log.info({ personId: id, count: blockouts.length }, "Blockouts fetched");
     return presentBlockouts(blockouts);
   });
-}
+};

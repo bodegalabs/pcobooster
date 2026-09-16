@@ -1,3 +1,4 @@
+import { z } from "zod";
 /**
  * Dev-only auth shortcut. When DEV_AUTH_BYPASS=1 (and NODE_ENV !== "production"),
  * server-side auth helpers return a synthesized session so the app can hit Planning
@@ -9,6 +10,7 @@
  * This file MUST stay server-only — never import from client components.
  */
 
+import { isNonEmptyString } from "@/lib/json";
 import { logger } from "@/lib/logger";
 
 const DEV_BYPASS_USER_ID = "dev-bypass-user";
@@ -19,15 +21,17 @@ const IDENTITY_TTL_MS = 10 * 60 * 1000;
 
 const log = logger.for("auth/dev-bypass");
 
-export function isDevAuthBypassEnabled(): boolean {
-  if (process.env.NODE_ENV === "production") return false;
+export const isDevAuthBypassEnabled = (): boolean => {
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
   return (
     process.env.DEV_AUTH_BYPASS === "1" ||
     process.env.DEV_AUTH_BYPASS === "true"
   );
-}
+};
 
-export type DevBypassSession = {
+export interface DevBypassSession {
   user: {
     id: string;
     name: string;
@@ -47,9 +51,9 @@ export type DevBypassSession = {
     ipAddress: string | null;
     userAgent: string | null;
   };
-};
+}
 
-export type DevBypassIdentity = {
+export interface DevBypassIdentity {
   name: string;
   email: string;
   image: string | null;
@@ -57,134 +61,152 @@ export type DevBypassIdentity = {
   organizationId: string | null;
   /** Planning Center Person ID for the PAT owner — used to look up "my schedules". */
   personId: string | null;
-};
+}
 
 let identityCache: { expiresAt: number; identity: DevBypassIdentity } | null =
   null;
 let inflight: Promise<DevBypassIdentity> | null = null;
 
-function getBasicAuthHeader(): string | null {
+const getBasicAuthHeader = (): string | null => {
   const id = process.env.PLANNING_CENTER_CLIENT;
   const pat = process.env.PLANNING_CENTER_PAT;
-  if (!id || !pat) return null;
+  if (!isNonEmptyString(id) || !isNonEmptyString(pat)) {
+    return null;
+  }
   const credentials = Buffer.from(`${id}:${pat}`).toString("base64");
   return `Basic ${credentials}`;
-}
+};
 
-async function fetchPcResource(path: string): Promise<unknown> {
-  const auth = getBasicAuthHeader();
-  if (!auth) throw new Error("Missing PLANNING_CENTER_CLIENT/PAT");
-  const response = await fetch(`${PC_BASE_URL}${path}`, {
-    headers: { Authorization: auth, Accept: "application/json" },
-    cache: "no-store",
-  });
-  if (!response.ok) {
-    throw new Error(`Planning Center ${path} returned ${response.status}`);
+const optionalText = z.preprocess(
+  (value) =>
+    isNonEmptyString(value) && value.trim().length > 0 ? value : undefined,
+  z.string().optional()
+);
+
+const personAttributesSchema = z.object({
+  first_name: optionalText,
+  given_name: optionalText,
+  last_name: optionalText,
+  family_name: optionalText,
+  name: optionalText,
+  avatar: optionalText,
+  demographic_avatar_url: optionalText,
+  photo_thumbnail_url: optionalText,
+});
+
+const meResponseSchema = z.object({
+  data: z.object({ id: z.string(), attributes: personAttributesSchema }),
+  included: z
+    .array(
+      z.object({
+        type: z.string(),
+        attributes: z.object({ address: optionalText }),
+      })
+    )
+    .optional(),
+});
+const organizationResourceSchema = z.object({
+  id: z.string(),
+  attributes: z.object({ name: optionalText }),
+});
+const organizationResponseSchema = z.object({
+  data: z.union([
+    organizationResourceSchema,
+    z.array(organizationResourceSchema),
+  ]),
+});
+
+const fetchPcResource = async <T>(
+  path: string,
+  schema: z.ZodType<T>
+): Promise<T | null> => {
+  const authorization = getBasicAuthHeader();
+  if (authorization === null) {
+    return null;
   }
-  return response.json();
-}
-
-function readString(
-  record: Record<string, unknown>,
-  key: string
-): string | null {
-  const value = record[key];
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
-
-async function hydrateIdentity(): Promise<DevBypassIdentity> {
-  const fallback: DevBypassIdentity = {
-    name: "Dev User",
-    email: "dev@worshipadmin.local",
-    image: null,
-    organizationName: "Dev Organization",
-    organizationId: null,
-    personId: null,
-  };
-
   try {
-    const [meResponse, orgResponse] = await Promise.all([
-      fetchPcResource("/people/v2/me?include=emails").catch(() => null),
-      fetchPcResource("/services/v2").catch(() => null),
-    ]);
-
-    if (meResponse && typeof meResponse === "object") {
-      const me = meResponse as {
-        data?: { id?: string; attributes?: Record<string, unknown> };
-        included?: Array<{
-          type?: string;
-          attributes?: Record<string, unknown>;
-        }>;
-      };
-      const attrs = me.data?.attributes ?? {};
-      const first =
-        readString(attrs, "first_name") ?? readString(attrs, "given_name");
-      const last =
-        readString(attrs, "last_name") ?? readString(attrs, "family_name");
-      const fullName =
-        readString(attrs, "name") ?? [first, last].filter(Boolean).join(" ");
-      if (fullName) fallback.name = fullName;
-      const avatarRaw =
-        readString(attrs, "avatar") ??
-        readString(attrs, "demographic_avatar_url") ??
-        readString(attrs, "photo_thumbnail_url");
-      if (avatarRaw) fallback.image = avatarRaw;
-      const includedEmail = (me.included ?? []).find(
-        (entry) =>
-          entry?.type === "Email" &&
-          typeof entry.attributes?.address === "string"
-      );
-      const email = includedEmail
-        ? ((includedEmail.attributes as { address?: string }).address ?? null)
-        : null;
-      if (email) fallback.email = email;
-      if (me.data?.id) fallback.personId = me.data.id;
+    const response = await fetch(`${PC_BASE_URL}${path}`, {
+      headers: { Authorization: authorization, Accept: "application/json" },
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      return null;
     }
-
-    if (orgResponse && typeof orgResponse === "object") {
-      const org = orgResponse as {
-        data?:
-          | { id?: string; attributes?: Record<string, unknown> }
-          | Array<{ id?: string; attributes?: Record<string, unknown> }>;
-      };
-      const root = Array.isArray(org.data) ? org.data[0] : org.data;
-      const attrs = root?.attributes ?? {};
-      const orgName = readString(attrs, "name");
-      if (orgName) fallback.organizationName = orgName;
-      if (root?.id) fallback.organizationId = root.id;
-    }
+    const result = schema.safeParse(await response.json());
+    return result.success ? result.data : null;
   } catch (error) {
     log.warn(
-      { err: error instanceof Error ? error : new Error(String(error)) },
-      "Failed to hydrate dev-bypass identity from Planning Center"
+      { err: error instanceof Error ? error : new Error(String(error)), path },
+      "Failed to hydrate dev identity"
     );
+    return null;
   }
+};
 
-  return fallback;
-}
+const getPersonDisplayName = (
+  attributes: z.infer<typeof personAttributesSchema> | undefined
+): string => {
+  const first = attributes?.first_name ?? attributes?.given_name;
+  const last = attributes?.last_name ?? attributes?.family_name;
+  const composed = [first, last].filter(Boolean).join(" ");
+  return isNonEmptyString(attributes?.name)
+    ? attributes.name
+    : composed || "Dev User";
+};
 
-async function getIdentity(): Promise<DevBypassIdentity> {
+const getPersonIdentity = (me: z.infer<typeof meResponseSchema> | null) => {
+  const attributes = me?.data.attributes;
+  return {
+    name: getPersonDisplayName(attributes),
+    email:
+      me?.included?.find((entry) => entry.type === "Email")?.attributes
+        .address ?? "dev@worshipadmin.local",
+    image:
+      attributes?.avatar ??
+      attributes?.demographic_avatar_url ??
+      attributes?.photo_thumbnail_url ??
+      null,
+    personId: me?.data.id ?? null,
+  };
+};
+
+const hydrateIdentity = async (): Promise<DevBypassIdentity> => {
+  const [me, organization] = await Promise.all([
+    fetchPcResource("/people/v2/me?include=emails", meResponseSchema),
+    fetchPcResource("/services/v2", organizationResponseSchema),
+  ]);
+  const organizationRoot = Array.isArray(organization?.data)
+    ? organization.data.at(0)
+    : organization?.data;
+  return {
+    ...getPersonIdentity(me),
+    organizationName: organizationRoot?.attributes.name ?? "Dev Organization",
+    organizationId: organizationRoot?.id ?? null,
+  };
+};
+
+const getIdentity = async (): Promise<DevBypassIdentity> => {
   const now = Date.now();
   if (identityCache && identityCache.expiresAt > now) {
     return identityCache.identity;
   }
-  if (inflight) return inflight;
+  if (inflight) {
+    return await inflight;
+  }
 
-  inflight = hydrateIdentity()
-    .then((identity) => {
-      identityCache = { identity, expiresAt: Date.now() + IDENTITY_TTL_MS };
-      return identity;
-    })
-    .finally(() => {
-      inflight = null;
-    });
+  inflight = hydrateIdentity();
+  try {
+    const identity = await inflight;
+    identityCache = { identity, expiresAt: Date.now() + IDENTITY_TTL_MS };
+    return identity;
+  } finally {
+    inflight = null;
+  }
+};
 
-  return inflight;
-}
-
-export function getDevBypassSession(
+export const getDevBypassSession = (
   identity?: DevBypassIdentity
-): DevBypassSession {
+): DevBypassSession => {
   const id = identity ?? identityCache?.identity ?? null;
   const now = new Date();
   const expires = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -209,11 +231,11 @@ export function getDevBypassSession(
       userAgent: null,
     },
   };
-}
+};
 
-export function getDevBypassPlanningCenterAccount(
+export const getDevBypassPlanningCenterAccount = (
   identity?: DevBypassIdentity
-) {
+) => {
   const id = identity ?? identityCache?.identity ?? null;
   return {
     id: DEV_BYPASS_ACCOUNT_ID,
@@ -228,8 +250,7 @@ export function getDevBypassPlanningCenterAccount(
       organizationName: id?.organizationName ?? "Dev Organization",
     },
   };
-}
+};
 
-export async function loadDevBypassIdentity(): Promise<DevBypassIdentity> {
-  return getIdentity();
-}
+export const loadDevBypassIdentity = async (): Promise<DevBypassIdentity> =>
+  await getIdentity();

@@ -1,32 +1,25 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
+import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { PlanningCenterPlanItemsService } from "@/lib/planning-center/services/plan-items-service";
 import type { PCResource } from "@/lib/types";
 
-function createCoreClientMock() {
-  const fetchAllWithIncluded = vi.fn();
-  const fetch = vi.fn();
-  const request = vi.fn();
-  const core = {
-    fetchAllWithIncluded,
-    fetch,
-    request,
-    getCacheScope: () => "test-scope",
-  } as unknown as PlanningCenterCoreClient;
+const createCoreClientMock = () => {
+  const core = new PlanningCenterCoreClient();
+  const fetchAllWithIncluded = vi.spyOn(core, "fetchAllWithIncluded");
+  const fetch = vi.spyOn(core, "fetch");
+  const request = vi.spyOn(core, "request");
 
   return { core, fetchAllWithIncluded, fetch, request };
-}
+};
 
-function itemResource(id: string): PCResource {
-  return {
-    id,
-    type: "Item",
-    attributes: {
-      title: "Opening Song",
-    },
-  };
-}
+const itemResource = (id: string): PCResource => ({
+  id,
+  type: "Item",
+  attributes: {
+    title: "Opening Song",
+  },
+});
 
 describe("PlanningCenterPlanItemsService read cache", () => {
   it("caches plan item reads and returns mutation-safe copies", async () => {
@@ -41,7 +34,7 @@ describe("PlanningCenterPlanItemsService read cache", () => {
     first.data[0].attributes.title = "Mutated";
     const second = await service.getPlanItems("st-1", "plan-1");
 
-    expect(fetchAllWithIncluded).toHaveBeenCalledTimes(1);
+    expect(fetchAllWithIncluded).toHaveBeenCalledOnce();
     expect(second.data[0].attributes.title).toBe("Opening Song");
     expect(second.data[0]).not.toBe(first.data[0]);
   });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { isNonEmptyString } from "@/lib/json";
 import type { PersonWithAvailability, RawPerson } from "@/lib/types";
 import {
   applySelectedPlanRosterStatus,
@@ -12,41 +13,39 @@ import type {
   PlanSchedulingContext,
 } from "@/lib/use-cases/planning-center/plan-scheduling-context";
 
-function rawPerson(id: string, firstName = id): RawPerson {
-  return {
-    type: "Person",
-    id,
-    attributes: {
-      first_name: firstName,
-      last_name: "Person",
-      archived_at: null,
-    },
-  } as unknown as RawPerson;
-}
+const rawPerson = (id: string, firstName = id): RawPerson => ({
+  type: "Person",
+  id,
+  attributes: {
+    first_name: firstName,
+    last_name: "Person",
+    photo_url: null,
+    photo_thumbnail_url: null,
+    archived_at: null,
+  },
+});
 
-function personWithAvailability(id: string): PersonWithAvailability {
-  return {
-    id,
-    firstName: id,
-    lastName: "Person",
-    fullName: `${id} Person`,
-    photoUrl: null,
-    photoThumbnailUrl: null,
-    archived: false,
-    positions: [],
-    isScheduledForSelectedPlanPosition: false,
-    isConfirmedForSelectedPlanPosition: false,
-    isDeclinedForSelectedPlanPosition: false,
-    selectedPlanAssignmentLabels: [],
-  };
-}
+const personWithAvailability = (id: string): PersonWithAvailability => ({
+  id,
+  firstName: id,
+  lastName: "Person",
+  fullName: `${id} Person`,
+  photoUrl: null,
+  photoThumbnailUrl: null,
+  archived: false,
+  positions: [],
+  isScheduledForSelectedPlanPosition: false,
+  isConfirmedForSelectedPlanPosition: false,
+  isDeclinedForSelectedPlanPosition: false,
+  selectedPlanAssignmentLabels: [],
+});
 
-function rosterEntry(
+const rosterEntry = (
   overrides: Partial<PlanRosterEntry> & {
     planPersonId: string;
     personId: string | null;
   }
-): PlanRosterEntry {
+): PlanRosterEntry => {
   const { planPersonId, personId, ...rest } = overrides;
   return {
     planPersonId,
@@ -61,26 +60,26 @@ function rosterEntry(
     serviceTimeIds: [],
     ...rest,
   };
-}
+};
 
-function context(
+const context = (
   entries: PlanRosterEntry[],
   people: RawPerson[] = []
-): PlanSchedulingContext {
+): PlanSchedulingContext => {
   const rosterByPersonId = new Map<string, PlanRosterEntry[]>();
   const rosterBySlotKey = new Map<string, PlanRosterEntry[]>();
 
   for (const entry of entries) {
-    if (entry.personId) {
+    if (isNonEmptyString(entry.personId)) {
       rosterByPersonId.set(entry.personId, [
-        ...(rosterByPersonId.get(entry.personId) || []),
+        ...(rosterByPersonId.get(entry.personId) ?? []),
         entry,
       ]);
     }
 
-    if (entry.teamId) {
+    if (isNonEmptyString(entry.teamId)) {
       const key = `${entry.teamId}::${entry.positionName.trim().toLowerCase()}`;
-      rosterBySlotKey.set(key, [...(rosterBySlotKey.get(key) || []), entry]);
+      rosterBySlotKey.set(key, [...(rosterBySlotKey.get(key) ?? []), entry]);
     }
   }
 
@@ -92,7 +91,7 @@ function context(
     rosterBySlotKey,
     peopleById: new Map(people.map((person) => [person.id, person])),
   };
-}
+};
 
 describe("selected plan roster overlay", () => {
   it("adds selected-slot roster people without pulling in people scheduled elsewhere", () => {
@@ -123,7 +122,7 @@ describe("selected plan roster overlay", () => {
       },
     });
 
-    expect(merged.map((person) => person.id)).toEqual([
+    expect(merged.map((person) => person.id)).toStrictEqual([
       "assigned",
       "selected-slot",
     ]);
@@ -161,7 +160,10 @@ describe("selected plan roster overlay", () => {
     });
 
     expect(overlay.selectedSlotEntry?.planPersonId).toBe("pp-selected");
-    expect(overlay.assignmentLabels).toEqual(["Band - Vocals", "Band - Keys"]);
+    expect(overlay.assignmentLabels).toStrictEqual([
+      "Band - Vocals",
+      "Band - Keys",
+    ]);
   });
 
   it("applies selected slot status and preserves merged labels", () => {
@@ -182,14 +184,13 @@ describe("selected plan roster overlay", () => {
 
     applySelectedPlanRosterStatus(person, overlay, labels);
 
-    expect(person.isScheduledForSelectedPlanPosition).toBe(true);
-    expect(person.isConfirmedForSelectedPlanPosition).toBe(true);
-    expect(person.isDeclinedForSelectedPlanPosition).toBe(false);
-    expect(person.scheduledPlanPersonId).toBe("pp-selected");
-    expect(person.selectedPlanAssignmentLabels).toEqual([
-      "Band - Vocals",
-      "Band - Keys",
-    ]);
+    expect(person).toMatchObject({
+      isScheduledForSelectedPlanPosition: true,
+      isConfirmedForSelectedPlanPosition: true,
+      isDeclinedForSelectedPlanPosition: false,
+      scheduledPlanPersonId: "pp-selected",
+      selectedPlanAssignmentLabels: ["Band - Vocals", "Band - Keys"],
+    });
   });
 
   it("only dedupes exact labels so hyphenated position names stay intact", () => {
@@ -198,6 +199,6 @@ describe("selected plan roster overlay", () => {
       ["Bass Guitar", "Band - Bass Guitar"]
     );
 
-    expect(labels).toEqual(["Band - Bass Guitar", "Bass Guitar"]);
+    expect(labels).toStrictEqual(["Band - Bass Guitar", "Bass Guitar"]);
   });
 });

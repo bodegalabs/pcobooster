@@ -1,3 +1,5 @@
+import { isNonEmptyString } from "@/lib/json";
+import type { JsonObject } from "@/lib/json";
 import { logger } from "@/lib/logger";
 import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { PlanningCenterReadCache } from "@/lib/planning-center/services/read-cache";
@@ -6,20 +8,32 @@ import type { PCResource } from "@/lib/types";
 const log = logger.for("planning-center/plan-items");
 const PLAN_ITEMS_CACHE_TTL_MS = 30 * 1000;
 
-function buildItemPayload(attributes: Record<string, unknown>, id?: string) {
-  return {
-    data: {
-      type: "Item",
-      ...(id ? { id } : {}),
-      attributes,
-    },
-  };
-}
+const buildItemPayload = (attributes: JsonObject, id?: string) => ({
+  data: {
+    type: "Item",
+    ...(isNonEmptyString(id) ? { id } : undefined),
+    attributes,
+  },
+});
+
+const clonePlanItemsResponse = (response: {
+  data: PCResource[];
+  included: PCResource[];
+}) => ({
+  data: structuredClone(response.data),
+  included: structuredClone(response.included),
+});
 
 export class PlanningCenterPlanItemsService {
-  private readonly cache = new PlanningCenterReadCache();
+  private readonly core: PlanningCenterCoreClient;
+  private readonly cache = new PlanningCenterReadCache<{
+    data: PCResource[];
+    included: PCResource[];
+  }>();
 
-  constructor(private readonly core: PlanningCenterCoreClient) {}
+  constructor(core: PlanningCenterCoreClient) {
+    this.core = core;
+  }
 
   async getPlanItems(
     serviceTypeId: string,
@@ -29,7 +43,7 @@ export class PlanningCenterPlanItemsService {
       this.buildPlanItemsCacheKey(serviceTypeId, planId),
       PLAN_ITEMS_CACHE_TTL_MS,
       async () => {
-        const result = await this.core.fetchAllWithIncluded<PCResource>(
+        const result = await this.core.fetchAllWithIncluded(
           `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items`,
           {
             include: "song,arrangement,key,item_notes,item_times",
@@ -53,22 +67,22 @@ export class PlanningCenterPlanItemsService {
     planId: string,
     itemId: string
   ): Promise<{ data: PCResource; included: PCResource[] }> {
-    const response = await this.core.fetch<PCResource>(
+    const response = await this.core.fetch(
       `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items/${itemId}?include=song,arrangement,key,item_notes,item_times`
     );
 
     return {
       data: response.data,
-      included: response.included || [],
+      included: response.included ?? [],
     };
   }
 
   async createPlanItem(
     serviceTypeId: string,
     planId: string,
-    attributes: Record<string, unknown>
+    attributes: JsonObject
   ): Promise<{ data: PCResource; included: PCResource[] }> {
-    const response = await this.core.fetch<PCResource>(
+    const response = await this.core.fetch(
       `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items?include=song,arrangement,key`,
       {
         method: "POST",
@@ -82,7 +96,7 @@ export class PlanningCenterPlanItemsService {
 
     return {
       data: response.data,
-      included: response.included || [],
+      included: response.included ?? [],
     };
   }
 
@@ -90,9 +104,9 @@ export class PlanningCenterPlanItemsService {
     serviceTypeId: string,
     planId: string,
     itemId: string,
-    attributes: Record<string, unknown>
+    attributes: JsonObject
   ): Promise<{ data: PCResource; included: PCResource[] }> {
-    const response = await this.core.fetch<PCResource>(
+    const response = await this.core.fetch(
       `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items/${itemId}?include=song,arrangement,key`,
       {
         method: "PATCH",
@@ -106,7 +120,7 @@ export class PlanningCenterPlanItemsService {
 
     return {
       data: response.data,
-      included: response.included || [],
+      included: response.included ?? [],
     };
   }
 
@@ -165,16 +179,6 @@ export class PlanningCenterPlanItemsService {
     const cacheKey = this.buildPlanItemsCacheKey(serviceTypeId, planId);
     this.cache.deleteWhere((key) => key === cacheKey);
   }
-}
-
-function clonePlanItemsResponse(response: {
-  data: PCResource[];
-  included: PCResource[];
-}): { data: PCResource[]; included: PCResource[] } {
-  return {
-    data: structuredClone(response.data),
-    included: structuredClone(response.included),
-  };
 }
 
 export const planningCenterPlanItemsService =

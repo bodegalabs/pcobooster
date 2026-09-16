@@ -11,9 +11,9 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
+export const GET = async (request: Request) => {
   const log = logger.withRequest(request);
-  return handlePlanningCenterRoute(request, async () => {
+  return await handlePlanningCenterRoute(request, async () => {
     const { searchParams } = new URL(request.url);
     const parsed = planItemsQuerySchema.safeParse({
       service_type_id: searchParams.get("service_type_id") ?? undefined,
@@ -39,12 +39,12 @@ export async function GET(request: Request) {
     );
     return serializePlanItems(items);
   });
-}
+};
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
   const log = logger.withRequest(request);
-  return handlePlanningCenterRoute(request, async () => {
-    const body = await request.json();
+  return await handlePlanningCenterRoute(request, async () => {
+    const body: unknown = await request.json();
     const parsed = createPlanItemBodySchema.safeParse(body);
 
     if (!parsed.success) {
@@ -78,4 +78,4 @@ export async function POST(request: Request) {
 
     return serializePlanItem(item);
   });
-}
+};

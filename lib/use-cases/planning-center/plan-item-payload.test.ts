@@ -1,17 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { getSongOptions } from "@/lib/use-cases/planning-center/get-song-options";
 import {
   buildPlanItemAttributes,
   resolvePlanItemSongDefaults,
 } from "@/lib/use-cases/planning-center/plan-item-payload";
 
-const { getSongOptionsMock } = vi.hoisted(() => ({
-  getSongOptionsMock: vi.fn(),
-}));
-
-vi.mock("@/lib/use-cases/planning-center/get-song-options", () => ({
-  getSongOptions: getSongOptionsMock,
-}));
+const getSongOptionsMock = vi.fn<typeof getSongOptions>();
 
 describe("plan item payload helpers", () => {
   beforeEach(() => {
@@ -37,14 +32,17 @@ describe("plan item payload helpers", () => {
       layoutMode: "existing-only",
     });
 
-    const resolved = await resolvePlanItemSongDefaults({
-      serviceTypeId: "service-1",
-      songId: "song-1",
-      title: "  ",
-      description: "  Spoken intro  ",
-      htmlDetails: "  <p>Notes</p>  ",
-      itemType: "item",
-    });
+    const resolved = await resolvePlanItemSongDefaults(
+      {
+        serviceTypeId: "service-1",
+        songId: "song-1",
+        title: "  ",
+        description: "  Spoken intro  ",
+        htmlDetails: "  <p>Notes</p>  ",
+        itemType: "item",
+      },
+      getSongOptionsMock
+    );
 
     expect(resolved.title).toBe("Build My Life");
     expect(resolved.arrangementId).toBe("arr-1");
@@ -55,7 +53,7 @@ describe("plan item payload helpers", () => {
       buildPlanItemAttributes(resolved, {
         defaultServicePosition: "during",
       })
-    ).toEqual({
+    ).toStrictEqual({
       title: "Build My Life",
       service_position: "during",
       description: "Spoken intro",
@@ -68,14 +66,17 @@ describe("plan item payload helpers", () => {
   });
 
   it("does not fetch song defaults when the client already supplied them", async () => {
-    const resolved = await resolvePlanItemSongDefaults({
-      serviceTypeId: "service-1",
-      songId: "song-1",
-      title: "Build My Life",
-      arrangementId: "arr-1",
-      keyId: "key-1",
-      selectedLayoutId: "layout-1",
-    });
+    const resolved = await resolvePlanItemSongDefaults(
+      {
+        serviceTypeId: "service-1",
+        songId: "song-1",
+        title: "Build My Life",
+        arrangementId: "arr-1",
+        keyId: "key-1",
+        selectedLayoutId: "layout-1",
+      },
+      getSongOptionsMock
+    );
 
     expect(getSongOptionsMock).not.toHaveBeenCalled();
     expect(resolved).toMatchObject({
@@ -104,7 +105,7 @@ describe("plan item payload helpers", () => {
         title: "Announcement",
         itemType: "item",
       })
-    ).toEqual({
+    ).toStrictEqual({
       title: "Announcement",
     });
   });

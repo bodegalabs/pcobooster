@@ -1,3 +1,5 @@
+import { isNonEmptyString, isNumber, isString } from "@/lib/json";
+import type { JsonObject, JsonValue } from "@/lib/json";
 import { findIncluded } from "@/lib/planning-center/utils";
 import type {
   ArrangementOption,
@@ -10,72 +12,73 @@ import type {
   PlanItemServicePosition,
   PlanItemSong,
   PlanItemType,
-  RawArrangement,
-  RawItem,
-  RawKey,
-  RawSong,
+  PCRelationship,
   SongCatalogEntry,
 } from "@/lib/types";
 
-function toDate(value: unknown): Date | null {
-  if (typeof value !== "string" || !value) return null;
+const toDate = (value: JsonValue | undefined): Date | null => {
+  if (!isString(value) || !value) {
+    return null;
+  }
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
-}
+};
 
-function toNumberOrNull(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
+const toNumberOrNull = (value: JsonValue | undefined): number | null =>
+  isNumber(value) && Number.isFinite(value) ? value : null;
 
-function toStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
+const toStringArray = (value: JsonValue | undefined): string[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
   return value.filter(
-    (item): item is string => typeof item === "string" && item.trim().length > 0
+    (item): item is string => isString(item) && item.trim().length > 0
   );
-}
+};
 
-function toText(value: unknown): string {
-  return typeof value === "string" ? value : "";
-}
+const toText = (value: JsonValue | undefined): string =>
+  isString(value) ? value : "";
 
-function getKeyDisplayName(attributes: RawKey["attributes"]): string {
+const getKeyDisplayName = (attributes: JsonObject): string => {
   const name = toText(attributes.name).trim();
-  if (name) return name;
+  if (name) {
+    return name;
+  }
 
-  const startingKey =
-    typeof attributes.starting_key === "string"
-      ? attributes.starting_key.trim()
-      : "";
-  const endingKey =
-    typeof attributes.ending_key === "string"
-      ? attributes.ending_key.trim()
-      : "";
+  const startingKey = isString(attributes.starting_key)
+    ? attributes.starting_key.trim()
+    : "";
+  const endingKey = isString(attributes.ending_key)
+    ? attributes.ending_key.trim()
+    : "";
 
   if (startingKey && endingKey && startingKey !== endingKey) {
     return `${startingKey} -> ${endingKey}`;
   }
 
   return startingKey || endingKey;
-}
+};
 
-export function normalizeSongCatalogEntry(
+export const normalizeSongCatalogEntry = (
   resource: PCResource
-): SongCatalogEntry {
-  const song = resource as RawSong;
+): SongCatalogEntry => {
+  const { attributes } = resource;
   return {
-    id: song.id,
-    title: toText(song.attributes.title),
-    author: toText(song.attributes.author),
-    themes: toText(song.attributes.themes),
-    hidden: Boolean(song.attributes.hidden),
-    lastScheduledAt: toDate(song.attributes.last_scheduled_at),
+    id: resource.id,
+    title: toText(attributes.title),
+    author: toText(attributes.author),
+    themes: toText(attributes.themes),
+    hidden: attributes.hidden === true,
+    lastScheduledAt: toDate(attributes.last_scheduled_at),
   };
-}
+};
 
-export function normalizePlanItemSong(
+export const normalizePlanItemSong = (
   resource: PCResource | undefined
-): PlanItemSong | null {
-  if (!resource) return null;
+): PlanItemSong | null => {
+  if (!resource) {
+    return null;
+  }
   const song = normalizeSongCatalogEntry(resource);
   return {
     id: song.id,
@@ -84,190 +87,223 @@ export function normalizePlanItemSong(
     themes: song.themes,
     lastScheduledAt: song.lastScheduledAt,
   };
-}
+};
 
-export function normalizeArrangementOption(
+export const normalizePlanItemArrangement = (
+  resource: PCResource | undefined
+): PlanItemArrangement | null => {
+  if (!resource) {
+    return null;
+  }
+  const { attributes } = resource;
+  return {
+    id: resource.id,
+    name: toText(attributes.name),
+    sequence: toStringArray(attributes.sequence),
+    length: toNumberOrNull(attributes.length),
+    archivedAt: toDate(attributes.archived_at),
+  };
+};
+
+export const normalizeKeyOption = (resource: PCResource): KeyOption => {
+  const { attributes } = resource;
+  return {
+    id: resource.id,
+    name: getKeyDisplayName(attributes),
+    startingKey: isString(attributes.starting_key)
+      ? attributes.starting_key
+      : null,
+    endingKey: isString(attributes.ending_key) ? attributes.ending_key : null,
+  };
+};
+
+export const normalizeArrangementOption = (
   resource: PCResource,
   included: PCResource[]
-): ArrangementOption {
-  const arrangement = resource as RawArrangement;
-  const keys = included
-    .filter((item) => item.type === "Key")
-    .map((item) => normalizeKeyOption(item));
+): ArrangementOption => {
+  const { attributes } = resource;
+  const keys: KeyOption[] = [];
+  for (const item of included) {
+    if (item.type === "Key") {
+      keys.push(normalizeKeyOption(item));
+    }
+  }
 
   return {
-    id: arrangement.id,
-    name: toText(arrangement.attributes.name),
-    sequence: toStringArray(arrangement.attributes.sequence),
-    length: toNumberOrNull(arrangement.attributes.length),
-    archived: Boolean(arrangement.attributes.archived_at),
+    id: resource.id,
+    name: toText(attributes.name),
+    sequence: toStringArray(attributes.sequence),
+    length: toNumberOrNull(attributes.length),
+    archived: isNonEmptyString(attributes.archived_at),
     keys,
   };
-}
+};
 
-export function normalizePlanItemArrangement(
+export const normalizePlanItemKey = (
   resource: PCResource | undefined
-): PlanItemArrangement | null {
-  if (!resource) return null;
-  const arrangement = resource as RawArrangement;
-  return {
-    id: arrangement.id,
-    name: toText(arrangement.attributes.name),
-    sequence: toStringArray(arrangement.attributes.sequence),
-    length: toNumberOrNull(arrangement.attributes.length),
-    archivedAt: toDate(arrangement.attributes.archived_at),
-  };
-}
-
-export function normalizeKeyOption(resource: PCResource): KeyOption {
-  const key = resource as RawKey;
-  return {
-    id: key.id,
-    name: getKeyDisplayName(key.attributes),
-    startingKey:
-      typeof key.attributes.starting_key === "string"
-        ? key.attributes.starting_key
-        : null,
-    endingKey:
-      typeof key.attributes.ending_key === "string"
-        ? key.attributes.ending_key
-        : null,
-  };
-}
-
-export function normalizePlanItemKey(
-  resource: PCResource | undefined
-): PlanItemKey | null {
-  if (!resource) return null;
+): PlanItemKey | null => {
+  if (!resource) {
+    return null;
+  }
   return normalizeKeyOption(resource);
-}
+};
 
-export function normalizeLayoutOption(
+export const normalizeLayoutOption = (
   resource: PCResource | undefined
-): LayoutOption | null {
-  if (!resource) return null;
-  const attributes = resource.attributes as Record<string, unknown>;
+): LayoutOption | null => {
+  if (!resource) {
+    return null;
+  }
+  const { attributes } = resource;
   const name =
-    (typeof attributes.name === "string" && attributes.name) ||
-    (typeof attributes.title === "string" && attributes.title) ||
+    (isString(attributes.name) && attributes.name) ||
+    (isString(attributes.title) && attributes.title) ||
     "Selected layout";
 
   return {
     id: resource.id,
     name,
   };
-}
+};
 
-export function normalizePlanItem(
+const getSingleRelationshipId = (
+  relationship: PCRelationship | undefined
+): string | null => {
+  const data = relationship?.data;
+  if (Array.isArray(data)) {
+    return data[0]?.id ?? null;
+  }
+  return data?.id ?? null;
+};
+
+const readPlanItemType = (value: JsonValue | undefined): PlanItemType => {
+  if (value === "song" || value === "header" || value === "media") {
+    return value;
+  }
+  return "item";
+};
+
+const readServicePosition = (
+  value: JsonValue | undefined
+): PlanItemServicePosition => {
+  if (value === "pre" || value === "post") {
+    return value;
+  }
+  return "during";
+};
+
+export const normalizePlanItem = (
   resource: PCResource,
   included: PCResource[]
-): PlanItem {
-  const item = resource as RawItem;
-  const songId =
-    !Array.isArray(item.relationships?.song?.data) &&
-    item.relationships?.song?.data
-      ? item.relationships.song.data.id
-      : null;
-  const arrangementId =
-    !Array.isArray(item.relationships?.arrangement?.data) &&
-    item.relationships?.arrangement?.data
-      ? item.relationships.arrangement.data.id
-      : null;
-  const keyId =
-    !Array.isArray(item.relationships?.key?.data) &&
-    item.relationships?.key?.data
-      ? item.relationships.key.data.id
-      : null;
-  const layoutRelationship =
-    !Array.isArray(item.relationships?.selected_layout?.data) &&
-    item.relationships?.selected_layout?.data
-      ? item.relationships.selected_layout.data
-      : null;
+): PlanItem => {
+  const songId = getSingleRelationshipId(resource.relationships?.song);
+  const arrangementId = getSingleRelationshipId(
+    resource.relationships?.arrangement
+  );
+  const keyId = getSingleRelationshipId(resource.relationships?.key);
+  const layoutId = getSingleRelationshipId(
+    resource.relationships?.selected_layout
+  );
 
-  const song = songId
+  const song = isNonEmptyString(songId)
     ? normalizePlanItemSong(findIncluded(included, "Song", songId))
     : null;
-  const arrangement = arrangementId
+  const arrangement = isNonEmptyString(arrangementId)
     ? normalizePlanItemArrangement(
         findIncluded(included, "Arrangement", arrangementId)
       )
     : null;
-  const key = keyId
+  const key = isNonEmptyString(keyId)
     ? normalizePlanItemKey(findIncluded(included, "Key", keyId))
     : null;
-  const includedLayout = layoutRelationship
-    ? normalizeLayoutOption(
-        findIncluded(included, "Layout", layoutRelationship.id)
-      )
+  const includedLayout = isNonEmptyString(layoutId)
+    ? normalizeLayoutOption(findIncluded(included, "Layout", layoutId))
     : null;
   const layout =
     includedLayout ??
-    (layoutRelationship
-      ? { id: layoutRelationship.id, name: "Selected layout" }
+    (isNonEmptyString(layoutId)
+      ? { id: layoutId, name: "Selected layout" }
       : null);
 
   return {
-    id: item.id,
-    title: toText(item.attributes.title),
-    itemType: toText(item.attributes.item_type) as PlanItemType,
-    sequence:
-      typeof item.attributes.sequence === "number"
-        ? item.attributes.sequence
-        : 0,
-    servicePosition: (toText(item.attributes.service_position) ||
-      "during") as PlanItemServicePosition,
-    length: toNumberOrNull(item.attributes.length),
-    description: toText(item.attributes.description),
-    htmlDetails: toText(item.attributes.html_details),
+    id: resource.id,
+    title: toText(resource.attributes.title),
+    itemType: readPlanItemType(resource.attributes.item_type),
+    sequence: isNumber(resource.attributes.sequence)
+      ? resource.attributes.sequence
+      : 0,
+    servicePosition: readServicePosition(resource.attributes.service_position),
+    length: toNumberOrNull(resource.attributes.length),
+    description: toText(resource.attributes.description),
+    htmlDetails: toText(resource.attributes.html_details),
     customArrangementSequence: toStringArray(
-      item.attributes.custom_arrangement_sequence
+      resource.attributes.custom_arrangement_sequence
     ),
     song,
     arrangement,
     key,
     layout,
   };
-}
+};
 
-function normalizeSearchText(value: string): string {
-  return value
+const normalizeSearchText = (value: string): string =>
+  value
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
+    .replaceAll(/[^a-z0-9]+/gu, " ")
     .trim();
-}
 
-export function scoreSongSearch(
+export const scoreSongSearch = (
   entry: SongCatalogEntry,
   query: string
-): number {
+): number => {
   const normalizedQuery = normalizeSearchText(query);
-  if (!normalizedQuery) return 0;
+  if (!normalizedQuery) {
+    return 0;
+  }
 
   const title = normalizeSearchText(entry.title);
   const author = normalizeSearchText(entry.author);
   const themes = normalizeSearchText(entry.themes);
   const haystack = `${title} ${author} ${themes}`.trim();
-  const tokens = normalizedQuery.split(/\s+/).filter(Boolean);
+  const tokens = normalizedQuery.split(/\s+/u).filter(Boolean);
 
   let score = 0;
-  if (title === normalizedQuery) score += 1000;
-  if (title.startsWith(normalizedQuery)) score += 700;
-  if (title.includes(normalizedQuery)) score += 500;
-  if (author.startsWith(normalizedQuery)) score += 220;
-  if (author.includes(normalizedQuery)) score += 140;
-  if (themes.includes(normalizedQuery)) score += 120;
+  if (title === normalizedQuery) {
+    score += 1000;
+  }
+  if (title.startsWith(normalizedQuery)) {
+    score += 700;
+  }
+  if (title.includes(normalizedQuery)) {
+    score += 500;
+  }
+  if (author.startsWith(normalizedQuery)) {
+    score += 220;
+  }
+  if (author.includes(normalizedQuery)) {
+    score += 140;
+  }
+  if (themes.includes(normalizedQuery)) {
+    score += 120;
+  }
 
   for (const token of tokens) {
-    if (title.startsWith(token)) score += 120;
-    else if (title.includes(token)) score += 80;
-    else if (haystack.includes(token)) score += 35;
+    if (title.startsWith(token)) {
+      score += 120;
+    } else if (title.includes(token)) {
+      score += 80;
+    } else if (haystack.includes(token)) {
+      score += 35;
+    }
   }
 
   if (entry.lastScheduledAt) {
     const ageMs = Date.now() - entry.lastScheduledAt.getTime();
     const ageDays = ageMs / (24 * 60 * 60 * 1000);
-    if (ageDays < 180) score += 20;
+    if (ageDays < 180) {
+      score += 20;
+    }
   }
 
   return score;
-}
+};

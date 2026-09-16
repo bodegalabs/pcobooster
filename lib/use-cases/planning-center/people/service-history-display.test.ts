@@ -2,32 +2,26 @@ import { describe, expect, it } from "vitest";
 
 import type { ServiceHistoryItem } from "@/lib/types";
 
-import {
-  pickServiceHistoryGroupClosestToReference,
-  type ServiceHistoryGroup,
-} from "./service-history-display";
+import { pickServiceHistoryGroupClosestToReference } from "./service-history-display";
+import type { ServiceHistoryGroup } from "./service-history-display";
 
-function historyItem(id: string, iso: string): ServiceHistoryItem {
-  return {
-    id,
-    sourceScheduleId: `sched-${id}`,
-    date: new Date(iso),
-    teamPositionName: "Bass",
-    teamName: "Band",
-    status: "C",
-  };
-}
+const historyItem = (id: string, iso: string): ServiceHistoryItem => ({
+  id,
+  sourceScheduleId: `sched-${id}`,
+  date: new Date(iso),
+  teamPositionName: "Bass",
+  teamName: "Band",
+  status: "C",
+});
 
-function singleGroup(primary: ServiceHistoryItem): ServiceHistoryGroup {
-  return {
-    dayKey: primary.id,
-    primary,
-    additionalServices: [],
-    rehearsals: [],
-  };
-}
+const singleGroup = (primary: ServiceHistoryItem): ServiceHistoryGroup => ({
+  dayKey: primary.id,
+  primary,
+  additionalServices: [],
+  rehearsals: [],
+});
 
-describe("pickServiceHistoryGroupClosestToReference", () => {
+describe(pickServiceHistoryGroupClosestToReference, () => {
   const orgTz = "America/Los_Angeles";
   /** Plan instant on May 4, 2026 (still that calendar day in typical US zones). */
   const planSort = new Date("2026-05-04T17:00:00.000Z");

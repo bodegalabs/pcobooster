@@ -9,7 +9,7 @@ import {
 } from "@/lib/auth/dev-bypass";
 import { isAdminEmail } from "@/lib/use-cases/admin/get-account-activity";
 
-export async function requireAdminSession() {
+export const requireAdminSession = async () => {
   const session = isDevAuthBypassEnabled()
     ? getDevBypassSession(await loadDevBypassIdentity())
     : await auth.api.getSession({
@@ -25,4 +25,4 @@ export async function requireAdminSession() {
   }
 
   return session;
-}
+};

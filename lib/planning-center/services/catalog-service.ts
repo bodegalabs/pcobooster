@@ -1,3 +1,4 @@
+import { isNonEmptyString } from "@/lib/json";
 import { logger } from "@/lib/logger";
 import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { PlanningCenterReadCache } from "@/lib/planning-center/services/read-cache";
@@ -7,42 +8,48 @@ const log = logger.for("planning-center/catalog");
 const TEAM_POSITIONS_CACHE_TTL_MS = 5 * 60 * 1000;
 const NEEDED_POSITIONS_CACHE_TTL_MS = 60 * 1000;
 
+const cloneResourceResponse = (response: {
+  data: PCResource[];
+  included: PCResource[];
+}) => ({
+  data: structuredClone(response.data),
+  included: structuredClone(response.included),
+});
+
 export class PlanningCenterCatalogService {
+  private readonly core: PlanningCenterCoreClient;
   private serviceTypesCache: { expiresAt: number; data: PCResource[] } | null =
     null;
-  private readonly cache = new PlanningCenterReadCache();
+  private readonly cache = new PlanningCenterReadCache<{
+    data: PCResource[];
+    included: PCResource[];
+  }>();
 
-  constructor(private readonly core: PlanningCenterCoreClient) {}
+  constructor(core: PlanningCenterCoreClient) {
+    this.core = core;
+  }
 
   async getTeam(teamId: string): Promise<PCResource> {
-    const response = await this.core.fetch<PCResource>(
-      `/services/v2/teams/${teamId}`
-    );
+    const response = await this.core.fetch(`/services/v2/teams/${teamId}`);
     return response.data;
   }
 
   /** Root Services `Organization` (account settings include `time_zone`). */
   async getOrganization(): Promise<PCResource> {
-    const response = await this.core.fetch<PCResource | PCResource[]>(
-      "/services/v2"
-    );
-    const { data } = response;
-    if (Array.isArray(data)) {
-      const first = data[0];
-      if (!first) {
-        throw new Error(
-          "Planning Center Services organization response was empty"
-        );
-      }
-      return first;
+    const response = await this.core.fetchCollection("/services/v2");
+    const [first] = response.data;
+    if (first === undefined) {
+      throw new Error(
+        "Planning Center Services organization response was empty"
+      );
     }
-    return data;
+    return first;
   }
 
   async getServiceTypes(
     params: Record<string, string> = {}
   ): Promise<PCResource[]> {
-    return this.core.fetchAll<PCResource>("/services/v2/service_types", params);
+    return await this.core.fetchAll("/services/v2/service_types", params);
   }
 
   async getServiceTypesCached(
@@ -68,11 +75,11 @@ export class PlanningCenterCatalogService {
       this.buildCacheKey("service-type-team-positions", serviceTypeId),
       TEAM_POSITIONS_CACHE_TTL_MS,
       async () => {
-        const result = await this.core.fetch<PCResource[]>(
+        const result = await this.core.fetchCollection(
           `/services/v2/service_types/${serviceTypeId}/team_positions?include=team&per_page=100`
         );
 
-        const data = Array.isArray(result.data) ? result.data : [result.data];
+        const { data } = result;
         log.info(
           { serviceTypeId, positionCount: data.length },
           "Team positions fetched"
@@ -80,7 +87,7 @@ export class PlanningCenterCatalogService {
 
         return {
           data,
-          included: result.included || [],
+          included: result.included ?? [],
         };
       }
     );
@@ -96,7 +103,7 @@ export class PlanningCenterCatalogService {
       this.buildCacheKey("series-plan-needed-positions", seriesId, planId),
       NEEDED_POSITIONS_CACHE_TTL_MS,
       async () => {
-        const result = await this.core.fetchAllWithIncluded<PCResource>(
+        const result = await this.core.fetchAllWithIncluded(
           `/services/v2/series/${seriesId}/plans/${planId}/needed_positions`,
           { include: "team" }
         );
@@ -125,7 +132,7 @@ export class PlanningCenterCatalogService {
       ),
       NEEDED_POSITIONS_CACHE_TTL_MS,
       async () => {
-        const result = await this.core.fetchAllWithIncluded<PCResource>(
+        const result = await this.core.fetchAllWithIncluded(
           `/services/v2/service_types/${serviceTypeId}/plans/${planId}/needed_positions`,
           { include: "team" }
         );
@@ -148,7 +155,7 @@ export class PlanningCenterCatalogService {
     neededPositionId: string,
     planTimeId: string | null
   ): Promise<PCResource> {
-    const response = await this.core.fetch<PCResource>(
+    const response = await this.core.fetch(
       `/services/v2/service_types/${serviceTypeId}/plans/${planId}/needed_positions/${neededPositionId}`,
       {
         method: "PATCH",
@@ -161,7 +168,9 @@ export class PlanningCenterCatalogService {
             id: neededPositionId,
             relationships: {
               time: {
-                data: planTimeId ? { type: "PlanTime", id: planTimeId } : null,
+                data: isNonEmptyString(planTimeId)
+                  ? { type: "PlanTime", id: planTimeId }
+                  : null,
               },
             },
           },
@@ -194,16 +203,6 @@ export class PlanningCenterCatalogService {
       ...parts.map((part) => encodeURIComponent(part)),
     ].join(":");
   }
-}
-
-function cloneResourceResponse(response: {
-  data: PCResource[];
-  included: PCResource[];
-}): { data: PCResource[]; included: PCResource[] } {
-  return {
-    data: structuredClone(response.data),
-    included: structuredClone(response.included),
-  };
 }
 
 export const planningCenterCatalogService = new PlanningCenterCatalogService(

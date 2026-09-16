@@ -1,4 +1,5 @@
 import { planningCenterSongsService } from "@/lib/planning-center/services/songs-service";
+import type { PlanningCenterSongsService } from "@/lib/planning-center/services/songs-service";
 import type { SongCatalogEntry } from "@/lib/types";
 import {
   normalizeSongCatalogEntry,
@@ -15,13 +16,20 @@ interface SongSearchResultCacheEntry {
 
 const songSearchResultCache = new Map<string, SongSearchResultCacheEntry>();
 
-export async function searchSongs(
+export interface SongCatalogReader {
+  getSongsCatalogCached: PlanningCenterSongsService["getSongsCatalogCached"];
+}
+
+export const searchSongs = async (
   cacheKey: string,
   serviceTypeId: string,
-  query: string
-): Promise<SongCatalogEntry[]> {
+  query: string,
+  songCatalogReader: SongCatalogReader = planningCenterSongsService
+): Promise<SongCatalogEntry[]> => {
   const normalizedQuery = query.trim().toLowerCase();
-  if (!normalizedQuery) return [];
+  if (!normalizedQuery) {
+    return [];
+  }
 
   const resultCacheKey = [cacheKey, serviceTypeId, normalizedQuery].join(":");
   const now = Date.now();
@@ -30,23 +38,28 @@ export async function searchSongs(
     return structuredClone(cached.songs);
   }
 
-  const catalog = await planningCenterSongsService.getSongsCatalogCached(
+  const catalog = await songCatalogReader.getSongsCatalogCached(
     `${cacheKey}:${serviceTypeId}`
   );
-  const normalized = catalog
-    .map((song) => normalizeSongCatalogEntry(song))
-    .filter((song) => !song.hidden)
-    .map((song) => ({
-      ...song,
-      matchScore: scoreSongSearch(song, normalizedQuery),
-    }))
-    .filter((song) => (song.matchScore ?? 0) > 0)
-    .toSorted((a, b) => {
-      const scoreDiff = (b.matchScore ?? 0) - (a.matchScore ?? 0);
-      if (scoreDiff !== 0) return scoreDiff;
+  const normalized: SongCatalogEntry[] = [];
+  for (const rawSong of catalog) {
+    const song = normalizeSongCatalogEntry(rawSong);
+    if (song.hidden) {
+      continue;
+    }
+    const matchScore = scoreSongSearch(song, normalizedQuery);
+    if (matchScore > 0) {
+      normalized.push({ ...song, matchScore });
+    }
+  }
+  normalized.sort((a, b) => {
+    const scoreDiff = (b.matchScore ?? 0) - (a.matchScore ?? 0);
+    if (scoreDiff !== 0) {
+      return scoreDiff;
+    }
 
-      return a.title.localeCompare(b.title);
-    });
+    return a.title.localeCompare(b.title);
+  });
 
   const results = normalized.slice(0, MAX_RESULTS);
   songSearchResultCache.set(resultCacheKey, {
@@ -55,4 +68,4 @@ export async function searchSongs(
   });
 
   return structuredClone(results);
-}
+};

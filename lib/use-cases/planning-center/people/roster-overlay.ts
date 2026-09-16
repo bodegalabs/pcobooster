@@ -1,3 +1,4 @@
+import { isNonEmptyString } from "@/lib/json";
 import type { PersonWithAvailability, RawPerson } from "@/lib/types";
 import type { SelectedPlanMatchContext } from "@/lib/use-cases/planning-center/people/types";
 import {
@@ -5,8 +6,10 @@ import {
   getRosterEntriesForSlot,
   getRosterPerson,
   isDeclinedRosterStatus,
-  type PlanRosterEntry,
-  type PlanSchedulingContext,
+} from "@/lib/use-cases/planning-center/plan-scheduling-context";
+import type {
+  PlanRosterEntry,
+  PlanSchedulingContext,
 } from "@/lib/use-cases/planning-center/plan-scheduling-context";
 
 export interface SelectedPlanRosterOverlay {
@@ -14,7 +17,7 @@ export interface SelectedPlanRosterOverlay {
   assignmentLabels: string[];
 }
 
-export function mergeAssignedAndSelectedPlanSlotPeople({
+export const mergeAssignedAndSelectedPlanSlotPeople = ({
   assignedPeople,
   planSchedulingContext,
   selectedMatchContext,
@@ -22,7 +25,7 @@ export function mergeAssignedAndSelectedPlanSlotPeople({
   assignedPeople: RawPerson[];
   planSchedulingContext: PlanSchedulingContext;
   selectedMatchContext: SelectedPlanMatchContext;
-}): RawPerson[] {
+}): RawPerson[] => {
   const peopleById = new Map(
     assignedPeople.map((person) => [person.id, person])
   );
@@ -32,8 +35,10 @@ export function mergeAssignedAndSelectedPlanSlotPeople({
     selectedMatchContext.teamId,
     selectedMatchContext.selectedPositionName
   )) {
-    const personId = entry.personId;
-    if (!personId || peopleById.has(personId)) continue;
+    const { personId } = entry;
+    if (!isNonEmptyString(personId) || peopleById.has(personId)) {
+      continue;
+    }
 
     const person = getRosterPerson(planSchedulingContext, personId);
     if (person) {
@@ -42,35 +47,18 @@ export function mergeAssignedAndSelectedPlanSlotPeople({
   }
 
   return [...peopleById.values()];
-}
+};
 
-export function getSelectedPlanRosterOverlay(
-  planSchedulingContext: PlanSchedulingContext,
-  personId: string,
-  selectedMatchContext: SelectedPlanMatchContext
-): SelectedPlanRosterOverlay {
-  const rosterEntries = getRosterEntriesForPerson(
-    planSchedulingContext,
-    personId
-  );
-
-  return {
-    selectedSlotEntry: findSelectedSlotEntry(
-      rosterEntries,
-      selectedMatchContext
-    ),
-    assignmentLabels: getPlanRosterAssignmentLabels(rosterEntries),
-  };
-}
-
-export function applySelectedPlanRosterStatus(
+export const applySelectedPlanRosterStatus = (
   person: PersonWithAvailability,
   overlay: SelectedPlanRosterOverlay,
   assignmentLabels: string[] = overlay.assignmentLabels
-) {
+) => {
   person.selectedPlanAssignmentLabels = assignmentLabels;
   person.selectedPlanDeclineReason = undefined;
-  if (!overlay.selectedSlotEntry) return;
+  if (!overlay.selectedSlotEntry) {
+    return;
+  }
 
   person.isScheduledForSelectedPlanPosition = true;
   person.isConfirmedForSelectedPlanPosition =
@@ -83,46 +71,79 @@ export function applySelectedPlanRosterStatus(
     person.selectedPlanDeclineReason =
       overlay.selectedSlotEntry.declineReason ?? null;
   }
-}
+};
 
-export function mergeAssignmentLabels(...labelGroups: string[][]): string[] {
+export const mergeAssignmentLabels = (...labelGroups: string[][]): string[] => {
   const merged = new Map<string, string>();
 
   for (const rawLabel of labelGroups.flat()) {
     const label = rawLabel.trim();
-    if (!label) continue;
+    if (!label) {
+      continue;
+    }
 
     merged.set(label.toLowerCase(), label);
   }
 
   return [...merged.values()];
-}
+};
 
-function findSelectedSlotEntry(
+const findSelectedSlotEntry = (
   rosterEntries: PlanRosterEntry[],
   selectedMatchContext: SelectedPlanMatchContext
-): PlanRosterEntry | undefined {
+): PlanRosterEntry | undefined => {
   const { teamId, selectedPositionName, selectedTeamName } =
     selectedMatchContext;
-  if (!selectedPositionName) return undefined;
+  if (!isNonEmptyString(selectedPositionName)) {
+    return undefined;
+  }
 
   return rosterEntries.find((entry) => {
-    if (teamId && entry.teamId && entry.teamId !== teamId) return false;
     if (
-      selectedTeamName &&
-      entry.teamName &&
+      isNonEmptyString(teamId) &&
+      isNonEmptyString(entry.teamId) &&
+      entry.teamId !== teamId
+    ) {
+      return false;
+    }
+    if (
+      isNonEmptyString(selectedTeamName) &&
+      isNonEmptyString(entry.teamName) &&
       entry.teamName !== selectedTeamName
     ) {
       return false;
     }
     return entry.positionName === selectedPositionName;
   });
-}
+};
 
-function getPlanRosterAssignmentLabels(
+const getPlanRosterAssignmentLabels = (
   rosterEntries: PlanRosterEntry[]
-): string[] {
-  return rosterEntries
-    .filter((entry) => !isDeclinedRosterStatus(entry.status))
-    .map((entry) => entry.label);
-}
+): string[] => {
+  const labels: string[] = [];
+  for (const entry of rosterEntries) {
+    if (!isDeclinedRosterStatus(entry.status)) {
+      labels.push(entry.label);
+    }
+  }
+  return labels;
+};
+
+export const getSelectedPlanRosterOverlay = (
+  planSchedulingContext: PlanSchedulingContext,
+  personId: string,
+  selectedMatchContext: SelectedPlanMatchContext
+): SelectedPlanRosterOverlay => {
+  const rosterEntries = getRosterEntriesForPerson(
+    planSchedulingContext,
+    personId
+  );
+
+  return {
+    selectedSlotEntry: findSelectedSlotEntry(
+      rosterEntries,
+      selectedMatchContext
+    ),
+    assignmentLabels: getPlanRosterAssignmentLabels(rosterEntries),
+  };
+};

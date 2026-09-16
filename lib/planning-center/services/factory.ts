@@ -5,7 +5,7 @@ import { PlanningCenterPlanItemsService } from "@/lib/planning-center/services/p
 import { PlanningCenterPlansService } from "@/lib/planning-center/services/plans-service";
 import { PlanningCenterSongsService } from "@/lib/planning-center/services/songs-service";
 
-export function createPlanningCenterServices(accessToken: string) {
+export const createPlanningCenterServices = (accessToken: string) => {
   const core = new PlanningCenterCoreClient({
     accessToken,
   });
@@ -18,4 +18,4 @@ export function createPlanningCenterServices(accessToken: string) {
     plans: new PlanningCenterPlansService(core),
     songs: new PlanningCenterSongsService(core),
   };
-}
+};

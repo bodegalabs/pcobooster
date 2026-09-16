@@ -10,6 +10,8 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 
+import type { JsonObject } from "@/lib/json";
+
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -112,7 +114,7 @@ export const activityEvents = pgTable(
     teamId: text("team_id"),
     positionId: text("position_id"),
     metadata: jsonb("metadata")
-      .$type<Record<string, unknown>>()
+      .$type<JsonObject>()
       .default(sql`'{}'::jsonb`)
       .notNull(),
   },

@@ -1,3 +1,5 @@
+import { isNonEmptyString } from "@/lib/json";
+import type { JsonObject, JsonValue } from "@/lib/json";
 import type { PlanItemServicePosition } from "@/lib/types";
 import { getSongOptions } from "@/lib/use-cases/planning-center/get-song-options";
 
@@ -16,31 +18,46 @@ export interface PlanItemPayloadInput {
   customArrangementSequence?: string[];
 }
 
-function omitUndefined(record: Record<string, unknown>) {
-  return Object.fromEntries(
-    Object.entries(record).filter(([, value]) => value !== undefined)
-  );
-}
+const omitUndefined = (
+  record: Record<string, JsonValue | undefined>
+): JsonObject => {
+  const attributes: JsonObject = {};
+  for (const [key, value] of Object.entries(record)) {
+    if (value !== undefined) {
+      attributes[key] = value;
+    }
+  }
+  return attributes;
+};
 
-function toOptionalTrimmedText(value?: string): string | undefined {
+const toOptionalTrimmedText = (value?: string): string | undefined => {
   const trimmed = value?.trim();
-  return trimmed ? trimmed : undefined;
-}
+  return trimmed ?? undefined;
+};
 
-export async function resolvePlanItemSongDefaults(
-  input: PlanItemPayloadInput
-): Promise<PlanItemPayloadInput> {
+export const resolvePlanItemSongDefaults = async (
+  input: PlanItemPayloadInput,
+  loadSongOptions: typeof getSongOptions = getSongOptions
+): Promise<PlanItemPayloadInput> => {
   let title = input.title?.trim();
   let arrangementId = input.arrangementId ?? undefined;
   let keyId = input.keyId ?? undefined;
   let selectedLayoutId = input.selectedLayoutId ?? undefined;
 
-  if (input.songId && (!arrangementId || !keyId || !title)) {
-    const options = await getSongOptions(input.songId, input.serviceTypeId);
-    title ||= options.song.title;
-    arrangementId ||= options.suggestedArrangementId ?? undefined;
-    keyId ||= options.suggestedKeyId ?? undefined;
-    selectedLayoutId ||= options.suggestedLayoutId ?? undefined;
+  if (
+    isNonEmptyString(input.songId) &&
+    (!isNonEmptyString(arrangementId) ||
+      !isNonEmptyString(keyId) ||
+      !isNonEmptyString(title))
+  ) {
+    const options = await loadSongOptions(input.songId, input.serviceTypeId);
+    if (title === "" || title === undefined) {
+      const { title: songTitle } = options.song;
+      title = songTitle;
+    }
+    arrangementId ??= options.suggestedArrangementId ?? undefined;
+    keyId ??= options.suggestedKeyId ?? undefined;
+    selectedLayoutId ??= options.suggestedLayoutId ?? undefined;
   }
 
   return {
@@ -50,15 +67,15 @@ export async function resolvePlanItemSongDefaults(
     keyId,
     selectedLayoutId,
   };
-}
+};
 
-export function buildPlanItemAttributes(
+export const buildPlanItemAttributes = (
   input: PlanItemPayloadInput,
   options?: {
     defaultServicePosition?: PlanItemServicePosition;
   }
-) {
-  return omitUndefined({
+) =>
+  omitUndefined({
     title: toOptionalTrimmedText(input.title),
     item_type: input.itemType === "header" ? "header" : undefined,
     service_position: input.servicePosition ?? options?.defaultServicePosition,
@@ -75,4 +92,3 @@ export function buildPlanItemAttributes(
         ? input.customArrangementSequence
         : undefined,
   });
-}

@@ -27,14 +27,14 @@ export interface PeopleDashboardPerson {
   upcomingCount: number;
   streak: string;
   highlight: string;
-  monthDays: Array<{
+  monthDays: {
     day: number;
     kind: PeopleDashboardDayKind;
     positionName?: string;
     serviceTypeName?: string;
     status?: string;
     planUrl?: string;
-  }>;
+  }[];
 }
 
 export interface PeopleDashboardDay {
@@ -84,12 +84,12 @@ export interface PeopleDashboardPersonDetail {
   previousMonth: string;
   nextMonth: string;
   person: PeopleDashboardPerson;
-  trend: Array<{
+  trend: {
     month: string;
     label: string;
     services: number;
     rehearsals: number;
-  }>;
+  }[];
   requestBudget: {
     scheduleRequests: number;
     blockoutRequests: number;

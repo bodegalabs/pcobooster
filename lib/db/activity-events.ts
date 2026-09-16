@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { activityEvents } from "@/lib/db/schema";
+import type { JsonObject } from "@/lib/json";
 
 export type ActivityEventType =
   | "schedule_attempt"
@@ -9,7 +10,7 @@ export type ActivityEventType =
   | "auth_session_deleted"
   | "auth_account_linked";
 
-export type ActivityEventInput = {
+export interface ActivityEventInput {
   eventType: ActivityEventType;
   actorUserId?: string | null;
   actorAccountId?: string | null;
@@ -26,71 +27,61 @@ export type ActivityEventInput = {
   planId?: string | null;
   teamId?: string | null;
   positionId?: string | null;
-  metadata?: Record<string, unknown> | null;
-};
+  metadata?: JsonObject | null;
+}
 
-type HeadersLike = {
+interface HeadersLike {
   get: (name: string) => string | null;
-};
+}
 
-type RequestLike = {
+interface RequestLike {
   method?: string;
   url?: string;
   headers?: HeadersLike;
-};
+}
 
 type RequestContextSource =
-  | RequestLike
-  | {
-      request?: RequestLike;
-      headers?: HeadersLike;
-    }
+  | (RequestLike & { request?: RequestLike })
   | null
   | undefined;
 
-export type ActivityRequestContext = {
+export interface ActivityRequestContext {
   requestId: string | null;
   path: string | null;
   method: string | null;
   ipAddress: string | null;
   userAgent: string | null;
-};
-
-function toNullableString(value: unknown): string | null {
-  return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-function toNullableNumber(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
+const toNullableString = (value: string | null | undefined): string | null =>
+  value !== null && value !== undefined && value.length > 0 ? value : null;
 
-function getHeader(
+const toNullableNumber = (value: number | null | undefined): number | null =>
+  value !== null && value !== undefined && Number.isFinite(value)
+    ? value
+    : null;
+
+const getHeader = (
   headers: HeadersLike | undefined,
   name: string
-): string | null {
-  return toNullableString(headers?.get(name));
-}
+): string | null => toNullableString(headers?.get(name));
 
-function pathFromUrl(url: string | undefined): string | null {
-  if (!url) return null;
+const pathFromUrl = (url: string | undefined): string | null => {
+  if (!(url !== undefined && url !== "")) {
+    return null;
+  }
   try {
     return new URL(url).pathname;
   } catch {
     return null;
   }
-}
+};
 
-export function getActivityRequestContext(
+export const getActivityRequestContext = (
   source: RequestContextSource
-): ActivityRequestContext {
-  const request =
-    source && "request" in source
-      ? source.request
-      : (source as RequestLike | null | undefined);
-  const headers =
-    source && "headers" in source && source.headers
-      ? source.headers
-      : request?.headers;
+): ActivityRequestContext => {
+  const request = source?.request ?? source;
+  const headers = source?.headers ?? request?.headers;
 
   return {
     requestId: getHeader(headers, "x-request-id"),
@@ -100,22 +91,11 @@ export function getActivityRequestContext(
       getHeader(headers, "x-forwarded-for") ?? getHeader(headers, "x-real-ip"),
     userAgent: getHeader(headers, "user-agent"),
   };
-}
+};
 
-function normalizeMetadata(
-  metadata: ActivityEventInput["metadata"]
-): Record<string, unknown> {
-  if (!metadata) return {};
-  try {
-    return JSON.parse(JSON.stringify(metadata)) as Record<string, unknown>;
-  } catch {
-    return {};
-  }
-}
-
-export async function recordActivityEvent(
+export const recordActivityEvent = async (
   input: ActivityEventInput
-): Promise<void> {
+): Promise<void> => {
   await db.insert(activityEvents).values({
     eventType: input.eventType,
     actorUserId: toNullableString(input.actorUserId),
@@ -125,7 +105,7 @@ export async function recordActivityEvent(
     method: toNullableString(input.method),
     ipAddress: toNullableString(input.ipAddress),
     userAgent: toNullableString(input.userAgent),
-    success: typeof input.success === "boolean" ? input.success : null,
+    success: input.success ?? null,
     statusCode: toNullableNumber(input.statusCode),
     errorCode: toNullableString(input.errorCode),
     serviceTypeId: toNullableString(input.serviceTypeId),
@@ -133,6 +113,6 @@ export async function recordActivityEvent(
     planId: toNullableString(input.planId),
     teamId: toNullableString(input.teamId),
     positionId: toNullableString(input.positionId),
-    metadata: normalizeMetadata(input.metadata),
+    metadata: input.metadata ?? {},
   });
-}
+};

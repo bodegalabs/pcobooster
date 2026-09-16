@@ -10,17 +10,18 @@ import {
   recordActivityEvent,
 } from "@/lib/db/activity-events";
 import * as schema from "@/lib/db/schema";
+import type { JsonObject } from "@/lib/json";
 import { logger } from "@/lib/logger";
 import { upsertPlanningCenterAccountIdentity } from "@/lib/use-cases/admin/planning-center-account-identities";
 
 const baseUrl = process.env.BETTER_AUTH_URL;
 const secret = process.env.BETTER_AUTH_SECRET;
 
-if (!baseUrl) {
+if (!(baseUrl !== undefined && baseUrl !== "")) {
   throw new Error("Missing BETTER_AUTH_URL environment variable");
 }
 
-if (!secret) {
+if (!(secret !== undefined && secret !== "")) {
   throw new Error("Missing BETTER_AUTH_SECRET environment variable");
 }
 
@@ -28,13 +29,18 @@ const planningCenterClientId = process.env.PLANNING_CENTER_OAUTH_CLIENT_ID;
 const planningCenterClientSecret =
   process.env.PLANNING_CENTER_OAUTH_CLIENT_SECRET;
 
-if (!planningCenterClientId) {
+if (!(planningCenterClientId !== undefined && planningCenterClientId !== "")) {
   throw new Error(
     "Missing PLANNING_CENTER_OAUTH_CLIENT_ID environment variable"
   );
 }
 
-if (!planningCenterClientSecret) {
+if (
+  !(
+    planningCenterClientSecret !== undefined &&
+    planningCenterClientSecret !== ""
+  )
+) {
   throw new Error(
     "Missing PLANNING_CENTER_OAUTH_CLIENT_SECRET environment variable"
   );
@@ -42,11 +48,11 @@ if (!planningCenterClientSecret) {
 
 const authEventLog = logger.for("auth/events");
 
-function shouldTrackSessionDeletion(
+const shouldTrackSessionDeletion = (
   context: Parameters<typeof getActivityRequestContext>[0]
-): boolean {
+): boolean => {
   const requestContext = getActivityRequestContext(context);
-  if (!requestContext.path) {
+  if (!(requestContext.path !== null && requestContext.path !== "")) {
     return false;
   }
 
@@ -55,9 +61,9 @@ function shouldTrackSessionDeletion(
     requestContext.path.includes("/revoke-session") ||
     requestContext.path.includes("/revoke-sessions")
   );
-}
+};
 
-async function recordAuthEventSafely(
+const recordAuthEventSafely = async (
   eventType:
     | "auth_session_created"
     | "auth_session_deleted"
@@ -65,10 +71,10 @@ async function recordAuthEventSafely(
   payload: {
     userId?: string | null;
     accountId?: string | null;
-    metadata?: Record<string, unknown>;
+    metadata?: JsonObject;
     context: Parameters<typeof getActivityRequestContext>[0];
   }
-) {
+) => {
   try {
     const requestContext = getActivityRequestContext(payload.context);
     await recordActivityEvent({
@@ -91,13 +97,13 @@ async function recordAuthEventSafely(
       "Failed to record auth activity event"
     );
   }
-}
+};
 
-async function getPlanningCenterIdentitySafely(account: {
+const getPlanningCenterIdentitySafely = async (account: {
   id: string;
   accountId: string;
   accessToken?: string | null;
-}) {
+}) => {
   try {
     const identity = await getPlanningCenterIdentityFromAccessToken(
       account.accessToken
@@ -118,7 +124,7 @@ async function getPlanningCenterIdentitySafely(account: {
     );
     return null;
   }
-}
+};
 
 export const auth = betterAuth({
   baseURL: baseUrl,

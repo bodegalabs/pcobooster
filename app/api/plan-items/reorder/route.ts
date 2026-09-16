@@ -6,10 +6,10 @@ import { reorderPlanItemsBodySchema } from "@/lib/use-cases/planning-center/sche
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
   const log = logger.withRequest(request);
-  return handlePlanningCenterRoute(request, async () => {
-    const body = await request.json();
+  return await handlePlanningCenterRoute(request, async () => {
+    const body: unknown = await request.json();
     const parsed = reorderPlanItemsBodySchema.safeParse(body);
 
     if (!parsed.success) {
@@ -33,4 +33,4 @@ export async function POST(request: Request) {
 
     return { success: true };
   });
-}
+};

@@ -4,22 +4,29 @@ import {
   isDevAuthBypassEnabled,
 } from "@/lib/auth/dev-bypass";
 import { ApiError } from "@/lib/http/api-error";
+import { isNonEmptyString } from "@/lib/json";
 import { runWithPlanningCenterRequestAuth } from "@/lib/planning-center/request-auth-context";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
 export const PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE =
   "pco-selected-account-id";
 
-function getCookieValue(request: Request, name: string): string | null {
+const getCookieValue = (request: Request, name: string): string | null => {
   const header = request.headers.get("cookie");
-  if (!header) return null;
+  if (!isNonEmptyString(header)) {
+    return null;
+  }
 
   const segments = header.split(";").map((segment) => segment.trim());
   for (const segment of segments) {
     const [key, ...valueParts] = segment.split("=");
-    if (key !== name) continue;
+    if (key !== name) {
+      continue;
+    }
     const value = valueParts.join("=");
-    if (!value) return null;
+    if (!value) {
+      return null;
+    }
     try {
       return decodeURIComponent(value);
     } catch {
@@ -28,27 +35,24 @@ function getCookieValue(request: Request, name: string): string | null {
   }
 
   return null;
-}
+};
 
-export function getSelectedPlanningCenterAccountId(
+export const getSelectedPlanningCenterAccountId = (
   request: Request
-): string | null {
-  return getCookieValue(request, PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE);
-}
+): string | null =>
+  getCookieValue(request, PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE);
 
-export type PlanningCenterUserAuthContext = {
+export interface PlanningCenterUserAuthContext {
   session: NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
   accessToken: string;
   scopes: string[];
   accountId: string;
-};
+}
 
-export async function requirePlanningCenterAccessToken(request: Request) {
+export const requirePlanningCenterAccessToken = async (request: Request) => {
   if (isDevAuthBypassEnabled()) {
     return {
-      session: getDevBypassSession() as unknown as NonNullable<
-        Awaited<ReturnType<typeof auth.api.getSession>>
-      >,
+      session: getDevBypassSession(),
       accessToken: "",
       scopes: [],
       accountId: "dev-bypass-account",
@@ -73,7 +77,7 @@ export async function requirePlanningCenterAccessToken(request: Request) {
 
   const planningCenterAccounts = linkedAccounts
     .filter((account) => account.providerId === PLANNING_CENTER_PROVIDER_ID)
-    .sort((a, b) => {
+    .toSorted((a, b) => {
       const aTime = new Date(a.updatedAt).getTime();
       const bTime = new Date(b.updatedAt).getTime();
       return bTime - aTime;
@@ -81,11 +85,11 @@ export async function requirePlanningCenterAccessToken(request: Request) {
 
   const selectedAccountId = getSelectedPlanningCenterAccountId(request);
   const selectedAccount =
-    (selectedAccountId
+    (isNonEmptyString(selectedAccountId)
       ? planningCenterAccounts.find(
           (account) => account.id === selectedAccountId
         )
-      : null) ?? planningCenterAccounts[0];
+      : null) ?? planningCenterAccounts.at(0);
 
   if (!selectedAccount) {
     throw new ApiError(
@@ -119,7 +123,7 @@ export async function requirePlanningCenterAccessToken(request: Request) {
       },
     });
 
-    if (!refreshed.accessToken) {
+    if (!isNonEmptyString(refreshed.accessToken)) {
       throw new ApiError(
         401,
         "PLANNING_CENTER_REAUTH_REQUIRED",
@@ -130,28 +134,28 @@ export async function requirePlanningCenterAccessToken(request: Request) {
     return {
       session,
       accessToken: refreshed.accessToken,
-      scopes: refreshed.scope
-        ? refreshed.scope.split(/\s+/).filter(Boolean)
+      scopes: isNonEmptyString(refreshed.scope)
+        ? refreshed.scope.split(/\s+/u).filter(Boolean)
         : [],
       accountId: selectedAccount.id,
     };
   }
-}
+};
 
-export async function withPlanningCenterUser<T>(
+export const withPlanningCenterUser = async <T>(
   request: Request,
   handler: (ctx: PlanningCenterUserAuthContext) => Promise<T>
-): Promise<T> {
+): Promise<T> => {
   const authContext = await requirePlanningCenterAccessToken(request);
 
   if (!authContext.accessToken) {
     // Dev bypass: skip the per-request bearer so the core client falls back to
     // Basic auth using PLANNING_CENTER_CLIENT/PLANNING_CENTER_PAT.
-    return handler(authContext);
+    return await handler(authContext);
   }
 
-  return runWithPlanningCenterRequestAuth(
+  return await runWithPlanningCenterRequestAuth(
     { accessToken: authContext.accessToken },
-    async () => handler(authContext)
+    async () => await handler(authContext)
   );
-}
+};

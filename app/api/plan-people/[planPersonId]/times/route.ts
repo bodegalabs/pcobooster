@@ -12,12 +12,12 @@ const paramsSchema = z.object({
   planPersonId: z.string().min(1),
 });
 
-export async function PATCH(
+export const PATCH = async (
   request: Request,
   { params }: { params: Promise<{ planPersonId: string }> }
-) {
+) => {
   const log = logger.withRequest(request);
-  return handlePlanningCenterRoute(request, async () => {
+  return await handlePlanningCenterRoute(request, async () => {
     const parsedParams = paramsSchema.safeParse(await params);
     if (!parsedParams.success) {
       log.warn(
@@ -32,7 +32,7 @@ export async function PATCH(
       );
     }
 
-    const body = await request.json();
+    const body: unknown = await request.json();
     const parsedBody = updatePlanPersonTimesBodySchema.safeParse(body);
     if (!parsedBody.success) {
       log.warn(
@@ -57,4 +57,4 @@ export async function PATCH(
 
     return { ok: true };
   });
-}
+};

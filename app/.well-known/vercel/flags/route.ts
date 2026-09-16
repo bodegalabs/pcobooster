@@ -3,6 +3,6 @@ import { createFlagsDiscoveryEndpoint } from "flags/next";
 
 import * as flags from "../../../../flags";
 
-export const GET = createFlagsDiscoveryEndpoint(async () =>
-  getProviderData(flags)
+export const GET = createFlagsDiscoveryEndpoint(
+  async () => await getProviderData(flags)
 );

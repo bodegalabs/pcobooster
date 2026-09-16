@@ -7,6 +7,8 @@ import {
 } from "@/lib/db/activity-events";
 import { ApiError } from "@/lib/http/api-error";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
+import { isNonEmptyString } from "@/lib/json";
+import type { JsonObject } from "@/lib/json";
 import { logger } from "@/lib/logger";
 import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 import { invalidateCandidateHistoryForPerson } from "@/lib/use-cases/planning-center/get-people-for-position";
@@ -24,22 +26,22 @@ const bodySchema = z.object({
   planId: z.string().min(1).optional(),
 });
 
-export async function PATCH(
+export const PATCH = async (
   request: Request,
   { params }: { params: Promise<{ planPersonId: string }> }
-) {
+) => {
   const activityRequestContext = getActivityRequestContext(request);
   const requestId = activityRequestContext.requestId ?? crypto.randomUUID();
   const log = logger.withRequest(request).child({ requestId });
 
-  return handlePlanningCenterRoute(request, async (authContext) => {
+  return await handlePlanningCenterRoute(request, async (authContext) => {
     const recordStatusEventSafely = (event: {
       success: boolean;
       statusCode: number;
       errorCode: string | null;
       planPersonId: string | null;
       status: "C" | "U" | "D" | null;
-      metadata?: Record<string, unknown>;
+      metadata?: JsonObject;
     }) => {
       after(async () => {
         try {
@@ -89,7 +91,7 @@ export async function PATCH(
           parsedParams.error.issues
         );
       }
-      planPersonId = parsedParams.data.planPersonId;
+      ({ planPersonId } = parsedParams.data);
 
       const parsedBody = bodySchema.safeParse(await request.json());
       if (!parsedBody.success) {
@@ -116,7 +118,7 @@ export async function PATCH(
           planId: requestBody.planId,
         }
       );
-      if (requestBody.personId) {
+      if (isNonEmptyString(requestBody.personId)) {
         invalidateCandidateHistoryForPerson(requestBody.personId);
       }
 
@@ -161,4 +163,4 @@ export async function PATCH(
       throw error;
     }
   });
-}
+};

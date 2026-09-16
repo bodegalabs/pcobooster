@@ -1,11 +1,16 @@
+import { isNonEmptyString, isString } from "@/lib/json";
+import type { JsonObject, JsonValue } from "@/lib/json";
 import { planningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
+import type { PlanningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
 import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
+import type { PlanningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 import { planningCenterPlansService } from "@/lib/planning-center/services/plans-service";
+import type { PlanningCenterPlansService } from "@/lib/planning-center/services/plans-service";
 import type {
+  PCRelationship,
+  PCResource,
   PlanTime,
   PlanTimeType,
-  RawPlanPerson,
-  RawPlanTime,
 } from "@/lib/types";
 import { invalidatePlanWindowHistory } from "@/lib/use-cases/planning-center/get-people-for-position";
 import {
@@ -46,159 +51,170 @@ interface DeletePlanTimeInput {
   planTimeId: string;
 }
 
-export async function getPlanTimes(planId: string): Promise<PlanTime[]> {
-  const rawPlanTimes = await planningCenterPlansService.getPlanTimes(planId);
-  return rawPlanTimes
-    .map((raw) => normalizePlanTime(raw as RawPlanTime))
-    .filter((planTime): planTime is PlanTime => planTime !== null)
-    .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+export interface PlanTimeDependencies {
+  plansService: Pick<
+    PlanningCenterPlansService,
+    "getPlanTimes" | "createPlanTime" | "updatePlanTime" | "deletePlanTime"
+  >;
+  peopleService: Pick<
+    PlanningCenterPeopleService,
+    | "getPlanTeamMembers"
+    | "updatePlanPersonTimes"
+    | "invalidatePlanTimeSensitiveReadCaches"
+  >;
+  catalogService: Pick<
+    PlanningCenterCatalogService,
+    "updateServiceTypePlanNeededPositionTime"
+  >;
 }
 
-export async function updatePlanTime(
-  input: UpdatePlanTimeInput
-): Promise<PlanTime> {
-  const attributes: Record<string, unknown> = {};
-  if (input.name !== undefined) attributes.name = input.name;
-  if (input.startsAt !== undefined) attributes.starts_at = input.startsAt;
-  if (input.endsAt !== undefined) attributes.ends_at = input.endsAt;
-  if (input.timeType !== undefined) attributes.time_type = input.timeType;
+const defaultDependencies: PlanTimeDependencies = {
+  plansService: planningCenterPlansService,
+  peopleService: planningCenterPeopleService,
+  catalogService: planningCenterCatalogService,
+};
 
-  const rawPlanTime = await planningCenterPlansService.updatePlanTime(
-    input.serviceTypeId,
-    input.planId,
-    input.planTimeId,
-    attributes,
-    input.assignedTeamIds,
-    input.assignedPositionIds
-  );
-  await updateNeededPositionAssignments(input);
-  await updateIndividualTimeAssignments(input);
-  planningCenterPeopleService.invalidatePlanTimeSensitiveReadCaches(
-    input.planId
-  );
-  invalidatePlanWindowHistory();
-
-  const planTime = normalizePlanTime(rawPlanTime as RawPlanTime);
-  if (!planTime) {
-    throw new Error("Planning Center returned an invalid plan time");
-  }
-  return planTime;
-}
-
-export async function createPlanTime(
-  input: CreatePlanTimeInput
-): Promise<PlanTime> {
-  const attributes: Record<string, unknown> = {
-    starts_at: input.startsAt,
-    time_type: input.timeType,
-  };
-  if (input.name !== undefined) attributes.name = input.name;
-  if (input.endsAt !== undefined) attributes.ends_at = input.endsAt;
-
-  const rawPlanTime = await planningCenterPlansService.createPlanTime(
-    input.serviceTypeId,
-    input.planId,
-    attributes,
-    input.assignedTeamIds,
-    input.assignedPositionIds
-  );
-  planningCenterPeopleService.invalidatePlanTimeSensitiveReadCaches(
-    input.planId
-  );
-  invalidatePlanWindowHistory();
-
-  const planTime = normalizePlanTime(rawPlanTime as RawPlanTime);
-  if (!planTime) {
-    throw new Error("Planning Center returned an invalid plan time");
-  }
-  return planTime;
-}
-
-export async function deletePlanTime(
-  input: DeletePlanTimeInput
-): Promise<void> {
-  await planningCenterPlansService.deletePlanTime(
+export const deletePlanTime = async (
+  input: DeletePlanTimeInput,
+  invalidateHistory: () => void = invalidatePlanWindowHistory,
+  dependencies: PlanTimeDependencies = defaultDependencies
+): Promise<void> => {
+  await dependencies.plansService.deletePlanTime(
     input.serviceTypeId,
     input.planId,
     input.planTimeId
   );
-  planningCenterPeopleService.invalidatePlanTimeSensitiveReadCaches(
+  dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
     input.planId
   );
-  invalidatePlanWindowHistory();
-}
+  invalidateHistory();
+};
 
-async function updateIndividualTimeAssignments(input: UpdatePlanTimeInput) {
+const updateIndividualTimeAssignments = async (
+  input: UpdatePlanTimeInput,
+  dependencies: PlanTimeDependencies
+) => {
   const assignIds = input.assignedPlanPersonIds ?? [];
   const clearIds = input.clearedPlanPersonIds ?? [];
-  if (assignIds.length === 0 && clearIds.length === 0) return;
+  if (assignIds.length === 0 && clearIds.length === 0) {
+    return;
+  }
 
-  const response = await planningCenterPeopleService.getPlanTeamMembers(
+  const response = await dependencies.peopleService.getPlanTeamMembers(
     input.serviceTypeId,
     input.planId
   );
   const context = buildPlanSchedulingContext({
     serviceTypeId: input.serviceTypeId,
     planId: input.planId,
-    planTeamMembers: response.data as RawPlanPerson[],
-    included: response.included || [],
+    planTeamMembers: response.data,
+    included: response.included ?? [],
   });
   const targetIds = new Set([...assignIds, ...clearIds]);
   const assignSet = new Set(assignIds);
 
-  await Promise.all(
-    context.rosterEntries
-      .filter((entry) => targetIds.has(entry.planPersonId))
-      .filter(
-        (entry) => entry.personId && !isDeclinedRosterStatus(entry.status)
-      )
-      .map((entry) => {
-        const current = new Set(entry.assignedTimeIds);
-        if (assignSet.has(entry.planPersonId)) {
-          current.add(input.planTimeId);
-        } else {
-          current.delete(input.planTimeId);
-        }
-
-        return planningCenterPeopleService.updatePlanPersonTimes({
-          personId: entry.personId!,
-          planPersonId: entry.planPersonId,
-          serviceTypeId: input.serviceTypeId,
-          planId: input.planId,
-          planTimeIds: [...current],
-        });
+  const updates: Promise<PCResource>[] = [];
+  for (const entry of context.rosterEntries) {
+    if (
+      !targetIds.has(entry.planPersonId) ||
+      !isNonEmptyString(entry.personId) ||
+      isDeclinedRosterStatus(entry.status)
+    ) {
+      continue;
+    }
+    const current = new Set(entry.assignedTimeIds);
+    if (assignSet.has(entry.planPersonId)) {
+      current.add(input.planTimeId);
+    } else {
+      current.delete(input.planTimeId);
+    }
+    updates.push(
+      dependencies.peopleService.updatePlanPersonTimes({
+        personId: entry.personId,
+        planPersonId: entry.planPersonId,
+        serviceTypeId: input.serviceTypeId,
+        planId: input.planId,
+        planTimeIds: [...current],
       })
-  );
-}
+    );
+  }
+  await Promise.all(updates);
+};
 
-async function updateNeededPositionAssignments(input: UpdatePlanTimeInput) {
+const updateNeededPositionAssignments = async (
+  input: UpdatePlanTimeInput,
+  dependencies: PlanTimeDependencies
+) => {
   const assignIds = input.assignedNeededPositionIds ?? [];
   const clearIds = input.clearedNeededPositionIds ?? [];
-  if (assignIds.length === 0 && clearIds.length === 0) return;
+  if (assignIds.length === 0 && clearIds.length === 0) {
+    return;
+  }
 
   await Promise.all([
-    ...assignIds.map((id) =>
-      planningCenterCatalogService.updateServiceTypePlanNeededPositionTime(
-        input.serviceTypeId,
-        input.planId,
-        id,
-        input.planTimeId
-      )
+    ...assignIds.map(
+      async (id) =>
+        await dependencies.catalogService.updateServiceTypePlanNeededPositionTime(
+          input.serviceTypeId,
+          input.planId,
+          id,
+          input.planTimeId
+        )
     ),
-    ...clearIds.map((id) =>
-      planningCenterCatalogService.updateServiceTypePlanNeededPositionTime(
-        input.serviceTypeId,
-        input.planId,
-        id,
-        null
-      )
+    ...clearIds.map(
+      async (id) =>
+        await dependencies.catalogService.updateServiceTypePlanNeededPositionTime(
+          input.serviceTypeId,
+          input.planId,
+          id,
+          null
+        )
     ),
   ]);
-}
+};
 
-function normalizePlanTime(raw: RawPlanTime): PlanTime | null {
+const getRelationshipIds = (data: PCRelationship["data"]): string[] => {
+  if (data === undefined || data === null) {
+    return [];
+  }
+  return Array.isArray(data) ? data.map((related) => related.id) : [data.id];
+};
+
+const normalizeName = (value: JsonValue | undefined): string => {
+  if (!isString(value)) {
+    return "Untitled time";
+  }
+  return value.trim();
+};
+
+const normalizeTimeType = (value: JsonValue | undefined): PlanTimeType => {
+  if (value === "rehearsal" || value === "service" || value === "other") {
+    return value;
+  }
+  return "other";
+};
+
+const parseRequiredDate = (value: JsonValue | undefined): Date | null => {
+  if (!isNonEmptyString(value)) {
+    return null;
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const parseOptionalDate = (value: JsonValue | undefined): Date | null => {
+  if (!isNonEmptyString(value)) {
+    return null;
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const normalizePlanTime = (raw: PCResource): PlanTime | null => {
   const startsAt = parseRequiredDate(raw.attributes.starts_at);
-  if (!startsAt) return null;
+  if (!startsAt) {
+    return null;
+  }
 
   return {
     id: raw.id,
@@ -217,34 +233,91 @@ function normalizePlanTime(raw: RawPlanTime): PlanTime | null {
       raw.relationships?.split_team_rehearsal_assignments?.data
     ),
   };
-}
+};
 
-function getRelationshipIds(
-  relationships: { id: string }[] | undefined
-): string[] {
-  return relationships?.map((relationship) => relationship.id) ?? [];
-}
+export const getPlanTimes = async (
+  planId: string,
+  dependencies: PlanTimeDependencies = defaultDependencies
+): Promise<PlanTime[]> => {
+  const rawPlanTimes = await dependencies.plansService.getPlanTimes(planId);
+  return rawPlanTimes
+    .map((raw) => normalizePlanTime(raw))
+    .filter((planTime): planTime is PlanTime => planTime !== null)
+    .toSorted((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
+};
 
-function normalizeName(value: string | undefined): string {
-  const trimmed = value?.trim();
-  return trimmed || "Untitled time";
-}
-
-function normalizeTimeType(value: string | undefined): PlanTimeType {
-  if (value === "rehearsal" || value === "service" || value === "other") {
-    return value;
+export const updatePlanTime = async (
+  input: UpdatePlanTimeInput,
+  invalidateHistory: () => void = invalidatePlanWindowHistory,
+  dependencies: PlanTimeDependencies = defaultDependencies
+): Promise<PlanTime> => {
+  const attributes: JsonObject = {};
+  if (input.name !== undefined) {
+    attributes.name = input.name;
   }
-  return "other";
-}
+  if (input.startsAt !== undefined) {
+    attributes.starts_at = input.startsAt;
+  }
+  if (input.endsAt !== undefined) {
+    attributes.ends_at = input.endsAt;
+  }
+  if (input.timeType !== undefined) {
+    attributes.time_type = input.timeType;
+  }
 
-function parseRequiredDate(value: string | undefined): Date | null {
-  if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
+  const rawPlanTime = await dependencies.plansService.updatePlanTime(
+    input.serviceTypeId,
+    input.planId,
+    input.planTimeId,
+    attributes,
+    input.assignedTeamIds,
+    input.assignedPositionIds
+  );
+  await updateNeededPositionAssignments(input, dependencies);
+  await updateIndividualTimeAssignments(input, dependencies);
+  dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
+    input.planId
+  );
+  invalidateHistory();
 
-function parseOptionalDate(value: string | undefined): Date | null {
-  if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
+  const planTime = normalizePlanTime(rawPlanTime);
+  if (!planTime) {
+    throw new Error("Planning Center returned an invalid plan time");
+  }
+  return planTime;
+};
+
+export const createPlanTime = async (
+  input: CreatePlanTimeInput,
+  invalidateHistory: () => void = invalidatePlanWindowHistory,
+  dependencies: PlanTimeDependencies = defaultDependencies
+): Promise<PlanTime> => {
+  const attributes: JsonObject = {
+    starts_at: input.startsAt,
+    time_type: input.timeType,
+  };
+  if (input.name !== undefined) {
+    attributes.name = input.name;
+  }
+  if (input.endsAt !== undefined) {
+    attributes.ends_at = input.endsAt;
+  }
+
+  const rawPlanTime = await dependencies.plansService.createPlanTime(
+    input.serviceTypeId,
+    input.planId,
+    attributes,
+    input.assignedTeamIds,
+    input.assignedPositionIds
+  );
+  dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
+    input.planId
+  );
+  invalidateHistory();
+
+  const planTime = normalizePlanTime(rawPlanTime);
+  if (!planTime) {
+    throw new Error("Planning Center returned an invalid plan time");
+  }
+  return planTime;
+};

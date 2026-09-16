@@ -1,19 +1,16 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
-type PlanningCenterRequestAuthContext = {
+interface PlanningCenterRequestAuthContext {
   accessToken: string;
-};
+}
 
 const planningCenterAuthStorage =
   new AsyncLocalStorage<PlanningCenterRequestAuthContext>();
 
-export function runWithPlanningCenterRequestAuth<T>(
+export const runWithPlanningCenterRequestAuth = async <T>(
   context: PlanningCenterRequestAuthContext,
   fn: () => Promise<T>
-): Promise<T> {
-  return planningCenterAuthStorage.run(context, fn);
-}
+): Promise<T> => await planningCenterAuthStorage.run(context, fn);
 
-export function getPlanningCenterRequestAccessToken(): string | null {
-  return planningCenterAuthStorage.getStore()?.accessToken ?? null;
-}
+export const getPlanningCenterRequestAccessToken = (): string | null =>
+  planningCenterAuthStorage.getStore()?.accessToken ?? null;

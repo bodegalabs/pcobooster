@@ -1,5 +1,8 @@
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 
+import { planningCenterIdentitySchema } from "@/lib/auth/planning-center-identity";
+import type { PlanningCenterIdentity } from "@/lib/auth/planning-center-identity";
 import { db } from "@/lib/db";
 import {
   account,
@@ -10,46 +13,26 @@ import {
 const clientId = process.env.PLANNING_CENTER_OAUTH_CLIENT_ID;
 const clientSecret = process.env.PLANNING_CENTER_OAUTH_CLIENT_SECRET;
 
-if (!clientId) throw new Error("Missing PLANNING_CENTER_OAUTH_CLIENT_ID");
-if (!clientSecret)
+if (!(clientId !== undefined && clientId !== "")) {
+  throw new Error("Missing PLANNING_CENTER_OAUTH_CLIENT_ID");
+}
+if (!(clientSecret !== undefined && clientSecret !== "")) {
   throw new Error("Missing PLANNING_CENTER_OAUTH_CLIENT_SECRET");
+}
 
 const tokenEndpoint = "https://api.planningcenteronline.com/oauth/token";
 const userinfoEndpoint = "https://api.planningcenteronline.com/oauth/userinfo";
 
-type Identity = {
-  sub: string | null;
-  name: string | null;
-  email: string | null;
-  organizationId: string | null;
-  organizationName: string | null;
-};
+const tokenResponseSchema = z.object({
+  access_token: z.string().min(1),
+  refresh_token: z.string().optional(),
+  expires_in: z.number().optional(),
+});
+type TokenResponse = z.infer<typeof tokenResponseSchema>;
 
-type TokenResponse = {
-  access_token: string;
-  refresh_token?: string;
-  expires_in?: number;
-};
-
-function normalizeIdentity(payload: unknown): Identity | null {
-  if (!payload || typeof payload !== "object") return null;
-  const value = payload as Record<string, unknown>;
-  return {
-    sub: typeof value.sub === "string" ? value.sub : null,
-    name: typeof value.name === "string" ? value.name : null,
-    email: typeof value.email === "string" ? value.email : null,
-    organizationId:
-      typeof value.organization_id === "string" ? value.organization_id : null,
-    organizationName:
-      typeof value.organization_name === "string"
-        ? value.organization_name
-        : null,
-  };
-}
-
-async function refreshAccessToken(
+const refreshAccessToken = async (
   refreshToken: string
-): Promise<TokenResponse> {
+): Promise<TokenResponse> => {
   const body = new URLSearchParams({
     grant_type: "refresh_token",
     refresh_token: refreshToken,
@@ -71,10 +54,12 @@ async function refreshAccessToken(
     );
   }
 
-  return response.json() as Promise<TokenResponse>;
-}
+  return tokenResponseSchema.parse(await response.json());
+};
 
-async function fetchIdentity(accessToken: string): Promise<Identity | null> {
+const fetchIdentity = async (
+  accessToken: string
+): Promise<PlanningCenterIdentity | null> => {
   const response = await fetch(userinfoEndpoint, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -88,10 +73,11 @@ async function fetchIdentity(accessToken: string): Promise<Identity | null> {
     );
   }
 
-  return normalizeIdentity(await response.json());
-}
+  const parsed = planningCenterIdentitySchema.safeParse(await response.json());
+  return parsed.success ? parsed.data : null;
+};
 
-async function main() {
+const main = async () => {
   const accounts = await db
     .select({
       id: account.id,
@@ -106,15 +92,19 @@ async function main() {
     .where(eq(account.providerId, "planning-center"))
     .orderBy(user.email, account.updatedAt);
 
-  for (const row of accounts) {
+  const backfillAccount = async (
+    row: (typeof accounts)[number]
+  ): Promise<void> => {
     try {
-      let accessToken = row.accessToken;
+      let { accessToken } = row;
       if (
-        !accessToken ||
+        !(accessToken !== null && accessToken !== "") ||
         !row.accessTokenExpiresAt ||
         row.accessTokenExpiresAt <= new Date()
       ) {
-        if (!row.refreshToken) throw new Error("no refresh token");
+        if (!(row.refreshToken !== null && row.refreshToken !== "")) {
+          throw new Error("no refresh token");
+        }
         const refreshed = await refreshAccessToken(row.refreshToken);
         accessToken = refreshed.access_token;
         await db
@@ -123,16 +113,18 @@ async function main() {
             accessToken: refreshed.access_token,
             refreshToken: refreshed.refresh_token ?? row.refreshToken,
             accessTokenExpiresAt:
-              typeof refreshed.expires_in === "number"
-                ? new Date(Date.now() + refreshed.expires_in * 1000)
-                : row.accessTokenExpiresAt,
+              refreshed.expires_in === undefined
+                ? row.accessTokenExpiresAt
+                : new Date(Date.now() + refreshed.expires_in * 1000),
             updatedAt: new Date(),
           })
           .where(eq(account.id, row.id));
       }
 
       const identity = await fetchIdentity(accessToken);
-      if (!identity) throw new Error("empty identity");
+      if (!identity) {
+        throw new Error("empty identity");
+      }
       const now = new Date();
 
       await db
@@ -170,10 +162,22 @@ async function main() {
         `${row.userEmail} ${row.accountId}: ${error instanceof Error ? error.message : String(error)}`
       );
     }
-  }
-}
+  };
+  const remainingAccounts = accounts.values();
+  const processNextAccount = async (): Promise<void> => {
+    const next = remainingAccounts.next();
+    if (next.done === true) {
+      return;
+    }
+    await backfillAccount(next.value);
+    await processNextAccount();
+  };
+  await processNextAccount();
+};
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error(error);
   process.exitCode = 1;
-});
+}

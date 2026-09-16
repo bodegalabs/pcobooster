@@ -1,25 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  PlanningCenterApiError,
-  type PlanningCenterCoreClient,
-} from "@/lib/planning-center/core-client";
+import { PlanningCenterApiError } from "@/lib/planning-center/api-error";
+import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { PlanningCenterSongsService } from "@/lib/planning-center/services/songs-service";
 
-function createCoreClientMock() {
-  const fetchMock = vi.fn();
-  const fetchAllMock = vi.fn();
-  const fetchAllWithIncludedMock = vi.fn();
-  const core = {
-    fetch: fetchMock,
-    fetchAll: fetchAllMock,
-    fetchAllWithIncluded: fetchAllWithIncludedMock,
-    getCacheScope: vi.fn(() => "test-scope"),
-  } as unknown as PlanningCenterCoreClient;
+const createCoreClientMock = () => {
+  const core = new PlanningCenterCoreClient();
+  const fetchMock = vi.spyOn(core, "fetch");
+  const fetchAllMock = vi.spyOn(core, "fetchAll");
+  const fetchAllWithIncludedMock = vi.spyOn(core, "fetchAllWithIncluded");
   return { core, fetchMock, fetchAllMock, fetchAllWithIncludedMock };
-}
+};
 
-describe("PlanningCenterSongsService", () => {
+describe(PlanningCenterSongsService, () => {
   it("dedupes song catalog loads and returns defensive clones", async () => {
     const { core, fetchAllMock } = createCoreClientMock();
     fetchAllMock.mockResolvedValue([
@@ -36,22 +29,33 @@ describe("PlanningCenterSongsService", () => {
       service.getSongsCatalogCached("account-1:service-1"),
     ]);
 
-    expect(fetchAllMock).toHaveBeenCalledTimes(1);
-    expect(fetchAllMock).toHaveBeenCalledWith(
+    expect(fetchAllMock).toHaveBeenCalledExactlyOnceWith(
       "/services/v2/songs",
       { order: "title" },
       15
     );
-    expect(first).toEqual(second);
-    expect(first).not.toBe(second);
-    expect(first[0]).not.toBe(second[0]);
+    expect({
+      sameContent: first,
+      separateArrays: first !== second,
+      separateResources: first[0] !== second[0],
+    }).toStrictEqual({
+      sameContent: second,
+      separateArrays: true,
+      separateResources: true,
+    });
 
-    first[0]!.attributes.title = "Changed locally";
+    first[0].attributes.title = "Changed locally";
     const third = await service.getSongsCatalogCached("account-1:service-1");
 
-    expect(fetchAllMock).toHaveBeenCalledTimes(1);
-    expect(second[0]!.attributes.title).toBe("Build My Life");
-    expect(third[0]!.attributes.title).toBe("Build My Life");
+    expect({
+      fetchCount: fetchAllMock.mock.calls.length,
+      cachedTitle: second[0].attributes.title,
+      laterTitle: third[0].attributes.title,
+    }).toStrictEqual({
+      fetchCount: 1,
+      cachedTitle: "Build My Life",
+      laterTitle: "Build My Life",
+    });
   });
 
   it("caches song details and returns defensive clones", async () => {
@@ -68,9 +72,15 @@ describe("PlanningCenterSongsService", () => {
     const first = await service.getSong("song-1");
     const second = await service.getSong("song-1");
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(first).toEqual(second);
-    expect(first).not.toBe(second);
+    expect({
+      fetchCount: fetchMock.mock.calls.length,
+      sameContent: first,
+      separateResources: first !== second,
+    }).toStrictEqual({
+      fetchCount: 1,
+      sameContent: second,
+      separateResources: true,
+    });
 
     first.attributes.title = "Changed locally";
     expect(second.attributes.title).toBe("Build My Life");
@@ -99,14 +109,22 @@ describe("PlanningCenterSongsService", () => {
     const first = await service.getSongArrangementsWithKeys("song-1");
     const second = await service.getSongArrangementsWithKeys("song-1");
 
-    expect(fetchAllWithIncludedMock).toHaveBeenCalledTimes(1);
-    expect(first).toEqual(second);
-    expect(first).not.toBe(second);
-    expect(first.data).not.toBe(second.data);
-    expect(first.included).not.toBe(second.included);
+    expect({
+      fetchCount: fetchAllWithIncludedMock.mock.calls.length,
+      sameContent: first,
+      separateResponses: first !== second,
+      separateData: first.data !== second.data,
+      separateIncluded: first.included !== second.included,
+    }).toStrictEqual({
+      fetchCount: 1,
+      sameContent: second,
+      separateResponses: true,
+      separateData: true,
+      separateIncluded: true,
+    });
 
-    first.data[0]!.attributes.name = "Changed locally";
-    expect(second.data[0]!.attributes.name).toBe("Default");
+    first.data[0].attributes.name = "Changed locally";
+    expect(second.data[0].attributes.name).toBe("Default");
   });
 });
 
@@ -124,7 +142,7 @@ describe("PlanningCenterSongsService.getSongLastScheduledItem", () => {
 
     await expect(
       service.getSongLastScheduledItem("song-1", "service-1")
-    ).resolves.toEqual({
+    ).resolves.toStrictEqual({
       data: null,
       included: [],
     });

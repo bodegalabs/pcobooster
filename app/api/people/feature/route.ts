@@ -2,8 +2,7 @@ import { peoplePageFlag } from "@/flags";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  return Response.json({
+export const GET = async () =>
+  Response.json({
     enabled: await peoplePageFlag(),
   });
-}

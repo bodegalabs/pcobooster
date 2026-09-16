@@ -10,12 +10,12 @@ export type StoredPlanningCenterAccountIdentity = PlanningCenterIdentity & {
   fetchedAt: string;
 };
 
-export async function upsertPlanningCenterAccountIdentity(input: {
+export const upsertPlanningCenterAccountIdentity = async (input: {
   accountId: string;
   providerAccountId: string;
   identity: PlanningCenterIdentity;
   fetchedAt?: Date;
-}) {
+}) => {
   const now = new Date();
   const fetchedAt = input.fetchedAt ?? now;
 
@@ -45,15 +45,17 @@ export async function upsertPlanningCenterAccountIdentity(input: {
         updatedAt: now,
       },
     });
-}
+};
 
-export async function getPlanningCenterAccountIdentity(
+export const getPlanningCenterAccountIdentity = async (
   accountId: string
-): Promise<StoredPlanningCenterAccountIdentity | null> {
+): Promise<StoredPlanningCenterAccountIdentity | null> => {
   const row = await db.query.planningCenterAccountIdentities.findFirst({
     where: eq(planningCenterAccountIdentities.accountId, accountId),
   });
-  if (!row) return null;
+  if (!row) {
+    return null;
+  }
 
   return {
     accountId: row.accountId,
@@ -65,4 +67,4 @@ export async function getPlanningCenterAccountIdentity(
     organizationName: row.organizationName,
     fetchedAt: row.fetchedAt.toISOString(),
   };
-}
+};

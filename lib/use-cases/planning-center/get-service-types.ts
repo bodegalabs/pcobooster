@@ -1,31 +1,25 @@
-import {
-  planningCenterCatalogService,
-  type PlanningCenterCatalogService,
-} from "@/lib/planning-center/services/catalog-service";
-import type { RawServiceType, ServiceType } from "@/lib/types";
+import { isNonEmptyString, isNumber, isString } from "@/lib/json";
+import { planningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
+import type { PlanningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
+import type { ServiceType } from "@/lib/types";
 
-export async function getServiceTypes(
+export const getServiceTypes = async (
   catalogService: Pick<
     PlanningCenterCatalogService,
     "getServiceTypesCached"
   > = planningCenterCatalogService
-): Promise<ServiceType[]> {
+): Promise<ServiceType[]> => {
   const rawServiceTypes = await catalogService.getServiceTypesCached();
-  const activeRawServiceTypes = rawServiceTypes.filter((raw) => {
-    const archivedAt = (raw.attributes.archived_at as string | null) || null;
-    return !archivedAt;
-  });
-
-  const serviceTypes: ServiceType[] = activeRawServiceTypes
-    .map((raw) => {
-      const st = raw as unknown as RawServiceType;
-      return {
-        id: st.id,
-        name: st.attributes.name as string,
-        sequence: st.attributes.sequence as number,
-      };
-    })
-    .sort((a, b) => a.sequence - b.sequence);
-
-  return serviceTypes;
-}
+  const serviceTypes: ServiceType[] = [];
+  for (const raw of rawServiceTypes) {
+    if (isNonEmptyString(raw.attributes.archived_at)) {
+      continue;
+    }
+    serviceTypes.push({
+      id: raw.id,
+      name: isString(raw.attributes.name) ? raw.attributes.name : "",
+      sequence: isNumber(raw.attributes.sequence) ? raw.attributes.sequence : 0,
+    });
+  }
+  return serviceTypes.toSorted((a, b) => a.sequence - b.sequence);
+};

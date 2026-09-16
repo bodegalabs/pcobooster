@@ -1,22 +1,27 @@
 import { Pool } from "pg";
 
+import { isNonEmptyString } from "@/lib/json";
+
 const databaseUrl = process.env.DATABASE_URL;
 
-if (!databaseUrl) {
+if (!isNonEmptyString(databaseUrl)) {
   throw new Error("Missing DATABASE_URL environment variable");
 }
 
-const globalForDb = globalThis as typeof globalThis & {
-  __planningCenterPgPool?: Pool;
-};
+const processGlobals = globalThis;
+const cachedPool =
+  "__planningCenterPgPool" in processGlobals
+    ? processGlobals.__planningCenterPgPool
+    : undefined;
 
 export const pool =
-  globalForDb.__planningCenterPgPool ??
-  new Pool({
-    connectionString: databaseUrl,
-    max: 10,
-  });
+  cachedPool instanceof Pool
+    ? cachedPool
+    : new Pool({
+        connectionString: databaseUrl,
+        max: 10,
+      });
 
 if (process.env.NODE_ENV !== "production") {
-  globalForDb.__planningCenterPgPool = pool;
+  Object.assign(processGlobals, { __planningCenterPgPool: pool });
 }
