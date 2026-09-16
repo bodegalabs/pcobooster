@@ -23,7 +23,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { createPeopleQueryOptions, usePeople } from "@/hooks/use-people";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";

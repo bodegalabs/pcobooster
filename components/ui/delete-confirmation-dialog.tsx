@@ -1,5 +1,7 @@
 "use client";
 
+import { startTransition } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,7 +24,7 @@ interface DeleteConfirmationDialogProps {
   cancelLabel?: string;
 }
 
-export function DeleteConfirmationDialog({
+export const DeleteConfirmationDialog = ({
   open,
   onOpenChange,
   onConfirm,
@@ -32,10 +34,10 @@ export function DeleteConfirmationDialog({
   description,
   confirmLabel = "Delete",
   cancelLabel = "Cancel",
-}: DeleteConfirmationDialogProps) {
+}: DeleteConfirmationDialogProps) => {
   const resolvedDescription =
     description ??
-    (itemLabel
+    (itemLabel !== null && itemLabel !== undefined && itemLabel !== ""
       ? `Remove "${itemLabel}"? This action cannot be undone.`
       : "Remove this item? This action cannot be undone.");
 
@@ -50,7 +52,9 @@ export function DeleteConfirmationDialog({
           <Button
             type="button"
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              onOpenChange(false);
+            }}
             disabled={isPending}
           >
             {cancelLabel}
@@ -58,7 +62,9 @@ export function DeleteConfirmationDialog({
           <Button
             type="button"
             variant="destructive"
-            onClick={() => void onConfirm()}
+            onClick={() => {
+              startTransition(onConfirm);
+            }}
             disabled={isPending}
           >
             {confirmLabel}
@@ -67,4 +73,4 @@ export function DeleteConfirmationDialog({
       </DialogContent>
     </Dialog>
   );
-}
+};

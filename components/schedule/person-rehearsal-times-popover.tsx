@@ -18,7 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { useDraftPopover } from "@/hooks/use-persist-on-close-popover";
 import { patchJson } from "@/lib/http/client";

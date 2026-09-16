@@ -1,20 +1,32 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
 import { defineConfig } from "vitest/config";
 
-const rootDir = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = import.meta.dirname;
 
 export default defineConfig({
   test: {
-    include: ["lib/**/*.test.ts"],
+    include: ["lib/**/*.test.ts", "components/**/*.test.ts"],
     environment: "node",
     globals: true,
     clearMocks: true,
+    // Unit tests must not inherit database or OAuth credentials from .env.local.
+    env: {
+      DATABASE_URL: "postgresql://test:test@127.0.0.1:5432/worshipadmin_test",
+      BETTER_AUTH_URL: "http://localhost:3000",
+      BETTER_AUTH_SECRET:
+        "worshipadmin-unit-test-secret-with-no-production-access",
+      PLANNING_CENTER_OAUTH_CLIENT_ID: "test-client",
+      PLANNING_CENTER_OAUTH_CLIENT_SECRET: "test-client-secret",
+      PLANNING_CENTER_CLIENT: "test-client",
+      PLANNING_CENTER_PAT: "test-token",
+      DEV_AUTH_BYPASS: "0",
+      PRESENTATION_MODE: "0",
+    },
   },
   resolve: {
     alias: {
       "@": rootDir,
+      // Use the marker's published server entry without selecting React's RSC runtime.
+      "server-only": `${rootDir}/node_modules/server-only/empty.js`,
     },
   },
 });
