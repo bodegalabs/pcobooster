@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   clearCachedScheduleCatalog,
   readCachedPlans,
@@ -80,7 +81,9 @@ describe("schedule catalog cache", () => {
     expect(cached?.[0].id).toBe("plan-1");
     expect(cached?.[0].createdAt).toBeInstanceOf(Date);
     expect(cached?.[0].sortDate).toBeInstanceOf(Date);
-    expect(cached?.[0].sortDate?.toISOString()).toBe("2026-05-31T16:00:00.000Z");
+    expect(cached?.[0].sortDate?.toISOString()).toBe(
+      "2026-05-31T16:00:00.000Z"
+    );
   });
 
   it("does not read plans without a service type id", () => {

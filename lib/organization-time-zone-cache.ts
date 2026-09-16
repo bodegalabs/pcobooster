@@ -11,7 +11,9 @@ export interface OrganizationTimeZoneCacheEntry {
   timeZone: string;
 }
 
-export function readCachedOrganizationTimeZone(): OrganizationTimeZoneCacheEntry | undefined {
+export function readCachedOrganizationTimeZone():
+  | OrganizationTimeZoneCacheEntry
+  | undefined {
   if (typeof window === "undefined") return undefined;
 
   try {

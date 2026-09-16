@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { CalendarPlus, Loader2, UserPlus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Command,
@@ -11,8 +12,15 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { usePeopleSearch, type PeopleSearchResult } from "@/hooks/use-people-search";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  usePeopleSearch,
+  type PeopleSearchResult,
+} from "@/hooks/use-people-search";
 import { useSchedulePlanPerson } from "@/hooks/use-schedule-plan-person";
 
 interface SomeoneElseRowProps {
@@ -87,12 +95,12 @@ export function SomeoneElseRow({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex w-full items-center gap-3 px-3 py-3 text-left transition-colors hover:bg-muted/30"
+          className="hover:bg-muted/30 flex w-full items-center gap-3 px-3 py-3 text-left transition-colors"
         >
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground sm:size-9">
+          <span className="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-full sm:size-9">
             <UserPlus className="size-4" aria-hidden />
           </span>
-          <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground sm:text-base">
+          <span className="text-foreground min-w-0 flex-1 truncate text-sm font-medium sm:text-base">
             Someone else...
           </span>
         </button>
@@ -178,20 +186,25 @@ function SomeoneElseSearchContent({
       />
       <CommandList className="max-h-72">
         {showPrompt ? (
-          <p className="px-3 py-2.5 text-sm text-muted-foreground">Type at least 2 characters.</p>
+          <p className="text-muted-foreground px-3 py-2.5 text-sm">
+            Type at least 2 characters.
+          </p>
         ) : showLoading ? (
-          <div className="flex items-center gap-2 px-3 py-2.5 text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex items-center gap-2 px-3 py-2.5 text-sm">
             <Loader2 className="size-4 animate-spin" />
             Searching
           </div>
         ) : isError ? (
-          <p className="px-3 py-2.5 text-sm text-destructive">Search failed.</p>
+          <p className="text-destructive px-3 py-2.5 text-sm">Search failed.</p>
         ) : results.length === 0 ? (
           <CommandEmpty>No people found.</CommandEmpty>
         ) : (
           <CommandGroup>
             {showRefreshing ? (
-              <div className="text-muted-foreground flex items-center gap-2 px-2 py-1.5 text-xs" aria-live="polite">
+              <div
+                className="text-muted-foreground flex items-center gap-2 px-2 py-1.5 text-xs"
+                aria-live="polite"
+              >
                 <Loader2 className="size-3 animate-spin" />
                 Searching
               </div>
@@ -257,7 +270,8 @@ function SomeoneElseResultRow({
     onScheduleError,
     oneOff: true,
   });
-  const initials = `${person.firstName[0] ?? ""}${person.lastName[0] ?? ""}` || "?";
+  const initials =
+    `${person.firstName[0] ?? ""}${person.lastName[0] ?? ""}` || "?";
 
   return (
     <CommandItem
@@ -267,10 +281,17 @@ function SomeoneElseResultRow({
       className="py-2"
     >
       <Avatar className="size-8 shrink-0">
-        <AvatarImage src={person.photoThumbnailUrl ?? undefined} alt={person.fullName} />
-        <AvatarFallback className="bg-muted text-xs font-medium">{initials}</AvatarFallback>
+        <AvatarImage
+          src={person.photoThumbnailUrl ?? undefined}
+          alt={person.fullName}
+        />
+        <AvatarFallback className="bg-muted text-xs font-medium">
+          {initials}
+        </AvatarFallback>
       </Avatar>
-      <p className="min-w-0 flex-1 truncate text-sm font-medium">{person.fullName}</p>
+      <p className="min-w-0 flex-1 truncate text-sm font-medium">
+        {person.fullName}
+      </p>
       {isScheduling ? (
         <Loader2 className="size-3.5 animate-spin" aria-hidden />
       ) : (

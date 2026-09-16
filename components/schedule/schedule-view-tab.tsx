@@ -1,22 +1,20 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { CalendarDays, X } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PlanPersonStatusMenu, type PlanPersonStatusValue } from "@/components/schedule/plan-person-status-menu";
-import { ScheduleCandidateTile } from "@/components/schedule/schedule-candidate-tile";
-import { SomeoneElseRow } from "@/components/schedule/someone-else-row";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+
+import {
+  PlanPersonStatusMenu,
+  type PlanPersonStatusValue,
+} from "@/components/schedule/plan-person-status-menu";
 import { PositionPickerList } from "@/components/schedule/position-picker-list";
+import { ScheduleCandidateTile } from "@/components/schedule/schedule-candidate-tile";
 import { SectionLabel } from "@/components/schedule/section-label";
 import { SelectedPositionHeader } from "@/components/schedule/selected-position-header";
+import { SomeoneElseRow } from "@/components/schedule/someone-else-row";
+import type { SlotRef } from "@/components/schedule/types";
 import { UnselectedPositionEmpty } from "@/components/schedule/unselected-position-empty";
-import {
-  Empty,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,11 +23,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-import { partitionPeopleForRecommendationStrip } from "@/lib/use-cases/planning-center/people/recommendation-strip-order";
-import type { SlotRef } from "@/components/schedule/types";
 import { getInitials } from "@/lib/format/initials";
-import type { FilledPositionPerson, PersonWithAvailability, TeamPositionGroup } from "@/lib/types";
+import type {
+  FilledPositionPerson,
+  PersonWithAvailability,
+  TeamPositionGroup,
+} from "@/lib/types";
+import { partitionPeopleForRecommendationStrip } from "@/lib/use-cases/planning-center/people/recommendation-strip-order";
 import { cn } from "@/lib/utils";
 
 interface ScheduleViewTabProps {
@@ -47,7 +55,10 @@ interface ScheduleViewTabProps {
   onToggleTeam: (teamId: string) => void;
   onSelectSlot: (slot: SlotRef) => void;
   onPreviewSlot?: (slot: SlotRef) => void;
-  onAddPosition?: (team: { teamId: string; teamName: string }, positionName: string) => SlotRef | null;
+  onAddPosition?: (
+    team: { teamId: string; teamName: string },
+    positionName: string
+  ) => SlotRef | null;
   onScheduleSuccess: () => void;
   onScheduleError: (message: string) => void;
 }
@@ -101,7 +112,11 @@ export function ScheduleViewTab({
       if (group.teamId !== selectedTeam) continue;
       const position = group.positions.find((p) => p.id === selectedPosition);
       if (position) {
-        return { teamName: group.teamName, positionName: position.name, position };
+        return {
+          teamName: group.teamName,
+          positionName: position.name,
+          position,
+        };
       }
     }
     return null;
@@ -127,14 +142,18 @@ export function ScheduleViewTab({
   const filteredActionable = useMemo(
     () =>
       normalizedFilter
-        ? actionable.filter((person) => person.fullName.toLowerCase().includes(normalizedFilter))
+        ? actionable.filter((person) =>
+            person.fullName.toLowerCase().includes(normalizedFilter)
+          )
         : actionable,
     [actionable, normalizedFilter]
   );
   const filteredExceptions = useMemo(
     () =>
       normalizedFilter
-        ? exceptions.filter((person) => person.fullName.toLowerCase().includes(normalizedFilter))
+        ? exceptions.filter((person) =>
+            person.fullName.toLowerCase().includes(normalizedFilter)
+          )
         : exceptions,
     [exceptions, normalizedFilter]
   );
@@ -166,7 +185,7 @@ export function ScheduleViewTab({
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col gap-3 sm:gap-4 lg:h-full lg:flex-row">
       <aside
-        className="hidden min-h-0 w-[min(18rem,28vw)] shrink-0 flex-col overflow-hidden rounded-xl border border-sidebar-border/40 bg-sidebar/60 text-sidebar-foreground lg:flex lg:h-full lg:max-h-full lg:self-stretch"
+        className="border-sidebar-border/40 bg-sidebar/60 text-sidebar-foreground hidden min-h-0 w-[min(18rem,28vw)] shrink-0 flex-col overflow-hidden rounded-xl border lg:flex lg:h-full lg:max-h-full lg:self-stretch"
         aria-label="Positions"
       >
         {positionPickerList}
@@ -186,7 +205,7 @@ export function ScheduleViewTab({
 
             <ScrollArea className="min-h-0 w-full flex-1 lg:h-full">
               {peopleLoading ? (
-                <div className="overflow-hidden rounded-2xl border border-border/40 bg-card/30 divide-y divide-border/25 shadow-sm">
+                <div className="border-border/40 bg-card/30 divide-border/25 divide-y overflow-hidden rounded-2xl border shadow-sm">
                   {Array.from({ length: 8 }).map((_, i) => (
                     <div key={i} className="flex items-center gap-3 px-3 py-3">
                       <Skeleton className="size-10 shrink-0 rounded-full" />
@@ -200,8 +219,9 @@ export function ScheduleViewTab({
                   ))}
                 </div>
               ) : !people || people.length === 0 ? (
-                <div className="overflow-hidden rounded-xl border border-border/40 bg-card/30 divide-y divide-border/25">
-                  {selectedSlotUsesCustomPosition && selectedFilledPeople.length > 0 ? (
+                <div className="border-border/40 bg-card/30 divide-border/25 divide-y overflow-hidden rounded-xl border">
+                  {selectedSlotUsesCustomPosition &&
+                  selectedFilledPeople.length > 0 ? (
                     selectedFilledPeople.map((person) => (
                       <TemporaryFilledPersonRow
                         key={`${selectedPosition}:${person.planPersonId}`}
@@ -221,7 +241,9 @@ export function ScheduleViewTab({
                           <CalendarDays />
                         </EmptyMedia>
                         <EmptyTitle>
-                          {selectedSlotUsesCustomPosition ? "No one scheduled" : "No roster candidates"}
+                          {selectedSlotUsesCustomPosition
+                            ? "No one scheduled"
+                            : "No roster candidates"}
                         </EmptyTitle>
                       </EmptyHeader>
                     </Empty>
@@ -243,7 +265,7 @@ export function ScheduleViewTab({
                   aria-busy={peoplePlaceholder}
                 >
                   {peoplePlaceholder ? (
-                    <div className="sticky top-0 z-10 -mb-2 rounded-md border border-border/60 bg-background/95 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur">
+                    <div className="border-border/60 bg-background/95 text-muted-foreground sticky top-0 z-10 -mb-2 rounded-md border px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur">
                       Loading selected slot...
                     </div>
                   ) : null}
@@ -251,7 +273,9 @@ export function ScheduleViewTab({
                     <div
                       className={[
                         "overflow-hidden rounded-xl border border-border/40 bg-card/30 divide-y divide-border/25",
-                        peoplePlaceholder ? "pointer-events-none opacity-60" : "",
+                        peoplePlaceholder
+                          ? "pointer-events-none opacity-60"
+                          : "",
                       ].join(" ")}
                     >
                       {filteredActionable.map((person) => (
@@ -284,7 +308,10 @@ export function ScheduleViewTab({
 
                   {filteredExceptions.length > 0 ? (
                     <section className="flex flex-col gap-2">
-                      <SectionLabel title="Unavailable" count={filteredExceptions.length} />
+                      <SectionLabel
+                        title="Unavailable"
+                        count={filteredExceptions.length}
+                      />
                       <div
                         className={[
                           "overflow-hidden rounded-xl border border-border/30 bg-card/20 opacity-80 divide-y divide-border/20",
@@ -326,11 +353,13 @@ export function ScheduleViewTab({
         <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
           <DialogContent
             showCloseButton={false}
-            className="fixed inset-0 left-0 top-0 z-50 flex h-svh max-h-none w-screen max-w-none translate-x-0 translate-y-0 grid-cols-none flex-col gap-0 overflow-hidden rounded-none border-0 bg-sidebar p-0 text-sidebar-foreground shadow-none duration-200 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:max-w-none"
+            className="bg-sidebar text-sidebar-foreground data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed inset-0 top-0 left-0 z-50 flex h-svh max-h-none w-screen max-w-none translate-x-0 translate-y-0 grid-cols-none flex-col gap-0 overflow-hidden rounded-none border-0 p-0 shadow-none duration-200 sm:max-w-none"
           >
-            <DialogHeader className="flex h-12 shrink-0 flex-row items-center justify-between gap-3 border-b border-sidebar-border/70 px-3 py-0 text-left">
+            <DialogHeader className="border-sidebar-border/70 flex h-12 shrink-0 flex-row items-center justify-between gap-3 border-b px-3 py-0 text-left">
               <div className="min-w-0">
-                <DialogTitle className="truncate text-sm">Positions</DialogTitle>
+                <DialogTitle className="truncate text-sm">
+                  Positions
+                </DialogTitle>
                 <DialogDescription className="sr-only">
                   Choose a team position for this plan.
                 </DialogDescription>
@@ -375,25 +404,28 @@ function TemporaryFilledPersonRow({
     person.status === "confirmed" ? "confirmed" : "scheduled";
 
   return (
-    <article className="group/row grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 transition-colors hover:bg-muted/30 sm:py-3">
+    <article className="group/row hover:bg-muted/30 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 transition-colors sm:py-3">
       <Avatar
         className={cn(
           "size-8 sm:size-9",
           person.status === "confirmed" &&
-            "ring-2 ring-emerald-500/80 ring-offset-2 ring-offset-background"
+            "ring-offset-background ring-2 ring-emerald-500/80 ring-offset-2"
         )}
       >
-        <AvatarImage src={person.photoThumbnailUrl || undefined} alt={person.name} />
+        <AvatarImage
+          src={person.photoThumbnailUrl || undefined}
+          alt={person.name}
+        />
         <AvatarFallback className="bg-muted text-xs font-medium">
           {getInitials(person.name)}
         </AvatarFallback>
       </Avatar>
 
       <div className="min-w-0">
-        <p className="truncate text-sm font-medium leading-tight text-foreground sm:text-base">
+        <p className="text-foreground truncate text-sm leading-tight font-medium sm:text-base">
           {person.name}
         </p>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           {person.status === "confirmed" ? "Confirmed" : "Pending"}
         </p>
       </div>

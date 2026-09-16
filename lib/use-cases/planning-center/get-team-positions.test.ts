@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getNeededTeamPositionsForPlan } from "@/lib/use-cases/planning-center/get-team-positions";
+
 import type { PCResource } from "@/lib/types";
+import { getNeededTeamPositionsForPlan } from "@/lib/use-cases/planning-center/get-team-positions";
 
 const mocks = vi.hoisted(() => ({
   getServiceTypeTeamPositionsWithTeams: vi.fn(),
@@ -12,7 +13,8 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/planning-center/services/catalog-service", () => ({
   planningCenterCatalogService: {
-    getServiceTypeTeamPositionsWithTeams: mocks.getServiceTypeTeamPositionsWithTeams,
+    getServiceTypeTeamPositionsWithTeams:
+      mocks.getServiceTypeTeamPositionsWithTeams,
     getPlanNeededPositionsWithTeams: mocks.getPlanNeededPositionsWithTeams,
     getServiceTypePlanNeededPositionsWithTeams:
       mocks.getServiceTypePlanNeededPositionsWithTeams,
@@ -145,14 +147,16 @@ describe("getNeededTeamPositionsForPlan", () => {
       ],
       included: [team("team-band", "Band"), team("team-media", "Media")],
     });
-    mocks.getPlanNeededPositionsWithTeams.mockResolvedValue({ data: [], included: [] });
+    mocks.getPlanNeededPositionsWithTeams.mockResolvedValue({
+      data: [],
+      included: [],
+    });
 
     const result = await getNeededTeamPositionsForPlan("st-1", "plan-1");
 
-    expect(mocks.getServiceTypePlanNeededPositionsWithTeams).toHaveBeenCalledWith(
-      "st-1",
-      "plan-1"
-    );
+    expect(
+      mocks.getServiceTypePlanNeededPositionsWithTeams
+    ).toHaveBeenCalledWith("st-1", "plan-1");
     expect(mocks.getPlanForServiceTypeWithSeries).not.toHaveBeenCalled();
     expect(mocks.getPlanNeededPositionsWithTeams).not.toHaveBeenCalled();
     expect(result).toEqual([
@@ -214,7 +218,11 @@ describe("getNeededTeamPositionsForPlan", () => {
       included: [team("team-1", "Band")],
     });
 
-    const result = await getNeededTeamPositionsForPlan("st-1", "plan-1", "series-123");
+    const result = await getNeededTeamPositionsForPlan(
+      "st-1",
+      "plan-1",
+      "series-123"
+    );
 
     expect(mocks.getPlanForServiceTypeWithSeries).not.toHaveBeenCalled();
     expect(mocks.getPlanNeededPositionsWithTeams).toHaveBeenCalledWith(
@@ -253,12 +261,17 @@ describe("getNeededTeamPositionsForPlan", () => {
 
     const result = await getNeededTeamPositionsForPlan("st-1", "plan-1");
 
-    expect(mocks.getServiceTypePlanNeededPositionsWithTeams).toHaveBeenCalledWith(
+    expect(
+      mocks.getServiceTypePlanNeededPositionsWithTeams
+    ).toHaveBeenCalledWith("st-1", "plan-1");
+    expect(mocks.getPlanForServiceTypeWithSeries).toHaveBeenCalledWith(
       "st-1",
       "plan-1"
     );
-    expect(mocks.getPlanForServiceTypeWithSeries).toHaveBeenCalledWith("st-1", "plan-1");
-    expect(mocks.getPlanNeededPositionsWithTeams).toHaveBeenCalledWith("series-1", "plan-1");
+    expect(mocks.getPlanNeededPositionsWithTeams).toHaveBeenCalledWith(
+      "series-1",
+      "plan-1"
+    );
     expect(result).toHaveLength(1);
     expect(result[0]?.positions[0]?.name).toBe("Drums");
   });
@@ -352,8 +365,18 @@ describe("getNeededTeamPositionsForPlan", () => {
     });
     mocks.getPlanTeamMembers.mockResolvedValue({
       data: [
-        planTeamMember({ id: "pp-1", teamId: "team-1", teamPositionName: "Drums", status: "confirmed" }),
-        planTeamMember({ id: "pp-2", teamId: "team-1", teamPositionName: "Drums", status: "U" }),
+        planTeamMember({
+          id: "pp-1",
+          teamId: "team-1",
+          teamPositionName: "Drums",
+          status: "confirmed",
+        }),
+        planTeamMember({
+          id: "pp-2",
+          teamId: "team-1",
+          teamPositionName: "Drums",
+          status: "U",
+        }),
       ],
       included: [team("team-1", "Band")],
     });

@@ -1,13 +1,17 @@
 import { z } from "zod";
+
 import { ApiError } from "@/lib/http/api-error";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
 import { serializePlanTime, serializePlanTimes } from "@/lib/plan-time-client";
 import {
+  createPlanTime,
+  getPlanTimes,
+} from "@/lib/use-cases/planning-center/plan-times";
+import {
   createPlanTimeBodySchema,
   planTimesQuerySchema,
 } from "@/lib/use-cases/planning-center/schemas";
-import { createPlanTime, getPlanTimes } from "@/lib/use-cases/planning-center/plan-times";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +27,16 @@ export async function GET(
   return handlePlanningCenterRoute(request, async () => {
     const parsedParams = paramsSchema.safeParse(await params);
     if (!parsedParams.success) {
-      log.warn({ issues: parsedParams.error.issues }, "Invalid plan-times route params");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsedParams.error.issues);
+      log.warn(
+        { issues: parsedParams.error.issues },
+        "Invalid plan-times route params"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsedParams.error.issues
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -32,8 +44,16 @@ export async function GET(
       service_type_id: searchParams.get("service_type_id") ?? undefined,
     });
     if (!parsedQuery.success) {
-      log.warn({ issues: parsedQuery.error.issues }, "Invalid plan-times query params");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsedQuery.error.issues);
+      log.warn(
+        { issues: parsedQuery.error.issues },
+        "Invalid plan-times query params"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsedQuery.error.issues
+      );
     }
 
     const planTimes = await getPlanTimes(parsedParams.data.planId);
@@ -49,15 +69,31 @@ export async function POST(
   return handlePlanningCenterRoute(request, async () => {
     const parsedParams = paramsSchema.safeParse(await params);
     if (!parsedParams.success) {
-      log.warn({ issues: parsedParams.error.issues }, "Invalid plan-times route params");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsedParams.error.issues);
+      log.warn(
+        { issues: parsedParams.error.issues },
+        "Invalid plan-times route params"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsedParams.error.issues
+      );
     }
 
     const body = await request.json();
     const parsedBody = createPlanTimeBodySchema.safeParse(body);
     if (!parsedBody.success) {
-      log.warn({ issues: parsedBody.error.issues }, "Invalid plan-time create body");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsedBody.error.issues);
+      log.warn(
+        { issues: parsedBody.error.issues },
+        "Invalid plan-time create body"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsedBody.error.issues
+      );
     }
 
     const planTime = await createPlanTime({

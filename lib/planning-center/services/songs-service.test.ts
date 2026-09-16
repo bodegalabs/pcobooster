@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+
 import {
   PlanningCenterApiError,
   type PlanningCenterCoreClient,
@@ -36,7 +37,11 @@ describe("PlanningCenterSongsService", () => {
     ]);
 
     expect(fetchAllMock).toHaveBeenCalledTimes(1);
-    expect(fetchAllMock).toHaveBeenCalledWith("/services/v2/songs", { order: "title" }, 15);
+    expect(fetchAllMock).toHaveBeenCalledWith(
+      "/services/v2/songs",
+      { order: "title" },
+      15
+    );
     expect(first).toEqual(second);
     expect(first).not.toBe(second);
     expect(first[0]).not.toBe(second[0]);
@@ -117,7 +122,9 @@ describe("PlanningCenterSongsService.getSongLastScheduledItem", () => {
 
     const service = new PlanningCenterSongsService(core);
 
-    await expect(service.getSongLastScheduledItem("song-1", "service-1")).resolves.toEqual({
+    await expect(
+      service.getSongLastScheduledItem("song-1", "service-1")
+    ).resolves.toEqual({
       data: null,
       included: [],
     });
@@ -133,6 +140,8 @@ describe("PlanningCenterSongsService.getSongLastScheduledItem", () => {
 
     const service = new PlanningCenterSongsService(core);
 
-    await expect(service.getSongLastScheduledItem("song-1", "service-1")).rejects.toBe(error);
+    await expect(
+      service.getSongLastScheduledItem("song-1", "service-1")
+    ).rejects.toBe(error);
   });
 });

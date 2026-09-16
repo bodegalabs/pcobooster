@@ -1,7 +1,8 @@
 "use client";
 
-import { startTransition, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { startTransition, useCallback, useEffect } from "react";
+
 import { ServicePlanTableSelector } from "@/components/service-plan-table-selector";
 
 function buildPlanWorkspaceUrl(serviceTypeId: string, planId: string): string {
@@ -33,8 +34,8 @@ export function SchedulePlansPage() {
   );
 
   return (
-    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
-      <div className="mx-auto flex w-full max-w-7xl min-h-0 flex-1 flex-col px-3 py-3 sm:px-4 sm:py-4">
+    <main className="bg-background flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-3 py-3 sm:px-4 sm:py-4">
         <ServicePlanTableSelector
           selectedServiceTypeId={null}
           selectedPlanId={null}

@@ -1,11 +1,13 @@
-import { formatCalendarDayInTimeZone, orgCalendarDaysRefMinusItem } from "@/lib/planning-center/org-calendar";
+import {
+  formatCalendarDayInTimeZone,
+  orgCalendarDaysRefMinusItem,
+} from "@/lib/planning-center/org-calendar";
 import { resolveOrganizationTimeZone } from "@/lib/planning-center/resolve-organization-timezone";
-import { PlanningCenterReadCache } from "@/lib/planning-center/services/read-cache";
 import { PlanningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
+import { PlanningCenterReadCache } from "@/lib/planning-center/services/read-cache";
 import { findIncluded } from "@/lib/planning-center/utils";
 import type { PCResource, RawPerson, RawSchedule } from "@/lib/types";
-import { buildFrequencyFromServiceHistory } from "@/lib/use-cases/planning-center/people/history";
 import type {
   PeopleDashboardData,
   PeopleDashboardDay,
@@ -14,6 +16,7 @@ import type {
   PeopleDashboardPerson,
   PeopleDashboardRange,
 } from "@/lib/use-cases/planning-center/people-dashboard-types";
+import { buildFrequencyFromServiceHistory } from "@/lib/use-cases/planning-center/people/history";
 import { mapWithConcurrency } from "@/lib/use-cases/planning-center/shared";
 
 const SCHEDULE_CONCURRENCY = 4;
@@ -81,7 +84,10 @@ async function buildPeopleDashboard({
   maxHydratedPeople,
 }: {
   range: PeopleDashboardRange;
-  peopleService: Pick<PlanningCenterPeopleService, "getAllPeopleFromTeams" | "getPersonSchedules">;
+  peopleService: Pick<
+    PlanningCenterPeopleService,
+    "getAllPeopleFromTeams" | "getPersonSchedules"
+  >;
   maxHydratedPeople: number;
 }): Promise<PeopleDashboardData> {
   const orgTimeZone = await resolveOrganizationTimeZone();
@@ -103,7 +109,13 @@ async function buildPeopleDashboard({
       const schedulesResponse = await peopleService
         .getPersonSchedules(person.id, {}, SCHEDULE_MAX_PAGES)
         .catch(() => ({ data: [], included: [] }));
-      return buildDashboardPerson(person, schedulesResponse.data, schedulesResponse.included, now, orgTimeZone);
+      return buildDashboardPerson(
+        person,
+        schedulesResponse.data,
+        schedulesResponse.included,
+        now,
+        orgTimeZone
+      );
     }
   );
 
@@ -121,9 +133,15 @@ async function buildPeopleDashboard({
     month: monthInfo,
     people: hydratedPeople,
     stats: {
-      scheduledPeople: hydratedPeople.filter((person) => person.monthCount > 0).length,
-      highLoadPeople: hydratedPeople.filter((person) => person.load === "high" || person.load === "rest").length,
-      availableSoonPeople: hydratedPeople.filter((person) => person.load === "low" || person.nextScheduled === "Not scheduled").length,
+      scheduledPeople: hydratedPeople.filter((person) => person.monthCount > 0)
+        .length,
+      highLoadPeople: hydratedPeople.filter(
+        (person) => person.load === "high" || person.load === "rest"
+      ).length,
+      availableSoonPeople: hydratedPeople.filter(
+        (person) =>
+          person.load === "low" || person.nextScheduled === "Not scheduled"
+      ).length,
     },
     monthDays,
     matrixDays: getServiceMatrixDays(monthDays),
@@ -151,9 +169,10 @@ function buildRosterPeople(
   const peopleById = new Map<string, RosterPerson>();
 
   for (const resource of people) {
-    const personResource = resource.type === "Person"
-      ? resource
-      : getRelatedPerson(resource, included);
+    const personResource =
+      resource.type === "Person"
+        ? resource
+        : getRelatedPerson(resource, included);
     if (!personResource) continue;
 
     const rawPerson = personResource as unknown as RawPerson;
@@ -194,7 +213,10 @@ function getRelatedPerson(resource: PCResource, included: PCResource[]) {
   return personId ? findIncluded(included, "Person", personId) : undefined;
 }
 
-function getResourceTeamName(resource: PCResource, included: PCResource[]): string | null {
+function getResourceTeamName(
+  resource: PCResource,
+  included: PCResource[]
+): string | null {
   const teamRel = resource.relationships?.team?.data;
   const teamId = Array.isArray(teamRel) ? teamRel[0]?.id : teamRel?.id;
   const team = teamId ? findIncluded(included, "Team", teamId) : undefined;
@@ -214,11 +236,18 @@ function buildDashboardPerson(
   );
   serviceHistory.sort((a, b) => a.date.getTime() - b.date.getTime());
 
-  const frequency = buildFrequencyFromServiceHistory(serviceHistory, now, orgTimeZone);
+  const frequency = buildFrequencyFromServiceHistory(
+    serviceHistory,
+    now,
+    orgTimeZone
+  );
   const nowDayKey = formatCalendarDayInTimeZone(now, orgTimeZone);
   const monthPrefix = nowDayKey.slice(0, 8);
   const monthItems = serviceHistory.filter(
-    (item) => formatCalendarDayInTimeZone(item.date, orgTimeZone).startsWith(monthPrefix) &&
+    (item) =>
+      formatCalendarDayInTimeZone(item.date, orgTimeZone).startsWith(
+        monthPrefix
+      ) &&
       (item.timeType === "service" || item.timeType === "rehearsal")
   );
   const serviceDaysThisMonth = new Set(
@@ -228,8 +257,18 @@ function buildDashboardPerson(
   );
   const monthDays = buildPersonMonthDays(monthItems, orgTimeZone);
   const roles = getMostCommonRoles(serviceHistory);
-  const thirtyDayCount = countServiceDaysInWindow(serviceHistory, now, orgTimeZone, 30);
-  const ninetyDayCount = countServiceDaysInWindow(serviceHistory, now, orgTimeZone, 90);
+  const thirtyDayCount = countServiceDaysInWindow(
+    serviceHistory,
+    now,
+    orgTimeZone,
+    30
+  );
+  const ninetyDayCount = countServiceDaysInWindow(
+    serviceHistory,
+    now,
+    orgTimeZone,
+    90
+  );
   const load = getLoad(serviceDaysThisMonth.size, ninetyDayCount);
 
   return {
@@ -239,23 +278,37 @@ function buildDashboardPerson(
     photoThumbnailUrl: person.photoThumbnailUrl,
     teams: person.teams.size > 0 ? [...person.teams].slice(0, 3) : ["Services"],
     roles,
-    status: getStatus(load, serviceDaysThisMonth.size, frequency.nextUpcomingDate),
+    status: getStatus(
+      load,
+      serviceDaysThisMonth.size,
+      frequency.nextUpcomingDate
+    ),
     load,
     lastServed: formatShortDate(frequency.lastServedDate),
     lastRehearsal: formatShortDate(frequency.lastRehearsalDate),
     nextScheduled: formatShortDate(frequency.nextUpcomingDate, "Not scheduled"),
-    nextRehearsal: formatShortDate(frequency.nextRehearsalDate, "Not scheduled"),
+    nextRehearsal: formatShortDate(
+      frequency.nextRehearsalDate,
+      "Not scheduled"
+    ),
     monthCount: serviceDaysThisMonth.size,
     thirtyDayCount,
     ninetyDayCount,
     upcomingCount: frequency.upcomingServices,
     streak: getCadenceLabel(thirtyDayCount, ninetyDayCount),
-    highlight: getHighlight(load, serviceDaysThisMonth.size, frequency.nextUpcomingDate),
+    highlight: getHighlight(
+      load,
+      serviceDaysThisMonth.size,
+      frequency.nextUpcomingDate
+    ),
     monthDays,
   };
 }
 
-export function mapScheduleToDashboardItems(schedule: RawSchedule, included: PCResource[]): ScheduleItem[] {
+export function mapScheduleToDashboardItems(
+  schedule: RawSchedule,
+  included: PCResource[]
+): ScheduleItem[] {
   const fallbackDate = schedule.attributes.sort_date
     ? new Date(schedule.attributes.sort_date)
     : new Date();
@@ -264,12 +317,19 @@ export function mapScheduleToDashboardItems(schedule: RawSchedule, included: PCR
   const ids = [...new Set([...planTimeIds, ...timeIds])];
 
   const planId = getSingleRelationshipId(schedule.relationships?.plan);
-  const serviceTypeId = getSingleRelationshipId(schedule.relationships?.service_type);
-  const planUrl = planId && serviceTypeId
-    ? buildPlanWorkspaceUrl(serviceTypeId, planId)
-    : undefined;
+  const serviceTypeId = getSingleRelationshipId(
+    schedule.relationships?.service_type
+  );
+  const planUrl =
+    planId && serviceTypeId
+      ? buildPlanWorkspaceUrl(serviceTypeId, planId)
+      : undefined;
 
-  const buildItem = (id: string, date: Date, timeType?: "service" | "rehearsal" | "other") => ({
+  const buildItem = (
+    id: string,
+    date: Date,
+    timeType?: "service" | "rehearsal" | "other"
+  ) => ({
     id,
     sourceScheduleId: schedule.id,
     date,
@@ -288,12 +348,14 @@ export function mapScheduleToDashboardItems(schedule: RawSchedule, included: PCR
   return ids.flatMap((id) => {
     const planTime = findIncluded(included, "PlanTime", id);
     const rawType = planTime?.attributes.time_type;
-    const timeType = rawType === "service" || rawType === "rehearsal" || rawType === "other"
-      ? rawType
-      : undefined;
+    const timeType =
+      rawType === "service" || rawType === "rehearsal" || rawType === "other"
+        ? rawType
+        : undefined;
     if (timeType === "other") return [];
     const startsAt = planTime?.attributes.starts_at;
-    const date = typeof startsAt === "string" ? new Date(startsAt) : fallbackDate;
+    const date =
+      typeof startsAt === "string" ? new Date(startsAt) : fallbackDate;
     return [buildItem(`${schedule.id}:${id}`, date, timeType)];
   });
 }
@@ -357,7 +419,8 @@ export function buildPersonMonthDays(
     if (item.teamPositionName) next.positions.add(item.teamPositionName);
     if (item.serviceTypeName) next.serviceTypes.add(item.serviceTypeName);
     if (item.status) next.statuses.add(item.status);
-    if (kind === "service" && item.status) next.serviceStatuses.add(item.status);
+    if (kind === "service" && item.status)
+      next.serviceStatuses.add(item.status);
     if (item.planUrl) next.planUrls.add(item.planUrl);
     byDay.set(key, next);
   }
@@ -367,7 +430,9 @@ export function buildPersonMonthDays(
       kind: value.kind,
       positionName: [...value.positions].join(", ") || undefined,
       serviceTypeName: [...value.serviceTypes].join(", ") || undefined,
-      status: pickDisplayStatus(value.kind === "service" ? value.serviceStatuses : value.statuses),
+      status: pickDisplayStatus(
+        value.kind === "service" ? value.serviceStatuses : value.statuses
+      ),
       planUrl: [...value.planUrls][0],
     }))
     .sort((a, b) => a.day - b.day || dayKindRank(a.kind) - dayKindRank(b.kind));
@@ -379,19 +444,35 @@ function buildMonthDays(people: PeopleDashboardPerson[]): PeopleDashboardDay[] {
     return {
       day,
       serviceCount: people.filter((person) =>
-        person.monthDays.some((entry) => entry.day === day && entry.kind === "service")
+        person.monthDays.some(
+          (entry) => entry.day === day && entry.kind === "service"
+        )
       ).length,
       confirmedServiceCount: people.filter((person) =>
-        person.monthDays.some((entry) => entry.day === day && entry.kind === "service" && isConfirmedStatus(entry.status))
+        person.monthDays.some(
+          (entry) =>
+            entry.day === day &&
+            entry.kind === "service" &&
+            isConfirmedStatus(entry.status)
+        )
       ).length,
       potentialServiceCount: people.filter((person) =>
-        person.monthDays.some((entry) => entry.day === day && entry.kind === "service" && !isConfirmedStatus(entry.status))
+        person.monthDays.some(
+          (entry) =>
+            entry.day === day &&
+            entry.kind === "service" &&
+            !isConfirmedStatus(entry.status)
+        )
       ).length,
       rehearsalCount: people.filter((person) =>
-        person.monthDays.some((entry) => entry.day === day && entry.kind === "rehearsal")
+        person.monthDays.some(
+          (entry) => entry.day === day && entry.kind === "rehearsal"
+        )
       ).length,
       blockoutCount: people.filter((person) =>
-        person.monthDays.some((entry) => entry.day === day && entry.kind === "blockout")
+        person.monthDays.some(
+          (entry) => entry.day === day && entry.kind === "blockout"
+        )
       ).length,
     };
   });
@@ -489,16 +570,24 @@ function getHighlight(
 ) {
   if (load === "rest") return "Serving heavily this month.";
   if (load === "high") return "Above normal cadence for the selected range.";
-  if (load === "low") return nextDate ? "Light recent load with an upcoming assignment." : "Light recent load and no current assignment.";
+  if (load === "low")
+    return nextDate
+      ? "Light recent load with an upcoming assignment."
+      : "Light recent load and no current assignment.";
   if (nextDate) return "Healthy cadence with upcoming availability context.";
-  return monthCount > 0 ? "Served recently and has room in the upcoming rotation." : "No current month services found.";
+  return monthCount > 0
+    ? "Served recently and has room in the upcoming rotation."
+    : "No current month services found.";
 }
 
 export function getMostCommonRoles(items: ScheduleItem[]) {
   const counts = new Map<string, number>();
   for (const item of items) {
     if (!item.teamPositionName.trim()) continue;
-    counts.set(item.teamPositionName, (counts.get(item.teamPositionName) ?? 0) + 1);
+    counts.set(
+      item.teamPositionName,
+      (counts.get(item.teamPositionName) ?? 0) + 1
+    );
   }
   const roles = [...counts.entries()]
     .sort((a, b) => b[1] - a[1])

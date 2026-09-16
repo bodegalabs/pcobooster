@@ -5,7 +5,10 @@ import {
 import type { RawServiceType, ServiceType } from "@/lib/types";
 
 export async function getServiceTypes(
-  catalogService: Pick<PlanningCenterCatalogService, "getServiceTypesCached"> = planningCenterCatalogService
+  catalogService: Pick<
+    PlanningCenterCatalogService,
+    "getServiceTypesCached"
+  > = planningCenterCatalogService
 ): Promise<ServiceType[]> {
   const rawServiceTypes = await catalogService.getServiceTypesCached();
   const activeRawServiceTypes = rawServiceTypes.filter((raw) => {

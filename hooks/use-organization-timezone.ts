@@ -2,13 +2,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
+
 import { getJson } from "@/lib/http/client";
 import {
   readCachedOrganizationTimeZone,
   writeCachedOrganizationTimeZone,
 } from "@/lib/organization-time-zone-cache";
-import { queryKeys } from "@/lib/query-keys";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
+import { queryKeys } from "@/lib/query-keys";
 
 /** Client hook for the Services org `time_zone` (via `/api/planning-center/organization`). */
 export function useOrganizationTimeZone(): string {
@@ -27,7 +28,9 @@ export function useOrganizationTimeZone(): string {
   const { data } = useQuery({
     queryKey,
     queryFn: async () => {
-      const response = await getJson<{ timeZone: string }>("/api/planning-center/organization");
+      const response = await getJson<{ timeZone: string }>(
+        "/api/planning-center/organization"
+      );
       writeCachedOrganizationTimeZone(response.timeZone);
       return response;
     },

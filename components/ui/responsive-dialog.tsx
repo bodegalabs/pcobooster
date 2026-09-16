@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 
 import {
   Dialog,
@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Drawer,
   DrawerClose,
@@ -21,56 +21,56 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer"
-import { useIsMobile } from "@/hooks/use-is-mobile"
-import { cn } from "@/lib/utils"
+} from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-is-mobile";
+import { cn } from "@/lib/utils";
 
 const ResponsiveDialogContext = React.createContext<{ isMobile: boolean }>({
   isMobile: false,
-})
+});
 
 type ResponsiveDialogRootProps = {
-  children: React.ReactNode
-  open?: boolean
-  defaultOpen?: boolean
-  onOpenChange?: (open: boolean) => void
-}
+  children: React.ReactNode;
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+};
 
 type ResponsiveDialogContentProps = {
-  children: React.ReactNode
-  className?: string
-  desktopClassName?: string
-  mobileClassName?: string
-  showCloseButton?: boolean
-}
+  children: React.ReactNode;
+  className?: string;
+  desktopClassName?: string;
+  mobileClassName?: string;
+  showCloseButton?: boolean;
+};
 
 function ResponsiveDialog({ children, ...props }: ResponsiveDialogRootProps) {
-  const isMobile = useIsMobile()
-  const Root = isMobile ? Drawer : Dialog
+  const isMobile = useIsMobile();
+  const Root = isMobile ? Drawer : Dialog;
 
   return (
     <ResponsiveDialogContext.Provider value={{ isMobile }}>
       <Root {...props}>{children}</Root>
     </ResponsiveDialogContext.Provider>
-  )
+  );
 }
 
 function ResponsiveDialogTrigger({
   ...props
 }: React.ComponentProps<typeof DialogTrigger>) {
-  const { isMobile } = React.useContext(ResponsiveDialogContext)
-  const Trigger = isMobile ? DrawerTrigger : DialogTrigger
+  const { isMobile } = React.useContext(ResponsiveDialogContext);
+  const Trigger = isMobile ? DrawerTrigger : DialogTrigger;
 
-  return <Trigger {...props} />
+  return <Trigger {...props} />;
 }
 
 function ResponsiveDialogClose({
   ...props
 }: React.ComponentProps<typeof DialogClose>) {
-  const { isMobile } = React.useContext(ResponsiveDialogContext)
-  const Close = isMobile ? DrawerClose : DialogClose
+  const { isMobile } = React.useContext(ResponsiveDialogContext);
+  const Close = isMobile ? DrawerClose : DialogClose;
 
-  return <Close {...props} />
+  return <Close {...props} />;
 }
 
 function ResponsiveDialogContent({
@@ -80,7 +80,7 @@ function ResponsiveDialogContent({
   showCloseButton = true,
   children,
 }: ResponsiveDialogContentProps) {
-  const { isMobile } = React.useContext(ResponsiveDialogContext)
+  const { isMobile } = React.useContext(ResponsiveDialogContext);
 
   if (isMobile) {
     return (
@@ -93,7 +93,7 @@ function ResponsiveDialogContent({
       >
         {children}
       </DrawerContent>
-    )
+    );
   }
 
   return (
@@ -103,17 +103,17 @@ function ResponsiveDialogContent({
     >
       {children}
     </DialogContent>
-  )
+  );
 }
 
 function ResponsiveDialogHeader({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const { isMobile } = React.useContext(ResponsiveDialogContext)
-  const Header = isMobile ? DrawerHeader : DialogHeader
+  const { isMobile } = React.useContext(ResponsiveDialogContext);
+  const Header = isMobile ? DrawerHeader : DialogHeader;
 
-  return <Header className={className} {...props} />
+  return <Header className={className} {...props} />;
 }
 
 function ResponsiveDialogFooter({
@@ -121,10 +121,10 @@ function ResponsiveDialogFooter({
   showCloseButton = false,
   ...props
 }: React.ComponentProps<"div"> & {
-  showCloseButton?: boolean
+  showCloseButton?: boolean;
 }) {
-  const { isMobile } = React.useContext(ResponsiveDialogContext)
-  const Footer = isMobile ? DrawerFooter : DialogFooter
+  const { isMobile } = React.useContext(ResponsiveDialogContext);
+  const Footer = isMobile ? DrawerFooter : DialogFooter;
 
   return (
     <Footer
@@ -132,25 +132,25 @@ function ResponsiveDialogFooter({
       showCloseButton={showCloseButton}
       {...props}
     />
-  )
+  );
 }
 
 function ResponsiveDialogTitle({
   ...props
 }: React.ComponentProps<typeof DialogTitle>) {
-  const { isMobile } = React.useContext(ResponsiveDialogContext)
-  const Title = isMobile ? DrawerTitle : DialogTitle
+  const { isMobile } = React.useContext(ResponsiveDialogContext);
+  const Title = isMobile ? DrawerTitle : DialogTitle;
 
-  return <Title {...props} />
+  return <Title {...props} />;
 }
 
 function ResponsiveDialogDescription({
   ...props
 }: React.ComponentProps<typeof DialogDescription>) {
-  const { isMobile } = React.useContext(ResponsiveDialogContext)
-  const Description = isMobile ? DrawerDescription : DialogDescription
+  const { isMobile } = React.useContext(ResponsiveDialogContext);
+  const Description = isMobile ? DrawerDescription : DialogDescription;
 
-  return <Description {...props} />
+  return <Description {...props} />;
 }
 
 export {
@@ -162,4 +162,4 @@ export {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
   ResponsiveDialogTrigger,
-}
+};

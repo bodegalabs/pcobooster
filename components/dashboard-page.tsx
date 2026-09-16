@@ -1,18 +1,30 @@
 "use client";
 
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
 import { PlanningCenterServicesIcon } from "@/components/planning-center-services-icon";
 import { LineupTab } from "@/components/schedule/lineup-tab";
 import { PlanTab } from "@/components/schedule/plan-tab";
 import { ScheduleViewTab } from "@/components/schedule/schedule-view-tab";
 import { TimesTab } from "@/components/schedule/times-tab";
-import { Button } from "@/components/ui/button";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import type { SlotRef } from "@/components/schedule/types";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { toast } from "@/components/ui/sonner";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { createPeopleQueryOptions, usePeople } from "@/hooks/use-people";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
 import { usePlanTimes } from "@/hooks/use-plan-times";
@@ -39,11 +51,17 @@ const COLLAPSED_TEAMS_STORAGE_MAP_KEY = `${COLLAPSED_TEAMS_STORAGE_KEY_PREFIX}by
 const SLOT_PEOPLE_PREFETCH_DELAY_MS = 180;
 type SearchParamReader = Pick<URLSearchParams, "get">;
 
-function buildPlanMemberPositionId(teamId: string, positionName: string): string {
+function buildPlanMemberPositionId(
+  teamId: string,
+  positionName: string
+): string {
   return `plan-member-position:${teamId}:${encodeURIComponent(positionName.trim().toLowerCase())}`;
 }
 
-function parseSearchSelection(searchParams: SearchParamReader, view: DashboardView): RouteSelectionIds {
+function parseSearchSelection(
+  searchParams: SearchParamReader,
+  view: DashboardView
+): RouteSelectionIds {
   const teamId = searchParams.get("teamId");
   const positionId = searchParams.get("positionId");
 
@@ -100,7 +118,11 @@ function buildPlanSubtitle(
   const normalizedServiceTypeName = serviceTypeName.trim();
   if (!normalizedServiceTypeName) return rawSubtitle;
 
-  if (rawSubtitle.localeCompare(normalizedServiceTypeName, undefined, { sensitivity: "accent" }) === 0) {
+  if (
+    rawSubtitle.localeCompare(normalizedServiceTypeName, undefined, {
+      sensitivity: "accent",
+    }) === 0
+  ) {
     return null;
   }
 
@@ -109,13 +131,19 @@ function buildPlanSubtitle(
     "i"
   );
 
-  const withoutServiceTypePrefix = rawSubtitle.replace(serviceTypePrefixPattern, "").trim();
+  const withoutServiceTypePrefix = rawSubtitle
+    .replace(serviceTypePrefixPattern, "")
+    .trim();
   if (!withoutServiceTypePrefix) return null;
 
   if (
-    withoutServiceTypePrefix.localeCompare(normalizedServiceTypeName, undefined, {
-      sensitivity: "accent",
-    }) === 0
+    withoutServiceTypePrefix.localeCompare(
+      normalizedServiceTypeName,
+      undefined,
+      {
+        sensitivity: "accent",
+      }
+    ) === 0
   ) {
     return null;
   }
@@ -136,7 +164,9 @@ export function DashboardPage({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const slotPrefetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const slotPrefetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   const [collapsedTeamsByPlan, setCollapsedTeamsByPlan] = useState<
     Record<string, Record<string, boolean>>
@@ -146,13 +176,18 @@ export function DashboardPage({
       const raw = window.localStorage.getItem(COLLAPSED_TEAMS_STORAGE_MAP_KEY);
       if (!raw) return {};
       const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+        return {};
 
       const normalized: Record<string, Record<string, boolean>> = {};
       for (const [planId, value] of Object.entries(parsed)) {
-        if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+        if (!value || typeof value !== "object" || Array.isArray(value))
+          continue;
         normalized[planId] = Object.fromEntries(
-          Object.entries(value).map(([teamId, isCollapsed]) => [teamId, Boolean(isCollapsed)])
+          Object.entries(value).map(([teamId, isCollapsed]) => [
+            teamId,
+            Boolean(isCollapsed),
+          ])
         ) as Record<string, boolean>;
       }
       return normalized;
@@ -161,7 +196,10 @@ export function DashboardPage({
     }
   });
 
-  const routeIds = useMemo(() => parseSearchSelection(searchParams, view), [searchParams, view]);
+  const routeIds = useMemo(
+    () => parseSearchSelection(searchParams, view),
+    [searchParams, view]
+  );
   const currentUrl = useMemo(() => {
     const query = searchParams.toString();
     return query ? `${pathname}?${query}` : pathname;
@@ -183,15 +221,20 @@ export function DashboardPage({
     [currentUrl, router]
   );
 
-  const { data: serviceTypes, isLoading: serviceTypesLoading } = useServiceTypes();
+  const { data: serviceTypes, isLoading: serviceTypesLoading } =
+    useServiceTypes();
   const routeServiceTypeId = serviceTypeId;
   const routePlanId = planId;
   const selectedServiceType =
-    serviceTypes?.find((serviceType) => serviceType.id === routeServiceTypeId) ?? null;
+    serviceTypes?.find(
+      (serviceType) => serviceType.id === routeServiceTypeId
+    ) ?? null;
 
-  const { data: plans, isLoading: plansLoading, isFetching: plansFetching } = usePlans(
-    routeServiceTypeId
-  );
+  const {
+    data: plans,
+    isLoading: plansLoading,
+    isFetching: plansFetching,
+  } = usePlans(routeServiceTypeId);
   const selectedPlan = plans?.find((plan) => plan.id === routePlanId) ?? null;
 
   const {
@@ -206,21 +249,32 @@ export function DashboardPage({
   const { data: planTimes } = usePlanTimes(routeServiceTypeId, routePlanId);
 
   const selectedTeamGroup =
-    teamPositionGroups?.find((group) => group.teamId === routeIds.teamId) ?? null;
+    teamPositionGroups?.find((group) => group.teamId === routeIds.teamId) ??
+    null;
   const selectedPositionObj =
-    selectedTeamGroup?.positions.find((position) => position.id === routeIds.positionId) ?? null;
+    selectedTeamGroup?.positions.find(
+      (position) => position.id === routeIds.positionId
+    ) ?? null;
 
   const selectedTeam = routeIds.teamId ?? null;
   const selectedPosition = routeIds.positionId ?? null;
   const validatedTeam = selectedTeamGroup?.teamId ?? null;
   const validatedPosition = selectedPositionObj?.id ?? null;
-  const selectedPositionUsesRoster = !selectedPositionObj?.source || selectedPositionObj.source === "team_position";
-  const canLoadSelectedSlotPeople = Boolean(selectedPlan?.sortDate && selectedPosition && selectedPositionUsesRoster);
+  const selectedPositionUsesRoster =
+    !selectedPositionObj?.source ||
+    selectedPositionObj.source === "team_position";
+  const canLoadSelectedSlotPeople = Boolean(
+    selectedPlan?.sortDate && selectedPosition && selectedPositionUsesRoster
+  );
   const selectedPlanId = routePlanId;
-  const collapsedTeams = selectedPlanId ? (collapsedTeamsByPlan[selectedPlanId] ?? {}) : {};
+  const collapsedTeams = selectedPlanId
+    ? (collapsedTeamsByPlan[selectedPlanId] ?? {})
+    : {};
   const hasPlanUrlSelection = Boolean(routeServiceTypeId && routePlanId);
   const hasSelectedPlanMetadata = Boolean(selectedServiceType && selectedPlan);
-  const activeView: DashboardView = hasPlanUrlSelection ? routeIds.view : "assign";
+  const activeView: DashboardView = hasPlanUrlSelection
+    ? routeIds.view
+    : "assign";
 
   const {
     data: people,
@@ -252,7 +306,8 @@ export function DashboardPage({
       const slotPosition = teamPositionGroups
         ?.find((group) => group.teamId === slot.teamId)
         ?.positions.find((position) => position.id === slot.positionId);
-      if (slotPosition?.source && slotPosition.source !== "team_position") return;
+      if (slotPosition?.source && slotPosition.source !== "team_position")
+        return;
       void queryClient.prefetchQuery(
         createPeopleQueryOptions(
           routeServiceTypeId,
@@ -263,7 +318,13 @@ export function DashboardPage({
         )
       );
     },
-    [queryClient, routeServiceTypeId, selectedPlan?.id, selectedPlan?.sortDate, teamPositionGroups]
+    [
+      queryClient,
+      routeServiceTypeId,
+      selectedPlan?.id,
+      selectedPlan?.sortDate,
+      teamPositionGroups,
+    ]
   );
 
   const handleSlotPreview = useCallback(
@@ -390,7 +451,8 @@ export function DashboardPage({
     const existingPosition = teamPositionGroups
       ?.find((group) => group.teamId === team.teamId)
       ?.positions.find(
-        (position) => position.name.trim().toLowerCase() === trimmedName.toLowerCase()
+        (position) =>
+          position.name.trim().toLowerCase() === trimmedName.toLowerCase()
       );
     if (existingPosition) {
       return {
@@ -418,7 +480,8 @@ export function DashboardPage({
         return groups.map((group) => {
           if (group.teamId !== team.teamId) return group;
           const duplicate = group.positions.some(
-            (position) => position.name.trim().toLowerCase() === trimmedName.toLowerCase()
+            (position) =>
+              position.name.trim().toLowerCase() === trimmedName.toLowerCase()
           );
           if (duplicate) return group;
 
@@ -433,7 +496,9 @@ export function DashboardPage({
 
           return {
             ...group,
-            positions: [...group.positions, position].sort((a, b) => a.name.localeCompare(b.name)),
+            positions: [...group.positions, position].sort((a, b) =>
+              a.name.localeCompare(b.name)
+            ),
           };
         });
       }
@@ -458,28 +523,35 @@ export function DashboardPage({
 
   const planSubtitle =
     selectedServiceType && selectedPlan
-      ? buildPlanSubtitle(selectedServiceType.name, selectedPlan.title, selectedPlan.seriesTitle)
+      ? buildPlanSubtitle(
+          selectedServiceType.name,
+          selectedPlan.title,
+          selectedPlan.seriesTitle
+        )
       : null;
 
   return (
-    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
+    <main className="bg-background flex h-full min-h-0 flex-col overflow-hidden">
       <div
         className={cn(
-          "mx-auto flex w-full max-w-7xl min-h-0 flex-1 flex-col px-3 sm:px-4",
+          "mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-3 sm:px-4",
           hasPlanUrlSelection ? "py-2 sm:py-3" : "py-6"
         )}
       >
         {hasSelectedPlanMetadata && selectedServiceType && selectedPlan ? (
           <header className="mb-3 shrink-0 sm:mb-5">
             <div className="flex min-w-0 items-start justify-between gap-3">
-              <h1 className="flex min-w-0 flex-col gap-0.5 text-base font-semibold leading-tight tracking-tight sm:block sm:truncate sm:text-xl md:text-2xl">
+              <h1 className="flex min-w-0 flex-col gap-0.5 text-base leading-tight font-semibold tracking-tight sm:block sm:truncate sm:text-xl md:text-2xl">
                 <span className="min-w-0 truncate">
                   {selectedServiceType.name}
                   {planSubtitle ? (
-                    <span className="font-normal text-muted-foreground"> / {planSubtitle}</span>
+                    <span className="text-muted-foreground font-normal">
+                      {" "}
+                      / {planSubtitle}
+                    </span>
                   ) : null}
                 </span>
-                <span className="min-w-0 truncate text-sm font-light tabular-nums text-muted-foreground sm:text-xl md:text-2xl">
+                <span className="text-muted-foreground min-w-0 truncate text-sm font-light tabular-nums sm:text-xl md:text-2xl">
                   <span className="hidden sm:inline"> / </span>
                   {formatPlanDate(selectedPlan.sortDate)}
                 </span>
@@ -503,8 +575,15 @@ export function DashboardPage({
                       </a>
                     </Button>
                   </HoverCardTrigger>
-                  <HoverCardContent side="bottom" align="end" sideOffset={8} className="w-auto px-3 py-2">
-                    <p className="text-xs font-medium">Open in Planning Center</p>
+                  <HoverCardContent
+                    side="bottom"
+                    align="end"
+                    sideOffset={8}
+                    className="w-auto px-3 py-2"
+                  >
+                    <p className="text-xs font-medium">
+                      Open in Planning Center
+                    </p>
                   </HoverCardContent>
                 </HoverCard>
               ) : null}
@@ -513,7 +592,7 @@ export function DashboardPage({
         ) : null}
 
         {!hasPlanUrlSelection ? (
-          <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex flex-1 items-center justify-center gap-2 text-sm">
             <span>No plan selected · use Services to choose one.</span>
           </div>
         ) : (
@@ -530,8 +609,12 @@ export function DashboardPage({
                 selectedTeam={selectedTeam}
                 selectedPosition={selectedPosition}
                 people={selectedPositionUsesRoster ? people : []}
-                peopleLoading={selectedPositionUsesRoster ? peopleLoading : false}
-                peoplePlaceholder={selectedPositionUsesRoster ? peoplePlaceholder : false}
+                peopleLoading={
+                  selectedPositionUsesRoster ? peopleLoading : false
+                }
+                peoplePlaceholder={
+                  selectedPositionUsesRoster ? peoplePlaceholder : false
+                }
                 selectedServiceTypeId={routeServiceTypeId}
                 selectedPlanId={routePlanId}
                 onToggleTeam={toggleTeamCollapsed}
@@ -543,7 +626,10 @@ export function DashboardPage({
               />
             </TabsContent>
 
-            <TabsContent value="lineup" className="mt-0 flex min-h-0 flex-1 flex-col">
+            <TabsContent
+              value="lineup"
+              className="mt-0 flex min-h-0 flex-1 flex-col"
+            >
               <LineupTab
                 groups={teamPositionGroups ?? []}
                 isLoading={teamPositionsLoading}
@@ -557,14 +643,20 @@ export function DashboardPage({
               />
             </TabsContent>
 
-            <TabsContent value="plan" className="mt-0 flex min-h-0 flex-1 flex-col">
+            <TabsContent
+              value="plan"
+              className="mt-0 flex min-h-0 flex-1 flex-col"
+            >
               <PlanTab
                 serviceTypeId={routeServiceTypeId}
                 planId={routePlanId}
               />
             </TabsContent>
 
-            <TabsContent value="times" className="mt-0 flex min-h-0 flex-1 flex-col">
+            <TabsContent
+              value="times"
+              className="mt-0 flex min-h-0 flex-1 flex-col"
+            >
               <TimesTab
                 serviceTypeId={routeServiceTypeId}
                 planId={routePlanId}

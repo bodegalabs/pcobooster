@@ -1,10 +1,10 @@
-import type { PCResource } from "@/lib/types";
 import { logger } from "@/lib/logger";
 import {
   PlanningCenterApiError,
   PlanningCenterCoreClient,
 } from "@/lib/planning-center/core-client";
 import { PlanningCenterReadCache } from "@/lib/planning-center/services/read-cache";
+import type { PCResource } from "@/lib/types";
 
 const log = logger.for("planning-center/songs");
 const DEFAULT_CATALOG_TTL_MS = 15 * 60 * 1000;
@@ -22,7 +22,9 @@ export class PlanningCenterSongsService {
 
   constructor(private readonly core: PlanningCenterCoreClient) {}
 
-  async getSongsPage(params: Record<string, string> = {}): Promise<PCResource[]> {
+  async getSongsPage(
+    params: Record<string, string> = {}
+  ): Promise<PCResource[]> {
     return this.core.fetchAll<PCResource>("/services/v2/songs", params, 1);
   }
 
@@ -68,7 +70,9 @@ export class PlanningCenterSongsService {
       this.buildSongCacheKey("song", songId),
       SONG_DETAILS_CACHE_TTL_MS,
       async () => {
-        const response = await this.core.fetch<PCResource>(`/services/v2/songs/${songId}`);
+        const response = await this.core.fetch<PCResource>(
+          `/services/v2/songs/${songId}`
+        );
         return response.data;
       }
     );
@@ -119,7 +123,10 @@ export class PlanningCenterSongsService {
     }
   }
 
-  private buildSongCacheKey(kind: "song" | "arrangements", songId: string): string {
+  private buildSongCacheKey(
+    kind: "song" | "arrangements",
+    songId: string
+  ): string {
     return [
       this.core.getCacheScope(),
       "songs",

@@ -1,7 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface RecommendationPopoverProps {
   reasoning: string[] | undefined;
@@ -9,25 +14,31 @@ interface RecommendationPopoverProps {
   children: ReactNode;
 }
 
-export function RecommendationPopover({ reasoning, personId, children }: RecommendationPopoverProps) {
+export function RecommendationPopover({
+  reasoning,
+  personId,
+  children,
+}: RecommendationPopoverProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent align="end" sideOffset={6} className="w-80">
-        <p className="text-sm font-semibold tracking-tight text-foreground">Why this ranking</p>
+        <p className="text-foreground text-sm font-semibold tracking-tight">
+          Why this ranking
+        </p>
         {reasoning?.length ? (
           <div className="mt-3 flex flex-col gap-2">
             {reasoning.map((reason, index) => (
               <p
                 key={`${personId}-reason-${index}`}
-                className="text-sm leading-snug text-muted-foreground"
+                className="text-muted-foreground text-sm leading-snug"
               >
                 {reason}
               </p>
             ))}
           </div>
         ) : (
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="text-muted-foreground mt-3 text-sm">
             No reasoning recorded for this score.
           </p>
         )}

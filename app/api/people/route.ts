@@ -1,8 +1,9 @@
-import { presentPeople } from "@/lib/use-cases/planning-center/presentation";
 import { z } from "zod";
+
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
 import { getPeopleForPosition } from "@/lib/use-cases/planning-center/get-people-for-position";
+import { presentPeople } from "@/lib/use-cases/planning-center/presentation";
 
 export const dynamic = "force-dynamic";
 

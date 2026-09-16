@@ -1,6 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
+
 import { getJson } from "@/lib/http/client";
-import { hydratePlanTimes, type SerializedPlanTime } from "@/lib/plan-time-client";
+import {
+  hydratePlanTimes,
+  type SerializedPlanTime,
+} from "@/lib/plan-time-client";
 import { queryKeys } from "@/lib/query-keys";
 import type { PlanTime } from "@/lib/types";
 
@@ -31,7 +35,10 @@ export function createPlanTimesQueryOptions(
   };
 }
 
-export function usePlanTimes(serviceTypeId: string | null, planId: string | null) {
+export function usePlanTimes(
+  serviceTypeId: string | null,
+  planId: string | null
+) {
   return useQuery<PlanTime[]>({
     ...createPlanTimesQueryOptions(serviceTypeId, planId),
     enabled: !!serviceTypeId && !!planId,

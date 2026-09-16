@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getPeopleForPosition } from "@/lib/use-cases/planning-center/get-people-for-position";
+
 import type { PCResource } from "@/lib/types";
+import { getPeopleForPosition } from "@/lib/use-cases/planning-center/get-people-for-position";
 
 const mocks = vi.hoisted(() => ({
   getServiceTypesCached: vi.fn(),
@@ -120,11 +121,11 @@ function scheduleEntry(params: {
     attributes: {
       status: params.status,
       sort_date: `${params.sortDate ?? "2026-02-22"}T00:00:00Z`,
-      team_name: params.teamName ?? (
-        params.teamPositionName.includes(" - ")
+      team_name:
+        params.teamName ??
+        (params.teamPositionName.includes(" - ")
           ? params.teamPositionName.split(" - ")[0]
-          : undefined
-      ),
+          : undefined),
       team_position_name: params.teamPositionName,
     },
     relationships,
@@ -182,7 +183,11 @@ function blockout(id: string, startsAt: string, endsAt: string): PCResource {
 }
 
 /** Parent row from Services API for a recurring block — wide starts_at/ends_at; real days are on blockout_dates. */
-function recurringWeeklyBlockout(id: string, startsAt: string, endsAt: string): PCResource {
+function recurringWeeklyBlockout(
+  id: string,
+  startsAt: string,
+  endsAt: string
+): PCResource {
   return {
     type: "Blockout",
     id,
@@ -204,7 +209,9 @@ describe("getPeopleForPosition", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     cacheScopeIndex += 1;
-    mocks.getCacheScope.mockImplementation(() => `test-scope-${cacheScopeIndex}`);
+    mocks.getCacheScope.mockImplementation(
+      () => `test-scope-${cacheScopeIndex}`
+    );
     mocks.getServiceTypesCached.mockResolvedValue([
       {
         type: "ServiceType",
@@ -216,7 +223,10 @@ describe("getPeopleForPosition", () => {
     mocks.getPlanPlanTimes.mockResolvedValue([]);
     mocks.getPlanTeamMembers.mockResolvedValue({ data: [], included: [] });
     mocks.getPlansInDateRange.mockResolvedValue([]);
-    mocks.getPlansWithIncludedInDateRange.mockResolvedValue({ data: [], included: [] });
+    mocks.getPlansWithIncludedInDateRange.mockResolvedValue({
+      data: [],
+      included: [],
+    });
   });
 
   it("marks selected plan scheduled/confirmed flags and sorts confirmed/scheduled before available/blocked", async () => {
@@ -282,13 +292,7 @@ describe("getPeopleForPosition", () => {
 
     mocks.getPersonBlockouts.mockImplementation(async (personId: string) => {
       if (personId === "p-blocked") {
-        return [
-          blockout(
-            "b1",
-            "2026-02-22T00:00:00Z",
-            "2026-02-22T23:59:59Z"
-          ),
-        ];
+        return [blockout("b1", "2026-02-22T00:00:00Z", "2026-02-22T23:59:59Z")];
       }
       return [];
     });
@@ -377,17 +381,20 @@ describe("getPeopleForPosition", () => {
     const planId = "plan-target";
     const personId = "p-shared";
 
-    mocks.getPeopleForTeamPosition.mockImplementation(async (
-      _serviceTypeId: string,
-      positionId: string
-    ) => ({
-      data: [assignment(`a-${positionId}`, personId)],
-      included: [
-        person(personId, "Shared", "Candidate"),
-        teamPosition(positionId, positionId === "pos-vocals" ? "Vocals" : "Keys", teamId),
-        team(teamId, "Band"),
-      ],
-    }));
+    mocks.getPeopleForTeamPosition.mockImplementation(
+      async (_serviceTypeId: string, positionId: string) => ({
+        data: [assignment(`a-${positionId}`, personId)],
+        included: [
+          person(personId, "Shared", "Candidate"),
+          teamPosition(
+            positionId,
+            positionId === "pos-vocals" ? "Vocals" : "Keys",
+            teamId
+          ),
+          team(teamId, "Band"),
+        ],
+      })
+    );
     mocks.getPersonBlockouts.mockResolvedValue([]);
     mocks.getPersonSchedules.mockResolvedValue({
       data: [
@@ -419,9 +426,13 @@ describe("getPeopleForPosition", () => {
     });
 
     expect(mocks.getPersonSchedules).toHaveBeenCalledTimes(1);
-    expect(vocalsResult[0]?.selectedPlanAssignmentLabels).toEqual(["Band - Keys"]);
+    expect(vocalsResult[0]?.selectedPlanAssignmentLabels).toEqual([
+      "Band - Keys",
+    ]);
     expect(vocalsResult[0]?.isScheduledForSelectedPlanPosition).toBe(false);
-    expect(keysResult[0]?.selectedPlanAssignmentLabels).toEqual(["Band - Keys"]);
+    expect(keysResult[0]?.selectedPlanAssignmentLabels).toEqual([
+      "Band - Keys",
+    ]);
     expect(keysResult[0]?.isScheduledForSelectedPlanPosition).toBe(true);
   });
 
@@ -448,37 +459,47 @@ describe("getPeopleForPosition", () => {
       ],
       included: [],
     });
-    mocks.getPlanTeamMembers.mockImplementation(async (_serviceTypeId: string, requestedPlanId: string) => {
-      if (requestedPlanId === previousPlanId) {
+    mocks.getPlanTeamMembers.mockImplementation(
+      async (_serviceTypeId: string, requestedPlanId: string) => {
+        if (requestedPlanId === previousPlanId) {
+          return {
+            data: [
+              planMemberEntry({
+                id: "pp-prev",
+                personId,
+                planId: previousPlanId,
+                teamId,
+                status: "C",
+                teamPositionName: "Band - Vocals",
+              }),
+            ],
+            included: [
+              person(personId, "Window", "Candidate"),
+              team(teamId, "Band"),
+              planEntry(previousPlanId, "2026-02-15"),
+            ],
+          };
+        }
+
         return {
           data: [
             planMemberEntry({
-              id: "pp-prev",
+              id: "pp-target",
               personId,
-              planId: previousPlanId,
+              planId,
               teamId,
-              status: "C",
+              status: "U",
               teamPositionName: "Band - Vocals",
             }),
           ],
-          included: [person(personId, "Window", "Candidate"), team(teamId, "Band"), planEntry(previousPlanId, "2026-02-15")],
+          included: [
+            person(personId, "Window", "Candidate"),
+            team(teamId, "Band"),
+            planEntry(planId, "2026-02-22"),
+          ],
         };
       }
-
-      return {
-        data: [
-          planMemberEntry({
-            id: "pp-target",
-            personId,
-            planId,
-            teamId,
-            status: "U",
-            teamPositionName: "Band - Vocals",
-          }),
-        ],
-        included: [person(personId, "Window", "Candidate"), team(teamId, "Band"), planEntry(planId, "2026-02-22")],
-      };
-    });
+    );
     mocks.getPersonBlockouts.mockResolvedValue([]);
 
     const result = await getPeopleForPosition({
@@ -495,7 +516,11 @@ describe("getPeopleForPosition", () => {
     expect(result[0]?.isScheduledForSelectedPlanPosition).toBe(true);
     expect(result[0]?.selectedPlanAssignmentLabels).toEqual(["Band - Vocals"]);
     expect(result[0]?.frequency?.recentServedDays).toBeGreaterThanOrEqual(1);
-    expect(result[0]?.serviceHistory?.some((entry) => entry.sourceScheduleId === "pp-prev")).toBe(true);
+    expect(
+      result[0]?.serviceHistory?.some(
+        (entry) => entry.sourceScheduleId === "pp-prev"
+      )
+    ).toBe(true);
   });
 
   it("includes adjacent history from other service types in the shared plan window", async () => {
@@ -527,43 +552,67 @@ describe("getPeopleForPosition", () => {
         team(teamId, "Band"),
       ],
     });
-    mocks.getPlansWithIncludedInDateRange.mockImplementation(async (requestedServiceTypeId: string) => {
-      if (requestedServiceTypeId === serviceTypeId) {
-        return { data: [planEntry(selectedPlanId, "2026-05-04")], included: [] };
-      }
+    mocks.getPlansWithIncludedInDateRange.mockImplementation(
+      async (requestedServiceTypeId: string) => {
+        if (requestedServiceTypeId === serviceTypeId) {
+          return {
+            data: [planEntry(selectedPlanId, "2026-05-04")],
+            included: [],
+          };
+        }
 
-      if (requestedServiceTypeId === otherServiceTypeId) {
-        return { data: [planEntry(adjacentPlanId, "2026-05-03")], included: [] };
-      }
+        if (requestedServiceTypeId === otherServiceTypeId) {
+          return {
+            data: [planEntry(adjacentPlanId, "2026-05-03")],
+            included: [],
+          };
+        }
 
-      return { data: [], included: [] };
-    });
-    mocks.getPlanTeamMembers.mockImplementation(async (requestedServiceTypeId: string, requestedPlanId: string) => {
-      if (requestedServiceTypeId === serviceTypeId && requestedPlanId === selectedPlanId) {
-        return {
-          data: [],
-          included: [person(personId, "Michael", "Bortis"), team(teamId, "Band"), planEntry(selectedPlanId, "2026-05-04")],
-        };
+        return { data: [], included: [] };
       }
+    );
+    mocks.getPlanTeamMembers.mockImplementation(
+      async (requestedServiceTypeId: string, requestedPlanId: string) => {
+        if (
+          requestedServiceTypeId === serviceTypeId &&
+          requestedPlanId === selectedPlanId
+        ) {
+          return {
+            data: [],
+            included: [
+              person(personId, "Michael", "Bortis"),
+              team(teamId, "Band"),
+              planEntry(selectedPlanId, "2026-05-04"),
+            ],
+          };
+        }
 
-      if (requestedServiceTypeId === otherServiceTypeId && requestedPlanId === adjacentPlanId) {
-        return {
-          data: [
-            planMemberEntry({
-              id: "pp-may-3",
-              personId,
-              planId: adjacentPlanId,
-              teamId,
-              status: "C",
-              teamPositionName: "Band - Electric Guitar - Rhythm",
-            }),
-          ],
-          included: [person(personId, "Michael", "Bortis"), team(teamId, "Band"), planEntry(adjacentPlanId, "2026-05-03")],
-        };
+        if (
+          requestedServiceTypeId === otherServiceTypeId &&
+          requestedPlanId === adjacentPlanId
+        ) {
+          return {
+            data: [
+              planMemberEntry({
+                id: "pp-may-3",
+                personId,
+                planId: adjacentPlanId,
+                teamId,
+                status: "C",
+                teamPositionName: "Band - Electric Guitar - Rhythm",
+              }),
+            ],
+            included: [
+              person(personId, "Michael", "Bortis"),
+              team(teamId, "Band"),
+              planEntry(adjacentPlanId, "2026-05-03"),
+            ],
+          };
+        }
+
+        return { data: [], included: [] };
       }
-
-      return { data: [], included: [] };
-    });
+    );
     mocks.getPersonBlockouts.mockResolvedValue([]);
 
     const result = await getPeopleForPosition({
@@ -576,7 +625,11 @@ describe("getPeopleForPosition", () => {
 
     expect(mocks.getPersonSchedules).not.toHaveBeenCalled();
     expect(result).toHaveLength(1);
-    expect(result[0]?.serviceHistory?.some((entry) => entry.sourceScheduleId === "pp-may-3")).toBe(true);
+    expect(
+      result[0]?.serviceHistory?.some(
+        (entry) => entry.sourceScheduleId === "pp-may-3"
+      )
+    ).toBe(true);
   });
 
   it("includes and marks a selected slot plan member even when they are not assigned to the position", async () => {
@@ -588,7 +641,10 @@ describe("getPeopleForPosition", () => {
 
     mocks.getPeopleForTeamPosition.mockResolvedValue({
       data: [],
-      included: [teamPosition(positionId, "Vocals", teamId), team(teamId, "Band")],
+      included: [
+        teamPosition(positionId, "Vocals", teamId),
+        team(teamId, "Band"),
+      ],
     });
     mocks.getPlanTeamMembers.mockResolvedValue({
       data: [
@@ -670,7 +726,11 @@ describe("getPeopleForPosition", () => {
 
     mocks.getPeopleForTeamPosition.mockResolvedValue({
       data: [assignment("a1", "p1")],
-      included: [person("p1", "Una", "Prefixed"), teamPosition(positionId, "Vocals", teamId), team(teamId, "Band")],
+      included: [
+        person("p1", "Una", "Prefixed"),
+        teamPosition(positionId, "Vocals", teamId),
+        team(teamId, "Band"),
+      ],
     });
     mocks.getPersonBlockouts.mockResolvedValue([]);
     mocks.getPersonSchedules.mockResolvedValue({
@@ -808,7 +868,11 @@ describe("getPeopleForPosition", () => {
 
     mocks.getPeopleForTeamPosition.mockResolvedValue({
       data: [assignment("a1", "p1")],
-      included: [person("p1", "Pat", "Person"), teamPosition(positionId, "Vocals", teamId), team(teamId, "Band")],
+      included: [
+        person("p1", "Pat", "Person"),
+        teamPosition(positionId, "Vocals", teamId),
+        team(teamId, "Band"),
+      ],
     });
     mocks.getPersonBlockouts.mockResolvedValue([
       recurringWeeklyBlockout(
@@ -835,5 +899,4 @@ describe("getPeopleForPosition", () => {
     // Calendar-day envelope matching still treats Apr 13 as inside Jan 1–Dec 31 until we expand dates.
     expect(result[0]?.isBlockedForDate).toBe(false);
   });
-
 });

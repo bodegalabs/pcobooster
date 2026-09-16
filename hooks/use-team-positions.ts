@@ -1,10 +1,14 @@
-import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
+
 import { getJson } from "@/lib/http/client";
-import type { TeamPositionGroup } from "@/lib/types";
-import { queryKeys } from "@/lib/query-keys";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
-import { readCachedTeamPositions, writeCachedTeamPositions } from "@/lib/team-positions-cache";
+import { queryKeys } from "@/lib/query-keys";
+import {
+  readCachedTeamPositions,
+  writeCachedTeamPositions,
+} from "@/lib/team-positions-cache";
+import type { TeamPositionGroup } from "@/lib/types";
 
 const TEAM_POSITIONS_STALE_TIME_MS = 10 * 60 * 1000;
 

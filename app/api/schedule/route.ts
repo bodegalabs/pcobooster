@@ -1,18 +1,19 @@
 import { after, NextResponse } from "next/server";
 import { z } from "zod";
-import { isPresentationMode } from "@/lib/presentation-mode";
-import { ApiError } from "@/lib/http/api-error";
-import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
-import { logger } from "@/lib/logger";
-import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
-import { planningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
-import { findIncluded } from "@/lib/planning-center/utils";
+
 import {
   getActivityRequestContext,
   recordActivityEvent,
 } from "@/lib/db/activity-events";
-import { invalidateCandidateHistoryForPerson } from "@/lib/use-cases/planning-center/get-people-for-position";
+import { ApiError } from "@/lib/http/api-error";
+import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
+import { logger } from "@/lib/logger";
+import { planningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
+import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
+import { findIncluded } from "@/lib/planning-center/utils";
+import { isPresentationMode } from "@/lib/presentation-mode";
 import type { RawTeamPosition, RawTeam } from "@/lib/types";
+import { invalidateCandidateHistoryForPerson } from "@/lib/use-cases/planning-center/get-people-for-position";
 
 export const dynamic = "force-dynamic";
 
@@ -73,58 +74,92 @@ export async function POST(request: Request) {
     try {
       const parsed = bodySchema.safeParse(await request.json());
       if (!parsed.success) {
-        log.warn({ issues: parsed.error.issues }, "Invalid schedule request body");
-        throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsed.error.issues);
+        log.warn(
+          { issues: parsed.error.issues },
+          "Invalid schedule request body"
+        );
+        throw new ApiError(
+          400,
+          "INVALID_REQUEST",
+          "Invalid request",
+          parsed.error.issues
+        );
       }
       requestBody = parsed.data;
-      const {
-        serviceTypeId,
-        personId,
-        planId,
-        teamId,
-        positionId,
-        oneOff,
-      } = requestBody;
+      const { serviceTypeId, personId, planId, teamId, positionId, oneOff } =
+        requestBody;
 
       const personAssignmentsPromise = oneOff
         ? Promise.resolve(null)
-        : planningCenterPeopleService.getPersonTeamPositionAssignments(personId);
+        : planningCenterPeopleService.getPersonTeamPositionAssignments(
+            personId
+          );
       const teamPositionsPromise =
-        planningCenterCatalogService.getServiceTypeTeamPositionsWithTeams(serviceTypeId);
-      const [{ data: teamPositions, included }, personAssignments] = await Promise.all([
-        teamPositionsPromise,
-        personAssignmentsPromise,
-      ]);
+        planningCenterCatalogService.getServiceTypeTeamPositionsWithTeams(
+          serviceTypeId
+        );
+      const [{ data: teamPositions, included }, personAssignments] =
+        await Promise.all([teamPositionsPromise, personAssignmentsPromise]);
 
-      const selectedPosition = teamPositions.find((p) => p.id === positionId) as
-        | (RawTeamPosition & { relationships?: { team?: { data?: { id: string } } } })
+      const selectedPosition = teamPositions.find(
+        (p) => p.id === positionId
+      ) as
+        | (RawTeamPosition & {
+            relationships?: { team?: { data?: { id: string } } };
+          })
         | undefined;
       if (!selectedPosition && (!oneOff || !requestBody.positionName)) {
-        throw new ApiError(400, "INVALID_REQUEST", "Selected position was not found for this service type");
+        throw new ApiError(
+          400,
+          "INVALID_REQUEST",
+          "Selected position was not found for this service type"
+        );
       }
-      const selectedPositionTeamId = selectedPosition?.relationships?.team?.data?.id;
-      if (selectedPosition && (!selectedPositionTeamId || selectedPositionTeamId !== teamId)) {
-        throw new ApiError(400, "INVALID_REQUEST", "Selected position does not belong to selected team");
+      const selectedPositionTeamId =
+        selectedPosition?.relationships?.team?.data?.id;
+      if (
+        selectedPosition &&
+        (!selectedPositionTeamId || selectedPositionTeamId !== teamId)
+      ) {
+        throw new ApiError(
+          400,
+          "INVALID_REQUEST",
+          "Selected position does not belong to selected team"
+        );
       }
 
-      const selectedTeam = findIncluded(included, "Team", teamId) as RawTeam | undefined;
+      const selectedTeam = findIncluded(included, "Team", teamId) as
+        | RawTeam
+        | undefined;
       if (!selectedPosition && !selectedTeam) {
-        throw new ApiError(400, "INVALID_REQUEST", "Selected team was not found for this service type");
+        throw new ApiError(
+          400,
+          "INVALID_REQUEST",
+          "Selected team was not found for this service type"
+        );
       }
       const selectedTeamName =
         requestBody.teamName ||
         (selectedTeam?.attributes?.name as string | undefined) ||
         "";
-      const selectedPositionName = selectedPosition?.attributes?.name || requestBody.positionName || "";
+      const selectedPositionName =
+        selectedPosition?.attributes?.name || requestBody.positionName || "";
 
       if (!oneOff) {
-        const hasPositionAssignment = personAssignments?.data.some((assignment) => {
-          const rel = assignment.relationships?.team_position?.data;
-          const assignmentPositionId = Array.isArray(rel) ? rel[0]?.id : rel?.id;
-          return assignmentPositionId === positionId;
-        }) ?? false;
+        const hasPositionAssignment =
+          personAssignments?.data.some((assignment) => {
+            const rel = assignment.relationships?.team_position?.data;
+            const assignmentPositionId = Array.isArray(rel)
+              ? rel[0]?.id
+              : rel?.id;
+            return assignmentPositionId === positionId;
+          }) ?? false;
         if (!hasPositionAssignment) {
-          throw new ApiError(400, "INVALID_REQUEST", "Person is not assigned to the selected team position");
+          throw new ApiError(
+            400,
+            "INVALID_REQUEST",
+            "Person is not assigned to the selected team position"
+          );
         }
       }
 
@@ -137,7 +172,8 @@ export async function POST(request: Request) {
       );
       invalidateCandidateHistoryForPerson(personId);
 
-      const createdTeamPositionName = (data.attributes.team_position_name as string | undefined) || "";
+      const createdTeamPositionName =
+        (data.attributes.team_position_name as string | undefined) || "";
       if (selectedPositionName && createdTeamPositionName) {
         const selectedWithTeam = selectedTeamName
           ? `${selectedTeamName} - ${selectedPositionName}`
@@ -190,7 +226,15 @@ export async function POST(request: Request) {
       }
 
       log.info(
-        { serviceTypeId, personId, planId, teamId, positionId, planPersonId: data.id, oneOff },
+        {
+          serviceTypeId,
+          personId,
+          planId,
+          teamId,
+          positionId,
+          planPersonId: data.id,
+          oneOff,
+        },
         "Person scheduled successfully"
       );
 
@@ -210,7 +254,9 @@ export async function POST(request: Request) {
       const err = error instanceof Error ? error : new Error(String(error));
       const errorMessage = err.message || "";
 
-      if (errorMessage.includes("has already been scheduled for this position")) {
+      if (
+        errorMessage.includes("has already been scheduled for this position")
+      ) {
         if (requestBody) {
           planningCenterPeopleService.invalidateScheduleReadCaches({
             personId: requestBody.personId,
@@ -230,7 +276,8 @@ export async function POST(request: Request) {
         log.info({ err }, "Person already scheduled for selected position");
         return NextResponse.json(
           {
-            error: "Person is already scheduled for this selected plan/team/position",
+            error:
+              "Person is already scheduled for this selected plan/team/position",
             code: "ALREADY_SCHEDULED",
             details: isPresentationMode() ? undefined : errorMessage,
           },

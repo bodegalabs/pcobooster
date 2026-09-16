@@ -1,7 +1,14 @@
 "use client";
 
+import {
+  Check,
+  ChevronsUpDown,
+  CircleUserRound,
+  Rows3,
+  Users,
+} from "lucide-react";
 import { useId, useMemo, useState } from "react";
-import { Check, ChevronsUpDown, CircleUserRound, Rows3, Users } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +19,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { FilledPositionPerson, TeamPositionGroup } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -58,10 +69,16 @@ function buildPositionOptions(groups: TeamPositionGroup[]): PositionOption[] {
   );
 }
 
-function buildLabel(groups: TeamPositionGroup[], positions: PositionOption[], value: TimeAssignmentValue) {
+function buildLabel(
+  groups: TeamPositionGroup[],
+  positions: PositionOption[],
+  value: TimeAssignmentValue
+) {
   const memberRows = buildMemberRows(positions);
-  const positionCount = value.positionIds.length + value.neededPositionIds.length;
-  const count = value.teamIds.length + positionCount + value.planPersonIds.length;
+  const positionCount =
+    value.positionIds.length + value.neededPositionIds.length;
+  const count =
+    value.teamIds.length + positionCount + value.planPersonIds.length;
   if (count === 0) return "No assignments";
   if (
     value.teamIds.length === groups.length &&
@@ -72,18 +89,30 @@ function buildLabel(groups: TeamPositionGroup[], positions: PositionOption[], va
     return "All teams";
   }
 
-  const firstTeam = groups.find((group) => group.teamId === value.teamIds[0])?.teamName;
-  const firstPosition = positions.find((position) => position.id === value.positionIds[0])?.name;
+  const firstTeam = groups.find(
+    (group) => group.teamId === value.teamIds[0]
+  )?.teamName;
+  const firstPosition = positions.find(
+    (position) => position.id === value.positionIds[0]
+  )?.name;
   const firstNeeded = positions.find(
     (position) => position.neededPositionId === value.neededPositionIds[0]
   )?.name;
-  const firstPerson = memberRows.find((person) => person.planPersonId === value.planPersonIds[0])?.name;
+  const firstPerson = memberRows.find(
+    (person) => person.planPersonId === value.planPersonIds[0]
+  )?.name;
   const first = firstTeam ?? firstPosition ?? firstNeeded ?? firstPerson;
   if (count === 1 && first) return first;
   return [
-    value.teamIds.length > 0 ? formatCount(value.teamIds.length, "team", "teams") : null,
-    positionCount > 0 ? formatCount(positionCount, "position", "positions") : null,
-    value.planPersonIds.length > 0 ? formatCount(value.planPersonIds.length, "person", "people") : null,
+    value.teamIds.length > 0
+      ? formatCount(value.teamIds.length, "team", "teams")
+      : null,
+    positionCount > 0
+      ? formatCount(positionCount, "position", "positions")
+      : null,
+    value.planPersonIds.length > 0
+      ? formatCount(value.planPersonIds.length, "person", "people")
+      : null,
   ]
     .filter(Boolean)
     .join(", ");
@@ -117,16 +146,26 @@ export function TimeAssignmentSelector({
   const [open, setOpen] = useState(false);
   const positions = useMemo(() => buildPositionOptions(groups), [groups]);
   const label = buildLabel(groups, positions, value);
-  const selectedTeamIds = useMemo(() => new Set(value.teamIds), [value.teamIds]);
-  const selectedPositionIds = useMemo(() => new Set(value.positionIds), [value.positionIds]);
+  const selectedTeamIds = useMemo(
+    () => new Set(value.teamIds),
+    [value.teamIds]
+  );
+  const selectedPositionIds = useMemo(
+    () => new Set(value.positionIds),
+    [value.positionIds]
+  );
   const selectedNeededPositionIds = useMemo(
     () => new Set(value.neededPositionIds),
     [value.neededPositionIds]
   );
-  const selectedPlanPersonIds = useMemo(() => new Set(value.planPersonIds), [value.planPersonIds]);
+  const selectedPlanPersonIds = useMemo(
+    () => new Set(value.planPersonIds),
+    [value.planPersonIds]
+  );
   const memberRows = useMemo(() => buildMemberRows(positions), [positions]);
 
-  const setTeams = (teamIds: string[]) => onChange({ ...value, teamIds: unique(teamIds) });
+  const setTeams = (teamIds: string[]) =>
+    onChange({ ...value, teamIds: unique(teamIds) });
   const setPositions = (positionIds: string[]) =>
     onChange({ ...value, positionIds: unique(positionIds) });
   const setNeededPositions = (neededPositionIds: string[]) =>
@@ -153,18 +192,21 @@ export function TimeAssignmentSelector({
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[520px] max-w-[calc(100vw-2rem)] p-0" align="start">
+      <PopoverContent
+        className="w-[520px] max-w-[calc(100vw-2rem)] p-0"
+        align="start"
+      >
         <div className="flex items-center justify-between border-b px-3 py-2">
-          <span className="text-xs text-muted-foreground">
-            {label}
-          </span>
+          <span className="text-muted-foreground text-xs">{label}</span>
           <div className="flex items-center gap-1">
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="h-7 px-2 text-xs"
-              disabled={groups.length === 0 || value.teamIds.length === groups.length}
+              disabled={
+                groups.length === 0 || value.teamIds.length === groups.length
+              }
               onClick={() => setTeams(groups.map((group) => group.teamId))}
             >
               All teams
@@ -181,7 +223,12 @@ export function TimeAssignmentSelector({
                 value.planPersonIds.length === 0
               }
               onClick={() =>
-                onChange({ teamIds: [], positionIds: [], neededPositionIds: [], planPersonIds: [] })
+                onChange({
+                  teamIds: [],
+                  positionIds: [],
+                  neededPositionIds: [],
+                  planPersonIds: [],
+                })
               }
             >
               Clear
@@ -200,11 +247,17 @@ export function TimeAssignmentSelector({
                   <CommandItem
                     key={group.teamId}
                     value={`${group.teamName} ${group.teamId}`}
-                    onSelect={() => setTeams(toggleId(value.teamIds, group.teamId))}
+                    onSelect={() =>
+                      setTeams(toggleId(value.teamIds, group.teamId))
+                    }
                   >
-                    <Check className={cn(selected ? "opacity-100" : "opacity-0")} />
+                    <Check
+                      className={cn(selected ? "opacity-100" : "opacity-0")}
+                    />
                     <Users />
-                    <span className="min-w-0 flex-1 truncate">{group.teamName}</span>
+                    <span className="min-w-0 flex-1 truncate">
+                      {group.teamName}
+                    </span>
                     <Badge variant="secondary" className="font-normal">
                       {group.positions.length}
                     </Badge>
@@ -214,7 +267,9 @@ export function TimeAssignmentSelector({
             </CommandGroup>
             <CommandGroup heading="Positions and plan slots">
               {positions.map((position) => {
-                const isNeeded = position.source === "needed_position" && !!position.neededPositionId;
+                const isNeeded =
+                  position.source === "needed_position" &&
+                  !!position.neededPositionId;
                 const selected = isNeeded
                   ? selectedNeededPositionIds.has(position.neededPositionId!)
                   : selectedPositionIds.has(position.id);
@@ -226,7 +281,12 @@ export function TimeAssignmentSelector({
                     value={`${position.teamName} ${position.name} ${position.id}`}
                     onSelect={() => {
                       if (isNeeded) {
-                        setNeededPositions(toggleId(value.neededPositionIds, position.neededPositionId!));
+                        setNeededPositions(
+                          toggleId(
+                            value.neededPositionIds,
+                            position.neededPositionId!
+                          )
+                        );
                         return;
                       }
                       if (position.source === "team_position") {
@@ -235,7 +295,9 @@ export function TimeAssignmentSelector({
                     }}
                     disabled={position.source !== "team_position" && !isNeeded}
                   >
-                    <Check className={cn(selected ? "opacity-100" : "opacity-0")} />
+                    <Check
+                      className={cn(selected ? "opacity-100" : "opacity-0")}
+                    />
                     <Rows3 />
                     <span className="min-w-0 flex-1 truncate">
                       {position.teamName} / {position.name}
@@ -253,12 +315,24 @@ export function TimeAssignmentSelector({
                   <CommandItem
                     key={person.planPersonId}
                     value={`${person.name} ${person.teamName} ${person.positionName}`}
-                    onSelect={() => setPlanPeople(toggleId(value.planPersonIds, person.planPersonId))}
+                    onSelect={() =>
+                      setPlanPeople(
+                        toggleId(value.planPersonIds, person.planPersonId)
+                      )
+                    }
                   >
-                    <Check className={cn(selectedPlanPersonIds.has(person.planPersonId) ? "opacity-100" : "opacity-0")} />
+                    <Check
+                      className={cn(
+                        selectedPlanPersonIds.has(person.planPersonId)
+                          ? "opacity-100"
+                          : "opacity-0"
+                      )}
+                    />
                     <CircleUserRound />
-                    <span className="min-w-0 flex-1 truncate">{person.name}</span>
-                    <span className="truncate text-xs text-muted-foreground">
+                    <span className="min-w-0 flex-1 truncate">
+                      {person.name}
+                    </span>
+                    <span className="text-muted-foreground truncate text-xs">
                       {person.teamName} / {person.positionName}
                     </span>
                   </CommandItem>

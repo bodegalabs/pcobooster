@@ -1,7 +1,8 @@
 import { vercelAdapter } from "@flags-sdk/vercel";
 import { flag } from "flags/next";
 
-const localDevelopmentDefault = process.env.NODE_ENV !== "production" && !process.env.VERCEL;
+const localDevelopmentDefault =
+  process.env.NODE_ENV !== "production" && !process.env.VERCEL;
 
 const peoplePageOptions = [
   { value: false, label: "Off" },

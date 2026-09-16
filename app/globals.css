@@ -71,8 +71,16 @@
   --sidebar-accent-foreground: oklch(0.28 0.02 152);
   --sidebar-border: oklch(0.84 0.016 152);
   --sidebar-ring: oklch(0.61 0.06 154);
-  --sidebar-hover-surface: color-mix(in oklch, var(--sidebar) 34%, oklch(0.965 0.003 152) 66%);
-  --sidebar-active-surface: color-mix(in oklch, var(--sidebar) 12%, oklch(0.992 0.002 152) 88%);
+  --sidebar-hover-surface: color-mix(
+    in oklch,
+    var(--sidebar) 34%,
+    oklch(0.965 0.003 152) 66%
+  );
+  --sidebar-active-surface: color-mix(
+    in oklch,
+    var(--sidebar) 12%,
+    oklch(0.992 0.002 152) 88%
+  );
 }
 
 @layer base {
@@ -100,7 +108,8 @@
 [data-sidebar="menu-button"],
 [data-sidebar="menu-sub-button"] {
   color: color-mix(in oklch, var(--sidebar-foreground) 68%, transparent);
-  transition-property: width, height, padding, color, background-color, box-shadow;
+  transition-property:
+    width, height, padding, color, background-color, box-shadow;
 }
 
 [data-sidebar="menu-button"] > svg,
@@ -122,7 +131,11 @@
 
 [data-sidebar="menu-button"]:active,
 [data-sidebar="menu-sub-button"]:active {
-  background: color-mix(in oklch, var(--sidebar-active-surface) 70%, var(--sidebar-hover-surface));
+  background: color-mix(
+    in oklch,
+    var(--sidebar-active-surface) 70%,
+    var(--sidebar-hover-surface)
+  );
   color: var(--sidebar-foreground);
 }
 

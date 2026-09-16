@@ -9,10 +9,8 @@ import type {
   RawServiceType,
   ScheduleFrequency,
 } from "@/lib/types";
+import { blockoutCoversPlanSortInstant } from "@/lib/use-cases/planning-center/people/calendar-day";
 import type { SelectedPlanMatchContext } from "@/lib/use-cases/planning-center/people/types";
-import {
-  blockoutCoversPlanSortInstant,
-} from "@/lib/use-cases/planning-center/people/calendar-day";
 
 export function getDefaultFrequency(): ScheduleFrequency {
   return {
@@ -34,9 +32,11 @@ export function createBasePerson(rawPerson: RawPerson): PersonWithAvailability {
     id: rawPerson.id,
     firstName: (rawPerson.attributes.first_name as string) || "",
     lastName: (rawPerson.attributes.last_name as string) || "",
-    fullName: `${rawPerson.attributes.first_name || ""} ${rawPerson.attributes.last_name || ""}`.trim(),
+    fullName:
+      `${rawPerson.attributes.first_name || ""} ${rawPerson.attributes.last_name || ""}`.trim(),
     photoUrl: (rawPerson.attributes.photo_url as string) || null,
-    photoThumbnailUrl: (rawPerson.attributes.photo_thumbnail_url as string) || null,
+    photoThumbnailUrl:
+      (rawPerson.attributes.photo_thumbnail_url as string) || null,
     archived: !!rawPerson.attributes.archived_at,
     positions: [],
     isScheduledForSelectedPlanPosition: false,
@@ -55,7 +55,9 @@ export function getAssignedPeopleFromAssignments(
 
   for (const assignment of assignmentsData) {
     const personRel = assignment.relationships?.person?.data;
-    const personId = Array.isArray(personRel) ? personRel[0]?.id : personRel?.id;
+    const personId = Array.isArray(personRel)
+      ? personRel[0]?.id
+      : personRel?.id;
     if (!personId || seenPersonIds.has(personId)) continue;
 
     const person = findIncluded(assignmentsIncluded, "Person", personId) as
@@ -84,9 +86,11 @@ export function buildSelectedPlanMatchContext(
   const selectedPositionName = selectedPositionResource?.attributes?.name;
 
   const selectedTeamResource = teamId
-    ? (findIncluded(assignmentsIncluded, "Team", teamId) as unknown as {
-        attributes?: { name?: string };
-      } | undefined)
+    ? (findIncluded(assignmentsIncluded, "Team", teamId) as unknown as
+        | {
+            attributes?: { name?: string };
+          }
+        | undefined)
     : undefined;
 
   return {
@@ -97,7 +101,9 @@ export function buildSelectedPlanMatchContext(
   };
 }
 
-export function buildServiceTypeNameMap(serviceTypes: PCResource[]): Map<string, string> {
+export function buildServiceTypeNameMap(
+  serviceTypes: PCResource[]
+): Map<string, string> {
   const serviceTypeNameById = new Map<string, string>();
   serviceTypes.forEach((st) => {
     if (st.type !== "ServiceType") return;
@@ -138,7 +144,9 @@ export function applyAvailability(
   planSortAt: Date | null
 ) {
   const isBlocked = planSortAt
-    ? blockouts.some((blockout) => blockoutCoversPlanSortInstant(planSortAt, blockout))
+    ? blockouts.some((blockout) =>
+        blockoutCoversPlanSortInstant(planSortAt, blockout)
+      )
     : false;
 
   person.isBlockedForDate = isBlocked;

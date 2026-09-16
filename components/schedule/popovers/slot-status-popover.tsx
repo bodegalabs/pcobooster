@@ -23,7 +23,7 @@ export function SlotStatusPopoverContent({
     <div className="space-y-3">
       <div>
         <p className="text-sm font-semibold">{positionName}</p>
-        <p className="text-xs text-muted-foreground">{teamName}</p>
+        <p className="text-muted-foreground text-xs">{teamName}</p>
       </div>
       <FilledPeopleSection
         label={label}
@@ -56,10 +56,10 @@ function FilledPeopleSection({
         <Badge variant="outline" className={badgeClassName}>
           {label}
         </Badge>
-        <span className="text-xs text-muted-foreground">{people.length}</span>
+        <span className="text-muted-foreground text-xs">{people.length}</span>
       </div>
       {people.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+        <p className="text-muted-foreground text-sm">{emptyMessage}</p>
       ) : (
         <ul className="space-y-1.5">
           {people.map((person) => (
@@ -73,15 +73,22 @@ function FilledPeopleSection({
               )}
             >
               <Avatar className="h-7 w-7">
-                <AvatarImage src={person.photoThumbnailUrl || undefined} alt={person.name} />
-                <AvatarFallback className="text-[10px]">{getInitials(person.name)}</AvatarFallback>
+                <AvatarImage
+                  src={person.photoThumbnailUrl || undefined}
+                  alt={person.name}
+                />
+                <AvatarFallback className="text-[10px]">
+                  {getInitials(person.name)}
+                </AvatarFallback>
               </Avatar>
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{person.name}</p>
                 <p
                   className={cn(
                     "text-[11px] font-medium",
-                    person.status === "confirmed" ? "text-emerald-700 dark:text-emerald-100" : "text-amber-800 dark:text-amber-100"
+                    person.status === "confirmed"
+                      ? "text-emerald-700 dark:text-emerald-100"
+                      : "text-amber-800 dark:text-amber-100"
                   )}
                 >
                   {person.status === "confirmed" ? "Confirmed" : "Pending"}

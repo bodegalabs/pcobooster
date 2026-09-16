@@ -6,7 +6,10 @@ export async function getPlanItems(
   serviceTypeId: string,
   planId: string
 ): Promise<PlanItem[]> {
-  const response = await planningCenterPlanItemsService.getPlanItems(serviceTypeId, planId);
+  const response = await planningCenterPlanItemsService.getPlanItems(
+    serviceTypeId,
+    planId
+  );
 
   return response.data
     .map((item) => normalizePlanItem(item, response.included))

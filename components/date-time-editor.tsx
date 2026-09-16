@@ -1,12 +1,21 @@
 "use client";
 
-import { CalendarIcon, Clock3 } from "lucide-react";
 import { format } from "date-fns";
+import { CalendarIcon, Clock3 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Field, FieldLabel } from "@/components/ui/field";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 interface DateTimeEditorProps {
@@ -35,7 +44,10 @@ export function DateTimeEditor({
   const selectedDate = parseCalendarDay(dateValue);
 
   return (
-    <Field className={cn("gap-1.5", className)} data-invalid={invalid || undefined}>
+    <Field
+      className={cn("gap-1.5", className)}
+      data-invalid={invalid || undefined}
+    >
       <FieldLabel htmlFor={`${id}-time`}>{label}</FieldLabel>
       <div className="grid grid-cols-[minmax(0,1fr)_112px] gap-2">
         <Popover>
@@ -52,7 +64,9 @@ export function DateTimeEditor({
             >
               <CalendarIcon data-icon="inline-start" />
               <span className="truncate">
-                {selectedDate ? format(selectedDate, "MMM d, yyyy") : "Pick date"}
+                {selectedDate
+                  ? format(selectedDate, "MMM d, yyyy")
+                  : "Pick date"}
               </span>
             </Button>
           </PopoverTrigger>

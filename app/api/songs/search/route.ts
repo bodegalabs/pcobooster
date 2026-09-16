@@ -16,10 +16,22 @@ export async function GET(request: Request) {
     });
 
     if (!parsed.success) {
-      log.warn({ issues: parsed.error.issues }, "Invalid song search query params");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsed.error.issues);
+      log.warn(
+        { issues: parsed.error.issues },
+        "Invalid song search query params"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsed.error.issues
+      );
     }
 
-    return searchSongs(ctx.accountId, parsed.data.service_type_id, parsed.data.q);
+    return searchSongs(
+      ctx.accountId,
+      parsed.data.service_type_id,
+      parsed.data.q
+    );
   });
 }

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 
 const originalClient = process.env.PLANNING_CENTER_CLIENT;
@@ -36,8 +37,12 @@ describe("PlanningCenterCoreClient", () => {
     globalThis.fetch = fetchMock as typeof fetch;
 
     const client = new PlanningCenterCoreClient();
-    const first = client.fetch<{ attributes: { name: string } }>("/services/v2/people/1");
-    const second = client.fetch<{ attributes: { name: string } }>("/services/v2/people/1");
+    const first = client.fetch<{ attributes: { name: string } }>(
+      "/services/v2/people/1"
+    );
+    const second = client.fetch<{ attributes: { name: string } }>(
+      "/services/v2/people/1"
+    );
 
     await Promise.resolve();
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -62,7 +67,9 @@ describe("PlanningCenterCoreClient", () => {
   });
 
   it("does not dedupe writes", async () => {
-    const fetchMock = vi.fn(() => Promise.resolve(jsonResponse({ data: { id: "1" } })));
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(jsonResponse({ data: { id: "1" } }))
+    );
     globalThis.fetch = fetchMock as typeof fetch;
 
     const client = new PlanningCenterCoreClient();
@@ -75,13 +82,17 @@ describe("PlanningCenterCoreClient", () => {
   });
 
   it("allows successful empty write responses", async () => {
-    const fetchMock = vi.fn(() => Promise.resolve(new Response(null, { status: 204 })));
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(new Response(null, { status: 204 }))
+    );
     globalThis.fetch = fetchMock as typeof fetch;
 
     const client = new PlanningCenterCoreClient();
 
-    await expect(client.fetch("/services/v2/service_types/st-1/plan_times/time-1", {
-      method: "DELETE",
-    })).resolves.toBeUndefined();
+    await expect(
+      client.fetch("/services/v2/service_types/st-1/plan_times/time-1", {
+        method: "DELETE",
+      })
+    ).resolves.toBeUndefined();
   });
 });

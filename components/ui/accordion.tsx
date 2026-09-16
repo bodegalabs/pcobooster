@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { ChevronDown } from "lucide-react"
-import { Accordion as AccordionPrimitive } from "radix-ui"
+import { ChevronDown } from "lucide-react";
+import { Accordion as AccordionPrimitive } from "radix-ui";
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 function Accordion({
   ...props
 }: React.ComponentProps<typeof AccordionPrimitive.Root>) {
-  return <AccordionPrimitive.Root data-slot="accordion" {...props} />
+  return <AccordionPrimitive.Root data-slot="accordion" {...props} />;
 }
 
 function AccordionItem({
@@ -22,7 +22,7 @@ function AccordionItem({
       className={cn("border-b last:border-b-0", className)}
       {...props}
     />
-  )
+  );
 }
 
 function AccordionHeader({
@@ -34,7 +34,7 @@ function AccordionHeader({
       className={cn("flex items-center gap-1", className)}
       {...props}
     />
-  )
+  );
 }
 
 function AccordionTrigger({
@@ -54,7 +54,7 @@ function AccordionTrigger({
       {children}
       <ChevronDown className="text-muted-foreground size-4 shrink-0 transition-transform duration-200" />
     </AccordionPrimitive.Trigger>
-  )
+  );
 }
 
 function AccordionContent({
@@ -73,7 +73,13 @@ function AccordionContent({
     >
       <div className="pb-3">{children}</div>
     </AccordionPrimitive.Content>
-  )
+  );
 }
 
-export { Accordion, AccordionContent, AccordionHeader, AccordionItem, AccordionTrigger }
+export {
+  Accordion,
+  AccordionContent,
+  AccordionHeader,
+  AccordionItem,
+  AccordionTrigger,
+};

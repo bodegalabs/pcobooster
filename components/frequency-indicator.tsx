@@ -12,7 +12,7 @@ export function FrequencyIndicator({
   className,
 }: FrequencyIndicatorProps) {
   const level = getFrequencyLevel(frequency);
-  
+
   const colors = {
     low: "bg-green-500",
     medium: "bg-yellow-500",
@@ -37,7 +37,7 @@ export function FrequencyIndicator({
       <span className={cn("text-xs font-medium", textColors[level])}>
         {labels[level]}
       </span>
-      <span className="text-xs text-muted-foreground">
+      <span className="text-muted-foreground text-xs">
         ({frequency.recentServedDays} in {PLAN_HISTORY_HALF_RANGE_DAYS}d)
       </span>
     </div>
@@ -52,12 +52,18 @@ function getFrequencyLevel(frequency: ScheduleFrequency): FrequencyLevel {
   return "high";
 }
 
-export function FrequencyStats({ frequency }: { frequency: ScheduleFrequency }) {
+export function FrequencyStats({
+  frequency,
+}: {
+  frequency: ScheduleFrequency;
+}) {
   return (
     <div className="grid grid-cols-3 gap-2 text-center text-xs">
       <div>
         <div className="font-semibold">{frequency.recentServedDays}</div>
-        <div className="text-muted-foreground">{PLAN_HISTORY_HALF_RANGE_DAYS}d</div>
+        <div className="text-muted-foreground">
+          {PLAN_HISTORY_HALF_RANGE_DAYS}d
+        </div>
       </div>
       <div>
         <div className="font-semibold">{frequency.last60Days}</div>

@@ -1,9 +1,13 @@
 import { z } from "zod";
+
 import { ApiError } from "@/lib/http/api-error";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
 import { serializePlanTime } from "@/lib/plan-time-client";
-import { deletePlanTime, updatePlanTime } from "@/lib/use-cases/planning-center/plan-times";
+import {
+  deletePlanTime,
+  updatePlanTime,
+} from "@/lib/use-cases/planning-center/plan-times";
 import {
   deletePlanTimeBodySchema,
   updatePlanTimeBodySchema,
@@ -23,15 +27,31 @@ export async function PATCH(
   return handlePlanningCenterRoute(request, async () => {
     const parsedParams = paramsSchema.safeParse(await params);
     if (!parsedParams.success) {
-      log.warn({ issues: parsedParams.error.issues }, "Invalid plan-time route params");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsedParams.error.issues);
+      log.warn(
+        { issues: parsedParams.error.issues },
+        "Invalid plan-time route params"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsedParams.error.issues
+      );
     }
 
     const body = await request.json();
     const parsedBody = updatePlanTimeBodySchema.safeParse(body);
     if (!parsedBody.success) {
-      log.warn({ issues: parsedBody.error.issues }, "Invalid plan-time update body");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsedBody.error.issues);
+      log.warn(
+        { issues: parsedBody.error.issues },
+        "Invalid plan-time update body"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsedBody.error.issues
+      );
     }
 
     const planTime = await updatePlanTime({
@@ -62,15 +82,31 @@ export async function DELETE(
   return handlePlanningCenterRoute(request, async () => {
     const parsedParams = paramsSchema.safeParse(await params);
     if (!parsedParams.success) {
-      log.warn({ issues: parsedParams.error.issues }, "Invalid plan-time route params");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsedParams.error.issues);
+      log.warn(
+        { issues: parsedParams.error.issues },
+        "Invalid plan-time route params"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsedParams.error.issues
+      );
     }
 
     const body = await request.json();
     const parsedBody = deletePlanTimeBodySchema.safeParse(body);
     if (!parsedBody.success) {
-      log.warn({ issues: parsedBody.error.issues }, "Invalid plan-time delete body");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsedBody.error.issues);
+      log.warn(
+        { issues: parsedBody.error.issues },
+        "Invalid plan-time delete body"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsedBody.error.issues
+      );
     }
 
     await deletePlanTime({

@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { partitionPeopleForRecommendationStrip } from "@/lib/use-cases/planning-center/people/recommendation-strip-order";
-import type { PersonWithAvailability } from "@/lib/types";
 
-function basePerson(id: string, fullName: string, overrides: Partial<PersonWithAvailability> = {}): PersonWithAvailability {
+import type { PersonWithAvailability } from "@/lib/types";
+import { partitionPeopleForRecommendationStrip } from "@/lib/use-cases/planning-center/people/recommendation-strip-order";
+
+function basePerson(
+  id: string,
+  fullName: string,
+  overrides: Partial<PersonWithAvailability> = {}
+): PersonWithAvailability {
   return {
     id,
     firstName: fullName.split(" ")[0] ?? fullName,
@@ -21,32 +26,50 @@ describe("partitionPeopleForRecommendationStrip", () => {
     const people = [
       basePerson("1", "A High", { recommendationScore: 90 }),
       basePerson("2", "B Low", { recommendationScore: 10 }),
-      basePerson("3", "C Blocked", { isBlockedForDate: true, recommendationScore: 99 }),
+      basePerson("3", "C Blocked", {
+        isBlockedForDate: true,
+        recommendationScore: 99,
+      }),
       basePerson("4", "D Mid", { recommendationScore: 50 }),
     ];
-    const { actionable, exceptions } = partitionPeopleForRecommendationStrip(people);
+    const { actionable, exceptions } =
+      partitionPeopleForRecommendationStrip(people);
     expect(actionable.map((p) => p.id)).toEqual(["1", "4", "2"]);
     expect(exceptions.map((p) => p.id)).toEqual(["3"]);
   });
 
   it("places on-slot people first (confirmed before pending), then the rest by score", () => {
     const people = [
-      basePerson("1", "Scheduled", { isScheduledForSelectedPlanPosition: true, recommendationScore: 100 }),
+      basePerson("1", "Scheduled", {
+        isScheduledForSelectedPlanPosition: true,
+        recommendationScore: 100,
+      }),
       basePerson("2", "Open", { recommendationScore: 5 }),
-      basePerson("3", "Confirmed", { isConfirmedForSelectedPlanPosition: true, recommendationScore: 0 }),
+      basePerson("3", "Confirmed", {
+        isConfirmedForSelectedPlanPosition: true,
+        recommendationScore: 0,
+      }),
     ];
-    const { actionable, exceptions } = partitionPeopleForRecommendationStrip(people);
+    const { actionable, exceptions } =
+      partitionPeopleForRecommendationStrip(people);
     expect(actionable.map((p) => p.id)).toEqual(["3", "1", "2"]);
     expect(exceptions.map((p) => p.id)).toEqual([]);
   });
 
   it("places declined after main strip, blocked before declined in tail", () => {
     const people = [
-      basePerson("b", "Blocked", { isBlockedForDate: true, recommendationScore: 100 }),
-      basePerson("d", "Declined", { isDeclinedForSelectedPlanPosition: true, recommendationScore: 100 }),
+      basePerson("b", "Blocked", {
+        isBlockedForDate: true,
+        recommendationScore: 100,
+      }),
+      basePerson("d", "Declined", {
+        isDeclinedForSelectedPlanPosition: true,
+        recommendationScore: 100,
+      }),
       basePerson("o", "Open", { recommendationScore: 50 }),
     ];
-    const { actionable, exceptions } = partitionPeopleForRecommendationStrip(people);
+    const { actionable, exceptions } =
+      partitionPeopleForRecommendationStrip(people);
     expect(actionable.map((p) => p.id)).toEqual(["o"]);
     expect(exceptions.map((p) => p.id)).toEqual(["b", "d"]);
   });

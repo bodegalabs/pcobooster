@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   clearCachedSongSearch,
   normalizeSongSearchQuery,
@@ -62,7 +63,9 @@ describe("song search cache", () => {
     expect(cached?.savedAt).toBe(savedAt);
     expect(cached?.data[0].title).toBe("Build My Life");
     expect(cached?.data[0].lastScheduledAt).toBeInstanceOf(Date);
-    expect(cached?.data[0].lastScheduledAt?.toISOString()).toBe("2026-02-15T00:00:00.000Z");
+    expect(cached?.data[0].lastScheduledAt?.toISOString()).toBe(
+      "2026-02-15T00:00:00.000Z"
+    );
   });
 
   it("does not read a different service type or query snapshot", () => {

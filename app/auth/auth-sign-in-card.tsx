@@ -1,10 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 
@@ -33,7 +40,9 @@ export function AuthSignInCard() {
       });
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Unable to start sign in. Please try again.";
+        error instanceof Error
+          ? error.message
+          : "Unable to start sign in. Please try again.";
       setError(message);
     } finally {
       setLoading(false);
@@ -41,11 +50,13 @@ export function AuthSignInCard() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4">
+    <main className="bg-background flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle>Sign in</CardTitle>
-          <CardDescription>Continue with your Planning Center account.</CardDescription>
+          <CardDescription>
+            Continue with your Planning Center account.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">

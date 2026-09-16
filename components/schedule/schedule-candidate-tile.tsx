@@ -1,17 +1,30 @@
 "use client";
 
 import { CalendarPlus, Info, Loader2 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { PlanPersonStatusMenu, type PlanPersonStatusValue } from "@/components/schedule/plan-person-status-menu";
+
+import {
+  PlanPersonStatusMenu,
+  type PlanPersonStatusValue,
+} from "@/components/schedule/plan-person-status-menu";
 import { RecommendationPopover } from "@/components/schedule/popovers/recommendation-popover";
 import { ScheduleContextPopover } from "@/components/schedule/popovers/schedule-context-popover";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useSchedulePlanPerson } from "@/hooks/use-schedule-plan-person";
 import type { PersonWithAvailability } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-type StatusVariant = "confirmed" | "scheduled" | "declined" | "blocked" | "available";
+type StatusVariant =
+  | "confirmed"
+  | "scheduled"
+  | "declined"
+  | "blocked"
+  | "available";
 
 const STATUS_META: Record<StatusVariant, { label: string }> = {
   confirmed: { label: "Confirmed" },
@@ -64,24 +77,26 @@ export function ScheduleCandidateTile({
   const isConfirmed = !!person.isConfirmedForSelectedPlanPosition;
   const isDeclined = !!person.isDeclinedForSelectedPlanPosition;
   const isBlocked = !!person.isBlockedForDate;
-  const fromServerScheduled = !!person.isScheduledForSelectedPlanPosition || isConfirmed;
+  const fromServerScheduled =
+    !!person.isScheduledForSelectedPlanPosition || isConfirmed;
 
   const missingSelection = !serviceTypeId || !planId || !teamId || !positionId;
   const canScheduleForHook =
     !missingSelection && !isBlocked && !isDeclined && !fromServerScheduled;
 
-  const { isScheduling, scheduleSuccess, scheduleError, handleSchedule } = useSchedulePlanPerson({
-    serviceTypeId,
-    planId,
-    teamId,
-    positionId,
-    teamName,
-    positionName,
-    canSchedule: canScheduleForHook,
-    onScheduleSuccess,
-    onScheduleError,
-    oneOff,
-  });
+  const { isScheduling, scheduleSuccess, scheduleError, handleSchedule } =
+    useSchedulePlanPerson({
+      serviceTypeId,
+      planId,
+      teamId,
+      positionId,
+      teamName,
+      positionName,
+      canSchedule: canScheduleForHook,
+      onScheduleSuccess,
+      onScheduleError,
+      oneOff,
+    });
 
   const isScheduled = fromServerScheduled || scheduleSuccess;
 
@@ -101,7 +116,11 @@ export function ScheduleCandidateTile({
   const statusMeta = STATUS_META[statusVariant];
 
   const isUnavailableForSlot = isBlocked || isDeclined;
-  const unavailableSlotLabel = isBlocked ? "Blocked" : isDeclined ? "Declined" : null;
+  const unavailableSlotLabel = isBlocked
+    ? "Blocked"
+    : isDeclined
+      ? "Declined"
+      : null;
 
   const recommendationPercentage =
     isBlocked || person.recommendationScore === undefined
@@ -120,7 +139,8 @@ export function ScheduleCandidateTile({
 
   const canSchedule = !disableReason;
 
-  const initials = `${person.firstName?.[0] ?? ""}${person.lastName?.[0] ?? ""}` || "?";
+  const initials =
+    `${person.firstName?.[0] ?? ""}${person.lastName?.[0] ?? ""}` || "?";
 
   const serviceHistory = person.serviceHistory ?? [];
 
@@ -152,8 +172,12 @@ export function ScheduleCandidateTile({
       className="w-auto max-w-[16rem] border-dashed border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs leading-snug shadow-sm dark:border-blue-800 dark:bg-blue-950"
     >
       <p className="text-foreground [overflow-wrap:anywhere]">
-        <span className="font-medium text-foreground/90">Also scheduled for:</span>{" "}
-        <span className="text-muted-foreground dark:text-blue-100/85">{selectedPlanAssignments.join(", ")}</span>
+        <span className="text-foreground/90 font-medium">
+          Also scheduled for:
+        </span>{" "}
+        <span className="text-muted-foreground dark:text-blue-100/85">
+          {selectedPlanAssignments.join(", ")}
+        </span>
       </p>
     </PopoverContent>
   );
@@ -170,17 +194,26 @@ export function ScheduleCandidateTile({
       side="right"
       sideOffset={8}
       collisionPadding={16}
-      className="w-auto max-w-[18rem] border border-border/60 bg-popover px-3 py-2.5 text-sm leading-snug shadow-md"
+      className="border-border/60 bg-popover w-auto max-w-[18rem] border px-3 py-2.5 text-sm leading-snug shadow-md"
     >
-      <p className="text-xs font-medium text-muted-foreground">Decline reason</p>
-      <p className="mt-1.5 leading-relaxed text-foreground [overflow-wrap:anywhere]">{declineReasonBody}</p>
+      <p className="text-muted-foreground text-xs font-medium">
+        Decline reason
+      </p>
+      <p className="text-foreground mt-1.5 leading-relaxed [overflow-wrap:anywhere]">
+        {declineReasonBody}
+      </p>
     </PopoverContent>
   );
 
   const avatarInner = (
     <>
-      <AvatarImage src={person.photoThumbnailUrl || undefined} alt={person.fullName} />
-      <AvatarFallback className="bg-muted text-xs font-medium">{initials}</AvatarFallback>
+      <AvatarImage
+        src={person.photoThumbnailUrl || undefined}
+        alt={person.fullName}
+      />
+      <AvatarFallback className="bg-muted text-xs font-medium">
+        {initials}
+      </AvatarFallback>
     </>
   );
 
@@ -198,12 +231,15 @@ export function ScheduleCandidateTile({
               type="button"
               className={cn(
                 "relative inline-flex shrink-0 cursor-pointer overflow-visible rounded-full border-0 bg-transparent p-0",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
               )}
               aria-label={`Decline reason for ${person.fullName}`}
               title="View decline reason"
             >
-              <Avatar className={cn("size-8 sm:size-9", statusRing)} aria-hidden>
+              <Avatar
+                className={cn("size-8 sm:size-9", statusRing)}
+                aria-hidden
+              >
                 {avatarInner}
               </Avatar>
             </button>
@@ -217,14 +253,17 @@ export function ScheduleCandidateTile({
               type="button"
               className={cn(
                 "relative shrink-0 cursor-pointer overflow-visible rounded-full border-0 bg-transparent p-0",
-                "outline-2 outline-dashed outline-offset-2 outline-blue-500",
+                "outline-2 outline-offset-2 outline-blue-500 outline-dashed",
                 "hover:outline-blue-600 dark:outline-blue-400 dark:hover:outline-blue-300",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
               )}
               aria-label={elsewhereAvatarAriaLabel}
               title={elsewhereAssignmentsLabel}
             >
-              <Avatar className={cn("size-8 sm:size-9", statusRing)} aria-hidden>
+              <Avatar
+                className={cn("size-8 sm:size-9", statusRing)}
+                aria-hidden
+              >
                 {avatarInner}
               </Avatar>
               {blockedAvatarTint}
@@ -234,7 +273,10 @@ export function ScheduleCandidateTile({
         </Popover>
       ) : (
         <span className="relative inline-flex shrink-0 overflow-visible">
-          <Avatar className={cn("size-8 sm:size-9", statusRing)} title={statusMeta.label || undefined}>
+          <Avatar
+            className={cn("size-8 sm:size-9", statusRing)}
+            title={statusMeta.label || undefined}
+          >
             {avatarInner}
           </Avatar>
           {blockedAvatarTint}
@@ -244,7 +286,7 @@ export function ScheduleCandidateTile({
       <div className="flex min-w-0 flex-1 items-center gap-1">
         <p
           className={cn(
-            "min-w-0 truncate text-sm font-medium leading-tight text-foreground sm:text-base",
+            "text-foreground min-w-0 truncate text-sm leading-tight font-medium sm:text-base",
             isUnavailableForSlot && "text-muted-foreground line-through"
           )}
         >
@@ -253,8 +295,10 @@ export function ScheduleCandidateTile({
         {unavailableSlotLabel ? (
           <span
             className={cn(
-              "shrink-0 text-[0.65rem] font-semibold uppercase tracking-wide",
-              isBlocked ? "text-amber-800 dark:text-amber-400" : "text-red-700 dark:text-red-400"
+              "shrink-0 text-[0.65rem] font-semibold tracking-wide uppercase",
+              isBlocked
+                ? "text-amber-800 dark:text-amber-400"
+                : "text-red-700 dark:text-red-400"
             )}
           >
             {unavailableSlotLabel}
@@ -263,7 +307,7 @@ export function ScheduleCandidateTile({
         <ScheduleContextPopover serviceHistory={serviceHistory}>
           <button
             type="button"
-            className="inline-flex size-6 shrink-0 cursor-pointer appearance-none items-center justify-center rounded-md border-0 bg-transparent p-0 text-muted-foreground/70 hover:bg-muted/60 hover:text-foreground sm:size-8"
+            className="text-muted-foreground/70 hover:bg-muted/60 hover:text-foreground inline-flex size-6 shrink-0 cursor-pointer appearance-none items-center justify-center rounded-md border-0 bg-transparent p-0 sm:size-8"
             aria-label="Schedule context"
           >
             <Info className="size-4" />
@@ -273,26 +317,39 @@ export function ScheduleCandidateTile({
 
       <div className="col-span-2 col-start-2 row-start-2 min-w-0 sm:col-auto sm:row-auto sm:block sm:w-28 sm:shrink-0">
         {recommendationPercentage !== null ? (
-          <RecommendationPopover reasoning={person.recommendationReasoning} personId={person.id}>
+          <RecommendationPopover
+            reasoning={person.recommendationReasoning}
+            personId={person.id}
+          >
             <button
               type="button"
               className="flex w-full items-center gap-2 text-left sm:flex-col sm:items-end sm:gap-1.5 sm:text-right"
               aria-label={`${recommendationPercentage} percent fit`}
             >
-              <span className={cn("shrink-0 text-xs font-semibold tabular-nums leading-none sm:text-base", recTone(recommendationPercentage))}>
+              <span
+                className={cn(
+                  "shrink-0 text-xs leading-none font-semibold tabular-nums sm:text-base",
+                  recTone(recommendationPercentage)
+                )}
+              >
                 {recommendationPercentage}
-                <span className="ml-0.5 text-[11px] font-normal text-muted-foreground">%</span>
+                <span className="text-muted-foreground ml-0.5 text-[11px] font-normal">
+                  %
+                </span>
               </span>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted/50 sm:h-1.5">
+              <div className="bg-muted/50 h-1.5 w-full overflow-hidden rounded-full sm:h-1.5">
                 <div
-                  className={cn("h-full rounded-full transition-all", recBar(recommendationPercentage))}
+                  className={cn(
+                    "h-full rounded-full transition-all",
+                    recBar(recommendationPercentage)
+                  )}
                   style={{ width: `${Math.max(4, recommendationPercentage)}%` }}
                 />
               </div>
             </button>
           </RecommendationPopover>
         ) : (
-          <div className="text-right text-xs text-muted-foreground">—</div>
+          <div className="text-muted-foreground text-right text-xs">—</div>
         )}
       </div>
 
@@ -340,7 +397,9 @@ export function ScheduleCandidateTile({
       </div>
 
       {scheduleError ? (
-        <p className="col-span-2 col-start-2 text-[10px] text-destructive sm:absolute sm:-bottom-1 sm:left-14">{scheduleError}</p>
+        <p className="text-destructive col-span-2 col-start-2 text-[10px] sm:absolute sm:-bottom-1 sm:left-14">
+          {scheduleError}
+        </p>
       ) : null}
     </article>
   );

@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+
 import { db } from "@/lib/db";
 import {
   account,
@@ -10,7 +11,8 @@ const clientId = process.env.PLANNING_CENTER_OAUTH_CLIENT_ID;
 const clientSecret = process.env.PLANNING_CENTER_OAUTH_CLIENT_SECRET;
 
 if (!clientId) throw new Error("Missing PLANNING_CENTER_OAUTH_CLIENT_ID");
-if (!clientSecret) throw new Error("Missing PLANNING_CENTER_OAUTH_CLIENT_SECRET");
+if (!clientSecret)
+  throw new Error("Missing PLANNING_CENTER_OAUTH_CLIENT_SECRET");
 
 const tokenEndpoint = "https://api.planningcenteronline.com/oauth/token";
 const userinfoEndpoint = "https://api.planningcenteronline.com/oauth/userinfo";
@@ -45,7 +47,9 @@ function normalizeIdentity(payload: unknown): Identity | null {
   };
 }
 
-async function refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
+async function refreshAccessToken(
+  refreshToken: string
+): Promise<TokenResponse> {
   const body = new URLSearchParams({
     grant_type: "refresh_token",
     refresh_token: refreshToken,
@@ -62,7 +66,9 @@ async function refreshAccessToken(refreshToken: string): Promise<TokenResponse> 
   });
 
   if (!response.ok) {
-    throw new Error(`refresh failed: ${response.status} ${await response.text()}`);
+    throw new Error(
+      `refresh failed: ${response.status} ${await response.text()}`
+    );
   }
 
   return response.json() as Promise<TokenResponse>;
@@ -77,7 +83,9 @@ async function fetchIdentity(accessToken: string): Promise<Identity | null> {
   });
 
   if (!response.ok) {
-    throw new Error(`userinfo failed: ${response.status} ${await response.text()}`);
+    throw new Error(
+      `userinfo failed: ${response.status} ${await response.text()}`
+    );
   }
 
   return normalizeIdentity(await response.json());

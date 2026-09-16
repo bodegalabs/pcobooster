@@ -1,4 +1,8 @@
-import { detectPlatform, formatForDisplay, type RegisterableHotkey } from "@tanstack/hotkeys";
+import {
+  detectPlatform,
+  formatForDisplay,
+  type RegisterableHotkey,
+} from "@tanstack/hotkeys";
 
 /**
  * Spoken UI label — modifier names as words so assistive tech says “command B”, not glyphs.

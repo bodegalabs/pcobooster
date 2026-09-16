@@ -29,7 +29,9 @@ function toNumberOrNull(value: unknown): number | null {
 
 function toStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
-  return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+  return value.filter(
+    (item): item is string => typeof item === "string" && item.trim().length > 0
+  );
 }
 
 function toText(value: unknown): string {
@@ -41,9 +43,13 @@ function getKeyDisplayName(attributes: RawKey["attributes"]): string {
   if (name) return name;
 
   const startingKey =
-    typeof attributes.starting_key === "string" ? attributes.starting_key.trim() : "";
+    typeof attributes.starting_key === "string"
+      ? attributes.starting_key.trim()
+      : "";
   const endingKey =
-    typeof attributes.ending_key === "string" ? attributes.ending_key.trim() : "";
+    typeof attributes.ending_key === "string"
+      ? attributes.ending_key.trim()
+      : "";
 
   if (startingKey && endingKey && startingKey !== endingKey) {
     return `${startingKey} -> ${endingKey}`;
@@ -52,7 +58,9 @@ function getKeyDisplayName(attributes: RawKey["attributes"]): string {
   return startingKey || endingKey;
 }
 
-export function normalizeSongCatalogEntry(resource: PCResource): SongCatalogEntry {
+export function normalizeSongCatalogEntry(
+  resource: PCResource
+): SongCatalogEntry {
   const song = resource as RawSong;
   return {
     id: song.id,
@@ -64,7 +72,9 @@ export function normalizeSongCatalogEntry(resource: PCResource): SongCatalogEntr
   };
 }
 
-export function normalizePlanItemSong(resource: PCResource | undefined): PlanItemSong | null {
+export function normalizePlanItemSong(
+  resource: PCResource | undefined
+): PlanItemSong | null {
   if (!resource) return null;
   const song = normalizeSongCatalogEntry(resource);
   return {
@@ -76,7 +86,10 @@ export function normalizePlanItemSong(resource: PCResource | undefined): PlanIte
   };
 }
 
-export function normalizeArrangementOption(resource: PCResource, included: PCResource[]): ArrangementOption {
+export function normalizeArrangementOption(
+  resource: PCResource,
+  included: PCResource[]
+): ArrangementOption {
   const arrangement = resource as RawArrangement;
   const keys = included
     .filter((item) => item.type === "Key")
@@ -92,7 +105,9 @@ export function normalizeArrangementOption(resource: PCResource, included: PCRes
   };
 }
 
-export function normalizePlanItemArrangement(resource: PCResource | undefined): PlanItemArrangement | null {
+export function normalizePlanItemArrangement(
+  resource: PCResource | undefined
+): PlanItemArrangement | null {
   if (!resource) return null;
   const arrangement = resource as RawArrangement;
   return {
@@ -109,17 +124,27 @@ export function normalizeKeyOption(resource: PCResource): KeyOption {
   return {
     id: key.id,
     name: getKeyDisplayName(key.attributes),
-    startingKey: typeof key.attributes.starting_key === "string" ? key.attributes.starting_key : null,
-    endingKey: typeof key.attributes.ending_key === "string" ? key.attributes.ending_key : null,
+    startingKey:
+      typeof key.attributes.starting_key === "string"
+        ? key.attributes.starting_key
+        : null,
+    endingKey:
+      typeof key.attributes.ending_key === "string"
+        ? key.attributes.ending_key
+        : null,
   };
 }
 
-export function normalizePlanItemKey(resource: PCResource | undefined): PlanItemKey | null {
+export function normalizePlanItemKey(
+  resource: PCResource | undefined
+): PlanItemKey | null {
   if (!resource) return null;
   return normalizeKeyOption(resource);
 }
 
-export function normalizeLayoutOption(resource: PCResource | undefined): LayoutOption | null {
+export function normalizeLayoutOption(
+  resource: PCResource | undefined
+): LayoutOption | null {
   if (!resource) return null;
   const attributes = resource.attributes as Record<string, unknown>;
   const name =
@@ -133,45 +158,70 @@ export function normalizeLayoutOption(resource: PCResource | undefined): LayoutO
   };
 }
 
-export function normalizePlanItem(resource: PCResource, included: PCResource[]): PlanItem {
+export function normalizePlanItem(
+  resource: PCResource,
+  included: PCResource[]
+): PlanItem {
   const item = resource as RawItem;
   const songId =
-    !Array.isArray(item.relationships?.song?.data) && item.relationships?.song?.data
+    !Array.isArray(item.relationships?.song?.data) &&
+    item.relationships?.song?.data
       ? item.relationships.song.data.id
       : null;
   const arrangementId =
-    !Array.isArray(item.relationships?.arrangement?.data) && item.relationships?.arrangement?.data
+    !Array.isArray(item.relationships?.arrangement?.data) &&
+    item.relationships?.arrangement?.data
       ? item.relationships.arrangement.data.id
       : null;
   const keyId =
-    !Array.isArray(item.relationships?.key?.data) && item.relationships?.key?.data
+    !Array.isArray(item.relationships?.key?.data) &&
+    item.relationships?.key?.data
       ? item.relationships.key.data.id
       : null;
   const layoutRelationship =
-    !Array.isArray(item.relationships?.selected_layout?.data) && item.relationships?.selected_layout?.data
+    !Array.isArray(item.relationships?.selected_layout?.data) &&
+    item.relationships?.selected_layout?.data
       ? item.relationships.selected_layout.data
       : null;
 
-  const song = songId ? normalizePlanItemSong(findIncluded(included, "Song", songId)) : null;
+  const song = songId
+    ? normalizePlanItemSong(findIncluded(included, "Song", songId))
+    : null;
   const arrangement = arrangementId
-    ? normalizePlanItemArrangement(findIncluded(included, "Arrangement", arrangementId))
+    ? normalizePlanItemArrangement(
+        findIncluded(included, "Arrangement", arrangementId)
+      )
     : null;
-  const key = keyId ? normalizePlanItemKey(findIncluded(included, "Key", keyId)) : null;
+  const key = keyId
+    ? normalizePlanItemKey(findIncluded(included, "Key", keyId))
+    : null;
   const includedLayout = layoutRelationship
-    ? normalizeLayoutOption(findIncluded(included, "Layout", layoutRelationship.id))
+    ? normalizeLayoutOption(
+        findIncluded(included, "Layout", layoutRelationship.id)
+      )
     : null;
-  const layout = includedLayout ?? (layoutRelationship ? { id: layoutRelationship.id, name: "Selected layout" } : null);
+  const layout =
+    includedLayout ??
+    (layoutRelationship
+      ? { id: layoutRelationship.id, name: "Selected layout" }
+      : null);
 
   return {
     id: item.id,
     title: toText(item.attributes.title),
     itemType: toText(item.attributes.item_type) as PlanItemType,
-    sequence: typeof item.attributes.sequence === "number" ? item.attributes.sequence : 0,
-    servicePosition: (toText(item.attributes.service_position) || "during") as PlanItemServicePosition,
+    sequence:
+      typeof item.attributes.sequence === "number"
+        ? item.attributes.sequence
+        : 0,
+    servicePosition: (toText(item.attributes.service_position) ||
+      "during") as PlanItemServicePosition,
     length: toNumberOrNull(item.attributes.length),
     description: toText(item.attributes.description),
     htmlDetails: toText(item.attributes.html_details),
-    customArrangementSequence: toStringArray(item.attributes.custom_arrangement_sequence),
+    customArrangementSequence: toStringArray(
+      item.attributes.custom_arrangement_sequence
+    ),
     song,
     arrangement,
     key,
@@ -180,10 +230,16 @@ export function normalizePlanItem(resource: PCResource, included: PCResource[]):
 }
 
 function normalizeSearchText(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
 
-export function scoreSongSearch(entry: SongCatalogEntry, query: string): number {
+export function scoreSongSearch(
+  entry: SongCatalogEntry,
+  query: string
+): number {
   const normalizedQuery = normalizeSearchText(query);
   if (!normalizedQuery) return 0;
 

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   clearCachedPeopleDashboards,
   readCachedPeopleDashboard,
@@ -30,7 +31,9 @@ function installLocalStorageMock() {
   });
 }
 
-function dashboard(overrides: Partial<PeopleDashboardData> = {}): PeopleDashboardData {
+function dashboard(
+  overrides: Partial<PeopleDashboardData> = {}
+): PeopleDashboardData {
   return {
     range: "month",
     generatedAt: "2026-05-23T12:00:00.000Z",
@@ -157,7 +160,9 @@ describe("people dashboard cache", () => {
 
     expect(readCachedPeopleDashboard("month")).toBeUndefined();
     expect(readCachedPeopleDashboard("90")).toBeUndefined();
-    expect(readCachedPeopleDashboardPerson("person-1", "2026-05")).toBeUndefined();
+    expect(
+      readCachedPeopleDashboardPerson("person-1", "2026-05")
+    ).toBeUndefined();
     expect(window.localStorage.getItem("unrelated")).toBe("keep");
   });
 
@@ -176,17 +181,26 @@ describe("people dashboard cache", () => {
   it("does not read a different person or month detail snapshot", () => {
     writeCachedPeopleDashboardPerson("person-1", "2026-05", personDetail());
 
-    expect(readCachedPeopleDashboardPerson("person-2", "2026-05")).toBeUndefined();
-    expect(readCachedPeopleDashboardPerson("person-1", "2026-06")).toBeUndefined();
+    expect(
+      readCachedPeopleDashboardPerson("person-2", "2026-05")
+    ).toBeUndefined();
+    expect(
+      readCachedPeopleDashboardPerson("person-1", "2026-06")
+    ).toBeUndefined();
   });
 
   it("ignores invalid person detail snapshots", () => {
     window.localStorage.setItem(
       "worshipadmin:people-dashboard:v1:person:person-1:2026-05",
-      JSON.stringify({ savedAt: Date.now(), data: { person: { id: "person-1" } } })
+      JSON.stringify({
+        savedAt: Date.now(),
+        data: { person: { id: "person-1" } },
+      })
     );
 
-    expect(readCachedPeopleDashboardPerson("person-1", "2026-05")).toBeUndefined();
+    expect(
+      readCachedPeopleDashboardPerson("person-1", "2026-05")
+    ).toBeUndefined();
   });
   it("isolates presentation storage from live data and other seeds (readCachedPeopleDashboard)", () => {
     const dataset = { presentationScope: "live" };
@@ -208,16 +222,25 @@ describe("people dashboard cache", () => {
     const dataset = { presentationScope: "live" };
     vi.stubGlobal("document", { documentElement: { dataset } });
     writeCachedPeopleDashboardPerson("person-1", "2026-05", personDetail());
-    expect(readCachedPeopleDashboardPerson("person-1", "2026-05")).toBeDefined();
+    expect(
+      readCachedPeopleDashboardPerson("person-1", "2026-05")
+    ).toBeDefined();
     dataset.presentationScope = "present-v1-seed-a";
-    expect(readCachedPeopleDashboardPerson("person-1", "2026-05")).toBeUndefined();
+    expect(
+      readCachedPeopleDashboardPerson("person-1", "2026-05")
+    ).toBeUndefined();
     writeCachedPeopleDashboardPerson("person-1", "2026-05", personDetail());
-    expect(readCachedPeopleDashboardPerson("person-1", "2026-05")).toBeDefined();
+    expect(
+      readCachedPeopleDashboardPerson("person-1", "2026-05")
+    ).toBeDefined();
     dataset.presentationScope = "present-v1-seed-b";
-    expect(readCachedPeopleDashboardPerson("person-1", "2026-05")).toBeUndefined();
+    expect(
+      readCachedPeopleDashboardPerson("person-1", "2026-05")
+    ).toBeUndefined();
     dataset.presentationScope = "live";
-    expect(readCachedPeopleDashboardPerson("person-1", "2026-05")).toBeDefined();
+    expect(
+      readCachedPeopleDashboardPerson("person-1", "2026-05")
+    ).toBeDefined();
     vi.unstubAllGlobals();
   });
-
 });

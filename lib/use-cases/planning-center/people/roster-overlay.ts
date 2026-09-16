@@ -1,4 +1,5 @@
 import type { PersonWithAvailability, RawPerson } from "@/lib/types";
+import type { SelectedPlanMatchContext } from "@/lib/use-cases/planning-center/people/types";
 import {
   getRosterEntriesForPerson,
   getRosterEntriesForSlot,
@@ -7,7 +8,6 @@ import {
   type PlanRosterEntry,
   type PlanSchedulingContext,
 } from "@/lib/use-cases/planning-center/plan-scheduling-context";
-import type { SelectedPlanMatchContext } from "@/lib/use-cases/planning-center/people/types";
 
 export interface SelectedPlanRosterOverlay {
   selectedSlotEntry?: PlanRosterEntry;
@@ -23,7 +23,9 @@ export function mergeAssignedAndSelectedPlanSlotPeople({
   planSchedulingContext: PlanSchedulingContext;
   selectedMatchContext: SelectedPlanMatchContext;
 }): RawPerson[] {
-  const peopleById = new Map(assignedPeople.map((person) => [person.id, person]));
+  const peopleById = new Map(
+    assignedPeople.map((person) => [person.id, person])
+  );
 
   for (const entry of getRosterEntriesForSlot(
     planSchedulingContext,
@@ -47,10 +49,16 @@ export function getSelectedPlanRosterOverlay(
   personId: string,
   selectedMatchContext: SelectedPlanMatchContext
 ): SelectedPlanRosterOverlay {
-  const rosterEntries = getRosterEntriesForPerson(planSchedulingContext, personId);
+  const rosterEntries = getRosterEntriesForPerson(
+    planSchedulingContext,
+    personId
+  );
 
   return {
-    selectedSlotEntry: findSelectedSlotEntry(rosterEntries, selectedMatchContext),
+    selectedSlotEntry: findSelectedSlotEntry(
+      rosterEntries,
+      selectedMatchContext
+    ),
     assignmentLabels: getPlanRosterAssignmentLabels(rosterEntries),
   };
 }
@@ -72,7 +80,8 @@ export function applySelectedPlanRosterStatus(
   person.scheduledPlanPersonId = overlay.selectedSlotEntry.planPersonId;
 
   if (person.isDeclinedForSelectedPlanPosition) {
-    person.selectedPlanDeclineReason = overlay.selectedSlotEntry.declineReason ?? null;
+    person.selectedPlanDeclineReason =
+      overlay.selectedSlotEntry.declineReason ?? null;
   }
 }
 
@@ -93,12 +102,17 @@ function findSelectedSlotEntry(
   rosterEntries: PlanRosterEntry[],
   selectedMatchContext: SelectedPlanMatchContext
 ): PlanRosterEntry | undefined {
-  const { teamId, selectedPositionName, selectedTeamName } = selectedMatchContext;
+  const { teamId, selectedPositionName, selectedTeamName } =
+    selectedMatchContext;
   if (!selectedPositionName) return undefined;
 
   return rosterEntries.find((entry) => {
     if (teamId && entry.teamId && entry.teamId !== teamId) return false;
-    if (selectedTeamName && entry.teamName && entry.teamName !== selectedTeamName) {
+    if (
+      selectedTeamName &&
+      entry.teamName &&
+      entry.teamName !== selectedTeamName
+    ) {
       return false;
     }
     return entry.positionName === selectedPositionName;

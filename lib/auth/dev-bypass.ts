@@ -21,7 +21,10 @@ const log = logger.for("auth/dev-bypass");
 
 export function isDevAuthBypassEnabled(): boolean {
   if (process.env.NODE_ENV === "production") return false;
-  return process.env.DEV_AUTH_BYPASS === "1" || process.env.DEV_AUTH_BYPASS === "true";
+  return (
+    process.env.DEV_AUTH_BYPASS === "1" ||
+    process.env.DEV_AUTH_BYPASS === "true"
+  );
 }
 
 export type DevBypassSession = {
@@ -56,7 +59,8 @@ export type DevBypassIdentity = {
   personId: string | null;
 };
 
-let identityCache: { expiresAt: number; identity: DevBypassIdentity } | null = null;
+let identityCache: { expiresAt: number; identity: DevBypassIdentity } | null =
+  null;
 let inflight: Promise<DevBypassIdentity> | null = null;
 
 function getBasicAuthHeader(): string | null {
@@ -80,7 +84,10 @@ async function fetchPcResource(path: string): Promise<unknown> {
   return response.json();
 }
 
-function readString(record: Record<string, unknown>, key: string): string | null {
+function readString(
+  record: Record<string, unknown>,
+  key: string
+): string | null {
   const value = record[key];
   return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
@@ -102,27 +109,44 @@ async function hydrateIdentity(): Promise<DevBypassIdentity> {
     ]);
 
     if (meResponse && typeof meResponse === "object") {
-      const me = meResponse as { data?: { id?: string; attributes?: Record<string, unknown> }; included?: Array<{ type?: string; attributes?: Record<string, unknown> }> };
+      const me = meResponse as {
+        data?: { id?: string; attributes?: Record<string, unknown> };
+        included?: Array<{
+          type?: string;
+          attributes?: Record<string, unknown>;
+        }>;
+      };
       const attrs = me.data?.attributes ?? {};
-      const first = readString(attrs, "first_name") ?? readString(attrs, "given_name");
-      const last = readString(attrs, "last_name") ?? readString(attrs, "family_name");
-      const fullName = readString(attrs, "name") ?? [first, last].filter(Boolean).join(" ");
+      const first =
+        readString(attrs, "first_name") ?? readString(attrs, "given_name");
+      const last =
+        readString(attrs, "last_name") ?? readString(attrs, "family_name");
+      const fullName =
+        readString(attrs, "name") ?? [first, last].filter(Boolean).join(" ");
       if (fullName) fallback.name = fullName;
       const avatarRaw =
         readString(attrs, "avatar") ??
         readString(attrs, "demographic_avatar_url") ??
         readString(attrs, "photo_thumbnail_url");
       if (avatarRaw) fallback.image = avatarRaw;
-      const includedEmail = (me.included ?? []).find((entry) => entry?.type === "Email" && typeof entry.attributes?.address === "string");
+      const includedEmail = (me.included ?? []).find(
+        (entry) =>
+          entry?.type === "Email" &&
+          typeof entry.attributes?.address === "string"
+      );
       const email = includedEmail
-        ? (includedEmail.attributes as { address?: string }).address ?? null
+        ? ((includedEmail.attributes as { address?: string }).address ?? null)
         : null;
       if (email) fallback.email = email;
       if (me.data?.id) fallback.personId = me.data.id;
     }
 
     if (orgResponse && typeof orgResponse === "object") {
-      const org = orgResponse as { data?: { id?: string; attributes?: Record<string, unknown> } | Array<{ id?: string; attributes?: Record<string, unknown> }> };
+      const org = orgResponse as {
+        data?:
+          | { id?: string; attributes?: Record<string, unknown> }
+          | Array<{ id?: string; attributes?: Record<string, unknown> }>;
+      };
       const root = Array.isArray(org.data) ? org.data[0] : org.data;
       const attrs = root?.attributes ?? {};
       const orgName = readString(attrs, "name");
@@ -158,7 +182,9 @@ async function getIdentity(): Promise<DevBypassIdentity> {
   return inflight;
 }
 
-export function getDevBypassSession(identity?: DevBypassIdentity): DevBypassSession {
+export function getDevBypassSession(
+  identity?: DevBypassIdentity
+): DevBypassSession {
   const id = identity ?? identityCache?.identity ?? null;
   const now = new Date();
   const expires = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -185,7 +211,9 @@ export function getDevBypassSession(identity?: DevBypassIdentity): DevBypassSess
   };
 }
 
-export function getDevBypassPlanningCenterAccount(identity?: DevBypassIdentity) {
+export function getDevBypassPlanningCenterAccount(
+  identity?: DevBypassIdentity
+) {
   const id = identity ?? identityCache?.identity ?? null;
   return {
     id: DEV_BYPASS_ACCOUNT_ID,

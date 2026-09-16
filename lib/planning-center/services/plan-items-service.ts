@@ -1,7 +1,7 @@
-import type { PCResource } from "@/lib/types";
 import { logger } from "@/lib/logger";
 import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { PlanningCenterReadCache } from "@/lib/planning-center/services/read-cache";
+import type { PCResource } from "@/lib/types";
 
 const log = logger.for("planning-center/plan-items");
 const PLAN_ITEMS_CACHE_TTL_MS = 30 * 1000;
@@ -149,7 +149,10 @@ export class PlanningCenterPlanItemsService {
     this.invalidatePlanItemsCache(serviceTypeId, planId);
   }
 
-  private buildPlanItemsCacheKey(serviceTypeId: string, planId: string): string {
+  private buildPlanItemsCacheKey(
+    serviceTypeId: string,
+    planId: string
+  ): string {
     return [
       this.core.getCacheScope(),
       "plan-items",
@@ -174,6 +177,5 @@ function clonePlanItemsResponse(response: {
   };
 }
 
-export const planningCenterPlanItemsService = new PlanningCenterPlanItemsService(
-  new PlanningCenterCoreClient()
-);
+export const planningCenterPlanItemsService =
+  new PlanningCenterPlanItemsService(new PlanningCenterCoreClient());

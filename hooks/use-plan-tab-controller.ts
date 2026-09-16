@@ -1,9 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
+
+import {
+  getItemTypeLabel,
+  type DraftState,
+} from "@/components/schedule/plan-tab-helpers";
+import { toast } from "@/components/ui/sonner";
+import { usePlanItems } from "@/hooks/use-plan-items";
+import { createSongOptionsQueryOptions } from "@/hooks/use-song-options";
 import { deleteJson, patchJson, postJson } from "@/lib/http/client";
-import { hydratePlanItem, type SerializedPlanItem } from "@/lib/plan-item-client";
+import {
+  hydratePlanItem,
+  type SerializedPlanItem,
+} from "@/lib/plan-item-client";
 import {
   appendPlanItem,
   applyPlanItemDraft,
@@ -29,10 +40,6 @@ import type {
   SongCatalogEntry,
   SongOptionSet,
 } from "@/lib/types";
-import { usePlanItems } from "@/hooks/use-plan-items";
-import { createSongOptionsQueryOptions } from "@/hooks/use-song-options";
-import { getItemTypeLabel, type DraftState } from "@/components/schedule/plan-tab-helpers";
-import { toast } from "@/components/ui/sonner";
 
 interface UsePlanTabControllerArgs {
   serviceTypeId: string | null;
@@ -88,11 +95,14 @@ export function usePlanTabController({
     if (songIds.length === 0) return;
 
     const timers = songIds.map((songId, index) =>
-      window.setTimeout(() => {
-        void queryClient.prefetchQuery(
-          createSongOptionsQueryOptions(songId, serviceTypeId)
-        );
-      }, 450 + index * 150)
+      window.setTimeout(
+        () => {
+          void queryClient.prefetchQuery(
+            createSongOptionsQueryOptions(songId, serviceTypeId)
+          );
+        },
+        450 + index * 150
+      )
     );
 
     return () => {
@@ -148,21 +158,26 @@ export function usePlanTabController({
 
       return {
         optimisticItemId,
-        snapshot: applyPlanItemsOptimisticUpdate(queryClient, queryKey, (current) =>
-          appendPlanItem(
-            current,
-            createOptimisticBasicPlanItem(
-              optimisticItemId,
-              kind,
-              nextPlanItemSequence(current)
+        snapshot: applyPlanItemsOptimisticUpdate(
+          queryClient,
+          queryKey,
+          (current) =>
+            appendPlanItem(
+              current,
+              createOptimisticBasicPlanItem(
+                optimisticItemId,
+                kind,
+                nextPlanItemSequence(current)
+              )
             )
-          )
         ),
       };
     },
     onSuccess: (item, _kind, context) => {
-      queryClient.setQueryData<PlanItem[]>(queryKey, (current = EMPTY_PLAN_ITEMS) =>
-        replacePlanItemById(current, context.optimisticItemId, item)
+      queryClient.setQueryData<PlanItem[]>(
+        queryKey,
+        (current = EMPTY_PLAN_ITEMS) =>
+          replacePlanItemById(current, context.optimisticItemId, item)
       );
       setEditingItemId(item.id);
       toast.success(`${getItemTypeLabel(item)} added.`);
@@ -191,9 +206,14 @@ export function usePlanTabController({
         throw new Error("A service type and plan must be selected.");
       }
 
-      const songOptionsQuery = createSongOptionsQueryOptions(song.id, serviceTypeId);
+      const songOptionsQuery = createSongOptionsQueryOptions(
+        song.id,
+        serviceTypeId
+      );
       const songOptions =
-        queryClient.getQueryData<SongOptionSet | null>(songOptionsQuery.queryKey) ?? null;
+        queryClient.getQueryData<SongOptionSet | null>(
+          songOptionsQuery.queryKey
+        ) ?? null;
 
       const item = await postJson<SerializedPlanItem>("/api/plan-items", {
         service_type_id: serviceTypeId,
@@ -217,21 +237,26 @@ export function usePlanTabController({
 
       return {
         optimisticItemId,
-        snapshot: applyPlanItemsOptimisticUpdate(queryClient, queryKey, (current) =>
-          appendPlanItem(
-            current,
-            createOptimisticSongPlanItem(
-              optimisticItemId,
-              song,
-              nextPlanItemSequence(current)
+        snapshot: applyPlanItemsOptimisticUpdate(
+          queryClient,
+          queryKey,
+          (current) =>
+            appendPlanItem(
+              current,
+              createOptimisticSongPlanItem(
+                optimisticItemId,
+                song,
+                nextPlanItemSequence(current)
+              )
             )
-          )
         ),
       };
     },
     onSuccess: (item, _song, context) => {
-      queryClient.setQueryData<PlanItem[]>(queryKey, (current = EMPTY_PLAN_ITEMS) =>
-        replacePlanItemById(current, context.optimisticItemId, item)
+      queryClient.setQueryData<PlanItem[]>(
+        queryKey,
+        (current = EMPTY_PLAN_ITEMS) =>
+          replacePlanItemById(current, context.optimisticItemId, item)
       );
       setEditingItemId(item.id);
       toast.success("Song added to plan.");
@@ -268,8 +293,10 @@ export function usePlanTabController({
 
       return {
         deletedItemId: itemId,
-        snapshot: applyPlanItemsOptimisticUpdate(queryClient, queryKey, (current) =>
-          removePlanItem(current, itemId)
+        snapshot: applyPlanItemsOptimisticUpdate(
+          queryClient,
+          queryKey,
+          (current) => removePlanItem(current, itemId)
         ),
       };
     },
@@ -311,7 +338,11 @@ export function usePlanTabController({
       await queryClient.cancelQueries({ queryKey });
 
       return {
-        snapshot: applyPlanItemsOptimisticUpdate(queryClient, queryKey, () => nextItems),
+        snapshot: applyPlanItemsOptimisticUpdate(
+          queryClient,
+          queryKey,
+          () => nextItems
+        ),
       };
     },
     onError: (error, _nextItems, context) => {
@@ -356,30 +387,48 @@ export function usePlanTabController({
         throw new Error("A service type and plan must be selected.");
       }
 
-      const itemResponse = await patchJson<SerializedPlanItem>(`/api/plan-items/${item.id}`, {
-        service_type_id: serviceTypeId,
-        plan_id: planId,
-        title: item.song ? item.title : draft.title,
-        service_position: draft.servicePosition,
-        length: length && length > 0 ? length : null,
-        description: draft.description,
-        song_id: undefined,
-        arrangement_id: draft.arrangementId || undefined,
-        key_id: draft.keyId || undefined,
-      });
+      const itemResponse = await patchJson<SerializedPlanItem>(
+        `/api/plan-items/${item.id}`,
+        {
+          service_type_id: serviceTypeId,
+          plan_id: planId,
+          title: item.song ? item.title : draft.title,
+          service_position: draft.servicePosition,
+          length: length && length > 0 ? length : null,
+          description: draft.description,
+          song_id: undefined,
+          arrangement_id: draft.arrangementId || undefined,
+          key_id: draft.keyId || undefined,
+        }
+      );
 
       return hydratePlanItem(itemResponse);
     },
-    onMutate: async ({ item, draft, length, optimisticArrangement, optimisticKey }) => {
+    onMutate: async ({
+      item,
+      draft,
+      length,
+      optimisticArrangement,
+      optimisticKey,
+    }) => {
       setPendingItemId(item.id);
       await queryClient.cancelQueries({ queryKey });
 
       return {
-        snapshot: applyPlanItemsOptimisticUpdate(queryClient, queryKey, (current) =>
-          replacePlanItem(
-            current,
-            applyPlanItemDraft(item, draft, length, optimisticArrangement, optimisticKey)
-          )
+        snapshot: applyPlanItemsOptimisticUpdate(
+          queryClient,
+          queryKey,
+          (current) =>
+            replacePlanItem(
+              current,
+              applyPlanItemDraft(
+                item,
+                draft,
+                length,
+                optimisticArrangement,
+                optimisticKey
+              )
+            )
         ),
       };
     },
@@ -388,8 +437,9 @@ export function usePlanTabController({
       toast.error(toErrorMessage(error, "Something went wrong."));
     },
     onSuccess: (updatedItem) => {
-      queryClient.setQueryData<PlanItem[]>(queryKey, (current = EMPTY_PLAN_ITEMS) =>
-        replacePlanItem(current, updatedItem)
+      queryClient.setQueryData<PlanItem[]>(
+        queryKey,
+        (current = EMPTY_PLAN_ITEMS) => replacePlanItem(current, updatedItem)
       );
     },
     onSettled: () => {
@@ -403,7 +453,9 @@ export function usePlanTabController({
     isLoading,
     isPlaceholderData,
     editingItemId,
-    editingItem: editingItemId ? items.find((item) => item.id === editingItemId) ?? null : null,
+    editingItem: editingItemId
+      ? (items.find((item) => item.id === editingItemId) ?? null)
+      : null,
     songPickerOpen,
     pendingItemId,
     pendingSongId,
@@ -411,8 +463,10 @@ export function usePlanTabController({
     isSavingItem: updateItemMutation.isPending,
     setEditingItemId,
     setSongPickerOpen,
-    createBasicItem: (kind: "header" | "item") => createItemMutation.mutateAsync(kind),
-    addSongToPlan: (song: SongCatalogEntry) => addSongMutation.mutateAsync(song),
+    createBasicItem: (kind: "header" | "item") =>
+      createItemMutation.mutateAsync(kind),
+    addSongToPlan: (song: SongCatalogEntry) =>
+      addSongMutation.mutateAsync(song),
     deleteItem: (itemId: string) => deleteItemMutation.mutateAsync(itemId),
     reorderItems: (nextItems: PlanItem[]) => {
       if (planItemsHaveSameOrder(items, nextItems)) {

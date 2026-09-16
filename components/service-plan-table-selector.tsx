@@ -1,11 +1,17 @@
 "use client";
 
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
 import { ServiceTypeMultiSelect } from "@/components/service-type-multi-select";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Empty,
   EmptyDescription,
@@ -13,7 +19,15 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -23,18 +37,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMyScheduledPlans } from "@/hooks/use-my-scheduled-plans";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
 import { useServiceTypes } from "@/hooks/use-service-types";
 import { createTeamPositionsQueryOptions } from "@/hooks/use-team-positions";
 import { getJson } from "@/lib/http/client";
-import { queryKeys } from "@/lib/query-keys";
-import { readCachedPlansEntry, writeCachedPlans } from "@/lib/schedule-catalog-cache";
 import {
   addCalendarDaysToDayKey,
   formatCalendarDayInTimeZone,
 } from "@/lib/planning-center/org-calendar";
+import { queryKeys } from "@/lib/query-keys";
+import {
+  readCachedPlansEntry,
+  writeCachedPlans,
+} from "@/lib/schedule-catalog-cache";
 import type { Plan } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -82,7 +100,11 @@ function parsePlanDate(value: Date | string | undefined): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-function isInDateWindow(date: Date, range: DateRangeFilter, orgTz: string): boolean {
+function isInDateWindow(
+  date: Date,
+  range: DateRangeFilter,
+  orgTz: string
+): boolean {
   if (range === "all") return true;
 
   const days = Number(range);
@@ -105,7 +127,9 @@ function readStoredServiceTypeIds(): string[] | null {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return null;
 
-    const ids = parsed.filter((value): value is string => typeof value === "string");
+    const ids = parsed.filter(
+      (value): value is string => typeof value === "string"
+    );
     return ids;
   } catch {
     return null;
@@ -121,18 +145,21 @@ export function ServicePlanTableSelector({
   const prefetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cachedPlanWritesRef = useRef<Map<string, number>>(new Map());
   const orgTimeZone = useOrganizationTimeZone();
-  const { data: serviceTypes, isLoading: serviceTypesLoading } = useServiceTypes();
+  const { data: serviceTypes, isLoading: serviceTypesLoading } =
+    useServiceTypes();
   const [searchValue, setSearchValue] = useState("");
   const deferredSearchValue = useDeferredValue(searchValue);
-  const [selectedServiceTypeIds, setSelectedServiceTypeIds] = useState<string[] | null>(
-    () => (selectedServiceTypeId ? [selectedServiceTypeId] : null)
-  );
+  const [selectedServiceTypeIds, setSelectedServiceTypeIds] = useState<
+    string[] | null
+  >(() => (selectedServiceTypeId ? [selectedServiceTypeId] : null));
   const [dateRangeFilter, setDateRangeFilter] = useState<DateRangeFilter>("60");
   const [showMineOnly, setShowMineOnly] = useState(false);
 
   useEffect(() => {
     setSelectedServiceTypeIds(
-      selectedServiceTypeId ? [selectedServiceTypeId] : readStoredServiceTypeIds()
+      selectedServiceTypeId
+        ? [selectedServiceTypeId]
+        : readStoredServiceTypeIds()
     );
   }, [selectedServiceTypeId]);
 
@@ -183,9 +210,11 @@ export function ServicePlanTableSelector({
   );
 
   const planQueryOptions = useMemo(
-    () => (serviceTypes ?? []).map((serviceType) => ({
+    () =>
+      (serviceTypes ?? []).map((serviceType) => ({
         queryKey: queryKeys.plans(serviceType.id),
-        queryFn: () => getJson<Plan[]>(`/api/plans?service_type_id=${serviceType.id}`),
+        queryFn: () =>
+          getJson<Plan[]>(`/api/plans?service_type_id=${serviceType.id}`),
         staleTime: 5 * 60 * 1000,
         enabled: !!serviceTypes && selectedServiceTypeIdSet.has(serviceType.id),
       })),
@@ -207,7 +236,11 @@ export function ServicePlanTableSelector({
 
       const queryKey = queryKeys.plans(serviceType.id);
       const state = queryClient.getQueryState<Plan[]>(queryKey);
-      if (state?.data !== undefined && state.dataUpdatedAt >= cachedPlans.savedAt) continue;
+      if (
+        state?.data !== undefined &&
+        state.dataUpdatedAt >= cachedPlans.savedAt
+      )
+        continue;
 
       queryClient.setQueryData<Plan[]>(queryKey, cachedPlans.data, {
         updatedAt: cachedPlans.savedAt,
@@ -313,7 +346,8 @@ export function ServicePlanTableSelector({
 
   const plansLoading = planQueries.some((query) => query.isLoading);
   const errorMessage = planQueries.find((query) => query.isError)?.error;
-  const isInitialLoading = serviceTypesLoading || (plansLoading && rows.length === 0);
+  const isInitialLoading =
+    serviceTypesLoading || (plansLoading && rows.length === 0);
   useEffect(() => {
     if (!serviceTypes) return;
     for (const [index, serviceType] of serviceTypes.entries()) {
@@ -332,7 +366,11 @@ export function ServicePlanTableSelector({
   const prefetchTeamPositions = useCallback(
     (row: ServicePlanRow) => {
       void queryClient.prefetchQuery(
-        createTeamPositionsQueryOptions(row.serviceTypeId, row.planId, row.seriesId)
+        createTeamPositionsQueryOptions(
+          row.serviceTypeId,
+          row.planId,
+          row.seriesId
+        )
       );
     },
     [queryClient]
@@ -355,7 +393,8 @@ export function ServicePlanTableSelector({
 
       void queryClient.prefetchQuery({
         queryKey: queryKeys.peopleHistoryWarmup(row.serviceTypeId, dateKey),
-        queryFn: () => getJson<{ warmed: true }>(`/api/people/warmup?${params.toString()}`),
+        queryFn: () =>
+          getJson<{ warmed: true }>(`/api/people/warmup?${params.toString()}`),
         staleTime: PEOPLE_HISTORY_WARMUP_STALE_TIME_MS,
       });
     },
@@ -442,7 +481,7 @@ export function ServicePlanTableSelector({
               />
               Mine
               {myScheduledCount > 0 ? (
-                <span className="tabular-nums text-muted-foreground">
+                <span className="text-muted-foreground tabular-nums">
                   {myScheduledCount}
                 </span>
               ) : null}
@@ -473,7 +512,9 @@ export function ServicePlanTableSelector({
         <NativeSelect
           wrapperClassName="w-full"
           value={dateRangeFilter}
-          onChange={(event) => setDateRangeFilter(event.target.value as DateRangeFilter)}
+          onChange={(event) =>
+            setDateRangeFilter(event.target.value as DateRangeFilter)
+          }
           aria-label="Filter date range"
         >
           <NativeSelectOption value="all">All loaded dates</NativeSelectOption>
@@ -483,11 +524,11 @@ export function ServicePlanTableSelector({
         </NativeSelect>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-border/40">
+      <div className="border-border/40 min-h-0 flex-1 overflow-y-auto rounded-lg border">
         <Table className="hidden md:table">
-          <TableHeader className="sticky top-0 z-10 bg-background">
-            <TableRow className="border-b border-border/40 hover:bg-transparent [&>th]:h-9 [&>th]:text-xs [&>th]:font-medium [&>th]:text-muted-foreground">
-              <TableHead className="w-[30%] pl-5 pr-3">Service type</TableHead>
+          <TableHeader className="bg-background sticky top-0 z-10">
+            <TableRow className="border-border/40 [&>th]:text-muted-foreground border-b hover:bg-transparent [&>th]:h-9 [&>th]:text-xs [&>th]:font-medium">
+              <TableHead className="w-[30%] pr-3 pl-5">Service type</TableHead>
               <TableHead className="w-[20%] px-3">Date</TableHead>
               <TableHead className="w-[25%] px-3">Series</TableHead>
               <TableHead className="px-3">Plan</TableHead>
@@ -497,7 +538,7 @@ export function ServicePlanTableSelector({
             {isInitialLoading ? (
               Array.from({ length: 8 }).map((_, index) => (
                 <TableRow key={`loading-${index}`} className="[&>td]:h-10">
-                  <TableCell className="pl-5 pr-3">
+                  <TableCell className="pr-3 pl-5">
                     <Skeleton className="h-3.5 w-40" />
                   </TableCell>
                   <TableCell className="px-3">
@@ -520,7 +561,9 @@ export function ServicePlanTableSelector({
                         <Search />
                       </EmptyMedia>
                       <EmptyTitle>Plans failed to load</EmptyTitle>
-                      <EmptyDescription>Refresh and try again.</EmptyDescription>
+                      <EmptyDescription>
+                        Refresh and try again.
+                      </EmptyDescription>
                     </EmptyHeader>
                   </Empty>
                 </TableCell>
@@ -534,7 +577,9 @@ export function ServicePlanTableSelector({
                         <Search />
                       </EmptyMedia>
                       <EmptyTitle>No matching plans</EmptyTitle>
-                      <EmptyDescription>Adjust the search, service type, or date window.</EmptyDescription>
+                      <EmptyDescription>
+                        Adjust the search, service type, or date window.
+                      </EmptyDescription>
                     </EmptyHeader>
                   </Empty>
                 </TableCell>
@@ -542,14 +587,16 @@ export function ServicePlanTableSelector({
             ) : (
               visibleRows.map((row) => {
                 const isActive = row.planId === selectedPlanId;
-                const isScheduledForCurrentUser = myScheduledPlanIdSet.has(row.planId);
+                const isScheduledForCurrentUser = myScheduledPlanIdSet.has(
+                  row.planId
+                );
 
                 return (
                   <TableRow
                     key={`${row.serviceTypeId}:${row.planId}`}
                     data-state={isActive ? "selected" : undefined}
                     className={cn(
-                      "group/row relative cursor-pointer transition-none hover:bg-muted/60 [&>td]:h-10 [&>td]:py-0 [&>td]:transition-none",
+                      "group/row hover:bg-muted/60 relative cursor-pointer transition-none [&>td]:h-10 [&>td]:py-0 [&>td]:transition-none",
                       isScheduledForCurrentUser &&
                         "[&>td:first-child]:shadow-[inset_2px_0_0_0_#10b981]"
                     )}
@@ -571,16 +618,17 @@ export function ServicePlanTableSelector({
                   >
                     <TableCell
                       className={cn(
-                        "pl-5 pr-3 font-medium",
-                        isScheduledForCurrentUser && "text-emerald-700 dark:text-emerald-300"
+                        "pr-3 pl-5 font-medium",
+                        isScheduledForCurrentUser &&
+                          "text-emerald-700 dark:text-emerald-300"
                       )}
                     >
                       {row.serviceTypeName}
                     </TableCell>
-                    <TableCell className="px-3 tabular-nums text-muted-foreground">
+                    <TableCell className="text-muted-foreground px-3 tabular-nums">
                       {formatDate(row.sortDate)}
                     </TableCell>
-                    <TableCell className="px-3 text-muted-foreground">
+                    <TableCell className="text-muted-foreground px-3">
                       {row.seriesTitle ? (
                         <span className="truncate">{row.seriesTitle}</span>
                       ) : (
@@ -588,7 +636,9 @@ export function ServicePlanTableSelector({
                       )}
                     </TableCell>
                     <TableCell className="px-3">
-                      <span className="truncate">{row.planTitle || "Untitled plan"}</span>
+                      <span className="truncate">
+                        {row.planTitle || "Untitled plan"}
+                      </span>
                     </TableCell>
                   </TableRow>
                 );
@@ -600,7 +650,10 @@ export function ServicePlanTableSelector({
         <div className="flex flex-col md:hidden">
           {isInitialLoading ? (
             Array.from({ length: 8 }).map((_, index) => (
-              <div key={`mobile-loading-${index}`} className="border-b border-border/35 px-4 py-3 last:border-b-0">
+              <div
+                key={`mobile-loading-${index}`}
+                className="border-border/35 border-b px-4 py-3 last:border-b-0"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1 space-y-2">
                     <Skeleton className="h-4 w-36" />
@@ -630,14 +683,18 @@ export function ServicePlanTableSelector({
                     <Search />
                   </EmptyMedia>
                   <EmptyTitle>No matching plans</EmptyTitle>
-                  <EmptyDescription>Adjust the search, service type, or date window.</EmptyDescription>
+                  <EmptyDescription>
+                    Adjust the search, service type, or date window.
+                  </EmptyDescription>
                 </EmptyHeader>
               </Empty>
             </div>
           ) : (
             visibleRows.map((row) => {
               const isActive = row.planId === selectedPlanId;
-              const isScheduledForCurrentUser = myScheduledPlanIdSet.has(row.planId);
+              const isScheduledForCurrentUser = myScheduledPlanIdSet.has(
+                row.planId
+              );
 
               return (
                 <button
@@ -645,9 +702,10 @@ export function ServicePlanTableSelector({
                   type="button"
                   data-state={isActive ? "selected" : undefined}
                   className={cn(
-                    "relative flex w-full cursor-pointer flex-col gap-1.5 border-b border-border/35 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+                    "border-border/35 hover:bg-muted/50 focus-visible:ring-ring relative flex w-full cursor-pointer flex-col gap-1.5 border-b px-4 py-3 text-left transition-colors last:border-b-0 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
                     isActive && "bg-muted/60",
-                    isScheduledForCurrentUser && "shadow-[inset_3px_0_0_0_#10b981]"
+                    isScheduledForCurrentUser &&
+                      "shadow-[inset_3px_0_0_0_#10b981]"
                   )}
                   aria-current={isActive ? "page" : undefined}
                   aria-label={
@@ -662,24 +720,28 @@ export function ServicePlanTableSelector({
                     <div className="min-w-0">
                       <p
                         className={cn(
-                          "truncate text-sm font-semibold leading-tight",
-                          isScheduledForCurrentUser && "text-emerald-700 dark:text-emerald-300"
+                          "truncate text-sm leading-tight font-semibold",
+                          isScheduledForCurrentUser &&
+                            "text-emerald-700 dark:text-emerald-300"
                         )}
                       >
                         {row.serviceTypeName}
                       </p>
-                      <p className="mt-1 truncate text-base font-medium leading-tight">
+                      <p className="mt-1 truncate text-base leading-tight font-medium">
                         {row.planTitle || "Untitled plan"}
                       </p>
                     </div>
-                    <span className="shrink-0 pt-0.5 text-xs tabular-nums text-muted-foreground">
+                    <span className="text-muted-foreground shrink-0 pt-0.5 text-xs tabular-nums">
                       {formatMobileDate(row.sortDate)}
                     </span>
                   </div>
-                  <div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+                  <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-xs">
                     {isScheduledForCurrentUser ? (
                       <span className="inline-flex shrink-0 items-center gap-1 font-medium text-emerald-700 dark:text-emerald-300">
-                        <span aria-hidden className="size-1.5 rounded-full bg-emerald-500" />
+                        <span
+                          aria-hidden
+                          className="size-1.5 rounded-full bg-emerald-500"
+                        />
                         Mine
                       </span>
                     ) : null}

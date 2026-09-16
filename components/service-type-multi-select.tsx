@@ -1,7 +1,8 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
+import { useId, useMemo, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -11,7 +12,11 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { ServiceType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -43,9 +48,13 @@ export function ServiceTypeMultiSelect({
   const listId = useId();
   const [open, setOpen] = useState(false);
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
-  const label = useMemo(() => buildLabel(options, selectedIds), [options, selectedIds]);
+  const label = useMemo(
+    () => buildLabel(options, selectedIds),
+    [options, selectedIds]
+  );
   const allIds = useMemo(() => options.map((option) => option.id), [options]);
-  const allSelected = options.length > 0 && selectedIds.length === options.length;
+  const allSelected =
+    options.length > 0 && selectedIds.length === options.length;
   const selectedCountLabel = allSelected
     ? "All selected"
     : `${selectedIds.length} selected`;
@@ -75,30 +84,35 @@ export function ServiceTypeMultiSelect({
           <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[420px] max-w-[calc(100vw-2rem)] p-0" align="start">
+      <PopoverContent
+        className="w-[420px] max-w-[calc(100vw-2rem)] p-0"
+        align="start"
+      >
         <div className="flex items-center justify-between border-b px-3 py-2">
-          <span className="text-muted-foreground text-xs">{selectedCountLabel}</span>
+          <span className="text-muted-foreground text-xs">
+            {selectedCountLabel}
+          </span>
           <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-xs"
-            onClick={() => onChange(allIds)}
-            disabled={allSelected}
-          >
-            All
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-xs"
-            onClick={() => onChange([])}
-            disabled={selectedIds.length === 0}
-          >
-            Clear
-          </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={() => onChange(allIds)}
+              disabled={allSelected}
+            >
+              All
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={() => onChange([])}
+              disabled={selectedIds.length === 0}
+            >
+              Clear
+            </Button>
           </div>
         </div>
         <Command>
@@ -115,7 +129,12 @@ export function ServiceTypeMultiSelect({
                     value={`${option.name} ${option.id}`}
                     onSelect={() => toggleOption(option.id)}
                   >
-                    <Check className={cn("size-4", selected ? "opacity-100" : "opacity-0")} />
+                    <Check
+                      className={cn(
+                        "size-4",
+                        selected ? "opacity-100" : "opacity-0"
+                      )}
+                    />
                     {option.name}
                   </CommandItem>
                 );

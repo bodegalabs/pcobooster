@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import {
   formatWallTimeInTimeZone,
   zonedWallTimeToUtcIso,
@@ -59,21 +60,13 @@ describe("org timezone wall-clock helpers", () => {
 
   it("converts an org-local date and time back to a UTC ISO instant", () => {
     expect(
-      zonedWallTimeToUtcIso(
-        "2026-05-24",
-        "09:30",
-        "America/Los_Angeles"
-      )
+      zonedWallTimeToUtcIso("2026-05-24", "09:30", "America/Los_Angeles")
     ).toBe("2026-05-24T16:30:00.000Z");
   });
 
   it("uses the offset for the selected wall-clock date", () => {
     expect(
-      zonedWallTimeToUtcIso(
-        "2026-12-24",
-        "09:30",
-        "America/Los_Angeles"
-      )
+      zonedWallTimeToUtcIso("2026-12-24", "09:30", "America/Los_Angeles")
     ).toBe("2026-12-24T17:30:00.000Z");
   });
 });

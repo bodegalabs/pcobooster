@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { getCachedPeopleDashboardPersonDetail } from "@/lib/people-dashboard-person-placeholder";
 import type {
   PeopleDashboardData,

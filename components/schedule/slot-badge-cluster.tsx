@@ -1,7 +1,11 @@
 "use client";
 
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { SlotStatusPopoverContent } from "@/components/schedule/popovers/slot-status-popover";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import type { TeamPosition } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -19,8 +23,12 @@ export function SlotBadgeCluster({
   const needed = position.neededCount ?? 0;
   const filled = confirmed + pending;
   const total = filled + needed;
-  const confirmedPeople = (position.filledPeople ?? []).filter((person) => person.status === "confirmed");
-  const pendingPeople = (position.filledPeople ?? []).filter((person) => person.status === "pending");
+  const confirmedPeople = (position.filledPeople ?? []).filter(
+    (person) => person.status === "confirmed"
+  );
+  const pendingPeople = (position.filledPeople ?? []).filter(
+    (person) => person.status === "pending"
+  );
   const allFilled = needed === 0 && filled > 0;
   const hasPending = pending > 0;
 
@@ -30,7 +38,7 @@ export function SlotBadgeCluster({
         <HoverCard openDelay={120} closeDelay={120}>
           <HoverCardTrigger asChild>
             <span
-              className="text-[11px] tabular-nums text-muted-foreground"
+              className="text-muted-foreground text-[11px] tabular-nums"
               aria-label={`${filled} of ${total} filled`}
             >
               {filled}/{total}
@@ -60,7 +68,7 @@ export function SlotBadgeCluster({
       ) : null}
       {needed > 0 ? (
         <span
-          className="shrink-0 text-[11px] font-medium tabular-nums text-red-600 dark:text-red-400"
+          className="shrink-0 text-[11px] font-medium text-red-600 tabular-nums dark:text-red-400"
           title={`${needed} still needed`}
         >
           +{needed}

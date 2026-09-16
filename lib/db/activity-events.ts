@@ -64,7 +64,10 @@ function toNullableNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
-function getHeader(headers: HeadersLike | undefined, name: string): string | null {
+function getHeader(
+  headers: HeadersLike | undefined,
+  name: string
+): string | null {
   return toNullableString(headers?.get(name));
 }
 
@@ -77,9 +80,13 @@ function pathFromUrl(url: string | undefined): string | null {
   }
 }
 
-export function getActivityRequestContext(source: RequestContextSource): ActivityRequestContext {
+export function getActivityRequestContext(
+  source: RequestContextSource
+): ActivityRequestContext {
   const request =
-    source && "request" in source ? source.request : (source as RequestLike | null | undefined);
+    source && "request" in source
+      ? source.request
+      : (source as RequestLike | null | undefined);
   const headers =
     source && "headers" in source && source.headers
       ? source.headers
@@ -89,7 +96,8 @@ export function getActivityRequestContext(source: RequestContextSource): Activit
     requestId: getHeader(headers, "x-request-id"),
     path: pathFromUrl(request?.url),
     method: toNullableString(request?.method),
-    ipAddress: getHeader(headers, "x-forwarded-for") ?? getHeader(headers, "x-real-ip"),
+    ipAddress:
+      getHeader(headers, "x-forwarded-for") ?? getHeader(headers, "x-real-ip"),
     userAgent: getHeader(headers, "user-agent"),
   };
 }
@@ -105,7 +113,9 @@ function normalizeMetadata(
   }
 }
 
-export async function recordActivityEvent(input: ActivityEventInput): Promise<void> {
+export async function recordActivityEvent(
+  input: ActivityEventInput
+): Promise<void> {
   await db.insert(activityEvents).values({
     eventType: input.eventType,
     actorUserId: toNullableString(input.actorUserId),

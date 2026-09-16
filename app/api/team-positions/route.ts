@@ -1,9 +1,10 @@
-import { presentTeamPositions } from "@/lib/use-cases/planning-center/presentation";
 import { z } from "zod";
+
 import { ApiError } from "@/lib/http/api-error";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
 import { getNeededTeamPositionsForPlan } from "@/lib/use-cases/planning-center/get-team-positions";
+import { presentTeamPositions } from "@/lib/use-cases/planning-center/presentation";
 
 export const dynamic = "force-dynamic";
 
@@ -26,8 +27,16 @@ export async function GET(request: Request) {
     });
 
     if (!parsed.success) {
-      log.warn({ issues: parsed.error.issues }, "Invalid team-positions query params");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsed.error.issues);
+      log.warn(
+        { issues: parsed.error.issues },
+        "Invalid team-positions query params"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsed.error.issues
+      );
     }
 
     const { service_type_id, plan_id, series_id } = parsed.data;
@@ -43,7 +52,10 @@ export async function GET(request: Request) {
         seriesId: series_id ?? null,
         planId: plan_id,
         teamCount: groupedPositions.length,
-        positionCount: groupedPositions.reduce((sum, g) => sum + g.positions.length, 0),
+        positionCount: groupedPositions.reduce(
+          (sum, g) => sum + g.positions.length,
+          0
+        ),
       },
       "Plan needed team positions fetched"
     );

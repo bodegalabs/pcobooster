@@ -13,7 +13,9 @@ function calculateRecommendationScore(
   if (!frequency) {
     // Treat missing frequency data like a clean/no-load candidate instead of
     // artificially pushing them down the list with a low fallback score.
-    reasoning.push("No service history available (treated as no recent/upcoming load)");
+    reasoning.push(
+      "No service history available (treated as no recent/upcoming load)"
+    );
     return { score: 130, reasoning };
   }
 
@@ -27,7 +29,11 @@ function calculateRecommendationScore(
 
   const baseScore = 100 - frequency.recentServedDays * 10;
   const daysSinceLastServed = frequency.lastServedDate
-    ? orgCalendarDaysBetween(frequency.lastServedDate, referenceDate, orgTimeZone)
+    ? orgCalendarDaysBetween(
+        frequency.lastServedDate,
+        referenceDate,
+        orgTimeZone
+      )
     : 999;
   const recencyBonus = Math.min(Math.max(daysSinceLastServed, 0), 30);
   const upcomingPenalty = (frequency.upcomingServices || 0) * 20;
@@ -70,9 +76,14 @@ function calculateRecommendationScore(
     reasoning.push("No past services scheduled");
   } else if (frequency.lastServedDate) {
     const lastServedStr = formatDate(frequency.lastServedDate);
-    if (daysSinceLastServed === 0) reasoning.push(`Last served on the same date (${lastServedStr})`);
-    else if (daysSinceLastServed === 1) reasoning.push(`Last served 1 day before on ${lastServedStr}`);
-    else reasoning.push(`Last served ${daysSinceLastServed} days before on ${lastServedStr}`);
+    if (daysSinceLastServed === 0)
+      reasoning.push(`Last served on the same date (${lastServedStr})`);
+    else if (daysSinceLastServed === 1)
+      reasoning.push(`Last served 1 day before on ${lastServedStr}`);
+    else
+      reasoning.push(
+        `Last served ${daysSinceLastServed} days before on ${lastServedStr}`
+      );
   }
 
   if (frequency.upcomingServices > 0 && frequency.nextUpcomingDate) {
@@ -94,9 +105,16 @@ function calculateRecommendationScore(
       );
     }
 
-    if (daysUntilNext <= 7) reasoning.push(`Ranked lower: scheduled ${daysUntilNext} day${daysUntilNext === 1 ? "" : "s"} after`);
-    else if (daysUntilNext <= 14) reasoning.push(`Ranked slightly lower: scheduled ${daysUntilNext} days after`);
-    else if (daysUntilNext <= 21) reasoning.push(`Minor penalty: scheduled ${daysUntilNext} days after`);
+    if (daysUntilNext <= 7)
+      reasoning.push(
+        `Ranked lower: scheduled ${daysUntilNext} day${daysUntilNext === 1 ? "" : "s"} after`
+      );
+    else if (daysUntilNext <= 14)
+      reasoning.push(
+        `Ranked slightly lower: scheduled ${daysUntilNext} days after`
+      );
+    else if (daysUntilNext <= 21)
+      reasoning.push(`Minor penalty: scheduled ${daysUntilNext} days after`);
   }
 
   if (frequency.upcomingRehearsals > 0 && frequency.nextRehearsalDate) {
@@ -112,8 +130,14 @@ function calculateRecommendationScore(
         : `Rehearsals upcoming: ${frequency.upcomingRehearsals} scheduled (${daysUntilRehearsal} days after on ${nextRehearsalStr})`
     );
 
-    if (daysUntilRehearsal <= 7) reasoning.push(`Slight rehearsal penalty: rehearsal ${daysUntilRehearsal} day${daysUntilRehearsal === 1 ? "" : "s"} after`);
-    else if (daysUntilRehearsal <= 14) reasoning.push(`Minor rehearsal penalty: rehearsal ${daysUntilRehearsal} days after`);
+    if (daysUntilRehearsal <= 7)
+      reasoning.push(
+        `Slight rehearsal penalty: rehearsal ${daysUntilRehearsal} day${daysUntilRehearsal === 1 ? "" : "s"} after`
+      );
+    else if (daysUntilRehearsal <= 14)
+      reasoning.push(
+        `Minor rehearsal penalty: rehearsal ${daysUntilRehearsal} days after`
+      );
   }
 
   const recentEngagementDays =
@@ -151,14 +175,18 @@ export function scoreAndNormalizePeople(
   const availablePeopleScores = people
     .filter((p) => !p.isBlockedForDate && p.recommendationScore !== undefined)
     .map((p) => p.recommendationScore as number);
-  const minScore = availablePeopleScores.length > 0 ? Math.min(...availablePeopleScores) : 0;
-  const maxScore = availablePeopleScores.length > 0 ? Math.max(...availablePeopleScores) : 100;
+  const minScore =
+    availablePeopleScores.length > 0 ? Math.min(...availablePeopleScores) : 0;
+  const maxScore =
+    availablePeopleScores.length > 0 ? Math.max(...availablePeopleScores) : 100;
   const scoreRange = maxScore - minScore;
 
   people.forEach((person) => {
     if (person.recommendationScore !== undefined && !person.isBlockedForDate) {
       const normalizedScore =
-        scoreRange > 0 ? ((person.recommendationScore - minScore) / scoreRange) * 100 : 50;
+        scoreRange > 0
+          ? ((person.recommendationScore - minScore) / scoreRange) * 100
+          : 50;
       person.recommendationScore = Math.round(normalizedScore * 100) / 100;
     }
   });
@@ -166,11 +194,27 @@ export function scoreAndNormalizePeople(
 
 export function sortPeopleForSelection(people: PersonWithAvailability[]) {
   people.sort((a, b) => {
-    if (a.isConfirmedForSelectedPlanPosition && !b.isConfirmedForSelectedPlanPosition) return -1;
-    if (!a.isConfirmedForSelectedPlanPosition && b.isConfirmedForSelectedPlanPosition) return 1;
+    if (
+      a.isConfirmedForSelectedPlanPosition &&
+      !b.isConfirmedForSelectedPlanPosition
+    )
+      return -1;
+    if (
+      !a.isConfirmedForSelectedPlanPosition &&
+      b.isConfirmedForSelectedPlanPosition
+    )
+      return 1;
 
-    if (a.isScheduledForSelectedPlanPosition && !b.isScheduledForSelectedPlanPosition) return -1;
-    if (!a.isScheduledForSelectedPlanPosition && b.isScheduledForSelectedPlanPosition) return 1;
+    if (
+      a.isScheduledForSelectedPlanPosition &&
+      !b.isScheduledForSelectedPlanPosition
+    )
+      return -1;
+    if (
+      !a.isScheduledForSelectedPlanPosition &&
+      b.isScheduledForSelectedPlanPosition
+    )
+      return 1;
 
     if (a.isBlockedForDate && !b.isBlockedForDate) return 1;
     if (!a.isBlockedForDate && b.isBlockedForDate) return -1;

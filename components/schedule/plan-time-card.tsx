@@ -1,22 +1,33 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDownIcon, Clock3, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { TimeAssignmentSelector, type TimeAssignmentValue } from "@/components/time-assignment-selector";
+import { ChevronDownIcon, Clock3, Pencil, Trash2 } from "lucide-react";
+import { useState } from "react";
+
 import {
   formatCalendarDay,
   formatPlanTimeRangeLabel,
   parseCalendarDay,
 } from "@/components/schedule/plan-time-display";
+import {
+  TimeAssignmentSelector,
+  type TimeAssignmentValue,
+} from "@/components/time-assignment-selector";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { usePersistOnClosePopover } from "@/hooks/use-persist-on-close-popover";
 import type { PlanTimeType, TeamPositionGroup } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -81,7 +92,7 @@ export function PlanTimeCard({
   return (
     <Card
       className={cn(
-        "group/plan-time gap-0 rounded-lg py-0 shadow-xs transition-colors hover:border-border/80",
+        "group/plan-time hover:border-border/80 gap-0 rounded-lg py-0 shadow-xs transition-colors",
         saving && "opacity-70"
       )}
     >
@@ -101,7 +112,7 @@ export function PlanTimeCard({
               }
             }}
             className={cn(
-              "min-w-0 flex-1 border-transparent shadow-none font-semibold",
+              "min-w-0 flex-1 border-transparent font-semibold shadow-none",
               "hover:border-border/60 hover:bg-muted/30",
               "focus-visible:border-input focus-visible:bg-background",
               !edit.name.trim() && "text-muted-foreground"
@@ -112,21 +123,27 @@ export function PlanTimeCard({
             size="sm"
             value={edit.timeType}
             wrapperClassName="shrink-0 opacity-80 transition-opacity hover:opacity-100"
-            className="h-7 border-border/60 bg-muted/20 pr-8 pl-2.5 text-xs font-medium shadow-none"
+            className="border-border/60 bg-muted/20 h-7 pr-8 pl-2.5 text-xs font-medium shadow-none"
             aria-label="Time type"
             onChange={(event) =>
               onCommitEdit({ timeType: event.target.value as PlanTimeType })
             }
           >
-            <NativeSelectOption value="rehearsal">{timeTypeLabels.rehearsal}</NativeSelectOption>
-            <NativeSelectOption value="service">{timeTypeLabels.service}</NativeSelectOption>
-            <NativeSelectOption value="other">{timeTypeLabels.other}</NativeSelectOption>
+            <NativeSelectOption value="rehearsal">
+              {timeTypeLabels.rehearsal}
+            </NativeSelectOption>
+            <NativeSelectOption value="service">
+              {timeTypeLabels.service}
+            </NativeSelectOption>
+            <NativeSelectOption value="other">
+              {timeTypeLabels.other}
+            </NativeSelectOption>
           </NativeSelect>
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
-            className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
+            className="text-muted-foreground hover:text-destructive size-7 shrink-0"
             aria-label={`Delete ${edit.name || "time"}`}
             disabled={saving || deleting}
             onClick={() => setDeleteOpen(true)}
@@ -214,7 +231,12 @@ function PlanTimeRangeEditor({
   const [dateOpen, setDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
   const sameDay = !endDate || endDate === startDate;
-  const displayLabel = formatPlanTimeRangeLabel({ startDate, startTime, endDate, endTime });
+  const displayLabel = formatPlanTimeRangeLabel({
+    startDate,
+    startTime,
+    endDate,
+    endTime,
+  });
   const nestedPickerOpen = dateOpen || endDateOpen;
 
   const { open, handleOpenChange, contentRef } = usePersistOnClosePopover({
@@ -234,7 +256,7 @@ function PlanTimeRangeEditor({
           variant="ghost"
           size="sm"
           className={cn(
-            "group/time-range h-auto min-h-8 w-full justify-start gap-1.5 px-1 py-1 pr-1 font-normal text-muted-foreground",
+            "group/time-range text-muted-foreground h-auto min-h-8 w-full justify-start gap-1.5 px-1 py-1 pr-1 font-normal",
             open && "bg-muted/30 text-foreground"
           )}
           data-invalid={invalid || undefined}
@@ -242,13 +264,20 @@ function PlanTimeRangeEditor({
           aria-expanded={open}
         >
           <Clock3 className="size-3.5 shrink-0" />
-          <span className={cn("min-w-0 flex-1 text-left", invalid && "text-destructive")}>
+          <span
+            className={cn(
+              "min-w-0 flex-1 text-left",
+              invalid && "text-destructive"
+            )}
+          >
             {displayLabel}
           </span>
           <Pencil
             className={cn(
               "size-3.5 shrink-0 transition-opacity",
-              open ? "opacity-60" : "opacity-0 group-hover/time-range:opacity-60"
+              open
+                ? "opacity-60"
+                : "opacity-0 group-hover/time-range:opacity-60"
             )}
             aria-hidden="true"
           />
@@ -345,7 +374,9 @@ function DatePickerField({
             aria-invalid={invalid || undefined}
           >
             <span className="truncate">
-              {selectedDate ? format(selectedDate, "MMM d, yyyy") : "Select date"}
+              {selectedDate
+                ? format(selectedDate, "MMM d, yyyy")
+                : "Select date"}
             </span>
             <ChevronDownIcon />
           </Button>

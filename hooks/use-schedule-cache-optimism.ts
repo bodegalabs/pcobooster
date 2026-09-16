@@ -1,11 +1,12 @@
 "use client";
 
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
+
 import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
 import { clearCachedPeople } from "@/lib/people-cache";
 import { clearCachedPeopleDashboards } from "@/lib/people-dashboard-cache";
-import { clearCachedTeamPositions } from "@/lib/team-positions-cache";
 import { queryKeys } from "@/lib/query-keys";
+import { clearCachedTeamPositions } from "@/lib/team-positions-cache";
 import type {
   FilledPositionPerson,
   PersonWithAvailability,
@@ -51,10 +52,16 @@ interface ScheduleMutationSnapshot {
   teamPositions: [QueryKey, TeamPositionGroup[] | undefined][];
 }
 
-function snapshotScheduleCaches(queryClient: QueryClient): ScheduleMutationSnapshot {
+function snapshotScheduleCaches(
+  queryClient: QueryClient
+): ScheduleMutationSnapshot {
   return {
-    people: queryClient.getQueriesData<PersonWithAvailability[]>({ queryKey: ["people"] }),
-    teamPositions: queryClient.getQueriesData<TeamPositionGroup[]>({ queryKey: ["team-positions"] }),
+    people: queryClient.getQueriesData<PersonWithAvailability[]>({
+      queryKey: ["people"],
+    }),
+    teamPositions: queryClient.getQueriesData<TeamPositionGroup[]>({
+      queryKey: ["team-positions"],
+    }),
   };
 }
 
@@ -110,7 +117,9 @@ export function settleScheduleMutationQueries(
   }
 }
 
-function getScheduleMutationQueryFilters(context: ScheduleMutationInvalidateContext) {
+function getScheduleMutationQueryFilters(
+  context: ScheduleMutationInvalidateContext
+) {
   const serviceTypeId = context.serviceTypeId ?? null;
   const planId = context.planId ?? null;
   const teamId = context.teamId ?? null;
@@ -169,8 +178,11 @@ function recalculateFilledCounts(position: TeamPosition): TeamPosition {
   const people = position.filledPeople ?? [];
   return {
     ...position,
-    filledConfirmedCount: people.filter((person) => person.status === "confirmed").length,
-    filledPendingCount: people.filter((person) => person.status === "pending").length,
+    filledConfirmedCount: people.filter(
+      (person) => person.status === "confirmed"
+    ).length,
+    filledPendingCount: people.filter((person) => person.status === "pending")
+      .length,
     filledPeople: people.length > 0 ? people : undefined,
   };
 }
@@ -185,11 +197,15 @@ function upsertFilledPerson(
   const currentPeople = position.filledPeople ?? [];
   const filteredPeople = currentPeople.filter(
     (filledPerson) =>
-      filledPerson.planPersonId !== planPersonId && filledPerson.id !== person.id
+      filledPerson.planPersonId !== planPersonId &&
+      filledPerson.id !== person.id
   );
 
   if (!status) {
-    return recalculateFilledCounts({ ...position, filledPeople: filteredPeople });
+    return recalculateFilledCounts({
+      ...position,
+      filledPeople: filteredPeople,
+    });
   }
 
   const nextPerson: FilledPositionPerson = {
@@ -209,7 +225,10 @@ function upsertFilledPerson(
   return recalculateFilledCounts({ ...position, filledPeople });
 }
 
-function removeFilledPerson(position: TeamPosition, planPersonId: string): TeamPosition {
+function removeFilledPerson(
+  position: TeamPosition,
+  planPersonId: string
+): TeamPosition {
   const filledPeople = (position.filledPeople ?? []).filter(
     (person) => person.planPersonId !== planPersonId
   );
@@ -223,7 +242,9 @@ function updateFilledPersonStatus(
 ): TeamPosition {
   const status = statusToFilledStatus(statusCode);
   const currentPeople = position.filledPeople ?? [];
-  const existingPerson = currentPeople.find((person) => person.planPersonId === planPersonId);
+  const existingPerson = currentPeople.find(
+    (person) => person.planPersonId === planPersonId
+  );
   if (!existingPerson) return position;
 
   if (!status) {
@@ -263,7 +284,9 @@ function createOptimisticPerson(
   person: OptimisticSchedulePerson,
   planPersonId: string
 ): PersonWithAvailability {
-  const [firstFallback = "", ...lastParts] = person.fullName.trim().split(/\s+/);
+  const [firstFallback = "", ...lastParts] = person.fullName
+    .trim()
+    .split(/\s+/);
   return applyStatusToPerson(
     {
       id: person.id,
@@ -280,7 +303,9 @@ function createOptimisticPerson(
   );
 }
 
-function clearStatusFromPerson(person: PersonWithAvailability): PersonWithAvailability {
+function clearStatusFromPerson(
+  person: PersonWithAvailability
+): PersonWithAvailability {
   return {
     ...person,
     isScheduledForSelectedPlanPosition: false,
@@ -316,7 +341,9 @@ export function optimisticallySchedulePerson(
         found = true;
         return applyStatusToPerson(cachedPerson, "U", planPersonId);
       });
-      return found ? updatedPeople : [createOptimisticPerson(person, planPersonId), ...updatedPeople];
+      return found
+        ? updatedPeople
+        : [createOptimisticPerson(person, planPersonId), ...updatedPeople];
     }
   );
 
@@ -416,7 +443,8 @@ export function optimisticallyUnschedulePlanPerson(
     { queryKey: ["people"] },
     (people) =>
       people?.map((person) =>
-        person.scheduledPlanPersonId === planPersonId || (!!personId && person.id === personId)
+        person.scheduledPlanPersonId === planPersonId ||
+        (!!personId && person.id === personId)
           ? clearStatusFromPerson(person)
           : person
       )

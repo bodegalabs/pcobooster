@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteJson, HttpClientError } from "@/lib/http/client";
+
 import {
   cancelScheduleMutationQueries,
   optimisticallyUnschedulePlanPerson,
@@ -9,9 +9,11 @@ import {
   settleScheduleMutationQueries,
   type ScheduleMutationInvalidateContext,
 } from "@/hooks/use-schedule-cache-optimism";
+import { deleteJson, HttpClientError } from "@/lib/http/client";
 
 function formatUnscheduleError(error: unknown): string {
-  if (error instanceof HttpClientError) return error.message || "Failed to unschedule";
+  if (error instanceof HttpClientError)
+    return error.message || "Failed to unschedule";
   if (error instanceof Error) return error.message;
   return "Failed to unschedule";
 }
@@ -31,7 +33,9 @@ export function useUnschedulePlanPerson({
       context,
     }: {
       planPersonId: string;
-      context?: ScheduleMutationInvalidateContext & { personId?: string | null };
+      context?: ScheduleMutationInvalidateContext & {
+        personId?: string | null;
+      };
     }) =>
       deleteJson<{ success: boolean }>(
         `/api/schedule/${encodeURIComponent(planPersonId)}`,

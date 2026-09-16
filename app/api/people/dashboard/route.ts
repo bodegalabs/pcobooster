@@ -1,10 +1,11 @@
-import { presentDashboard } from "@/lib/use-cases/planning-center/presentation";
 import { z } from "zod";
+
+import { peoplePageFlag } from "@/flags";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
 import { getPeopleDashboard } from "@/lib/use-cases/planning-center/get-people-dashboard";
 import type { PeopleDashboardRange } from "@/lib/use-cases/planning-center/people-dashboard-types";
-import { peoplePageFlag } from "@/flags";
+import { presentDashboard } from "@/lib/use-cases/planning-center/presentation";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,10 @@ export async function GET(request: Request) {
     });
 
     if (!parsed.success) {
-      log.warn({ issues: parsed.error.issues }, "Invalid people dashboard query params");
+      log.warn(
+        { issues: parsed.error.issues },
+        "Invalid people dashboard query params"
+      );
       throw parsed.error;
     }
 

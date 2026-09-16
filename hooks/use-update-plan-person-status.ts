@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { HttpClientError, patchJson } from "@/lib/http/client";
+import { useState } from "react";
+
 import {
   cancelScheduleMutationQueries,
   optimisticallyUpdatePlanPersonStatus,
@@ -10,6 +10,7 @@ import {
   settleScheduleMutationQueries,
   type ScheduleMutationInvalidateContext,
 } from "@/hooks/use-schedule-cache-optimism";
+import { HttpClientError, patchJson } from "@/lib/http/client";
 
 export type PlanPersonStatusCode = "C" | "U" | "D";
 
@@ -55,7 +56,11 @@ export function useUpdatePlanPersonStatus({
     onMutate: async ({ planPersonId, status, context }) => {
       await cancelScheduleMutationQueries(queryClient, context ?? {});
       return {
-        snapshot: optimisticallyUpdatePlanPersonStatus(queryClient, planPersonId, status),
+        snapshot: optimisticallyUpdatePlanPersonStatus(
+          queryClient,
+          planPersonId,
+          status
+        ),
       };
     },
     onSuccess: (_result, variables) => {

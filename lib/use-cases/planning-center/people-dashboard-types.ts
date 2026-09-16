@@ -2,7 +2,11 @@ export type PeopleDashboardRange = "month" | "30" | "90";
 
 export type PeopleDashboardLoad = "low" | "normal" | "high" | "rest";
 
-export type PeopleDashboardDayKind = "service" | "rehearsal" | "blockout" | "rest";
+export type PeopleDashboardDayKind =
+  | "service"
+  | "rehearsal"
+  | "blockout"
+  | "rest";
 
 export interface PeopleDashboardPerson {
   id: string;

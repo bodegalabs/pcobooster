@@ -12,7 +12,10 @@ interface UsePersistOnClosePopoverOptions {
   enterToClose?: EnterToCloseOption;
 }
 
-function isEnterHotkeyEnabled(open: boolean, enterToClose: EnterToCloseOption | undefined): boolean {
+function isEnterHotkeyEnabled(
+  open: boolean,
+  enterToClose: EnterToCloseOption | undefined
+): boolean {
   if (!open || !enterToClose) return false;
   if (enterToClose === true) return true;
   return !enterToClose.disabled;
@@ -61,7 +64,9 @@ export function usePersistOnClosePopover({
     setOpen,
     handleOpenChange,
     closeAndPersist,
-    contentRef: enterToClose ? (contentRef as RefObject<HTMLDivElement>) : undefined,
+    contentRef: enterToClose
+      ? (contentRef as RefObject<HTMLDivElement>)
+      : undefined,
   };
 }
 
@@ -84,7 +89,9 @@ export function useDraftPopover<T>({
     onOpen: () => setDraft(value),
     onClose: () => {
       const current = draftRef.current;
-      const unchanged = equals ? equals(current, value) : Object.is(current, value);
+      const unchanged = equals
+        ? equals(current, value)
+        : Object.is(current, value);
       if (!unchanged) void onPersist(current);
     },
   });

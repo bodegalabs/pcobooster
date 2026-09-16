@@ -12,7 +12,9 @@ export type PlanningCenterIdentity = {
   organizationName: string | null;
 };
 
-export function normalizePlanningCenterIdentity(user: unknown): PlanningCenterIdentity | null {
+export function normalizePlanningCenterIdentity(
+  user: unknown
+): PlanningCenterIdentity | null {
   if (!user || typeof user !== "object") return null;
   const record = user as Record<string, unknown>;
 
@@ -21,9 +23,13 @@ export function normalizePlanningCenterIdentity(user: unknown): PlanningCenterId
     name: typeof record.name === "string" ? record.name : null,
     email: typeof record.email === "string" ? record.email : null,
     organizationId:
-      typeof record.organization_id === "string" ? record.organization_id : null,
+      typeof record.organization_id === "string"
+        ? record.organization_id
+        : null,
     organizationName:
-      typeof record.organization_name === "string" ? record.organization_name : null,
+      typeof record.organization_name === "string"
+        ? record.organization_name
+        : null,
   };
 }
 

@@ -2,8 +2,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function SchedulePlansFallback() {
   return (
-    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
-      <div className="mx-auto flex w-full max-w-7xl min-h-0 flex-1 flex-col gap-3 px-3 py-3 sm:px-4 sm:py-4">
+    <main className="bg-background flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-3 px-3 py-3 sm:px-4 sm:py-4">
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <Skeleton className="h-8 w-28 rounded-md" />
           <Skeleton className="h-8 w-24 rounded-md" />
@@ -13,16 +13,19 @@ export function SchedulePlansFallback() {
           <Skeleton className="h-9 rounded-md" />
           <Skeleton className="h-9 rounded-md" />
         </div>
-        <div className="min-h-0 flex-1 overflow-hidden rounded-lg border border-border/40">
-          <div className="grid grid-cols-[1.2fr_0.8fr_1fr_1fr] border-b border-border/40 px-5 py-2">
+        <div className="border-border/40 min-h-0 flex-1 overflow-hidden rounded-lg border">
+          <div className="border-border/40 grid grid-cols-[1.2fr_0.8fr_1fr_1fr] border-b px-5 py-2">
             <Skeleton className="h-3.5 w-24" />
             <Skeleton className="h-3.5 w-16" />
             <Skeleton className="h-3.5 w-20" />
             <Skeleton className="h-3.5 w-16" />
           </div>
-          <div className="divide-y divide-border/35">
+          <div className="divide-border/35 divide-y">
             {Array.from({ length: 10 }).map((_, index) => (
-              <div key={index} className="grid grid-cols-[1.2fr_0.8fr_1fr_1fr] px-5 py-3">
+              <div
+                key={index}
+                className="grid grid-cols-[1.2fr_0.8fr_1fr_1fr] px-5 py-3"
+              >
                 <Skeleton className="h-3.5 w-36" />
                 <Skeleton className="h-3.5 w-28" />
                 <Skeleton className="h-3.5 w-44" />
@@ -38,8 +41,8 @@ export function SchedulePlansFallback() {
 
 export function SchedulePlanWorkspaceFallback() {
   return (
-    <main className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
-      <div className="mx-auto flex w-full max-w-7xl min-h-0 flex-1 flex-col px-3 py-2 sm:px-4 sm:py-3">
+    <main className="bg-background flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-3 py-2 sm:px-4 sm:py-3">
         <header className="mb-3 shrink-0 sm:mb-5">
           <div className="flex min-w-0 items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
@@ -51,7 +54,7 @@ export function SchedulePlanWorkspaceFallback() {
         </header>
 
         <div className="grid min-h-0 flex-1 grid-cols-[18rem_minmax(0,1fr)] gap-4">
-          <aside className="hidden min-h-0 overflow-hidden rounded-xl border border-sidebar-border/40 bg-sidebar/60 p-3 lg:block">
+          <aside className="border-sidebar-border/40 bg-sidebar/60 hidden min-h-0 overflow-hidden rounded-xl border p-3 lg:block">
             <div className="grid gap-3">
               {Array.from({ length: 7 }).map((_, index) => (
                 <div key={index} className="grid gap-2">
@@ -61,12 +64,12 @@ export function SchedulePlanWorkspaceFallback() {
               ))}
             </div>
           </aside>
-          <section className="min-h-0 overflow-hidden rounded-xl border border-border/40 bg-card/30">
-            <div className="border-b border-border/40 px-4 py-3">
+          <section className="border-border/40 bg-card/30 min-h-0 overflow-hidden rounded-xl border">
+            <div className="border-border/40 border-b px-4 py-3">
               <Skeleton className="h-5 w-56" />
               <Skeleton className="mt-2 h-4 w-72" />
             </div>
-            <div className="divide-y divide-border/25">
+            <div className="divide-border/25 divide-y">
               {Array.from({ length: 8 }).map((_, index) => (
                 <div key={index} className="flex items-center gap-3 px-4 py-3">
                   <Skeleton className="size-10 shrink-0 rounded-full" />

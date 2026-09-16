@@ -21,11 +21,22 @@ export async function GET(request: Request) {
     });
 
     if (!parsed.success) {
-      log.warn({ issues: parsed.error.issues }, "Invalid plan-items query params");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsed.error.issues);
+      log.warn(
+        { issues: parsed.error.issues },
+        "Invalid plan-items query params"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsed.error.issues
+      );
     }
 
-    const items = await getPlanItems(parsed.data.service_type_id, parsed.data.plan_id);
+    const items = await getPlanItems(
+      parsed.data.service_type_id,
+      parsed.data.plan_id
+    );
     return serializePlanItems(items);
   });
 }
@@ -37,8 +48,16 @@ export async function POST(request: Request) {
     const parsed = createPlanItemBodySchema.safeParse(body);
 
     if (!parsed.success) {
-      log.warn({ issues: parsed.error.issues }, "Invalid plan-items create body");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsed.error.issues);
+      log.warn(
+        { issues: parsed.error.issues },
+        "Invalid plan-items create body"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsed.error.issues
+      );
     }
 
     const item = await createPlanItem({

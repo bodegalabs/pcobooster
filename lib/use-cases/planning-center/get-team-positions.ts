@@ -1,14 +1,8 @@
+import { logger } from "@/lib/logger";
 import { planningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
 import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 import { planningCenterPlansService } from "@/lib/planning-center/services/plans-service";
-import { logger } from "@/lib/logger";
 import { findAllIncluded, findIncluded } from "@/lib/planning-center/utils";
-import {
-  buildPlanSchedulingContext,
-  buildSlotKey,
-  isDeclinedRosterStatus,
-  type PlanRosterEntry,
-} from "@/lib/use-cases/planning-center/plan-scheduling-context";
 import type {
   FilledPositionPerson,
   PCResource,
@@ -20,6 +14,12 @@ import type {
   TeamPosition,
   TeamPositionGroup,
 } from "@/lib/types";
+import {
+  buildPlanSchedulingContext,
+  buildSlotKey,
+  isDeclinedRosterStatus,
+  type PlanRosterEntry,
+} from "@/lib/use-cases/planning-center/plan-scheduling-context";
 
 const log = logger.for("use-case/get-team-positions");
 
@@ -40,13 +40,23 @@ export async function getNeededTeamPositionsForPlan(
     "Fetching needed team positions for plan"
   );
 
-  const [teamPositionResponse, neededPositionsResolution, planTeamMembersResponse] = await Promise.all([
-    planningCenterCatalogService.getServiceTypeTeamPositionsWithTeams(serviceTypeId),
+  const [
+    teamPositionResponse,
+    neededPositionsResolution,
+    planTeamMembersResponse,
+  ] = await Promise.all([
+    planningCenterCatalogService.getServiceTypeTeamPositionsWithTeams(
+      serviceTypeId
+    ),
     resolveNeededPositions(serviceTypeId, planId, seriesId ?? null),
     planningCenterPeopleService.getPlanTeamMembers(serviceTypeId, planId),
   ]);
-  const { response: neededPositionResponse, resolvedSeriesId, neededPositionSource, usedSeriesFallback } =
-    neededPositionsResolution;
+  const {
+    response: neededPositionResponse,
+    resolvedSeriesId,
+    neededPositionSource,
+    usedSeriesFallback,
+  } = neededPositionsResolution;
 
   const teamPositions = Array.isArray(teamPositionResponse.data)
     ? teamPositionResponse.data
@@ -71,7 +81,9 @@ export async function getNeededTeamPositionsForPlan(
   for (const tp of teamPositions) {
     const position = tp as unknown as RawTeamPosition;
     const { teamId, teamName } = getTeamInfo(position, teamPositionIncluded);
-    const positionName = (position.attributes.name as string | undefined)?.trim();
+    const positionName = (
+      position.attributes.name as string | undefined
+    )?.trim();
     if (!teamId || !teamName || !positionName) continue;
 
     const slot: TeamPosition = {
@@ -83,7 +95,10 @@ export async function getNeededTeamPositionsForPlan(
       neededCount: 0,
     };
 
-    positionsByTeamAndName.set(buildTeamPositionKey(teamId, positionName), slot);
+    positionsByTeamAndName.set(
+      buildTeamPositionKey(teamId, positionName),
+      slot
+    );
   }
 
   for (const np of neededPositions) {
@@ -92,19 +107,26 @@ export async function getNeededTeamPositionsForPlan(
     if (typeof quantity === "number" && quantity <= 0) continue;
 
     const teamData = needed.relationships?.team?.data;
-    const teamId =
-      !Array.isArray(teamData) && teamData ? teamData.id : "";
+    const teamId = !Array.isArray(teamData) && teamData ? teamData.id : "";
     const neededName = (needed.attributes.team_position_name || "").trim();
     if (!teamId || !neededName) continue;
 
-    const matchedPosition = positionsByTeamAndName.get(buildTeamPositionKey(teamId, neededName));
+    const matchedPosition = positionsByTeamAndName.get(
+      buildTeamPositionKey(teamId, neededName)
+    );
     let teamName = matchedPosition?.teamName || "";
     if (!teamName) {
-      const team = findIncluded(neededIncluded, "Team", teamId) as unknown as RawTeam | undefined;
+      const team = findIncluded(neededIncluded, "Team", teamId) as unknown as
+        | RawTeam
+        | undefined;
       if (team) teamName = team.attributes.name as string;
     }
     if (!teamName) {
-      const team = findIncluded(teamPositionIncluded, "Team", teamId) as unknown as RawTeam | undefined;
+      const team = findIncluded(
+        teamPositionIncluded,
+        "Team",
+        teamId
+      ) as unknown as RawTeam | undefined;
       if (team) teamName = team.attributes.name as string;
     }
     if (!teamName) continue;
@@ -114,9 +136,12 @@ export async function getNeededTeamPositionsForPlan(
     }
 
     const group = teamMap.get(teamId)!;
-    const incrementBy = typeof quantity === "number" && quantity > 0 ? quantity : 1;
+    const incrementBy =
+      typeof quantity === "number" && quantity > 0 ? quantity : 1;
     const timeId = getRelationshipId(needed.relationships?.time?.data);
-    const timePreferenceOptionId = getRelationshipId(needed.relationships?.time_preference_option?.data);
+    const timePreferenceOptionId = getRelationshipId(
+      needed.relationships?.time_preference_option?.data
+    );
 
     if (!matchedPosition) {
       const slot: TeamPosition = {
@@ -131,14 +156,20 @@ export async function getNeededTeamPositionsForPlan(
         neededCount: incrementBy,
       };
       group.positions.push(slot);
-      positionsByTeamAndName.set(buildTeamPositionKey(teamId, neededName), slot);
+      positionsByTeamAndName.set(
+        buildTeamPositionKey(teamId, neededName),
+        slot
+      );
       continue;
     }
 
-    const existingPosition = group.positions.find((position) => position.id === matchedPosition.id);
+    const existingPosition = group.positions.find(
+      (position) => position.id === matchedPosition.id
+    );
 
     if (existingPosition) {
-      existingPosition.neededCount = (existingPosition.neededCount ?? 0) + incrementBy;
+      existingPosition.neededCount =
+        (existingPosition.neededCount ?? 0) + incrementBy;
       existingPosition.neededPositionId ??= needed.id;
       existingPosition.timeId ??= timeId;
       existingPosition.timePreferenceOptionId ??= timePreferenceOptionId;
@@ -153,8 +184,15 @@ export async function getNeededTeamPositionsForPlan(
     group.positions.push(matchedPosition);
   }
 
-  applyPlanTeamMemberSummary(planSchedulingContext.rosterEntries, positionsByTeamAndName);
-  addPlanMemberOnlyPositions(planSchedulingContext.rosterEntries, teamMap, positionsByTeamAndName);
+  applyPlanTeamMemberSummary(
+    planSchedulingContext.rosterEntries,
+    positionsByTeamAndName
+  );
+  addPlanMemberOnlyPositions(
+    planSchedulingContext.rosterEntries,
+    teamMap,
+    positionsByTeamAndName
+  );
   addFilledPositionsToGroups(teamMap, positionsByTeamAndName);
 
   const groupedPositions: TeamPositionGroup[] = Array.from(teamMap.values());
@@ -174,7 +212,10 @@ export async function getNeededTeamPositionsForPlan(
       neededPositionCount: neededPositions.length,
       planTeamMemberCount: planTeamMembers.length,
       matchedTeamCount: groupedPositions.length,
-      matchedPositionCount: groupedPositions.reduce((sum, g) => sum + g.positions.length, 0),
+      matchedPositionCount: groupedPositions.reduce(
+        (sum, g) => sum + g.positions.length,
+        0
+      ),
     },
     "Resolved plan needed positions"
   );
@@ -204,7 +245,8 @@ function addFilledPositionsToGroups(
   positionsByTeamAndName: Map<string, TeamPosition>
 ) {
   for (const slot of positionsByTeamAndName.values()) {
-    const filledCount = (slot.filledConfirmedCount ?? 0) + (slot.filledPendingCount ?? 0);
+    const filledCount =
+      (slot.filledConfirmedCount ?? 0) + (slot.filledPendingCount ?? 0);
     if (filledCount === 0) continue;
     if (!slot.teamId || !slot.teamName) continue;
 
@@ -230,11 +272,18 @@ function addPlanMemberOnlyPositions(
   positionsByTeamAndName: Map<string, TeamPosition>
 ) {
   for (const rosterEntry of rosterEntries) {
-    if (!rosterEntry.teamId || !rosterEntry.teamName || isDeclinedRosterStatus(rosterEntry.status)) {
+    if (
+      !rosterEntry.teamId ||
+      !rosterEntry.teamName ||
+      isDeclinedRosterStatus(rosterEntry.status)
+    ) {
       continue;
     }
 
-    const key = buildTeamPositionKey(rosterEntry.teamId, rosterEntry.positionName);
+    const key = buildTeamPositionKey(
+      rosterEntry.teamId,
+      rosterEntry.positionName
+    );
     const existingSlot = positionsByTeamAndName.get(key);
     if (existingSlot?.source === "plan_member") {
       applyPlanTeamMemberSummary([rosterEntry], positionsByTeamAndName);
@@ -243,7 +292,10 @@ function addPlanMemberOnlyPositions(
     if (existingSlot) continue;
 
     const slot: TeamPosition = {
-      id: buildPlanMemberOnlyPositionId(rosterEntry.teamId, rosterEntry.positionName),
+      id: buildPlanMemberOnlyPositionId(
+        rosterEntry.teamId,
+        rosterEntry.positionName
+      ),
       name: rosterEntry.positionName,
       teamId: rosterEntry.teamId,
       teamName: rosterEntry.teamName,
@@ -273,11 +325,15 @@ function getTeamInfo(
 
   if (position.relationships?.team?.data) {
     const teamData = position.relationships.team.data;
-    teamId = Array.isArray(teamData) ? teamData[0]?.id || "" : teamData?.id || "";
+    teamId = Array.isArray(teamData)
+      ? teamData[0]?.id || ""
+      : teamData?.id || "";
   }
 
   if (teamId) {
-    const team = findIncluded(included, "Team", teamId) as unknown as RawTeam | undefined;
+    const team = findIncluded(included, "Team", teamId) as unknown as
+      | RawTeam
+      | undefined;
     if (team) teamName = team.attributes.name as string;
   }
 
@@ -297,7 +353,10 @@ function buildTeamPositionKey(teamId: string, positionName: string): string {
   return buildSlotKey(teamId, positionName);
 }
 
-function buildPlanMemberOnlyPositionId(teamId: string, positionName: string): string {
+function buildPlanMemberOnlyPositionId(
+  teamId: string,
+  positionName: string
+): string {
   return `plan-member-position:${teamId}:${encodeURIComponent(positionName.trim().toLowerCase())}`;
 }
 
@@ -317,7 +376,8 @@ function applyPlanTeamMemberSummary(
   positionsByTeamAndName: Map<string, TeamPosition>
 ) {
   for (const rosterEntry of rosterEntries) {
-    if (!rosterEntry.teamId || isDeclinedRosterStatus(rosterEntry.status)) continue;
+    if (!rosterEntry.teamId || isDeclinedRosterStatus(rosterEntry.status))
+      continue;
 
     const slot = positionsByTeamAndName.get(
       buildTeamPositionKey(rosterEntry.teamId, rosterEntry.positionName)
@@ -369,7 +429,11 @@ async function resolveNeededPositions(
 ): Promise<NeededPositionsResolution> {
   if (seriesId) {
     return {
-      response: await planningCenterCatalogService.getPlanNeededPositionsWithTeams(seriesId, planId),
+      response:
+        await planningCenterCatalogService.getPlanNeededPositionsWithTeams(
+          seriesId,
+          planId
+        ),
       resolvedSeriesId: seriesId,
       neededPositionSource: "series-plan",
       usedSeriesFallback: false,
@@ -378,10 +442,11 @@ async function resolveNeededPositions(
 
   try {
     return {
-      response: await planningCenterCatalogService.getServiceTypePlanNeededPositionsWithTeams(
-        serviceTypeId,
-        planId
-      ),
+      response:
+        await planningCenterCatalogService.getServiceTypePlanNeededPositionsWithTeams(
+          serviceTypeId,
+          planId
+        ),
       resolvedSeriesId: null,
       neededPositionSource: "service-type-plan",
       usedSeriesFallback: false,
@@ -391,7 +456,10 @@ async function resolveNeededPositions(
       {
         serviceTypeId,
         planId,
-        error: error instanceof Error ? error.message.slice(0, 280) : String(error).slice(0, 280),
+        error:
+          error instanceof Error
+            ? error.message.slice(0, 280)
+            : String(error).slice(0, 280),
       },
       "Service-type needed positions fetch failed, trying series lookup fallback"
     );
@@ -402,10 +470,11 @@ async function resolveNeededPositions(
     }
 
     return {
-      response: await planningCenterCatalogService.getPlanNeededPositionsWithTeams(
-        resolvedSeriesId,
-        planId
-      ),
+      response:
+        await planningCenterCatalogService.getPlanNeededPositionsWithTeams(
+          resolvedSeriesId,
+          planId
+        ),
       resolvedSeriesId,
       neededPositionSource: "series-plan",
       usedSeriesFallback: true,
@@ -417,16 +486,20 @@ async function getSeriesIdForPlan(
   serviceTypeId: string,
   planId: string
 ): Promise<string | null> {
-  const scopedPlan = await planningCenterPlansService.getPlanForServiceTypeWithSeries(
-    serviceTypeId,
-    planId
-  );
+  const scopedPlan =
+    await planningCenterPlansService.getPlanForServiceTypeWithSeries(
+      serviceTypeId,
+      planId
+    );
   const resolvedSeriesId =
     extractSeriesIdFromPlanResource(scopedPlan.data) ||
     extractSeriesIdFromIncluded(scopedPlan.included);
 
   if (resolvedSeriesId) {
-    log.info({ planId, serviceTypeId, resolvedSeriesId }, "Resolved series ID for fallback");
+    log.info(
+      { planId, serviceTypeId, resolvedSeriesId },
+      "Resolved series ID for fallback"
+    );
   } else {
     log.warn(
       {

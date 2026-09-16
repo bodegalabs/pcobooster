@@ -13,8 +13,16 @@ export async function POST(request: Request) {
     const parsed = reorderPlanItemsBodySchema.safeParse(body);
 
     if (!parsed.success) {
-      log.warn({ issues: parsed.error.issues }, "Invalid plan-item reorder body");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsed.error.issues);
+      log.warn(
+        { issues: parsed.error.issues },
+        "Invalid plan-item reorder body"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsed.error.issues
+      );
     }
 
     await reorderPlanItems(

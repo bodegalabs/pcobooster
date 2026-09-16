@@ -78,5 +78,8 @@ function buildCacheKey(planIdsKey: string) {
 function isMyScheduledPlansData(value: unknown): value is MyScheduledPlansData {
   if (!value || typeof value !== "object") return false;
   const data = value as Partial<MyScheduledPlansData>;
-  return Array.isArray(data.planIds) && data.planIds.every((id) => typeof id === "string");
+  return (
+    Array.isArray(data.planIds) &&
+    data.planIds.every((id) => typeof id === "string")
+  );
 }

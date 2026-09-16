@@ -1,4 +1,11 @@
-import { Activity, CalendarClock, LogIn, UserRoundCheck, Users } from "lucide-react";
+import {
+  Activity,
+  CalendarClock,
+  LogIn,
+  UserRoundCheck,
+  Users,
+} from "lucide-react";
+
 import { AdminAccountRow } from "@/app/admin/admin-account-row";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -41,10 +48,10 @@ function StatCard({
   icon: typeof Users;
 }) {
   return (
-    <div className="rounded-md border border-border/70 bg-card px-4 py-3">
+    <div className="border-border/70 bg-card rounded-md border px-4 py-3">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">{label}</p>
-        <Icon className="size-4 text-muted-foreground" />
+        <p className="text-muted-foreground text-sm">{label}</p>
+        <Icon className="text-muted-foreground size-4" />
       </div>
       <p className="mt-2 text-2xl font-semibold tracking-normal">{value}</p>
     </div>
@@ -74,13 +81,14 @@ export default async function AdminPage() {
   const totals = getTotals(accounts);
 
   return (
-    <main className="min-h-0 flex-1 overflow-auto bg-background">
+    <main className="bg-background min-h-0 flex-1 overflow-auto">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-normal">Admin</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Accounts, active sessions, and login frequency from worshipadmin.com auth activity.
+            <p className="text-muted-foreground mt-1 text-sm">
+              Accounts, active sessions, and login frequency from
+              worshipadmin.com auth activity.
             </p>
           </div>
           <Badge variant="outline">Only visible to {session.user.email}</Badge>
@@ -88,20 +96,32 @@ export default async function AdminPage() {
 
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Accounts" value={totals.users} icon={Users} />
-          <StatCard label="Active sessions" value={totals.activeSessions} icon={UserRoundCheck} />
-          <StatCard label="Logins in 30 days" value={totals.loginEvents30d} icon={CalendarClock} />
-          <StatCard label="Total login events" value={totals.loginEvents} icon={LogIn} />
+          <StatCard
+            label="Active sessions"
+            value={totals.activeSessions}
+            icon={UserRoundCheck}
+          />
+          <StatCard
+            label="Logins in 30 days"
+            value={totals.loginEvents30d}
+            icon={CalendarClock}
+          />
+          <StatCard
+            label="Total login events"
+            value={totals.loginEvents}
+            icon={LogIn}
+          />
         </section>
 
-        <section className="rounded-md border border-border/70 bg-card">
-          <div className="flex items-center justify-between gap-3 border-b border-border/70 px-4 py-3">
+        <section className="border-border/70 bg-card rounded-md border">
+          <div className="border-border/70 flex items-center justify-between gap-3 border-b px-4 py-3">
             <div>
               <h2 className="text-sm font-medium">Accounts</h2>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="text-muted-foreground mt-1 text-xs">
                 Login counts start when auth activity logging was added.
               </p>
             </div>
-            <Activity className="size-4 text-muted-foreground" />
+            <Activity className="text-muted-foreground size-4" />
           </div>
           <Table>
             <TableHeader>

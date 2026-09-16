@@ -1,8 +1,11 @@
 import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 import type { Blockout, RawBlockout } from "@/lib/types";
 
-export async function getFutureBlockoutsForPerson(personId: string): Promise<Blockout[]> {
-  const rawBlockouts = await planningCenterPeopleService.getPersonBlockouts(personId);
+export async function getFutureBlockoutsForPerson(
+  personId: string
+): Promise<Blockout[]> {
+  const rawBlockouts =
+    await planningCenterPeopleService.getPersonBlockouts(personId);
   const now = new Date();
 
   return rawBlockouts

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   clearCachedPlanItems,
   readCachedPlanItems,
@@ -98,7 +99,9 @@ describe("plan items cache", () => {
     expect(cached?.savedAt).toBe(savedAt);
     expect(cached?.data).toHaveLength(2);
     expect(cached?.data[0].song?.lastScheduledAt).toBeInstanceOf(Date);
-    expect(cached?.data[0].song?.lastScheduledAt?.toISOString()).toBe("2026-05-17T16:00:00.000Z");
+    expect(cached?.data[0].song?.lastScheduledAt?.toISOString()).toBe(
+      "2026-05-17T16:00:00.000Z"
+    );
   });
 
   it("does not read a different plan snapshot", () => {

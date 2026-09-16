@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { ApiError } from "@/lib/http/api-error";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
@@ -20,13 +21,21 @@ export async function GET(request: Request) {
     });
     if (!parsed.success) {
       log.warn({ issues: parsed.error.issues }, "Invalid plans query params");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsed.error.issues);
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsed.error.issues
+      );
     }
     const { service_type_id } = parsed.data;
 
     const plans = await getPlansForServiceType(service_type_id);
 
-    log.info({ serviceTypeId: service_type_id, count: plans.length }, "Plans fetched");
+    log.info(
+      { serviceTypeId: service_type_id, count: plans.length },
+      "Plans fetched"
+    );
     return plans;
   });
 }

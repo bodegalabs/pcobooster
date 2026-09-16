@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
 import { searchPeople } from "@/lib/use-cases/planning-center/search-people";
@@ -25,7 +26,10 @@ export async function GET(request: Request) {
 
     const results = await searchPeople(parsed.data.q);
 
-    log.info({ queryLength: parsed.data.q.length, count: results.length }, "People search completed");
+    log.info(
+      { queryLength: parsed.data.q.length, count: results.length },
+      "People search completed"
+    );
 
     return results;
   });

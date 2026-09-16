@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { LoaderCircle } from "lucide-react";
-import { useSongOptions } from "@/hooks/use-song-options";
+import { useEffect, useState } from "react";
+
 import {
   buildDraft,
   NONE_VALUE,
@@ -14,6 +14,11 @@ import {
   type FieldProps,
 } from "@/components/schedule/plan-tab-helpers";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -21,11 +26,10 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@/components/ui/responsive-dialog";
-import { Input } from "@/components/ui/input";
-import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { useSongOptions } from "@/hooks/use-song-options";
 import type { PlanItem, PlanItemArrangement, PlanItemKey } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 interface PlanItemEditDialogProps {
   item: PlanItem | null;
@@ -75,14 +79,18 @@ export function PlanItemEditDialog({
 
   useEffect(() => {
     if (!open) return;
-    setDraft((current) => synchronizeDraftWithSongOptions(current, songOptions));
+    setDraft((current) =>
+      synchronizeDraftWithSongOptions(current, songOptions)
+    );
   }, [open, songOptions]);
 
   if (!item) return null;
 
   const arrangements = songOptions?.arrangements ?? [];
   const selectedArrangement =
-    arrangements.find((arrangement) => arrangement.id === draft.arrangementId) ?? null;
+    arrangements.find(
+      (arrangement) => arrangement.id === draft.arrangementId
+    ) ?? null;
   const keyOptions = selectedArrangement?.keys ?? [];
 
   const handleSubmit = async () => {
@@ -113,7 +121,9 @@ export function PlanItemEditDialog({
       });
       onOpenChange(false);
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "Could not save this item.");
+      setSaveError(
+        error instanceof Error ? error.message : "Could not save this item."
+      );
     } finally {
       setIsSaving(false);
     }
@@ -148,9 +158,16 @@ export function PlanItemEditDialog({
           {!item.song ? (
             <Field label="Title" className="lg:col-span-2">
               <Input
-                placeholder={item.itemType === "header" ? "Header title" : "Item title"}
+                placeholder={
+                  item.itemType === "header" ? "Header title" : "Item title"
+                }
                 value={draft.title}
-                onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    title: event.target.value,
+                  }))
+                }
               />
             </Field>
           ) : null}
@@ -167,19 +184,30 @@ export function PlanItemEditDialog({
                     const value = event.target.value;
                     const normalizedValue = value === NONE_VALUE ? "" : value;
                     const nextArrangement =
-                      arrangements.find((arrangement) => arrangement.id === normalizedValue) ?? null;
+                      arrangements.find(
+                        (arrangement) => arrangement.id === normalizedValue
+                      ) ?? null;
                     setDraft((current) => ({
                       ...current,
                       arrangementId: normalizedValue,
                       keyId: nextArrangement
-                        ? pickKeyId(nextArrangement, current.keyId, songOptions?.suggestedKeyId ?? null)
+                        ? pickKeyId(
+                            nextArrangement,
+                            current.keyId,
+                            songOptions?.suggestedKeyId ?? null
+                          )
                         : "",
                     }));
                   }}
                 >
-                  <NativeSelectOption value={NONE_VALUE}>No arrangement</NativeSelectOption>
+                  <NativeSelectOption value={NONE_VALUE}>
+                    No arrangement
+                  </NativeSelectOption>
                   {arrangements.map((arrangement) => (
-                    <NativeSelectOption key={arrangement.id} value={arrangement.id}>
+                    <NativeSelectOption
+                      key={arrangement.id}
+                      value={arrangement.id}
+                    >
                       {arrangement.name}
                       {arrangement.archived ? " (archived)" : ""}
                     </NativeSelectOption>
@@ -200,12 +228,17 @@ export function PlanItemEditDialog({
                   onChange={(event) =>
                     setDraft((current) => ({
                       ...current,
-                      keyId: event.target.value === NONE_VALUE ? "" : event.target.value,
+                      keyId:
+                        event.target.value === NONE_VALUE
+                          ? ""
+                          : event.target.value,
                     }))
                   }
                   disabled={!selectedArrangement || keyOptions.length === 0}
                 >
-                  <NativeSelectOption value={NONE_VALUE}>No key</NativeSelectOption>
+                  <NativeSelectOption value={NONE_VALUE}>
+                    No key
+                  </NativeSelectOption>
                   {keyOptions.map((key) => (
                     <NativeSelectOption key={key.id} value={key.id}>
                       {key.name}
@@ -220,7 +253,12 @@ export function PlanItemEditDialog({
             <Input
               placeholder="4:35 or 1:5:21"
               value={draft.lengthText}
-              onChange={(event) => setDraft((current) => ({ ...current, lengthText: event.target.value }))}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  lengthText: event.target.value,
+                }))
+              }
             />
           </Field>
 
@@ -229,11 +267,16 @@ export function PlanItemEditDialog({
               wrapperClassName="w-full"
               value={draft.servicePosition}
               onChange={(event) =>
-                setDraft((current) => ({ ...current, servicePosition: event.target.value }))
+                setDraft((current) => ({
+                  ...current,
+                  servicePosition: event.target.value,
+                }))
               }
             >
               <NativeSelectOption value="pre">Pre-service</NativeSelectOption>
-              <NativeSelectOption value="during">During service</NativeSelectOption>
+              <NativeSelectOption value="during">
+                During service
+              </NativeSelectOption>
               <NativeSelectOption value="post">Post-service</NativeSelectOption>
             </NativeSelect>
           </Field>
@@ -243,19 +286,33 @@ export function PlanItemEditDialog({
               className={textareaClassName}
               value={draft.description}
               onChange={(event) =>
-                setDraft((current) => ({ ...current, description: event.target.value }))
+                setDraft((current) => ({
+                  ...current,
+                  description: event.target.value,
+                }))
               }
             />
           </Field>
         </div>
 
-        {saveError ? <p className="text-destructive mt-3 text-sm">{saveError}</p> : null}
+        {saveError ? (
+          <p className="text-destructive mt-3 text-sm">{saveError}</p>
+        ) : null}
 
         <ResponsiveDialogFooter className="gap-2 px-4 pb-0 sm:px-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isSaving}
+          >
             Close
           </Button>
-          <Button type="button" onClick={() => void handleSubmit()} disabled={isSaving}>
+          <Button
+            type="button"
+            onClick={() => void handleSubmit()}
+            disabled={isSaving}
+          >
             {isSaving ? <LoaderCircle className="size-4 animate-spin" /> : null}
             Save Changes
           </Button>

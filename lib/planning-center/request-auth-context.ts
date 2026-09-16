@@ -17,4 +17,3 @@ export function runWithPlanningCenterRequestAuth<T>(
 export function getPlanningCenterRequestAccessToken(): string | null {
   return planningCenterAuthStorage.getStore()?.accessToken ?? null;
 }
-

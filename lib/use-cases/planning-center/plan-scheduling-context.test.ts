@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { buildPlanSchedulingContext } from "@/lib/use-cases/planning-center/plan-scheduling-context";
+
 import type { PCResource, RawPlanPerson } from "@/lib/types";
+import { buildPlanSchedulingContext } from "@/lib/use-cases/planning-center/plan-scheduling-context";
 
 function team(id: string, name: string): PCResource {
   return {
@@ -64,7 +65,9 @@ describe("plan scheduling context", () => {
     expect(entry?.teamName).toBe("Band");
     expect(entry?.positionName).toBe("Electric Guitar - Lead");
     expect(entry?.label).toBe("Band - Electric Guitar - Lead");
-    expect(context.rosterBySlotKey.get("team-band::electric guitar - lead")).toHaveLength(1);
+    expect(
+      context.rosterBySlotKey.get("team-band::electric guitar - lead")
+    ).toHaveLength(1);
   });
 
   it("removes only the known team prefix when Planning Center returns a full team-position label", () => {

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   clearCachedPeople,
   readCachedPeople,
@@ -97,22 +98,52 @@ describe("people cache", () => {
     const savedAt = new Date("2026-05-23T15:00:00.000Z").getTime();
     vi.spyOn(Date, "now").mockReturnValue(savedAt);
 
-    writeCachedPeople("st-1", "team-1", "position-1", "plan-1", "2026-05-31", people());
+    writeCachedPeople(
+      "st-1",
+      "team-1",
+      "position-1",
+      "plan-1",
+      "2026-05-31",
+      people()
+    );
 
-    const cached = readCachedPeople("st-1", "team-1", "position-1", "plan-1", "2026-05-31");
+    const cached = readCachedPeople(
+      "st-1",
+      "team-1",
+      "position-1",
+      "plan-1",
+      "2026-05-31"
+    );
 
     expect(cached?.savedAt).toBe(savedAt);
     expect(cached?.data[0].fullName).toBe("Andrew Hinea");
-    expect(cached?.data[0].serviceHistory?.[0]?.date).toBe("2026-05-17T16:00:00.000Z");
-    expect(cached?.data[0].frequency?.nextUpcomingDate).toBe("2026-05-31T16:00:00.000Z");
+    expect(cached?.data[0].serviceHistory?.[0]?.date).toBe(
+      "2026-05-17T16:00:00.000Z"
+    );
+    expect(cached?.data[0].frequency?.nextUpcomingDate).toBe(
+      "2026-05-31T16:00:00.000Z"
+    );
   });
 
   it("does not read a different slot or date snapshot", () => {
-    writeCachedPeople("st-1", "team-1", "position-1", "plan-1", "2026-05-31", people());
+    writeCachedPeople(
+      "st-1",
+      "team-1",
+      "position-1",
+      "plan-1",
+      "2026-05-31",
+      people()
+    );
 
-    expect(readCachedPeople("st-1", "team-2", "position-1", "plan-1", "2026-05-31")).toBeUndefined();
-    expect(readCachedPeople("st-1", "team-1", "position-2", "plan-1", "2026-05-31")).toBeUndefined();
-    expect(readCachedPeople("st-1", "team-1", "position-1", "plan-1", "2026-06-07")).toBeUndefined();
+    expect(
+      readCachedPeople("st-1", "team-2", "position-1", "plan-1", "2026-05-31")
+    ).toBeUndefined();
+    expect(
+      readCachedPeople("st-1", "team-1", "position-2", "plan-1", "2026-05-31")
+    ).toBeUndefined();
+    expect(
+      readCachedPeople("st-1", "team-1", "position-1", "plan-1", "2026-06-07")
+    ).toBeUndefined();
   });
 
   it("ignores invalid cache payloads", () => {
@@ -121,34 +152,63 @@ describe("people cache", () => {
       JSON.stringify({ savedAt: Date.now(), data: [{ id: "person-1" }] })
     );
 
-    expect(readCachedPeople("st-1", "team-1", "position-1", "plan-1", "2026-05-31")).toBeUndefined();
+    expect(
+      readCachedPeople("st-1", "team-1", "position-1", "plan-1", "2026-05-31")
+    ).toBeUndefined();
   });
 
   it("clears people snapshots without touching unrelated storage", () => {
-    writeCachedPeople("st-1", "team-1", "position-1", "plan-1", "2026-05-31", people());
-    writeCachedPeople("st-1", "team-1", "position-2", "plan-1", "2026-05-31", people());
+    writeCachedPeople(
+      "st-1",
+      "team-1",
+      "position-1",
+      "plan-1",
+      "2026-05-31",
+      people()
+    );
+    writeCachedPeople(
+      "st-1",
+      "team-1",
+      "position-2",
+      "plan-1",
+      "2026-05-31",
+      people()
+    );
     window.localStorage.setItem("unrelated", "keep");
 
     clearCachedPeople();
 
-    expect(readCachedPeople("st-1", "team-1", "position-1", "plan-1", "2026-05-31")).toBeUndefined();
-    expect(readCachedPeople("st-1", "team-1", "position-2", "plan-1", "2026-05-31")).toBeUndefined();
+    expect(
+      readCachedPeople("st-1", "team-1", "position-1", "plan-1", "2026-05-31")
+    ).toBeUndefined();
+    expect(
+      readCachedPeople("st-1", "team-1", "position-2", "plan-1", "2026-05-31")
+    ).toBeUndefined();
     expect(window.localStorage.getItem("unrelated")).toBe("keep");
   });
   it("isolates presentation storage from live data and other seeds (readCachedPeople)", () => {
     const dataset = { presentationScope: "live" };
     vi.stubGlobal("document", { documentElement: { dataset } });
     writeCachedPeople("st", "team", "position", "plan", "date", people());
-    expect(readCachedPeople("st", "team", "position", "plan", "date")).toBeDefined();
+    expect(
+      readCachedPeople("st", "team", "position", "plan", "date")
+    ).toBeDefined();
     dataset.presentationScope = "present-v1-seed-a";
-    expect(readCachedPeople("st", "team", "position", "plan", "date")).toBeUndefined();
+    expect(
+      readCachedPeople("st", "team", "position", "plan", "date")
+    ).toBeUndefined();
     writeCachedPeople("st", "team", "position", "plan", "date", people());
-    expect(readCachedPeople("st", "team", "position", "plan", "date")).toBeDefined();
+    expect(
+      readCachedPeople("st", "team", "position", "plan", "date")
+    ).toBeDefined();
     dataset.presentationScope = "present-v1-seed-b";
-    expect(readCachedPeople("st", "team", "position", "plan", "date")).toBeUndefined();
+    expect(
+      readCachedPeople("st", "team", "position", "plan", "date")
+    ).toBeUndefined();
     dataset.presentationScope = "live";
-    expect(readCachedPeople("st", "team", "position", "plan", "date")).toBeDefined();
+    expect(
+      readCachedPeople("st", "team", "position", "plan", "date")
+    ).toBeDefined();
     vi.unstubAllGlobals();
   });
-
 });

@@ -1,9 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
+
 import type { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { PlanningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 import type { PCResource } from "@/lib/types";
 
-function resource(id: string, type: string, attributes: Record<string, unknown> = {}): PCResource {
+function resource(
+  id: string,
+  type: string,
+  attributes: Record<string, unknown> = {}
+): PCResource {
   return {
     id,
     type,
@@ -14,16 +19,26 @@ function resource(id: string, type: string, attributes: Record<string, unknown> 
 describe("PlanningCenterPeopleService.getAllPeople", () => {
   it("loads every directory page, caches by account, and returns independent copies", async () => {
     let scope = "account-a";
-    const fetchAll = vi.fn().mockResolvedValue([resource("person-1", "Person", { first_name: "Original" })]);
+    const fetchAll = vi
+      .fn()
+      .mockResolvedValue([
+        resource("person-1", "Person", { first_name: "Original" }),
+      ]);
     const service = new PlanningCenterPeopleService({
       fetchAll,
       getCacheScope: () => scope,
     } as unknown as PlanningCenterCoreClient);
     const first = await service.getAllPeople();
     first[0].attributes.first_name = "Changed";
-    expect((await service.getAllPeople())[0].attributes.first_name).toBe("Original");
+    expect((await service.getAllPeople())[0].attributes.first_name).toBe(
+      "Original"
+    );
     expect(fetchAll).toHaveBeenCalledTimes(1);
-    expect(fetchAll).toHaveBeenCalledWith("/people/v2/people", {}, Number.POSITIVE_INFINITY);
+    expect(fetchAll).toHaveBeenCalledWith(
+      "/people/v2/people",
+      {},
+      Number.POSITIVE_INFINITY
+    );
     scope = "account-b";
     await service.getAllPeople();
     expect(fetchAll).toHaveBeenCalledTimes(2);
@@ -32,7 +47,9 @@ describe("PlanningCenterPeopleService.getAllPeople", () => {
 
 describe("PlanningCenterPeopleService.getPlanTeamMembers", () => {
   it("uses fetchAllWithIncluded so large rosters are not truncated to the first page", async () => {
-    const fetchAllWithIncluded = vi.fn().mockResolvedValue({ data: [], included: [] });
+    const fetchAllWithIncluded = vi
+      .fn()
+      .mockResolvedValue({ data: [], included: [] });
     const core = {
       fetchAllWithIncluded,
       getCacheScope: () => "test-scope",
@@ -71,8 +88,9 @@ describe("PlanningCenterPeopleService.getPersonTeamPositionAssignments", () => {
 
 describe("PlanningCenterPeopleService.searchPeopleByName", () => {
   it("caches normalized people search reads and returns mutation-safe copies", async () => {
-    const buildUrl = vi.fn((_path: string, params: Record<string, string>) =>
-      `/people/v2/people?search=${params["where[search_name]"]}&limit=${params.per_page}`
+    const buildUrl = vi.fn(
+      (_path: string, params: Record<string, string>) =>
+        `/people/v2/people?search=${params["where[search_name]"]}&limit=${params.per_page}`
     );
     const fetch = vi.fn().mockResolvedValue({
       data: [resource("person-1", "Person", { first_name: "Andrew" })],
@@ -95,17 +113,21 @@ describe("PlanningCenterPeopleService.searchPeopleByName", () => {
       per_page: "15",
     });
     expect(fetch).toHaveBeenCalledTimes(1);
-    expect(fetch).toHaveBeenCalledWith("/people/v2/people?search=Andrew&limit=15");
+    expect(fetch).toHaveBeenCalledWith(
+      "/people/v2/people?search=Andrew&limit=15"
+    );
     expect(second[0].attributes.first_name).toBe("Andrew");
   });
 });
 
 describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
   it("caches team roster reads and returns mutation-safe copies", async () => {
-    const fetchAll = vi.fn().mockResolvedValue([
-      resource("team-1", "Team", { name: "Band" }),
-      resource("team-2", "Team", { name: "Hosts" }),
-    ]);
+    const fetchAll = vi
+      .fn()
+      .mockResolvedValue([
+        resource("team-1", "Team", { name: "Band" }),
+        resource("team-2", "Team", { name: "Hosts" }),
+      ]);
     const fetch = vi.fn(async (endpoint: string) => {
       if (endpoint.includes("/teams/team-1/")) {
         return {
@@ -119,10 +141,12 @@ describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
               },
             },
           ],
-          included: [resource("person-1", "Person", {
-            first_name: "Alex",
-            last_name: "Adams",
-          })],
+          included: [
+            resource("person-1", "Person", {
+              first_name: "Alex",
+              last_name: "Adams",
+            }),
+          ],
         };
       }
 
@@ -137,10 +161,12 @@ describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
             },
           },
         ],
-        included: [resource("person-1", "Person", {
-          first_name: "Alex",
-          last_name: "Adams",
-        })],
+        included: [
+          resource("person-1", "Person", {
+            first_name: "Alex",
+            last_name: "Adams",
+          }),
+        ],
       };
     });
     const core = {
@@ -168,7 +194,9 @@ describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
 
 describe("PlanningCenterPeopleService.updatePlanPersonStatus", () => {
   it("invalidates cached plan team members when plan context is available", async () => {
-    const fetchAllWithIncluded = vi.fn().mockResolvedValue({ data: [], included: [] });
+    const fetchAllWithIncluded = vi
+      .fn()
+      .mockResolvedValue({ data: [], included: [] });
     const fetch = vi.fn().mockResolvedValue({
       data: { id: "pp-123", type: "PlanPerson", attributes: {} },
     });
@@ -191,30 +219,29 @@ describe("PlanningCenterPeopleService.updatePlanPersonStatus", () => {
     await service.getPlanTeamMembers("st-789", "plan-101");
 
     expect(fetchAllWithIncluded).toHaveBeenCalledTimes(2);
-    expect(fetch).toHaveBeenCalledWith(
-      "/services/v2/plan_people/pp-123",
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          data: {
-            type: "PlanPerson",
-            id: "pp-123",
-            attributes: {
-              status: "C",
-            },
+    expect(fetch).toHaveBeenCalledWith("/services/v2/plan_people/pp-123", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        data: {
+          type: "PlanPerson",
+          id: "pp-123",
+          attributes: {
+            status: "C",
           },
-        }),
-      }
-    );
+        },
+      }),
+    });
   });
 });
 
 describe("PlanningCenterPeopleService.updatePlanPersonTimes", () => {
   it("patches PlanPerson time relationships and invalidates cached plan members", async () => {
-    const fetchAllWithIncluded = vi.fn().mockResolvedValue({ data: [], included: [] });
+    const fetchAllWithIncluded = vi
+      .fn()
+      .mockResolvedValue({ data: [], included: [] });
     const fetch = vi.fn().mockResolvedValue({
       data: { id: "pp-123", type: "PlanPerson", attributes: {} },
     });
@@ -267,7 +294,9 @@ describe("PlanningCenterPeopleService.updatePlanPersonTimes", () => {
 
 describe("PlanningCenterPeopleService.invalidateScheduleReadCaches", () => {
   it("clears cached plan team members and person schedules for conflict reconciliation", async () => {
-    const fetchAllWithIncluded = vi.fn().mockResolvedValue({ data: [], included: [] });
+    const fetchAllWithIncluded = vi
+      .fn()
+      .mockResolvedValue({ data: [], included: [] });
     const core = {
       fetchAllWithIncluded,
       getCacheScope: () => "test-scope",
@@ -322,7 +351,9 @@ describe("PlanningCenterPeopleService.getPlanPlanTimes", () => {
 
 describe("PlanningCenterPeopleService.deletePlanPerson", () => {
   it("uses the plan team_members endpoint when plan context is available", async () => {
-    const request = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    const request = vi
+      .fn()
+      .mockResolvedValue(new Response(null, { status: 204 }));
     const core = {
       request,
       getCacheScope: () => "test-scope",
@@ -342,7 +373,9 @@ describe("PlanningCenterPeopleService.deletePlanPerson", () => {
   });
 
   it("falls back to the person-scoped plan_people endpoint without plan context", async () => {
-    const request = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    const request = vi
+      .fn()
+      .mockResolvedValue(new Response(null, { status: 204 }));
     const core = {
       request,
       getCacheScope: () => "test-scope",

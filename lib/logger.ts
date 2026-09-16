@@ -1,5 +1,5 @@
-import pino from "pino";
 import type { NextRequest } from "next/server";
+import pino from "pino";
 
 const isProduction = process.env.NODE_ENV === "production";
 
@@ -28,8 +28,7 @@ function forModule(moduleId: string) {
 }
 
 function withRequest(request: Request | NextRequest) {
-  const requestId =
-    request.headers.get("x-request-id") ?? crypto.randomUUID();
+  const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
   const path =
     "nextUrl" in request
       ? request.nextUrl.pathname

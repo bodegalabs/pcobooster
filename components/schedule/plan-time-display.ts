@@ -37,7 +37,9 @@ export function formatPlanTimeRangeLabel(edit: {
   const startTimeLabel = formatTime12(edit.startTime);
 
   if (!edit.endTime) {
-    return startDate ? `${format(startDate, "EEE, MMM d")} · ${startTimeLabel}` : startTimeLabel;
+    return startDate
+      ? `${format(startDate, "EEE, MMM d")} · ${startTimeLabel}`
+      : startTimeLabel;
   }
 
   const endTimeLabel = formatTime12(edit.endTime);

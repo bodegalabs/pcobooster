@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+
 import type { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { PlanningCenterPlansService } from "@/lib/planning-center/services/plans-service";
 import type { PCResource } from "@/lib/types";
@@ -58,7 +59,9 @@ describe("PlanningCenterPlansService.getPlansWithIncludedInDateRange", () => {
     );
 
     expect(fetchAllWithIncluded).toHaveBeenCalledTimes(1);
-    expect(second.data[0].attributes.sort_date).toBe("2026-05-24T10:00:00-07:00");
+    expect(second.data[0].attributes.sort_date).toBe(
+      "2026-05-24T10:00:00-07:00"
+    );
     expect(second.included[0].attributes.title).toBe("Original Series");
   });
 });
@@ -85,7 +88,11 @@ describe("PlanningCenterPlansService plan times", () => {
     expect(fetchAll).toHaveBeenCalledTimes(1);
     expect(fetchAll).toHaveBeenCalledWith(
       "/services/v2/plans/plan-1/plan_times",
-      { order: "starts_at", per_page: "200", include: "split_team_rehearsal_assignments" }
+      {
+        order: "starts_at",
+        per_page: "200",
+        include: "split_team_rehearsal_assignments",
+      }
     );
     expect(second[0].attributes.name).toBe("Service");
   });
@@ -104,9 +111,15 @@ describe("PlanningCenterPlansService plan times", () => {
     } as unknown as PlanningCenterCoreClient;
     const service = new PlanningCenterPlansService(core);
 
-    await service.updatePlanTime("st-1", "plan-1", "time-1", {
-      name: "Updated",
-    }, ["team-1"]);
+    await service.updatePlanTime(
+      "st-1",
+      "plan-1",
+      "time-1",
+      {
+        name: "Updated",
+      },
+      ["team-1"]
+    );
 
     expect(fetch).toHaveBeenCalledWith(
       "/services/v2/service_types/st-1/plan_times/time-1",

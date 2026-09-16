@@ -17,7 +17,11 @@ type HotkeyChordProps = {
 /**
  * Platform-aware chord (client-only segmentation to avoid SSR / hydration mismatches).
  */
-export function HotkeyChord({ binding, id: chordId, className }: HotkeyChordProps) {
+export function HotkeyChord({
+  binding,
+  id: chordId,
+  className,
+}: HotkeyChordProps) {
   const [segments, setSegments] = useState<string[] | null>(null);
 
   useEffect(() => {

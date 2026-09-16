@@ -1,14 +1,18 @@
-import { presentDashboardPerson } from "@/lib/use-cases/planning-center/presentation";
 import { z } from "zod";
+
 import { peoplePageFlag } from "@/flags";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
 import { getPeopleDashboardPerson } from "@/lib/use-cases/planning-center/get-people-dashboard-person";
+import { presentDashboardPerson } from "@/lib/use-cases/planning-center/presentation";
 
 export const dynamic = "force-dynamic";
 
 const querySchema = z.object({
-  month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
+  month: z
+    .string()
+    .regex(/^\d{4}-\d{2}$/)
+    .optional(),
 });
 
 export async function GET(
@@ -28,7 +32,10 @@ export async function GET(
     });
 
     if (!parsed.success) {
-      log.warn({ issues: parsed.error.issues }, "Invalid people detail query params");
+      log.warn(
+        { issues: parsed.error.issues },
+        "Invalid people detail query params"
+      );
       throw parsed.error;
     }
 

@@ -13,7 +13,9 @@ export function getCachedPeopleDashboardPersonDetail(
     const dashboardMonth = formatDashboardMonthKey(dashboard.month);
     if (month && month !== dashboardMonth) continue;
 
-    const person = dashboard.people.find((candidate) => candidate.id === personId);
+    const person = dashboard.people.find(
+      (candidate) => candidate.id === personId
+    );
     if (!person) continue;
 
     return {

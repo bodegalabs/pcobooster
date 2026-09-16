@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+
 import { getJson } from "@/lib/http/client";
-import type { Blockout } from "@/lib/types";
 import { queryKeys } from "@/lib/query-keys";
+import type { Blockout } from "@/lib/types";
 
 export function useBlockouts(personId: string | undefined) {
   return useQuery<Blockout[]>({
