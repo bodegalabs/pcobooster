@@ -7,7 +7,7 @@ import {
   getItemTypeLabel,
   type DraftState,
 } from "@/components/schedule/plan-tab-helpers";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { usePlanItems } from "@/hooks/use-plan-items";
 import { createSongOptionsQueryOptions } from "@/hooks/use-song-options";
 import { deleteJson, patchJson, postJson } from "@/lib/http/client";

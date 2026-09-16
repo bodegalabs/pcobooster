@@ -1,6 +1,35 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@utility font-inherit {
+  font: inherit;
+}
+
+@utility transition-plan-item {
+  transition-property: background-color, box-shadow;
+}
+
+@utility transition-plan-item-drag {
+  transition-property: transform, box-shadow, opacity;
+}
+
+@utility sidebar-highlight-shadow {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32);
+}
+
+@utility recommendation-progress {
+  width: var(--recommendation-width);
+  transition: width 150ms ease;
+}
+
+@utility sortable-plan-item {
+  transform: var(--sortable-transform, none);
+  transition: var(
+    --sortable-transition,
+    transform 180ms cubic-bezier(0.2, 0, 0, 1)
+  );
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -39,9 +68,28 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  --color-status-confirmed: var(--status-confirmed);
+  --color-status-scheduled: var(--status-scheduled);
+  --color-status-declined: var(--status-declined);
+  --color-status-confirmed-bright: var(--status-confirmed-bright);
+  --color-status-scheduled-bright: var(--status-scheduled-bright);
+  --color-status-confirmed-deep: var(--status-confirmed-deep);
+  --color-status-scheduled-deep: var(--status-scheduled-deep);
+  --color-status-info: var(--status-info);
+  --color-info-surface: var(--info-surface);
+  --color-info-border: var(--info-border);
+  --color-info-foreground: var(--info-foreground);
+  --color-overlay-shadow: var(--overlay-shadow);
+  --color-pc-services-foreground: var(--pc-services-foreground);
+  --color-pc-services-gradient-start: var(--pc-services-gradient-start);
+  --color-pc-services-gradient-end: var(--pc-services-gradient-end);
 }
 
 :root {
+  /* Planning Center Services brand mark. */
+  --pc-services-foreground: #fff;
+  --pc-services-gradient-start: #6bb23d;
+  --pc-services-gradient-end: #659630;
   /* ~8px — calmer corners than prior 0.875rem; tune via single token */
   --radius: 0.5rem;
   /* Neutrals: cool green-gray (hue ~152), low chroma — no warm brown/yellow */
@@ -71,6 +119,18 @@
   --sidebar-accent-foreground: oklch(0.28 0.02 152);
   --sidebar-border: oklch(0.84 0.016 152);
   --sidebar-ring: oklch(0.61 0.06 154);
+  --status-confirmed: oklch(0.51 0.12 166);
+  --status-scheduled: oklch(0.66 0.15 78);
+  --status-declined: oklch(0.58 0.17 30);
+  --status-confirmed-bright: oklch(0.75 0.16 164);
+  --status-scheduled-bright: oklch(0.78 0.15 80);
+  --status-confirmed-deep: oklch(0.29 0.08 164);
+  --status-scheduled-deep: oklch(0.31 0.08 80);
+  --status-info: oklch(0.58 0.13 250);
+  --info-surface: oklch(0.97 0.02 250);
+  --info-border: oklch(0.88 0.06 250);
+  --info-foreground: oklch(0.92 0.03 250);
+  --overlay-shadow: oklch(0 0 0);
   --sidebar-hover-surface: color-mix(
     in oklch,
     var(--sidebar) 34%,
@@ -255,6 +315,14 @@
 }
 
 .dark {
+  --status-confirmed-deep: oklch(0.29 0.08 164);
+  --status-scheduled-deep: oklch(0.31 0.08 80);
+  --info-surface: oklch(0.24 0.08 250);
+  --info-border: oklch(0.45 0.12 250);
+  --status-confirmed: oklch(0.85 0.14 164);
+  --status-scheduled: oklch(0.84 0.14 80);
+  --status-declined: oklch(0.72 0.16 27);
+  --status-info: oklch(0.8 0.1 250);
   /*
    * Softer charcoal grays — lighter surfaces than flat near-black rails.
    * Neutrals use a whisper of hue ~154 (~0.01 chroma): reads slightly green-gray, not tinted chrome.

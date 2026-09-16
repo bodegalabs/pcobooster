@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { PlanTimeCard } from "@/components/schedule/plan-time-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { usePlanTimes } from "@/hooks/use-plan-times";
 import { useTeamPositions } from "@/hooks/use-team-positions";

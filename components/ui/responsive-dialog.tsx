@@ -29,57 +29,61 @@ const ResponsiveDialogContext = React.createContext<{ isMobile: boolean }>({
   isMobile: false,
 });
 
-type ResponsiveDialogRootProps = {
+interface ResponsiveDialogRootProps {
   children: React.ReactNode;
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
-};
+}
 
-type ResponsiveDialogContentProps = {
+interface ResponsiveDialogContentProps {
   children: React.ReactNode;
   className?: string;
   desktopClassName?: string;
   mobileClassName?: string;
   showCloseButton?: boolean;
-};
+}
 
-function ResponsiveDialog({ children, ...props }: ResponsiveDialogRootProps) {
+const ResponsiveDialog = ({
+  children,
+  ...props
+}: ResponsiveDialogRootProps) => {
   const isMobile = useIsMobile();
   const Root = isMobile ? Drawer : Dialog;
+  const contextValue = React.useMemo(() => ({ isMobile }), [isMobile]);
 
   return (
-    <ResponsiveDialogContext.Provider value={{ isMobile }}>
+    <ResponsiveDialogContext.Provider value={contextValue}>
       <Root {...props}>{children}</Root>
     </ResponsiveDialogContext.Provider>
   );
-}
+};
 
-function ResponsiveDialogTrigger({
+const ResponsiveDialogTrigger = ({
   ...props
-}: React.ComponentProps<typeof DialogTrigger>) {
+}: React.ComponentProps<typeof DialogTrigger>) => {
   const { isMobile } = React.useContext(ResponsiveDialogContext);
   const Trigger = isMobile ? DrawerTrigger : DialogTrigger;
 
   return <Trigger {...props} />;
-}
+};
 
-function ResponsiveDialogClose({
+const ResponsiveDialogClose = ({
   ...props
-}: React.ComponentProps<typeof DialogClose>) {
+}: React.ComponentProps<typeof DialogClose>) => {
   const { isMobile } = React.useContext(ResponsiveDialogContext);
   const Close = isMobile ? DrawerClose : DialogClose;
 
   return <Close {...props} />;
-}
+};
 
-function ResponsiveDialogContent({
+const ResponsiveDialogContent = ({
   className,
   desktopClassName,
   mobileClassName,
   showCloseButton = true,
   children,
-}: ResponsiveDialogContentProps) {
+}: ResponsiveDialogContentProps) => {
   const { isMobile } = React.useContext(ResponsiveDialogContext);
 
   if (isMobile) {
@@ -104,54 +108,71 @@ function ResponsiveDialogContent({
       {children}
     </DialogContent>
   );
-}
+};
 
-function ResponsiveDialogHeader({
+const ResponsiveDialogHeader = ({
   className,
+  treatment = "default",
   ...props
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<"div"> & {
+  treatment?: "default" | "form" | "picker";
+}) => {
   const { isMobile } = React.useContext(ResponsiveDialogContext);
   const Header = isMobile ? DrawerHeader : DialogHeader;
 
-  return <Header className={className} {...props} />;
-}
+  return (
+    <Header
+      className={cn(
+        treatment === "form" && "gap-2 px-4 pt-3 sm:px-0 sm:pt-0",
+        treatment === "picker" && "px-4 pt-3 sm:px-0 sm:pt-0",
+        className
+      )}
+      {...props}
+    />
+  );
+};
 
-function ResponsiveDialogFooter({
+const ResponsiveDialogFooter = ({
   className,
   showCloseButton = false,
+  treatment = "default",
   ...props
 }: React.ComponentProps<"div"> & {
   showCloseButton?: boolean;
-}) {
+  treatment?: "default" | "form";
+}) => {
   const { isMobile } = React.useContext(ResponsiveDialogContext);
   const Footer = isMobile ? DrawerFooter : DialogFooter;
 
   return (
     <Footer
-      className={className}
+      className={cn(
+        treatment === "form" && "gap-2 px-4 pb-0 sm:px-0",
+        className
+      )}
       showCloseButton={showCloseButton}
       {...props}
     />
   );
-}
+};
 
-function ResponsiveDialogTitle({
+const ResponsiveDialogTitle = ({
   ...props
-}: React.ComponentProps<typeof DialogTitle>) {
+}: React.ComponentProps<typeof DialogTitle>) => {
   const { isMobile } = React.useContext(ResponsiveDialogContext);
   const Title = isMobile ? DrawerTitle : DialogTitle;
 
   return <Title {...props} />;
-}
+};
 
-function ResponsiveDialogDescription({
+const ResponsiveDialogDescription = ({
   ...props
-}: React.ComponentProps<typeof DialogDescription>) {
+}: React.ComponentProps<typeof DialogDescription>) => {
   const { isMobile } = React.useContext(ResponsiveDialogContext);
   const Description = isMobile ? DrawerDescription : DialogDescription;
 
   return <Description {...props} />;
-}
+};
 
 export {
   ResponsiveDialog,
