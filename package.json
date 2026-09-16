@@ -8,9 +8,9 @@
     "dev:present": "PRESENTATION_MODE=1 next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "oxlint --node-plugin --react-perf-plugin --promise-plugin --react-plugin --nextjs-plugin --jsx-a11y-plugin --import-plugin --vitest-plugin --report-unused-disable-directives-severity=warn .",
-    "lint:fix": "oxlint --node-plugin --react-perf-plugin --promise-plugin --react-plugin --nextjs-plugin --jsx-a11y-plugin --import-plugin --vitest-plugin --fix .",
-    "lint:ci": "bun run lint -- --format github",
+    "lint": "bun run check",
+    "lint:fix": "bun run fix",
+    "lint:ci": "bun run check --format github",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -20,7 +20,13 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "bun run scripts/seed.ts",
-    "db:backfill:planning-center-identities": "bun run scripts/backfill-planning-center-identities.ts"
+    "db:backfill:planning-center-identities": "bun run scripts/backfill-planning-center-identities.ts",
+    "check": "ultracite check --max-warnings 0",
+    "fix": "ultracite fix",
+    "prepare": "lefthook install",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "verify": "bun run check && bun run typecheck && bun run test"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -53,6 +59,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@shadcn/lint": "^0.1.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@tanstack/react-query-devtools": "^5.103.1",
     "@types/node": "^24.13.5",
@@ -60,12 +67,16 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "drizzle-kit": "^0.31.10",
-    "oxlint": "^1.59.0",
+    "lefthook": "^2.1.14",
+    "oxfmt": "^0.68.0",
+    "oxlint": "^1.83.0",
+    "oxlint-plugin-react-doctor": "^0.9.14",
     "oxlint-tsgolint": "^0.20.0",
     "pino-pretty": "^13.1.3",
     "tailwindcss": "^4.3.3",
     "tw-animate-css": "^1.4.0",
     "typescript": "^5.9.3",
+    "ultracite": "7.12.0",
     "vitest": "^4.1.11"
   },
   "engines": {

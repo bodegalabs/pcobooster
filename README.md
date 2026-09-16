@@ -18,10 +18,12 @@ The root route (`/`) redirects to `/services`.
 
 This repo uses Bun for dependency management and scripts. Use `bun.lock` as the only lockfile; do not use npm or commit `package-lock.json`.
 
+Use Node.js 24 (see `.node-version`) and Bun 1.3.9 (pinned in `package.json` and CI).
+
 ### 1. Install dependencies
 
 ```bash
-bun install
+bun install --frozen-lockfile
 ```
 
 ### 2. Configure environment variables
@@ -104,9 +106,10 @@ app/
 
 components/
   dashboard-page.tsx         # Main schedule workflow UI
-  person-card.tsx            # Person row/card with schedule actions
+  schedule/                  # Plan editing and scheduling UI
+  people/                    # People dashboard and detail views
   service-plan-table-selector.tsx
-  account-menu.tsx
+  app-shell.tsx              # Navigation and account menu
   ui/                        # UI primitives
 
 hooks/
@@ -130,7 +133,9 @@ lib/
 - `bun run dev`
 - `bun run build`
 - `bun run start`
-- `bun run lint`
+- `bun run check`: strict Ultracite lint and formatting checks
+- `bun run fix`: auto-fix and format
+- `bun run verify`: check, typecheck, and tests
 - `bun run typecheck`
 - `bun run test`
 - `bun run test:watch`
@@ -138,11 +143,39 @@ lib/
 ## Testing
 
 ```bash
-bun run typecheck
-bun run test
+bun run verify
+bun run build
 ```
 
-Unit tests are colocated with use-cases under `lib/use-cases/planning-center/*.test.ts`.
+Tests are colocated under `lib/` and `components/`. Use-cases accept narrow typed dependencies so tests can exercise behavior without replacing modules. HTTP responses and persisted caches are validated with shared Zod schemas before entering the app.
+
+## Code Quality
+
+Ultracite uses Oxlint and Oxfmt with the strict core, React, Next.js, TanStack, Vitest, shadcn, anti-slop, and React Doctor presets. `oxlint.config.ts` and `oxfmt.config.ts` are the configuration sources. CI rejects warnings as well as errors, then runs TypeScript, tests, and a production build. Tests use explicit dummy credentials from `vitest.config.ts`; the build step uses compile-only placeholders and requires no production secrets. Generated Next.js declarations, database migrations, and scraped API documentation are excluded from formatting.
+
+The OXC VS Code extension is recommended in `.vscode/extensions.json`; workspace settings enable formatting and explicit fixes on save. `bun install` installs the Lefthook pre-commit hook, which fixes and re-stages supported staged files. Run `bun run verify` before submitting changes and `bun x ultracite doctor` when diagnosing the toolchain.
+
+Shared UI primitives expose appearance through variants, with semantic theme tokens for scheduling states. Call sites own layout.
+
+Better Auth is pinned to the patched 1.6 release line. Moving to 1.7 requires an explicit OAuth callback migration; keep the registered callback URLs above aligned with the auth version.
+
+## Stacked Pull Requests
+
+Use [GitHub's native stacks](https://github.com/github/gh-stack) for changes with dependent review layers. Keep each layer focused and independently passing `bun run verify` and `bun run build`.
+
+```bash
+gh extension install github/gh-stack
+gh stack init --base main codex/my-change-foundation
+# Commit the foundation, then start its dependent layer.
+gh stack add codex/my-change-interface
+# Commit and validate the interface, then publish draft PRs.
+gh stack submit --auto --remote origin
+gh stack view --json
+```
+
+Each PR targets the preceding branch; the bottom PR targets `main`. After editing a lower layer, run `gh stack rebase --upstack --remote origin` and resubmit. Update the generated PR titles and descriptions with the behavior changes and validation results.
+
+When every layer is ready and GitHub checks pass, use `gh stack merge <stack-number> --yes --squash` to land the stack together. GitHub enforces the repository's merge requirements for the entire operation. Use `gh stack sync --remote origin` afterward to reconcile local state.
 
 ## Planning Center API Docs
 
