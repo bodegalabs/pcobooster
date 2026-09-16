@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { searchSongs } from "@/lib/use-cases/planning-center/search-songs";
 
 const { getSongsCatalogCachedMock } = vi.hoisted(() => ({
@@ -60,9 +61,15 @@ describe("searchSongs", () => {
 
     const songs = await searchSongs("account-1", "service-1", "lord");
 
-    expect(songs.map((song) => song.id)).toEqual(["song-4", "song-2", "song-1"]);
+    expect(songs.map((song) => song.id)).toEqual([
+      "song-4",
+      "song-2",
+      "song-1",
+    ]);
     expect(songs.some((song) => song.id === "song-3")).toBe(false);
-    expect(getSongsCatalogCachedMock).toHaveBeenCalledWith("account-1:service-1");
+    expect(getSongsCatalogCachedMock).toHaveBeenCalledWith(
+      "account-1:service-1"
+    );
   });
 
   it("caches normalized result sets and returns mutation-safe copies", async () => {

@@ -1,4 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
+
 import { clearCachedPlanItems } from "@/lib/plan-items-cache";
 import { clearCachedSongOptions } from "@/lib/song-options-cache";
 import { clearCachedSongSearch } from "@/lib/song-search-cache";
@@ -83,7 +84,10 @@ export function createOptimisticSongPlanItem(
   };
 }
 
-export function replacePlanItem(items: PlanItem[], updatedItem: PlanItem): PlanItem[] {
+export function replacePlanItem(
+  items: PlanItem[],
+  updatedItem: PlanItem
+): PlanItem[] {
   return items.map((item) => (item.id === updatedItem.id ? updatedItem : item));
 }
 
@@ -138,7 +142,8 @@ export function planItemDraftChangesItem(
   if (draft.servicePosition !== item.servicePosition) return true;
   if (normalizedLength !== item.length) return true;
   if (draft.description !== item.description) return true;
-  if (item.song && normalizedArrangementId !== (item.arrangement?.id ?? null)) return true;
+  if (item.song && normalizedArrangementId !== (item.arrangement?.id ?? null))
+    return true;
   if (item.song && normalizedKeyId !== (item.key?.id ?? null)) return true;
 
   return false;
@@ -150,7 +155,11 @@ export function removePlanItem(items: PlanItem[], itemId: string): PlanItem[] {
     .map((item, index) => ({ ...item, sequence: index + 1 }));
 }
 
-export function movePlanItem(items: PlanItem[], fromIndex: number, toIndex: number): PlanItem[] {
+export function movePlanItem(
+  items: PlanItem[],
+  fromIndex: number,
+  toIndex: number
+): PlanItem[] {
   const nextItems = [...items];
   const [movedItem] = nextItems.splice(fromIndex, 1);
   if (!movedItem) return items;

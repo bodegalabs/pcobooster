@@ -5,5 +5,9 @@ export async function reorderPlanItems(
   planId: string,
   sequence: string[]
 ): Promise<void> {
-  await planningCenterPlanItemsService.reorderPlanItems(serviceTypeId, planId, sequence);
+  await planningCenterPlanItemsService.reorderPlanItems(
+    serviceTypeId,
+    planId,
+    sequence
+  );
 }

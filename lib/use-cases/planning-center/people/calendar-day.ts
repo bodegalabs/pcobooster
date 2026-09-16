@@ -1,7 +1,10 @@
 /**
  * Calendar YYYY-MM-DD for an instant in an IANA timezone (matches Planning Center wall times).
  */
-export function formatCalendarDayInTimeZone(instant: Date, timeZone: string): string {
+export function formatCalendarDayInTimeZone(
+  instant: Date,
+  timeZone: string
+): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: timeZone || "UTC",
     year: "numeric",

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { HttpClientError, postJson } from "@/lib/http/client";
+import { useEffect, useState } from "react";
+
 import {
   cancelScheduleMutationQueries,
   optimisticallySchedulePerson,
@@ -11,6 +11,7 @@ import {
   settleScheduleMutationQueries,
   type OptimisticSchedulePerson,
 } from "@/hooks/use-schedule-cache-optimism";
+import { HttpClientError, postJson } from "@/lib/http/client";
 
 function formatSchedulePayloadError(json: unknown): string {
   if (!json || typeof json !== "object") return "Failed to schedule";
@@ -20,19 +21,26 @@ function formatSchedulePayloadError(json: unknown): string {
     code?: unknown;
   };
 
-  if (payload.code === "POSITION_MISMATCH" && payload.details && typeof payload.details === "object") {
+  if (
+    payload.code === "POSITION_MISMATCH" &&
+    payload.details &&
+    typeof payload.details === "object"
+  ) {
     const details = payload.details as {
       selected?: { teamName?: string; positionName?: string };
       created?: { teamPositionName?: string };
     };
     const selectedTeam = details.selected?.teamName || "Unknown team";
-    const selectedPosition = details.selected?.positionName || "Unknown position";
+    const selectedPosition =
+      details.selected?.positionName || "Unknown position";
     const created = details.created?.teamPositionName || "Unknown position";
     return `Created in "${created}" instead of "${selectedTeam} - ${selectedPosition}".`;
   }
 
-  if (typeof payload.details === "string" && payload.details.length > 0) return payload.details;
-  if (typeof payload.error === "string" && payload.error.length > 0) return payload.error;
+  if (typeof payload.details === "string" && payload.details.length > 0)
+    return payload.details;
+  if (typeof payload.error === "string" && payload.error.length > 0)
+    return payload.error;
   return "Failed to schedule";
 }
 
@@ -160,7 +168,15 @@ export function useSchedulePlanPerson({
   });
 
   const handleSchedule = (input: string | OptimisticSchedulePerson) => {
-    if (!serviceTypeId || !planId || !teamId || !positionId || scheduleMutation.isPending || !canSchedule) return;
+    if (
+      !serviceTypeId ||
+      !planId ||
+      !teamId ||
+      !positionId ||
+      scheduleMutation.isPending ||
+      !canSchedule
+    )
+      return;
 
     setScheduleError(null);
     const person =

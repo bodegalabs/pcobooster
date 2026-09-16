@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import {
   parsePeoplePageNavState,
   serializePeoplePageNavState,
@@ -6,10 +7,14 @@ import {
 
 describe("people page nav cache", () => {
   it("round-trips enabled state", () => {
-    expect(parsePeoplePageNavState(serializePeoplePageNavState({ enabled: true }))).toEqual({
+    expect(
+      parsePeoplePageNavState(serializePeoplePageNavState({ enabled: true }))
+    ).toEqual({
       enabled: true,
     });
-    expect(parsePeoplePageNavState(serializePeoplePageNavState({ enabled: false }))).toEqual({
+    expect(
+      parsePeoplePageNavState(serializePeoplePageNavState({ enabled: false }))
+    ).toEqual({
       enabled: false,
     });
   });

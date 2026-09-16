@@ -1,10 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
+
 import { getJson } from "@/lib/http/client";
-import { queryKeys } from "@/lib/query-keys";
-import { hydrateSongOptionSet, type SerializedSongOptionSet } from "@/lib/song-catalog-client";
-import { readCachedSongOptions, writeCachedSongOptions } from "@/lib/song-options-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
+import { queryKeys } from "@/lib/query-keys";
+import {
+  hydrateSongOptionSet,
+  type SerializedSongOptionSet,
+} from "@/lib/song-catalog-client";
+import {
+  readCachedSongOptions,
+  writeCachedSongOptions,
+} from "@/lib/song-options-cache";
 import type { SongOptionSet } from "@/lib/types";
 
 export function useSongOptions(
@@ -46,7 +53,8 @@ export function createSongOptionsQueryOptions(
       writeCachedSongOptions(songId, serviceTypeId, hydratedOptions);
       return hydratedOptions;
     },
-    placeholderData: (previousOptions: SongOptionSet | null | undefined) => previousOptions,
+    placeholderData: (previousOptions: SongOptionSet | null | undefined) =>
+      previousOptions,
     staleTime: 5 * 60 * 1000,
   };
 }

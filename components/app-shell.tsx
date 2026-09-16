@@ -1,16 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { Suspense, startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type {
-  CSSProperties,
-  MouseEvent as ReactMouseEvent,
-  PointerEvent as ReactPointerEvent,
-  ReactNode,
-} from "react";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   CalendarDays,
@@ -31,33 +21,30 @@ import {
   Users,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { authClient } from "@/lib/auth-client";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
-  ACCOUNT_PANEL_CACHE_KEY,
-  parseCachedAccountPanel,
-  serializeAccountPanel,
-  summarizeAccountPanel,
-  type AccountPanelSummary,
-} from "@/lib/account-panel-cache";
-import { getJson, postJson } from "@/lib/http/client";
-import {
-  PEOPLE_PAGE_NAV_CACHE_KEY,
-  parsePeoplePageNavState,
-  serializePeoplePageNavState,
-} from "@/lib/people-page-nav-cache";
-import { clearCachedPeople } from "@/lib/people-cache";
-import { clearCachedPeopleDashboards } from "@/lib/people-dashboard-cache";
-import { clearCachedPeopleSearch } from "@/lib/people-search-cache";
-import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
-import { clearCachedOrganizationTimeZone } from "@/lib/organization-time-zone-cache";
-import { clearCachedPlanItems } from "@/lib/plan-items-cache";
-import { clearCachedScheduleCatalog } from "@/lib/schedule-catalog-cache";
-import { clearCachedSongOptions } from "@/lib/song-options-cache";
-import { clearCachedSongSearch } from "@/lib/song-search-cache";
-import { clearCachedTeamPositions } from "@/lib/team-positions-cache";
-import { APP_SHORTCUTS, SHORTCUTS_PALETTE_HOTKEY } from "@/lib/app-hotkeys";
-import { cn } from "@/lib/utils";
+  Suspense,
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type {
+  CSSProperties,
+  MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
+  ReactNode,
+} from "react";
+
 import { HotkeyChord } from "@/components/hotkey-chord";
+import {
+  SidebarTabGroup,
+  type SidebarTabGroupItem,
+} from "@/components/sidebar-tab-group";
 import { SidebarToggleHotkey } from "@/components/sidebar-toggle-hotkey";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -69,6 +56,13 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -76,13 +70,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Sidebar,
   SidebarContent,
@@ -98,7 +85,32 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { SidebarTabGroup, type SidebarTabGroupItem } from "@/components/sidebar-tab-group";
+import {
+  ACCOUNT_PANEL_CACHE_KEY,
+  parseCachedAccountPanel,
+  serializeAccountPanel,
+  summarizeAccountPanel,
+  type AccountPanelSummary,
+} from "@/lib/account-panel-cache";
+import { APP_SHORTCUTS, SHORTCUTS_PALETTE_HOTKEY } from "@/lib/app-hotkeys";
+import { authClient } from "@/lib/auth-client";
+import { getJson, postJson } from "@/lib/http/client";
+import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
+import { clearCachedOrganizationTimeZone } from "@/lib/organization-time-zone-cache";
+import { clearCachedPeople } from "@/lib/people-cache";
+import { clearCachedPeopleDashboards } from "@/lib/people-dashboard-cache";
+import {
+  PEOPLE_PAGE_NAV_CACHE_KEY,
+  parsePeoplePageNavState,
+  serializePeoplePageNavState,
+} from "@/lib/people-page-nav-cache";
+import { clearCachedPeopleSearch } from "@/lib/people-search-cache";
+import { clearCachedPlanItems } from "@/lib/plan-items-cache";
+import { clearCachedScheduleCatalog } from "@/lib/schedule-catalog-cache";
+import { clearCachedSongOptions } from "@/lib/song-options-cache";
+import { clearCachedSongSearch } from "@/lib/song-search-cache";
+import { clearCachedTeamPositions } from "@/lib/team-positions-cache";
+import { cn } from "@/lib/utils";
 
 type PlanningCenterAccount = {
   id: string;
@@ -145,7 +157,9 @@ function initialsFromName(name: string | null | undefined): string {
 function readStoredSidebarWidth(): number {
   if (typeof window === "undefined") return DEFAULT_SIDEBAR_WIDTH;
   const stored = Number(window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY));
-  return Number.isFinite(stored) ? clampSidebarWidth(stored) : DEFAULT_SIDEBAR_WIDTH;
+  return Number.isFinite(stored)
+    ? clampSidebarWidth(stored)
+    : DEFAULT_SIDEBAR_WIDTH;
 }
 
 function readStoredSidebarOpen(): boolean {
@@ -158,13 +172,18 @@ function readStoredSidebarOpen(): boolean {
 
 function readCachedAccountPanelSummary(): AccountPanelSummary | null {
   if (typeof window === "undefined") return null;
-  return parseCachedAccountPanel(window.localStorage.getItem(ACCOUNT_PANEL_CACHE_KEY));
+  return parseCachedAccountPanel(
+    window.localStorage.getItem(ACCOUNT_PANEL_CACHE_KEY)
+  );
 }
 
 function writeCachedAccountPanelSummary(summary: AccountPanelSummary) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(ACCOUNT_PANEL_CACHE_KEY, serializeAccountPanel(summary));
+    window.localStorage.setItem(
+      ACCOUNT_PANEL_CACHE_KEY,
+      serializeAccountPanel(summary)
+    );
   } catch {
     // Ignore storage write failures (private mode/quota).
   }
@@ -172,7 +191,11 @@ function writeCachedAccountPanelSummary(summary: AccountPanelSummary) {
 
 function readCachedPeoplePageEnabled(fallback: boolean): boolean {
   if (typeof window === "undefined") return fallback;
-  return parsePeoplePageNavState(window.localStorage.getItem(PEOPLE_PAGE_NAV_CACHE_KEY))?.enabled ?? fallback;
+  return (
+    parsePeoplePageNavState(
+      window.localStorage.getItem(PEOPLE_PAGE_NAV_CACHE_KEY)
+    )?.enabled ?? fallback
+  );
 }
 
 function writeCachedPeoplePageEnabled(enabled: boolean) {
@@ -274,7 +297,7 @@ function SidebarResizeRail({
       className={cn(
         /* Inset card uses m-2 + rounded-lg (~--radius); shorten rail slightly so it avoids corner curves */
         "absolute top-3 right-0 bottom-3 z-[70] hidden w-3 cursor-col-resize rounded-none border-0 bg-transparent p-0 md:block",
-        "touch-none after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-px after:rounded-full after:bg-border after:opacity-0 after:transition-opacity hover:after:opacity-100",
+        "after:bg-border touch-none after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-px after:rounded-full after:opacity-0 after:transition-opacity hover:after:opacity-100",
         "focus-visible:outline-none focus-visible:after:opacity-100"
       )}
       onPointerDown={handlePointerDown}
@@ -371,7 +394,9 @@ function AppTopBar() {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{isPersonDetail ? "Person" : "User"}</BreadcrumbPage>
+                <BreadcrumbPage>
+                  {isPersonDetail ? "Person" : "User"}
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </>
           ) : (
@@ -393,10 +418,13 @@ function AppTopBar() {
                       <DropdownMenuTrigger asChild>
                         <button
                           type="button"
-                          className="inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-sm text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                          className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
                         >
                           <span>{planViewLabel}</span>
-                          <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden />
+                          <ChevronDown
+                            className="text-muted-foreground size-3.5"
+                            aria-hidden
+                          />
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-36">
@@ -405,12 +433,20 @@ function AppTopBar() {
                             key={view}
                             onSelect={() => {
                               startTransition(() => {
-                                router.replace(buildScheduleViewUrl(pathname, searchParams, view));
+                                router.replace(
+                                  buildScheduleViewUrl(
+                                    pathname,
+                                    searchParams,
+                                    view
+                                  )
+                                );
                               });
                             }}
                           >
                             <span>{getTopBarViewLabel(view)}</span>
-                            {planView === view ? <Check className="ml-auto size-4" aria-hidden /> : null}
+                            {planView === view ? (
+                              <Check className="ml-auto size-4" aria-hidden />
+                            ) : null}
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
@@ -438,11 +474,15 @@ function AppTopBarFallback({ pathname }: { pathname: string }) {
           {isPersonDetail || isAdminUserDetail ? (
             <>
               <BreadcrumbItem>
-                <BreadcrumbPage>{isPersonDetail ? "People" : "Admin"}</BreadcrumbPage>
+                <BreadcrumbPage>
+                  {isPersonDetail ? "People" : "Admin"}
+                </BreadcrumbPage>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{isPersonDetail ? "Person" : "User"}</BreadcrumbPage>
+                <BreadcrumbPage>
+                  {isPersonDetail ? "Person" : "User"}
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </>
           ) : (
@@ -469,26 +509,32 @@ function SidebarAccountPanel({
   const { setTheme, theme } = useTheme();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [data, setData] = useState<PlanningCenterAccountsResponse | null>(null);
-  const [cachedSummary, setCachedSummary] = useState<AccountPanelSummary | null>(null);
+  const [cachedSummary, setCachedSummary] =
+    useState<AccountPanelSummary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [switchingAccountId, setSwitchingAccountId] = useState<string | null>(null);
+  const [switchingAccountId, setSwitchingAccountId] = useState<string | null>(
+    null
+  );
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [error, setError] = useState("");
 
   const liveSummary = useMemo(() => summarizeAccountPanel(data), [data]);
-  const triggerSummary = data ? liveSummary : cachedSummary ?? liveSummary;
+  const triggerSummary = data ? liveSummary : (cachedSummary ?? liveSummary);
 
   const loadAccounts = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await getJson<PlanningCenterAccountsResponse>("/api/planning-center/accounts");
+      const response = await getJson<PlanningCenterAccountsResponse>(
+        "/api/planning-center/accounts"
+      );
       setData(response);
       const summary = summarizeAccountPanel(response);
       setCachedSummary(summary);
       writeCachedAccountPanelSummary(summary);
       setError("");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load account details";
+      const message =
+        err instanceof Error ? err.message : "Failed to load account details";
       setError(message);
     } finally {
       setLoading(false);
@@ -526,7 +572,8 @@ function SidebarAccountPanel({
       router.refresh();
       setAccountMenuOpen(false);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to switch organization";
+      const message =
+        err instanceof Error ? err.message : "Failed to switch organization";
       setError(message);
     } finally {
       setSwitchingAccountId(null);
@@ -566,15 +613,22 @@ function SidebarAccountPanel({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
               <Avatar className="size-6 rounded-md">
-                {triggerSummary.image ? <AvatarImage src={triggerSummary.image} alt={triggerSummary.avatarName ?? "User"} /> : null}
-                <AvatarFallback className="rounded-md bg-primary text-[10px] font-medium text-primary-foreground">
+                {triggerSummary.image ? (
+                  <AvatarImage
+                    src={triggerSummary.image}
+                    alt={triggerSummary.avatarName ?? "User"}
+                  />
+                ) : null}
+                <AvatarFallback className="bg-primary text-primary-foreground rounded-md text-[10px] font-medium">
                   {initialsFromName(triggerSummary.avatarName)}
                 </AvatarFallback>
               </Avatar>
-              <span className="flex-1 truncate text-left text-sm font-medium">{triggerSummary.organizationName}</span>
+              <span className="flex-1 truncate text-left text-sm font-medium">
+                {triggerSummary.organizationName}
+              </span>
               <ChevronDown
                 className={cn(
-                  "ml-auto size-3.5 text-muted-foreground transition-transform group-data-[collapsible=icon]:hidden",
+                  "text-muted-foreground ml-auto size-3.5 transition-transform group-data-[collapsible=icon]:hidden",
                   accountMenuOpen ? "rotate-180" : null
                 )}
               />
@@ -583,26 +637,34 @@ function SidebarAccountPanel({
           <DropdownMenuContent
             side="bottom"
             align="start"
-            className="z-[80] max-w-none min-w-[14rem] w-[var(--radix-dropdown-menu-trigger-width)] gap-0 rounded-xl border-border/60 bg-popover p-1 shadow-xl shadow-black/35"
+            className="border-border/60 bg-popover z-[80] w-[var(--radix-dropdown-menu-trigger-width)] max-w-none min-w-[14rem] gap-0 rounded-xl p-1 shadow-xl shadow-black/35"
           >
             <DropdownMenuLabel className="cursor-default rounded-none px-2.5 py-2.5 pb-2 font-normal">
-              <span className="block truncate text-sm font-semibold text-foreground">
+              <span className="text-foreground block truncate text-sm font-semibold">
                 {data?.session.name ?? "Account"}
               </span>
-              <span className="mt-1 block truncate text-xs text-muted-foreground">{data?.session.email ?? ""}</span>
+              <span className="text-muted-foreground mt-1 block truncate text-xs">
+                {data?.session.email ?? ""}
+              </span>
             </DropdownMenuLabel>
 
-            {(loading && !data) || (data !== null && data.accounts.length > 1) ? (
+            {(loading && !data) ||
+            (data !== null && data.accounts.length > 1) ? (
               <>
-                <DropdownMenuSeparator className="my-0 bg-border/50" />
+                <DropdownMenuSeparator className="bg-border/50 my-0" />
                 {loading && !data ? (
-                  <DropdownMenuItem disabled className="rounded-sm px-2.5 py-2 text-sm">
+                  <DropdownMenuItem
+                    disabled
+                    className="rounded-sm px-2.5 py-2 text-sm"
+                  >
                     Loading…
                   </DropdownMenuItem>
                 ) : (
                   data!.accounts.map((account) => {
                     const isSelected = account.id === data!.selectedAccountId;
-                    const orgName = account.identity?.organizationName || "Unknown organization";
+                    const orgName =
+                      account.identity?.organizationName ||
+                      "Unknown organization";
                     return (
                       <DropdownMenuItem
                         key={account.id}
@@ -613,11 +675,18 @@ function SidebarAccountPanel({
                           void handleSelectAccount(account.id);
                         }}
                       >
-                        <span className="min-w-0 flex-1 truncate">{orgName}</span>
+                        <span className="min-w-0 flex-1 truncate">
+                          {orgName}
+                        </span>
                         {switchingAccountId === account.id ? (
-                          <Loader2 className="size-4 animate-spin shrink-0" />
+                          <Loader2 className="size-4 shrink-0 animate-spin" />
                         ) : (
-                          <Check className={cn("size-4 shrink-0", isSelected ? "opacity-80" : "invisible")} />
+                          <Check
+                            className={cn(
+                              "size-4 shrink-0",
+                              isSelected ? "opacity-80" : "invisible"
+                            )}
+                          />
                         )}
                       </DropdownMenuItem>
                     );
@@ -626,9 +695,9 @@ function SidebarAccountPanel({
               </>
             ) : null}
 
-            <DropdownMenuSeparator className="my-0 bg-border/50" />
+            <DropdownMenuSeparator className="bg-border/50 my-0" />
 
-            <DropdownMenuLabel className="px-2.5 pt-2 pb-1.5 text-xs font-medium text-muted-foreground">
+            <DropdownMenuLabel className="text-muted-foreground px-2.5 pt-2 pb-1.5 text-xs font-medium">
               Appearance
             </DropdownMenuLabel>
             {themeOptions.map((option) => {
@@ -640,31 +709,46 @@ function SidebarAccountPanel({
                   className="gap-2 rounded-sm px-2.5 py-2 text-sm"
                   onSelect={() => setTheme(option.value)}
                 >
-                  <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                  <Icon
+                    className="text-muted-foreground size-4 shrink-0"
+                    aria-hidden
+                  />
                   <span>{option.label}</span>
-                  <Check className={cn("size-4 shrink-0", selected ? "ml-auto opacity-80" : "invisible ml-auto")} />
+                  <Check
+                    className={cn(
+                      "size-4 shrink-0",
+                      selected ? "ml-auto opacity-80" : "invisible ml-auto"
+                    )}
+                  />
                 </DropdownMenuItem>
               );
             })}
 
-            <DropdownMenuSeparator className="my-0 bg-border/50" />
+            <DropdownMenuSeparator className="bg-border/50 my-0" />
 
             <DropdownMenuItem
               className="rounded-sm px-2.5 py-2 text-sm"
               onSelect={() => onOpenShortcuts()}
             >
-              <Keyboard className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+              <Keyboard
+                className="text-muted-foreground size-4 shrink-0"
+                aria-hidden
+              />
               <span className="flex-1">Keyboard shortcuts</span>
               <HotkeyChord
                 id="acct-menu-shortcuts"
                 binding={SHORTCUTS_PALETTE_HOTKEY}
-                className="ml-2 shrink-0 [&_[data-slot=kbd]]:h-7 [&_[data-slot=kbd]]:min-h-7 [&_[data-slot=kbd]]:border-border/50 [&_[data-slot=kbd]]:bg-muted/40 [&_[data-slot=kbd]]:px-1.5 [&_[data-slot=kbd]]:text-[11px]"
+                className="[&_[data-slot=kbd]]:border-border/50 [&_[data-slot=kbd]]:bg-muted/40 ml-2 shrink-0 [&_[data-slot=kbd]]:h-7 [&_[data-slot=kbd]]:min-h-7 [&_[data-slot=kbd]]:px-1.5 [&_[data-slot=kbd]]:text-[11px]"
               />
             </DropdownMenuItem>
 
-            {error ? <p className="mx-2 my-1.5 text-[11px] leading-snug text-destructive">{error}</p> : null}
+            {error ? (
+              <p className="text-destructive mx-2 my-1.5 text-[11px] leading-snug">
+                {error}
+              </p>
+            ) : null}
 
-            <DropdownMenuSeparator className="my-0 bg-border/50" />
+            <DropdownMenuSeparator className="bg-border/50 my-0" />
 
             <DropdownMenuItem
               variant="destructive"
@@ -672,7 +756,11 @@ function SidebarAccountPanel({
               disabled={isSigningOut || Boolean(switchingAccountId)}
               onSelect={() => void handleSignOut()}
             >
-              {isSigningOut ? <Loader2 className="size-4 animate-spin" /> : <LogOut className="size-4" />}
+              {isSigningOut ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <LogOut className="size-4" />
+              )}
               {isSigningOut ? "Signing out…" : "Sign out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -722,7 +810,11 @@ function ServicesSidebarMenuItem() {
     },
   ];
   const servicesActiveKey: ServicesSidebarKey | null =
-    pathname === "/services" ? "services" : isPlanWorkspace ? activeScheduleView : null;
+    pathname === "/services"
+      ? "services"
+      : isPlanWorkspace
+        ? activeScheduleView
+        : null;
 
   return (
     <SidebarTabGroup
@@ -760,7 +852,9 @@ function AppSidebar({
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [sidebarPeekLocked, setSidebarPeekLocked] = useState(false);
 
-  useHotkey(SHORTCUTS_PALETTE_HOTKEY, () => setShortcutsOpen(true), { ignoreInputs: true });
+  useHotkey(SHORTCUTS_PALETTE_HOTKEY, () => setShortcutsOpen(true), {
+    ignoreInputs: true,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -865,7 +959,10 @@ function AppSidebar({
                   children: (
                     <div className="flex items-center gap-3">
                       <p className="text-xs font-medium">Shortcuts</p>
-                      <HotkeyChord binding={SHORTCUTS_PALETTE_HOTKEY} id="shortcuts-sidebar-hover" />
+                      <HotkeyChord
+                        binding={SHORTCUTS_PALETTE_HOTKEY}
+                        id="shortcuts-sidebar-hover"
+                      />
                     </div>
                   ),
                 }}
@@ -882,7 +979,9 @@ function AppSidebar({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Shortcuts</DialogTitle>
-            <DialogDescription>Keyboard shortcuts available in worshipadmin.com.</DialogDescription>
+            <DialogDescription>
+              Keyboard shortcuts available in worshipadmin.com.
+            </DialogDescription>
           </DialogHeader>
           <dl className="grid gap-3 text-sm">
             {APP_SHORTCUTS.map((shortcut) => (
@@ -960,7 +1059,7 @@ export function AppShell({
         }
       />
       <SidebarInset className="min-h-0 overflow-hidden">
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/50 px-3">
+        <header className="border-border/50 flex h-12 shrink-0 items-center gap-2 border-b px-3">
           <SidebarTrigger />
           <Suspense fallback={<AppTopBarFallback pathname={pathname} />}>
             <AppTopBar />

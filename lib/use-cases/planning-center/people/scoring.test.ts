@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import type { PersonWithAvailability, ScheduleFrequency } from "@/lib/types";
 import { scoreAndNormalizePeople } from "@/lib/use-cases/planning-center/people/scoring";
 
@@ -18,7 +19,10 @@ function baseFrequency(partial: Partial<ScheduleFrequency>): ScheduleFrequency {
   };
 }
 
-function person(id: string, frequency: ScheduleFrequency): PersonWithAvailability {
+function person(
+  id: string,
+  frequency: ScheduleFrequency
+): PersonWithAvailability {
   return {
     id,
     firstName: id,
@@ -77,10 +81,12 @@ describe("scoreAndNormalizePeople", () => {
     const people = [rehearsalHeavy, serviceHeavy];
     scoreAndNormalizePeople(people, referenceDate, "UTC");
 
-    expect((rehearsalHeavy.recommendationScore ?? 0)).toBeGreaterThan(
+    expect(rehearsalHeavy.recommendationScore ?? 0).toBeGreaterThan(
       serviceHeavy.recommendationScore ?? 0
     );
-    expect(rehearsalHeavy.recommendationReasoning?.join(" ")).toContain("Rehearsal");
+    expect(rehearsalHeavy.recommendationReasoning?.join(" ")).toContain(
+      "Rehearsal"
+    );
   });
 
   it("does not rank missing frequency data below a clean candidate by default", () => {
@@ -92,7 +98,11 @@ describe("scoreAndNormalizePeople", () => {
     const people = [missingFrequency, cleanFrequency];
     scoreAndNormalizePeople(people, referenceDate, "UTC");
 
-    expect(missingFrequency.recommendationScore).toBe(cleanFrequency.recommendationScore);
-    expect(missingFrequency.recommendationReasoning?.join(" ")).toContain("No service history available");
+    expect(missingFrequency.recommendationScore).toBe(
+      cleanFrequency.recommendationScore
+    );
+    expect(missingFrequency.recommendationReasoning?.join(" ")).toContain(
+      "No service history available"
+    );
   });
 });

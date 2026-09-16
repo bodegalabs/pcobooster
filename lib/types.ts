@@ -529,7 +529,7 @@ export interface ScheduleFrequency {
   rehearsalLast90Days: number;
   lastRehearsalDate?: Date;
   totalRehearsals: number;
-  
+
   // Upcoming services (after the reference/plan date)
   upcomingServices: number; // Number of services scheduled AFTER the plan date
   nextUpcomingDate?: Date; // Next scheduled service AFTER the plan date

@@ -19,7 +19,9 @@ export function readCachedServiceTypes(): ServiceType[] | undefined {
   return readCachedServiceTypesEntry()?.data;
 }
 
-export function readCachedServiceTypesEntry(): ScheduleCatalogCacheEntry<ServiceType[]> | undefined {
+export function readCachedServiceTypesEntry():
+  | ScheduleCatalogCacheEntry<ServiceType[]>
+  | undefined {
   return readCache<ServiceType[]>(SERVICE_TYPES_KEY, isServiceTypeArray);
 }
 
@@ -27,7 +29,9 @@ export function writeCachedServiceTypes(serviceTypes: ServiceType[]) {
   writeCache(SERVICE_TYPES_KEY, serviceTypes);
 }
 
-export function readCachedPlans(serviceTypeId: string | null): Plan[] | undefined {
+export function readCachedPlans(
+  serviceTypeId: string | null
+): Plan[] | undefined {
   return readCachedPlansEntry(serviceTypeId)?.data;
 }
 
@@ -35,10 +39,7 @@ export function readCachedPlansEntry(
   serviceTypeId: string | null
 ): ScheduleCatalogCacheEntry<Plan[]> | undefined {
   if (!serviceTypeId) return undefined;
-  const cached = readCache<Plan[]>(
-    buildPlansKey(serviceTypeId),
-    isPlanArray
-  );
+  const cached = readCache<Plan[]>(buildPlansKey(serviceTypeId), isPlanArray);
   if (!cached) return undefined;
 
   return {
@@ -114,29 +115,37 @@ function writeCache<T>(key: string, data: T) {
 }
 
 function isServiceTypeArray(value: unknown): value is ServiceType[] {
-  return Array.isArray(value) &&
+  return (
+    Array.isArray(value) &&
     value.every((item) => {
       if (!item || typeof item !== "object") return false;
       const candidate = item as Partial<ServiceType>;
-      return typeof candidate.id === "string" &&
+      return (
+        typeof candidate.id === "string" &&
         typeof candidate.name === "string" &&
-        typeof candidate.sequence === "number";
-    });
+        typeof candidate.sequence === "number"
+      );
+    })
+  );
 }
 
 function isPlanArray(value: unknown): value is Plan[] {
-  return Array.isArray(value) &&
+  return (
+    Array.isArray(value) &&
     value.every((item) => {
       if (!item || typeof item !== "object") return false;
       const candidate = item as Partial<Record<keyof Plan, unknown>>;
-      return typeof candidate.id === "string" &&
+      return (
+        typeof candidate.id === "string" &&
         typeof candidate.title === "string" &&
         isOptionalString(candidate.seriesTitle) &&
         isOptionalString(candidate.seriesId) &&
         isOptionalString(candidate.planningCenterUrl) &&
         isDateLike(candidate.createdAt) &&
-        (candidate.sortDate === undefined || isDateLike(candidate.sortDate));
-    });
+        (candidate.sortDate === undefined || isDateLike(candidate.sortDate))
+      );
+    })
+  );
 }
 
 function isOptionalString(value: unknown) {

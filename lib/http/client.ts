@@ -6,7 +6,12 @@ export class HttpClientError extends Error {
   readonly code?: string;
   readonly details?: unknown;
 
-  constructor(message: string, status: number, code?: string, details?: unknown) {
+  constructor(
+    message: string,
+    status: number,
+    code?: string,
+    details?: unknown
+  ) {
     super(message);
     this.status = status;
     this.code = code;
@@ -32,7 +37,10 @@ async function parseError(response: Response): Promise<HttpClientError> {
     return new HttpClientError(message, response.status, code, record.details);
   }
 
-  return new HttpClientError(`Request failed with status ${response.status}`, response.status);
+  return new HttpClientError(
+    `Request failed with status ${response.status}`,
+    response.status
+  );
 }
 
 async function parseSuccess<T>(response: Response): Promise<T> {

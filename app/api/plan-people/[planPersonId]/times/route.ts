@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { ApiError } from "@/lib/http/api-error";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
@@ -19,15 +20,31 @@ export async function PATCH(
   return handlePlanningCenterRoute(request, async () => {
     const parsedParams = paramsSchema.safeParse(await params);
     if (!parsedParams.success) {
-      log.warn({ issues: parsedParams.error.issues }, "Invalid plan-person route params");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsedParams.error.issues);
+      log.warn(
+        { issues: parsedParams.error.issues },
+        "Invalid plan-person route params"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsedParams.error.issues
+      );
     }
 
     const body = await request.json();
     const parsedBody = updatePlanPersonTimesBodySchema.safeParse(body);
     if (!parsedBody.success) {
-      log.warn({ issues: parsedBody.error.issues }, "Invalid plan-person times update body");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsedBody.error.issues);
+      log.warn(
+        { issues: parsedBody.error.issues },
+        "Invalid plan-person times update body"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsedBody.error.issues
+      );
     }
 
     await updatePlanPersonTimes({

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getPeopleDashboard } from "@/lib/use-cases/planning-center/get-people-dashboard";
+
 import type { PCResource } from "@/lib/types";
+import { getPeopleDashboard } from "@/lib/use-cases/planning-center/get-people-dashboard";
 
 vi.mock("@/lib/planning-center/resolve-organization-timezone", () => ({
   resolveOrganizationTimeZone: vi.fn(() => Promise.resolve("UTC")),
@@ -51,9 +52,10 @@ describe("getPeopleDashboard", () => {
       ]),
     });
     const getPersonSchedules = vi.fn(async (personId: string) => ({
-      data: personId === "person-1"
-        ? [schedule("schedule-1", "2026-05-31T17:00:00.000Z")]
-        : [],
+      data:
+        personId === "person-1"
+          ? [schedule("schedule-1", "2026-05-31T17:00:00.000Z")]
+          : [],
       included: [],
     }));
 
@@ -66,10 +68,9 @@ describe("getPeopleDashboard", () => {
     });
 
     expect(getPersonSchedules).toHaveBeenCalledTimes(2);
-    expect(getPersonSchedules.mock.calls.map(([personId]) => personId)).toEqual([
-      "person-1",
-      "person-2",
-    ]);
+    expect(getPersonSchedules.mock.calls.map(([personId]) => personId)).toEqual(
+      ["person-1", "person-2"]
+    );
     expect(dashboard.people.map((person) => person.id)).toEqual([
       "person-1",
       "person-2",

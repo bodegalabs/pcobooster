@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import {
   parseCachedAccountPanel,
   serializeAccountPanel,
@@ -49,7 +50,9 @@ describe("account panel cache", () => {
       image: null,
     };
 
-    expect(parseCachedAccountPanel(serializeAccountPanel(summary))).toEqual(summary);
+    expect(parseCachedAccountPanel(serializeAccountPanel(summary))).toEqual(
+      summary
+    );
   });
 
   it("ignores invalid cache payloads", () => {

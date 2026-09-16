@@ -1,13 +1,17 @@
+import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getSessionCookie } from "better-auth/cookies";
+
 import { logger } from "@/lib/logger";
 
 const log = logger.for("middleware");
 
 function isDevAuthBypassEnabled(): boolean {
   if (process.env.NODE_ENV === "production") return false;
-  return process.env.DEV_AUTH_BYPASS === "1" || process.env.DEV_AUTH_BYPASS === "true";
+  return (
+    process.env.DEV_AUTH_BYPASS === "1" ||
+    process.env.DEV_AUTH_BYPASS === "true"
+  );
 }
 
 export function proxy(request: NextRequest) {

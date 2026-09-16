@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+
 import { getScheduleHistory } from "@/lib/use-cases/planning-center/get-schedule-history";
 
 const { getPersonSchedulesMock } = vi.hoisted(() => ({
@@ -16,7 +17,6 @@ vi.mock("@/lib/planning-center/services/people-service", () => ({
 }));
 
 describe("getScheduleHistory", () => {
-
   it("includes confirmed records and computes frequency", async () => {
     const now = new Date();
     const iso = (offsetDays: number) => {
@@ -77,20 +77,38 @@ describe("getScheduleHistory", () => {
         {
           id: "p-1",
           type: "Plan",
-          attributes: { title: "Past Plan", sort_date: iso(-5), created_at: iso(-5) },
-          relationships: { service_type: { data: { id: "ok-st", type: "ServiceType" } } },
+          attributes: {
+            title: "Past Plan",
+            sort_date: iso(-5),
+            created_at: iso(-5),
+          },
+          relationships: {
+            service_type: { data: { id: "ok-st", type: "ServiceType" } },
+          },
         },
         {
           id: "p-2",
           type: "Plan",
-          attributes: { title: "Unconfirmed Plan", sort_date: iso(-3), created_at: iso(-3) },
-          relationships: { service_type: { data: { id: "ok-st", type: "ServiceType" } } },
+          attributes: {
+            title: "Unconfirmed Plan",
+            sort_date: iso(-3),
+            created_at: iso(-3),
+          },
+          relationships: {
+            service_type: { data: { id: "ok-st", type: "ServiceType" } },
+          },
         },
         {
           id: "p-3",
           type: "Plan",
-          attributes: { title: "Excluded Plan", sort_date: iso(-2), created_at: iso(-2) },
-          relationships: { service_type: { data: { id: "st-excluded", type: "ServiceType" } } },
+          attributes: {
+            title: "Excluded Plan",
+            sort_date: iso(-2),
+            created_at: iso(-2),
+          },
+          relationships: {
+            service_type: { data: { id: "st-excluded", type: "ServiceType" } },
+          },
         },
       ],
     });

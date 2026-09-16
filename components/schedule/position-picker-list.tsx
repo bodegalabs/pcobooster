@@ -1,6 +1,9 @@
 "use client";
 
 import { CalendarDays } from "lucide-react";
+
+import { TeamSlotsCollapsible } from "@/components/schedule/team-slots-collapsible";
+import type { SlotRef } from "@/components/schedule/types";
 import {
   Empty,
   EmptyDescription,
@@ -9,8 +12,6 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { SidebarMenuSkeleton } from "@/components/ui/sidebar";
-import { TeamSlotsCollapsible } from "@/components/schedule/team-slots-collapsible";
-import type { SlotRef } from "@/components/schedule/types";
 import type { TeamPositionGroup } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -35,9 +36,21 @@ export function PositionPickerList({
   onToggleTeam: (teamId: string) => void;
   onSelect: (slot: SlotRef) => void;
   onPreviewSlot?: (slot: SlotRef) => void;
-  onAddPosition?: (team: { teamId: string; teamName: string }, positionName: string) => SlotRef | null;
+  onAddPosition?: (
+    team: { teamId: string; teamName: string },
+    positionName: string
+  ) => SlotRef | null;
 }) {
-  const skeletonWidths = ["78%", "66%", "84%", "58%", "72%", "62%", "88%", "70%"];
+  const skeletonWidths = [
+    "78%",
+    "66%",
+    "84%",
+    "58%",
+    "72%",
+    "62%",
+    "88%",
+    "70%",
+  ];
 
   return (
     <div className="min-h-0 flex-1 overflow-auto">
@@ -53,17 +66,23 @@ export function PositionPickerList({
                 <CalendarDays />
               </EmptyMedia>
               <EmptyTitle>No slots found</EmptyTitle>
-              <EmptyDescription>This plan has no team positions yet.</EmptyDescription>
+              <EmptyDescription>
+                This plan has no team positions yet.
+              </EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : (
           <div aria-busy={teamPositionsPlaceholder}>
             {teamPositionsPlaceholder ? (
-              <div className="sticky top-0 z-10 border-b border-sidebar-border/50 bg-sidebar/95 px-3 py-1.5 text-xs font-medium text-sidebar-foreground/70 backdrop-blur">
+              <div className="border-sidebar-border/50 bg-sidebar/95 text-sidebar-foreground/70 sticky top-0 z-10 border-b px-3 py-1.5 text-xs font-medium backdrop-blur">
                 Loading selected plan...
               </div>
             ) : null}
-            <div className={cn(teamPositionsPlaceholder && "pointer-events-none opacity-60")}>
+            <div
+              className={cn(
+                teamPositionsPlaceholder && "pointer-events-none opacity-60"
+              )}
+            >
               {teamPositionGroups.map((group) => (
                 <TeamSlotsCollapsible
                   key={group.teamId}

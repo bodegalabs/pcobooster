@@ -1,16 +1,26 @@
 "use client";
 
-import { useMemo } from "react";
-import { Check, Clock3 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { Check, Clock3 } from "lucide-react";
+import { useMemo } from "react";
+
 import { formatPlanTimeRangeLabel } from "@/components/schedule/plan-time-display";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { toast } from "@/components/ui/sonner";
-import { useDraftPopover } from "@/hooks/use-persist-on-close-popover";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
+import { useDraftPopover } from "@/hooks/use-persist-on-close-popover";
 import { patchJson } from "@/lib/http/client";
 import { formatWallTimeInTimeZone } from "@/lib/planning-center/org-calendar";
 import { queryKeys } from "@/lib/query-keys";
@@ -25,9 +35,14 @@ interface PersonRehearsalTimesPopoverProps {
   seriesId: string | null;
 }
 
-function formatPlanTimeScheduleLabel(planTime: PlanTime, timeZone: string): string {
+function formatPlanTimeScheduleLabel(
+  planTime: PlanTime,
+  timeZone: string
+): string {
   const starts = formatWallTimeInTimeZone(planTime.startsAt, timeZone);
-  const ends = planTime.endsAt ? formatWallTimeInTimeZone(planTime.endsAt, timeZone) : null;
+  const ends = planTime.endsAt
+    ? formatWallTimeInTimeZone(planTime.endsAt, timeZone)
+    : null;
 
   return formatPlanTimeRangeLabel({
     startDate: starts.dateKey,
@@ -61,19 +76,23 @@ export function PersonRehearsalTimesPopover({
     () => planTimes.map((planTime) => planTime.id),
     [planTimes]
   );
-  const canEdit = !!serviceTypeId && !!planId && !!person.personId && planTimes.length > 0;
+  const canEdit =
+    !!serviceTypeId && !!planId && !!person.personId && planTimes.length > 0;
 
   const persist = async (timeIds: string[]) => {
     if (!serviceTypeId || !planId || !person.personId) return;
     if (haveSameIds(assignedTimeIds, timeIds)) return;
 
     try {
-      await patchJson(`/api/plan-people/${encodeURIComponent(person.planPersonId)}/times`, {
-        service_type_id: serviceTypeId,
-        plan_id: planId,
-        person_id: person.personId,
-        plan_time_ids: timeIds,
-      });
+      await patchJson(
+        `/api/plan-people/${encodeURIComponent(person.planPersonId)}/times`,
+        {
+          service_type_id: serviceTypeId,
+          plan_id: planId,
+          person_id: person.personId,
+          plan_time_ids: timeIds,
+        }
+      );
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: queryKeys.teamPositions(serviceTypeId, planId, seriesId),
@@ -82,7 +101,8 @@ export function PersonRehearsalTimesPopover({
           queryKey: queryKeys.planTimes(serviceTypeId, planId),
         }),
         queryClient.invalidateQueries({
-          predicate: (query) => query.queryKey[0] === "people" && query.queryKey.includes(planId),
+          predicate: (query) =>
+            query.queryKey[0] === "people" && query.queryKey.includes(planId),
         }),
         queryClient.invalidateQueries({
           predicate: (query) =>
@@ -91,7 +111,9 @@ export function PersonRehearsalTimesPopover({
         }),
       ]);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to update times");
+      toast.error(
+        error instanceof Error ? error.message : "Unable to update times"
+      );
     }
   };
 
@@ -101,7 +123,9 @@ export function PersonRehearsalTimesPopover({
     onPersist: persist,
   });
   const displayTimeIds = open ? draft : assignedTimeIds;
-  const selectedTimeCount = editablePlanTimeIds.filter((id) => displayTimeIds.includes(id)).length;
+  const selectedTimeCount = editablePlanTimeIds.filter((id) =>
+    displayTimeIds.includes(id)
+  ).length;
 
   if (planTimes.length === 0) return null;
 
@@ -112,7 +136,7 @@ export function PersonRehearsalTimesPopover({
           type="button"
           variant="ghost"
           size="sm"
-          className="h-7 max-w-full px-2 text-xs text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground h-7 max-w-full px-2 text-xs"
           disabled={!canEdit}
           aria-label={`Edit times for ${person.name}`}
         >
@@ -136,15 +160,24 @@ export function PersonRehearsalTimesPopover({
                   <CommandItem
                     key={planTime.id}
                     value={`${planTime.name} ${planTime.id}`}
-                    onSelect={() => setDraft((current) => toggleId(current, planTime.id))}
+                    onSelect={() =>
+                      setDraft((current) => toggleId(current, planTime.id))
+                    }
                     onMouseDown={(event) => {
                       event.preventDefault();
                       event.stopPropagation();
                     }}
                   >
-                    <Check className={cn(selected ? "opacity-100" : "opacity-0")} />
-                    <span className="min-w-0 flex-1 truncate">{planTime.name}</span>
-                    <Badge variant="outline" className="max-w-[14rem] truncate font-normal">
+                    <Check
+                      className={cn(selected ? "opacity-100" : "opacity-0")}
+                    />
+                    <span className="min-w-0 flex-1 truncate">
+                      {planTime.name}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className="max-w-[14rem] truncate font-normal"
+                    >
                       {formatPlanTimeScheduleLabel(planTime, timeZone)}
                     </Badge>
                   </CommandItem>

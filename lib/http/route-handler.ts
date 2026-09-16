@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
-import { isPresentationMode } from "@/lib/presentation-mode";
 import { ZodError } from "zod";
+
 import { ApiError } from "@/lib/http/api-error";
-import {
-  elapsedMs,
-  setRouteTimingHeaders,
-  nowMs,
-} from "@/lib/http/timing";
+import { elapsedMs, setRouteTimingHeaders, nowMs } from "@/lib/http/timing";
 import { logger } from "@/lib/logger";
 import { PlanningCenterApiError } from "@/lib/planning-center/core-client";
+import { isPresentationMode } from "@/lib/presentation-mode";
 
 const log = logger.for("http/route-handler");
 
@@ -23,7 +20,10 @@ export async function handleRoute<T>(handler: () => Promise<T>) {
     return withRouteTiming(NextResponse.json(data), startedAtMs);
   } catch (error) {
     if (error instanceof ApiError) {
-      log.warn({ err: error, code: error.code, status: error.status }, "API route error");
+      log.warn(
+        { err: error, code: error.code, status: error.status },
+        "API route error"
+      );
       return jsonWithRouteTiming(
         startedAtMs,
         {
@@ -86,7 +86,10 @@ export async function handleRoute<T>(handler: () => Promise<T>) {
     }
 
     const message = error instanceof Error ? error.message : "Unknown error";
-    log.error({ err: error instanceof Error ? error : new Error(String(error)) }, "Unhandled route error");
+    log.error(
+      { err: error instanceof Error ? error : new Error(String(error)) },
+      "Unhandled route error"
+    );
     return jsonWithRouteTiming(
       startedAtMs,
       {

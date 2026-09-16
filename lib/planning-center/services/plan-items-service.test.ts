@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+
 import type { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { PlanningCenterPlanItemsService } from "@/lib/planning-center/services/plan-items-service";
 import type { PCResource } from "@/lib/types";
@@ -46,8 +47,12 @@ describe("PlanningCenterPlanItemsService read cache", () => {
   });
 
   it("invalidates cached plan items after create, update, delete, and reorder", async () => {
-    const { core, fetchAllWithIncluded, fetch, request } = createCoreClientMock();
-    fetchAllWithIncluded.mockResolvedValue({ data: [itemResource("item-1")], included: [] });
+    const { core, fetchAllWithIncluded, fetch, request } =
+      createCoreClientMock();
+    fetchAllWithIncluded.mockResolvedValue({
+      data: [itemResource("item-1")],
+      included: [],
+    });
     fetch.mockResolvedValue({ data: itemResource("item-2"), included: [] });
     request.mockResolvedValue(new Response(null, { status: 204 }));
     const service = new PlanningCenterPlanItemsService(core);
@@ -55,7 +60,9 @@ describe("PlanningCenterPlanItemsService read cache", () => {
     await service.getPlanItems("st-1", "plan-1");
     await service.createPlanItem("st-1", "plan-1", { title: "New Item" });
     await service.getPlanItems("st-1", "plan-1");
-    await service.updatePlanItem("st-1", "plan-1", "item-2", { title: "Updated" });
+    await service.updatePlanItem("st-1", "plan-1", "item-2", {
+      title: "Updated",
+    });
     await service.getPlanItems("st-1", "plan-1");
     await service.deletePlanItem("st-1", "plan-1", "item-2");
     await service.getPlanItems("st-1", "plan-1");

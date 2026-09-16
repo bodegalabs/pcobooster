@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+
 import { getJson } from "@/lib/http/client";
-import type { PlanPerson, ScheduleFrequency } from "@/lib/types";
 import { queryKeys } from "@/lib/query-keys";
+import type { PlanPerson, ScheduleFrequency } from "@/lib/types";
 
 interface ScheduleHistoryResponse {
   planPeople: PlanPerson[];
@@ -33,7 +34,9 @@ export function useScheduleHistory(
         };
       }
 
-      return getJson<ScheduleHistoryResponse>(`/api/schedule-history/${personId}?days=${days}`);
+      return getJson<ScheduleHistoryResponse>(
+        `/api/schedule-history/${personId}?days=${days}`
+      );
     },
     enabled: !!personId,
     staleTime: 5 * 60 * 1000, // 5 minutes

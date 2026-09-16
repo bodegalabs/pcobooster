@@ -1,7 +1,9 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
+
 import { Providers } from "@/components/providers";
+
 import "./globals.css";
 import { getPresentationCacheScope } from "@/lib/presentation-mode";
 
@@ -17,16 +19,19 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "worshipadmin.com",
-  description: "Church-agnostic Planning Center scheduling tools for worship admins.",
+  description:
+    "Church-agnostic Planning Center scheduling tools for worship admins.",
   openGraph: {
     title: "worshipadmin.com",
-    description: "Church-agnostic Planning Center scheduling tools for worship admins.",
+    description:
+      "Church-agnostic Planning Center scheduling tools for worship admins.",
     type: "website",
   },
   twitter: {
     card: "summary",
     title: "worshipadmin.com",
-    description: "Church-agnostic Planning Center scheduling tools for worship admins.",
+    description:
+      "Church-agnostic Planning Center scheduling tools for worship admins.",
   },
 };
 
@@ -41,11 +46,21 @@ export default async function RootLayout({
   const presentationScope = getPresentationCacheScope();
 
   return (
-    <html lang="en" data-presentation-scope={presentationScope} suppressHydrationWarning>
+    <html
+      lang="en"
+      data-presentation-scope={presentationScope}
+      suppressHydrationWarning
+    >
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers key={presentationScope} presentationScope={presentationScope} peoplePageEnabled={peoplePageEnabled}>{children}</Providers>
+        <Providers
+          key={presentationScope}
+          presentationScope={presentationScope}
+          peoplePageEnabled={peoplePageEnabled}
+        >
+          {children}
+        </Providers>
         <Analytics />
       </body>
     </html>

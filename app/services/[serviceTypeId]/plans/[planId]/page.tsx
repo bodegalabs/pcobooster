@@ -7,8 +7,12 @@ type ServicesPlanIndexPageProps = {
   }>;
 };
 
-export default async function ServicesPlanIndexPage({ params }: ServicesPlanIndexPageProps) {
+export default async function ServicesPlanIndexPage({
+  params,
+}: ServicesPlanIndexPageProps) {
   const { serviceTypeId, planId } = await params;
 
-  redirect(`/services/${encodeURIComponent(serviceTypeId)}/plans/${encodeURIComponent(planId)}/assign`);
+  redirect(
+    `/services/${encodeURIComponent(serviceTypeId)}/plans/${encodeURIComponent(planId)}/assign`
+  );
 }

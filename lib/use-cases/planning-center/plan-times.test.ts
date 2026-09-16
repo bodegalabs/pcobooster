@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+
 import { planningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
 import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 import { planningCenterPlansService } from "@/lib/planning-center/services/plans-service";
@@ -49,8 +50,12 @@ const catalogServiceMock = planningCenterCatalogService as unknown as {
   >;
 };
 const peopleServiceMock = planningCenterPeopleService as unknown as {
-  getPlanTeamMembers: Mock<typeof planningCenterPeopleService.getPlanTeamMembers>;
-  updatePlanPersonTimes: Mock<typeof planningCenterPeopleService.updatePlanPersonTimes>;
+  getPlanTeamMembers: Mock<
+    typeof planningCenterPeopleService.getPlanTeamMembers
+  >;
+  updatePlanPersonTimes: Mock<
+    typeof planningCenterPeopleService.updatePlanPersonTimes
+  >;
   invalidatePlanTimeSensitiveReadCaches: Mock<
     typeof planningCenterPeopleService.invalidatePlanTimeSensitiveReadCaches
   >;
@@ -110,7 +115,10 @@ describe("plan times use case", () => {
 
     const planTimes = await getPlanTimes("plan-1");
 
-    expect(planTimes.map((planTime) => planTime.id)).toEqual(["time-1", "time-2"]);
+    expect(planTimes.map((planTime) => planTime.id)).toEqual([
+      "time-1",
+      "time-2",
+    ]);
     expect(planTimes[0]).toMatchObject({
       name: "Rehearsal",
       timeType: "rehearsal",
@@ -157,7 +165,9 @@ describe("plan times use case", () => {
       ["team-1", "team-2"],
       undefined
     );
-    expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith("plan-1");
+    expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith(
+      "plan-1"
+    );
     expect(invalidatePlanWindowHistoryMock).toHaveBeenCalled();
     expect(planTime.timeType).toBe("service");
   });
@@ -197,7 +207,9 @@ describe("plan times use case", () => {
       ["team-1"],
       ["position-1"]
     );
-    expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith("plan-1");
+    expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith(
+      "plan-1"
+    );
     expect(invalidatePlanWindowHistoryMock).toHaveBeenCalled();
     expect(planTime.id).toBe("time-new");
   });
@@ -210,7 +222,9 @@ describe("plan times use case", () => {
     });
 
     expect(deletePlanTimeMock).toHaveBeenCalledWith("st-1", "plan-1", "time-1");
-    expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith("plan-1");
+    expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith(
+      "plan-1"
+    );
     expect(invalidatePlanWindowHistoryMock).toHaveBeenCalled();
   });
 
@@ -260,8 +274,13 @@ describe("plan times use case", () => {
     getPlanTeamMembersMock.mockResolvedValue({
       data: [
         planPerson("pp-add", "person-add", "team-1", "Vocal", "U", ["time-1"]),
-        planPerson("pp-clear", "person-clear", "team-1", "Guitar", "C", ["time-2", "time-3"]),
-        planPerson("pp-declined", "person-declined", "team-1", "Drums", "D", ["time-2"]),
+        planPerson("pp-clear", "person-clear", "team-1", "Guitar", "C", [
+          "time-2",
+          "time-3",
+        ]),
+        planPerson("pp-declined", "person-declined", "team-1", "Drums", "D", [
+          "time-2",
+        ]),
         planPerson("pp-no-person", null, "team-1", "Keys", "U", ["time-2"]),
       ],
       included: [
@@ -316,10 +335,15 @@ function planPerson(
       team_position_name: positionName,
     },
     relationships: {
-      ...(personId ? { person: { data: { type: "Person" as const, id: personId } } } : {}),
+      ...(personId
+        ? { person: { data: { type: "Person" as const, id: personId } } }
+        : {}),
       team: { data: { type: "Team" as const, id: teamId } },
       times: {
-        data: timeIds.map((timeId) => ({ type: "PlanTime" as const, id: timeId })),
+        data: timeIds.map((timeId) => ({
+          type: "PlanTime" as const,
+          id: timeId,
+        })),
       },
       service_times: {
         data: [],

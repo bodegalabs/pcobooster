@@ -1,9 +1,12 @@
-import type { PCResource } from "@/lib/types";
 import { logger } from "@/lib/logger";
 import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { formatCalendarDayInTimeZone } from "@/lib/planning-center/org-calendar";
 import { resolveOrganizationTimeZone } from "@/lib/planning-center/resolve-organization-timezone";
-import { PlanningCenterReadCache, stableParams } from "@/lib/planning-center/services/read-cache";
+import {
+  PlanningCenterReadCache,
+  stableParams,
+} from "@/lib/planning-center/services/read-cache";
+import type { PCResource } from "@/lib/types";
 
 const log = logger.for("planning-center/plans");
 const PLANS_RANGE_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -64,51 +67,62 @@ export class PlanningCenterPlansService {
       stableParams(params),
     ].join(":");
 
-    const response = await this.cache.get(cacheKey, PLANS_RANGE_CACHE_TTL_MS, async () => {
-      log.info(
-        { serviceTypeId, after: afterDayKey, before: beforeDayKey, include: include || null },
-        "Fetching plans in date range"
-      );
+    const response = await this.cache.get(
+      cacheKey,
+      PLANS_RANGE_CACHE_TTL_MS,
+      async () => {
+        log.info(
+          {
+            serviceTypeId,
+            after: afterDayKey,
+            before: beforeDayKey,
+            include: include || null,
+          },
+          "Fetching plans in date range"
+        );
 
-      const response = await this.core.fetchAllWithIncluded<PCResource>(
-        `/services/v2/service_types/${serviceTypeId}/plans`,
-        params,
-        3
-      );
+        const response = await this.core.fetchAllWithIncluded<PCResource>(
+          `/services/v2/service_types/${serviceTypeId}/plans`,
+          params,
+          3
+        );
 
-      const plans = response.data.filter((plan) => {
-        const sortDateStr = plan.attributes.sort_date as string | undefined;
-        if (!sortDateStr) return false;
-        const sortDate = new Date(sortDateStr);
-        if (Number.isNaN(sortDate.getTime())) return false;
-        const planDay = formatCalendarDayInTimeZone(sortDate, orgTz);
-        return planDay >= afterDayKey && planDay <= beforeDayKey;
-      });
+        const plans = response.data.filter((plan) => {
+          const sortDateStr = plan.attributes.sort_date as string | undefined;
+          if (!sortDateStr) return false;
+          const sortDate = new Date(sortDateStr);
+          if (Number.isNaN(sortDate.getTime())) return false;
+          const planDay = formatCalendarDayInTimeZone(sortDate, orgTz);
+          return planDay >= afterDayKey && planDay <= beforeDayKey;
+        });
 
-      const planIds = new Set(plans.map((plan) => plan.id));
-      const included = response.included.filter((resource) => {
-        const planRel = resource.relationships?.plan?.data;
-        const planId = Array.isArray(planRel) ? planRel[0]?.id : planRel?.id;
-        return !planId || planIds.has(planId);
-      });
+        const planIds = new Set(plans.map((plan) => plan.id));
+        const included = response.included.filter((resource) => {
+          const planRel = resource.relationships?.plan?.data;
+          const planId = Array.isArray(planRel) ? planRel[0]?.id : planRel?.id;
+          return !planId || planIds.has(planId);
+        });
 
-      log.info(
-        {
-          serviceTypeId,
-          count: plans.length,
-          rawCount: response.data.length,
-          includedCount: included.length,
-        },
-        "Plans fetched"
-      );
-      return { data: plans, included };
-    });
+        log.info(
+          {
+            serviceTypeId,
+            count: plans.length,
+            rawCount: response.data.length,
+            includedCount: included.length,
+          },
+          "Plans fetched"
+        );
+        return { data: plans, included };
+      }
+    );
 
     return cloneResourceResponse(response);
   }
 
   async getPlan(planId: string): Promise<PCResource> {
-    const response = await this.core.fetch<PCResource>(`/services/v2/plans/${planId}`);
+    const response = await this.core.fetch<PCResource>(
+      `/services/v2/plans/${planId}`
+    );
     return response.data;
   }
 
@@ -119,7 +133,11 @@ export class PlanningCenterPlansService {
       async () => {
         return this.core.fetchAll<PCResource>(
           `/services/v2/plans/${planId}/plan_times`,
-          { order: "starts_at", per_page: "200", include: "split_team_rehearsal_assignments" }
+          {
+            order: "starts_at",
+            per_page: "200",
+            include: "split_team_rehearsal_assignments",
+          }
         );
       }
     );
@@ -228,7 +246,9 @@ export class PlanningCenterPlansService {
       "",
     ].join(":");
 
-    this.cache.deleteWhere((key) => key === planTimesKey || key.startsWith(plansRangePrefix));
+    this.cache.deleteWhere(
+      (key) => key === planTimesKey || key.startsWith(plansRangePrefix)
+    );
   }
 
   private buildCacheKey(namespace: string, ...parts: string[]): string {
@@ -255,7 +275,10 @@ export class PlanningCenterPlansService {
         ? {}
         : {
             assigned_positions: {
-              data: assignedPositionIds.map((id) => ({ type: "TeamPosition", id })),
+              data: assignedPositionIds.map((id) => ({
+                type: "TeamPosition",
+                id,
+              })),
             },
           }),
     };

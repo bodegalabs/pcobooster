@@ -1,7 +1,8 @@
 import { eq } from "drizzle-orm";
+
+import type { PlanningCenterIdentity } from "@/lib/auth/planning-center-identity";
 import { db } from "@/lib/db";
 import { planningCenterAccountIdentities } from "@/lib/db/schema";
-import type { PlanningCenterIdentity } from "@/lib/auth/planning-center-identity";
 
 export type StoredPlanningCenterAccountIdentity = PlanningCenterIdentity & {
   accountId: string;

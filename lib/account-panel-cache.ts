@@ -28,15 +28,21 @@ const DEFAULT_SUMMARY: AccountPanelSummary = {
   image: null,
 };
 
-export function summarizeAccountPanel(source: AccountPanelSource | null): AccountPanelSummary {
+export function summarizeAccountPanel(
+  source: AccountPanelSource | null
+): AccountPanelSummary {
   if (!source) return DEFAULT_SUMMARY;
 
   const selectedAccount = source.selectedAccountId
-    ? source.accounts.find((account) => account.id === source.selectedAccountId) ?? null
-    : source.accounts[0] ?? null;
+    ? (source.accounts.find(
+        (account) => account.id === source.selectedAccountId
+      ) ?? null)
+    : (source.accounts[0] ?? null);
 
   return {
-    organizationName: selectedAccount?.identity?.organizationName || DEFAULT_SUMMARY.organizationName,
+    organizationName:
+      selectedAccount?.identity?.organizationName ||
+      DEFAULT_SUMMARY.organizationName,
     avatarName:
       selectedAccount?.identity?.name ||
       source.session.name ||
@@ -46,25 +52,33 @@ export function summarizeAccountPanel(source: AccountPanelSource | null): Accoun
   };
 }
 
-export function parseCachedAccountPanel(raw: string | null): AccountPanelSummary | null {
+export function parseCachedAccountPanel(
+  raw: string | null
+): AccountPanelSummary | null {
   if (!raw) return null;
 
   try {
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+      return null;
     const value = parsed as Partial<AccountPanelSummary>;
-    if (typeof value.organizationName !== "string" || !value.organizationName.trim()) {
+    if (
+      typeof value.organizationName !== "string" ||
+      !value.organizationName.trim()
+    ) {
       return null;
     }
 
     return {
       organizationName: value.organizationName,
-      avatarName: typeof value.avatarName === "string" && value.avatarName.trim()
-        ? value.avatarName
-        : null,
-      image: typeof value.image === "string" && value.image.trim()
-        ? value.image
-        : null,
+      avatarName:
+        typeof value.avatarName === "string" && value.avatarName.trim()
+          ? value.avatarName
+          : null,
+      image:
+        typeof value.image === "string" && value.image.trim()
+          ? value.image
+          : null,
     };
   } catch {
     return null;

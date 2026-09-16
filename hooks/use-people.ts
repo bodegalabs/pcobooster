@@ -1,10 +1,11 @@
-import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
+
 import { getJson } from "@/lib/http/client";
 import { readCachedPeople, writeCachedPeople } from "@/lib/people-cache";
-import type { PersonWithAvailability } from "@/lib/types";
-import { queryKeys } from "@/lib/query-keys";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
+import { queryKeys } from "@/lib/query-keys";
+import type { PersonWithAvailability } from "@/lib/types";
 
 function normalizePeopleDateKey(date: Date | string | null): string | null {
   if (!date) return null;
@@ -56,8 +57,17 @@ export function createPeopleQueryOptions(
         params.append("date", dateObj.toISOString());
       }
 
-      const people = await getJson<PersonWithAvailability[]>(`/api/people?${params.toString()}`);
-      writeCachedPeople(serviceTypeId, teamId, positionId, planId, dateKey, people);
+      const people = await getJson<PersonWithAvailability[]>(
+        `/api/people?${params.toString()}`
+      );
+      writeCachedPeople(
+        serviceTypeId,
+        teamId,
+        positionId,
+        planId,
+        dateKey,
+        people
+      );
       return people;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -72,7 +82,13 @@ export function usePeople(
   date: Date | string | null = null
 ) {
   const dateKey = normalizePeopleDateKey(date);
-  const queryKey = queryKeys.people(serviceTypeId, teamId, positionId, planId, dateKey);
+  const queryKey = queryKeys.people(
+    serviceTypeId,
+    teamId,
+    positionId,
+    planId,
+    dateKey
+  );
   const readCachedPeopleForQuery = useCallback(
     () => readCachedPeople(serviceTypeId, teamId, positionId, planId, dateKey),
     [dateKey, planId, positionId, serviceTypeId, teamId]
@@ -80,7 +96,13 @@ export function usePeople(
   useHydrateQueryFromCache(queryKey, readCachedPeopleForQuery);
 
   return useQuery<PersonWithAvailability[]>({
-    ...createPeopleQueryOptions(serviceTypeId, teamId, positionId, planId, date),
+    ...createPeopleQueryOptions(
+      serviceTypeId,
+      teamId,
+      positionId,
+      planId,
+      date
+    ),
     queryKey,
     enabled: !!positionId && !!serviceTypeId,
     placeholderData: (previousPeople) => previousPeople,

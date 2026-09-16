@@ -1,9 +1,10 @@
 import { sql } from "drizzle-orm";
-import { db } from "@/lib/db";
+
 import {
   getPlanningCenterIdentityFromAccessToken,
   type PlanningCenterIdentity,
 } from "@/lib/auth/planning-center-identity";
+import { db } from "@/lib/db";
 import { getPlanningCenterAccountIdentity } from "@/lib/use-cases/admin/planning-center-account-identities";
 
 export type AdminAccountActivity = {
@@ -88,7 +89,9 @@ function toNumber(value: number | string): number {
 
 function toIsoString(value: Date | string | null): string | null {
   if (!value) return null;
-  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
+  return value instanceof Date
+    ? value.toISOString()
+    : new Date(value).toISOString();
 }
 
 export function getAdminEmailAllowlist(): string[] {
@@ -227,7 +230,7 @@ export async function getUserAccountDetail(
         a."accessTokenExpiresAt",
         a."refreshTokenExpiresAt"
       order by a."updatedAt" desc;
-    `,
+    `
   );
 
   const linkedAccountDetails = await Promise.all(
@@ -247,7 +250,8 @@ export async function getUserAccountDetail(
         firstActivityAt: toIsoString(row.first_activity_at),
         lastActivityAt: toIsoString(row.last_activity_at),
         identity:
-          storedIdentity ?? await getPlanningCenterIdentityFromAccessToken(row.access_token),
+          storedIdentity ??
+          (await getPlanningCenterIdentityFromAccessToken(row.access_token)),
       };
     })
   );

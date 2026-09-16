@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
+
 import {
   SidebarMenuButton,
   SidebarMenuSub,
@@ -43,7 +44,10 @@ export function SidebarTabGroup<Key extends string>({
       return;
     }
 
-    const timeout = window.setTimeout(() => setRenderGrouped(false), sidebarTabGroupExitMs);
+    const timeout = window.setTimeout(
+      () => setRenderGrouped(false),
+      sidebarTabGroupExitMs
+    );
     return () => window.clearTimeout(timeout);
   }, [isGrouped]);
 
@@ -68,7 +72,7 @@ export function SidebarTabGroup<Key extends string>({
   return (
     <div
       data-state={isGrouped ? "open" : "closed"}
-      className="sidebar-tab-group rounded-2xl border border-sidebar-border/65 bg-sidebar-accent/45 p-1.5 shadow-[inset_0_1px_0_rgb(255_255_255/0.32)]"
+      className="sidebar-tab-group border-sidebar-border/65 bg-sidebar-accent/45 rounded-2xl border p-1.5 shadow-[inset_0_1px_0_rgb(255_255_255/0.32)]"
     >
       <SidebarMenuButton
         asChild

@@ -26,7 +26,8 @@ export function readCachedPeople(
   planId: string | null,
   dateKey: string | null
 ): PeopleCacheEntry | undefined {
-  if (!serviceTypeId || !positionId || typeof window === "undefined") return undefined;
+  if (!serviceTypeId || !positionId || typeof window === "undefined")
+    return undefined;
 
   try {
     const raw = window.localStorage.getItem(
@@ -92,29 +93,34 @@ function buildCacheKey(
   planId: string | null,
   dateKey: string | null
 ) {
-  return presentationCacheKey([
-    CACHE_KEY_PREFIX,
-    encodeURIComponent(serviceTypeId),
-    ":",
-    encodeURIComponent(teamId ?? "none"),
-    ":",
-    encodeURIComponent(positionId),
-    ":",
-    encodeURIComponent(planId ?? "none"),
-    ":",
-    encodeURIComponent(dateKey ?? "none"),
-  ].join(""));
+  return presentationCacheKey(
+    [
+      CACHE_KEY_PREFIX,
+      encodeURIComponent(serviceTypeId),
+      ":",
+      encodeURIComponent(teamId ?? "none"),
+      ":",
+      encodeURIComponent(positionId),
+      ":",
+      encodeURIComponent(planId ?? "none"),
+      ":",
+      encodeURIComponent(dateKey ?? "none"),
+    ].join("")
+  );
 }
 
 function isPeopleArray(value: unknown): value is PersonWithAvailability[] {
   return Array.isArray(value) && value.every(isPersonWithAvailability);
 }
 
-function isPersonWithAvailability(value: unknown): value is PersonWithAvailability {
+function isPersonWithAvailability(
+  value: unknown
+): value is PersonWithAvailability {
   if (!value || typeof value !== "object") return false;
   const person = value as Partial<PersonWithAvailability>;
 
-  return typeof person.id === "string" &&
+  return (
+    typeof person.id === "string" &&
     typeof person.firstName === "string" &&
     typeof person.lastName === "string" &&
     typeof person.fullName === "string" &&
@@ -125,54 +131,58 @@ function isPersonWithAvailability(value: unknown): value is PersonWithAvailabili
     person.positions.every(isTeamPosition) &&
     isAvailability(person.availability) &&
     (person.frequency === undefined || isScheduleFrequency(person.frequency)) &&
-    (
-      person.serviceHistory === undefined ||
-      (Array.isArray(person.serviceHistory) && person.serviceHistory.every(isServiceHistoryItem))
-    ) &&
+    (person.serviceHistory === undefined ||
+      (Array.isArray(person.serviceHistory) &&
+        person.serviceHistory.every(isServiceHistoryItem))) &&
     isOptionalBoolean(person.isBlockedForDate) &&
     isOptionalBoolean(person.isScheduledForSelectedPlanPosition) &&
     isOptionalBoolean(person.isConfirmedForSelectedPlanPosition) &&
     isOptionalBoolean(person.isDeclinedForSelectedPlanPosition) &&
     isOptionalString(person.selectedPlanDeclineReason) &&
-    (
-      person.selectedPlanAssignmentLabels === undefined ||
-      (
-        Array.isArray(person.selectedPlanAssignmentLabels) &&
-        person.selectedPlanAssignmentLabels.every((label) => typeof label === "string")
-      )
-    ) &&
+    (person.selectedPlanAssignmentLabels === undefined ||
+      (Array.isArray(person.selectedPlanAssignmentLabels) &&
+        person.selectedPlanAssignmentLabels.every(
+          (label) => typeof label === "string"
+        ))) &&
     isOptionalString(person.scheduledPlanPersonId) &&
     isOptionalNumber(person.recommendationScore) &&
-    (
-      person.recommendationReasoning === undefined ||
-      (
-        Array.isArray(person.recommendationReasoning) &&
-        person.recommendationReasoning.every((reason) => typeof reason === "string")
-      )
-    );
+    (person.recommendationReasoning === undefined ||
+      (Array.isArray(person.recommendationReasoning) &&
+        person.recommendationReasoning.every(
+          (reason) => typeof reason === "string"
+        )))
+  );
 }
 
 function isTeamPosition(value: unknown): value is TeamPosition {
   if (!value || typeof value !== "object") return false;
   const position = value as Partial<TeamPosition>;
-  return typeof position.id === "string" &&
+  return (
+    typeof position.id === "string" &&
     typeof position.name === "string" &&
     typeof position.teamId === "string" &&
     isOptionalString(position.teamName) &&
     isOptionalNumber(position.neededCount) &&
     isOptionalNumber(position.filledPendingCount) &&
-    isOptionalNumber(position.filledConfirmedCount);
+    isOptionalNumber(position.filledConfirmedCount)
+  );
 }
 
 function isAvailability(value: unknown) {
-  return value === undefined || value === "available" || value === "blocked" || value === "unknown";
+  return (
+    value === undefined ||
+    value === "available" ||
+    value === "blocked" ||
+    value === "unknown"
+  );
 }
 
 function isScheduleFrequency(value: unknown): value is ScheduleFrequency {
   if (!value || typeof value !== "object") return false;
   const frequency = value as Partial<ScheduleFrequency>;
 
-  return isRequiredNumber(frequency.recentServedDays) &&
+  return (
+    isRequiredNumber(frequency.recentServedDays) &&
     isRequiredNumber(frequency.last60Days) &&
     isRequiredNumber(frequency.last90Days) &&
     isRequiredNumber(frequency.totalServed) &&
@@ -185,14 +195,16 @@ function isScheduleFrequency(value: unknown): value is ScheduleFrequency {
     isOptionalDateLike(frequency.lastServedDate) &&
     isOptionalDateLike(frequency.lastRehearsalDate) &&
     isOptionalDateLike(frequency.nextUpcomingDate) &&
-    isOptionalDateLike(frequency.nextRehearsalDate);
+    isOptionalDateLike(frequency.nextRehearsalDate)
+  );
 }
 
 function isServiceHistoryItem(value: unknown): value is ServiceHistoryItem {
   if (!value || typeof value !== "object") return false;
   const item = value as Partial<ServiceHistoryItem>;
 
-  return typeof item.id === "string" &&
+  return (
+    typeof item.id === "string" &&
     typeof item.sourceScheduleId === "string" &&
     isDateLike(item.date) &&
     typeof item.teamPositionName === "string" &&
@@ -200,12 +212,11 @@ function isServiceHistoryItem(value: unknown): value is ServiceHistoryItem {
     isOptionalString(item.teamName) &&
     isOptionalString(item.serviceTypeName) &&
     isOptionalString(item.planTitle) &&
-    (
-      item.timeType === undefined ||
+    (item.timeType === undefined ||
       item.timeType === "service" ||
       item.timeType === "rehearsal" ||
-      item.timeType === "other"
-    );
+      item.timeType === "other")
+  );
 }
 
 function isOptionalString(value: unknown) {

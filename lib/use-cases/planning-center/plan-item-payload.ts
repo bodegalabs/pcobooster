@@ -17,7 +17,9 @@ export interface PlanItemPayloadInput {
 }
 
 function omitUndefined(record: Record<string, unknown>) {
-  return Object.fromEntries(Object.entries(record).filter(([, value]) => value !== undefined));
+  return Object.fromEntries(
+    Object.entries(record).filter(([, value]) => value !== undefined)
+  );
 }
 
 function toOptionalTrimmedText(value?: string): string | undefined {
@@ -68,7 +70,8 @@ export function buildPlanItemAttributes(
     key_id: input.keyId ?? undefined,
     selected_layout_id: input.selectedLayoutId ?? undefined,
     custom_arrangement_sequence:
-      input.customArrangementSequence && input.customArrangementSequence.length > 0
+      input.customArrangementSequence &&
+      input.customArrangementSequence.length > 0
         ? input.customArrangementSequence
         : undefined,
   });

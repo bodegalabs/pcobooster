@@ -1,4 +1,5 @@
 ## name: check-pc
+
 description: Quick Planning Center Services API checks from the repo using Bun, local docs, and PAT env vars (no UI).
 
 # Check Planning Center API (`check-pc`)

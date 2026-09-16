@@ -1,13 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
+
 import { getSongOptions } from "@/lib/use-cases/planning-center/get-song-options";
 
-const { getSongMock, getSongArrangementsWithKeysMock, getSongLastScheduledItemMock } = vi.hoisted(
-  () => ({
-    getSongMock: vi.fn(),
-    getSongArrangementsWithKeysMock: vi.fn(),
-    getSongLastScheduledItemMock: vi.fn(),
-  })
-);
+const {
+  getSongMock,
+  getSongArrangementsWithKeysMock,
+  getSongLastScheduledItemMock,
+} = vi.hoisted(() => ({
+  getSongMock: vi.fn(),
+  getSongArrangementsWithKeysMock: vi.fn(),
+  getSongLastScheduledItemMock: vi.fn(),
+}));
 
 vi.mock("@/lib/planning-center/services/songs-service", () => ({
   planningCenterSongsService: {

@@ -1,16 +1,16 @@
 "use client";
 
-import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
+
 import { getJson } from "@/lib/http/client";
 import {
   normalizePeopleSearchQuery,
   readCachedPeopleSearch,
   writeCachedPeopleSearch,
 } from "@/lib/people-search-cache";
-import { queryKeys } from "@/lib/query-keys";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
-
+import { queryKeys } from "@/lib/query-keys";
 import type { PeopleSearchResult } from "@/lib/use-cases/planning-center/search-people";
 export type { PeopleSearchResult } from "@/lib/use-cases/planning-center/search-people";
 

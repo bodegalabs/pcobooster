@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
+
 import { getJson } from "@/lib/http/client";
 import {
   readCachedPeopleDashboard,
   writeCachedPeopleDashboard,
 } from "@/lib/people-dashboard-cache";
-import { queryKeys } from "@/lib/query-keys";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
+import { queryKeys } from "@/lib/query-keys";
 import type {
   PeopleDashboardData,
   PeopleDashboardRange,
@@ -22,7 +23,8 @@ export function usePeopleDashboard(range: PeopleDashboardRange) {
 
   const query = useQuery<PeopleDashboardData>({
     queryKey,
-    queryFn: () => getJson<PeopleDashboardData>(`/api/people/dashboard?range=${range}`),
+    queryFn: () =>
+      getJson<PeopleDashboardData>(`/api/people/dashboard?range=${range}`),
     staleTime: 2 * 60 * 1000,
     placeholderData: (previousDashboard) => previousDashboard,
   });

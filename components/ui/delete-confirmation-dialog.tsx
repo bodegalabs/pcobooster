@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,18 +8,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
 interface DeleteConfirmationDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onConfirm: () => Promise<void> | void
-  isPending?: boolean
-  itemLabel?: string | null
-  title?: string
-  description?: string
-  confirmLabel?: string
-  cancelLabel?: string
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => Promise<void> | void;
+  isPending?: boolean;
+  itemLabel?: string | null;
+  title?: string;
+  description?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
 }
 
 export function DeleteConfirmationDialog({
@@ -37,7 +37,7 @@ export function DeleteConfirmationDialog({
     description ??
     (itemLabel
       ? `Remove "${itemLabel}"? This action cannot be undone.`
-      : "Remove this item? This action cannot be undone.")
+      : "Remove this item? This action cannot be undone.");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -47,14 +47,24 @@ export function DeleteConfirmationDialog({
           <DialogDescription>{resolvedDescription}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isPending}
+          >
             {cancelLabel}
           </Button>
-          <Button type="button" variant="destructive" onClick={() => void onConfirm()} disabled={isPending}>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => void onConfirm()}
+            disabled={isPending}
+          >
             {confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

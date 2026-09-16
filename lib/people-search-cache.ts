@@ -1,5 +1,5 @@
-import { presentationCacheKey } from "@/lib/presentation-cache";
 import type { PeopleSearchResult } from "@/hooks/use-people-search";
+import { presentationCacheKey } from "@/lib/presentation-cache";
 
 const CACHE_VERSION = "v1";
 const CACHE_KEY_PREFIX = `worshipadmin:people-search:${CACHE_VERSION}:`;
@@ -14,9 +14,12 @@ export interface PeopleSearchCacheEntry {
   data: PeopleSearchResult[];
 }
 
-export function readCachedPeopleSearch(query: string): PeopleSearchCacheEntry | undefined {
+export function readCachedPeopleSearch(
+  query: string
+): PeopleSearchCacheEntry | undefined {
   const normalizedQuery = normalizePeopleSearchQuery(query);
-  if (normalizedQuery.length < 2 || typeof window === "undefined") return undefined;
+  if (normalizedQuery.length < 2 || typeof window === "undefined")
+    return undefined;
 
   try {
     const raw = window.localStorage.getItem(buildCacheKey(normalizedQuery));
@@ -35,7 +38,10 @@ export function readCachedPeopleSearch(query: string): PeopleSearchCacheEntry | 
   }
 }
 
-export function writeCachedPeopleSearch(query: string, results: PeopleSearchResult[]) {
+export function writeCachedPeopleSearch(
+  query: string,
+  results: PeopleSearchResult[]
+) {
   const normalizedQuery = normalizePeopleSearchQuery(query);
   if (normalizedQuery.length < 2 || typeof window === "undefined") return;
 
@@ -72,10 +78,14 @@ export function normalizePeopleSearchQuery(query: string) {
 }
 
 function buildCacheKey(query: string) {
-  return presentationCacheKey(`${CACHE_KEY_PREFIX}${encodeURIComponent(query)}`);
+  return presentationCacheKey(
+    `${CACHE_KEY_PREFIX}${encodeURIComponent(query)}`
+  );
 }
 
-function isPeopleSearchResultArray(value: unknown): value is PeopleSearchResult[] {
+function isPeopleSearchResultArray(
+  value: unknown
+): value is PeopleSearchResult[] {
   return Array.isArray(value) && value.every(isPeopleSearchResult);
 }
 
@@ -83,9 +93,12 @@ function isPeopleSearchResult(value: unknown): value is PeopleSearchResult {
   if (!value || typeof value !== "object") return false;
   const result = value as Partial<PeopleSearchResult>;
 
-  return typeof result.id === "string" &&
+  return (
+    typeof result.id === "string" &&
     typeof result.firstName === "string" &&
     typeof result.lastName === "string" &&
     typeof result.fullName === "string" &&
-    (result.photoThumbnailUrl === null || typeof result.photoThumbnailUrl === "string");
+    (result.photoThumbnailUrl === null ||
+      typeof result.photoThumbnailUrl === "string")
+  );
 }

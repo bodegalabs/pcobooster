@@ -3,7 +3,12 @@ import {
   type SerializedSongCatalogEntry,
   type SerializedSongOptionSet,
 } from "@/lib/song-catalog-client";
-import type { ArrangementOption, KeyOption, LayoutOption, SongOptionSet } from "@/lib/types";
+import type {
+  ArrangementOption,
+  KeyOption,
+  LayoutOption,
+  SongOptionSet,
+} from "@/lib/types";
 
 const CACHE_VERSION = "v1";
 const CACHE_KEY_PREFIX = `worshipadmin:song-options:${CACHE_VERSION}:`;
@@ -22,10 +27,13 @@ export function readCachedSongOptions(
   songId: string | null,
   serviceTypeId: string | null
 ): SongOptionsCacheEntry | undefined {
-  if (!songId || !serviceTypeId || typeof window === "undefined") return undefined;
+  if (!songId || !serviceTypeId || typeof window === "undefined")
+    return undefined;
 
   try {
-    const raw = window.localStorage.getItem(buildCacheKey(songId, serviceTypeId));
+    const raw = window.localStorage.getItem(
+      buildCacheKey(songId, serviceTypeId)
+    );
     if (!raw) return undefined;
     const parsed = JSON.parse(raw) as Partial<CachedPayload>;
     if (!parsed || typeof parsed !== "object") return undefined;
@@ -80,7 +88,9 @@ function buildCacheKey(songId: string, serviceTypeId: string) {
   return `${CACHE_KEY_PREFIX}${encodeURIComponent(serviceTypeId)}:${encodeURIComponent(songId)}`;
 }
 
-function serializeSongOptionSet(optionSet: SongOptionSet): SerializedSongOptionSet {
+function serializeSongOptionSet(
+  optionSet: SongOptionSet
+): SerializedSongOptionSet {
   return {
     ...optionSet,
     song: {
@@ -92,69 +102,79 @@ function serializeSongOptionSet(optionSet: SongOptionSet): SerializedSongOptionS
   };
 }
 
-function isSerializedSongOptionSet(value: unknown): value is SerializedSongOptionSet {
+function isSerializedSongOptionSet(
+  value: unknown
+): value is SerializedSongOptionSet {
   if (!value || typeof value !== "object") return false;
   const optionSet = value as Partial<SerializedSongOptionSet>;
 
-  return isSerializedSongCatalogEntry(optionSet.song) &&
+  return (
+    isSerializedSongCatalogEntry(optionSet.song) &&
     Array.isArray(optionSet.arrangements) &&
     optionSet.arrangements.every(isArrangementOption) &&
     Array.isArray(optionSet.layouts) &&
     optionSet.layouts.every(isLayoutOption) &&
-    (optionSet.currentLayout === null || isLayoutOption(optionSet.currentLayout)) &&
+    (optionSet.currentLayout === null ||
+      isLayoutOption(optionSet.currentLayout)) &&
     isNullableString(optionSet.suggestedArrangementId) &&
     isNullableString(optionSet.suggestedKeyId) &&
     isNullableString(optionSet.suggestedLayoutId) &&
-    (
-      optionSet.layoutMode === "unavailable" ||
+    (optionSet.layoutMode === "unavailable" ||
       optionSet.layoutMode === "existing-only" ||
-      optionSet.layoutMode === "editable"
-    );
+      optionSet.layoutMode === "editable")
+  );
 }
 
-function isSerializedSongCatalogEntry(value: unknown): value is SerializedSongCatalogEntry {
+function isSerializedSongCatalogEntry(
+  value: unknown
+): value is SerializedSongCatalogEntry {
   if (!value || typeof value !== "object") return false;
   const entry = value as Partial<SerializedSongCatalogEntry>;
 
-  return typeof entry.id === "string" &&
+  return (
+    typeof entry.id === "string" &&
     typeof entry.title === "string" &&
     typeof entry.author === "string" &&
     typeof entry.themes === "string" &&
     typeof entry.hidden === "boolean" &&
     isNullableDateLike(entry.lastScheduledAt) &&
-    (entry.matchScore === undefined || typeof entry.matchScore === "number");
+    (entry.matchScore === undefined || typeof entry.matchScore === "number")
+  );
 }
 
 function isArrangementOption(value: unknown): value is ArrangementOption {
   if (!value || typeof value !== "object") return false;
   const arrangement = value as Partial<ArrangementOption>;
 
-  return typeof arrangement.id === "string" &&
+  return (
+    typeof arrangement.id === "string" &&
     typeof arrangement.name === "string" &&
     Array.isArray(arrangement.sequence) &&
     arrangement.sequence.every((line) => typeof line === "string") &&
     (arrangement.length === null || typeof arrangement.length === "number") &&
     typeof arrangement.archived === "boolean" &&
     Array.isArray(arrangement.keys) &&
-    arrangement.keys.every(isKeyOption);
+    arrangement.keys.every(isKeyOption)
+  );
 }
 
 function isKeyOption(value: unknown): value is KeyOption {
   if (!value || typeof value !== "object") return false;
   const key = value as Partial<KeyOption>;
 
-  return typeof key.id === "string" &&
+  return (
+    typeof key.id === "string" &&
     typeof key.name === "string" &&
     isNullableString(key.startingKey) &&
-    isNullableString(key.endingKey);
+    isNullableString(key.endingKey)
+  );
 }
 
 function isLayoutOption(value: unknown): value is LayoutOption {
   if (!value || typeof value !== "object") return false;
   const layout = value as Partial<LayoutOption>;
 
-  return typeof layout.id === "string" &&
-    typeof layout.name === "string";
+  return typeof layout.id === "string" && typeof layout.name === "string";
 }
 
 function isNullableString(value: unknown) {

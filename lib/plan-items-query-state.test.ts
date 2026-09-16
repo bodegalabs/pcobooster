@@ -1,5 +1,10 @@
 import { QueryClient } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+import {
+  readCachedPlanItems,
+  writeCachedPlanItems,
+} from "@/lib/plan-items-cache";
 import {
   applyPlanItemDraft,
   applyPlanItemsOptimisticUpdate,
@@ -16,9 +21,14 @@ import {
   restorePlanItemsSnapshot,
   settlePlanItemsQuery,
 } from "@/lib/plan-items-query-state";
-import { readCachedPlanItems, writeCachedPlanItems } from "@/lib/plan-items-cache";
-import { readCachedSongOptions, writeCachedSongOptions } from "@/lib/song-options-cache";
-import { readCachedSongSearch, writeCachedSongSearch } from "@/lib/song-search-cache";
+import {
+  readCachedSongOptions,
+  writeCachedSongOptions,
+} from "@/lib/song-options-cache";
+import {
+  readCachedSongSearch,
+  writeCachedSongSearch,
+} from "@/lib/song-search-cache";
 import type { PlanItem, SongOptionSet } from "@/lib/types";
 
 function createItem(id: string, sequence: number): PlanItem {
@@ -39,7 +49,11 @@ function createItem(id: string, sequence: number): PlanItem {
   };
 }
 
-function createSongItem(id: string, sequence: number, songId: string): PlanItem {
+function createSongItem(
+  id: string,
+  sequence: number,
+  songId: string
+): PlanItem {
   return {
     ...createItem(id, sequence),
     itemType: "song",
@@ -106,26 +120,33 @@ describe("plan item query state", () => {
 
     queryClient.setQueryData(queryKey, items);
 
-    const snapshot = applyPlanItemsOptimisticUpdate(queryClient, queryKey, (current) =>
-      reorderPlanItems(current, "item-2", "item-1")
+    const snapshot = applyPlanItemsOptimisticUpdate(
+      queryClient,
+      queryKey,
+      (current) => reorderPlanItems(current, "item-2", "item-1")
     );
 
-    expect(queryClient.getQueryData<PlanItem[]>(queryKey)?.map((item) => item.id)).toEqual([
-      "item-2",
-      "item-1",
-    ]);
+    expect(
+      queryClient.getQueryData<PlanItem[]>(queryKey)?.map((item) => item.id)
+    ).toEqual(["item-2", "item-1"]);
 
     restorePlanItemsSnapshot(queryClient, queryKey, snapshot);
 
-    expect(queryClient.getQueryData<PlanItem[]>(queryKey)?.map((item) => item.id)).toEqual([
-      "item-1",
-      "item-2",
-    ]);
+    expect(
+      queryClient.getQueryData<PlanItem[]>(queryKey)?.map((item) => item.id)
+    ).toEqual(["item-1", "item-2"]);
   });
 
   it("renumbers remaining items after an optimistic delete", () => {
     expect(
-      removePlanItem([createItem("item-1", 1), createItem("item-2", 2), createItem("item-3", 3)], "item-2")
+      removePlanItem(
+        [
+          createItem("item-1", 1),
+          createItem("item-2", 2),
+          createItem("item-3", 3),
+        ],
+        "item-2"
+      )
     ).toMatchObject([
       { id: "item-1", sequence: 1 },
       { id: "item-3", sequence: 2 },
@@ -142,10 +163,15 @@ describe("plan item query state", () => {
       ])
     ).toBe(true);
 
-    expect(planItemsHaveSameOrder(current, [createItem("item-2", 1), createItem("item-1", 2)])).toBe(
+    expect(
+      planItemsHaveSameOrder(current, [
+        createItem("item-2", 1),
+        createItem("item-1", 2),
+      ])
+    ).toBe(false);
+    expect(planItemsHaveSameOrder(current, [createItem("item-1", 1)])).toBe(
       false
     );
-    expect(planItemsHaveSameOrder(current, [createItem("item-1", 1)])).toBe(false);
   });
 
   it("collects a bounded unique list of song option prefetch ids", () => {
@@ -162,16 +188,21 @@ describe("plan item query state", () => {
       )
     ).toEqual(["song-1", "song-2"]);
 
-    expect(collectPlanSongOptionPrefetchIds([createSongItem("song-item-1", 1, "song-1")], 0)).toEqual(
-      []
-    );
+    expect(
+      collectPlanSongOptionPrefetchIds(
+        [createSongItem("song-item-1", 1, "song-1")],
+        0
+      )
+    ).toEqual([]);
   });
 
   it("builds optimistic basic and song items at the next sequence", () => {
     const current = [createItem("item-1", 1), createItem("item-2", 2)];
     const nextSequence = nextPlanItemSequence(current);
 
-    expect(createOptimisticBasicPlanItem("temp-header", "header", nextSequence)).toMatchObject({
+    expect(
+      createOptimisticBasicPlanItem("temp-header", "header", nextSequence)
+    ).toMatchObject({
       id: "temp-header",
       title: "New Header",
       itemType: "header",
@@ -210,10 +241,11 @@ describe("plan item query state", () => {
     ];
     const serverItem = createItem("server-item", 2);
 
-    expect(replacePlanItemById(current, "temp-item", serverItem).map((item) => item.id)).toEqual([
-      "item-1",
-      "server-item",
-    ]);
+    expect(
+      replacePlanItemById(current, "temp-item", serverItem).map(
+        (item) => item.id
+      )
+    ).toEqual(["item-1", "server-item"]);
   });
 
   it("applies draft fields for immediate edit feedback", () => {

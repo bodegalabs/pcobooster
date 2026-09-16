@@ -45,6 +45,8 @@ export async function getPlansForServiceType(
     })
     .filter((plan): plan is Plan => plan !== null);
 
-  plans.sort((a, b) => (a.sortDate?.getTime() || 0) - (b.sortDate?.getTime() || 0));
+  plans.sort(
+    (a, b) => (a.sortDate?.getTime() || 0) - (b.sortDate?.getTime() || 0)
+  );
   return plans;
 }

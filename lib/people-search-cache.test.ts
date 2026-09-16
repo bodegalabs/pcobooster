@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { PeopleSearchResult } from "@/hooks/use-people-search";
 import {
   clearCachedPeopleSearch,
   normalizePeopleSearchQuery,
   readCachedPeopleSearch,
   writeCachedPeopleSearch,
 } from "@/lib/people-search-cache";
-import type { PeopleSearchResult } from "@/hooks/use-people-search";
 
 function installLocalStorageMock() {
   const storage = new Map<string, string>();
@@ -115,5 +116,4 @@ describe("people search cache", () => {
     expect(readCachedPeopleSearch("andrew")).toBeDefined();
     vi.unstubAllGlobals();
   });
-
 });

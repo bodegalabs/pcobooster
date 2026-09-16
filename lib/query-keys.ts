@@ -1,5 +1,6 @@
 export const queryKeys = {
-  organizationTimeZone: () => ["planning-center-organization-time-zone"] as const,
+  organizationTimeZone: () =>
+    ["planning-center-organization-time-zone"] as const,
   serviceTypes: () => ["service-types"] as const,
   plans: (serviceTypeId: string | null) => ["plans", serviceTypeId] as const,
   teamPositions: (

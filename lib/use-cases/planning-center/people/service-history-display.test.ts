@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+
 import type { ServiceHistoryItem } from "@/lib/types";
+
 import {
   pickServiceHistoryGroupClosestToReference,
   type ServiceHistoryGroup,
@@ -17,7 +19,12 @@ function historyItem(id: string, iso: string): ServiceHistoryItem {
 }
 
 function singleGroup(primary: ServiceHistoryItem): ServiceHistoryGroup {
-  return { dayKey: primary.id, primary, additionalServices: [], rehearsals: [] };
+  return {
+    dayKey: primary.id,
+    primary,
+    additionalServices: [],
+    rehearsals: [],
+  };
 }
 
 describe("pickServiceHistoryGroupClosestToReference", () => {
@@ -26,12 +33,16 @@ describe("pickServiceHistoryGroupClosestToReference", () => {
   const planSort = new Date("2026-05-04T17:00:00.000Z");
 
   it("returns null for empty groups", () => {
-    expect(pickServiceHistoryGroupClosestToReference([], planSort, orgTz)).toBeNull();
+    expect(
+      pickServiceHistoryGroupClosestToReference([], planSort, orgTz)
+    ).toBeNull();
   });
 
   it("chooses the group whose primary date is nearest in org calendar days", () => {
     const farther = singleGroup(historyItem("far", "2026-05-24T12:00:00.000Z"));
-    const closer = singleGroup(historyItem("close", "2026-05-06T12:00:00.000Z"));
+    const closer = singleGroup(
+      historyItem("close", "2026-05-06T12:00:00.000Z")
+    );
     const picked = pickServiceHistoryGroupClosestToReference(
       [farther, closer],
       planSort,
@@ -41,7 +52,9 @@ describe("pickServiceHistoryGroupClosestToReference", () => {
   });
 
   it("breaks calendar-distance ties using the more recent primary instant", () => {
-    const earlier = singleGroup(historyItem("earlier", "2026-04-14T12:00:00.000Z"));
+    const earlier = singleGroup(
+      historyItem("earlier", "2026-04-14T12:00:00.000Z")
+    );
     const later = singleGroup(historyItem("later", "2026-05-24T12:00:00.000Z"));
     const picked = pickServiceHistoryGroupClosestToReference(
       [earlier, later],

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+
 import { auth } from "@/lib/auth";
 import {
   getDevBypassPlanningCenterAccount,
@@ -64,12 +65,19 @@ export async function GET(request: Request) {
     const selectedFromCookie = getSelectedPlanningCenterAccountId(request);
     const selectedAccount =
       (selectedFromCookie
-        ? planningCenterAccounts.find((account) => account.id === selectedFromCookie)
-        : null) ?? planningCenterAccounts[0] ?? null;
+        ? planningCenterAccounts.find(
+            (account) => account.id === selectedFromCookie
+          )
+        : null) ??
+      planningCenterAccounts[0] ??
+      null;
 
     const accountsWithIdentity = await Promise.all(
       planningCenterAccounts.map(async (account) => {
-        const identity = await getPlanningCenterIdentityForAccount(request, account.id);
+        const identity = await getPlanningCenterIdentityForAccount(
+          request,
+          account.id
+        );
         return {
           ...account,
           identity,
@@ -110,7 +118,12 @@ export async function POST(request: Request) {
 
     const parsed = postBodySchema.safeParse(await request.json());
     if (!parsed.success) {
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsed.error.issues);
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsed.error.issues
+      );
     }
 
     const allAccounts = await auth.api.listUserAccounts({

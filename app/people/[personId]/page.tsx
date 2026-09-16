@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+
 import { PersonDetailPage } from "@/components/people/person-detail-page";
 import { peoplePageFlag } from "@/flags";
 

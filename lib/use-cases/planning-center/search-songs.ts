@@ -23,18 +23,16 @@ export async function searchSongs(
   const normalizedQuery = query.trim().toLowerCase();
   if (!normalizedQuery) return [];
 
-  const resultCacheKey = [
-    cacheKey,
-    serviceTypeId,
-    normalizedQuery,
-  ].join(":");
+  const resultCacheKey = [cacheKey, serviceTypeId, normalizedQuery].join(":");
   const now = Date.now();
   const cached = songSearchResultCache.get(resultCacheKey);
   if (cached && cached.expiresAt > now) {
     return structuredClone(cached.songs);
   }
 
-  const catalog = await planningCenterSongsService.getSongsCatalogCached(`${cacheKey}:${serviceTypeId}`);
+  const catalog = await planningCenterSongsService.getSongsCatalogCached(
+    `${cacheKey}:${serviceTypeId}`
+  );
   const normalized = catalog
     .map((song) => normalizeSongCatalogEntry(song))
     .filter((song) => !song.hidden)

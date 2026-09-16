@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vitest";
+
 import type { PersonWithAvailability, RawPerson } from "@/lib/types";
-import type {
-  PlanRosterEntry,
-  PlanSchedulingContext,
-} from "@/lib/use-cases/planning-center/plan-scheduling-context";
 import {
   applySelectedPlanRosterStatus,
   getSelectedPlanRosterOverlay,
   mergeAssignedAndSelectedPlanSlotPeople,
   mergeAssignmentLabels,
 } from "@/lib/use-cases/planning-center/people/roster-overlay";
+import type {
+  PlanRosterEntry,
+  PlanSchedulingContext,
+} from "@/lib/use-cases/planning-center/plan-scheduling-context";
 
 function rawPerson(id: string, firstName = id): RawPerson {
   return {
@@ -41,7 +42,10 @@ function personWithAvailability(id: string): PersonWithAvailability {
 }
 
 function rosterEntry(
-  overrides: Partial<PlanRosterEntry> & { planPersonId: string; personId: string | null }
+  overrides: Partial<PlanRosterEntry> & {
+    planPersonId: string;
+    personId: string | null;
+  }
 ): PlanRosterEntry {
   const { planPersonId, personId, ...rest } = overrides;
   return {
@@ -59,7 +63,10 @@ function rosterEntry(
   };
 }
 
-function context(entries: PlanRosterEntry[], people: RawPerson[] = []): PlanSchedulingContext {
+function context(
+  entries: PlanRosterEntry[],
+  people: RawPerson[] = []
+): PlanSchedulingContext {
   const rosterByPersonId = new Map<string, PlanRosterEntry[]>();
   const rosterBySlotKey = new Map<string, PlanRosterEntry[]>();
 
@@ -116,7 +123,10 @@ describe("selected plan roster overlay", () => {
       },
     });
 
-    expect(merged.map((person) => person.id)).toEqual(["assigned", "selected-slot"]);
+    expect(merged.map((person) => person.id)).toEqual([
+      "assigned",
+      "selected-slot",
+    ]);
   });
 
   it("returns non-declined plan labels while matching the selected slot separately", () => {
@@ -165,10 +175,10 @@ describe("selected plan roster overlay", () => {
       }),
       assignmentLabels: ["Band - Vocals"],
     };
-    const labels = mergeAssignmentLabels(
-      overlay.assignmentLabels,
-      ["Band - Vocals", "Band - Keys"]
-    );
+    const labels = mergeAssignmentLabels(overlay.assignmentLabels, [
+      "Band - Vocals",
+      "Band - Keys",
+    ]);
 
     applySelectedPlanRosterStatus(person, overlay, labels);
 

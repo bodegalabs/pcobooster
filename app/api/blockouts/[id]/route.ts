@@ -1,9 +1,10 @@
-import { presentBlockouts } from "@/lib/use-cases/planning-center/presentation";
 import { z } from "zod";
+
 import { ApiError } from "@/lib/http/api-error";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
 import { getFutureBlockoutsForPerson } from "@/lib/use-cases/planning-center/get-person-blockouts";
+import { presentBlockouts } from "@/lib/use-cases/planning-center/presentation";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +20,16 @@ export async function GET(
   return handlePlanningCenterRoute(request, async () => {
     const parsedParams = paramsSchema.safeParse(await params);
     if (!parsedParams.success) {
-      log.warn({ issues: parsedParams.error.issues }, "Invalid blockouts route params");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsedParams.error.issues);
+      log.warn(
+        { issues: parsedParams.error.issues },
+        "Invalid blockouts route params"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsedParams.error.issues
+      );
     }
     const { id } = parsedParams.data;
     log.info({ personId: id }, "Fetching blockouts");

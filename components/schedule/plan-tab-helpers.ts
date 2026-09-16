@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+
 import type { ArrangementOption, PlanItem, SongOptionSet } from "@/lib/types";
 
 export type DraftState = {
@@ -41,13 +42,19 @@ export function buildDraft(item: PlanItem): DraftState {
   };
 }
 
-export function parseLengthText(value: string): { length: number | null; error: string | null } {
+export function parseLengthText(value: string): {
+  length: number | null;
+  error: string | null;
+} {
   const normalized = value.trim();
   if (!normalized) return { length: null, error: null };
 
   const parts = normalized.split(":").map((part) => part.trim());
   if (parts.some((part) => part.length === 0)) {
-    return { length: null, error: "Length must be in mm:ss or h:mm:ss format." };
+    return {
+      length: null,
+      error: "Length must be in mm:ss or h:mm:ss format.",
+    };
   }
 
   const numericParts = parts.map((part) => {
@@ -55,7 +62,10 @@ export function parseLengthText(value: string): { length: number | null; error: 
     return Number(part);
   });
   if (numericParts.some((part) => Number.isNaN(part) || part < 0)) {
-    return { length: null, error: "Length must be numeric values separated by ':'." };
+    return {
+      length: null,
+      error: "Length must be numeric values separated by ':'.",
+    };
   }
 
   if (parts.length === 1) {
@@ -108,7 +118,9 @@ export function getItemTypeLabel(item: PlanItem) {
   return item.itemType || "Item";
 }
 
-export function getServicePositionLabel(servicePosition: string | null | undefined) {
+export function getServicePositionLabel(
+  servicePosition: string | null | undefined
+) {
   if (servicePosition === "pre") return "Pre-service";
   if (servicePosition === "during") return "During service";
   if (servicePosition === "post") return "Post-service";
@@ -140,7 +152,9 @@ export function synchronizeDraftWithSongOptions(
   }
 
   const selectedArrangement =
-    arrangements.find((arrangement) => arrangement.id === draft.arrangementId) ?? null;
+    arrangements.find(
+      (arrangement) => arrangement.id === draft.arrangementId
+    ) ?? null;
   if (!selectedArrangement) {
     return {
       ...draft,
@@ -149,7 +163,11 @@ export function synchronizeDraftWithSongOptions(
     };
   }
 
-  const nextKeyId = pickKeyId(selectedArrangement, draft.keyId, songOptions.suggestedKeyId);
+  const nextKeyId = pickKeyId(
+    selectedArrangement,
+    draft.keyId,
+    songOptions.suggestedKeyId
+  );
   if (nextKeyId === draft.keyId) return draft;
 
   return {

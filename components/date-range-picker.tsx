@@ -1,14 +1,15 @@
 "use client";
 
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
 
 interface DateRangePickerProps {
   date: Date;
@@ -19,7 +20,10 @@ export function DateRangePicker({ date, onDateChange }: DateRangePickerProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="justify-start text-left font-normal">
+        <Button
+          variant="outline"
+          className="justify-start text-left font-normal"
+        >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {format(date, "PPP")}
         </Button>

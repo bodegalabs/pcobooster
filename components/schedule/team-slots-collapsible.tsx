@@ -1,11 +1,22 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
 import { ChevronDown, Plus } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { FormEvent, useEffect, useRef, useState } from "react";
+
+import { SlotBadgeCluster } from "@/components/schedule/slot-badge-cluster";
+import type { SlotRef } from "@/components/schedule/types";
 import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -14,8 +25,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { SlotBadgeCluster } from "@/components/schedule/slot-badge-cluster";
-import type { SlotRef } from "@/components/schedule/types";
 import type { TeamPosition, TeamPositionGroup } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +45,10 @@ export function TeamSlotsCollapsible({
   onToggle: (teamId: string) => void;
   onSelect: (slot: SlotRef) => void;
   onPreview?: (slot: SlotRef) => void;
-  onAddPosition?: (team: { teamId: string; teamName: string }, positionName: string) => SlotRef | null;
+  onAddPosition?: (
+    team: { teamId: string; teamName: string },
+    positionName: string
+  ) => SlotRef | null;
 }) {
   const [addOpen, setAddOpen] = useState(false);
   const [positionName, setPositionName] = useState("");
@@ -47,13 +59,16 @@ export function TeamSlotsCollapsible({
   );
   const selectedPositionInGroup =
     group.teamId === selectedTeam
-      ? group.positions.find((position) => position.id === selectedPosition) ?? null
+      ? (group.positions.find((position) => position.id === selectedPosition) ??
+        null)
       : null;
   const isOpen = !isCollapsed;
 
   const renderPositionRow = (position: TeamPosition) => {
-    const isTemporaryPosition = !!position.source && position.source !== "team_position";
-    const active = group.teamId === selectedTeam && position.id === selectedPosition;
+    const isTemporaryPosition =
+      !!position.source && position.source !== "team_position";
+    const active =
+      group.teamId === selectedTeam && position.id === selectedPosition;
     const slot = {
       teamId: group.teamId,
       teamName: group.teamName,
@@ -68,7 +83,7 @@ export function TeamSlotsCollapsible({
           onClick={() => onSelect(slot)}
           onMouseEnter={() => onPreview?.(slot)}
           onFocus={() => onPreview?.(slot)}
-          className="h-8 rounded-none pl-5 pr-2 transition-none"
+          className="h-8 rounded-none pr-2 pl-5 transition-none"
         >
           <span className="flex min-w-0 flex-1 items-center gap-1.5">
             <span className={cn("truncate", isTemporaryPosition && "italic")}>
@@ -104,27 +119,34 @@ export function TeamSlotsCollapsible({
   };
 
   return (
-    <Collapsible open={isOpen} onOpenChange={() => onToggle(group.teamId)} asChild>
-      <SidebarGroup className="border-t border-sidebar-border/40 px-0 py-0 first:border-0">
+    <Collapsible
+      open={isOpen}
+      onOpenChange={() => onToggle(group.teamId)}
+      asChild
+    >
+      <SidebarGroup className="border-sidebar-border/40 border-t px-0 py-0 first:border-0">
         <CollapsibleTrigger asChild>
           <SidebarGroupLabel
             asChild
-            className="group/team-label h-9 w-full cursor-pointer justify-start gap-2 rounded-none px-2.5 text-left hover:bg-sidebar-accent/50"
+            className="group/team-label hover:bg-sidebar-accent/50 h-9 w-full cursor-pointer justify-start gap-2 rounded-none px-2.5 text-left"
           >
             <button type="button">
               <span className="flex-1 truncate text-left text-sm font-semibold">
                 {group.teamName}
               </span>
               {openNeededCount > 0 ? (
-                <span className="text-[11px] font-medium tabular-nums text-red-600 dark:text-red-400">
+                <span className="text-[11px] font-medium text-red-600 tabular-nums dark:text-red-400">
                   {openNeededCount}
                 </span>
               ) : (
-                <span className="size-1.5 rounded-full bg-emerald-500/70" aria-label="All set" />
+                <span
+                  className="size-1.5 rounded-full bg-emerald-500/70"
+                  aria-label="All set"
+                />
               )}
               <ChevronDown
                 className={cn(
-                  "size-3.5 shrink-0 text-muted-foreground transition-transform duration-200 ease-out",
+                  "text-muted-foreground size-3.5 shrink-0 transition-transform duration-200 ease-out",
                   isCollapsed && "-rotate-90"
                 )}
                 aria-hidden
@@ -135,7 +157,9 @@ export function TeamSlotsCollapsible({
 
         {!isOpen && selectedPositionInGroup ? (
           <SidebarGroupContent>
-            <SidebarMenu className="gap-0">{renderPositionRow(selectedPositionInGroup)}</SidebarMenu>
+            <SidebarMenu className="gap-0">
+              {renderPositionRow(selectedPositionInGroup)}
+            </SidebarMenu>
           </SidebarGroupContent>
         ) : null}
 
@@ -145,11 +169,16 @@ export function TeamSlotsCollapsible({
               {group.positions.map(renderPositionRow)}
               {onAddPosition ? (
                 <SidebarMenuItem>
-                    <Popover open={addOpen} onOpenChange={setAddOpen}>
-                      <PopoverTrigger asChild>
-                      <SidebarMenuButton className="h-7 rounded-none pl-5 pr-2 text-sidebar-foreground/45 transition-none hover:bg-sidebar-accent/25 hover:text-sidebar-foreground/65 data-[state=open]:bg-sidebar-accent/25 data-[state=open]:text-sidebar-foreground/65">
-                        <Plus className="size-3 shrink-0 opacity-70" aria-hidden />
-                        <span className="truncate text-[13px] font-normal">Add position</span>
+                  <Popover open={addOpen} onOpenChange={setAddOpen}>
+                    <PopoverTrigger asChild>
+                      <SidebarMenuButton className="text-sidebar-foreground/45 hover:bg-sidebar-accent/25 hover:text-sidebar-foreground/65 data-[state=open]:bg-sidebar-accent/25 data-[state=open]:text-sidebar-foreground/65 h-7 rounded-none pr-2 pl-5 transition-none">
+                        <Plus
+                          className="size-3 shrink-0 opacity-70"
+                          aria-hidden
+                        />
+                        <span className="truncate text-[13px] font-normal">
+                          Add position
+                        </span>
                       </SidebarMenuButton>
                     </PopoverTrigger>
                     <PopoverContent
@@ -163,11 +192,17 @@ export function TeamSlotsCollapsible({
                         <Input
                           ref={inputRef}
                           value={positionName}
-                          onChange={(event) => setPositionName(event.target.value)}
+                          onChange={(event) =>
+                            setPositionName(event.target.value)
+                          }
                           placeholder="Position name"
                           className="h-8"
                         />
-                        <Button type="submit" size="sm" disabled={!positionName.trim()}>
+                        <Button
+                          type="submit"
+                          size="sm"
+                          disabled={!positionName.trim()}
+                        >
                           Add
                         </Button>
                       </form>

@@ -19,7 +19,11 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { FileMusic, GripVertical, Music4, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { formatLength, getItemTone } from "@/components/schedule/plan-tab-helpers";
+
+import {
+  formatLength,
+  getItemTone,
+} from "@/components/schedule/plan-tab-helpers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -58,10 +62,13 @@ export function PlanItemList({
   onReorderItems,
 }: PlanItemListProps) {
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
-  const [itemIdPendingDelete, setItemIdPendingDelete] = useState<string | null>(null);
+  const [itemIdPendingDelete, setItemIdPendingDelete] = useState<string | null>(
+    null
+  );
   const reorderDisabled = pendingItemId === "reorder";
   const activeItem = items.find((item) => item.id === activeItemId) ?? null;
-  const itemPendingDelete = items.find((item) => item.id === itemIdPendingDelete) ?? null;
+  const itemPendingDelete =
+    items.find((item) => item.id === itemIdPendingDelete) ?? null;
   const sensors = useSensors(
     useSensor(MouseSensor, {
       activationConstraint: { distance: 6 },
@@ -128,17 +135,24 @@ export function PlanItemList({
             ))}
           </div>
         ) : items.length === 0 ? (
-          <Card className="mx-0 border-dashed border-border/50 bg-transparent px-6 py-8 text-center sm:mr-3">
+          <Card className="border-border/50 mx-0 border-dashed bg-transparent px-6 py-8 text-center sm:mr-3">
             <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
-              <FileMusic className="size-5 text-muted-foreground/70" />
+              <FileMusic className="text-muted-foreground/70 size-5" />
               <div>
-                <p className="text-sm font-medium">This plan has no structure yet</p>
+                <p className="text-sm font-medium">
+                  This plan has no structure yet
+                </p>
                 <p className="text-muted-foreground mt-0.5 text-xs">
                   Add a song, header, or item from the toolbar above.
                 </p>
               </div>
               <div className="flex flex-wrap justify-center gap-2">
-                <Button type="button" size="sm" onClick={onAddSong} disabled={isPlaceholderData}>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={onAddSong}
+                  disabled={isPlaceholderData}
+                >
                   <Music4 className="size-4" />
                   Add Song
                 </Button>
@@ -166,11 +180,15 @@ export function PlanItemList({
         ) : (
           <div className="relative" aria-busy={isPlaceholderData}>
             {isPlaceholderData ? (
-              <div className="sticky top-0 z-10 mb-2 rounded-md border border-border/60 bg-background/95 px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur">
+              <div className="border-border/60 bg-background/95 text-muted-foreground sticky top-0 z-10 mb-2 rounded-md border px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur">
                 Loading selected plan...
               </div>
             ) : null}
-            <div className={cn(isPlaceholderData && "pointer-events-none opacity-60")}>
+            <div
+              className={cn(
+                isPlaceholderData && "pointer-events-none opacity-60"
+              )}
+            >
               <DndContext
                 collisionDetection={closestCenter}
                 sensors={sensors}
@@ -183,7 +201,7 @@ export function PlanItemList({
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="pb-4 sm:pr-3">
-                    <div className="overflow-hidden rounded-lg border border-border/50 bg-background">
+                    <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
                       {items.map((item) => (
                         <SortablePlanItem
                           key={item.id}
@@ -201,7 +219,7 @@ export function PlanItemList({
                 </SortableContext>
                 <DragOverlay zIndex={60}>
                   {activeItem ? (
-                    <div className="overflow-hidden rounded-lg border bg-background rotate-[0.2deg] shadow-2xl">
+                    <div className="bg-background rotate-[0.2deg] overflow-hidden rounded-lg border shadow-2xl">
                       <PlanItemCard
                         item={activeItem}
                         isBusy={pendingItemId === activeItem.id}
@@ -271,7 +289,7 @@ function SortablePlanItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "relative border-b last:border-b-0 transition-[transform,box-shadow,opacity] duration-200 ease-out",
+        "relative border-b transition-[transform,box-shadow,opacity] duration-200 ease-out last:border-b-0",
         isSortableDragging && "z-20 opacity-0"
       )}
     >
@@ -312,9 +330,10 @@ function PlanItemCard({
 }: PlanItemCardProps) {
   const tone = getItemTone(item);
   const lengthLabel = formatLength(item.length);
-  const rowHoverClassName = item.itemType === "header"
-    ? "hover:ring-border/80 hover:ring-1 hover:ring-inset"
-    : "hover:bg-accent/45";
+  const rowHoverClassName =
+    item.itemType === "header"
+      ? "hover:ring-border/80 hover:ring-1 hover:ring-inset"
+      : "hover:bg-accent/45";
   const dragHandleClassName =
     "flex w-9 shrink-0 touch-manipulation items-center justify-center self-stretch border-0 bg-transparent text-muted-foreground/55 outline-none transition-colors hover:text-foreground focus-visible:ring-ring/50 focus-visible:ring-[3px] active:cursor-grabbing disabled:pointer-events-none disabled:opacity-50";
   const editButtonClassName =
@@ -345,12 +364,17 @@ function PlanItemCard({
           onFocus={onPreview}
           onPointerEnter={onPreview}
           onClick={onEdit}
-          className={cn("flex items-center gap-3 px-2 py-2", editButtonClassName)}
+          className={cn(
+            "flex items-center gap-3 px-2 py-2",
+            editButtonClassName
+          )}
         >
           <div className="flex min-w-0 flex-1 items-center gap-3 text-left">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="truncate font-semibold">{item.title || "Untitled item"}</p>
+                <p className="truncate font-semibold">
+                  {item.title || "Untitled item"}
+                </p>
                 {item.arrangement ? (
                   <span className="text-muted-foreground/80 flex items-center gap-1 text-sm">
                     <span aria-hidden="true" className="opacity-60">
@@ -367,20 +391,24 @@ function PlanItemCard({
                     {item.key.name}
                   </Badge>
                 ) : null}
-                {lengthLabel ? <Badge variant="outline">{lengthLabel}</Badge> : null}
+                {lengthLabel ? (
+                  <Badge variant="outline">{lengthLabel}</Badge>
+                ) : null}
               </div>
               <div className="text-muted-foreground mt-1 flex flex-wrap gap-2 text-xs">
-                {item.description ? <span className="truncate">{item.description}</span> : null}
+                {item.description ? (
+                  <span className="truncate">{item.description}</span>
+                ) : null}
               </div>
             </div>
           </div>
         </button>
-        <div className="flex items-center border-l border-border/0 px-2 py-1.5 transition-colors group-hover/plan-item:border-border/50 group-focus-within/plan-item:border-border/50">
+        <div className="border-border/0 group-hover/plan-item:border-border/50 group-focus-within/plan-item:border-border/50 flex items-center border-l px-2 py-1.5 transition-colors">
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="group/delete size-8 text-muted-foreground hover:text-destructive"
+            className="group/delete text-muted-foreground hover:text-destructive size-8"
             onPointerDown={(event) => event.stopPropagation()}
             onClick={(event) => {
               event.stopPropagation();
@@ -414,7 +442,9 @@ function PlanItemCard({
         >
           <div className="min-w-0 flex-1 text-left">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="min-w-0 break-words font-semibold">{item.title || "Untitled item"}</p>
+              <p className="min-w-0 font-semibold break-words">
+                {item.title || "Untitled item"}
+              </p>
               {item.arrangement ? (
                 <span className="text-muted-foreground/80 flex items-center gap-1 text-sm">
                   <span aria-hidden="true" className="opacity-60">
@@ -431,7 +461,9 @@ function PlanItemCard({
                   {item.key.name}
                 </Badge>
               ) : null}
-              {lengthLabel ? <Badge variant="outline">{lengthLabel}</Badge> : null}
+              {lengthLabel ? (
+                <Badge variant="outline">{lengthLabel}</Badge>
+              ) : null}
             </div>
             {item.description ? (
               <div className="text-muted-foreground mt-1 flex flex-wrap gap-2 text-xs">
@@ -440,12 +472,12 @@ function PlanItemCard({
             ) : null}
           </div>
         </button>
-        <div className="flex items-start border-l border-border/0 px-2 py-2 transition-colors group-hover/plan-item:border-border/50 group-focus-within/plan-item:border-border/50">
+        <div className="border-border/0 group-hover/plan-item:border-border/50 group-focus-within/plan-item:border-border/50 flex items-start border-l px-2 py-2 transition-colors">
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="group/delete size-8 shrink-0 text-muted-foreground hover:text-destructive"
+            className="group/delete text-muted-foreground hover:text-destructive size-8 shrink-0"
             onPointerDown={(event) => event.stopPropagation()}
             onClick={(event) => {
               event.stopPropagation();

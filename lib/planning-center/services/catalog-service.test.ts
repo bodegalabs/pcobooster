@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+
 import type { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { PlanningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
 import type { PCResource } from "@/lib/types";

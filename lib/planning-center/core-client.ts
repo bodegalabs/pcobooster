@@ -1,9 +1,10 @@
-import type { PCApiResponse, PCResource } from "@/lib/types";
 import { createHash } from "node:crypto";
+
 import { mergeHeaders } from "@/lib/http/merge-headers";
 import { elapsedMs, formatDurationMs, nowMs } from "@/lib/http/timing";
 import { logger } from "@/lib/logger";
 import { getPlanningCenterRequestAccessToken } from "@/lib/planning-center/request-auth-context";
+import type { PCApiResponse, PCResource } from "@/lib/types";
 
 const log = logger.for("planning-center/core");
 const PC_BASE_URL = "https://api.planningcenteronline.com";
@@ -97,7 +98,8 @@ export class PlanningCenterCoreClient {
   }
 
   getCacheScope(): string {
-    const accessToken = getPlanningCenterRequestAccessToken() ?? this.auth?.accessToken;
+    const accessToken =
+      getPlanningCenterRequestAccessToken() ?? this.auth?.accessToken;
     if (accessToken) {
       return `bearer:${createHash("sha256").update(accessToken).digest("hex")}`;
     }
@@ -144,13 +146,21 @@ export class PlanningCenterCoreClient {
 
         if (!response.ok) {
           const errorText = await response.text();
-          const apiError = buildApiError(response.status, errorText, response.headers);
+          const apiError = buildApiError(
+            response.status,
+            errorText,
+            response.headers
+          );
           const canRetry =
             isSafeToRetry(method) &&
             RETRYABLE_STATUS_CODES.has(response.status) &&
             attempt < MAX_RETRIES;
           if (canRetry) {
-            const retryDelayMs = getRetryDelayMs(response.status, attempt, apiError);
+            const retryDelayMs = getRetryDelayMs(
+              response.status,
+              attempt,
+              apiError
+            );
             log.warn(
               {
                 status: response.status,
@@ -259,7 +269,9 @@ export class PlanningCenterCoreClient {
     while (hasMore && pageCount < maxPages) {
       pageCount++;
       const response = await this.fetch<T[] | T>(url);
-      const data = Array.isArray(response.data) ? response.data : [response.data];
+      const data = Array.isArray(response.data)
+        ? response.data
+        : [response.data];
       allData.push(...data);
 
       const nextUrl = response.links?.next;
@@ -288,7 +300,9 @@ export class PlanningCenterCoreClient {
     while (hasMore && pageCount < maxPages) {
       pageCount++;
       const response = await this.fetch<T[] | T>(url);
-      const data = Array.isArray(response.data) ? response.data : [response.data];
+      const data = Array.isArray(response.data)
+        ? response.data
+        : [response.data];
       allData.push(...data);
 
       for (const resource of response.included || []) {
@@ -311,7 +325,9 @@ export class PlanningCenterCoreClient {
   }
 }
 
-async function parseJsonResponse<T>(response: Response): Promise<PCApiResponse<T>> {
+async function parseJsonResponse<T>(
+  response: Response
+): Promise<PCApiResponse<T>> {
   if (response.status === 204) {
     return undefined as unknown as PCApiResponse<T>;
   }
@@ -407,7 +423,9 @@ function buildJsonFetchDedupeKey({
   });
 }
 
-function normalizeHeaders(headers: HeadersInit | undefined): [string, string][] {
+function normalizeHeaders(
+  headers: HeadersInit | undefined
+): [string, string][] {
   if (!headers) return [];
 
   return Array.from(new Headers(headers).entries()).sort(([left], [right]) =>

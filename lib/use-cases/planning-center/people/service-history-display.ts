@@ -1,12 +1,16 @@
-import type { ScheduleFrequency, ServiceHistoryItem } from "@/lib/types";
 import { orgCalendarDaysRefMinusItem } from "@/lib/planning-center/org-calendar";
+import type { ScheduleFrequency, ServiceHistoryItem } from "@/lib/types";
 import { formatCalendarDayInTimeZone } from "@/lib/use-cases/planning-center/people/calendar-day";
 
 /** Distinct engagement days in the plan-history band (parity: past = service days + rehearsal-only days; future = same split). */
-export function formatScheduleFrequencyLine(frequency: ScheduleFrequency | undefined): string | null {
+export function formatScheduleFrequencyLine(
+  frequency: ScheduleFrequency | undefined
+): string | null {
   if (!frequency) return null;
-  const served = frequency.recentServedDays + (frequency.recentRehearsalOnlyDays ?? 0);
-  const upcoming = (frequency.upcomingServices ?? 0) + (frequency.upcomingRehearsals ?? 0);
+  const served =
+    frequency.recentServedDays + (frequency.recentRehearsalOnlyDays ?? 0);
+  const upcoming =
+    (frequency.upcomingServices ?? 0) + (frequency.upcomingRehearsals ?? 0);
   return `${served} served | ${upcoming} upcoming`;
 }
 
@@ -16,7 +20,9 @@ export function toServiceHistoryDate(value: Date | string | undefined) {
   return parsed;
 }
 
-export function formatServiceHistoryDisplayDate(date: Date | string | undefined) {
+export function formatServiceHistoryDisplayDate(
+  date: Date | string | undefined
+) {
   if (!date) return "Unknown date";
   const dateObj = toServiceHistoryDate(date);
   if (Number.isNaN(dateObj.getTime())) return "Invalid date";
@@ -80,7 +86,9 @@ export type ServiceHistoryGroup = {
   rehearsals: ServiceHistoryItem[];
 };
 
-export function buildServiceHistoryGroups(items: ServiceHistoryItem[]): ServiceHistoryGroup[] {
+export function buildServiceHistoryGroups(
+  items: ServiceHistoryItem[]
+): ServiceHistoryGroup[] {
   const bySchedule = new Map<string, ServiceHistoryItem[]>();
   const order: string[] = [];
 
@@ -95,7 +103,9 @@ export function buildServiceHistoryGroups(items: ServiceHistoryItem[]): ServiceH
 
   const baseGroups = order.map((key) => {
     const groupItems = [...(bySchedule.get(key) || [])].sort(
-      (a, b) => toServiceHistoryDate(a.date).getTime() - toServiceHistoryDate(b.date).getTime()
+      (a, b) =>
+        toServiceHistoryDate(a.date).getTime() -
+        toServiceHistoryDate(b.date).getTime()
     );
     const primary =
       groupItems.find((item) => item.timeType === "service") ??
@@ -111,8 +121,10 @@ export function buildServiceHistoryGroups(items: ServiceHistoryItem[]): ServiceH
     const rehearsals = groupItems.filter((item) => {
       if (item.id === primary.id || item.timeType !== "rehearsal") return false;
       const rehearsalDayKey = toDayKey(item.date);
-      if (primaryDayKey && rehearsalDayKey && primaryDayKey === rehearsalDayKey) return false;
-      if (rehearsalDayKey && seenRehearsalDays.has(rehearsalDayKey)) return false;
+      if (primaryDayKey && rehearsalDayKey && primaryDayKey === rehearsalDayKey)
+        return false;
+      if (rehearsalDayKey && seenRehearsalDays.has(rehearsalDayKey))
+        return false;
       if (rehearsalDayKey) seenRehearsalDays.add(rehearsalDayKey);
       return true;
     });
@@ -144,11 +156,18 @@ export function buildServiceHistoryGroups(items: ServiceHistoryItem[]): ServiceH
       continue;
     }
 
-    existing.additionalServices.push(group.primary, ...group.additionalServices);
+    existing.additionalServices.push(
+      group.primary,
+      ...group.additionalServices
+    );
 
-    const seenRehearsalIds = new Set(existing.rehearsals.map((item) => item.id));
+    const seenRehearsalIds = new Set(
+      existing.rehearsals.map((item) => item.id)
+    );
     const seenRehearsalDayKeys = new Set(
-      existing.rehearsals.map((r) => toDayKey(r.date)).filter((k): k is string => k != null)
+      existing.rehearsals
+        .map((r) => toDayKey(r.date))
+        .filter((k): k is string => k != null)
     );
     for (const rehearsal of group.rehearsals) {
       if (seenRehearsalIds.has(rehearsal.id)) continue;
@@ -163,7 +182,11 @@ export function buildServiceHistoryGroups(items: ServiceHistoryItem[]): ServiceH
   return mergedOrder.map((key) => mergedGroups.get(key)!);
 }
 
-function absOrgCalendarDaysBetween(a: Date, b: Date, orgTimeZone: string): number {
+function absOrgCalendarDaysBetween(
+  a: Date,
+  b: Date,
+  orgTimeZone: string
+): number {
   const tz = orgTimeZone.trim() || "UTC";
   const dayA = formatCalendarDayInTimeZone(a, tz);
   const dayB = formatCalendarDayInTimeZone(b, tz);
@@ -171,7 +194,9 @@ function absOrgCalendarDaysBetween(a: Date, b: Date, orgTimeZone: string): numbe
 }
 
 /** Shorthand for strip/summary: latest service day in history. */
-export function pickLatestServiceHistoryGroup(groups: ServiceHistoryGroup[]): ServiceHistoryGroup | null {
+export function pickLatestServiceHistoryGroup(
+  groups: ServiceHistoryGroup[]
+): ServiceHistoryGroup | null {
   if (groups.length === 0) return null;
   return groups.reduce((best, g) => {
     const t = toServiceHistoryDate(g.primary.date).getTime();
@@ -196,10 +221,18 @@ export function pickServiceHistoryGroupClosestToReference(
   }
   const tz = orgTimeZone.trim() || "UTC";
   let best = groups[0]!;
-  let bestDelta = absOrgCalendarDaysBetween(toServiceHistoryDate(best.primary.date), ref, tz);
+  let bestDelta = absOrgCalendarDaysBetween(
+    toServiceHistoryDate(best.primary.date),
+    ref,
+    tz
+  );
   for (let i = 1; i < groups.length; i++) {
     const g = groups[i]!;
-    const delta = absOrgCalendarDaysBetween(toServiceHistoryDate(g.primary.date), ref, tz);
+    const delta = absOrgCalendarDaysBetween(
+      toServiceHistoryDate(g.primary.date),
+      ref,
+      tz
+    );
     if (delta < bestDelta) {
       best = g;
       bestDelta = delta;
@@ -224,5 +257,7 @@ export function formatCombinedHistoryPositionLabel(
   const positionText = uniquePositions.join(", ");
   if (!positionText) return "Unknown position";
 
-  return primary.teamName ? `${primary.teamName} - ${positionText}` : positionText;
+  return primary.teamName
+    ? `${primary.teamName} - ${positionText}`
+    : positionText;
 }

@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { ApiError } from "@/lib/http/api-error";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
@@ -21,8 +22,16 @@ export async function GET(request: Request) {
     });
 
     if (!parsed.success) {
-      log.warn({ issues: parsed.error.issues }, "Invalid people warmup query params");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsed.error.issues);
+      log.warn(
+        { issues: parsed.error.issues },
+        "Invalid people warmup query params"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsed.error.issues
+      );
     }
 
     const startedAt = performance.now();

@@ -1,6 +1,9 @@
 import type { PlanTime } from "@/lib/types";
 
-export interface SerializedPlanTime extends Omit<PlanTime, "startsAt" | "endsAt"> {
+export interface SerializedPlanTime extends Omit<
+  PlanTime,
+  "startsAt" | "endsAt"
+> {
   startsAt: string;
   endsAt: string | null;
 }
@@ -13,7 +16,9 @@ export function serializePlanTime(planTime: PlanTime): SerializedPlanTime {
   };
 }
 
-export function serializePlanTimes(planTimes: PlanTime[]): SerializedPlanTime[] {
+export function serializePlanTimes(
+  planTimes: PlanTime[]
+): SerializedPlanTime[] {
   return planTimes.map(serializePlanTime);
 }
 

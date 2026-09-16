@@ -1,7 +1,9 @@
 import type { PersonWithAvailability } from "@/lib/types";
 
 function isStripTail(person: PersonWithAvailability): boolean {
-  return !!person.isBlockedForDate || !!person.isDeclinedForSelectedPlanPosition;
+  return (
+    !!person.isBlockedForDate || !!person.isDeclinedForSelectedPlanPosition
+  );
 }
 
 /** Within the tail: blocked before declined, then score, then name. */
@@ -19,7 +21,9 @@ function actionableSortKey(person: PersonWithAvailability): number {
 }
 
 /** On-slot people first, then everyone else by recommendation, then blocked & declined at the end. */
-export function partitionPeopleForRecommendationStrip(people: PersonWithAvailability[]): {
+export function partitionPeopleForRecommendationStrip(
+  people: PersonWithAvailability[]
+): {
   actionable: PersonWithAvailability[];
   exceptions: PersonWithAvailability[];
 } {

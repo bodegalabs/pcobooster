@@ -1,5 +1,9 @@
 import { planningCenterPlanItemsService } from "@/lib/planning-center/services/plan-items-service";
-import type { PlanItem, PlanItemServicePosition, PlanItemType } from "@/lib/types";
+import type {
+  PlanItem,
+  PlanItemServicePosition,
+  PlanItemType,
+} from "@/lib/types";
 import {
   buildPlanItemAttributes,
   resolvePlanItemSongDefaults,
@@ -22,11 +26,15 @@ export interface CreatePlanItemInput {
   customArrangementSequence?: string[];
 }
 
-export async function createPlanItem(input: CreatePlanItemInput): Promise<PlanItem> {
+export async function createPlanItem(
+  input: CreatePlanItemInput
+): Promise<PlanItem> {
   const resolvedInput = await resolvePlanItemSongDefaults({
     ...input,
     itemType:
-      input.itemType === "header" || input.itemType === "item" ? input.itemType : undefined,
+      input.itemType === "header" || input.itemType === "item"
+        ? input.itemType
+        : undefined,
   });
   const attributes = buildPlanItemAttributes(resolvedInput, {
     defaultServicePosition: "during",

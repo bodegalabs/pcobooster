@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+
 import { getServiceTypes } from "@/lib/use-cases/planning-center/get-service-types";
 
 const { getServiceTypesCachedMock } = vi.hoisted(() => ({
@@ -27,7 +28,11 @@ describe("getServiceTypes", () => {
       {
         id: "archived",
         type: "ServiceType",
-        attributes: { name: "Archived", sequence: 10, archived_at: "2025-01-01T00:00:00Z" },
+        attributes: {
+          name: "Archived",
+          sequence: 10,
+          archived_at: "2025-01-01T00:00:00Z",
+        },
       },
       {
         id: "active-1",
@@ -37,6 +42,10 @@ describe("getServiceTypes", () => {
     ]);
 
     const result = await getServiceTypes();
-    expect(result.map((s) => s.id)).toEqual(["st-excluded", "active-1", "active-2"]);
+    expect(result.map((s) => s.id)).toEqual([
+      "st-excluded",
+      "active-1",
+      "active-2",
+    ]);
   });
 });

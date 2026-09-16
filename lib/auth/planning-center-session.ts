@@ -1,10 +1,14 @@
 import { auth } from "@/lib/auth";
-import { getDevBypassSession, isDevAuthBypassEnabled } from "@/lib/auth/dev-bypass";
+import {
+  getDevBypassSession,
+  isDevAuthBypassEnabled,
+} from "@/lib/auth/dev-bypass";
 import { ApiError } from "@/lib/http/api-error";
 import { runWithPlanningCenterRequestAuth } from "@/lib/planning-center/request-auth-context";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
-export const PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE = "pco-selected-account-id";
+export const PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE =
+  "pco-selected-account-id";
 
 function getCookieValue(request: Request, name: string): string | null {
   const header = request.headers.get("cookie");
@@ -26,7 +30,9 @@ function getCookieValue(request: Request, name: string): string | null {
   return null;
 }
 
-export function getSelectedPlanningCenterAccountId(request: Request): string | null {
+export function getSelectedPlanningCenterAccountId(
+  request: Request
+): string | null {
   return getCookieValue(request, PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE);
 }
 
@@ -54,7 +60,11 @@ export async function requirePlanningCenterAccessToken(request: Request) {
   });
 
   if (!session) {
-    throw new ApiError(401, "UNAUTHORIZED", "Sign in with Planning Center to continue");
+    throw new ApiError(
+      401,
+      "UNAUTHORIZED",
+      "Sign in with Planning Center to continue"
+    );
   }
 
   const linkedAccounts = await auth.api.listUserAccounts({
@@ -72,7 +82,9 @@ export async function requirePlanningCenterAccessToken(request: Request) {
   const selectedAccountId = getSelectedPlanningCenterAccountId(request);
   const selectedAccount =
     (selectedAccountId
-      ? planningCenterAccounts.find((account) => account.id === selectedAccountId)
+      ? planningCenterAccounts.find(
+          (account) => account.id === selectedAccountId
+        )
       : null) ?? planningCenterAccounts[0];
 
   if (!selectedAccount) {
@@ -118,7 +130,9 @@ export async function requirePlanningCenterAccessToken(request: Request) {
     return {
       session,
       accessToken: refreshed.accessToken,
-      scopes: refreshed.scope ? refreshed.scope.split(/\s+/).filter(Boolean) : [],
+      scopes: refreshed.scope
+        ? refreshed.scope.split(/\s+/).filter(Boolean)
+        : [],
       accountId: selectedAccount.id,
     };
   }

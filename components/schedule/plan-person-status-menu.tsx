@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Loader2, MoreVertical, Trash2 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,11 +10,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
 import {
   type PlanPersonStatusCode,
   useUpdatePlanPersonStatus,
 } from "@/hooks/use-update-plan-person-status";
-import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
 import { cn } from "@/lib/utils";
 
 export type PlanPersonStatusValue = "confirmed" | "scheduled" | "declined";
@@ -24,7 +25,11 @@ const STATUS_TO_CODE: Record<PlanPersonStatusValue, PlanPersonStatusCode> = {
   declined: "D",
 };
 
-const ITEMS: { value: PlanPersonStatusValue; label: string; dotClassName: string }[] = [
+const ITEMS: {
+  value: PlanPersonStatusValue;
+  label: string;
+  dotClassName: string;
+}[] = [
   { value: "confirmed", label: "Confirmed", dotClassName: "bg-emerald-500" },
   { value: "scheduled", label: "Pending", dotClassName: "bg-amber-500" },
   { value: "declined", label: "Declined", dotClassName: "bg-red-500" },
@@ -53,8 +58,14 @@ export function PlanPersonStatusMenu({
   onSuccess,
   onError,
 }: PlanPersonStatusMenuProps) {
-  const { isUpdating, handleUpdate } = useUpdatePlanPersonStatus({ onSuccess, onError });
-  const { isUnscheduling, handleUnschedule } = useUnschedulePlanPerson({ onSuccess, onError });
+  const { isUpdating, handleUpdate } = useUpdatePlanPersonStatus({
+    onSuccess,
+    onError,
+  });
+  const { isUnscheduling, handleUnschedule } = useUnschedulePlanPerson({
+    onSuccess,
+    onError,
+  });
   const isBusy = isUpdating || isUnscheduling;
 
   return (
@@ -90,7 +101,10 @@ export function PlanPersonStatusMenu({
               })
             }
           >
-            <span className={cn("size-1.5 shrink-0 rounded-full", dotClassName)} aria-hidden />
+            <span
+              className={cn("size-1.5 shrink-0 rounded-full", dotClassName)}
+              aria-hidden
+            />
             <span className="flex-1">{label}</span>
             {currentStatus === value ? (
               <Check className="size-3.5 opacity-70" aria-hidden />

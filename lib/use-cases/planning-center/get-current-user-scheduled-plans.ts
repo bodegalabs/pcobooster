@@ -1,4 +1,7 @@
-import { isDevAuthBypassEnabled, loadDevBypassIdentity } from "@/lib/auth/dev-bypass";
+import {
+  isDevAuthBypassEnabled,
+  loadDevBypassIdentity,
+} from "@/lib/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@/lib/auth/planning-center-identity";
 import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 import type { RawSchedule } from "@/lib/types";
@@ -44,7 +47,8 @@ export async function getCurrentUserScheduledPlanIds(
   const personId = isDevAuthBypassEnabled()
     ? (await loadDevBypassIdentity()).personId
     : extractPersonIdFromIdentitySub(
-        (await getPlanningCenterIdentityForAccount(request, accountId))?.sub ?? null
+        (await getPlanningCenterIdentityForAccount(request, accountId))?.sub ??
+          null
       );
   if (!personId) return [];
 
@@ -58,7 +62,8 @@ export async function getCurrentUserScheduledPlanIds(
   const matchedPlanIds = new Set<string>();
 
   for (const schedule of schedules) {
-    if (!isScheduledStatus(schedule.attributes.status as string | undefined)) continue;
+    if (!isScheduledStatus(schedule.attributes.status as string | undefined))
+      continue;
 
     const planId = getRelatedPlanId(schedule);
     if (!planId || !requestedPlanIds.has(planId)) continue;

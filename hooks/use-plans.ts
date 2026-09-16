@@ -1,10 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
+
 import { getJson } from "@/lib/http/client";
-import { readCachedPlansEntry, writeCachedPlans } from "@/lib/schedule-catalog-cache";
-import type { Plan } from "@/lib/types";
-import { queryKeys } from "@/lib/query-keys";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
+import { queryKeys } from "@/lib/query-keys";
+import {
+  readCachedPlansEntry,
+  writeCachedPlans,
+} from "@/lib/schedule-catalog-cache";
+import type { Plan } from "@/lib/types";
 
 export function usePlans(serviceTypeId: string | null) {
   const queryKey = queryKeys.plans(serviceTypeId);

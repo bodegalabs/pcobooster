@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   clearCachedSongOptions,
   readCachedSongOptions,
@@ -79,7 +80,9 @@ describe("song options cache", () => {
     expect(cached?.savedAt).toBe(savedAt);
     expect(cached?.data.song.title).toBe("Build My Life");
     expect(cached?.data.song.lastScheduledAt).toBeInstanceOf(Date);
-    expect(cached?.data.song.lastScheduledAt?.toISOString()).toBe("2026-02-15T00:00:00.000Z");
+    expect(cached?.data.song.lastScheduledAt?.toISOString()).toBe(
+      "2026-02-15T00:00:00.000Z"
+    );
     expect(cached?.data.arrangements[0].keys[0].name).toBe("A");
   });
 

@@ -1,5 +1,5 @@
-import { useEffect } from "react";
 import { useQueryClient, type QueryKey } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 type ClientCacheEntry<TData> = {
   data: TData;
@@ -17,7 +17,8 @@ export function useHydrateQueryFromCache<TData>(
     if (!cached) return;
 
     const state = queryClient.getQueryState<TData>(queryKey);
-    if (state?.data !== undefined && state.dataUpdatedAt >= cached.savedAt) return;
+    if (state?.data !== undefined && state.dataUpdatedAt >= cached.savedAt)
+      return;
 
     queryClient.setQueryData<TData>(queryKey, cached.data, {
       updatedAt: cached.savedAt,

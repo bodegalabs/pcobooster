@@ -1,13 +1,14 @@
-import { useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback, useMemo } from "react";
+
 import { postJson } from "@/lib/http/client";
 import {
   readCachedMyScheduledPlans,
   writeCachedMyScheduledPlans,
   type MyScheduledPlansData,
 } from "@/lib/my-scheduled-plans-cache";
-import { queryKeys } from "@/lib/query-keys";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
+import { queryKeys } from "@/lib/query-keys";
 
 export function useMyScheduledPlans(planIds: string[]) {
   const normalizedPlanIds = useMemo(
@@ -29,9 +30,12 @@ export function useMyScheduledPlans(planIds: string[]) {
         return { planIds: [] };
       }
 
-      const scheduledPlans = await postJson<MyScheduledPlansData>("/api/my-scheduled-plans", {
-        planIds: normalizedPlanIds,
-      });
+      const scheduledPlans = await postJson<MyScheduledPlansData>(
+        "/api/my-scheduled-plans",
+        {
+          planIds: normalizedPlanIds,
+        }
+      );
       writeCachedMyScheduledPlans(planIdsKey, scheduledPlans);
       return scheduledPlans;
     },

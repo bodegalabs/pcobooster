@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { hydratePlanItem, serializePlanItem } from "@/lib/plan-item-client";
 import type { PlanItem } from "@/lib/types";
 
@@ -50,8 +51,12 @@ describe("plan item transport", () => {
     const hydrated = hydratePlanItem(serializePlanItem(planItem));
 
     expect(hydrated.song?.lastScheduledAt).toBeInstanceOf(Date);
-    expect(hydrated.song?.lastScheduledAt?.toISOString()).toBe("2026-02-15T00:00:00.000Z");
+    expect(hydrated.song?.lastScheduledAt?.toISOString()).toBe(
+      "2026-02-15T00:00:00.000Z"
+    );
     expect(hydrated.arrangement?.archivedAt).toBeInstanceOf(Date);
-    expect(hydrated.arrangement?.archivedAt?.toISOString()).toBe("2024-01-01T00:00:00.000Z");
+    expect(hydrated.arrangement?.archivedAt?.toISOString()).toBe(
+      "2024-01-01T00:00:00.000Z"
+    );
   });
 });

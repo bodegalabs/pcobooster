@@ -1,10 +1,17 @@
-import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback } from "react";
+
 import { getJson } from "@/lib/http/client";
-import { hydratePlanItems, type SerializedPlanItem } from "@/lib/plan-item-client";
-import { readCachedPlanItems, writeCachedPlanItems } from "@/lib/plan-items-cache";
-import { queryKeys } from "@/lib/query-keys";
+import {
+  hydratePlanItems,
+  type SerializedPlanItem,
+} from "@/lib/plan-item-client";
+import {
+  readCachedPlanItems,
+  writeCachedPlanItems,
+} from "@/lib/plan-items-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
+import { queryKeys } from "@/lib/query-keys";
 import type { PlanItem } from "@/lib/types";
 
 const PLAN_ITEMS_STALE_TIME_MS = 60 * 1000;
@@ -26,7 +33,9 @@ export function createPlanItemsQueryOptions(
     queryFn: async () => {
       if (!serviceTypeId || !planId) return [];
 
-      const items = await getJson<SerializedPlanItem[]>(buildPlanItemsUrl(serviceTypeId, planId));
+      const items = await getJson<SerializedPlanItem[]>(
+        buildPlanItemsUrl(serviceTypeId, planId)
+      );
       const hydratedItems = hydratePlanItems(items);
       writeCachedPlanItems(serviceTypeId, planId, hydratedItems);
       return hydratedItems;

@@ -1,12 +1,17 @@
 import { planningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
 import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 import { planningCenterPlansService } from "@/lib/planning-center/services/plans-service";
+import type {
+  PlanTime,
+  PlanTimeType,
+  RawPlanPerson,
+  RawPlanTime,
+} from "@/lib/types";
+import { invalidatePlanWindowHistory } from "@/lib/use-cases/planning-center/get-people-for-position";
 import {
   buildPlanSchedulingContext,
   isDeclinedRosterStatus,
 } from "@/lib/use-cases/planning-center/plan-scheduling-context";
-import type { PlanTime, PlanTimeType, RawPlanPerson, RawPlanTime } from "@/lib/types";
-import { invalidatePlanWindowHistory } from "@/lib/use-cases/planning-center/get-people-for-position";
 
 interface UpdatePlanTimeInput {
   serviceTypeId: string;
@@ -49,7 +54,9 @@ export async function getPlanTimes(planId: string): Promise<PlanTime[]> {
     .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
 }
 
-export async function updatePlanTime(input: UpdatePlanTimeInput): Promise<PlanTime> {
+export async function updatePlanTime(
+  input: UpdatePlanTimeInput
+): Promise<PlanTime> {
   const attributes: Record<string, unknown> = {};
   if (input.name !== undefined) attributes.name = input.name;
   if (input.startsAt !== undefined) attributes.starts_at = input.startsAt;
@@ -66,7 +73,9 @@ export async function updatePlanTime(input: UpdatePlanTimeInput): Promise<PlanTi
   );
   await updateNeededPositionAssignments(input);
   await updateIndividualTimeAssignments(input);
-  planningCenterPeopleService.invalidatePlanTimeSensitiveReadCaches(input.planId);
+  planningCenterPeopleService.invalidatePlanTimeSensitiveReadCaches(
+    input.planId
+  );
   invalidatePlanWindowHistory();
 
   const planTime = normalizePlanTime(rawPlanTime as RawPlanTime);
@@ -76,7 +85,9 @@ export async function updatePlanTime(input: UpdatePlanTimeInput): Promise<PlanTi
   return planTime;
 }
 
-export async function createPlanTime(input: CreatePlanTimeInput): Promise<PlanTime> {
+export async function createPlanTime(
+  input: CreatePlanTimeInput
+): Promise<PlanTime> {
   const attributes: Record<string, unknown> = {
     starts_at: input.startsAt,
     time_type: input.timeType,
@@ -91,7 +102,9 @@ export async function createPlanTime(input: CreatePlanTimeInput): Promise<PlanTi
     input.assignedTeamIds,
     input.assignedPositionIds
   );
-  planningCenterPeopleService.invalidatePlanTimeSensitiveReadCaches(input.planId);
+  planningCenterPeopleService.invalidatePlanTimeSensitiveReadCaches(
+    input.planId
+  );
   invalidatePlanWindowHistory();
 
   const planTime = normalizePlanTime(rawPlanTime as RawPlanTime);
@@ -101,13 +114,17 @@ export async function createPlanTime(input: CreatePlanTimeInput): Promise<PlanTi
   return planTime;
 }
 
-export async function deletePlanTime(input: DeletePlanTimeInput): Promise<void> {
+export async function deletePlanTime(
+  input: DeletePlanTimeInput
+): Promise<void> {
   await planningCenterPlansService.deletePlanTime(
     input.serviceTypeId,
     input.planId,
     input.planTimeId
   );
-  planningCenterPeopleService.invalidatePlanTimeSensitiveReadCaches(input.planId);
+  planningCenterPeopleService.invalidatePlanTimeSensitiveReadCaches(
+    input.planId
+  );
   invalidatePlanWindowHistory();
 }
 
@@ -132,7 +149,9 @@ async function updateIndividualTimeAssignments(input: UpdatePlanTimeInput) {
   await Promise.all(
     context.rosterEntries
       .filter((entry) => targetIds.has(entry.planPersonId))
-      .filter((entry) => entry.personId && !isDeclinedRosterStatus(entry.status))
+      .filter(
+        (entry) => entry.personId && !isDeclinedRosterStatus(entry.status)
+      )
       .map((entry) => {
         const current = new Set(entry.assignedTimeIds);
         if (assignSet.has(entry.planPersonId)) {
@@ -188,15 +207,21 @@ function normalizePlanTime(raw: RawPlanTime): PlanTime | null {
     endsAt: parseOptionalDate(raw.attributes.ends_at),
     timeType: normalizeTimeType(raw.attributes.time_type),
     teamReminders: raw.attributes.team_reminders ?? null,
-    assignedTeamIds: getRelationshipIds(raw.relationships?.assigned_teams?.data),
-    assignedPositionIds: getRelationshipIds(raw.relationships?.assigned_positions?.data),
+    assignedTeamIds: getRelationshipIds(
+      raw.relationships?.assigned_teams?.data
+    ),
+    assignedPositionIds: getRelationshipIds(
+      raw.relationships?.assigned_positions?.data
+    ),
     splitTeamRehearsalAssignmentIds: getRelationshipIds(
       raw.relationships?.split_team_rehearsal_assignments?.data
     ),
   };
 }
 
-function getRelationshipIds(relationships: { id: string }[] | undefined): string[] {
+function getRelationshipIds(
+  relationships: { id: string }[] | undefined
+): string[] {
   return relationships?.map((relationship) => relationship.id) ?? [];
 }
 

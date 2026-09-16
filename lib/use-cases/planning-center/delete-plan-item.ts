@@ -5,5 +5,9 @@ export async function deletePlanItem(
   planId: string,
   itemId: string
 ): Promise<void> {
-  await planningCenterPlanItemsService.deletePlanItem(serviceTypeId, planId, itemId);
+  await planningCenterPlanItemsService.deletePlanItem(
+    serviceTypeId,
+    planId,
+    itemId
+  );
 }

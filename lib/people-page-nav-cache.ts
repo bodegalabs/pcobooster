@@ -4,12 +4,15 @@ export interface PeoplePageNavState {
   enabled: boolean;
 }
 
-export function parsePeoplePageNavState(raw: string | null): PeoplePageNavState | null {
+export function parsePeoplePageNavState(
+  raw: string | null
+): PeoplePageNavState | null {
   if (!raw) return null;
 
   try {
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+      return null;
     if (typeof parsed.enabled !== "boolean") return null;
     return { enabled: parsed.enabled };
   } catch {

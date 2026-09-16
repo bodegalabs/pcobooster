@@ -22,7 +22,9 @@ export interface UpdatePlanItemInput {
   customArrangementSequence?: string[];
 }
 
-export async function updatePlanItem(input: UpdatePlanItemInput): Promise<PlanItem> {
+export async function updatePlanItem(
+  input: UpdatePlanItemInput
+): Promise<PlanItem> {
   const resolvedInput = await resolvePlanItemSongDefaults(input);
 
   const response = await planningCenterPlanItemsService.updatePlanItem(

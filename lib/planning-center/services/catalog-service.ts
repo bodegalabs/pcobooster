@@ -1,7 +1,7 @@
-import type { PCResource } from "@/lib/types";
 import { logger } from "@/lib/logger";
 import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { PlanningCenterReadCache } from "@/lib/planning-center/services/read-cache";
+import type { PCResource } from "@/lib/types";
 
 const log = logger.for("planning-center/catalog");
 const TEAM_POSITIONS_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -15,18 +15,24 @@ export class PlanningCenterCatalogService {
   constructor(private readonly core: PlanningCenterCoreClient) {}
 
   async getTeam(teamId: string): Promise<PCResource> {
-    const response = await this.core.fetch<PCResource>(`/services/v2/teams/${teamId}`);
+    const response = await this.core.fetch<PCResource>(
+      `/services/v2/teams/${teamId}`
+    );
     return response.data;
   }
 
   /** Root Services `Organization` (account settings include `time_zone`). */
   async getOrganization(): Promise<PCResource> {
-    const response = await this.core.fetch<PCResource | PCResource[]>("/services/v2");
+    const response = await this.core.fetch<PCResource | PCResource[]>(
+      "/services/v2"
+    );
     const { data } = response;
     if (Array.isArray(data)) {
       const first = data[0];
       if (!first) {
-        throw new Error("Planning Center Services organization response was empty");
+        throw new Error(
+          "Planning Center Services organization response was empty"
+        );
       }
       return first;
     }
@@ -112,7 +118,11 @@ export class PlanningCenterCatalogService {
     planId: string
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
     const response = await this.cache.get(
-      this.buildCacheKey("service-type-plan-needed-positions", serviceTypeId, planId),
+      this.buildCacheKey(
+        "service-type-plan-needed-positions",
+        serviceTypeId,
+        planId
+      ),
       NEEDED_POSITIONS_CACHE_TTL_MS,
       async () => {
         const result = await this.core.fetchAllWithIncluded<PCResource>(

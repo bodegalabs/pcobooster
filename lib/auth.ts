@@ -1,13 +1,14 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { genericOAuth } from "better-auth/plugins/generic-oauth";
 import { nextCookies } from "better-auth/next-js";
+import { genericOAuth } from "better-auth/plugins/generic-oauth";
+
 import { getPlanningCenterIdentityFromAccessToken } from "@/lib/auth/planning-center-identity";
+import { db } from "@/lib/db";
 import {
   getActivityRequestContext,
   recordActivityEvent,
 } from "@/lib/db/activity-events";
-import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { logger } from "@/lib/logger";
 import { upsertPlanningCenterAccountIdentity } from "@/lib/use-cases/admin/planning-center-account-identities";
@@ -24,19 +25,26 @@ if (!secret) {
 }
 
 const planningCenterClientId = process.env.PLANNING_CENTER_OAUTH_CLIENT_ID;
-const planningCenterClientSecret = process.env.PLANNING_CENTER_OAUTH_CLIENT_SECRET;
+const planningCenterClientSecret =
+  process.env.PLANNING_CENTER_OAUTH_CLIENT_SECRET;
 
 if (!planningCenterClientId) {
-  throw new Error("Missing PLANNING_CENTER_OAUTH_CLIENT_ID environment variable");
+  throw new Error(
+    "Missing PLANNING_CENTER_OAUTH_CLIENT_ID environment variable"
+  );
 }
 
 if (!planningCenterClientSecret) {
-  throw new Error("Missing PLANNING_CENTER_OAUTH_CLIENT_SECRET environment variable");
+  throw new Error(
+    "Missing PLANNING_CENTER_OAUTH_CLIENT_SECRET environment variable"
+  );
 }
 
 const authEventLog = logger.for("auth/events");
 
-function shouldTrackSessionDeletion(context: Parameters<typeof getActivityRequestContext>[0]): boolean {
+function shouldTrackSessionDeletion(
+  context: Parameters<typeof getActivityRequestContext>[0]
+): boolean {
   const requestContext = getActivityRequestContext(context);
   if (!requestContext.path) {
     return false;
@@ -50,7 +58,10 @@ function shouldTrackSessionDeletion(context: Parameters<typeof getActivityReques
 }
 
 async function recordAuthEventSafely(
-  eventType: "auth_session_created" | "auth_session_deleted" | "auth_account_linked",
+  eventType:
+    | "auth_session_created"
+    | "auth_session_deleted"
+    | "auth_account_linked",
   payload: {
     userId?: string | null;
     accountId?: string | null;
@@ -88,7 +99,9 @@ async function getPlanningCenterIdentitySafely(account: {
   accessToken?: string | null;
 }) {
   try {
-    const identity = await getPlanningCenterIdentityFromAccessToken(account.accessToken);
+    const identity = await getPlanningCenterIdentityFromAccessToken(
+      account.accessToken
+    );
     if (identity) {
       await upsertPlanningCenterAccountIdentity({
         accountId: account.id,

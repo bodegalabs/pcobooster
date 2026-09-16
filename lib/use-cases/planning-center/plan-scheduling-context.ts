@@ -157,7 +157,9 @@ function normalizeRosterEntry(
   if (!rawPositionName) return null;
 
   const status = classifyRosterStatus(member.attributes.status);
-  const relationshipTeamId = getRelationshipId(member.relationships?.team?.data);
+  const relationshipTeamId = getRelationshipId(
+    member.relationships?.team?.data
+  );
   const teamId = relationshipTeamId;
   const teamName = getTeamName(included, teamId);
   const positionName = removeKnownTeamPrefix(rawPositionName, teamName);
@@ -183,7 +185,9 @@ function normalizeRosterEntry(
     status,
     rawStatus: (member.attributes.status || "").toString(),
     assignedTimeIds: getRelationshipIds(member.relationships?.times?.data),
-    serviceTimeIds: getRelationshipIds(member.relationships?.service_times?.data),
+    serviceTimeIds: getRelationshipIds(
+      member.relationships?.service_times?.data
+    ),
     declineReason: normalizeDeclineReason(member.attributes.decline_reason),
   };
 }
@@ -220,16 +224,24 @@ function buildRawPeopleMap(included: PCResource[]): Map<string, RawPerson> {
 function getPersonName(person: RawPerson): string {
   const firstName = (person.attributes.first_name || "").trim();
   const lastName = (person.attributes.last_name || "").trim();
-  return [firstName, lastName].filter(Boolean).join(" ").trim() || "Unknown person";
+  return (
+    [firstName, lastName].filter(Boolean).join(" ").trim() || "Unknown person"
+  );
 }
 
-function getTeamName(included: PCResource[], teamId: string | null): string | null {
+function getTeamName(
+  included: PCResource[],
+  teamId: string | null
+): string | null {
   if (!teamId) return null;
   const team = findIncluded(included, "Team", teamId) as RawTeam | undefined;
   return ((team?.attributes.name as string | undefined) || "").trim() || null;
 }
 
-function removeKnownTeamPrefix(positionName: string, teamName: string | null): string {
+function removeKnownTeamPrefix(
+  positionName: string,
+  teamName: string | null
+): string {
   if (!teamName) return positionName;
   const prefix = `${teamName} - `;
   return positionName.startsWith(prefix)
@@ -256,7 +268,9 @@ function getRelationshipId(
   return data.id || null;
 }
 
-function getRelationshipIds(data: { id: string }[] | null | undefined): string[] {
+function getRelationshipIds(
+  data: { id: string }[] | null | undefined
+): string[] {
   return data?.map((item) => item.id).filter(Boolean) ?? [];
 }
 

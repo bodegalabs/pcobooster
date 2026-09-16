@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
+
+import type { PCResource, RawPlanPerson } from "@/lib/types";
 import {
   buildHistoryAndFrequencyForPerson,
   buildHistoryAndFrequencyForPlanPeople,
 } from "@/lib/use-cases/planning-center/people/history";
-import type { PCResource, RawPlanPerson } from "@/lib/types";
 
 function schedule(params: {
   id: string;
@@ -20,7 +21,9 @@ function schedule(params: {
     relationships.team = { data: { type: "Team", id: params.teamId } };
   }
   if (params.serviceTypeId) {
-    relationships.service_type = { data: { type: "ServiceType", id: params.serviceTypeId } };
+    relationships.service_type = {
+      data: { type: "ServiceType", id: params.serviceTypeId },
+    };
   }
   if (params.planTimeIds) {
     relationships.plan_times = {
@@ -42,7 +45,10 @@ function schedule(params: {
   };
 }
 
-function planTime(id: string, timeType: "service" | "rehearsal" | "other"): PCResource {
+function planTime(
+  id: string,
+  timeType: "service" | "rehearsal" | "other"
+): PCResource {
   return {
     type: "PlanTime",
     id,
@@ -117,9 +123,16 @@ describe("buildHistoryAndFrequencyForPerson", () => {
       "UTC"
     );
 
-    expect(result.serviceHistory.some((item) => item.timeType === "service")).toBe(true);
-    expect(result.serviceHistory.some((item) => item.timeType === "rehearsal")).toBe(true);
-    expect(result.serviceHistory.find((item) => item.id === "s-fallback-rehearsal")?.timeType).toBe("rehearsal");
+    expect(
+      result.serviceHistory.some((item) => item.timeType === "service")
+    ).toBe(true);
+    expect(
+      result.serviceHistory.some((item) => item.timeType === "rehearsal")
+    ).toBe(true);
+    expect(
+      result.serviceHistory.find((item) => item.id === "s-fallback-rehearsal")
+        ?.timeType
+    ).toBe("rehearsal");
 
     expect(result.frequency.recentServedDays).toBe(1);
     expect(result.frequency.recentRehearsalOnlyDays).toBe(1);
@@ -222,8 +235,12 @@ describe("declined assignments", () => {
       "UTC"
     );
 
-    expect(result.serviceHistory.every((h) => h.sourceScheduleId !== "s-declined")).toBe(true);
-    expect(result.serviceHistory.some((h) => h.sourceScheduleId === "s-confirmed")).toBe(true);
+    expect(
+      result.serviceHistory.every((h) => h.sourceScheduleId !== "s-declined")
+    ).toBe(true);
+    expect(
+      result.serviceHistory.some((h) => h.sourceScheduleId === "s-confirmed")
+    ).toBe(true);
     expect(result.frequency.recentServedDays).toBe(1);
     expect(result.frequency.totalServed).toBe(1);
   });
@@ -241,7 +258,9 @@ describe("declined assignments", () => {
           sort_date: "2026-02-12T00:00:00Z",
           created_at: "2026-02-12T00:00:00Z",
         },
-        relationships: { service_type: { data: { type: "ServiceType", id: "st-1" } } },
+        relationships: {
+          service_type: { data: { type: "ServiceType", id: "st-1" } },
+        },
       },
       {
         type: "Plan",
@@ -251,7 +270,9 @@ describe("declined assignments", () => {
           sort_date: "2026-02-10T00:00:00Z",
           created_at: "2026-02-10T00:00:00Z",
         },
-        relationships: { service_type: { data: { type: "ServiceType", id: "st-1" } } },
+        relationships: {
+          service_type: { data: { type: "ServiceType", id: "st-1" } },
+        },
       },
     ];
 
@@ -294,8 +315,12 @@ describe("declined assignments", () => {
       "UTC"
     );
 
-    expect(result.serviceHistory.some((h) => h.sourceScheduleId === "pp-d")).toBe(false);
-    expect(result.serviceHistory.some((h) => h.sourceScheduleId === "pp-c")).toBe(true);
+    expect(
+      result.serviceHistory.some((h) => h.sourceScheduleId === "pp-d")
+    ).toBe(false);
+    expect(
+      result.serviceHistory.some((h) => h.sourceScheduleId === "pp-c")
+    ).toBe(true);
     expect(result.frequency.recentServedDays).toBe(1);
   });
 });

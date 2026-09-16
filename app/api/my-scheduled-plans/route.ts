@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { ApiError } from "@/lib/http/api-error";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
@@ -16,8 +17,16 @@ export async function POST(request: Request) {
   return handlePlanningCenterRoute(request, async ({ accountId }) => {
     const parsed = requestSchema.safeParse(await request.json());
     if (!parsed.success) {
-      log.warn({ issues: parsed.error.issues }, "Invalid my-scheduled-plans request body");
-      throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsed.error.issues);
+      log.warn(
+        { issues: parsed.error.issues },
+        "Invalid my-scheduled-plans request body"
+      );
+      throw new ApiError(
+        400,
+        "INVALID_REQUEST",
+        "Invalid request",
+        parsed.error.issues
+      );
     }
 
     const uniquePlanIds = [...new Set(parsed.data.planIds)];

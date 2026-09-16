@@ -22,10 +22,13 @@ export function readCachedSongSearch(
   query: string
 ): SongSearchCacheEntry | undefined {
   const normalizedQuery = normalizeSongSearchQuery(query);
-  if (!serviceTypeId || !normalizedQuery || typeof window === "undefined") return undefined;
+  if (!serviceTypeId || !normalizedQuery || typeof window === "undefined")
+    return undefined;
 
   try {
-    const raw = window.localStorage.getItem(buildCacheKey(serviceTypeId, normalizedQuery));
+    const raw = window.localStorage.getItem(
+      buildCacheKey(serviceTypeId, normalizedQuery)
+    );
     if (!raw) return undefined;
     const parsed = JSON.parse(raw) as Partial<CachedPayload>;
     if (!parsed || typeof parsed !== "object") return undefined;
@@ -47,7 +50,8 @@ export function writeCachedSongSearch(
   songs: SongCatalogEntry[]
 ) {
   const normalizedQuery = normalizeSongSearchQuery(query);
-  if (!serviceTypeId || !normalizedQuery || typeof window === "undefined") return;
+  if (!serviceTypeId || !normalizedQuery || typeof window === "undefined")
+    return;
 
   try {
     window.localStorage.setItem(
@@ -85,28 +89,38 @@ function buildCacheKey(serviceTypeId: string, query: string) {
   return `${CACHE_KEY_PREFIX}${encodeURIComponent(serviceTypeId)}:${encodeURIComponent(query)}`;
 }
 
-function serializeSongCatalogEntry(entry: SongCatalogEntry): SerializedSongCatalogEntry {
+function serializeSongCatalogEntry(
+  entry: SongCatalogEntry
+): SerializedSongCatalogEntry {
   return {
     ...entry,
-    lastScheduledAt: entry.lastScheduledAt ? entry.lastScheduledAt.toISOString() : null,
+    lastScheduledAt: entry.lastScheduledAt
+      ? entry.lastScheduledAt.toISOString()
+      : null,
   };
 }
 
-function isSerializedSongCatalogEntryArray(value: unknown): value is SerializedSongCatalogEntry[] {
+function isSerializedSongCatalogEntryArray(
+  value: unknown
+): value is SerializedSongCatalogEntry[] {
   return Array.isArray(value) && value.every(isSerializedSongCatalogEntry);
 }
 
-function isSerializedSongCatalogEntry(value: unknown): value is SerializedSongCatalogEntry {
+function isSerializedSongCatalogEntry(
+  value: unknown
+): value is SerializedSongCatalogEntry {
   if (!value || typeof value !== "object") return false;
   const entry = value as Partial<SerializedSongCatalogEntry>;
 
-  return typeof entry.id === "string" &&
+  return (
+    typeof entry.id === "string" &&
     typeof entry.title === "string" &&
     typeof entry.author === "string" &&
     typeof entry.themes === "string" &&
     typeof entry.hidden === "boolean" &&
     isNullableDateLike(entry.lastScheduledAt) &&
-    (entry.matchScore === undefined || typeof entry.matchScore === "number");
+    (entry.matchScore === undefined || typeof entry.matchScore === "number")
+  );
 }
 
 function isNullableDateLike(value: unknown) {

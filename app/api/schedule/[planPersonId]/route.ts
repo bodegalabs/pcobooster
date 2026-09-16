@@ -1,13 +1,14 @@
-import { z } from "zod";
 import { after } from "next/server";
-import { ApiError } from "@/lib/http/api-error";
-import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
-import { logger } from "@/lib/logger";
-import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
+import { z } from "zod";
+
 import {
   getActivityRequestContext,
   recordActivityEvent,
 } from "@/lib/db/activity-events";
+import { ApiError } from "@/lib/http/api-error";
+import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
+import { logger } from "@/lib/logger";
+import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 import { invalidateCandidateHistoryForPerson } from "@/lib/use-cases/planning-center/get-people-for-position";
 
 export const dynamic = "force-dynamic";
@@ -68,7 +69,12 @@ export async function DELETE(
     try {
       const parsedParams = paramsSchema.safeParse(await params);
       if (!parsedParams.success) {
-        throw new ApiError(400, "INVALID_REQUEST", "Invalid request", parsedParams.error.issues);
+        throw new ApiError(
+          400,
+          "INVALID_REQUEST",
+          "Invalid request",
+          parsedParams.error.issues
+        );
       }
       planPersonId = parsedParams.data.planPersonId;
 

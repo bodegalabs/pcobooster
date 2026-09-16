@@ -1,17 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
+
 import { getJson } from "@/lib/http/client";
+import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
+import { queryKeys } from "@/lib/query-keys";
 import {
   readCachedServiceTypesEntry,
   writeCachedServiceTypes,
 } from "@/lib/schedule-catalog-cache";
 import type { ServiceType } from "@/lib/types";
-import { queryKeys } from "@/lib/query-keys";
-import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 
 export function useServiceTypes() {
   const queryKey = queryKeys.serviceTypes();
-  const readCachedServiceTypes = useCallback(() => readCachedServiceTypesEntry(), []);
+  const readCachedServiceTypes = useCallback(
+    () => readCachedServiceTypesEntry(),
+    []
+  );
   useHydrateQueryFromCache(queryKey, readCachedServiceTypes);
 
   const query = useQuery<ServiceType[]>({

@@ -1,5 +1,5 @@
-import { planningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
 import { getPlanningCenterRequestAccessToken } from "@/lib/planning-center/request-auth-context";
+import { planningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
 import type { PCResource } from "@/lib/types";
 
 const HIT_TTL_MS = 60 * 60 * 1000;

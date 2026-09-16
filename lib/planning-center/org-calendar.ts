@@ -24,14 +24,21 @@ export function addCalendarDaysToDayKey(
  * Calendar-day distance from `itemDayKey` to `refDayKey` (ref − item).
  * Positive when the reference day is after the item day.
  */
-export function orgCalendarDaysRefMinusItem(itemDayKey: string, refDayKey: string): number {
+export function orgCalendarDaysRefMinusItem(
+  itemDayKey: string,
+  refDayKey: string
+): number {
   return Math.round(
     (utcCivilMidnight(refDayKey) - utcCivilMidnight(itemDayKey)) / 86_400_000
   );
 }
 
 /** Calendar days from instant `a` to instant `b` in org zone (b − a). */
-export function orgCalendarDaysBetween(a: Date, b: Date, orgTimeZone: string): number {
+export function orgCalendarDaysBetween(
+  a: Date,
+  b: Date,
+  orgTimeZone: string
+): number {
   return orgCalendarDaysRefMinusItem(
     formatCalendarDayInTimeZone(a, orgTimeZone),
     formatCalendarDayInTimeZone(b, orgTimeZone)
@@ -71,7 +78,10 @@ function getZonedDateTimeFormatter(timeZone: string): Intl.DateTimeFormat {
   return formatter;
 }
 
-function getZonedDateTimeParts(instant: Date, timeZone: string): ZonedDateTimeParts {
+function getZonedDateTimeParts(
+  instant: Date,
+  timeZone: string
+): ZonedDateTimeParts {
   const parts = getZonedDateTimeFormatter(timeZone).formatToParts(instant);
   const values = new Map(parts.map((part) => [part.type, part.value]));
 
@@ -85,14 +95,25 @@ function getZonedDateTimeParts(instant: Date, timeZone: string): ZonedDateTimePa
 }
 
 function civilUtcMs(parts: ZonedDateTimeParts): number {
-  return Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute);
+  return Date.UTC(
+    parts.year,
+    parts.month - 1,
+    parts.day,
+    parts.hour,
+    parts.minute
+  );
 }
 
 function getTimeZoneOffsetMs(instantMs: number, timeZone: string): number {
-  return civilUtcMs(getZonedDateTimeParts(new Date(instantMs), timeZone)) - instantMs;
+  return (
+    civilUtcMs(getZonedDateTimeParts(new Date(instantMs), timeZone)) - instantMs
+  );
 }
 
-export function formatWallTimeInTimeZone(instant: Date, timeZone: string): ZonedWallTime {
+export function formatWallTimeInTimeZone(
+  instant: Date,
+  timeZone: string
+): ZonedWallTime {
   const parts = getZonedDateTimeParts(instant, timeZone);
   return {
     dateKey: [

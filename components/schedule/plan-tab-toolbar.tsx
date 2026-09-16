@@ -1,6 +1,7 @@
 "use client";
 
 import { LoaderCircle, Music4, Plus, Type } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 
 interface PlanTabToolbarProps {
@@ -23,7 +24,7 @@ export function PlanTabToolbar({
   const reordering = pendingItemId === "reorder";
 
   return (
-    <div className="sticky top-0 z-20 -mx-4 flex shrink-0 items-center gap-1 border-b border-border/50 bg-background/95 px-4 py-2 backdrop-blur sm:-mx-0 sm:rounded-md sm:border sm:bg-background">
+    <div className="border-border/50 bg-background/95 sm:bg-background sticky top-0 z-20 -mx-4 flex shrink-0 items-center gap-1 border-b px-4 py-2 backdrop-blur sm:-mx-0 sm:rounded-md sm:border">
       <Button
         type="button"
         variant="ghost"
@@ -58,7 +59,7 @@ export function PlanTabToolbar({
         Item
       </Button>
       {reordering ? (
-        <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <span className="text-muted-foreground ml-auto inline-flex items-center gap-1.5 text-xs">
           <LoaderCircle className="size-3.5 animate-spin" />
           Saving order…
         </span>

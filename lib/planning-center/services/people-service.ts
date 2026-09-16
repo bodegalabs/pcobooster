@@ -1,6 +1,9 @@
-import type { PCResource } from "@/lib/types";
 import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
-import { PlanningCenterReadCache, stableParams } from "@/lib/planning-center/services/read-cache";
+import {
+  PlanningCenterReadCache,
+  stableParams,
+} from "@/lib/planning-center/services/read-cache";
+import type { PCResource } from "@/lib/types";
 
 const ASSIGNMENTS_CACHE_TTL_MS = 5 * 60 * 1000;
 const PERSON_READ_CACHE_TTL_MS = 60 * 1000;
@@ -23,7 +26,9 @@ export class PlanningCenterPeopleService {
   constructor(private readonly core: PlanningCenterCoreClient) {}
 
   async getPeopleFromTeam(teamId: string): Promise<PCResource[]> {
-    return this.core.fetchAll<PCResource>(`/services/v2/teams/${teamId}/people?include=person`);
+    return this.core.fetchAll<PCResource>(
+      `/services/v2/teams/${teamId}/people?include=person`
+    );
   }
 
   async getPerson(personId: string): Promise<PCResource> {
@@ -31,13 +36,18 @@ export class PlanningCenterPeopleService {
       this.buildCacheKey("person", personId),
       PERSON_READ_CACHE_TTL_MS,
       async () => {
-        const response = await this.core.fetch<PCResource>(`/services/v2/people/${personId}`);
+        const response = await this.core.fetch<PCResource>(
+          `/services/v2/people/${personId}`
+        );
         return response.data;
       }
     );
   }
 
-  async searchPeopleByName(query: string, limit: number = 15): Promise<PCResource[]> {
+  async searchPeopleByName(
+    query: string,
+    limit: number = 15
+  ): Promise<PCResource[]> {
     const normalizedQuery = query.trim();
     if (!normalizedQuery) return [];
 
@@ -54,8 +64,12 @@ export class PlanningCenterPeopleService {
           order: "last_name,first_name",
           per_page: String(limit),
         });
-        const response = await this.core.fetch<PCResource[] | PCResource>(endpoint);
-        const people = Array.isArray(response.data) ? response.data : [response.data];
+        const response = await this.core.fetch<PCResource[] | PCResource>(
+          endpoint
+        );
+        const people = Array.isArray(response.data)
+          ? response.data
+          : [response.data];
         return people.slice(0, limit);
       }
     );
@@ -67,7 +81,12 @@ export class PlanningCenterPeopleService {
     const people = await this.cache.get(
       this.buildCacheKey("all-people"),
       ALL_TEAM_PEOPLE_CACHE_TTL_MS,
-      () => this.core.fetchAll<PCResource>("/people/v2/people", {}, Number.POSITIVE_INFINITY)
+      () =>
+        this.core.fetchAll<PCResource>(
+          "/people/v2/people",
+          {},
+          Number.POSITIVE_INFINITY
+        )
     );
     return structuredClone(people);
   }
@@ -109,7 +128,12 @@ export class PlanningCenterPeopleService {
     maxPages: number = 2
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
     return this.cache.get(
-      this.buildCacheKey("person-schedules", personId, stableParams(params), String(maxPages)),
+      this.buildCacheKey(
+        "person-schedules",
+        personId,
+        stableParams(params),
+        String(maxPages)
+      ),
       PERSON_READ_CACHE_TTL_MS,
       async () => {
         const response = await this.core.fetchAllWithIncluded<PCResource>(
@@ -120,7 +144,10 @@ export class PlanningCenterPeopleService {
 
         const data = response.data;
         const included = response.included || [];
-        const enrichedIncluded = await this.enrichSchedulesWithRehearsalTimes(data, included);
+        const enrichedIncluded = await this.enrichSchedulesWithRehearsalTimes(
+          data,
+          included
+        );
 
         return {
           data,
@@ -145,10 +172,14 @@ export class PlanningCenterPeopleService {
 
     const missingByPlan = new Map<string, Set<string>>();
     for (const schedule of schedules) {
-      const planRel = schedule.relationships?.plan?.data as { id?: string } | undefined;
+      const planRel = schedule.relationships?.plan?.data as
+        | { id?: string }
+        | undefined;
       const planId = planRel?.id;
       if (!planId) continue;
-      const timesRel = (schedule.relationships?.times?.data ?? []) as { id?: string }[];
+      const timesRel = (schedule.relationships?.times?.data ?? []) as {
+        id?: string;
+      }[];
       for (const t of timesRel) {
         if (!t.id || sideloadedPlanTimeIds.has(t.id)) continue;
         if (!missingByPlan.has(planId)) missingByPlan.set(planId, new Set());
@@ -195,7 +226,11 @@ export class PlanningCenterPeopleService {
     positionId: string
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
     return this.cache.get(
-      this.buildCacheKey("team-position-assignments", serviceTypeId, positionId),
+      this.buildCacheKey(
+        "team-position-assignments",
+        serviceTypeId,
+        positionId
+      ),
       ASSIGNMENTS_CACHE_TTL_MS,
       async () => {
         const response = await this.core.fetchAllWithIncluded<PCResource>(
@@ -391,12 +426,7 @@ export class PlanningCenterPeopleService {
   }) {
     const scope = this.core.getCacheScope();
     const personSchedulesPrefix = personId
-      ? [
-          scope,
-          "person-schedules",
-          encodeURIComponent(personId),
-          "",
-        ].join(":")
+      ? [scope, "person-schedules", encodeURIComponent(personId), ""].join(":")
       : null;
     const planTeamMembersKey = this.buildCacheKey(
       "plan-team-members",
@@ -406,8 +436,9 @@ export class PlanningCenterPeopleService {
 
     this.cache.deleteWhere((key) => {
       return (
-        (personSchedulesPrefix ? key.startsWith(personSchedulesPrefix) : false) ||
-        key === planTeamMembersKey
+        (personSchedulesPrefix
+          ? key.startsWith(personSchedulesPrefix)
+          : false) || key === planTeamMembersKey
       );
     });
   }
@@ -461,7 +492,9 @@ export class PlanningCenterPeopleService {
       if (!result) continue;
 
       const { team, response } = result;
-      const people = Array.isArray(response.data) ? response.data : [response.data];
+      const people = Array.isArray(response.data)
+        ? response.data
+        : [response.data];
       const included = response.included || [];
 
       for (const person of people) {
@@ -477,7 +510,8 @@ export class PlanningCenterPeopleService {
 
           if (personId) {
             personResource =
-              included.find((p) => p.type === "Person" && p.id === personId) || null;
+              included.find((p) => p.type === "Person" && p.id === personId) ||
+              null;
           }
         }
 
@@ -506,7 +540,6 @@ export class PlanningCenterPeopleService {
   getCacheScope(): string {
     return this.core.getCacheScope();
   }
-
 }
 
 async function mapWithConcurrency<T, R>(
@@ -533,15 +566,16 @@ async function mapWithConcurrency<T, R>(
   return results;
 }
 
-function cloneAllTeamPeopleResponse(response: AllTeamPeopleResponse): AllTeamPeopleResponse {
+function cloneAllTeamPeopleResponse(
+  response: AllTeamPeopleResponse
+): AllTeamPeopleResponse {
   return {
     people: structuredClone(response.people),
     included: structuredClone(response.included),
     teamNamesByPersonId: new Map(
-      [...response.teamNamesByPersonId.entries()].map(([personId, teamNames]) => [
-        personId,
-        new Set(teamNames),
-      ])
+      [...response.teamNamesByPersonId.entries()].map(
+        ([personId, teamNames]) => [personId, new Set(teamNames)]
+      )
     ),
   };
 }

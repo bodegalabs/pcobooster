@@ -1,26 +1,37 @@
 import { parseOptionalDate } from "@/lib/song-catalog-client";
 import type { PlanItem, PlanItemArrangement, PlanItemSong } from "@/lib/types";
 
-export interface SerializedPlanItemSong extends Omit<PlanItemSong, "lastScheduledAt"> {
+export interface SerializedPlanItemSong extends Omit<
+  PlanItemSong,
+  "lastScheduledAt"
+> {
   lastScheduledAt: string | Date | null;
 }
 
-export interface SerializedPlanItemArrangement
-  extends Omit<PlanItemArrangement, "archivedAt"> {
+export interface SerializedPlanItemArrangement extends Omit<
+  PlanItemArrangement,
+  "archivedAt"
+> {
   archivedAt: string | Date | null;
 }
 
-export interface SerializedPlanItem
-  extends Omit<PlanItem, "song" | "arrangement"> {
+export interface SerializedPlanItem extends Omit<
+  PlanItem,
+  "song" | "arrangement"
+> {
   song: SerializedPlanItemSong | null;
   arrangement: SerializedPlanItemArrangement | null;
 }
 
-function serializeSong(song: PlanItemSong | null): SerializedPlanItemSong | null {
+function serializeSong(
+  song: PlanItemSong | null
+): SerializedPlanItemSong | null {
   if (!song) return null;
   return {
     ...song,
-    lastScheduledAt: song.lastScheduledAt ? song.lastScheduledAt.toISOString() : null,
+    lastScheduledAt: song.lastScheduledAt
+      ? song.lastScheduledAt.toISOString()
+      : null,
   };
 }
 
@@ -30,7 +41,9 @@ function serializeArrangement(
   if (!arrangement) return null;
   return {
     ...arrangement,
-    archivedAt: arrangement.archivedAt ? arrangement.archivedAt.toISOString() : null,
+    archivedAt: arrangement.archivedAt
+      ? arrangement.archivedAt.toISOString()
+      : null,
   };
 }
 

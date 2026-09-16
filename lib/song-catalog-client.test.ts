@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import {
   hydrateSongCatalogEntry,
   hydrateSongOptionSet,
@@ -18,7 +19,9 @@ describe("song catalog client hydration", () => {
     });
 
     expect(hydrated.lastScheduledAt).toBeInstanceOf(Date);
-    expect(hydrated.lastScheduledAt?.toISOString()).toBe("2026-02-15T00:00:00.000Z");
+    expect(hydrated.lastScheduledAt?.toISOString()).toBe(
+      "2026-02-15T00:00:00.000Z"
+    );
   });
 
   it("drops invalid serialized dates instead of keeping broken values", () => {
@@ -45,6 +48,8 @@ describe("song catalog client hydration", () => {
     });
 
     expect(hydrated.song.lastScheduledAt).toBeInstanceOf(Date);
-    expect(hydrated.song.lastScheduledAt?.toISOString()).toBe("2026-02-15T00:00:00.000Z");
+    expect(hydrated.song.lastScheduledAt?.toISOString()).toBe(
+      "2026-02-15T00:00:00.000Z"
+    );
   });
 });
