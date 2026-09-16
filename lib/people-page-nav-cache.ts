@@ -1,25 +1,31 @@
+import { z } from "zod";
+
 export const PEOPLE_PAGE_NAV_CACHE_KEY = "worshipadmin:people-page-nav";
 
 export interface PeoplePageNavState {
   enabled: boolean;
 }
 
-export function parsePeoplePageNavState(
+const peoplePageNavStateSchema = z.object({ enabled: z.boolean() });
+
+export const parsePeoplePageNavState = (
   raw: string | null
-): PeoplePageNavState | null {
-  if (!raw) return null;
+): PeoplePageNavState | null => {
+  if (raw === null) {
+    return null;
+  }
 
   try {
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+    const parsed = peoplePageNavStateSchema.safeParse(JSON.parse(raw));
+    if (!parsed.success) {
       return null;
-    if (typeof parsed.enabled !== "boolean") return null;
-    return { enabled: parsed.enabled };
+    }
+    return parsed.data;
   } catch {
     return null;
   }
-}
+};
 
-export function serializePeoplePageNavState(state: PeoplePageNavState): string {
-  return JSON.stringify(state);
-}
+export const serializePeoplePageNavState = (
+  state: PeoplePageNavState
+): string => JSON.stringify(state);

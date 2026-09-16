@@ -1,30 +1,25 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { DashboardPage, type DashboardView } from "@/components/dashboard-page";
+import { DashboardPage } from "@/components/dashboard-page";
 import { SchedulePlanWorkspaceFallback } from "@/components/schedule/schedule-page-fallbacks";
+import type { DashboardView } from "@/lib/schedule-navigation";
 
-const dashboardViews = new Set<DashboardView>([
-  "assign",
-  "lineup",
-  "plan",
-  "times",
-]);
+const isDashboardView = (view: string): view is DashboardView =>
+  view === "assign" || view === "lineup" || view === "plan" || view === "times";
 
-type ServicesPlanViewPageProps = {
+interface ServicesPlanViewPageProps {
   params: Promise<{
     serviceTypeId: string;
     planId: string;
     view: string;
   }>;
-};
+}
 
-export default async function ServicesPlanViewPage({
-  params,
-}: ServicesPlanViewPageProps) {
+const ServicesPlanViewPage = async ({ params }: ServicesPlanViewPageProps) => {
   const { serviceTypeId, planId, view } = await params;
 
-  if (!dashboardViews.has(view as DashboardView)) {
+  if (!isDashboardView(view)) {
     notFound();
   }
 
@@ -33,8 +28,10 @@ export default async function ServicesPlanViewPage({
       <DashboardPage
         planId={planId}
         serviceTypeId={serviceTypeId}
-        view={view as DashboardView}
+        view={view}
       />
     </Suspense>
   );
-}
+};
+
+export default ServicesPlanViewPage;

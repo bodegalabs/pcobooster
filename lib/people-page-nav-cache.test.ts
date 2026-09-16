@@ -9,12 +9,12 @@ describe("people page nav cache", () => {
   it("round-trips enabled state", () => {
     expect(
       parsePeoplePageNavState(serializePeoplePageNavState({ enabled: true }))
-    ).toEqual({
+    ).toStrictEqual({
       enabled: true,
     });
     expect(
       parsePeoplePageNavState(serializePeoplePageNavState({ enabled: false }))
-    ).toEqual({
+    ).toStrictEqual({
       enabled: false,
     });
   });

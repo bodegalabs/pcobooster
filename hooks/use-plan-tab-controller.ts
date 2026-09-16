@@ -1,20 +1,19 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
-
-import {
-  getItemTypeLabel,
-  type DraftState,
-} from "@/components/schedule/plan-tab-helpers";
 import { toast } from "sonner";
+
+import { getItemTypeLabel } from "@/components/schedule/plan-tab-helpers";
+import type { DraftState } from "@/components/schedule/plan-tab-helpers";
 import { usePlanItems } from "@/hooks/use-plan-items";
 import { createSongOptionsQueryOptions } from "@/hooks/use-song-options";
-import { deleteJson, patchJson, postJson } from "@/lib/http/client";
 import {
-  hydratePlanItem,
-  type SerializedPlanItem,
-} from "@/lib/plan-item-client";
+  serializedPlanItemSchema,
+  successResponseSchema,
+} from "@/lib/api-schemas";
+import { deleteJson, patchJson, postJson } from "@/lib/http/client";
+import { isNonEmptyString } from "@/lib/json";
+import { hydratePlanItem } from "@/lib/plan-item-client";
 import {
   appendPlanItem,
   applyPlanItemDraft,
@@ -30,8 +29,8 @@ import {
   replacePlanItemById,
   restorePlanItemsSnapshot,
   settlePlanItemsQuery,
-  type PlanItemsOptimisticSnapshot,
 } from "@/lib/plan-items-query-state";
+import type { PlanItemsOptimisticSnapshot } from "@/lib/plan-items-query-state";
 import { queryKeys } from "@/lib/query-keys";
 import type {
   PlanItem,
@@ -48,27 +47,26 @@ interface UsePlanTabControllerArgs {
 
 const EMPTY_PLAN_ITEMS: PlanItem[] = [];
 
-function buildDeletePlanItemUrl(
+const buildDeletePlanItemUrl = (
   itemId: string,
   serviceTypeId: string,
   planId: string
-): string {
+): string => {
   const params = new URLSearchParams({
     service_type_id: serviceTypeId,
     plan_id: planId,
   });
 
   return `/api/plan-items/${itemId}?${params.toString()}`;
-}
+};
 
-function toErrorMessage(error: unknown, fallback: string) {
-  return error instanceof Error ? error.message : fallback;
-}
+const toErrorMessage = (error: Error, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
 
-export function usePlanTabController({
+export const usePlanTabController = ({
   serviceTypeId,
   planId,
-}: UsePlanTabControllerArgs) {
+}: UsePlanTabControllerArgs) => {
   const queryClient = useQueryClient();
   const queryKey = queryKeys.planItems(serviceTypeId, planId);
   const {
@@ -78,28 +76,57 @@ export function usePlanTabController({
   } = usePlanItems(serviceTypeId, planId);
   const items = itemsData ?? EMPTY_PLAN_ITEMS;
 
-  const [editingItemId, setEditingItemId] = useState<string | null>(null);
-  const [songPickerOpen, setSongPickerOpen] = useState(false);
+  const planScope = JSON.stringify([serviceTypeId, planId]);
+  const [editor, setEditor] = useState<{
+    scope: string;
+    itemId: string | null;
+    pickerOpen: boolean;
+  }>({ scope: planScope, itemId: null, pickerOpen: false });
+  const editingItemId = editor.scope === planScope ? editor.itemId : null;
+  const songPickerOpen = editor.scope === planScope && editor.pickerOpen;
+  const setEditingItemId = (itemId: string | null) => {
+    setEditor((current) => ({
+      scope: planScope,
+      itemId,
+      pickerOpen: current.scope === planScope && current.pickerOpen,
+    }));
+  };
+  const setSongPickerOpen = (pickerOpen: boolean) => {
+    setEditor((current) => ({
+      scope: planScope,
+      pickerOpen,
+      itemId: current.scope === planScope ? current.itemId : null,
+    }));
+  };
   const [pendingItemId, setPendingItemId] = useState<string | null>(null);
   const [pendingSongId, setPendingSongId] = useState<string | null>(null);
 
-  useEffect(() => {
-    setEditingItemId(null);
-    setSongPickerOpen(false);
-  }, [planId, serviceTypeId]);
+  const prefetchSongOptions = useCallback(
+    async (songId: string) => {
+      if (!isNonEmptyString(serviceTypeId)) {
+        return;
+      }
+      try {
+        await queryClient.query(
+          createSongOptionsQueryOptions(songId, serviceTypeId)
+        );
+      } catch {
+        // Interactive song queries surface failures; prefetching is best effort.
+      }
+    },
+    [queryClient, serviceTypeId]
+  );
 
   useEffect(() => {
-    if (!serviceTypeId || isPlaceholderData) return;
-
-    const songIds = collectPlanSongOptionPrefetchIds(items);
-    if (songIds.length === 0) return;
+    const songIds =
+      isNonEmptyString(serviceTypeId) && !isPlaceholderData
+        ? collectPlanSongOptionPrefetchIds(items)
+        : [];
 
     const timers = songIds.map((songId, index) =>
       window.setTimeout(
         () => {
-          void queryClient.prefetchQuery(
-            createSongOptionsQueryOptions(songId, serviceTypeId)
-          );
+          void prefetchSongOptions(songId);
         },
         450 + index * 150
       )
@@ -110,26 +137,30 @@ export function usePlanTabController({
         window.clearTimeout(timer);
       }
     };
-  }, [isPlaceholderData, items, queryClient, serviceTypeId]);
+  }, [isPlaceholderData, items, prefetchSongOptions, serviceTypeId]);
 
-  const settlePlanItems = () => settlePlanItemsQuery(queryClient, queryKey);
+  const settlePlanItems = () => {
+    settlePlanItemsQuery(queryClient, queryKey);
+  };
 
   const prefetchItemSongOptions = useCallback(
     (itemId: string) => {
-      if (!serviceTypeId) return;
+      if (!isNonEmptyString(serviceTypeId)) {
+        return;
+      }
       const item = items.find((candidate) => candidate.id === itemId);
-      if (!item?.song) return;
+      if (!item?.song) {
+        return;
+      }
 
-      void queryClient.prefetchQuery(
-        createSongOptionsQueryOptions(item.song.id, serviceTypeId)
-      );
+      void prefetchSongOptions(item.song.id);
     },
-    [items, queryClient, serviceTypeId]
+    [items, prefetchSongOptions, serviceTypeId]
   );
 
   const createItemMutation = useMutation<
     PlanItem,
-    unknown,
+    Error,
     "header" | "item",
     {
       snapshot: PlanItemsOptimisticSnapshot | undefined;
@@ -137,11 +168,11 @@ export function usePlanTabController({
     }
   >({
     mutationFn: async (kind: "header" | "item") => {
-      if (!serviceTypeId || !planId) {
+      if (!isNonEmptyString(serviceTypeId) || !isNonEmptyString(planId)) {
         throw new Error("A service type and plan must be selected.");
       }
 
-      const item = await postJson<SerializedPlanItem>("/api/plan-items", {
+      const item = await postJson("/api/plan-items", serializedPlanItemSchema, {
         service_type_id: serviceTypeId,
         plan_id: planId,
         item_type: kind,
@@ -194,7 +225,7 @@ export function usePlanTabController({
 
   const addSongMutation = useMutation<
     PlanItem,
-    unknown,
+    Error,
     SongCatalogEntry,
     {
       snapshot: PlanItemsOptimisticSnapshot | undefined;
@@ -202,7 +233,7 @@ export function usePlanTabController({
     }
   >({
     mutationFn: async (song: SongCatalogEntry) => {
-      if (!serviceTypeId || !planId) {
+      if (!isNonEmptyString(serviceTypeId) || !isNonEmptyString(planId)) {
         throw new Error("A service type and plan must be selected.");
       }
 
@@ -215,7 +246,7 @@ export function usePlanTabController({
           songOptionsQuery.queryKey
         ) ?? null;
 
-      const item = await postJson<SerializedPlanItem>("/api/plan-items", {
+      const item = await postJson("/api/plan-items", serializedPlanItemSchema, {
         service_type_id: serviceTypeId,
         plan_id: planId,
         title: songOptions?.song.title ?? song.title,
@@ -273,18 +304,19 @@ export function usePlanTabController({
   });
 
   const deleteItemMutation = useMutation<
-    void,
-    unknown,
+    undefined,
+    Error,
     string,
     { snapshot: PlanItemsOptimisticSnapshot | undefined; deletedItemId: string }
   >({
     mutationFn: async (itemId) => {
-      if (!serviceTypeId || !planId) {
+      if (!isNonEmptyString(serviceTypeId) || !isNonEmptyString(planId)) {
         throw new Error("A service type and plan must be selected.");
       }
 
-      await deleteJson<{ success: boolean }>(
-        buildDeletePlanItemUrl(itemId, serviceTypeId, planId)
+      await deleteJson(
+        buildDeletePlanItemUrl(itemId, serviceTypeId, planId),
+        successResponseSchema
       );
     },
     onMutate: async (itemId) => {
@@ -317,17 +349,17 @@ export function usePlanTabController({
   });
 
   const reorderItemsMutation = useMutation<
-    void,
-    unknown,
+    undefined,
+    Error,
     PlanItem[],
     { snapshot: PlanItemsOptimisticSnapshot | undefined }
   >({
     mutationFn: async (nextItems) => {
-      if (!serviceTypeId || !planId) {
+      if (!isNonEmptyString(serviceTypeId) || !isNonEmptyString(planId)) {
         throw new Error("A service type and plan must be selected.");
       }
 
-      await postJson<{ success: boolean }>("/api/plan-items/reorder", {
+      await postJson("/api/plan-items/reorder", successResponseSchema, {
         service_type_id: serviceTypeId,
         plan_id: planId,
         sequence: nextItems.map((item) => item.id),
@@ -360,7 +392,7 @@ export function usePlanTabController({
 
   const updateItemMutation = useMutation<
     PlanItem,
-    unknown,
+    Error,
     {
       item: PlanItem;
       draft: DraftState;
@@ -383,18 +415,25 @@ export function usePlanTabController({
       optimisticArrangement: PlanItemArrangement | null;
       optimisticKey: PlanItemKey | null;
     }) => {
-      if (!serviceTypeId || !planId) {
+      if (!isNonEmptyString(serviceTypeId) || !isNonEmptyString(planId)) {
         throw new Error("A service type and plan must be selected.");
       }
 
-      const itemResponse = await patchJson<SerializedPlanItem>(
+      const itemResponse = await patchJson(
         `/api/plan-items/${item.id}`,
+        serializedPlanItemSchema,
         {
           service_type_id: serviceTypeId,
           plan_id: planId,
           title: item.song ? item.title : draft.title,
           service_position: draft.servicePosition,
-          length: length && length > 0 ? length : null,
+          length:
+            length !== null &&
+            length !== 0 &&
+            !Number.isNaN(length) &&
+            length > 0
+              ? length
+              : null,
           description: draft.description,
           song_id: undefined,
           arrangement_id: draft.arrangementId || undefined,
@@ -453,7 +492,7 @@ export function usePlanTabController({
     isLoading,
     isPlaceholderData,
     editingItemId,
-    editingItem: editingItemId
+    editingItem: isNonEmptyString(editingItemId)
       ? (items.find((item) => item.id === editingItemId) ?? null)
       : null,
     songPickerOpen,
@@ -463,20 +502,22 @@ export function usePlanTabController({
     isSavingItem: updateItemMutation.isPending,
     setEditingItemId,
     setSongPickerOpen,
-    createBasicItem: (kind: "header" | "item") =>
-      createItemMutation.mutateAsync(kind),
-    addSongToPlan: (song: SongCatalogEntry) =>
-      addSongMutation.mutateAsync(song),
-    deleteItem: (itemId: string) => deleteItemMutation.mutateAsync(itemId),
-    reorderItems: (nextItems: PlanItem[]) => {
+    createBasicItem: async (kind: "header" | "item") =>
+      await createItemMutation.mutateAsync(kind),
+    addSongToPlan: async (song: SongCatalogEntry) =>
+      await addSongMutation.mutateAsync(song),
+    deleteItem: async (itemId: string) => {
+      await deleteItemMutation.mutateAsync(itemId);
+    },
+    reorderItems: async (nextItems: PlanItem[]) => {
       if (planItemsHaveSameOrder(items, nextItems)) {
-        return Promise.resolve();
+        return;
       }
 
-      return reorderItemsMutation.mutateAsync(nextItems);
+      await reorderItemsMutation.mutateAsync(nextItems);
     },
     prefetchItemSongOptions,
-    saveItem: (input: {
+    saveItem: async (input: {
       item: PlanItem;
       draft: DraftState;
       length: number | null;
@@ -484,10 +525,10 @@ export function usePlanTabController({
       optimisticKey: PlanItemKey | null;
     }) => {
       if (!planItemDraftChangesItem(input.item, input.draft, input.length)) {
-        return Promise.resolve();
+        return;
       }
 
-      return updateItemMutation.mutateAsync(input);
+      await updateItemMutation.mutateAsync(input);
     },
   };
-}
+};

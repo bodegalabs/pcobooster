@@ -23,60 +23,58 @@ export interface SerializedPlanItem extends Omit<
   arrangement: SerializedPlanItemArrangement | null;
 }
 
-function serializeSong(
+const serializeSong = (
   song: PlanItemSong | null
-): SerializedPlanItemSong | null {
-  if (!song) return null;
+): SerializedPlanItemSong | null => {
+  if (!song) {
+    return null;
+  }
   return {
     ...song,
     lastScheduledAt: song.lastScheduledAt
       ? song.lastScheduledAt.toISOString()
       : null,
   };
-}
+};
 
-function serializeArrangement(
+const serializeArrangement = (
   arrangement: PlanItemArrangement | null
-): SerializedPlanItemArrangement | null {
-  if (!arrangement) return null;
+): SerializedPlanItemArrangement | null => {
+  if (!arrangement) {
+    return null;
+  }
   return {
     ...arrangement,
     archivedAt: arrangement.archivedAt
       ? arrangement.archivedAt.toISOString()
       : null,
   };
-}
+};
 
-export function serializePlanItem(item: PlanItem): SerializedPlanItem {
-  return {
-    ...item,
-    song: serializeSong(item.song),
-    arrangement: serializeArrangement(item.arrangement),
-  };
-}
+export const serializePlanItem = (item: PlanItem): SerializedPlanItem => ({
+  ...item,
+  song: serializeSong(item.song),
+  arrangement: serializeArrangement(item.arrangement),
+});
 
-export function serializePlanItems(items: PlanItem[]): SerializedPlanItem[] {
-  return items.map(serializePlanItem);
-}
+export const serializePlanItems = (items: PlanItem[]): SerializedPlanItem[] =>
+  items.map(serializePlanItem);
 
-export function hydratePlanItem(item: SerializedPlanItem): PlanItem {
-  return {
-    ...item,
-    song: item.song
-      ? {
-          ...item.song,
-          lastScheduledAt: parseOptionalDate(item.song.lastScheduledAt),
-        }
-      : null,
-    arrangement: item.arrangement
-      ? {
-          ...item.arrangement,
-          archivedAt: parseOptionalDate(item.arrangement.archivedAt),
-        }
-      : null,
-  };
-}
+export const hydratePlanItem = (item: SerializedPlanItem): PlanItem => ({
+  ...item,
+  song: item.song
+    ? {
+        ...item.song,
+        lastScheduledAt: parseOptionalDate(item.song.lastScheduledAt),
+      }
+    : null,
+  arrangement: item.arrangement
+    ? {
+        ...item.arrangement,
+        archivedAt: parseOptionalDate(item.arrangement.archivedAt),
+      }
+    : null,
+});
 
-export function hydratePlanItems(items: SerializedPlanItem[]): PlanItem[] {
-  return items.map(hydratePlanItem);
-}
+export const hydratePlanItems = (items: SerializedPlanItem[]): PlanItem[] =>
+  items.map(hydratePlanItem);

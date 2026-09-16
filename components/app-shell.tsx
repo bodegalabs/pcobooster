@@ -1,7 +1,7 @@
 "use client";
 
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CalendarDays,
   Check,
@@ -22,29 +22,25 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type {
+  CSSProperties,
+  MouseEvent as ReactMouseEvent,
+  ReactNode,
+  PointerEvent as ReactPointerEvent,
+} from "react";
 import {
   Suspense,
   startTransition,
   useCallback,
-  useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
-import type {
-  CSSProperties,
-  MouseEvent as ReactMouseEvent,
-  PointerEvent as ReactPointerEvent,
-  ReactNode,
-} from "react";
+import { z } from "zod";
 
 import { HotkeyChord } from "@/components/hotkey-chord";
-import {
-  SidebarTabGroup,
-  type SidebarTabGroupItem,
-} from "@/components/sidebar-tab-group";
+import type { SidebarTabGroupItem } from "@/components/sidebar-tab-group";
+import { SidebarTabGroup } from "@/components/sidebar-tab-group";
 import { SidebarToggleHotkey } from "@/components/sidebar-toggle-hotkey";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -85,16 +81,18 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import {
   ACCOUNT_PANEL_CACHE_KEY,
   parseCachedAccountPanel,
   serializeAccountPanel,
   summarizeAccountPanel,
-  type AccountPanelSummary,
 } from "@/lib/account-panel-cache";
 import { APP_SHORTCUTS, SHORTCUTS_PALETTE_HOTKEY } from "@/lib/app-hotkeys";
 import { authClient } from "@/lib/auth-client";
+import { writeBrowserStorage } from "@/lib/browser-storage";
 import { getJson, postJson } from "@/lib/http/client";
+import { isNonEmptyString } from "@/lib/json";
 import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
 import { clearCachedOrganizationTimeZone } from "@/lib/organization-time-zone-cache";
 import { clearCachedPeople } from "@/lib/people-cache";
@@ -106,13 +104,14 @@ import {
 } from "@/lib/people-page-nav-cache";
 import { clearCachedPeopleSearch } from "@/lib/people-search-cache";
 import { clearCachedPlanItems } from "@/lib/plan-items-cache";
+import { queryKeys } from "@/lib/query-keys";
 import { clearCachedScheduleCatalog } from "@/lib/schedule-catalog-cache";
 import { clearCachedSongOptions } from "@/lib/song-options-cache";
 import { clearCachedSongSearch } from "@/lib/song-search-cache";
 import { clearCachedTeamPositions } from "@/lib/team-positions-cache";
 import { cn } from "@/lib/utils";
 
-type PlanningCenterAccount = {
+interface PlanningCenterAccount {
   id: string;
   providerId: string;
   updatedAt: string;
@@ -123,9 +122,9 @@ type PlanningCenterAccount = {
     organizationId: string | null;
     organizationName: string | null;
   } | null;
-};
+}
 
-type PlanningCenterAccountsResponse = {
+interface PlanningCenterAccountsResponse {
   session: {
     userId: string;
     name: string;
@@ -134,7 +133,39 @@ type PlanningCenterAccountsResponse = {
   };
   selectedAccountId: string | null;
   accounts: PlanningCenterAccount[];
-};
+}
+
+const planningCenterAccountSchema = z.object({
+  id: z.string(),
+  providerId: z.string(),
+  updatedAt: z.string(),
+  identity: z
+    .object({
+      sub: z.string().nullable(),
+      name: z.string().nullable(),
+      email: z.string().nullable(),
+      organizationId: z.string().nullable(),
+      organizationName: z.string().nullable(),
+    })
+    .nullable(),
+}) satisfies z.ZodType<PlanningCenterAccount>;
+
+const planningCenterAccountsSchema = z.object({
+  session: z.object({
+    userId: z.string(),
+    name: z.string(),
+    email: z.string(),
+    image: z.string().nullable(),
+  }),
+  selectedAccountId: z.string().nullable(),
+  accounts: z.array(planningCenterAccountSchema),
+}) satisfies z.ZodType<PlanningCenterAccountsResponse>;
+
+const accountSwitchSchema = z.object({
+  success: z.boolean(),
+  selectedAccountId: z.string(),
+});
+const featureSchema = z.object({ enabled: z.boolean() });
 
 const SIDEBAR_WIDTH_STORAGE_KEY = "worshipadmin:sidebar-width";
 const SIDEBAR_OPEN_STORAGE_KEY = "worshipadmin:sidebar-open";
@@ -142,75 +173,61 @@ const DEFAULT_SIDEBAR_WIDTH = 288;
 const MIN_SIDEBAR_WIDTH = 232;
 const MAX_SIDEBAR_WIDTH = 380;
 
-function clampSidebarWidth(width: number): number {
-  return Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, width));
-}
+const clampSidebarWidth = (width: number): number =>
+  Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, width));
 
-function initialsFromName(name: string | null | undefined): string {
-  if (!name) return "WA";
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "WA";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+const initialsFromName = (name: string | null | undefined): string => {
+  if (!isNonEmptyString(name)) {
+    return "WA";
+  }
+  const parts = name.trim().split(/\s+/u).filter(Boolean);
+  if (parts.length === 0) {
+    return "WA";
+  }
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
   return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
-}
+};
 
-function readStoredSidebarWidth(): number {
-  if (typeof window === "undefined") return DEFAULT_SIDEBAR_WIDTH;
-  const stored = Number(window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY));
-  return Number.isFinite(stored)
-    ? clampSidebarWidth(stored)
+const parseSidebarWidth = (raw: string | null): number => {
+  const width = raw === null ? Number.NaN : Number(raw);
+  return Number.isFinite(width)
+    ? clampSidebarWidth(width)
     : DEFAULT_SIDEBAR_WIDTH;
-}
+};
 
-function readStoredSidebarOpen(): boolean {
-  if (typeof window === "undefined") return true;
-  const stored = window.localStorage.getItem(SIDEBAR_OPEN_STORAGE_KEY);
-  if (stored === "false") return false;
-  if (stored === "true") return true;
-  return true;
-}
-
-function readCachedAccountPanelSummary(): AccountPanelSummary | null {
-  if (typeof window === "undefined") return null;
-  return parseCachedAccountPanel(
-    window.localStorage.getItem(ACCOUNT_PANEL_CACHE_KEY)
+const fetchAccounts = async () => {
+  const response = await getJson(
+    "/api/planning-center/accounts",
+    planningCenterAccountsSchema
   );
-}
-
-function writeCachedAccountPanelSummary(summary: AccountPanelSummary) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(
-      ACCOUNT_PANEL_CACHE_KEY,
-      serializeAccountPanel(summary)
-    );
-  } catch {
-    // Ignore storage write failures (private mode/quota).
-  }
-}
-
-function readCachedPeoplePageEnabled(fallback: boolean): boolean {
-  if (typeof window === "undefined") return fallback;
-  return (
-    parsePeoplePageNavState(
-      window.localStorage.getItem(PEOPLE_PAGE_NAV_CACHE_KEY)
-    )?.enabled ?? fallback
+  writeBrowserStorage(
+    ACCOUNT_PANEL_CACHE_KEY,
+    serializeAccountPanel(summarizeAccountPanel(response))
   );
-}
+  return response;
+};
 
-function writeCachedPeoplePageEnabled(enabled: boolean) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(
-      PEOPLE_PAGE_NAV_CACHE_KEY,
-      serializePeoplePageNavState({ enabled })
-    );
-  } catch {
-    // Ignore storage write failures (private mode/quota).
-  }
-}
+const fetchPeopleNavFeature = async () => {
+  const response = await getJson("/api/people/feature", featureSchema);
+  writeBrowserStorage(
+    PEOPLE_PAGE_NAV_CACHE_KEY,
+    serializePeoplePageNavState(response)
+  );
+  return response;
+};
 
-function SidebarResizeRail({
+const fetchAdminNavFeature = async () =>
+  await getJson("/api/admin/feature", featureSchema);
+
+const themeOptions = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+  { value: "system", label: "System", icon: Laptop },
+];
+
+const SidebarResizeRail = ({
   width,
   onWidthChange,
   onCollapsePreviewChange,
@@ -218,13 +235,15 @@ function SidebarResizeRail({
   width: number;
   onWidthChange: (width: number) => void;
   onCollapsePreviewChange?: (preview: boolean) => void;
-}) {
+}) => {
   const { isMobile, setOpen } = useSidebar();
   const pendingCollapseRef = useRef(false);
 
   const handlePointerDown = useCallback(
     (event: ReactPointerEvent<HTMLButtonElement>) => {
-      if (isMobile) return;
+      if (isMobile) {
+        return;
+      }
       event.preventDefault();
       const target = event.currentTarget;
       target.setPointerCapture(event.pointerId);
@@ -237,12 +256,7 @@ function SidebarResizeRail({
       pendingCollapseRef.current = false;
       onCollapsePreviewChange?.(false);
 
-      const detach = () => {
-        window.removeEventListener("pointermove", handlePointerMove);
-        window.removeEventListener("pointerup", handlePointerUp);
-        window.removeEventListener("pointercancel", handlePointerUp);
-      };
-
+      const listeners = new AbortController();
       const handlePointerUp = (upEvent: PointerEvent) => {
         document.body.style.userSelect = prevUserSelect;
         onCollapsePreviewChange?.(false);
@@ -253,7 +267,7 @@ function SidebarResizeRail({
         if (target.hasPointerCapture(upEvent.pointerId)) {
           target.releasePointerCapture(upEvent.pointerId);
         }
-        detach();
+        listeners.abort();
       };
 
       const handlePointerMove = (moveEvent: PointerEvent) => {
@@ -268,9 +282,15 @@ function SidebarResizeRail({
         onWidthChange(clampSidebarWidth(nextWidth));
       };
 
-      window.addEventListener("pointermove", handlePointerMove);
-      window.addEventListener("pointerup", handlePointerUp);
-      window.addEventListener("pointercancel", handlePointerUp);
+      window.addEventListener("pointermove", handlePointerMove, {
+        signal: listeners.signal,
+      });
+      window.addEventListener("pointerup", handlePointerUp, {
+        signal: listeners.signal,
+      });
+      window.addEventListener("pointercancel", handlePointerUp, {
+        signal: listeners.signal,
+      });
     },
     [isMobile, onCollapsePreviewChange, onWidthChange, setOpen, width]
   );
@@ -278,7 +298,9 @@ function SidebarResizeRail({
   const handleDoubleClick = useCallback(
     (event: ReactMouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
-      if (isMobile) return;
+      if (isMobile) {
+        return;
+      }
       onCollapsePreviewChange?.(false);
       pendingCollapseRef.current = false;
       onWidthChange(MIN_SIDEBAR_WIDTH);
@@ -286,7 +308,9 @@ function SidebarResizeRail({
     [isMobile, onCollapsePreviewChange, onWidthChange]
   );
 
-  if (isMobile) return null;
+  if (isMobile) {
+    return null;
+  }
 
   return (
     <button
@@ -304,75 +328,101 @@ function SidebarResizeRail({
       onDoubleClick={handleDoubleClick}
     />
   );
-}
+};
 
 type TopBarView = "assign" | "lineup" | "plan" | "times";
 type ServicesSidebarKey = "services" | TopBarView;
 
-function parseTopBarView(value: string | undefined): TopBarView {
-  if (value === "lineup") return "lineup";
-  if (value === "plan") return "plan";
-  if (value === "times") return "times";
+const parseTopBarView = (value: string | undefined): TopBarView => {
+  if (value === "lineup") {
+    return "lineup";
+  }
+  if (value === "plan") {
+    return "plan";
+  }
+  if (value === "times") {
+    return "times";
+  }
   return "assign";
-}
+};
 
-function getTopBarViewLabel(view: TopBarView): string {
-  if (view === "lineup") return "Lineup";
-  if (view === "plan") return "Plan";
-  if (view === "times") return "Times";
+const getTopBarViewLabel = (view: TopBarView): string => {
+  if (view === "lineup") {
+    return "Lineup";
+  }
+  if (view === "plan") {
+    return "Plan";
+  }
+  if (view === "times") {
+    return "Times";
+  }
   return "Assign";
-}
+};
 
 const planViewOptions: TopBarView[] = ["assign", "lineup", "plan", "times"];
 
-function getServicesPlanPath(pathname: string): {
+const getServicesPlanPath = (
+  pathname: string
+): {
   serviceTypeId: string;
   planId: string;
   view: TopBarView;
-} | null {
-  const match = /^\/services\/([^/]+)\/plans\/([^/]+)\/([^/]+)$/.exec(pathname);
-  if (!match) return null;
+} | null => {
+  const match =
+    /^\/services\/(?<serviceTypeId>[^/]+)\/plans\/(?<planId>[^/]+)\/(?<view>[^/]+)$/u.exec(
+      pathname
+    );
+  if (!match) {
+    return null;
+  }
 
   const view = parseTopBarView(match[3]);
-  if (match[3] !== view) return null;
+  if (match[3] !== view) {
+    return null;
+  }
 
   return {
     serviceTypeId: match[1],
     planId: match[2],
     view,
   };
-}
+};
 
-function buildScheduleViewUrl(
+const buildScheduleViewUrl = (
   pathname: string,
   searchParams: Pick<URLSearchParams, "toString">,
   view: TopBarView
-): string {
+): string => {
   const planPath = getServicesPlanPath(pathname);
-  if (!planPath) return "/services";
+  if (!planPath) {
+    return "/services";
+  }
 
   const params = new URLSearchParams(searchParams.toString());
   const query = params.toString();
   const path = `/services/${planPath.serviceTypeId}/plans/${planPath.planId}/${view}`;
   return query ? `${path}?${query}` : path;
-}
+};
 
-function getTopLevelPageLabel(pathname: string) {
-  if (pathname.startsWith("/admin")) return "Admin";
-  if (pathname.startsWith("/people")) return "People";
+const getTopLevelPageLabel = (pathname: string) => {
+  if (pathname.startsWith("/admin")) {
+    return "Admin";
+  }
+  if (pathname.startsWith("/people")) {
+    return "People";
+  }
   return "Services";
-}
+};
 
-function AppTopBar() {
+const AppTopBar = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const planPath = getServicesPlanPath(pathname);
   const hasPlan = Boolean(planPath);
   const planView = planPath?.view ?? "assign";
   const planViewLabel = getTopBarViewLabel(planView);
-  const isPersonDetail = /^\/people\/[^/]+/.test(pathname);
-  const isAdminUserDetail = /^\/admin\/users\/[^/]+/.test(pathname);
+  const isPersonDetail = /^\/people\/[^/]+/u.test(pathname);
+  const isAdminUserDetail = /^\/admin\/users\/[^/]+/u.test(pathname);
   const pageLabel = getTopLevelPageLabel(pathname);
 
   return (
@@ -436,7 +486,7 @@ function AppTopBar() {
                                 router.replace(
                                   buildScheduleViewUrl(
                                     pathname,
-                                    searchParams,
+                                    new URLSearchParams(window.location.search),
                                     view
                                   )
                                 );
@@ -460,11 +510,11 @@ function AppTopBar() {
       </Breadcrumb>
     </div>
   );
-}
+};
 
-function AppTopBarFallback({ pathname }: { pathname: string }) {
-  const isPersonDetail = /^\/people\/[^/]+/.test(pathname);
-  const isAdminUserDetail = /^\/admin\/users\/[^/]+/.test(pathname);
+const AppTopBarFallback = ({ pathname }: { pathname: string }) => {
+  const isPersonDetail = /^\/people\/[^/]+/u.test(pathname);
+  const isAdminUserDetail = /^\/admin\/users\/[^/]+/u.test(pathname);
   const pageLabel = getTopLevelPageLabel(pathname);
 
   return (
@@ -494,69 +544,107 @@ function AppTopBarFallback({ pathname }: { pathname: string }) {
       </Breadcrumb>
     </div>
   );
-}
+};
 
-function SidebarAccountPanel({
+const AccountSwitcher = ({
+  data,
+  loading,
+  switchingAccountId,
+  isSigningOut,
+  onSelectAccount,
+}: {
+  data: PlanningCenterAccountsResponse | null;
+  loading: boolean;
+  switchingAccountId: string | null;
+  isSigningOut: boolean;
+  onSelectAccount: (accountId: string) => Promise<void>;
+}) =>
+  (loading && !data) || (data !== null && data.accounts.length > 1) ? (
+    <>
+      <DropdownMenuSeparator subtle className="my-0" />
+      {loading && !data ? (
+        <DropdownMenuItem disabled density="account">
+          Loading…
+        </DropdownMenuItem>
+      ) : (
+        data?.accounts.map((account) => {
+          const isSelected = account.id === data.selectedAccountId;
+          const orgName =
+            account.identity?.organizationName ?? "Unknown organization";
+          return (
+            <DropdownMenuItem
+              key={account.id}
+              density="account"
+              disabled={Boolean(switchingAccountId) || isSigningOut}
+              onSelect={(event) => {
+                event.preventDefault();
+                void onSelectAccount(account.id);
+              }}
+            >
+              <span className="min-w-0 flex-1 truncate">{orgName}</span>
+              {switchingAccountId === account.id ? (
+                <Loader2 className="size-4 shrink-0 animate-spin" />
+              ) : (
+                <Check
+                  className={cn(
+                    "size-4 shrink-0",
+                    isSelected ? "opacity-80" : "invisible"
+                  )}
+                />
+              )}
+            </DropdownMenuItem>
+          );
+        })
+      )}
+    </>
+  ) : null;
+
+const signOutSession = async () => {
+  const result = await authClient.signOut();
+  if (result.error) {
+    throw new Error(result.error.message ?? "Unable to sign out");
+  }
+};
+
+const SidebarAccountPanel = ({
   onOpenShortcuts,
   onPeekLockChange,
 }: {
   onOpenShortcuts: () => void;
   /** Keeps collapsed offcanvas sidebar peek visible while dropdown content is portaled. */
   onPeekLockChange?: (locked: boolean) => void;
-}) {
+}) => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { setTheme, theme } = useTheme();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-  const [data, setData] = useState<PlanningCenterAccountsResponse | null>(null);
-  const [cachedSummary, setCachedSummary] =
-    useState<AccountPanelSummary | null>(null);
-  const [loading, setLoading] = useState(true);
+  const accountsQuery = useQuery({
+    queryKey: queryKeys.accounts(),
+    queryFn: fetchAccounts,
+  });
+  const data = accountsQuery.data ?? null;
+  const loading = accountsQuery.isPending;
+  const [cachedPanel] = useBrowserStorage(ACCOUNT_PANEL_CACHE_KEY);
+  const cachedSummary = parseCachedAccountPanel(cachedPanel);
   const [switchingAccountId, setSwitchingAccountId] = useState<string | null>(
     null
   );
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const [error, setError] = useState("");
-
-  const liveSummary = useMemo(() => summarizeAccountPanel(data), [data]);
+  const [actionError, setActionError] = useState("");
+  const panelError = actionError || (accountsQuery.error?.message ?? "");
+  const liveSummary = summarizeAccountPanel(data);
   const triggerSummary = data ? liveSummary : (cachedSummary ?? liveSummary);
 
-  const loadAccounts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await getJson<PlanningCenterAccountsResponse>(
-        "/api/planning-center/accounts"
-      );
-      setData(response);
-      const summary = summarizeAccountPanel(response);
-      setCachedSummary(summary);
-      writeCachedAccountPanelSummary(summary);
-      setError("");
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load account details";
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    setCachedSummary(readCachedAccountPanelSummary());
-  }, []);
-
-  useEffect(() => {
-    void loadAccounts();
-  }, [loadAccounts]);
-
   const handleSelectAccount = async (accountId: string) => {
-    if (switchingAccountId || isSigningOut) return;
+    if (switchingAccountId !== null || isSigningOut) {
+      return;
+    }
+    setActionError("");
     setSwitchingAccountId(accountId);
     try {
-      await postJson<{ success: boolean; selectedAccountId: string }>(
-        "/api/planning-center/accounts",
-        { accountId }
-      );
+      await postJson("/api/planning-center/accounts", accountSwitchSchema, {
+        accountId,
+      });
       clearCachedPeople();
       clearCachedPeopleDashboards();
       clearCachedPeopleSearch();
@@ -567,38 +655,41 @@ function SidebarAccountPanel({
       clearCachedSongOptions();
       clearCachedSongSearch();
       clearCachedTeamPositions();
-      await loadAccounts();
+      await accountsQuery.refetch();
       await queryClient.invalidateQueries();
       router.refresh();
       setAccountMenuOpen(false);
-    } catch (err) {
+    } catch (error) {
       const message =
-        err instanceof Error ? err.message : "Failed to switch organization";
-      setError(message);
-    } finally {
-      setSwitchingAccountId(null);
+        error instanceof Error
+          ? error.message
+          : "Failed to switch organization";
+      setActionError(message);
     }
+    setSwitchingAccountId(null);
   };
 
   const handleSignOut = async () => {
-    if (isSigningOut || switchingAccountId) return;
+    if (isSigningOut || switchingAccountId !== null) {
+      return;
+    }
+    setActionError("");
     setIsSigningOut(true);
     try {
-      await authClient.signOut();
+      await signOutSession();
+      queryClient.clear();
+      writeBrowserStorage(ACCOUNT_PANEL_CACHE_KEY, null);
       startTransition(() => {
         router.replace("/auth");
         router.refresh();
       });
-    } finally {
-      setIsSigningOut(false);
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : "Unable to sign out"
+      );
     }
+    setIsSigningOut(false);
   };
-
-  const themeOptions = [
-    { value: "light", label: "Light", icon: Sun },
-    { value: "dark", label: "Dark", icon: Moon },
-    { value: "system", label: "System", icon: Laptop },
-  ];
 
   return (
     <SidebarMenu>
@@ -611,15 +702,15 @@ function SidebarAccountPanel({
           }}
         >
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-              <Avatar className="size-6 rounded-md">
-                {triggerSummary.image ? (
+            <SidebarMenuButton variant="account">
+              <Avatar size="small" corners="square">
+                {isNonEmptyString(triggerSummary.image) ? (
                   <AvatarImage
                     src={triggerSummary.image}
                     alt={triggerSummary.avatarName ?? "User"}
                   />
                 ) : null}
-                <AvatarFallback className="bg-primary text-primary-foreground rounded-md text-[10px] font-medium">
+                <AvatarFallback corners="square" size="tiny" tone="primary">
                   {initialsFromName(triggerSummary.avatarName)}
                 </AvatarFallback>
               </Avatar>
@@ -637,9 +728,13 @@ function SidebarAccountPanel({
           <DropdownMenuContent
             side="bottom"
             align="start"
-            className="border-border/60 bg-popover z-[80] w-[var(--radix-dropdown-menu-trigger-width)] max-w-none min-w-[14rem] gap-0 rounded-xl p-1 shadow-xl shadow-black/35"
+            treatment="account"
+            className="z-[80] w-[var(--radix-dropdown-menu-trigger-width)] max-w-none min-w-[14rem]"
           >
-            <DropdownMenuLabel className="cursor-default rounded-none px-2.5 py-2.5 pb-2 font-normal">
+            <DropdownMenuLabel
+              treatment="account-heading"
+              className="cursor-default"
+            >
               <span className="text-foreground block truncate text-sm font-semibold">
                 {data?.session.name ?? "Account"}
               </span>
@@ -648,56 +743,17 @@ function SidebarAccountPanel({
               </span>
             </DropdownMenuLabel>
 
-            {(loading && !data) ||
-            (data !== null && data.accounts.length > 1) ? (
-              <>
-                <DropdownMenuSeparator className="bg-border/50 my-0" />
-                {loading && !data ? (
-                  <DropdownMenuItem
-                    disabled
-                    className="rounded-sm px-2.5 py-2 text-sm"
-                  >
-                    Loading…
-                  </DropdownMenuItem>
-                ) : (
-                  data!.accounts.map((account) => {
-                    const isSelected = account.id === data!.selectedAccountId;
-                    const orgName =
-                      account.identity?.organizationName ||
-                      "Unknown organization";
-                    return (
-                      <DropdownMenuItem
-                        key={account.id}
-                        className="gap-2 rounded-sm px-2.5 py-2 text-sm"
-                        disabled={Boolean(switchingAccountId) || isSigningOut}
-                        onSelect={(event) => {
-                          event.preventDefault();
-                          void handleSelectAccount(account.id);
-                        }}
-                      >
-                        <span className="min-w-0 flex-1 truncate">
-                          {orgName}
-                        </span>
-                        {switchingAccountId === account.id ? (
-                          <Loader2 className="size-4 shrink-0 animate-spin" />
-                        ) : (
-                          <Check
-                            className={cn(
-                              "size-4 shrink-0",
-                              isSelected ? "opacity-80" : "invisible"
-                            )}
-                          />
-                        )}
-                      </DropdownMenuItem>
-                    );
-                  })
-                )}
-              </>
-            ) : null}
+            <AccountSwitcher
+              data={data}
+              loading={loading}
+              switchingAccountId={switchingAccountId}
+              isSigningOut={isSigningOut}
+              onSelectAccount={handleSelectAccount}
+            />
 
-            <DropdownMenuSeparator className="bg-border/50 my-0" />
+            <DropdownMenuSeparator subtle className="my-0" />
 
-            <DropdownMenuLabel className="text-muted-foreground px-2.5 pt-2 pb-1.5 text-xs font-medium">
+            <DropdownMenuLabel treatment="account">
               Appearance
             </DropdownMenuLabel>
             {themeOptions.map((option) => {
@@ -706,8 +762,10 @@ function SidebarAccountPanel({
               return (
                 <DropdownMenuItem
                   key={option.value}
-                  className="gap-2 rounded-sm px-2.5 py-2 text-sm"
-                  onSelect={() => setTheme(option.value)}
+                  density="account"
+                  onSelect={() => {
+                    setTheme(option.value);
+                  }}
                 >
                   <Icon
                     className="text-muted-foreground size-4 shrink-0"
@@ -724,11 +782,13 @@ function SidebarAccountPanel({
               );
             })}
 
-            <DropdownMenuSeparator className="bg-border/50 my-0" />
+            <DropdownMenuSeparator subtle className="my-0" />
 
             <DropdownMenuItem
-              className="rounded-sm px-2.5 py-2 text-sm"
-              onSelect={() => onOpenShortcuts()}
+              density="account"
+              onSelect={() => {
+                onOpenShortcuts();
+              }}
             >
               <Keyboard
                 className="text-muted-foreground size-4 shrink-0"
@@ -738,23 +798,26 @@ function SidebarAccountPanel({
               <HotkeyChord
                 id="acct-menu-shortcuts"
                 binding={SHORTCUTS_PALETTE_HOTKEY}
-                className="[&_[data-slot=kbd]]:border-border/50 [&_[data-slot=kbd]]:bg-muted/40 ml-2 shrink-0 [&_[data-slot=kbd]]:h-7 [&_[data-slot=kbd]]:min-h-7 [&_[data-slot=kbd]]:px-1.5 [&_[data-slot=kbd]]:text-[11px]"
+                treatment="menu"
+                className="ml-2 shrink-0"
               />
             </DropdownMenuItem>
 
-            {error ? (
-              <p className="text-destructive mx-2 my-1.5 text-[11px] leading-snug">
-                {error}
+            {panelError ? (
+              <p className="text-destructive mx-2 my-1.5 text-xs leading-snug">
+                {panelError}
               </p>
             ) : null}
 
-            <DropdownMenuSeparator className="bg-border/50 my-0" />
+            <DropdownMenuSeparator subtle className="my-0" />
 
             <DropdownMenuItem
               variant="destructive"
-              className="rounded-sm px-2.5 py-2 text-sm"
+              density="account"
               disabled={isSigningOut || Boolean(switchingAccountId)}
-              onSelect={() => void handleSignOut()}
+              onSelect={() => {
+                void handleSignOut();
+              }}
             >
               {isSigningOut ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -768,20 +831,21 @@ function SidebarAccountPanel({
       </SidebarMenuItem>
     </SidebarMenu>
   );
-}
+};
 
-function ServicesSidebarMenuItem() {
+const servicesRootItem: SidebarTabGroupItem<ServicesSidebarKey> = {
+  key: "services",
+  label: "Services",
+  href: "/services",
+  icon: CalendarDays,
+};
+
+const ServicesSidebarMenuItem = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const planPath = getServicesPlanPath(pathname);
   const isPlanWorkspace = Boolean(planPath);
   const activeScheduleView = planPath?.view ?? "assign";
-  const servicesRootItem: SidebarTabGroupItem<ServicesSidebarKey> = {
-    key: "services",
-    label: "Services",
-    href: "/services",
-    icon: CalendarDays,
-  };
   const servicesViewItems: SidebarTabGroupItem<ServicesSidebarKey>[] = [
     servicesRootItem,
     {
@@ -809,12 +873,12 @@ function ServicesSidebarMenuItem() {
       icon: Clock3,
     },
   ];
-  const servicesActiveKey: ServicesSidebarKey | null =
-    pathname === "/services"
-      ? "services"
-      : isPlanWorkspace
-        ? activeScheduleView
-        : null;
+  let servicesActiveKey: ServicesSidebarKey | null = null;
+  if (pathname === "/services") {
+    servicesActiveKey = "services";
+  } else if (isPlanWorkspace) {
+    servicesActiveKey = activeScheduleView;
+  }
 
   return (
     <SidebarTabGroup
@@ -824,20 +888,18 @@ function ServicesSidebarMenuItem() {
       items={isPlanWorkspace ? servicesViewItems : [servicesRootItem]}
     />
   );
-}
+};
 
-function ServicesSidebarMenuItemFallback() {
-  return (
-    <SidebarMenuButton asChild hoverCard="Services">
-      <Link href="/services">
-        <CalendarDays />
-        <span>Services</span>
-      </Link>
-    </SidebarMenuButton>
-  );
-}
+const ServicesSidebarMenuItemFallback = () => (
+  <SidebarMenuButton asChild hoverCard="Services">
+    <Link href="/services">
+      <CalendarDays />
+      <span>Services</span>
+    </Link>
+  </SidebarMenuButton>
+);
 
-function AppSidebar({
+const AppSidebar = ({
   trailingChrome,
   collapsePreview = false,
   peoplePageEnabled,
@@ -845,54 +907,32 @@ function AppSidebar({
   trailingChrome: ReactNode;
   collapsePreview?: boolean;
   peoplePageEnabled: boolean;
-}) {
+}) => {
   const pathname = usePathname();
-  const [peopleNavEnabled, setPeopleNavEnabled] = useState(peoplePageEnabled);
-  const [adminNavEnabled, setAdminNavEnabled] = useState(false);
+  const [cachedPeopleFeature] = useBrowserStorage(PEOPLE_PAGE_NAV_CACHE_KEY);
+  const peopleFeatureQuery = useQuery({
+    queryKey: queryKeys.peopleFeature(),
+    queryFn: fetchPeopleNavFeature,
+  });
+  const adminFeatureQuery = useQuery({
+    queryKey: queryKeys.adminFeature(),
+    queryFn: fetchAdminNavFeature,
+  });
+  const peopleNavEnabled =
+    peopleFeatureQuery.data?.enabled ??
+    parsePeoplePageNavState(cachedPeopleFeature)?.enabled ??
+    peoplePageEnabled;
+  const adminNavEnabled = adminFeatureQuery.data?.enabled ?? false;
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [sidebarPeekLocked, setSidebarPeekLocked] = useState(false);
 
-  useHotkey(SHORTCUTS_PALETTE_HOTKEY, () => setShortcutsOpen(true), {
-    ignoreInputs: true,
-  });
-
-  useEffect(() => {
-    let cancelled = false;
-
-    setPeopleNavEnabled(readCachedPeoplePageEnabled(peoplePageEnabled));
-
-    void getJson<{ enabled: boolean }>("/api/people/feature")
-      .then(({ enabled }) => {
-        if (cancelled) return;
-        setPeopleNavEnabled(enabled);
-        writeCachedPeoplePageEnabled(enabled);
-      })
-      .catch(() => {
-        // Keep the initial/cached value if the feature check fails.
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [peoplePageEnabled]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void getJson<{ enabled: boolean }>("/api/admin/feature")
-      .then(({ enabled }) => {
-        if (cancelled) return;
-        setAdminNavEnabled(enabled);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setAdminNavEnabled(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  useHotkey(
+    SHORTCUTS_PALETTE_HOTKEY,
+    () => {
+      setShortcutsOpen(true);
+    },
+    { ignoreInputs: true }
+  );
 
   return (
     <>
@@ -905,7 +945,9 @@ function AppSidebar({
       >
         <SidebarHeader>
           <SidebarAccountPanel
-            onOpenShortcuts={() => setShortcutsOpen(true)}
+            onOpenShortcuts={() => {
+              setShortcutsOpen(true);
+            }}
             onPeekLockChange={setSidebarPeekLocked}
           />
         </SidebarHeader>
@@ -966,7 +1008,9 @@ function AppSidebar({
                     </div>
                   ),
                 }}
-                onClick={() => setShortcutsOpen(true)}
+                onClick={() => {
+                  setShortcutsOpen(true);
+                }}
               >
                 <Settings2 />
                 <span>Shortcuts</span>
@@ -1000,9 +1044,9 @@ function AppSidebar({
       </Dialog>
     </>
   );
-}
+};
 
-export function AppShell({
+export const AppShell = ({
   children,
   peoplePageEnabled,
   presentationMode,
@@ -1010,41 +1054,47 @@ export function AppShell({
   children: ReactNode;
   peoplePageEnabled: boolean;
   presentationMode: boolean;
-}) {
+}): ReactNode => {
   const pathname = usePathname();
   const isAuthRoute = pathname.startsWith("/auth");
-  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [storedWidth, setStoredWidth] = useBrowserStorage(
+    SIDEBAR_WIDTH_STORAGE_KEY
+  );
+  const [storedOpen, setStoredOpen] = useBrowserStorage(
+    SIDEBAR_OPEN_STORAGE_KEY
+  );
+  const sidebarWidth = parseSidebarWidth(storedWidth);
+  const sidebarOpen = storedOpen !== "false";
   const [sidebarCollapsePreview, setSidebarCollapsePreview] = useState(false);
 
-  useEffect(() => {
-    setSidebarWidth(readStoredSidebarWidth());
-    setSidebarOpen(readStoredSidebarOpen());
-  }, []);
+  const handleSidebarWidthChange = useCallback(
+    (nextWidth: number) => {
+      setStoredWidth(String(clampSidebarWidth(nextWidth)));
+    },
+    [setStoredWidth]
+  );
 
-  const handleSidebarWidthChange = useCallback((nextWidth: number) => {
-    const clamped = clampSidebarWidth(nextWidth);
-    setSidebarWidth(clamped);
-    window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(clamped));
-  }, []);
+  const handleSidebarOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      setStoredOpen(String(nextOpen));
+    },
+    [setStoredOpen]
+  );
 
-  const handleSidebarOpenChange = useCallback((nextOpen: boolean) => {
-    setSidebarOpen(nextOpen);
-    window.localStorage.setItem(SIDEBAR_OPEN_STORAGE_KEY, String(nextOpen));
-  }, []);
+  const sidebarStyle: CSSProperties & { "--sidebar-width": string } = {
+    "--sidebar-width": `${sidebarWidth}px`,
+  };
 
-  if (isAuthRoute) return <>{children}</>;
+  if (isAuthRoute) {
+    return children;
+  }
 
   return (
     <SidebarProvider
       open={sidebarOpen}
       onOpenChange={handleSidebarOpenChange}
       className="h-svh min-h-0 overflow-hidden"
-      style={
-        {
-          "--sidebar-width": `${sidebarWidth}px`,
-        } as CSSProperties
-      }
+      style={sidebarStyle}
     >
       <SidebarToggleHotkey />
       <AppSidebar
@@ -1065,7 +1115,7 @@ export function AppShell({
             <AppTopBar />
           </Suspense>
           {presentationMode ? (
-            <span className="ml-auto shrink-0 rounded-md bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-700 dark:text-amber-400">
+            <span className="bg-status-scheduled/10 text-status-scheduled ml-auto shrink-0 rounded-md px-2 py-1 text-xs font-medium">
               Presentation mode
             </span>
           ) : null}
@@ -1074,4 +1124,4 @@ export function AppShell({
       </SidebarInset>
     </SidebarProvider>
   );
-}
+};

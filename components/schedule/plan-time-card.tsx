@@ -9,10 +9,8 @@ import {
   formatPlanTimeRangeLabel,
   parseCalendarDay,
 } from "@/components/schedule/plan-time-display";
-import {
-  TimeAssignmentSelector,
-  type TimeAssignmentValue,
-} from "@/components/time-assignment-selector";
+import { TimeAssignmentSelector } from "@/components/time-assignment-selector";
+import type { TimeAssignmentValue } from "@/components/time-assignment-selector";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -65,136 +63,6 @@ const timeTypeLabels: Record<PlanTimeType, string> = {
   other: "Other",
 };
 
-const timeInputClassName =
-  "appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none";
-
-export function PlanTimeCard({
-  planTimeId,
-  edit,
-  valid,
-  saving,
-  assignmentGroups,
-  assignmentsLoading,
-  deleting,
-  onEditChange,
-  onCommitEdit,
-  onPersist,
-  onDelete,
-}: PlanTimeCardProps) {
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const assignmentValue: TimeAssignmentValue = {
-    teamIds: edit.assignedTeamIds,
-    positionIds: edit.assignedPositionIds,
-    neededPositionIds: edit.assignedNeededPositionIds,
-    planPersonIds: edit.assignedPlanPersonIds,
-  };
-
-  return (
-    <Card
-      className={cn(
-        "group/plan-time hover:border-border/80 gap-0 rounded-lg py-0 shadow-xs transition-colors",
-        saving && "opacity-70"
-      )}
-    >
-      <CardContent className="flex min-w-0 flex-1 flex-col gap-2.5 p-3.5">
-        <div className="flex flex-wrap items-center gap-2">
-          <Input
-            id={`plan-time-name-${planTimeId}`}
-            value={edit.name}
-            placeholder="Untitled time"
-            aria-label="Time name"
-            onChange={(event) => onEditChange({ name: event.target.value })}
-            onBlur={(event) => onCommitEdit({ name: event.target.value })}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                event.currentTarget.blur();
-              }
-            }}
-            className={cn(
-              "min-w-0 flex-1 border-transparent font-semibold shadow-none",
-              "hover:border-border/60 hover:bg-muted/30",
-              "focus-visible:border-input focus-visible:bg-background",
-              !edit.name.trim() && "text-muted-foreground"
-            )}
-          />
-          <NativeSelect
-            id={`plan-time-type-${planTimeId}`}
-            size="sm"
-            value={edit.timeType}
-            wrapperClassName="shrink-0 opacity-80 transition-opacity hover:opacity-100"
-            className="border-border/60 bg-muted/20 h-7 pr-8 pl-2.5 text-xs font-medium shadow-none"
-            aria-label="Time type"
-            onChange={(event) =>
-              onCommitEdit({ timeType: event.target.value as PlanTimeType })
-            }
-          >
-            <NativeSelectOption value="rehearsal">
-              {timeTypeLabels.rehearsal}
-            </NativeSelectOption>
-            <NativeSelectOption value="service">
-              {timeTypeLabels.service}
-            </NativeSelectOption>
-            <NativeSelectOption value="other">
-              {timeTypeLabels.other}
-            </NativeSelectOption>
-          </NativeSelect>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            className="text-muted-foreground hover:text-destructive size-7 shrink-0"
-            aria-label={`Delete ${edit.name || "time"}`}
-            disabled={saving || deleting}
-            onClick={() => setDeleteOpen(true)}
-          >
-            <Trash2 className="size-3.5" />
-          </Button>
-        </div>
-
-        <PlanTimeRangeEditor
-          id={`plan-time-range-${planTimeId}`}
-          startDate={edit.startDate}
-          startTime={edit.startTime}
-          endDate={edit.endDate}
-          endTime={edit.endTime}
-          invalid={!valid}
-          onEditChange={onEditChange}
-          onCommitEdit={onCommitEdit}
-          onPersist={onPersist}
-        />
-
-        <TimeAssignmentSelector
-          groups={assignmentGroups}
-          value={assignmentValue}
-          disabled={assignmentsLoading}
-          onChange={(assignment) =>
-            onCommitEdit({
-              assignedTeamIds: assignment.teamIds,
-              assignedPositionIds: assignment.positionIds,
-              assignedNeededPositionIds: assignment.neededPositionIds,
-              assignedPlanPersonIds: assignment.planPersonIds,
-            })
-          }
-        />
-      </CardContent>
-      <DeleteConfirmationDialog
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        onConfirm={async () => {
-          await onDelete();
-          setDeleteOpen(false);
-        }}
-        isPending={deleting}
-        itemLabel={edit.name || "this time"}
-        title="Delete time?"
-        description="Remove this time from the plan? Any assignments tied to it will also lose this time."
-        confirmLabel="Delete time"
-      />
-    </Card>
-  );
-}
-
 interface PlanTimeRangeEditorProps {
   id: string;
   startDate: string;
@@ -217,7 +85,102 @@ interface PlanTimeRangeEditorProps {
   onPersist: () => void;
 }
 
-function PlanTimeRangeEditor({
+interface DatePickerFieldProps {
+  id: string;
+  label: string;
+  value: string;
+  invalid?: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onChange: (dateKey: string) => void;
+}
+
+const DatePickerField = ({
+  id,
+  label,
+  value,
+  invalid = false,
+  open,
+  onOpenChange,
+  onChange,
+}: DatePickerFieldProps) => {
+  const selectedDate = parseCalendarDay(value);
+
+  return (
+    <Field density="tight">
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <Popover open={open} onOpenChange={onOpenChange}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            id={id}
+            weight="normal"
+            className="w-full justify-between"
+            aria-invalid={invalid || undefined}
+          >
+            <span className="truncate">
+              {selectedDate
+                ? format(selectedDate, "MMM d, yyyy")
+                : "Select date"}
+            </span>
+            <ChevronDownIcon />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          density="flush"
+          className="w-auto overflow-hidden"
+          align="start"
+        >
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            captionLayout="dropdown"
+            defaultMonth={selectedDate}
+            onSelect={(date) => {
+              if (!date) {
+                return;
+              }
+              onChange(formatCalendarDay(date));
+              onOpenChange(false);
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+    </Field>
+  );
+};
+
+interface TimePickerFieldProps {
+  id: string;
+  label: string;
+  value: string;
+  invalid?: boolean;
+  onChange: (value: string) => void;
+}
+
+const TimePickerField = ({
+  id,
+  label,
+  value,
+  invalid = false,
+  onChange,
+}: TimePickerFieldProps) => (
+  <Field density="tight" className="min-w-0 flex-1">
+    <FieldLabel htmlFor={id}>{label}</FieldLabel>
+    <Input
+      type="time"
+      id={id}
+      value={value}
+      aria-invalid={invalid || undefined}
+      onChange={(event) => {
+        onChange(event.target.value);
+      }}
+    />
+  </Field>
+);
+
+const PlanTimeRangeEditor = ({
   id,
   startDate,
   startTime,
@@ -227,7 +190,7 @@ function PlanTimeRangeEditor({
   onEditChange,
   onCommitEdit,
   onPersist,
-}: PlanTimeRangeEditorProps) {
+}: PlanTimeRangeEditorProps) => {
   const [dateOpen, setDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
   const sameDay = !endDate || endDate === startDate;
@@ -253,12 +216,9 @@ function PlanTimeRangeEditor({
       <PopoverTrigger asChild>
         <Button
           type="button"
-          variant="ghost"
+          variant="ghost-muted"
           size="sm"
-          className={cn(
-            "group/time-range text-muted-foreground h-auto min-h-8 w-full justify-start gap-1.5 px-1 py-1 pr-1 font-normal",
-            open && "bg-muted/30 text-foreground"
-          )}
+          className="group/time-range w-full justify-start"
           data-invalid={invalid || undefined}
           aria-label={`Edit time, ${displayLabel}`}
           aria-expanded={open}
@@ -287,10 +247,12 @@ function PlanTimeRangeEditor({
       <PopoverContent
         ref={contentRef}
         align="start"
-        className="w-80 p-4"
-        onOpenAutoFocus={(event) => event.preventDefault()}
+        className="w-80"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+        }}
       >
-        <FieldGroup className="gap-4" data-invalid={invalid || undefined}>
+        <FieldGroup density="compact" data-invalid={invalid || undefined}>
           <DatePickerField
             id={`${id}-date`}
             label="Date"
@@ -298,12 +260,12 @@ function PlanTimeRangeEditor({
             invalid={invalid}
             open={dateOpen}
             onOpenChange={setDateOpen}
-            onChange={(dateKey) =>
+            onChange={(dateKey) => {
               onCommitEdit({
                 startDate: dateKey,
                 endDate: endDate || dateKey,
-              })
-            }
+              });
+            }}
           />
 
           <div className="flex gap-3">
@@ -312,18 +274,22 @@ function PlanTimeRangeEditor({
               label="Start"
               value={startTime}
               invalid={invalid}
-              onChange={(startTime) => onEditChange({ startTime })}
+              onChange={(nextStartTime) => {
+                onEditChange({ startTime: nextStartTime });
+              }}
             />
             <TimePickerField
               id={`${id}-end-time`}
               label="End"
               value={endTime}
               invalid={invalid}
-              onChange={(endTime) => onEditChange({ endTime })}
+              onChange={(nextEndTime) => {
+                onEditChange({ endTime: nextEndTime });
+              }}
             />
           </div>
 
-          {!sameDay ? (
+          {sameDay ? null : (
             <DatePickerField
               id={`${id}-end-date`}
               label="End date"
@@ -331,100 +297,141 @@ function PlanTimeRangeEditor({
               invalid={invalid}
               open={endDateOpen}
               onOpenChange={setEndDateOpen}
-              onChange={(dateKey) => onCommitEdit({ endDate: dateKey })}
+              onChange={(dateKey) => {
+                onCommitEdit({ endDate: dateKey });
+              }}
             />
-          ) : null}
+          )}
         </FieldGroup>
       </PopoverContent>
     </Popover>
   );
-}
+};
 
-interface DatePickerFieldProps {
-  id: string;
-  label: string;
-  value: string;
-  invalid?: boolean;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onChange: (dateKey: string) => void;
-}
-
-function DatePickerField({
-  id,
-  label,
-  value,
-  invalid = false,
-  open,
-  onOpenChange,
-  onChange,
-}: DatePickerFieldProps) {
-  const selectedDate = parseCalendarDay(value);
+export const PlanTimeCard = ({
+  planTimeId,
+  edit,
+  valid,
+  saving,
+  assignmentGroups,
+  assignmentsLoading,
+  deleting,
+  onEditChange,
+  onCommitEdit,
+  onPersist,
+  onDelete,
+}: PlanTimeCardProps) => {
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const assignmentValue: TimeAssignmentValue = {
+    teamIds: edit.assignedTeamIds,
+    positionIds: edit.assignedPositionIds,
+    neededPositionIds: edit.assignedNeededPositionIds,
+    planPersonIds: edit.assignedPlanPersonIds,
+  };
 
   return (
-    <Field className="gap-1.5">
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <Popover open={open} onOpenChange={onOpenChange}>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            id={id}
-            className="w-full justify-between font-normal"
-            aria-invalid={invalid || undefined}
-          >
-            <span className="truncate">
-              {selectedDate
-                ? format(selectedDate, "MMM d, yyyy")
-                : "Select date"}
-            </span>
-            <ChevronDownIcon />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            captionLayout="dropdown"
-            defaultMonth={selectedDate}
-            onSelect={(date) => {
-              if (!date) return;
-              onChange(formatCalendarDay(date));
-              onOpenChange(false);
+    <Card density="compact" aria-busy={saving} className="group/plan-time">
+      <CardContent density="compact" layout="stack" className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            id={`plan-time-name-${planTimeId}`}
+            value={edit.name}
+            placeholder="Untitled time"
+            aria-label="Time name"
+            className="min-w-0 flex-1"
+            onChange={(event) => {
+              onEditChange({ name: event.target.value });
+            }}
+            onBlur={(event) => {
+              onCommitEdit({ name: event.target.value });
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                event.currentTarget.blur();
+              }
             }}
           />
-        </PopoverContent>
-      </Popover>
-    </Field>
-  );
-}
+          <NativeSelect
+            id={`plan-time-type-${planTimeId}`}
+            size="sm"
+            value={edit.timeType}
+            aria-label="Time type"
+            onChange={(event) => {
+              const timeType = event.target.value;
+              if (
+                timeType === "service" ||
+                timeType === "rehearsal" ||
+                timeType === "other"
+              ) {
+                onCommitEdit({ timeType });
+              }
+            }}
+          >
+            <NativeSelectOption value="rehearsal">
+              {timeTypeLabels.rehearsal}
+            </NativeSelectOption>
+            <NativeSelectOption value="service">
+              {timeTypeLabels.service}
+            </NativeSelectOption>
+            <NativeSelectOption value="other">
+              {timeTypeLabels.other}
+            </NativeSelectOption>
+          </NativeSelect>
+          <Button
+            type="button"
+            variant="ghost-destructive"
+            size="icon-xs"
+            className="shrink-0"
+            aria-label={`Delete ${edit.name || "time"}`}
+            disabled={saving || deleting}
+            onClick={() => {
+              setDeleteOpen(true);
+            }}
+          >
+            <Trash2 className="size-3.5" />
+          </Button>
+        </div>
 
-interface TimePickerFieldProps {
-  id: string;
-  label: string;
-  value: string;
-  invalid?: boolean;
-  onChange: (value: string) => void;
-}
+        <PlanTimeRangeEditor
+          id={`plan-time-range-${planTimeId}`}
+          startDate={edit.startDate}
+          startTime={edit.startTime}
+          endDate={edit.endDate}
+          endTime={edit.endTime}
+          invalid={!valid}
+          onEditChange={onEditChange}
+          onCommitEdit={onCommitEdit}
+          onPersist={onPersist}
+        />
 
-function TimePickerField({
-  id,
-  label,
-  value,
-  invalid = false,
-  onChange,
-}: TimePickerFieldProps) {
-  return (
-    <Field className="min-w-0 flex-1 gap-1.5">
-      <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <Input
-        type="time"
-        id={id}
-        value={value}
-        aria-invalid={invalid || undefined}
-        className={timeInputClassName}
-        onChange={(event) => onChange(event.target.value)}
+        <TimeAssignmentSelector
+          groups={assignmentGroups}
+          value={assignmentValue}
+          disabled={assignmentsLoading}
+          onChange={(assignment) => {
+            onCommitEdit({
+              assignedTeamIds: assignment.teamIds,
+              assignedPositionIds: assignment.positionIds,
+              assignedNeededPositionIds: assignment.neededPositionIds,
+              assignedPlanPersonIds: assignment.planPersonIds,
+            });
+          }}
+        />
+      </CardContent>
+      <DeleteConfirmationDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={async () => {
+          await onDelete();
+          setDeleteOpen(false);
+        }}
+        isPending={deleting}
+        itemLabel={edit.name || "this time"}
+        title="Delete time?"
+        description="Remove this time from the plan? Any assignments tied to it will also lose this time."
+        confirmLabel="Delete time"
       />
-    </Field>
+    </Card>
   );
-}
+};

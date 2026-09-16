@@ -1,6 +1,7 @@
 "use client";
 
-import { Fragment, type ReactNode } from "react";
+import { Fragment } from "react";
+import type { ReactNode } from "react";
 
 import {
   Popover,
@@ -21,12 +22,45 @@ interface ScheduleContextPopoverProps {
   serviceHistory: ServiceHistoryItem[];
   children: ReactNode;
 }
+const historyDateFormatter = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+});
 
-export function ScheduleContextPopover({
+const formatServiceHistoryDisplayDateWithoutYear = (
+  date: Date | string | undefined
+) => {
+  if (date === undefined || date === "") {
+    return "Unknown date";
+  }
+  const dateObj = toServiceHistoryDate(date);
+  if (Number.isNaN(dateObj.getTime())) {
+    return "Invalid date";
+  }
+
+  return historyDateFormatter.format(dateObj);
+};
+
+const formatPopoverHistoryDate = (
+  item: ServiceHistoryItem,
+  options: { includeServiceTypeName?: boolean } = {}
+) => {
+  const base = formatServiceHistoryDisplayDateWithoutYear(item.date);
+  if (options.includeServiceTypeName === false) {
+    return base;
+  }
+  const serviceTypeName = item.serviceTypeName?.trim();
+  return serviceTypeName !== undefined && serviceTypeName !== ""
+    ? `${base} (${serviceTypeName})`
+    : base;
+};
+
+export const ScheduleContextPopover = ({
   serviceHistory,
   children,
-}: ScheduleContextPopoverProps) {
-  const historyGroups = [...buildServiceHistoryGroups(serviceHistory)].sort(
+}: ScheduleContextPopoverProps) => {
+  const historyGroups = buildServiceHistoryGroups(serviceHistory).toSorted(
     (a, b) =>
       toServiceHistoryDate(a.primary.date).getTime() -
       toServiceHistoryDate(b.primary.date).getTime()
@@ -81,7 +115,8 @@ export function ScheduleContextPopover({
         side="right"
         sideOffset={10}
         collisionPadding={16}
-        className="w-auto max-w-[min(44rem,calc(100vw-2rem))] overflow-hidden p-0"
+        density="flush"
+        className="w-auto max-w-[min(44rem,calc(100vw-2rem))] overflow-hidden"
       >
         <div className="border-border/40 border-b px-5 py-3">
           <p className="text-foreground text-sm font-semibold tracking-tight">
@@ -100,28 +135,4 @@ export function ScheduleContextPopover({
       </PopoverContent>
     </Popover>
   );
-}
-
-function formatPopoverHistoryDate(
-  item: ServiceHistoryItem,
-  options: { includeServiceTypeName?: boolean } = {}
-) {
-  const base = formatServiceHistoryDisplayDateWithoutYear(item.date);
-  if (options.includeServiceTypeName === false) return base;
-  const serviceTypeName = item.serviceTypeName?.trim();
-  return serviceTypeName ? `${base} (${serviceTypeName})` : base;
-}
-
-function formatServiceHistoryDisplayDateWithoutYear(
-  date: Date | string | undefined
-) {
-  if (!date) return "Unknown date";
-  const dateObj = toServiceHistoryDate(date);
-  if (Number.isNaN(dateObj.getTime())) return "Invalid date";
-
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  }).format(dateObj);
-}
+};

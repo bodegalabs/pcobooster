@@ -1,16 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 
+import { myScheduledPlansDataSchema } from "@/lib/api-schemas";
 import { postJson } from "@/lib/http/client";
 import {
   readCachedMyScheduledPlans,
   writeCachedMyScheduledPlans,
-  type MyScheduledPlansData,
 } from "@/lib/my-scheduled-plans-cache";
+import type { MyScheduledPlansData } from "@/lib/my-scheduled-plans-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
 
-export function useMyScheduledPlans(planIds: string[]) {
+export const useMyScheduledPlans = (planIds: string[]) => {
   const normalizedPlanIds = useMemo(
     () => [...new Set(planIds)].toSorted((a, b) => a.localeCompare(b)),
     [planIds]
@@ -30,8 +31,9 @@ export function useMyScheduledPlans(planIds: string[]) {
         return { planIds: [] };
       }
 
-      const scheduledPlans = await postJson<MyScheduledPlansData>(
+      const scheduledPlans = await postJson(
         "/api/my-scheduled-plans",
+        myScheduledPlansDataSchema,
         {
           planIds: normalizedPlanIds,
         }
@@ -43,4 +45,4 @@ export function useMyScheduledPlans(planIds: string[]) {
     placeholderData: (previousPlans) => previousPlans,
     staleTime: 60 * 1000,
   });
-}
+};

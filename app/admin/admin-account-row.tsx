@@ -2,7 +2,8 @@
 
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, type KeyboardEvent } from "react";
+import { useCallback } from "react";
+import type { KeyboardEvent } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -14,11 +15,11 @@ interface AdminAccountRowProps {
   lastLoginLabel: string;
 }
 
-export function AdminAccountRow({
+export const AdminAccountRow = ({
   account,
   createdLabel,
   lastLoginLabel,
-}: AdminAccountRowProps) {
+}: AdminAccountRowProps) => {
   const router = useRouter();
   const href = `/admin/users/${account.userId}`;
 
@@ -28,7 +29,9 @@ export function AdminAccountRow({
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLTableRowElement>) => {
-      if (event.key !== "Enter" && event.key !== " ") return;
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
       event.preventDefault();
       openAccount();
     },
@@ -37,7 +40,8 @@ export function AdminAccountRow({
 
   return (
     <TableRow
-      className="focus-visible:bg-muted/50 focus-visible:outline-ring cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-2px]"
+      treatment="admin-link"
+      className="cursor-pointer"
       tabIndex={0}
       aria-label={`Open ${account.name}`}
       onClick={openAccount}
@@ -59,23 +63,23 @@ export function AdminAccountRow({
           ))}
         </div>
       </TableCell>
-      <TableCell className="text-right tabular-nums">
+      <TableCell numeric className="text-right">
         {account.activeSessions}
       </TableCell>
-      <TableCell className="text-right tabular-nums">
+      <TableCell numeric className="text-right">
         {account.loginEvents7d}
       </TableCell>
-      <TableCell className="text-right tabular-nums">
+      <TableCell numeric className="text-right">
         {account.loginEvents30d}
       </TableCell>
-      <TableCell className="text-right tabular-nums">
+      <TableCell numeric className="text-right">
         {account.loginEvents}
       </TableCell>
       <TableCell>{lastLoginLabel}</TableCell>
       <TableCell>{createdLabel}</TableCell>
-      <TableCell className="text-muted-foreground text-right">
+      <TableCell tone="muted" className="text-right">
         <ChevronRight className="ml-auto size-4" aria-hidden="true" />
       </TableCell>
     </TableRow>
   );
-}
+};

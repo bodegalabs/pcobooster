@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ThemeProvider } from "next-themes";
-import { useState } from "react";
+import { useMemo } from "react";
 
 import { AppShell } from "@/components/app-shell";
 import { Toaster } from "@/components/ui/sonner";
@@ -16,7 +16,7 @@ import { useIsMobile } from "@/hooks/use-is-mobile";
 
 const QUERY_GC_TIME_MS = 30 * 60 * 1000;
 
-export function Providers({
+export const Providers = ({
   children,
   peoplePageEnabled,
   presentationScope,
@@ -24,9 +24,9 @@ export function Providers({
   children: React.ReactNode;
   peoplePageEnabled: boolean;
   presentationScope: string;
-}) {
+}) => {
   const isMobile = useIsMobile();
-  const [queryClient] = useState(
+  const queryClient = useMemo(
     () =>
       new QueryClient({
         defaultOptions: {
@@ -38,7 +38,8 @@ export function Providers({
             retry: 1,
           },
         },
-      })
+      }),
+    [presentationScope]
   );
 
   return (
@@ -56,15 +57,15 @@ export function Providers({
           >
             {children}
           </AppShell>
-          {process.env.NODE_ENV !== "production" ? (
+          {process.env.NODE_ENV === "production" ? null : (
             <ReactQueryDevtools
               initialIsOpen={false}
               buttonPosition="bottom-right"
             />
-          ) : null}
+          )}
           <Toaster richColors position={isMobile ? "top-center" : undefined} />
         </QueryClientProvider>
       </ThemeProvider>
     </HotkeysProvider>
   );
-}
+};

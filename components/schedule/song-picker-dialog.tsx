@@ -2,7 +2,12 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
-import { useCallback, useDeferredValue, useState } from "react";
+import {
+  startTransition,
+  useCallback,
+  useDeferredValue,
+  useState,
+} from "react";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -38,19 +43,21 @@ const lastScheduledFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
-function formatLastScheduled(date: Date | string | null) {
+const formatLastScheduled = (date: Date | string | null) => {
   const parsedDate = parseOptionalDate(date);
-  if (!parsedDate) return null;
+  if (!parsedDate) {
+    return null;
+  }
   return lastScheduledFormatter.format(parsedDate);
-}
+};
 
-export function SongPickerDialog({
+export const SongPickerDialog = ({
   open,
   onOpenChange,
   serviceTypeId,
   onSelectSong,
   pendingSongId = null,
-}: SongPickerDialogProps) {
+}: SongPickerDialogProps) => {
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
@@ -64,10 +71,18 @@ export function SongPickerDialog({
   const showRefreshing = showResults && isFetching && songs.length > 0;
   const prefetchSongOptions = useCallback(
     (songId: string) => {
-      if (!serviceTypeId) return;
-      void queryClient.prefetchQuery(
-        createSongOptionsQueryOptions(songId, serviceTypeId)
-      );
+      if (!(serviceTypeId !== null && serviceTypeId !== "")) {
+        return;
+      }
+      startTransition(async () => {
+        try {
+          await queryClient.query(
+            createSongOptionsQueryOptions(songId, serviceTypeId)
+          );
+        } catch {
+          // Background prefetch is optional; selecting the song retries the query.
+        }
+      });
     },
     [queryClient, serviceTypeId]
   );
@@ -78,32 +93,29 @@ export function SongPickerDialog({
         desktopClassName="max-w-2xl"
         mobileClassName="max-h-[90svh]"
       >
-        <ResponsiveDialogHeader className="px-4 pt-3 text-left sm:px-0 sm:pt-0">
+        <ResponsiveDialogHeader treatment="picker" className="text-left">
           <ResponsiveDialogTitle>Add Song</ResponsiveDialogTitle>
         </ResponsiveDialogHeader>
 
-        <Command
-          shouldFilter={false}
-          className="rounded-none border-x-0 border-b-0 sm:rounded-lg sm:border"
-        >
+        <Command shouldFilter={false} treatment="song-picker">
           <CommandInput
             placeholder="Search songs, writers, or themes..."
             value={query}
             onValueChange={setQuery}
           />
           <CommandList className="max-h-[420px]">
-            {!showResults ? (
-              <div className="text-muted-foreground flex min-h-[240px] flex-col items-center justify-center gap-2 px-6 py-10 text-center text-sm">
-                <Search className="size-8 opacity-50" />
-                <p>Start typing to search the song catalog.</p>
-              </div>
-            ) : showInitialLoading ? (
+            {showInitialLoading ? (
               <div className="space-y-2 p-3">
                 {Array.from({ length: 6 }).map((_, index) => (
-                  <Skeleton key={index} className="h-20 w-full rounded-lg" />
+                  <Skeleton
+                    key={index}
+                    corners="large"
+                    className="h-20 w-full"
+                  />
                 ))}
               </div>
-            ) : (
+            ) : null}
+            {showResults && !showInitialLoading ? (
               <>
                 <CommandEmpty>No songs matched that search.</CommandEmpty>
                 {showRefreshing ? (
@@ -128,11 +140,19 @@ export function SongPickerDialog({
                           .join(" ")}
                         disabled={pendingSongId === song.id}
                         className="items-start"
-                        onMouseEnter={() => prefetchSongOptions(song.id)}
-                        onFocus={() => prefetchSongOptions(song.id)}
-                        onTouchStart={() => prefetchSongOptions(song.id)}
-                        onSelect={async () => {
-                          await onSelectSong(song);
+                        onMouseEnter={() => {
+                          prefetchSongOptions(song.id);
+                        }}
+                        onFocus={() => {
+                          prefetchSongOptions(song.id);
+                        }}
+                        onTouchStart={() => {
+                          prefetchSongOptions(song.id);
+                        }}
+                        onSelect={() => {
+                          startTransition(async () => {
+                            await onSelectSong(song);
+                          });
                         }}
                       >
                         <div className="min-w-0 flex-1">
@@ -144,7 +164,8 @@ export function SongPickerDialog({
                               {song.author}
                             </p>
                           ) : null}
-                          {lastScheduledLabel ? (
+                          {lastScheduledLabel !== null &&
+                          lastScheduledLabel !== "" ? (
                             <p className="text-muted-foreground mt-2 text-xs">
                               Last scheduled {lastScheduledLabel}
                             </p>
@@ -167,10 +188,16 @@ export function SongPickerDialog({
                   })}
                 </div>
               </>
+            ) : null}
+            {showResults ? null : (
+              <div className="text-muted-foreground flex min-h-[240px] flex-col items-center justify-center gap-2 px-6 py-10 text-center text-sm">
+                <Search className="size-8 opacity-50" />
+                <p>Start typing to search the song catalog.</p>
+              </div>
             )}
           </CommandList>
         </Command>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
   );
-}
+};

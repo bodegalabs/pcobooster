@@ -1,7 +1,8 @@
-import {
-  hydrateSongCatalogEntry,
-  type SerializedSongCatalogEntry,
-} from "@/lib/song-catalog-client";
+import { z } from "zod";
+
+import { serializedSongCatalogEntrySchema } from "@/lib/api-schemas";
+import { hydrateSongCatalogEntry } from "@/lib/song-catalog-client";
+import type { SerializedSongCatalogEntry } from "@/lib/song-catalog-client";
 import type { SongCatalogEntry } from "@/lib/types";
 
 const CACHE_VERSION = "v1";
@@ -12,49 +13,81 @@ interface CachedPayload {
   data: SerializedSongCatalogEntry[];
 }
 
+const cachedPayloadSchema = z.object({
+  savedAt: z.number(),
+  data: z.array(serializedSongCatalogEntrySchema),
+});
+
 export interface SongSearchCacheEntry {
   savedAt: number;
   data: SongCatalogEntry[];
 }
 
-export function readCachedSongSearch(
+const normalizeSongSearchQuery = (query: string): string =>
+  query.trim().toLowerCase();
+
+const buildCacheKey = (serviceTypeId: string, query: string): string =>
+  `${CACHE_KEY_PREFIX}${encodeURIComponent(serviceTypeId)}:${encodeURIComponent(query)}`;
+
+const serializeSongCatalogEntry = (
+  entry: SongCatalogEntry
+): SerializedSongCatalogEntry => ({
+  ...entry,
+  lastScheduledAt:
+    entry.lastScheduledAt === null ? null : entry.lastScheduledAt.toISOString(),
+});
+
+export const readCachedSongSearch = (
   serviceTypeId: string | null,
   query: string
-): SongSearchCacheEntry | undefined {
+): SongSearchCacheEntry | undefined => {
   const normalizedQuery = normalizeSongSearchQuery(query);
-  if (!serviceTypeId || !normalizedQuery || typeof window === "undefined")
+  const storage = globalThis.window?.localStorage;
+  if (
+    serviceTypeId === null ||
+    serviceTypeId.length === 0 ||
+    normalizedQuery.length === 0 ||
+    storage === undefined
+  ) {
     return undefined;
+  }
 
   try {
-    const raw = window.localStorage.getItem(
-      buildCacheKey(serviceTypeId, normalizedQuery)
-    );
-    if (!raw) return undefined;
-    const parsed = JSON.parse(raw) as Partial<CachedPayload>;
-    if (!parsed || typeof parsed !== "object") return undefined;
-    if (typeof parsed.savedAt !== "number") return undefined;
-    if (!isSerializedSongCatalogEntryArray(parsed.data)) return undefined;
-
+    const raw = storage.getItem(buildCacheKey(serviceTypeId, normalizedQuery));
+    if (raw === null) {
+      return undefined;
+    }
+    const parsed = cachedPayloadSchema.safeParse(JSON.parse(raw));
+    if (!parsed.success) {
+      return undefined;
+    }
     return {
-      savedAt: parsed.savedAt,
-      data: parsed.data.map(hydrateSongCatalogEntry),
+      savedAt: parsed.data.savedAt,
+      data: parsed.data.data.map(hydrateSongCatalogEntry),
     };
   } catch {
     return undefined;
   }
-}
+};
 
-export function writeCachedSongSearch(
+export const writeCachedSongSearch = (
   serviceTypeId: string | null,
   query: string,
   songs: SongCatalogEntry[]
-) {
+): void => {
   const normalizedQuery = normalizeSongSearchQuery(query);
-  if (!serviceTypeId || !normalizedQuery || typeof window === "undefined")
+  const storage = globalThis.window?.localStorage;
+  if (
+    serviceTypeId === null ||
+    serviceTypeId.length === 0 ||
+    normalizedQuery.length === 0 ||
+    storage === undefined
+  ) {
     return;
+  }
 
   try {
-    window.localStorage.setItem(
+    storage.setItem(
       buildCacheKey(serviceTypeId, normalizedQuery),
       JSON.stringify({
         savedAt: Date.now(),
@@ -64,67 +97,24 @@ export function writeCachedSongSearch(
   } catch {
     // Ignore storage write failures (private mode/quota).
   }
-}
+};
 
-export function clearCachedSongSearch() {
-  if (typeof window === "undefined") return;
+export const clearCachedSongSearch = (): void => {
+  const storage = globalThis.window?.localStorage;
+  if (storage === undefined) {
+    return;
+  }
 
   try {
-    for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
-      const key = window.localStorage.key(index);
-      if (key?.startsWith(CACHE_KEY_PREFIX)) {
-        window.localStorage.removeItem(key);
+    for (let index = storage.length - 1; index >= 0; index -= 1) {
+      const key = storage.key(index);
+      if (key?.startsWith(CACHE_KEY_PREFIX) === true) {
+        storage.removeItem(key);
       }
     }
   } catch {
     // Ignore storage failures; live search will still query Planning Center.
   }
-}
+};
 
-export function normalizeSongSearchQuery(query: string) {
-  return query.trim().toLowerCase();
-}
-
-function buildCacheKey(serviceTypeId: string, query: string) {
-  return `${CACHE_KEY_PREFIX}${encodeURIComponent(serviceTypeId)}:${encodeURIComponent(query)}`;
-}
-
-function serializeSongCatalogEntry(
-  entry: SongCatalogEntry
-): SerializedSongCatalogEntry {
-  return {
-    ...entry,
-    lastScheduledAt: entry.lastScheduledAt
-      ? entry.lastScheduledAt.toISOString()
-      : null,
-  };
-}
-
-function isSerializedSongCatalogEntryArray(
-  value: unknown
-): value is SerializedSongCatalogEntry[] {
-  return Array.isArray(value) && value.every(isSerializedSongCatalogEntry);
-}
-
-function isSerializedSongCatalogEntry(
-  value: unknown
-): value is SerializedSongCatalogEntry {
-  if (!value || typeof value !== "object") return false;
-  const entry = value as Partial<SerializedSongCatalogEntry>;
-
-  return (
-    typeof entry.id === "string" &&
-    typeof entry.title === "string" &&
-    typeof entry.author === "string" &&
-    typeof entry.themes === "string" &&
-    typeof entry.hidden === "boolean" &&
-    isNullableDateLike(entry.lastScheduledAt) &&
-    (entry.matchScore === undefined || typeof entry.matchScore === "number")
-  );
-}
-
-function isNullableDateLike(value: unknown) {
-  if (value === null) return true;
-  if (typeof value !== "string" && !(value instanceof Date)) return false;
-  return !Number.isNaN(new Date(value).getTime());
-}
+export { normalizeSongSearchQuery };

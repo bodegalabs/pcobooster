@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 
+import { planSchema } from "@/lib/api-schemas";
 import { getJson } from "@/lib/http/client";
+import { isNonEmptyString } from "@/lib/json";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
 import {
@@ -10,7 +12,7 @@ import {
 } from "@/lib/schedule-catalog-cache";
 import type { Plan } from "@/lib/types";
 
-export function usePlans(serviceTypeId: string | null) {
+export const usePlans = (serviceTypeId: string | null) => {
   const queryKey = queryKeys.plans(serviceTypeId);
   const readCachedPlans = useCallback(
     () => readCachedPlansEntry(serviceTypeId),
@@ -21,19 +23,25 @@ export function usePlans(serviceTypeId: string | null) {
   const query = useQuery<Plan[]>({
     queryKey,
     queryFn: async () => {
-      if (!serviceTypeId) {
+      if (!isNonEmptyString(serviceTypeId)) {
         return [];
       }
-      return getJson<Plan[]>(`/api/plans?service_type_id=${serviceTypeId}`);
+      return await getJson(
+        `/api/plans?service_type_id=${serviceTypeId}`,
+        planSchema.array()
+      );
     },
-    enabled: !!serviceTypeId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: isNonEmptyString(serviceTypeId),
+    // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
   useEffect(() => {
-    if (!query.data || !serviceTypeId) return;
+    if (!query.data || !isNonEmptyString(serviceTypeId)) {
+      return;
+    }
     writeCachedPlans(serviceTypeId, query.data);
   }, [query.data, serviceTypeId]);
 
   return query;
-}
+};

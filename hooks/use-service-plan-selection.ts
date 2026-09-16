@@ -1,0 +1,404 @@
+"use client";
+
+import { useQueries, useQueryClient } from "@tanstack/react-query";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { z } from "zod";
+
+import { useBrowserStorage } from "@/hooks/use-browser-storage";
+import { useMyScheduledPlans } from "@/hooks/use-my-scheduled-plans";
+import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
+import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
+import { useServiceTypes } from "@/hooks/use-service-types";
+import { createTeamPositionsQueryOptions } from "@/hooks/use-team-positions";
+import { planSchema } from "@/lib/api-schemas";
+import { getJson } from "@/lib/http/client";
+import { isNonEmptyString } from "@/lib/json";
+import { hydrateQueryFromCache } from "@/lib/query-cache-hydration";
+import { queryKeys } from "@/lib/query-keys";
+import {
+  readCachedPlansEntry,
+  writeCachedPlans,
+} from "@/lib/schedule-catalog-cache";
+import type {
+  DateRangeFilter,
+  ServicePlanRow,
+  ServicePlanTableSelectorProps,
+} from "@/lib/service-plan-selection";
+import {
+  formatDate,
+  isInDateWindow,
+  parsePlanDate,
+  PEOPLE_HISTORY_WARMUP_STALE_TIME_MS,
+  readStoredServiceTypeIds,
+  SERVICE_TYPE_FILTER_STORAGE_KEY,
+  TEAM_POSITIONS_PREFETCH_DELAY_MS,
+  warmupResponseSchema,
+} from "@/lib/service-plan-selection";
+
+export const useServicePlanSelection = ({
+  selectedServiceTypeId,
+  onSelect,
+}: ServicePlanTableSelectorProps) => {
+  const queryClient = useQueryClient();
+  const prefetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cachedPlanWritesRef = useRef(new Map<string, number>());
+  const orgTimeZone = useOrganizationTimeZone();
+  const { data: serviceTypes, isLoading: serviceTypesLoading } =
+    useServiceTypes();
+  const [searchValue, setSearchValue] = useState("");
+  const deferredSearchValue = useDeferredValue(searchValue);
+  const [storedIds, setStoredIds] = useBrowserStorage(
+    SERVICE_TYPE_FILTER_STORAGE_KEY
+  );
+  const selectedServiceTypeIds = useMemo(
+    () => readStoredServiceTypeIds(storedIds),
+    [storedIds]
+  );
+  const setSelectedServiceTypeIds = useCallback(
+    (ids: string[]) => {
+      setStoredIds(JSON.stringify(ids));
+    },
+    [setStoredIds]
+  );
+  const [dateRangeFilter, setDateRangeFilter] = useState<DateRangeFilter>("60");
+  const [showMineOnly, setShowMineOnly] = useState(false);
+
+  const allServiceTypeIds = useMemo(
+    () => (serviceTypes ?? []).map((serviceType) => serviceType.id),
+    [serviceTypes]
+  );
+  const validServiceTypeIdSet = useMemo(
+    () => new Set(allServiceTypeIds),
+    [allServiceTypeIds]
+  );
+  const effectiveSelectedServiceTypeIds = useMemo(() => {
+    if (isNonEmptyString(selectedServiceTypeId)) {
+      return validServiceTypeIdSet.has(selectedServiceTypeId)
+        ? [selectedServiceTypeId]
+        : [];
+    }
+
+    if (selectedServiceTypeIds === null) {
+      return allServiceTypeIds;
+    }
+
+    return selectedServiceTypeIds.filter((id) => validServiceTypeIdSet.has(id));
+  }, [
+    allServiceTypeIds,
+    selectedServiceTypeId,
+    selectedServiceTypeIds,
+    validServiceTypeIdSet,
+  ]);
+
+  const selectedServiceTypeIdSet = useMemo(
+    () => new Set(effectiveSelectedServiceTypeIds),
+    [effectiveSelectedServiceTypeIds]
+  );
+
+  const planQueryOptions = useMemo(
+    () =>
+      (serviceTypes ?? []).map((serviceType) => ({
+        queryKey: queryKeys.plans(serviceType.id),
+        queryFn: async () =>
+          await getJson(
+            `/api/plans?service_type_id=${serviceType.id}`,
+            z.array(planSchema)
+          ),
+        staleTime: 5 * 60 * 1000,
+        enabled: !!serviceTypes && selectedServiceTypeIdSet.has(serviceType.id),
+      })),
+    [selectedServiceTypeIdSet, serviceTypes]
+  );
+
+  const planQueries = useQueries({
+    queries: planQueryOptions,
+  });
+
+  useEffect(() => {
+    if (!serviceTypes) {
+      return;
+    }
+
+    for (const serviceType of serviceTypes) {
+      if (!selectedServiceTypeIdSet.has(serviceType.id)) {
+        continue;
+      }
+
+      hydrateQueryFromCache(queryClient, queryKeys.plans(serviceType.id), () =>
+        readCachedPlansEntry(serviceType.id)
+      );
+    }
+  }, [queryClient, selectedServiceTypeIdSet, serviceTypes]);
+
+  const rows = useMemo(() => {
+    if (!serviceTypes) {
+      return [];
+    }
+
+    const flattened: ServicePlanRow[] = [];
+
+    for (const [index, serviceType] of serviceTypes.entries()) {
+      if (!selectedServiceTypeIdSet.has(serviceType.id)) {
+        continue;
+      }
+
+      const plans = planQueries[index]?.data ?? [];
+      for (const plan of plans) {
+        const sortDate = parsePlanDate(plan.sortDate);
+        if (!sortDate) {
+          continue;
+        }
+
+        flattened.push({
+          serviceTypeId: serviceType.id,
+          serviceTypeName: serviceType.name,
+          serviceTypeSequence: serviceType.sequence,
+          planId: plan.id,
+          planTitle: plan.title,
+          seriesTitle: plan.seriesTitle ?? null,
+          seriesId: plan.seriesId ?? null,
+          sortDate,
+        });
+      }
+    }
+
+    return flattened.toSorted((a, b) => {
+      const byDate = a.sortDate.getTime() - b.sortDate.getTime();
+      if (byDate !== 0) {
+        return byDate;
+      }
+
+      const byServiceOrder = a.serviceTypeSequence - b.serviceTypeSequence;
+      if (byServiceOrder !== 0) {
+        return byServiceOrder;
+      }
+
+      const byServiceName = a.serviceTypeName.localeCompare(b.serviceTypeName);
+      if (byServiceName !== 0) {
+        return byServiceName;
+      }
+
+      return a.planTitle.localeCompare(b.planTitle);
+    });
+  }, [planQueries, selectedServiceTypeIdSet, serviceTypes]);
+
+  const planIdsForLookup = useMemo(
+    () => [...new Set(rows.map((row) => row.planId))],
+    [rows]
+  );
+  const {
+    data: myScheduledPlans,
+    isLoading: myScheduledPlansLoading,
+    isFetching: myScheduledPlansFetching,
+  } = useMyScheduledPlans(planIdsForLookup);
+  const myScheduledPlanIdSet = useMemo(
+    () => new Set(myScheduledPlans?.planIds),
+    [myScheduledPlans?.planIds]
+  );
+
+  const plansLoading = planQueries.some((query) => query.isLoading);
+  const errorMessage = planQueries.find((query) => query.isError)?.error;
+  const isInitialLoading =
+    serviceTypesLoading || (plansLoading && rows.length === 0);
+  const myScheduledCount = useMemo(
+    () => rows.filter((row) => myScheduledPlanIdSet.has(row.planId)).length,
+    [rows, myScheduledPlanIdSet]
+  );
+  const mineTabDisabled =
+    isInitialLoading ||
+    myScheduledPlansLoading ||
+    (!myScheduledPlans && myScheduledPlansFetching) ||
+    myScheduledCount === 0;
+
+  const visibleRows = useMemo(() => {
+    const normalizedSearch = deferredSearchValue.trim().toLowerCase();
+
+    return rows.filter((row) => {
+      if (selectedServiceTypeIdSet.size === 0) {
+        return false;
+      }
+      if (!selectedServiceTypeIdSet.has(row.serviceTypeId)) {
+        return false;
+      }
+
+      if (showMineOnly && !myScheduledPlanIdSet.has(row.planId)) {
+        return false;
+      }
+
+      if (!isInDateWindow(row.sortDate, dateRangeFilter, orgTimeZone)) {
+        return false;
+      }
+
+      if (!normalizedSearch) {
+        return true;
+      }
+
+      const haystack = [
+        row.serviceTypeName,
+        row.planTitle,
+        row.seriesTitle ?? "",
+        formatDate(row.sortDate),
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(normalizedSearch);
+    });
+  }, [
+    dateRangeFilter,
+    deferredSearchValue,
+    myScheduledPlanIdSet,
+    orgTimeZone,
+    rows,
+    selectedServiceTypeIdSet,
+    showMineOnly,
+  ]);
+
+  useEffect(() => {
+    if (!serviceTypes) {
+      return;
+    }
+    for (const [index, serviceType] of serviceTypes.entries()) {
+      const query = planQueries[index];
+      const plans = query?.data;
+      if (!plans) {
+        continue;
+      }
+      const { dataUpdatedAt } = query;
+      if (cachedPlanWritesRef.current.get(serviceType.id) === dataUpdatedAt) {
+        continue;
+      }
+      writeCachedPlans(serviceType.id, plans);
+      cachedPlanWritesRef.current.set(serviceType.id, dataUpdatedAt);
+    }
+  }, [planQueries, serviceTypes]);
+
+  const prefetchTeamPositions = useCallback(
+    async (row: ServicePlanRow) => {
+      try {
+        await queryClient.query(
+          createTeamPositionsQueryOptions(
+            row.serviceTypeId,
+            row.planId,
+            row.seriesId
+          )
+        );
+      } catch {
+        /* The destination query displays its own errors. */
+      }
+    },
+    [queryClient]
+  );
+  const prefetchPlanItems = useCallback(
+    async (row: ServicePlanRow) => {
+      try {
+        await queryClient.query(
+          createPlanItemsQueryOptions(row.serviceTypeId, row.planId)
+        );
+      } catch {
+        // The destination query displays its own errors.
+      }
+    },
+    [queryClient]
+  );
+  const warmPeopleHistory = useCallback(
+    async (row: ServicePlanRow) => {
+      const dateKey = row.sortDate.toISOString();
+      const params = new URLSearchParams({
+        service_type_id: row.serviceTypeId,
+        date: dateKey,
+      });
+
+      try {
+        await queryClient.query({
+          queryKey: queryKeys.peopleHistoryWarmup(row.serviceTypeId, dateKey),
+          queryFn: async () =>
+            await getJson(
+              `/api/people/warmup?${params.toString()}`,
+              warmupResponseSchema
+            ),
+          staleTime: PEOPLE_HISTORY_WARMUP_STALE_TIME_MS,
+        });
+      } catch {
+        /* Warming history is optional. */
+      }
+    },
+    [queryClient]
+  );
+  const prefetchPlanData = useCallback(
+    (row: ServicePlanRow) => {
+      void prefetchTeamPositions(row);
+      void prefetchPlanItems(row);
+      void warmPeopleHistory(row);
+    },
+    [prefetchPlanItems, prefetchTeamPositions, warmPeopleHistory]
+  );
+  const cancelDelayedPrefetch = useCallback(() => {
+    if (!prefetchTimeoutRef.current) {
+      return;
+    }
+    clearTimeout(prefetchTimeoutRef.current);
+    prefetchTimeoutRef.current = null;
+  }, []);
+  const scheduleDelayedPrefetch = useCallback(
+    (row: ServicePlanRow) => {
+      cancelDelayedPrefetch();
+      prefetchTimeoutRef.current = setTimeout(() => {
+        prefetchTimeoutRef.current = null;
+        prefetchPlanData(row);
+      }, TEAM_POSITIONS_PREFETCH_DELAY_MS);
+    },
+    [cancelDelayedPrefetch, prefetchPlanData]
+  );
+
+  const handleSelectRow = useCallback(
+    (row: ServicePlanRow) => {
+      cancelDelayedPrefetch();
+      prefetchPlanData(row);
+      onSelect({
+        serviceTypeId: row.serviceTypeId,
+        planId: row.planId,
+      });
+    },
+    [cancelDelayedPrefetch, onSelect, prefetchPlanData]
+  );
+
+  useEffect(() => cancelDelayedPrefetch, [cancelDelayedPrefetch]);
+
+  const firstVisibleRow = visibleRows.at(0) ?? null;
+  useEffect(() => {
+    if (!firstVisibleRow) {
+      return;
+    }
+    void warmPeopleHistory(firstVisibleRow);
+  }, [firstVisibleRow, warmPeopleHistory]);
+
+  return {
+    showMineOnly,
+    setShowMineOnly,
+    mineTabDisabled,
+    myScheduledCount,
+    searchValue,
+    setSearchValue,
+    serviceTypes,
+    effectiveSelectedServiceTypeIds,
+    setSelectedServiceTypeIds,
+    dateRangeFilter,
+    setDateRangeFilter,
+    isInitialLoading,
+    errorMessage,
+    visibleRows,
+    myScheduledPlanIdSet,
+    handleSelectRow,
+    scheduleDelayedPrefetch,
+    cancelDelayedPrefetch,
+    prefetchPlanData,
+  };
+};

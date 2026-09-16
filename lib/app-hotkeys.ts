@@ -1,4 +1,4 @@
-import type { RegisterableHotkey } from "@tanstack/hotkeys";
+import type { RegisterableHotkey } from "@tanstack/react-hotkeys";
 
 export const SIDEBAR_TOGGLE_HOTKEY =
   "Mod+B" as const satisfies RegisterableHotkey;

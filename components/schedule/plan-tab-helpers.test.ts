@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  synchronizeDraftWithSongOptions,
-  type DraftState,
-} from "@/components/schedule/plan-tab-helpers";
+import { synchronizeDraftWithSongOptions } from "@/components/schedule/plan-tab-helpers";
+import type { DraftState } from "@/components/schedule/plan-tab-helpers";
 import type { SongOptionSet } from "@/lib/types";
 
 const songOptions: SongOptionSet = {
@@ -40,26 +38,26 @@ const songOptions: SongOptionSet = {
   layoutMode: "existing-only",
 };
 
-function createDraft(overrides: Partial<DraftState> = {}): DraftState {
-  return {
-    title: "Build My Life",
-    lengthText: "4:00",
-    servicePosition: "during",
-    description: "",
-    arrangementId: "arr-1",
-    keyId: "key-1",
-    ...overrides,
-  };
-}
+const createDraft = (overrides: Partial<DraftState> = {}): DraftState => ({
+  title: "Build My Life",
+  lengthText: "4:00",
+  servicePosition: "during",
+  description: "",
+  arrangementId: "arr-1",
+  keyId: "key-1",
+  ...overrides,
+});
 
-describe("synchronizeDraftWithSongOptions", () => {
+describe(synchronizeDraftWithSongOptions, () => {
   it("preserves an explicit empty arrangement selection across option refreshes", () => {
     const draft = createDraft({
       arrangementId: "",
       keyId: "",
     });
 
-    expect(synchronizeDraftWithSongOptions(draft, songOptions)).toEqual(draft);
+    expect(synchronizeDraftWithSongOptions(draft, songOptions)).toStrictEqual(
+      draft
+    );
   });
 
   it("repairs an invalid key when the arrangement still exists", () => {

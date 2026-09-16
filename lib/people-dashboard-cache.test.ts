@@ -12,7 +12,7 @@ import type {
   PeopleDashboardPersonDetail,
 } from "@/lib/use-cases/planning-center/people-dashboard-types";
 
-function installLocalStorageMock() {
+const installLocalStorageMock = () => {
   const storage = new Map<string, string>();
   vi.stubGlobal("window", {
     localStorage: {
@@ -29,100 +29,96 @@ function installLocalStorageMock() {
       },
     },
   });
-}
+};
 
-function dashboard(
+const dashboard = (
   overrides: Partial<PeopleDashboardData> = {}
-): PeopleDashboardData {
-  return {
-    range: "month",
-    generatedAt: "2026-05-23T12:00:00.000Z",
-    month: {
-      year: 2026,
-      monthIndex: 4,
-      label: "May 2026",
-      daysInMonth: 31,
-      startsOnWeekday: 5,
+): PeopleDashboardData => ({
+  range: "month",
+  generatedAt: "2026-05-23T12:00:00.000Z",
+  month: {
+    year: 2026,
+    monthIndex: 4,
+    label: "May 2026",
+    daysInMonth: 31,
+    startsOnWeekday: 5,
+  },
+  people: [
+    {
+      id: "person-1",
+      name: "Andrew Hinea",
+      initials: "AH",
+      photoThumbnailUrl: null,
+      teams: ["Band"],
+      roles: "Acoustic Guitar",
+      status: "Available soon",
+      load: "normal",
+      lastServed: "May 17",
+      nextScheduled: "May 31",
+      monthCount: 2,
+      thirtyDayCount: 2,
+      ninetyDayCount: 5,
+      upcomingCount: 1,
+      streak: "2 this month",
+      highlight: "Available soon",
+      monthDays: [
+        {
+          day: 31,
+          kind: "service",
+          positionName: "Acoustic Guitar",
+          serviceTypeName: "Agape Worship Services",
+          status: "U",
+          planUrl: "/services/service-type-1/plans/plan-1/lineup",
+        },
+      ],
     },
-    people: [
-      {
-        id: "person-1",
-        name: "Andrew Hinea",
-        initials: "AH",
-        photoThumbnailUrl: null,
-        teams: ["Band"],
-        roles: "Acoustic Guitar",
-        status: "Available soon",
-        load: "normal",
-        lastServed: "May 17",
-        nextScheduled: "May 31",
-        monthCount: 2,
-        thirtyDayCount: 2,
-        ninetyDayCount: 5,
-        upcomingCount: 1,
-        streak: "2 this month",
-        highlight: "Available soon",
-        monthDays: [
-          {
-            day: 31,
-            kind: "service",
-            positionName: "Acoustic Guitar",
-            serviceTypeName: "Agape Worship Services",
-            status: "U",
-            planUrl: "/services/service-type-1/plans/plan-1/lineup",
-          },
-        ],
-      },
-    ],
-    stats: {
-      scheduledPeople: 1,
-      highLoadPeople: 0,
-      availableSoonPeople: 1,
+  ],
+  stats: {
+    scheduledPeople: 1,
+    highLoadPeople: 0,
+    availableSoonPeople: 1,
+  },
+  monthDays: [
+    {
+      day: 31,
+      serviceCount: 1,
+      confirmedServiceCount: 0,
+      potentialServiceCount: 1,
+      rehearsalCount: 0,
+      blockoutCount: 0,
     },
-    monthDays: [
-      {
-        day: 31,
-        serviceCount: 1,
-        confirmedServiceCount: 0,
-        potentialServiceCount: 1,
-        rehearsalCount: 0,
-        blockoutCount: 0,
-      },
-    ],
-    matrixDays: [31],
-    requestBudget: {
-      teamRequests: 1,
-      scheduleRequests: 1,
-      blockoutRequests: 1,
-      rosterPeopleCount: 1,
-      hydratedPeopleCount: 1,
-      sampled: false,
-    },
-    ...overrides,
-  };
-}
+  ],
+  matrixDays: [31],
+  requestBudget: {
+    teamRequests: 1,
+    scheduleRequests: 1,
+    blockoutRequests: 1,
+    rosterPeopleCount: 1,
+    hydratedPeopleCount: 1,
+    sampled: false,
+  },
+  ...overrides,
+});
 
-function personDetail(): PeopleDashboardPersonDetail {
-  return {
-    generatedAt: "2026-05-23T12:10:00.000Z",
-    month: dashboard().month,
-    previousMonth: "2026-04",
-    nextMonth: "2026-06",
-    person: dashboard().people[0],
-    trend: [
-      {
-        month: "2026-05",
-        label: "May",
-        services: 2,
-        rehearsals: 1,
-      },
-    ],
-    requestBudget: {
-      scheduleRequests: 1,
-      blockoutRequests: 1,
+const personDetail = (): PeopleDashboardPersonDetail => ({
+  generatedAt: "2026-05-23T12:10:00.000Z",
+  month: dashboard().month,
+  previousMonth: "2026-04",
+  nextMonth: "2026-06",
+  person: dashboard().people[0],
+  trend: [
+    {
+      month: "2026-05",
+      label: "May",
+      services: 2,
+      rehearsals: 1,
     },
-  };
-}
+  ],
+  requestBudget: {
+    scheduleRequests: 1,
+    blockoutRequests: 1,
+  },
+});
 
 describe("people dashboard cache", () => {
   beforeEach(() => {
@@ -137,7 +133,7 @@ describe("people dashboard cache", () => {
 
     writeCachedPeopleDashboard(dashboard());
 
-    expect(readCachedPeopleDashboard("month")).toEqual({
+    expect(readCachedPeopleDashboard("month")).toStrictEqual({
       savedAt,
       data: dashboard(),
     });
@@ -172,7 +168,9 @@ describe("people dashboard cache", () => {
 
     writeCachedPeopleDashboardPerson("person-1", "2026-05", personDetail());
 
-    expect(readCachedPeopleDashboardPerson("person-1", "2026-05")).toEqual({
+    expect(
+      readCachedPeopleDashboardPerson("person-1", "2026-05")
+    ).toStrictEqual({
       savedAt,
       data: personDetail(),
     });
@@ -202,6 +200,7 @@ describe("people dashboard cache", () => {
       readCachedPeopleDashboardPerson("person-1", "2026-05")
     ).toBeUndefined();
   });
+
   it("isolates presentation storage from live data and other seeds (readCachedPeopleDashboard)", () => {
     const dataset = { presentationScope: "live" };
     vi.stubGlobal("document", { documentElement: { dataset } });

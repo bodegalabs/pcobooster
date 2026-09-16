@@ -16,7 +16,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 
 interface DateTimeEditorProps {
   id: string;
@@ -30,7 +29,23 @@ interface DateTimeEditorProps {
   className?: string;
 }
 
-export function DateTimeEditor({
+const parseCalendarDay = (value: string): Date | undefined => {
+  const matchesDatePattern = /^\d{4}-\d{2}-\d{2}$/u.test(value);
+  if (!matchesDatePattern) {
+    return undefined;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const monthIndex = month - 1;
+
+  const date = new Date(year, monthIndex, day);
+
+  return Number.isNaN(date.getTime()) ? undefined : date;
+};
+
+const formatCalendarDay = (date: Date): string => format(date, "yyyy-MM-dd");
+
+export const DateTimeEditor = ({
   id,
   label,
   dateValue,
@@ -40,12 +55,13 @@ export function DateTimeEditor({
   invalid = false,
   disabled = false,
   className,
-}: DateTimeEditorProps) {
+}: DateTimeEditorProps) => {
   const selectedDate = parseCalendarDay(dateValue);
 
   return (
     <Field
-      className={cn("gap-1.5", className)}
+      density="tight"
+      className={className}
       data-invalid={invalid || undefined}
     >
       <FieldLabel htmlFor={`${id}-time`}>{label}</FieldLabel>
@@ -55,10 +71,9 @@ export function DateTimeEditor({
             <Button
               type="button"
               variant="outline"
-              className={cn(
-                "justify-start px-3 text-left font-normal",
-                !selectedDate && "text-muted-foreground"
-              )}
+              weight="normal"
+              tone={selectedDate ? "default" : "muted"}
+              className="justify-start text-left"
               aria-invalid={invalid || undefined}
               disabled={disabled}
             >
@@ -70,15 +85,17 @@ export function DateTimeEditor({
               </span>
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent density="flush" className="w-auto" align="start">
             <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={(date) => {
-                if (date) onDateChange(formatCalendarDay(date));
+                if (date) {
+                  onDateChange(formatCalendarDay(date));
+                }
               }}
               disabled={disabled}
-              initialFocus
+              autoFocus
             />
           </PopoverContent>
         </Popover>
@@ -93,26 +110,12 @@ export function DateTimeEditor({
             value={timeValue}
             aria-invalid={invalid || undefined}
             disabled={disabled}
-            onChange={(event) => onTimeChange(event.target.value)}
+            onChange={(event) => {
+              onTimeChange(event.target.value);
+            }}
           />
         </InputGroup>
       </div>
     </Field>
   );
-}
-
-function parseCalendarDay(value: string): Date | undefined {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return undefined;
-
-  const year = Number(match[1]);
-  const monthIndex = Number(match[2]) - 1;
-  const day = Number(match[3]);
-  const date = new Date(year, monthIndex, day);
-
-  return Number.isNaN(date.getTime()) ? undefined : date;
-}
-
-function formatCalendarDay(date: Date): string {
-  return format(date, "yyyy-MM-dd");
-}
+};

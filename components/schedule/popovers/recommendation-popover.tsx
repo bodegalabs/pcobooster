@@ -14,35 +14,35 @@ interface RecommendationPopoverProps {
   children: ReactNode;
 }
 
-export function RecommendationPopover({
+export const RecommendationPopover = ({
   reasoning,
   personId,
   children,
-}: RecommendationPopoverProps) {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>{children}</PopoverTrigger>
-      <PopoverContent align="end" sideOffset={6} className="w-80">
-        <p className="text-foreground text-sm font-semibold tracking-tight">
-          Why this ranking
+}: RecommendationPopoverProps) => (
+  <Popover>
+    <PopoverTrigger asChild>{children}</PopoverTrigger>
+    <PopoverContent align="end" sideOffset={6} className="w-80">
+      <p className="text-foreground text-sm font-semibold tracking-tight">
+        Why this ranking
+      </p>
+      {reasoning?.length !== undefined &&
+      reasoning?.length !== 0 &&
+      !Number.isNaN(reasoning?.length) ? (
+        <div className="mt-3 flex flex-col gap-2">
+          {reasoning.map((reason) => (
+            <p
+              key={`${personId}-reason-${reason}`}
+              className="text-muted-foreground text-sm leading-snug"
+            >
+              {reason}
+            </p>
+          ))}
+        </div>
+      ) : (
+        <p className="text-muted-foreground mt-3 text-sm">
+          No reasoning recorded for this score.
         </p>
-        {reasoning?.length ? (
-          <div className="mt-3 flex flex-col gap-2">
-            {reasoning.map((reason, index) => (
-              <p
-                key={`${personId}-reason-${index}`}
-                className="text-muted-foreground text-sm leading-snug"
-              >
-                {reason}
-              </p>
-            ))}
-          </div>
-        ) : (
-          <p className="text-muted-foreground mt-3 text-sm">
-            No reasoning recorded for this score.
-          </p>
-        )}
-      </PopoverContent>
-    </Popover>
-  );
-}
+      )}
+    </PopoverContent>
+  </Popover>
+);

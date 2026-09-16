@@ -31,63 +31,57 @@ import {
 } from "@/lib/song-search-cache";
 import type { PlanItem, SongOptionSet } from "@/lib/types";
 
-function createItem(id: string, sequence: number): PlanItem {
-  return {
-    id,
-    title: `Item ${sequence}`,
-    itemType: "item",
-    sequence,
-    servicePosition: "during",
-    length: null,
-    description: "",
-    htmlDetails: "",
-    customArrangementSequence: [],
-    song: null,
-    arrangement: null,
-    key: null,
-    layout: null,
-  };
-}
+const createItem = (id: string, sequence: number): PlanItem => ({
+  id,
+  title: `Item ${sequence}`,
+  itemType: "item",
+  sequence,
+  servicePosition: "during",
+  length: null,
+  description: "",
+  htmlDetails: "",
+  customArrangementSequence: [],
+  song: null,
+  arrangement: null,
+  key: null,
+  layout: null,
+});
 
-function createSongItem(
+const createSongItem = (
   id: string,
   sequence: number,
   songId: string
-): PlanItem {
-  return {
-    ...createItem(id, sequence),
-    itemType: "song",
-    song: {
-      id: songId,
-      title: `Song ${songId}`,
-      author: "",
-      themes: "",
-      lastScheduledAt: null,
-    },
-  };
-}
+): PlanItem => ({
+  ...createItem(id, sequence),
+  itemType: "song",
+  song: {
+    id: songId,
+    title: `Song ${songId}`,
+    author: "",
+    themes: "",
+    lastScheduledAt: null,
+  },
+});
 
-function songOptions(): SongOptionSet {
-  return {
-    song: {
-      id: "song-1",
-      title: "Build My Life",
-      author: "Pat Barrett",
-      themes: "Worship",
-      hidden: false,
-      lastScheduledAt: new Date("2026-05-17T16:00:00.000Z"),
-    },
-    arrangements: [],
-    layouts: [],
-    currentLayout: null,
-    suggestedArrangementId: null,
-    suggestedKeyId: null,
-    suggestedLayoutId: null,
-    layoutMode: "unavailable",
-  };
-}
+const songOptions = (): SongOptionSet => ({
+  song: {
+    id: "song-1",
+    title: "Build My Life",
+    author: "Pat Barrett",
+    themes: "Worship",
+    hidden: false,
+    lastScheduledAt: new Date("2026-05-17T16:00:00.000Z"),
+  },
+  arrangements: [],
+  layouts: [],
+  currentLayout: null,
+  suggestedArrangementId: null,
+  suggestedKeyId: null,
+  suggestedLayoutId: null,
+  layoutMode: "unavailable",
+});
 
-function installLocalStorageMock() {
+const installLocalStorageMock = () => {
   const storage = new Map<string, string>();
   vi.stubGlobal("window", {
     localStorage: {
@@ -104,7 +98,7 @@ function installLocalStorageMock() {
       },
     },
   });
-}
+};
 
 describe("plan item query state", () => {
   afterEach(() => {
@@ -128,13 +122,13 @@ describe("plan item query state", () => {
 
     expect(
       queryClient.getQueryData<PlanItem[]>(queryKey)?.map((item) => item.id)
-    ).toEqual(["item-2", "item-1"]);
+    ).toStrictEqual(["item-2", "item-1"]);
 
     restorePlanItemsSnapshot(queryClient, queryKey, snapshot);
 
     expect(
       queryClient.getQueryData<PlanItem[]>(queryKey)?.map((item) => item.id)
-    ).toEqual(["item-1", "item-2"]);
+    ).toStrictEqual(["item-1", "item-2"]);
   });
 
   it("renumbers remaining items after an optimistic delete", () => {
@@ -161,17 +155,17 @@ describe("plan item query state", () => {
         { ...createItem("item-1", 1), sequence: 10 },
         { ...createItem("item-2", 2), sequence: 11 },
       ])
-    ).toBe(true);
+    ).toBeTruthy();
 
     expect(
       planItemsHaveSameOrder(current, [
         createItem("item-2", 1),
         createItem("item-1", 2),
       ])
-    ).toBe(false);
-    expect(planItemsHaveSameOrder(current, [createItem("item-1", 1)])).toBe(
-      false
-    );
+    ).toBeFalsy();
+    expect(
+      planItemsHaveSameOrder(current, [createItem("item-1", 1)])
+    ).toBeFalsy();
   });
 
   it("collects a bounded unique list of song option prefetch ids", () => {
@@ -186,14 +180,14 @@ describe("plan item query state", () => {
         ],
         2
       )
-    ).toEqual(["song-1", "song-2"]);
+    ).toStrictEqual(["song-1", "song-2"]);
 
     expect(
       collectPlanSongOptionPrefetchIds(
         [createSongItem("song-item-1", 1, "song-1")],
         0
       )
-    ).toEqual([]);
+    ).toStrictEqual([]);
   });
 
   it("builds optimistic basic and song items at the next sequence", () => {
@@ -245,7 +239,7 @@ describe("plan item query state", () => {
       replacePlanItemById(current, "temp-item", serverItem).map(
         (item) => item.id
       )
-    ).toEqual(["item-1", "server-item"]);
+    ).toStrictEqual(["item-1", "server-item"]);
   });
 
   it("applies draft fields for immediate edit feedback", () => {
@@ -311,7 +305,7 @@ describe("plan item query state", () => {
         },
         300
       )
-    ).toBe(false);
+    ).toBeFalsy();
 
     expect(
       planItemDraftChangesItem(
@@ -325,7 +319,7 @@ describe("plan item query state", () => {
         },
         300
       )
-    ).toBe(true);
+    ).toBeTruthy();
   });
 
   it("settles optimistic plan item mutations without immediately refetching the active list", () => {
@@ -334,10 +328,10 @@ describe("plan item query state", () => {
     const queryKey = ["plan-items", "service-1", "plan-1"] as const;
     const invalidateQueries = vi
       .spyOn(queryClient, "invalidateQueries")
-      .mockResolvedValue(undefined);
+      .mockResolvedValue();
     const refetchQueries = vi
       .spyOn(queryClient, "refetchQueries")
-      .mockResolvedValue(undefined);
+      .mockResolvedValue();
 
     settlePlanItemsQuery(queryClient, queryKey);
     settlePlanItemsQuery(queryClient, queryKey);
@@ -350,11 +344,10 @@ describe("plan item query state", () => {
 
     vi.advanceTimersByTime(PLAN_ITEMS_MUTATION_RECONCILE_DELAY_MS);
 
-    expect(refetchQueries).toHaveBeenCalledWith({
+    expect(refetchQueries).toHaveBeenCalledExactlyOnceWith({
       queryKey,
       type: "active",
     });
-    expect(refetchQueries).toHaveBeenCalledTimes(1);
   });
 
   it("clears persisted plan-item and song metadata snapshots when optimistic mutations settle", () => {

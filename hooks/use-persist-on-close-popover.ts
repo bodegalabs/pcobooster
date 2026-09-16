@@ -1,7 +1,8 @@
 "use client";
 
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useCallback, useRef, useState, type RefObject } from "react";
+import { useCallback, useRef, useState } from "react";
+import type { SetStateAction } from "react";
 
 type EnterToCloseOption = boolean | { disabled?: boolean };
 
@@ -12,20 +13,24 @@ interface UsePersistOnClosePopoverOptions {
   enterToClose?: EnterToCloseOption;
 }
 
-function isEnterHotkeyEnabled(
+const isEnterHotkeyEnabled = (
   open: boolean,
   enterToClose: EnterToCloseOption | undefined
-): boolean {
-  if (!open || !enterToClose) return false;
-  if (enterToClose === true) return true;
-  return !enterToClose.disabled;
-}
+): boolean => {
+  if (!open || enterToClose === false || enterToClose === undefined) {
+    return false;
+  }
+  if (enterToClose === true) {
+    return true;
+  }
+  return !(enterToClose.disabled === true);
+};
 
-export function usePersistOnClosePopover({
+export const usePersistOnClosePopover = ({
   onOpen,
   onClose,
   enterToClose = false,
-}: UsePersistOnClosePopoverOptions = {}) {
+}: UsePersistOnClosePopoverOptions = {}) => {
   const [open, setOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -54,7 +59,7 @@ export function usePersistOnClosePopover({
     },
     {
       enabled: isEnterHotkeyEnabled(open, enterToClose),
-      target: enterToClose ? contentRef : undefined,
+      target: contentRef,
       ignoreInputs: false,
     }
   );
@@ -64,11 +69,9 @@ export function usePersistOnClosePopover({
     setOpen,
     handleOpenChange,
     closeAndPersist,
-    contentRef: enterToClose
-      ? (contentRef as RefObject<HTMLDivElement>)
-      : undefined,
+    contentRef,
   };
-}
+};
 
 interface UseDraftPopoverOptions<T> {
   value: T;
@@ -76,29 +79,41 @@ interface UseDraftPopoverOptions<T> {
   equals?: (a: T, b: T) => boolean;
 }
 
-export function useDraftPopover<T>({
+const isDraftUpdater = <T>(
+  update: SetStateAction<T>
+): update is (previous: T) => T => typeof update === "function";
+
+export const useDraftPopover = <T>({
   value,
   onPersist,
   equals,
-}: UseDraftPopoverOptions<T>) {
-  const [draft, setDraft] = useState(value);
-  const draftRef = useRef(draft);
-  draftRef.current = draft;
+}: UseDraftPopoverOptions<T>) => {
+  const [draftState, setDraftState] = useState(() => value);
+  const draftRef = useRef(value);
+  const setDraft = useCallback((update: SetStateAction<T>) => {
+    const next = isDraftUpdater(update) ? update(draftRef.current) : update;
+    draftRef.current = next;
+    setDraftState(() => next);
+  }, []);
 
   const popover = usePersistOnClosePopover({
-    onOpen: () => setDraft(value),
+    onOpen: () => {
+      setDraft(value);
+    },
     onClose: () => {
-      const current = draftRef.current;
+      const { current } = draftRef;
       const unchanged = equals
         ? equals(current, value)
         : Object.is(current, value);
-      if (!unchanged) void onPersist(current);
+      if (!unchanged) {
+        void onPersist(current);
+      }
     },
   });
 
   return {
-    draft,
+    draft: draftState,
     setDraft,
     ...popover,
   };
-}
+};

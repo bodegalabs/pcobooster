@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -15,38 +14,32 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 
-export function AuthSignInCard() {
-  const [error, setError] = useState("");
+export const AuthSignInCard = () => {
+  const [signInError, setSignInError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
-
-  useEffect(() => {
-    if (session) {
-      router.replace("/");
-      router.refresh();
-    }
-  }, [router, session]);
-
   const handleSignIn = async () => {
-    setError("");
+    setSignInError("");
     setLoading(true);
 
     try {
-      await authClient.signIn.oauth2({
+      const result = await authClient.signIn.oauth2({
         providerId: "planning-center",
         callbackURL: "/",
         errorCallbackURL: "/auth",
       });
+      if (result.error) {
+        setSignInError(
+          result.error.message ?? "Unable to start sign in. Please try again."
+        );
+      }
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
           : "Unable to start sign in. Please try again.";
-      setError(message);
-    } finally {
-      setLoading(false);
+      setSignInError(message);
     }
+    setLoading(false);
   };
 
   return (
@@ -60,19 +53,21 @@ export function AuthSignInCard() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">
-            {error && (
+            {signInError && (
               <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>{signInError}</AlertDescription>
               </Alert>
             )}
 
             <Button
               type="button"
               className="w-full"
-              onClick={handleSignIn}
-              disabled={loading || isPending}
+              onClick={() => {
+                void handleSignIn();
+              }}
+              disabled={loading}
             >
-              {loading || isPending ? (
+              {loading ? (
                 <span className="inline-flex items-center gap-2">
                   <Spinner />
                   Redirecting...
@@ -86,4 +81,4 @@ export function AuthSignInCard() {
       </Card>
     </main>
   );
-}
+};

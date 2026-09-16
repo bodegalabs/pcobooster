@@ -1,37 +1,42 @@
 import { format } from "date-fns";
 
-export function parseCalendarDay(value: string): Date | undefined {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return undefined;
+export const parseCalendarDay = (value: string): Date | undefined => {
+  const matchesDatePattern = /^\d{4}-\d{2}-\d{2}$/u.test(value);
+  if (!matchesDatePattern) {
+    return undefined;
+  }
 
-  const year = Number(match[1]);
-  const monthIndex = Number(match[2]) - 1;
-  const day = Number(match[3]);
+  const [year, month, day] = value.split("-").map(Number);
+  const monthIndex = month - 1;
+
   const date = new Date(year, monthIndex, day);
 
   return Number.isNaN(date.getTime()) ? undefined : date;
-}
+};
 
-export function formatCalendarDay(date: Date): string {
-  return format(date, "yyyy-MM-dd");
-}
+export const formatCalendarDay = (date: Date): string =>
+  format(date, "yyyy-MM-dd");
 
-function formatTime12(timeValue: string): string {
+const formatTime12 = (timeValue: string): string => {
   const [hour, minute] = timeValue.split(":").map(Number);
-  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return timeValue;
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+    return timeValue;
+  }
 
   const period = hour >= 12 ? "PM" : "AM";
   const hour12 = hour % 12 || 12;
   return `${hour12}:${String(minute).padStart(2, "0")} ${period}`;
-}
+};
 
-export function formatPlanTimeRangeLabel(edit: {
+export const formatPlanTimeRangeLabel = (edit: {
   startDate: string;
   startTime: string;
   endDate: string;
   endTime: string;
-}): string {
-  if (!edit.startDate || !edit.startTime) return "Set start time";
+}): string => {
+  if (!edit.startDate || !edit.startTime) {
+    return "Set start time";
+  }
 
   const startDate = parseCalendarDay(edit.startDate);
   const startTimeLabel = formatTime12(edit.startTime);
@@ -55,4 +60,4 @@ export function formatPlanTimeRangeLabel(edit: {
   }
 
   return `${startTimeLabel} – ${endTimeLabel}`;
-}
+};

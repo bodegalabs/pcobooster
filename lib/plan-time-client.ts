@@ -8,28 +8,24 @@ export interface SerializedPlanTime extends Omit<
   endsAt: string | null;
 }
 
-export function serializePlanTime(planTime: PlanTime): SerializedPlanTime {
-  return {
-    ...planTime,
-    startsAt: planTime.startsAt.toISOString(),
-    endsAt: planTime.endsAt ? planTime.endsAt.toISOString() : null,
-  };
-}
+export const serializePlanTime = (planTime: PlanTime): SerializedPlanTime => ({
+  ...planTime,
+  startsAt: planTime.startsAt.toISOString(),
+  endsAt: planTime.endsAt ? planTime.endsAt.toISOString() : null,
+});
 
-export function serializePlanTimes(
+export const serializePlanTimes = (
   planTimes: PlanTime[]
-): SerializedPlanTime[] {
-  return planTimes.map(serializePlanTime);
-}
+): SerializedPlanTime[] => planTimes.map(serializePlanTime);
 
-export function hydratePlanTime(planTime: SerializedPlanTime): PlanTime {
-  return {
-    ...planTime,
-    startsAt: new Date(planTime.startsAt),
-    endsAt: planTime.endsAt ? new Date(planTime.endsAt) : null,
-  };
-}
+export const hydratePlanTime = (planTime: SerializedPlanTime): PlanTime => ({
+  ...planTime,
+  startsAt: new Date(planTime.startsAt),
+  endsAt:
+    planTime.endsAt !== null && planTime.endsAt !== ""
+      ? new Date(planTime.endsAt)
+      : null,
+});
 
-export function hydratePlanTimes(planTimes: SerializedPlanTime[]): PlanTime[] {
-  return planTimes.map(hydratePlanTime);
-}
+export const hydratePlanTimes = (planTimes: SerializedPlanTime[]): PlanTime[] =>
+  planTimes.map(hydratePlanTime);

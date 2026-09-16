@@ -3,6 +3,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Clock3 } from "lucide-react";
 import { useMemo } from "react";
+import { toast } from "sonner";
+import { z } from "zod";
 
 import { formatPlanTimeRangeLabel } from "@/components/schedule/plan-time-display";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +20,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { toast } from "sonner";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { useDraftPopover } from "@/hooks/use-persist-on-close-popover";
 import { patchJson } from "@/lib/http/client";
@@ -35,10 +36,10 @@ interface PersonRehearsalTimesPopoverProps {
   seriesId: string | null;
 }
 
-function formatPlanTimeScheduleLabel(
+const formatPlanTimeScheduleLabel = (
   planTime: PlanTime,
   timeZone: string
-): string {
+): string => {
   const starts = formatWallTimeInTimeZone(planTime.startsAt, timeZone);
   const ends = planTime.endsAt
     ? formatWallTimeInTimeZone(planTime.endsAt, timeZone)
@@ -50,25 +51,26 @@ function formatPlanTimeScheduleLabel(
     endDate: ends?.dateKey ?? starts.dateKey,
     endTime: ends?.timeValue ?? "",
   });
-}
+};
 
-function haveSameIds(a: string[], b: string[]): boolean {
-  if (a.length !== b.length) return false;
+const haveSameIds = (a: string[], b: string[]): boolean => {
+  if (a.length !== b.length) {
+    return false;
+  }
   const aSet = new Set(a);
   return b.every((id) => aSet.has(id));
-}
+};
 
-function toggleId(ids: string[], id: string): string[] {
-  return ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id];
-}
+const toggleId = (ids: string[], id: string): string[] =>
+  ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id];
 
-export function PersonRehearsalTimesPopover({
+export const PersonRehearsalTimesPopover = ({
   person,
   planTimes,
   serviceTypeId,
   planId,
   seriesId,
-}: PersonRehearsalTimesPopoverProps) {
+}: PersonRehearsalTimesPopoverProps) => {
   const queryClient = useQueryClient();
   const timeZone = useOrganizationTimeZone();
   const assignedTimeIds = person.assignedTimeIds ?? [];
@@ -77,15 +79,35 @@ export function PersonRehearsalTimesPopover({
     [planTimes]
   );
   const canEdit =
-    !!serviceTypeId && !!planId && !!person.personId && planTimes.length > 0;
+    serviceTypeId !== null &&
+    serviceTypeId !== "" &&
+    planId !== null &&
+    planId !== "" &&
+    person.personId !== null &&
+    person.personId !== undefined &&
+    person.personId !== "" &&
+    planTimes.length > 0;
 
   const persist = async (timeIds: string[]) => {
-    if (!serviceTypeId || !planId || !person.personId) return;
-    if (haveSameIds(assignedTimeIds, timeIds)) return;
+    if (
+      !(serviceTypeId !== null && serviceTypeId !== "") ||
+      !(planId !== null && planId !== "") ||
+      !(
+        person.personId !== null &&
+        person.personId !== undefined &&
+        person.personId !== ""
+      )
+    ) {
+      return;
+    }
+    if (haveSameIds(assignedTimeIds, timeIds)) {
+      return;
+    }
 
     try {
       await patchJson(
         `/api/plan-people/${encodeURIComponent(person.planPersonId)}/times`,
+        z.object({ ok: z.literal(true) }),
         {
           service_type_id: serviceTypeId,
           plan_id: planId,
@@ -123,20 +145,24 @@ export function PersonRehearsalTimesPopover({
     onPersist: persist,
   });
   const displayTimeIds = open ? draft : assignedTimeIds;
+  const displayTimeIdSet = new Set(displayTimeIds);
+  const draftTimeIdSet = new Set(draft);
   const selectedTimeCount = editablePlanTimeIds.filter((id) =>
-    displayTimeIds.includes(id)
+    displayTimeIdSet.has(id)
   ).length;
 
-  if (planTimes.length === 0) return null;
+  if (planTimes.length === 0) {
+    return null;
+  }
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           type="button"
-          variant="ghost"
-          size="sm"
-          className="text-muted-foreground hover:text-foreground h-7 max-w-full px-2 text-xs"
+          variant="ghost-muted"
+          size="tiny"
+          className="max-w-full"
           disabled={!canEdit}
           aria-label={`Edit times for ${person.name}`}
         >
@@ -147,22 +173,25 @@ export function PersonRehearsalTimesPopover({
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="w-96 p-0"
-        onOpenAutoFocus={(event) => event.preventDefault()}
+        density="flush"
+        className="w-96"
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+        }}
       >
         <Command>
           <CommandList>
             <CommandGroup>
               {planTimes.map((planTime) => {
-                const selected = draft.includes(planTime.id);
+                const selected = draftTimeIdSet.has(planTime.id);
 
                 return (
                   <CommandItem
                     key={planTime.id}
                     value={`${planTime.name} ${planTime.id}`}
-                    onSelect={() =>
-                      setDraft((current) => toggleId(current, planTime.id))
-                    }
+                    onSelect={() => {
+                      setDraft((current) => toggleId(current, planTime.id));
+                    }}
                     onMouseDown={(event) => {
                       event.preventDefault();
                       event.stopPropagation();
@@ -176,7 +205,9 @@ export function PersonRehearsalTimesPopover({
                     </span>
                     <Badge
                       variant="outline"
-                      className="max-w-[14rem] truncate font-normal"
+                      weight="normal"
+                      clipped
+                      className="max-w-[14rem]"
                     >
                       {formatPlanTimeScheduleLabel(planTime, timeZone)}
                     </Badge>
@@ -189,4 +220,4 @@ export function PersonRehearsalTimesPopover({
       </PopoverContent>
     </Popover>
   );
-}
+};

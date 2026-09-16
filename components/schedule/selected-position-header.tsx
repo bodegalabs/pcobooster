@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import type { TeamPosition } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-export function SelectedPositionHeader({
+export const SelectedPositionHeader = ({
   info,
   onOpenPicker,
   hasSlots,
@@ -25,7 +25,7 @@ export function SelectedPositionHeader({
   teamPositionsLoading: boolean;
   filter: string;
   onFilterChange: (next: string) => void;
-}) {
+}) => {
   const isTemporaryPosition =
     !!info?.position.source && info.position.source !== "team_position";
 
@@ -45,8 +45,8 @@ export function SelectedPositionHeader({
         <Button
           type="button"
           variant="outline"
-          size="sm"
-          className="h-8 shrink-0 gap-1 px-2.5 text-xs sm:px-3 sm:text-sm lg:hidden"
+          size="responsive"
+          className="shrink-0 lg:hidden"
           onClick={onOpenPicker}
           disabled={!hasSlots || teamPositionsLoading}
           title="Change position"
@@ -65,15 +65,19 @@ export function SelectedPositionHeader({
           />
           <Input
             value={filter}
-            onChange={(event) => onFilterChange(event.target.value)}
+            onChange={(event) => {
+              onFilterChange(event.target.value);
+            }}
             placeholder="Filter"
-            className="h-9 pr-9 pl-9 text-sm"
+            treatment="search"
             aria-label="Filter people"
           />
           {filter ? (
             <button
               type="button"
-              onClick={() => onFilterChange("")}
+              onClick={() => {
+                onFilterChange("");
+              }}
               className="text-muted-foreground hover:bg-muted/60 hover:text-foreground absolute top-1/2 right-1 -translate-y-1/2 rounded-md p-1"
               aria-label="Clear filter"
             >
@@ -84,4 +88,4 @@ export function SelectedPositionHeader({
       </div>
     </div>
   );
-}
+};

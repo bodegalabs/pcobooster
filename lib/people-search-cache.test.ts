@@ -8,7 +8,7 @@ import {
   writeCachedPeopleSearch,
 } from "@/lib/people-search-cache";
 
-function installLocalStorageMock() {
+const installLocalStorageMock = () => {
   const storage = new Map<string, string>();
   vi.stubGlobal("window", {
     localStorage: {
@@ -25,26 +25,24 @@ function installLocalStorageMock() {
       },
     },
   });
-}
+};
 
-function people(): PeopleSearchResult[] {
-  return [
-    {
-      id: "person-1",
-      firstName: "Andrew",
-      lastName: "Hinea",
-      fullName: "Andrew Hinea",
-      photoThumbnailUrl: "https://example.com/andrew.jpg",
-    },
-    {
-      id: "person-2",
-      firstName: "Mina",
-      lastName: "Lee",
-      fullName: "Mina Lee",
-      photoThumbnailUrl: null,
-    },
-  ];
-}
+const people = (): PeopleSearchResult[] => [
+  {
+    id: "person-1",
+    firstName: "Andrew",
+    lastName: "Hinea",
+    fullName: "Andrew Hinea",
+    photoThumbnailUrl: "https://example.com/andrew.jpg",
+  },
+  {
+    id: "person-2",
+    firstName: "Mina",
+    lastName: "Lee",
+    fullName: "Mina Lee",
+    photoThumbnailUrl: null,
+  },
+];
 
 describe("people search cache", () => {
   beforeEach(() => {
@@ -63,7 +61,7 @@ describe("people search cache", () => {
 
     writeCachedPeopleSearch("Andrew H", people());
 
-    expect(readCachedPeopleSearch(" andrew h ")).toEqual({
+    expect(readCachedPeopleSearch(" andrew h ")).toStrictEqual({
       savedAt,
       data: people(),
     });
@@ -101,6 +99,7 @@ describe("people search cache", () => {
     expect(readCachedPeopleSearch("mina")).toBeUndefined();
     expect(window.localStorage.getItem("unrelated")).toBe("keep");
   });
+
   it("isolates presentation storage from live data and other seeds (readCachedPeopleSearch)", () => {
     const dataset = { presentationScope: "live" };
     vi.stubGlobal("document", { documentElement: { dataset } });

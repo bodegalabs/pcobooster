@@ -9,7 +9,7 @@ import {
 import type { TeamPosition } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-export function SlotBadgeCluster({
+export const SlotBadgeCluster = ({
   position,
   teamName,
   positionName,
@@ -17,7 +17,7 @@ export function SlotBadgeCluster({
   position: TeamPosition;
   teamName: string;
   positionName: string;
-}) {
+}) => {
   const confirmed = position.filledConfirmedCount ?? 0;
   const pending = position.filledPendingCount ?? 0;
   const needed = position.neededCount ?? 0;
@@ -38,13 +38,18 @@ export function SlotBadgeCluster({
         <HoverCard openDelay={120} closeDelay={120}>
           <HoverCardTrigger asChild>
             <span
-              className="text-muted-foreground text-[11px] tabular-nums"
+              className="text-muted-foreground text-xs tabular-nums"
               aria-label={`${filled} of ${total} filled`}
             >
               {filled}/{total}
             </span>
           </HoverCardTrigger>
-          <HoverCardContent align="end" side="right" className="w-80 space-y-3">
+          <HoverCardContent
+            align="end"
+            side="right"
+            density="spacious"
+            className="w-80"
+          >
             {confirmedPeople.length > 0 ? (
               <SlotStatusPopoverContent
                 teamName={teamName}
@@ -68,20 +73,23 @@ export function SlotBadgeCluster({
       ) : null}
       {needed > 0 ? (
         <span
-          className="shrink-0 text-[11px] font-medium text-red-600 tabular-nums dark:text-red-400"
+          className="text-status-declined dark:text-status-declined shrink-0 text-xs font-medium tabular-nums"
           title={`${needed} still needed`}
         >
           +{needed}
         </span>
-      ) : allFilled ? (
+      ) : null}
+      {needed === 0 && allFilled ? (
         <span
           aria-label="All filled"
           className={cn(
             "size-1.5 shrink-0 rounded-full",
-            hasPending ? "bg-amber-500" : "bg-emerald-500"
+            hasPending
+              ? "bg-status-scheduled-bright"
+              : "bg-status-confirmed-bright"
           )}
         />
       ) : null}
     </div>
   );
-}
+};

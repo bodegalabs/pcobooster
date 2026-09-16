@@ -1,5 +1,7 @@
 "use client";
 
+import { startTransition } from "react";
+
 import { PlanItemEditDialog } from "@/components/schedule/plan-item-edit-dialog";
 import { PlanItemList } from "@/components/schedule/plan-item-list";
 import { PlanTabToolbar } from "@/components/schedule/plan-tab-toolbar";
@@ -11,7 +13,7 @@ interface PlanTabProps {
   planId: string | null;
 }
 
-export function PlanTab({ serviceTypeId, planId }: PlanTabProps) {
+export const PlanTab = ({ serviceTypeId, planId }: PlanTabProps) => {
   const {
     items,
     isLoading,
@@ -66,9 +68,19 @@ export function PlanTab({ serviceTypeId, planId }: PlanTabProps) {
           pendingItemId={pendingItemId}
           isCreatingBasicItem={isCreatingBasicItem}
           disabled={isPlaceholderData}
-          onAddSong={() => setSongPickerOpen(true)}
-          onAddHeader={() => void createBasicItem("header")}
-          onAddItem={() => void createBasicItem("item")}
+          onAddSong={() => {
+            setSongPickerOpen(true);
+          }}
+          onAddHeader={() => {
+            startTransition(async () => {
+              await createBasicItem("header");
+            });
+          }}
+          onAddItem={() => {
+            startTransition(async () => {
+              await createBasicItem("item");
+            });
+          }}
         />
 
         <PlanItemList
@@ -76,9 +88,19 @@ export function PlanTab({ serviceTypeId, planId }: PlanTabProps) {
           isLoading={isLoading}
           isPlaceholderData={isPlaceholderData}
           pendingItemId={pendingItemId}
-          onAddSong={() => setSongPickerOpen(true)}
-          onAddHeader={() => void createBasicItem("header")}
-          onAddItem={() => void createBasicItem("item")}
+          onAddSong={() => {
+            setSongPickerOpen(true);
+          }}
+          onAddHeader={() => {
+            startTransition(async () => {
+              await createBasicItem("header");
+            });
+          }}
+          onAddItem={() => {
+            startTransition(async () => {
+              await createBasicItem("item");
+            });
+          }}
           onEditItem={setEditingItemId}
           onPreviewItem={prefetchItemSongOptions}
           onDeleteItem={deleteItem}
@@ -87,4 +109,4 @@ export function PlanTab({ serviceTypeId, planId }: PlanTabProps) {
       </div>
     </>
   );
-}
+};

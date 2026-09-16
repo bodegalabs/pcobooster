@@ -1,8 +1,8 @@
 "use client";
-
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 
+import { organizationTimeZoneSchema } from "@/lib/api-schemas";
 import { getJson } from "@/lib/http/client";
 import {
   readCachedOrganizationTimeZone,
@@ -12,7 +12,7 @@ import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
 
 /** Client hook for the Services org `time_zone` (via `/api/planning-center/organization`). */
-export function useOrganizationTimeZone(): string {
+export const useOrganizationTimeZone = (): string => {
   const queryKey = queryKeys.organizationTimeZone();
   const readCachedTimeZone = useCallback(() => {
     const cachedTimeZone = readCachedOrganizationTimeZone();
@@ -28,8 +28,9 @@ export function useOrganizationTimeZone(): string {
   const { data } = useQuery({
     queryKey,
     queryFn: async () => {
-      const response = await getJson<{ timeZone: string }>(
-        "/api/planning-center/organization"
+      const response = await getJson(
+        "/api/planning-center/organization",
+        organizationTimeZoneSchema
       );
       writeCachedOrganizationTimeZone(response.timeZone);
       return response;
@@ -39,10 +40,12 @@ export function useOrganizationTimeZone(): string {
   });
 
   const tz = data?.timeZone?.trim();
-  if (tz) return tz;
+  if (tz !== undefined && tz !== "") {
+    return tz;
+  }
 
   return (
-    process.env.NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE?.trim() ||
+    process.env.NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE?.trim() ??
     "America/Los_Angeles"
   );
-}
+};

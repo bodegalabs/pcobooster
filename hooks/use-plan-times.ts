@@ -1,47 +1,46 @@
 import { useQuery } from "@tanstack/react-query";
 
+import { serializedPlanTimeSchema } from "@/lib/api-schemas";
 import { getJson } from "@/lib/http/client";
-import {
-  hydratePlanTimes,
-  type SerializedPlanTime,
-} from "@/lib/plan-time-client";
+import { isNonEmptyString } from "@/lib/json";
+import { hydratePlanTimes } from "@/lib/plan-time-client";
 import { queryKeys } from "@/lib/query-keys";
 import type { PlanTime } from "@/lib/types";
 
 const PLAN_TIMES_STALE_TIME_MS = 60 * 1000;
 
-function buildPlanTimesUrl(serviceTypeId: string, planId: string): string {
+const buildPlanTimesUrl = (serviceTypeId: string, planId: string): string => {
   const params = new URLSearchParams({
     service_type_id: serviceTypeId,
   });
   return `/api/plans/${encodeURIComponent(planId)}/times?${params.toString()}`;
-}
+};
 
-export function createPlanTimesQueryOptions(
+export const createPlanTimesQueryOptions = (
   serviceTypeId: string | null,
   planId: string | null
-) {
-  return {
-    queryKey: queryKeys.planTimes(serviceTypeId, planId),
-    queryFn: async () => {
-      if (!serviceTypeId || !planId) return [];
+) => ({
+  queryKey: queryKeys.planTimes(serviceTypeId, planId),
+  queryFn: async () => {
+    if (!isNonEmptyString(serviceTypeId) || !isNonEmptyString(planId)) {
+      return [];
+    }
 
-      const planTimes = await getJson<SerializedPlanTime[]>(
-        buildPlanTimesUrl(serviceTypeId, planId)
-      );
-      return hydratePlanTimes(planTimes);
-    },
-    staleTime: PLAN_TIMES_STALE_TIME_MS,
-  };
-}
+    const planTimes = await getJson(
+      buildPlanTimesUrl(serviceTypeId, planId),
+      serializedPlanTimeSchema.array()
+    );
+    return hydratePlanTimes(planTimes);
+  },
+  staleTime: PLAN_TIMES_STALE_TIME_MS,
+});
 
-export function usePlanTimes(
+export const usePlanTimes = (
   serviceTypeId: string | null,
   planId: string | null
-) {
-  return useQuery<PlanTime[]>({
+) =>
+  useQuery<PlanTime[]>({
     ...createPlanTimesQueryOptions(serviceTypeId, planId),
-    enabled: !!serviceTypeId && !!planId,
+    enabled: isNonEmptyString(serviceTypeId) && isNonEmptyString(planId),
     placeholderData: (previousTimes) => previousTimes,
   });
-}

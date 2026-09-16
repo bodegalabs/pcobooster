@@ -1,8 +1,8 @@
+import { z } from "zod";
+
 import { presentationCacheKey } from "@/lib/presentation-cache";
 import type {
   PeopleDashboardData,
-  PeopleDashboardDay,
-  PeopleDashboardPerson,
   PeopleDashboardPersonDetail,
   PeopleDashboardRange,
 } from "@/lib/use-cases/planning-center/people-dashboard-types";
@@ -26,34 +26,150 @@ export interface PeopleDashboardPersonCacheEntry {
   data: PeopleDashboardPersonDetail;
 }
 
-export function readCachedPeopleDashboard(
+const dashboardMonthSchema = z.object({
+  year: z.number(),
+  monthIndex: z.number(),
+  label: z.string(),
+  daysInMonth: z.number(),
+  startsOnWeekday: z.number(),
+});
+
+const personMonthDaySchema = z.object({
+  day: z.number(),
+  kind: z.enum(["service", "rehearsal", "blockout", "rest"]),
+  positionName: z.string().optional(),
+  serviceTypeName: z.string().optional(),
+  status: z.string().optional(),
+  planUrl: z.string().optional(),
+});
+
+const dashboardPersonSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  initials: z.string(),
+  photoThumbnailUrl: z.string().nullable(),
+  teams: z.array(z.string()),
+  roles: z.string(),
+  status: z.string(),
+  load: z.enum(["low", "normal", "high", "rest"]),
+  lastServed: z.string(),
+  lastRehearsal: z.string().optional(),
+  nextScheduled: z.string(),
+  nextRehearsal: z.string().optional(),
+  monthCount: z.number(),
+  thirtyDayCount: z.number(),
+  ninetyDayCount: z.number(),
+  upcomingCount: z.number(),
+  streak: z.string(),
+  highlight: z.string(),
+  monthDays: z.array(personMonthDaySchema),
+});
+
+const dashboardDaySchema = z.object({
+  day: z.number(),
+  serviceCount: z.number(),
+  confirmedServiceCount: z.number(),
+  potentialServiceCount: z.number(),
+  rehearsalCount: z.number(),
+  blockoutCount: z.number(),
+});
+
+const requestBudgetSchema = z.object({
+  teamRequests: z.number(),
+  scheduleRequests: z.number(),
+  blockoutRequests: z.number(),
+  rosterPeopleCount: z.number(),
+  hydratedPeopleCount: z.number(),
+  sampled: z.boolean(),
+});
+
+const peopleDashboardDataSchema = z.object({
+  range: z.enum(["month", "30", "90"]),
+  generatedAt: z.string(),
+  month: dashboardMonthSchema,
+  people: z.array(dashboardPersonSchema),
+  stats: z.object({
+    scheduledPeople: z.number(),
+    highLoadPeople: z.number(),
+    availableSoonPeople: z.number(),
+  }),
+  monthDays: z.array(dashboardDaySchema),
+  matrixDays: z.array(z.number()),
+  requestBudget: requestBudgetSchema,
+});
+
+const peopleDashboardPersonDetailSchema = z.object({
+  generatedAt: z.string(),
+  month: dashboardMonthSchema,
+  previousMonth: z.string(),
+  nextMonth: z.string(),
+  person: dashboardPersonSchema,
+  trend: z.array(
+    z.object({
+      month: z.string(),
+      label: z.string(),
+      services: z.number(),
+      rehearsals: z.number(),
+    })
+  ),
+  requestBudget: z.object({
+    scheduleRequests: z.number(),
+    blockoutRequests: z.number(),
+  }),
+});
+
+const cachedDashboardPayloadSchema = z.object({
+  savedAt: z.number(),
+  data: peopleDashboardDataSchema,
+});
+
+const cachedPersonDetailPayloadSchema = z.object({
+  savedAt: z.number(),
+  data: peopleDashboardPersonDetailSchema,
+});
+
+const buildCacheKey = (range: PeopleDashboardRange): string =>
+  presentationCacheKey(`${KEY_PREFIX}${range}`);
+
+const buildPersonDetailCacheKey = (
+  personId: string,
+  month: string | null
+): string =>
+  presentationCacheKey(
+    `${PERSON_DETAIL_KEY_PREFIX}${encodeURIComponent(personId)}:${encodeURIComponent(month ?? "current")}`
+  );
+
+export const readCachedPeopleDashboard = (
   range: PeopleDashboardRange
-): PeopleDashboardCacheEntry | undefined {
-  if (typeof window === "undefined") return undefined;
+): PeopleDashboardCacheEntry | undefined => {
+  const storage = globalThis.window?.localStorage;
+  if (storage === undefined) {
+    return undefined;
+  }
 
   try {
-    const raw = window.localStorage.getItem(buildCacheKey(range));
-    if (!raw) return undefined;
-    const parsed = JSON.parse(raw) as Partial<
-      CachedPayload<PeopleDashboardData>
-    >;
-    if (!parsed || typeof parsed !== "object") return undefined;
-    if (typeof parsed.savedAt !== "number") return undefined;
-    if (!isPeopleDashboardData(parsed.data, range)) return undefined;
-    return {
-      savedAt: parsed.savedAt,
-      data: parsed.data,
-    };
+    const raw = storage.getItem(buildCacheKey(range));
+    if (raw === null) {
+      return undefined;
+    }
+    const parsed = cachedDashboardPayloadSchema.safeParse(JSON.parse(raw));
+    if (!parsed.success || parsed.data.data.range !== range) {
+      return undefined;
+    }
+    return parsed.data;
   } catch {
     return undefined;
   }
-}
+};
 
-export function writeCachedPeopleDashboard(data: PeopleDashboardData) {
-  if (typeof window === "undefined") return;
+export const writeCachedPeopleDashboard = (data: PeopleDashboardData): void => {
+  const storage = globalThis.window?.localStorage;
+  if (storage === undefined) {
+    return;
+  }
 
   try {
-    window.localStorage.setItem(
+    storage.setItem(
       buildCacheKey(data.range),
       JSON.stringify({
         savedAt: Date.now(),
@@ -61,46 +177,46 @@ export function writeCachedPeopleDashboard(data: PeopleDashboardData) {
       } satisfies CachedPayload<PeopleDashboardData>)
     );
   } catch {
-    // Ignore storage write failures (private mode/quota).
+    // Ignore storage failures; query invalidation still refreshes live data.
   }
-}
+};
 
-export function readCachedPeopleDashboardPerson(
+export const readCachedPeopleDashboardPerson = (
   personId: string,
   month: string | null
-): PeopleDashboardPersonCacheEntry | undefined {
-  if (typeof window === "undefined") return undefined;
+): PeopleDashboardPersonCacheEntry | undefined => {
+  const storage = globalThis.window?.localStorage;
+  if (storage === undefined) {
+    return undefined;
+  }
 
   try {
-    const raw = window.localStorage.getItem(
-      buildPersonDetailCacheKey(personId, month)
-    );
-    if (!raw) return undefined;
-    const parsed = JSON.parse(raw) as Partial<
-      CachedPayload<PeopleDashboardPersonDetail>
-    >;
-    if (!parsed || typeof parsed !== "object") return undefined;
-    if (typeof parsed.savedAt !== "number") return undefined;
-    if (!isPeopleDashboardPersonDetail(parsed.data)) return undefined;
-
-    return {
-      savedAt: parsed.savedAt,
-      data: parsed.data,
-    };
+    const raw = storage.getItem(buildPersonDetailCacheKey(personId, month));
+    if (raw === null) {
+      return undefined;
+    }
+    const parsed = cachedPersonDetailPayloadSchema.safeParse(JSON.parse(raw));
+    if (!parsed.success) {
+      return undefined;
+    }
+    return parsed.data;
   } catch {
     return undefined;
   }
-}
+};
 
-export function writeCachedPeopleDashboardPerson(
+export const writeCachedPeopleDashboardPerson = (
   personId: string,
   month: string | null,
   data: PeopleDashboardPersonDetail
-) {
-  if (typeof window === "undefined") return;
+): void => {
+  const storage = globalThis.window?.localStorage;
+  if (storage === undefined) {
+    return;
+  }
 
   try {
-    window.localStorage.setItem(
+    storage.setItem(
       buildPersonDetailCacheKey(personId, month),
       JSON.stringify({
         savedAt: Date.now(),
@@ -108,213 +224,24 @@ export function writeCachedPeopleDashboardPerson(
       } satisfies CachedPayload<PeopleDashboardPersonDetail>)
     );
   } catch {
-    // Ignore storage write failures (private mode/quota).
+    // Ignore storage failures; query invalidation still refreshes live data.
   }
-}
+};
 
-export function clearCachedPeopleDashboards() {
-  if (typeof window === "undefined") return;
+export const clearCachedPeopleDashboards = (): void => {
+  const storage = globalThis.window?.localStorage;
+  if (storage === undefined) {
+    return;
+  }
 
   try {
-    const prefix = KEY_PREFIX;
-    for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
-      const key = window.localStorage.key(index);
-      if (key?.startsWith(prefix)) {
-        window.localStorage.removeItem(key);
+    for (let index = storage.length - 1; index >= 0; index -= 1) {
+      const key = storage.key(index);
+      if (key?.startsWith(KEY_PREFIX) === true) {
+        storage.removeItem(key);
       }
     }
   } catch {
     // Ignore storage read/write failures.
   }
-}
-
-function buildCacheKey(range: PeopleDashboardRange) {
-  return presentationCacheKey(`${KEY_PREFIX}${range}`);
-}
-
-function buildPersonDetailCacheKey(personId: string, month: string | null) {
-  return presentationCacheKey(
-    `${PERSON_DETAIL_KEY_PREFIX}${encodeURIComponent(personId)}:${encodeURIComponent(month ?? "current")}`
-  );
-}
-
-function isPeopleDashboardData(
-  value: unknown,
-  range: PeopleDashboardRange
-): value is PeopleDashboardData {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as Partial<PeopleDashboardData>;
-  return (
-    candidate.range === range &&
-    typeof candidate.generatedAt === "string" &&
-    isDashboardMonth(candidate.month) &&
-    Array.isArray(candidate.people) &&
-    candidate.people.every(isDashboardPerson) &&
-    isDashboardStats(candidate.stats) &&
-    Array.isArray(candidate.monthDays) &&
-    candidate.monthDays.every(isDashboardDay) &&
-    Array.isArray(candidate.matrixDays) &&
-    candidate.matrixDays.every((day) => typeof day === "number") &&
-    isRequestBudget(candidate.requestBudget)
-  );
-}
-
-function isPeopleDashboardPersonDetail(
-  value: unknown
-): value is PeopleDashboardPersonDetail {
-  if (!value || typeof value !== "object") return false;
-  const detail = value as Partial<PeopleDashboardPersonDetail>;
-
-  return (
-    typeof detail.generatedAt === "string" &&
-    isDashboardMonth(detail.month) &&
-    typeof detail.previousMonth === "string" &&
-    typeof detail.nextMonth === "string" &&
-    isDashboardPerson(detail.person) &&
-    Array.isArray(detail.trend) &&
-    detail.trend.every(isPersonDetailTrend) &&
-    isPersonDetailRequestBudget(detail.requestBudget)
-  );
-}
-
-function isDashboardMonth(
-  value: unknown
-): value is PeopleDashboardData["month"] {
-  if (!value || typeof value !== "object") return false;
-  const month = value as Partial<PeopleDashboardData["month"]>;
-  return (
-    typeof month.year === "number" &&
-    typeof month.monthIndex === "number" &&
-    typeof month.label === "string" &&
-    typeof month.daysInMonth === "number" &&
-    typeof month.startsOnWeekday === "number"
-  );
-}
-
-function isDashboardPerson(value: unknown): value is PeopleDashboardPerson {
-  if (!value || typeof value !== "object") return false;
-  const person = value as Partial<PeopleDashboardPerson>;
-  return (
-    typeof person.id === "string" &&
-    typeof person.name === "string" &&
-    typeof person.initials === "string" &&
-    (person.photoThumbnailUrl === null ||
-      typeof person.photoThumbnailUrl === "string") &&
-    Array.isArray(person.teams) &&
-    person.teams.every((team) => typeof team === "string") &&
-    typeof person.roles === "string" &&
-    typeof person.status === "string" &&
-    isLoad(person.load) &&
-    typeof person.lastServed === "string" &&
-    typeof person.nextScheduled === "string" &&
-    typeof person.monthCount === "number" &&
-    typeof person.thirtyDayCount === "number" &&
-    typeof person.ninetyDayCount === "number" &&
-    typeof person.upcomingCount === "number" &&
-    typeof person.streak === "string" &&
-    typeof person.highlight === "string" &&
-    Array.isArray(person.monthDays) &&
-    person.monthDays.every(isPersonMonthDay)
-  );
-}
-
-function isPersonMonthDay(
-  value: unknown
-): value is PeopleDashboardPerson["monthDays"][number] {
-  if (!value || typeof value !== "object") return false;
-  const day = value as Partial<PeopleDashboardPerson["monthDays"][number]>;
-  return (
-    typeof day.day === "number" &&
-    isDayKind(day.kind) &&
-    isOptionalString(day.positionName) &&
-    isOptionalString(day.serviceTypeName) &&
-    isOptionalString(day.status) &&
-    isOptionalString(day.planUrl)
-  );
-}
-
-function isPersonDetailTrend(
-  value: unknown
-): value is PeopleDashboardPersonDetail["trend"][number] {
-  if (!value || typeof value !== "object") return false;
-  const trend = value as Partial<PeopleDashboardPersonDetail["trend"][number]>;
-  return (
-    typeof trend.month === "string" &&
-    typeof trend.label === "string" &&
-    typeof trend.services === "number" &&
-    typeof trend.rehearsals === "number"
-  );
-}
-
-function isPersonDetailRequestBudget(
-  value: unknown
-): value is PeopleDashboardPersonDetail["requestBudget"] {
-  if (!value || typeof value !== "object") return false;
-  const budget = value as Partial<PeopleDashboardPersonDetail["requestBudget"]>;
-  return (
-    typeof budget.scheduleRequests === "number" &&
-    typeof budget.blockoutRequests === "number"
-  );
-}
-
-function isDashboardStats(
-  value: unknown
-): value is PeopleDashboardData["stats"] {
-  if (!value || typeof value !== "object") return false;
-  const stats = value as Partial<PeopleDashboardData["stats"]>;
-  return (
-    typeof stats.scheduledPeople === "number" &&
-    typeof stats.highLoadPeople === "number" &&
-    typeof stats.availableSoonPeople === "number"
-  );
-}
-
-function isDashboardDay(value: unknown): value is PeopleDashboardDay {
-  if (!value || typeof value !== "object") return false;
-  const day = value as Partial<PeopleDashboardDay>;
-  return (
-    typeof day.day === "number" &&
-    typeof day.serviceCount === "number" &&
-    typeof day.confirmedServiceCount === "number" &&
-    typeof day.potentialServiceCount === "number" &&
-    typeof day.rehearsalCount === "number" &&
-    typeof day.blockoutCount === "number"
-  );
-}
-
-function isRequestBudget(
-  value: unknown
-): value is PeopleDashboardData["requestBudget"] {
-  if (!value || typeof value !== "object") return false;
-  const budget = value as Partial<PeopleDashboardData["requestBudget"]>;
-  return (
-    typeof budget.teamRequests === "number" &&
-    typeof budget.scheduleRequests === "number" &&
-    typeof budget.blockoutRequests === "number" &&
-    typeof budget.rosterPeopleCount === "number" &&
-    typeof budget.hydratedPeopleCount === "number" &&
-    typeof budget.sampled === "boolean"
-  );
-}
-
-function isLoad(value: unknown) {
-  return (
-    value === "low" ||
-    value === "normal" ||
-    value === "high" ||
-    value === "rest"
-  );
-}
-
-function isDayKind(value: unknown) {
-  return (
-    value === "service" ||
-    value === "rehearsal" ||
-    value === "blockout" ||
-    value === "rest"
-  );
-}
-
-function isOptionalString(value: unknown) {
-  return value === undefined || typeof value === "string";
-}
+};

@@ -8,7 +8,7 @@ import {
 } from "@/lib/song-search-cache";
 import type { SongCatalogEntry } from "@/lib/types";
 
-function installLocalStorageMock() {
+const installLocalStorageMock = () => {
   const storage = new Map<string, string>();
   vi.stubGlobal("window", {
     localStorage: {
@@ -25,21 +25,19 @@ function installLocalStorageMock() {
       },
     },
   });
-}
+};
 
-function songs(): SongCatalogEntry[] {
-  return [
-    {
-      id: "song-1",
-      title: "Build My Life",
-      author: "Pat Barrett",
-      themes: "Adoration, Worship",
-      hidden: false,
-      lastScheduledAt: new Date("2026-02-15T00:00:00.000Z"),
-      matchScore: 120,
-    },
-  ];
-}
+const songs = (): SongCatalogEntry[] => [
+  {
+    id: "song-1",
+    title: "Build My Life",
+    author: "Pat Barrett",
+    themes: "Adoration, Worship",
+    hidden: false,
+    lastScheduledAt: new Date("2026-02-15T00:00:00.000Z"),
+    matchScore: 120,
+  },
+];
 
 describe("song search cache", () => {
   beforeEach(() => {

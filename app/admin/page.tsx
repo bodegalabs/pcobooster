@@ -16,29 +16,30 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { requireAdminSession } from "@/lib/use-cases/admin/auth";
-import {
-  getAccountActivity,
-  type AdminAccountActivity,
-} from "@/lib/use-cases/admin/get-account-activity";
+import { getAccountActivity } from "@/lib/use-cases/admin/get-account-activity";
+import type { AdminAccountActivity } from "@/lib/use-cases/admin/get-account-activity";
 
 export const dynamic = "force-dynamic";
 
-function formatDateTime(value: string | null): string {
-  if (!value) return "Never";
+const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
 
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
+const formatDateTime = (value: string | null): string => {
+  if (!(value !== null && value !== "")) {
+    return "Never";
+  }
 
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-  }).format(new Date(value));
-}
+  return dateTimeFormatter.format(new Date(value));
+};
 
-function StatCard({
+const dateFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
+
+const formatDate = (value: string): string =>
+  dateFormatter.format(new Date(value));
+
+const StatCard = ({
   label,
   value,
   icon: Icon,
@@ -46,36 +47,32 @@ function StatCard({
   label: string;
   value: string | number;
   icon: typeof Users;
-}) {
-  return (
-    <div className="border-border/70 bg-card rounded-md border px-4 py-3">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-muted-foreground text-sm">{label}</p>
-        <Icon className="text-muted-foreground size-4" />
-      </div>
-      <p className="mt-2 text-2xl font-semibold tracking-normal">{value}</p>
+}) => (
+  <div className="border-border/70 bg-card rounded-md border px-4 py-3">
+    <div className="flex items-center justify-between gap-3">
+      <p className="text-muted-foreground text-sm">{label}</p>
+      <Icon className="text-muted-foreground size-4" />
     </div>
-  );
-}
+    <p className="mt-2 text-2xl font-semibold tracking-normal">{value}</p>
+  </div>
+);
 
-function getTotals(accounts: AdminAccountActivity[]) {
-  return accounts.reduce(
-    (totals, account) => ({
-      users: totals.users + 1,
-      activeSessions: totals.activeSessions + account.activeSessions,
-      loginEvents30d: totals.loginEvents30d + account.loginEvents30d,
-      loginEvents: totals.loginEvents + account.loginEvents,
-    }),
-    {
-      users: 0,
-      activeSessions: 0,
-      loginEvents30d: 0,
-      loginEvents: 0,
-    }
-  );
-}
+const getTotals = (accounts: AdminAccountActivity[]) => {
+  const totals = {
+    users: accounts.length,
+    activeSessions: 0,
+    loginEvents30d: 0,
+    loginEvents: 0,
+  };
+  for (const account of accounts) {
+    totals.activeSessions += account.activeSessions;
+    totals.loginEvents30d += account.loginEvents30d;
+    totals.loginEvents += account.loginEvents;
+  }
+  return totals;
+};
 
-export default async function AdminPage() {
+const AdminPage = async () => {
   const session = await requireAdminSession();
   const accounts = await getAccountActivity();
   const totals = getTotals(accounts);
@@ -154,4 +151,6 @@ export default async function AdminPage() {
       </div>
     </main>
   );
-}
+};
+
+export default AdminPage;
