@@ -906,9 +906,11 @@ function AppSidebar({
 export function AppShell({
   children,
   peoplePageEnabled,
+  presentationMode,
 }: {
   children: ReactNode;
   peoplePageEnabled: boolean;
+  presentationMode: boolean;
 }) {
   const pathname = usePathname();
   const isAuthRoute = pathname.startsWith("/auth");
@@ -963,6 +965,11 @@ export function AppShell({
           <Suspense fallback={<AppTopBarFallback pathname={pathname} />}>
             <AppTopBar />
           </Suspense>
+          {presentationMode ? (
+            <span className="ml-auto shrink-0 rounded-md bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-700 dark:text-amber-400">
+              Presentation mode
+            </span>
+          ) : null}
         </header>
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
       </SidebarInset>

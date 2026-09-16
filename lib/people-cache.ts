@@ -1,3 +1,4 @@
+import { presentationCacheKey } from "@/lib/presentation-cache";
 import type {
   PersonWithAvailability,
   ScheduleFrequency,
@@ -91,7 +92,7 @@ function buildCacheKey(
   planId: string | null,
   dateKey: string | null
 ) {
-  return [
+  return presentationCacheKey([
     CACHE_KEY_PREFIX,
     encodeURIComponent(serviceTypeId),
     ":",
@@ -102,7 +103,7 @@ function buildCacheKey(
     encodeURIComponent(planId ?? "none"),
     ":",
     encodeURIComponent(dateKey ?? "none"),
-  ].join("");
+  ].join(""));
 }
 
 function isPeopleArray(value: unknown): value is PersonWithAvailability[] {

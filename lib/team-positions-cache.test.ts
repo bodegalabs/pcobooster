@@ -112,4 +112,20 @@ describe("team positions cache", () => {
     expect(readCachedTeamPositions("st-1", "plan-2", null)).toBeUndefined();
     expect(window.localStorage.getItem("unrelated")).toBe("keep");
   });
+  it("isolates presentation storage from live data and other seeds (readCachedTeamPositions)", () => {
+    const dataset = { presentationScope: "live" };
+    vi.stubGlobal("document", { documentElement: { dataset } });
+    writeCachedTeamPositions("st", "plan", null, teamPositionGroups());
+    expect(readCachedTeamPositions("st", "plan", null)).toBeDefined();
+    dataset.presentationScope = "present-v1-seed-a";
+    expect(readCachedTeamPositions("st", "plan", null)).toBeUndefined();
+    writeCachedTeamPositions("st", "plan", null, teamPositionGroups());
+    expect(readCachedTeamPositions("st", "plan", null)).toBeDefined();
+    dataset.presentationScope = "present-v1-seed-b";
+    expect(readCachedTeamPositions("st", "plan", null)).toBeUndefined();
+    dataset.presentationScope = "live";
+    expect(readCachedTeamPositions("st", "plan", null)).toBeDefined();
+    vi.unstubAllGlobals();
+  });
+
 });

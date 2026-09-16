@@ -1,3 +1,4 @@
+import { presentationCacheKey } from "@/lib/presentation-cache";
 import type { PeopleSearchResult } from "@/hooks/use-people-search";
 
 const CACHE_VERSION = "v1";
@@ -71,7 +72,7 @@ export function normalizePeopleSearchQuery(query: string) {
 }
 
 function buildCacheKey(query: string) {
-  return `${CACHE_KEY_PREFIX}${encodeURIComponent(query)}`;
+  return presentationCacheKey(`${CACHE_KEY_PREFIX}${encodeURIComponent(query)}`);
 }
 
 function isPeopleSearchResultArray(value: unknown): value is PeopleSearchResult[] {

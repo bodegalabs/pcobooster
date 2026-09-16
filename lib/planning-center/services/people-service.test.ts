@@ -11,6 +11,25 @@ function resource(id: string, type: string, attributes: Record<string, unknown> 
   };
 }
 
+describe("PlanningCenterPeopleService.getAllPeople", () => {
+  it("loads every directory page, caches by account, and returns independent copies", async () => {
+    let scope = "account-a";
+    const fetchAll = vi.fn().mockResolvedValue([resource("person-1", "Person", { first_name: "Original" })]);
+    const service = new PlanningCenterPeopleService({
+      fetchAll,
+      getCacheScope: () => scope,
+    } as unknown as PlanningCenterCoreClient);
+    const first = await service.getAllPeople();
+    first[0].attributes.first_name = "Changed";
+    expect((await service.getAllPeople())[0].attributes.first_name).toBe("Original");
+    expect(fetchAll).toHaveBeenCalledTimes(1);
+    expect(fetchAll).toHaveBeenCalledWith("/people/v2/people", {}, Number.POSITIVE_INFINITY);
+    scope = "account-b";
+    await service.getAllPeople();
+    expect(fetchAll).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("PlanningCenterPeopleService.getPlanTeamMembers", () => {
   it("uses fetchAllWithIncluded so large rosters are not truncated to the first page", async () => {
     const fetchAllWithIncluded = vi.fn().mockResolvedValue({ data: [], included: [] });

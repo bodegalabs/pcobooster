@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:present": "PRESENTATION_MODE=1 next dev",
     "build": "next build",
     "start": "next start",
     "lint": "oxlint --node-plugin --react-perf-plugin --promise-plugin --react-plugin --nextjs-plugin --jsx-a11y-plugin --import-plugin --vitest-plugin --report-unused-disable-directives-severity=warn .",
@@ -51,6 +52,7 @@
     "react-day-picker": "^9.13.0",
     "react-dom": "19.2.3",
     "recharts": "3.8.0",
+    "server-only": "^0.0.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "vaul": "^1.1.2",

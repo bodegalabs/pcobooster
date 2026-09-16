@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isPresentationMode } from "@/lib/presentation-mode";
 import { ZodError } from "zod";
 import { ApiError } from "@/lib/http/api-error";
 import {
@@ -28,7 +29,7 @@ export async function handleRoute<T>(handler: () => Promise<T>) {
         {
           error: error.message,
           code: error.code,
-          details: error.details,
+          details: isPresentationMode() ? undefined : error.details,
         },
         { status: error.status }
       );
@@ -41,7 +42,7 @@ export async function handleRoute<T>(handler: () => Promise<T>) {
         {
           error: "Invalid request",
           code: "INVALID_REQUEST",
-          details: error.issues,
+          details: isPresentationMode() ? undefined : error.issues,
         },
         { status: 400 }
       );
@@ -76,7 +77,7 @@ export async function handleRoute<T>(handler: () => Promise<T>) {
         {
           error: message,
           code,
-          details: error.details,
+          details: isPresentationMode() ? undefined : error.details,
           retryAfterSeconds,
           rateLimit: error.rateLimit,
         },
@@ -91,7 +92,7 @@ export async function handleRoute<T>(handler: () => Promise<T>) {
       {
         error: "Internal server error",
         code: "INTERNAL_SERVER_ERROR",
-        details: message,
+        details: isPresentationMode() ? undefined : message,
       },
       { status: 500 }
     );

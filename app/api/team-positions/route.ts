@@ -1,3 +1,4 @@
+import { presentTeamPositions } from "@/lib/use-cases/planning-center/presentation";
 import { z } from "zod";
 import { ApiError } from "@/lib/http/api-error";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
@@ -47,6 +48,6 @@ export async function GET(request: Request) {
       "Plan needed team positions fetched"
     );
 
-    return groupedPositions;
+    return presentTeamPositions(groupedPositions);
   });
 }

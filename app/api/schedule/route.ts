@@ -1,5 +1,6 @@
 import { after, NextResponse } from "next/server";
 import { z } from "zod";
+import { isPresentationMode } from "@/lib/presentation-mode";
 import { ApiError } from "@/lib/http/api-error";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
@@ -204,7 +205,7 @@ export async function POST(request: Request) {
         },
       });
 
-      return { success: true, data };
+      return { success: true, data: { id: data.id } };
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       const errorMessage = err.message || "";
@@ -231,7 +232,7 @@ export async function POST(request: Request) {
           {
             error: "Person is already scheduled for this selected plan/team/position",
             code: "ALREADY_SCHEDULED",
-            details: errorMessage,
+            details: isPresentationMode() ? undefined : errorMessage,
           },
           { status: 409 }
         );

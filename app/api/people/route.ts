@@ -1,3 +1,4 @@
+import { presentPeople } from "@/lib/use-cases/planning-center/presentation";
 import { z } from "zod";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
@@ -62,6 +63,6 @@ export async function GET(request: Request) {
       "People fetched"
     );
 
-    return people;
+    return presentPeople(people);
   });
 }
