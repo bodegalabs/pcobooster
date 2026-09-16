@@ -135,4 +135,20 @@ describe("people cache", () => {
     expect(readCachedPeople("st-1", "team-1", "position-2", "plan-1", "2026-05-31")).toBeUndefined();
     expect(window.localStorage.getItem("unrelated")).toBe("keep");
   });
+  it("isolates presentation storage from live data and other seeds (readCachedPeople)", () => {
+    const dataset = { presentationScope: "live" };
+    vi.stubGlobal("document", { documentElement: { dataset } });
+    writeCachedPeople("st", "team", "position", "plan", "date", people());
+    expect(readCachedPeople("st", "team", "position", "plan", "date")).toBeDefined();
+    dataset.presentationScope = "present-v1-seed-a";
+    expect(readCachedPeople("st", "team", "position", "plan", "date")).toBeUndefined();
+    writeCachedPeople("st", "team", "position", "plan", "date", people());
+    expect(readCachedPeople("st", "team", "position", "plan", "date")).toBeDefined();
+    dataset.presentationScope = "present-v1-seed-b";
+    expect(readCachedPeople("st", "team", "position", "plan", "date")).toBeUndefined();
+    dataset.presentationScope = "live";
+    expect(readCachedPeople("st", "team", "position", "plan", "date")).toBeDefined();
+    vi.unstubAllGlobals();
+  });
+
 });

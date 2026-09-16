@@ -1,3 +1,4 @@
+import { presentDashboardPerson } from "@/lib/use-cases/planning-center/presentation";
 import { z } from "zod";
 import { peoplePageFlag } from "@/flags";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
@@ -44,6 +45,6 @@ export async function GET(
       "People dashboard detail fetched"
     );
 
-    return detail;
+    return presentDashboardPerson(detail);
   });
 }

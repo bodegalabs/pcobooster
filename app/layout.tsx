@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "@/components/providers";
 import "./globals.css";
+import { getPresentationCacheScope } from "@/lib/presentation-mode";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,12 +38,14 @@ export default async function RootLayout({
   const peoplePageEnabled =
     process.env.NODE_ENV !== "production" && !process.env.VERCEL;
 
+  const presentationScope = getPresentationCacheScope();
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-presentation-scope={presentationScope} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers peoplePageEnabled={peoplePageEnabled}>{children}</Providers>
+        <Providers key={presentationScope} presentationScope={presentationScope} peoplePageEnabled={peoplePageEnabled}>{children}</Providers>
         <Analytics />
       </body>
     </html>

@@ -1,3 +1,4 @@
+import { presentationCacheKey } from "@/lib/presentation-cache";
 import type {
   PeopleDashboardData,
   PeopleDashboardDay,
@@ -122,11 +123,11 @@ export function clearCachedPeopleDashboards() {
 }
 
 function buildCacheKey(range: PeopleDashboardRange) {
-  return `${KEY_PREFIX}${range}`;
+  return presentationCacheKey(`${KEY_PREFIX}${range}`);
 }
 
 function buildPersonDetailCacheKey(personId: string, month: string | null) {
-  return `${PERSON_DETAIL_KEY_PREFIX}${encodeURIComponent(personId)}:${encodeURIComponent(month ?? "current")}`;
+  return presentationCacheKey(`${PERSON_DETAIL_KEY_PREFIX}${encodeURIComponent(personId)}:${encodeURIComponent(month ?? "current")}`);
 }
 
 function isPeopleDashboardData(

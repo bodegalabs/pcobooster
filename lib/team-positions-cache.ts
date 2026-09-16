@@ -1,3 +1,4 @@
+import { presentationCacheKey } from "@/lib/presentation-cache";
 import type { FilledPositionPerson, TeamPosition, TeamPositionGroup } from "@/lib/types";
 
 const CACHE_VERSION = "v1";
@@ -78,14 +79,14 @@ function buildCacheKey(
   planId: string,
   seriesId: string | null
 ) {
-  return [
+  return presentationCacheKey([
     CACHE_KEY_PREFIX,
     encodeURIComponent(serviceTypeId),
     ":",
     encodeURIComponent(planId),
     ":",
     encodeURIComponent(seriesId ?? "none"),
-  ].join("");
+  ].join(""));
 }
 
 function isTeamPositionGroupArray(value: unknown): value is TeamPositionGroup[] {

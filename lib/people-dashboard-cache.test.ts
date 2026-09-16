@@ -188,4 +188,36 @@ describe("people dashboard cache", () => {
 
     expect(readCachedPeopleDashboardPerson("person-1", "2026-05")).toBeUndefined();
   });
+  it("isolates presentation storage from live data and other seeds (readCachedPeopleDashboard)", () => {
+    const dataset = { presentationScope: "live" };
+    vi.stubGlobal("document", { documentElement: { dataset } });
+    writeCachedPeopleDashboard(dashboard());
+    expect(readCachedPeopleDashboard("month")).toBeDefined();
+    dataset.presentationScope = "present-v1-seed-a";
+    expect(readCachedPeopleDashboard("month")).toBeUndefined();
+    writeCachedPeopleDashboard(dashboard());
+    expect(readCachedPeopleDashboard("month")).toBeDefined();
+    dataset.presentationScope = "present-v1-seed-b";
+    expect(readCachedPeopleDashboard("month")).toBeUndefined();
+    dataset.presentationScope = "live";
+    expect(readCachedPeopleDashboard("month")).toBeDefined();
+    vi.unstubAllGlobals();
+  });
+
+  it("isolates presentation storage from live data and other seeds (readCachedPeopleDashboardPerson)", () => {
+    const dataset = { presentationScope: "live" };
+    vi.stubGlobal("document", { documentElement: { dataset } });
+    writeCachedPeopleDashboardPerson("person-1", "2026-05", personDetail());
+    expect(readCachedPeopleDashboardPerson("person-1", "2026-05")).toBeDefined();
+    dataset.presentationScope = "present-v1-seed-a";
+    expect(readCachedPeopleDashboardPerson("person-1", "2026-05")).toBeUndefined();
+    writeCachedPeopleDashboardPerson("person-1", "2026-05", personDetail());
+    expect(readCachedPeopleDashboardPerson("person-1", "2026-05")).toBeDefined();
+    dataset.presentationScope = "present-v1-seed-b";
+    expect(readCachedPeopleDashboardPerson("person-1", "2026-05")).toBeUndefined();
+    dataset.presentationScope = "live";
+    expect(readCachedPeopleDashboardPerson("person-1", "2026-05")).toBeDefined();
+    vi.unstubAllGlobals();
+  });
+
 });

@@ -100,4 +100,20 @@ describe("people search cache", () => {
     expect(readCachedPeopleSearch("mina")).toBeUndefined();
     expect(window.localStorage.getItem("unrelated")).toBe("keep");
   });
+  it("isolates presentation storage from live data and other seeds (readCachedPeopleSearch)", () => {
+    const dataset = { presentationScope: "live" };
+    vi.stubGlobal("document", { documentElement: { dataset } });
+    writeCachedPeopleSearch("andrew", people());
+    expect(readCachedPeopleSearch("andrew")).toBeDefined();
+    dataset.presentationScope = "present-v1-seed-a";
+    expect(readCachedPeopleSearch("andrew")).toBeUndefined();
+    writeCachedPeopleSearch("andrew", people());
+    expect(readCachedPeopleSearch("andrew")).toBeDefined();
+    dataset.presentationScope = "present-v1-seed-b";
+    expect(readCachedPeopleSearch("andrew")).toBeUndefined();
+    dataset.presentationScope = "live";
+    expect(readCachedPeopleSearch("andrew")).toBeDefined();
+    vi.unstubAllGlobals();
+  });
+
 });

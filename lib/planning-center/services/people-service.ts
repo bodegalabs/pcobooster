@@ -63,6 +63,15 @@ export class PlanningCenterPeopleService {
     return structuredClone(data);
   }
 
+  async getAllPeople(): Promise<PCResource[]> {
+    const people = await this.cache.get(
+      this.buildCacheKey("all-people"),
+      ALL_TEAM_PEOPLE_CACHE_TTL_MS,
+      () => this.core.fetchAll<PCResource>("/people/v2/people", {}, Number.POSITIVE_INFINITY)
+    );
+    return structuredClone(people);
+  }
+
   async getPersonTeamPositions(personId: string): Promise<PCResource[]> {
     return this.core.fetchAll<PCResource>(
       `/services/v2/people/${personId}/person_team_position_assignments?include=team_position`

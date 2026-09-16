@@ -11,13 +11,8 @@ import {
 import { queryKeys } from "@/lib/query-keys";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 
-export interface PeopleSearchResult {
-  id: string;
-  firstName: string;
-  lastName: string;
-  fullName: string;
-  photoThumbnailUrl: string | null;
-}
+import type { PeopleSearchResult } from "@/lib/use-cases/planning-center/search-people";
+export type { PeopleSearchResult } from "@/lib/use-cases/planning-center/search-people";
 
 export function usePeopleSearch(query: string) {
   const normalizedQuery = normalizePeopleSearchQuery(query);

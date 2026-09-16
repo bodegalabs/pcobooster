@@ -1,3 +1,4 @@
+import { presentBlockouts } from "@/lib/use-cases/planning-center/presentation";
 import { z } from "zod";
 import { ApiError } from "@/lib/http/api-error";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
@@ -26,6 +27,6 @@ export async function GET(
     const blockouts = await getFutureBlockoutsForPerson(id);
 
     log.info({ personId: id, count: blockouts.length }, "Blockouts fetched");
-    return blockouts;
+    return presentBlockouts(blockouts);
   });
 }
