@@ -6,30 +6,38 @@ interface FrequencyIndicatorProps {
   frequency: ScheduleFrequency;
   className?: string;
 }
+const colors = {
+  low: "bg-green-500",
+  medium: "bg-yellow-500",
+  high: "bg-red-500",
+};
+const labels = {
+  low: "Good to schedule",
+  medium: "Served recently",
+  high: "Served frequently",
+};
+const textColors = {
+  low: "text-green-700",
+  medium: "text-yellow-700",
+  high: "text-red-700",
+};
 
-export function FrequencyIndicator({
+const getFrequencyLevel = (frequency: ScheduleFrequency): FrequencyLevel => {
+  const { recentServedDays } = frequency;
+  if (recentServedDays === 0) {
+    return "low";
+  }
+  if (recentServedDays <= 2) {
+    return "medium";
+  }
+  return "high";
+};
+
+export const FrequencyIndicator = ({
   frequency,
   className,
-}: FrequencyIndicatorProps) {
+}: FrequencyIndicatorProps) => {
   const level = getFrequencyLevel(frequency);
-
-  const colors = {
-    low: "bg-green-500",
-    medium: "bg-yellow-500",
-    high: "bg-red-500",
-  };
-
-  const labels = {
-    low: "Good to schedule",
-    medium: "Served recently",
-    high: "Served frequently",
-  };
-
-  const textColors = {
-    low: "text-green-700",
-    medium: "text-yellow-700",
-    high: "text-red-700",
-  };
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
@@ -42,37 +50,27 @@ export function FrequencyIndicator({
       </span>
     </div>
   );
-}
+};
 
-function getFrequencyLevel(frequency: ScheduleFrequency): FrequencyLevel {
-  const { recentServedDays } = frequency;
-
-  if (recentServedDays === 0) return "low";
-  if (recentServedDays <= 2) return "medium";
-  return "high";
-}
-
-export function FrequencyStats({
+export const FrequencyStats = ({
   frequency,
 }: {
   frequency: ScheduleFrequency;
-}) {
-  return (
-    <div className="grid grid-cols-3 gap-2 text-center text-xs">
-      <div>
-        <div className="font-semibold">{frequency.recentServedDays}</div>
-        <div className="text-muted-foreground">
-          {PLAN_HISTORY_HALF_RANGE_DAYS}d
-        </div>
-      </div>
-      <div>
-        <div className="font-semibold">{frequency.last60Days}</div>
-        <div className="text-muted-foreground">60d</div>
-      </div>
-      <div>
-        <div className="font-semibold">{frequency.last90Days}</div>
-        <div className="text-muted-foreground">90d</div>
+}) => (
+  <div className="grid grid-cols-3 gap-2 text-center text-xs">
+    <div>
+      <div className="font-semibold">{frequency.recentServedDays}</div>
+      <div className="text-muted-foreground">
+        {PLAN_HISTORY_HALF_RANGE_DAYS}d
       </div>
     </div>
-  );
-}
+    <div>
+      <div className="font-semibold">{frequency.last60Days}</div>
+      <div className="text-muted-foreground">60d</div>
+    </div>
+    <div>
+      <div className="font-semibold">{frequency.last90Days}</div>
+      <div className="text-muted-foreground">90d</div>
+    </div>
+  </div>
+);

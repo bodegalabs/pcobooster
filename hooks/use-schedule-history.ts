@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
+import { scheduleHistoryResponseSchema } from "@/lib/api-schemas";
 import { getJson } from "@/lib/http/client";
+import { isNonEmptyString } from "@/lib/json";
 import { queryKeys } from "@/lib/query-keys";
 import type { PlanPerson, ScheduleFrequency } from "@/lib/types";
 
@@ -9,14 +11,11 @@ interface ScheduleHistoryResponse {
   frequency: ScheduleFrequency;
 }
 
-export function useScheduleHistory(
-  personId: string | undefined,
-  days: number = 90
-) {
-  return useQuery<ScheduleHistoryResponse>({
+export const useScheduleHistory = (personId: string | undefined, days = 90) =>
+  useQuery<ScheduleHistoryResponse>({
     queryKey: queryKeys.scheduleHistory(personId ?? null, days),
     queryFn: async () => {
-      if (!personId) {
+      if (!isNonEmptyString(personId)) {
         return {
           planPeople: [],
           frequency: {
@@ -34,11 +33,12 @@ export function useScheduleHistory(
         };
       }
 
-      return getJson<ScheduleHistoryResponse>(
-        `/api/schedule-history/${personId}?days=${days}`
+      return await getJson(
+        `/api/schedule-history/${personId}?days=${days}`,
+        scheduleHistoryResponseSchema
       );
     },
-    enabled: !!personId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: isNonEmptyString(personId),
+    // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
-}

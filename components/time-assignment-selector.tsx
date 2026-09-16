@@ -51,12 +51,10 @@ interface PositionOption {
   filledPeople: FilledPositionPerson[];
 }
 
-function unique(values: string[]): string[] {
-  return [...new Set(values)];
-}
+const unique = (values: string[]): string[] => [...new Set(values)];
 
-function buildPositionOptions(groups: TeamPositionGroup[]): PositionOption[] {
-  return groups.flatMap((group) =>
+const buildPositionOptions = (groups: TeamPositionGroup[]): PositionOption[] =>
+  groups.flatMap((group) =>
     group.positions.map((position) => ({
       id: position.id,
       name: position.name,
@@ -67,19 +65,32 @@ function buildPositionOptions(groups: TeamPositionGroup[]): PositionOption[] {
       filledPeople: position.filledPeople ?? [],
     }))
   );
-}
 
-function buildLabel(
+const formatCount = (count: number, singular: string, plural: string): string =>
+  `${count} ${count === 1 ? singular : plural}`;
+
+const buildMemberRows = (positions: PositionOption[]) =>
+  positions.flatMap((position) =>
+    position.filledPeople.map((person) => ({
+      ...person,
+      positionName: position.name,
+      teamName: position.teamName,
+    }))
+  );
+
+const buildLabel = (
   groups: TeamPositionGroup[],
   positions: PositionOption[],
   value: TimeAssignmentValue
-) {
+) => {
   const memberRows = buildMemberRows(positions);
   const positionCount =
     value.positionIds.length + value.neededPositionIds.length;
   const count =
     value.teamIds.length + positionCount + value.planPersonIds.length;
-  if (count === 0) return "No assignments";
+  if (count === 0) {
+    return "No assignments";
+  }
   if (
     value.teamIds.length === groups.length &&
     groups.length > 0 &&
@@ -102,7 +113,9 @@ function buildLabel(
     (person) => person.planPersonId === value.planPersonIds[0]
   )?.name;
   const first = firstTeam ?? firstPosition ?? firstNeeded ?? firstPerson;
-  if (count === 1 && first) return first;
+  if (count === 1 && first !== undefined && first !== "") {
+    return first;
+  }
   return [
     value.teamIds.length > 0
       ? formatCount(value.teamIds.length, "team", "teams")
@@ -116,32 +129,17 @@ function buildLabel(
   ]
     .filter(Boolean)
     .join(", ");
-}
+};
 
-function formatCount(count: number, singular: string, plural: string): string {
-  return `${count} ${count === 1 ? singular : plural}`;
-}
+const toggleId = (ids: string[], id: string): string[] =>
+  ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id];
 
-function buildMemberRows(positions: PositionOption[]) {
-  return positions.flatMap((position) =>
-    position.filledPeople.map((person) => ({
-      ...person,
-      positionName: position.name,
-      teamName: position.teamName,
-    }))
-  );
-}
-
-function toggleId(ids: string[], id: string): string[] {
-  return ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id];
-}
-
-export function TimeAssignmentSelector({
+export const TimeAssignmentSelector = ({
   groups,
   value,
   onChange,
   disabled = false,
-}: TimeAssignmentSelectorProps) {
+}: TimeAssignmentSelectorProps) => {
   const listId = useId();
   const [open, setOpen] = useState(false);
   const positions = useMemo(() => buildPositionOptions(groups), [groups]);
@@ -164,14 +162,18 @@ export function TimeAssignmentSelector({
   );
   const memberRows = useMemo(() => buildMemberRows(positions), [positions]);
 
-  const setTeams = (teamIds: string[]) =>
+  const setTeams = (teamIds: string[]) => {
     onChange({ ...value, teamIds: unique(teamIds) });
-  const setPositions = (positionIds: string[]) =>
+  };
+  const setPositions = (positionIds: string[]) => {
     onChange({ ...value, positionIds: unique(positionIds) });
-  const setNeededPositions = (neededPositionIds: string[]) =>
+  };
+  const setNeededPositions = (neededPositionIds: string[]) => {
     onChange({ ...value, neededPositionIds: unique(neededPositionIds) });
-  const setPlanPeople = (planPersonIds: string[]) =>
+  };
+  const setPlanPeople = (planPersonIds: string[]) => {
     onChange({ ...value, planPersonIds: unique(planPersonIds) });
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -179,7 +181,7 @@ export function TimeAssignmentSelector({
         <Button
           type="button"
           variant="outline"
-          role="combobox"
+          aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls={listId}
           disabled={disabled}
@@ -193,7 +195,8 @@ export function TimeAssignmentSelector({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[520px] max-w-[calc(100vw-2rem)] p-0"
+        density="flush"
+        className="w-[520px] max-w-[calc(100vw-2rem)]"
         align="start"
       >
         <div className="flex items-center justify-between border-b px-3 py-2">
@@ -202,34 +205,34 @@ export function TimeAssignmentSelector({
             <Button
               type="button"
               variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-xs"
+              size="tiny"
               disabled={
                 groups.length === 0 || value.teamIds.length === groups.length
               }
-              onClick={() => setTeams(groups.map((group) => group.teamId))}
+              onClick={() => {
+                setTeams(groups.map((group) => group.teamId));
+              }}
             >
               All teams
             </Button>
             <Button
               type="button"
               variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-xs"
+              size="tiny"
               disabled={
                 value.teamIds.length === 0 &&
                 value.positionIds.length === 0 &&
                 value.neededPositionIds.length === 0 &&
                 value.planPersonIds.length === 0
               }
-              onClick={() =>
+              onClick={() => {
                 onChange({
                   teamIds: [],
                   positionIds: [],
                   neededPositionIds: [],
                   planPersonIds: [],
-                })
-              }
+                });
+              }}
             >
               Clear
             </Button>
@@ -247,9 +250,9 @@ export function TimeAssignmentSelector({
                   <CommandItem
                     key={group.teamId}
                     value={`${group.teamName} ${group.teamId}`}
-                    onSelect={() =>
-                      setTeams(toggleId(value.teamIds, group.teamId))
-                    }
+                    onSelect={() => {
+                      setTeams(toggleId(value.teamIds, group.teamId));
+                    }}
                   >
                     <Check
                       className={cn(selected ? "opacity-100" : "opacity-0")}
@@ -258,7 +261,7 @@ export function TimeAssignmentSelector({
                     <span className="min-w-0 flex-1 truncate">
                       {group.teamName}
                     </span>
-                    <Badge variant="secondary" className="font-normal">
+                    <Badge variant="secondary" weight="normal">
                       {group.positions.length}
                     </Badge>
                   </CommandItem>
@@ -267,25 +270,25 @@ export function TimeAssignmentSelector({
             </CommandGroup>
             <CommandGroup heading="Positions and plan slots">
               {positions.map((position) => {
+                const { neededPositionId } = position;
                 const isNeeded =
                   position.source === "needed_position" &&
-                  !!position.neededPositionId;
-                const selected = isNeeded
-                  ? selectedNeededPositionIds.has(position.neededPositionId!)
-                  : selectedPositionIds.has(position.id);
-                const label = isNeeded ? "Plan slot" : "Position";
+                  neededPositionId !== undefined &&
+                  neededPositionId !== "";
+                const selected =
+                  isNeeded && neededPositionId !== undefined
+                    ? selectedNeededPositionIds.has(neededPositionId)
+                    : selectedPositionIds.has(position.id);
+                const rowLabel = isNeeded ? "Plan slot" : "Position";
 
                 return (
                   <CommandItem
                     key={`${position.source}:${position.id}`}
                     value={`${position.teamName} ${position.name} ${position.id}`}
                     onSelect={() => {
-                      if (isNeeded) {
+                      if (isNeeded && neededPositionId !== undefined) {
                         setNeededPositions(
-                          toggleId(
-                            value.neededPositionIds,
-                            position.neededPositionId!
-                          )
+                          toggleId(value.neededPositionIds, neededPositionId)
                         );
                         return;
                       }
@@ -302,8 +305,8 @@ export function TimeAssignmentSelector({
                     <span className="min-w-0 flex-1 truncate">
                       {position.teamName} / {position.name}
                     </span>
-                    <Badge variant="outline" className="font-normal">
-                      {label}
+                    <Badge variant="outline" weight="normal">
+                      {rowLabel}
                     </Badge>
                   </CommandItem>
                 );
@@ -315,11 +318,11 @@ export function TimeAssignmentSelector({
                   <CommandItem
                     key={person.planPersonId}
                     value={`${person.name} ${person.teamName} ${person.positionName}`}
-                    onSelect={() =>
+                    onSelect={() => {
                       setPlanPeople(
                         toggleId(value.planPersonIds, person.planPersonId)
-                      )
-                    }
+                      );
+                    }}
                   >
                     <Check
                       className={cn(
@@ -344,4 +347,4 @@ export function TimeAssignmentSelector({
       </PopoverContent>
     </Popover>
   );
-}
+};

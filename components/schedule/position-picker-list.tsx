@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarDays } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { TeamSlotsCollapsible } from "@/components/schedule/team-slots-collapsible";
 import type { SlotRef } from "@/components/schedule/types";
@@ -15,7 +16,9 @@ import { SidebarMenuSkeleton } from "@/components/ui/sidebar";
 import type { TeamPositionGroup } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-export function PositionPickerList({
+const skeletonWidths = ["78%", "66%", "84%", "58%", "72%", "62%", "88%", "70%"];
+
+export const PositionPickerList = ({
   teamPositionsLoading,
   teamPositionsPlaceholder,
   teamPositionGroups,
@@ -40,66 +43,62 @@ export function PositionPickerList({
     team: { teamId: string; teamName: string },
     positionName: string
   ) => SlotRef | null;
-}) {
-  const skeletonWidths = [
-    "78%",
-    "66%",
-    "84%",
-    "58%",
-    "72%",
-    "62%",
-    "88%",
-    "70%",
-  ];
-
+}) => {
+  let body: ReactNode;
+  if (teamPositionsLoading) {
+    body = skeletonWidths.map((width) => (
+      <SidebarMenuSkeleton key={width} width={width} />
+    ));
+  } else if (
+    teamPositionGroups === undefined ||
+    teamPositionGroups.length === 0
+  ) {
+    body = (
+      <Empty density="compact">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <CalendarDays />
+          </EmptyMedia>
+          <EmptyTitle>No slots found</EmptyTitle>
+          <EmptyDescription>
+            This plan has no team positions yet.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  } else {
+    body = (
+      <div aria-busy={teamPositionsPlaceholder}>
+        {teamPositionsPlaceholder ? (
+          <div className="border-sidebar-border/50 bg-sidebar/95 text-sidebar-foreground/70 sticky top-0 z-10 border-b px-3 py-1.5 text-xs font-medium backdrop-blur">
+            Loading selected plan...
+          </div>
+        ) : null}
+        <div
+          className={cn(
+            teamPositionsPlaceholder && "pointer-events-none opacity-60"
+          )}
+        >
+          {teamPositionGroups.map((group) => (
+            <TeamSlotsCollapsible
+              key={group.teamId}
+              group={group}
+              isCollapsed={collapsedTeams[group.teamId]}
+              selectedTeam={selectedTeam}
+              selectedPosition={selectedPosition}
+              onToggle={onToggleTeam}
+              onSelect={onSelect}
+              onPreview={onPreviewSlot}
+              onAddPosition={onAddPosition}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-0 flex-1 overflow-auto">
-      <div className="flex flex-col">
-        {teamPositionsLoading ? (
-          Array.from({ length: 8 }).map((_, index) => (
-            <SidebarMenuSkeleton key={index} width={skeletonWidths[index]} />
-          ))
-        ) : !teamPositionGroups || teamPositionGroups.length === 0 ? (
-          <Empty className="py-6">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <CalendarDays />
-              </EmptyMedia>
-              <EmptyTitle>No slots found</EmptyTitle>
-              <EmptyDescription>
-                This plan has no team positions yet.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        ) : (
-          <div aria-busy={teamPositionsPlaceholder}>
-            {teamPositionsPlaceholder ? (
-              <div className="border-sidebar-border/50 bg-sidebar/95 text-sidebar-foreground/70 sticky top-0 z-10 border-b px-3 py-1.5 text-xs font-medium backdrop-blur">
-                Loading selected plan...
-              </div>
-            ) : null}
-            <div
-              className={cn(
-                teamPositionsPlaceholder && "pointer-events-none opacity-60"
-              )}
-            >
-              {teamPositionGroups.map((group) => (
-                <TeamSlotsCollapsible
-                  key={group.teamId}
-                  group={group}
-                  isCollapsed={!!collapsedTeams[group.teamId]}
-                  selectedTeam={selectedTeam}
-                  selectedPosition={selectedPosition}
-                  onToggle={onToggleTeam}
-                  onSelect={onSelect}
-                  onPreview={onPreviewSlot}
-                  onAddPosition={onAddPosition}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      <div className="flex flex-col">{body}</div>
     </div>
   );
-}
+};

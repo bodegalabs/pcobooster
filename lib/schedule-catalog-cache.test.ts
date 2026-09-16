@@ -11,7 +11,7 @@ import {
 } from "@/lib/schedule-catalog-cache";
 import type { Plan, ServiceType } from "@/lib/types";
 
-function installLocalStorageMock() {
+const installLocalStorageMock = () => {
   const storage = new Map<string, string>();
   vi.stubGlobal("window", {
     localStorage: {
@@ -28,28 +28,24 @@ function installLocalStorageMock() {
       },
     },
   });
-}
+};
 
-function serviceTypes(): ServiceType[] {
-  return [
-    { id: "st-1", name: "Agape Worship Services", sequence: 1 },
-    { id: "st-2", name: "Children's Ministry", sequence: 2 },
-  ];
-}
+const serviceTypes = (): ServiceType[] => [
+  { id: "st-1", name: "Agape Worship Services", sequence: 1 },
+  { id: "st-2", name: "Children's Ministry", sequence: 2 },
+];
 
-function plans(): Plan[] {
-  return [
-    {
-      id: "plan-1",
-      title: "May 31",
-      seriesTitle: undefined,
-      seriesId: "series-1",
-      planningCenterUrl: "https://example.com/plan-1",
-      createdAt: new Date("2026-05-01T12:00:00.000Z"),
-      sortDate: new Date("2026-05-31T16:00:00.000Z"),
-    },
-  ];
-}
+const plans = (): Plan[] => [
+  {
+    id: "plan-1",
+    title: "May 31",
+    seriesTitle: undefined,
+    seriesId: "series-1",
+    planningCenterUrl: "https://example.com/plan-1",
+    createdAt: new Date("2026-05-01T12:00:00.000Z"),
+    sortDate: new Date("2026-05-31T16:00:00.000Z"),
+  },
+];
 
 describe("schedule catalog cache", () => {
   beforeEach(() => {
@@ -64,7 +60,7 @@ describe("schedule catalog cache", () => {
 
     writeCachedServiceTypes(serviceTypes());
 
-    expect(readCachedServiceTypes()).toEqual(serviceTypes());
+    expect(readCachedServiceTypes()).toStrictEqual(serviceTypes());
     expect(readCachedServiceTypesEntry()?.savedAt).toBe(savedAt);
   });
 

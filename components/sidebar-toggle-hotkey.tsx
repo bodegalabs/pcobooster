@@ -8,7 +8,7 @@ import { SIDEBAR_TOGGLE_HOTKEY } from "@/lib/app-hotkeys";
 /**
  * Registers the global sidebar toggle (must render under {@link SidebarProvider}).
  */
-export function SidebarToggleHotkey() {
+export const SidebarToggleHotkey = () => {
   const { toggleSidebar } = useSidebar();
 
   useHotkey(SIDEBAR_TOGGLE_HOTKEY, () => {
@@ -16,4 +16,4 @@ export function SidebarToggleHotkey() {
   });
 
   return null;
-}
+};

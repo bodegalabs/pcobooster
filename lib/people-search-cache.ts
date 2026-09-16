@@ -1,5 +1,8 @@
-import type { PeopleSearchResult } from "@/hooks/use-people-search";
+import { z } from "zod";
+
+import { peopleSearchResultSchema } from "@/lib/api-schemas";
 import { presentationCacheKey } from "@/lib/presentation-cache";
+import type { PeopleSearchResult } from "@/lib/use-cases/planning-center/search-people";
 
 const CACHE_VERSION = "v1";
 const CACHE_KEY_PREFIX = `worshipadmin:people-search:${CACHE_VERSION}:`;
@@ -14,39 +17,53 @@ export interface PeopleSearchCacheEntry {
   data: PeopleSearchResult[];
 }
 
-export function readCachedPeopleSearch(
+const cachedPayloadSchema = z.object({
+  savedAt: z.number(),
+  data: z.array(peopleSearchResultSchema),
+});
+
+export const normalizePeopleSearchQuery = (query: string): string =>
+  query.trim().toLowerCase();
+
+const buildCacheKey = (query: string): string =>
+  presentationCacheKey(`${CACHE_KEY_PREFIX}${encodeURIComponent(query)}`);
+
+export const readCachedPeopleSearch = (
   query: string
-): PeopleSearchCacheEntry | undefined {
+): PeopleSearchCacheEntry | undefined => {
   const normalizedQuery = normalizePeopleSearchQuery(query);
-  if (normalizedQuery.length < 2 || typeof window === "undefined")
+  const storage = globalThis.window?.localStorage;
+  if (normalizedQuery.length < 2 || storage === undefined) {
     return undefined;
+  }
 
   try {
-    const raw = window.localStorage.getItem(buildCacheKey(normalizedQuery));
-    if (!raw) return undefined;
-    const parsed = JSON.parse(raw) as Partial<CachedPayload>;
-    if (!parsed || typeof parsed !== "object") return undefined;
-    if (typeof parsed.savedAt !== "number") return undefined;
-    if (!isPeopleSearchResultArray(parsed.data)) return undefined;
-
-    return {
-      savedAt: parsed.savedAt,
-      data: parsed.data,
-    };
+    const raw = storage.getItem(buildCacheKey(normalizedQuery));
+    if (raw === null) {
+      return undefined;
+    }
+    const parsed = cachedPayloadSchema.safeParse(JSON.parse(raw));
+    if (!parsed.success) {
+      return undefined;
+    }
+    return parsed.data;
   } catch {
     return undefined;
   }
-}
+};
 
-export function writeCachedPeopleSearch(
+export const writeCachedPeopleSearch = (
   query: string,
   results: PeopleSearchResult[]
-) {
+): void => {
   const normalizedQuery = normalizePeopleSearchQuery(query);
-  if (normalizedQuery.length < 2 || typeof window === "undefined") return;
+  const storage = globalThis.window?.localStorage;
+  if (normalizedQuery.length < 2 || storage === undefined) {
+    return;
+  }
 
   try {
-    window.localStorage.setItem(
+    storage.setItem(
       buildCacheKey(normalizedQuery),
       JSON.stringify({
         savedAt: Date.now(),
@@ -56,49 +73,22 @@ export function writeCachedPeopleSearch(
   } catch {
     // Ignore storage write failures (private mode/quota).
   }
-}
+};
 
-export function clearCachedPeopleSearch() {
-  if (typeof window === "undefined") return;
+export const clearCachedPeopleSearch = (): void => {
+  const storage = globalThis.window?.localStorage;
+  if (storage === undefined) {
+    return;
+  }
 
   try {
-    for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
-      const key = window.localStorage.key(index);
-      if (key?.startsWith(CACHE_KEY_PREFIX)) {
-        window.localStorage.removeItem(key);
+    for (let index = storage.length - 1; index >= 0; index -= 1) {
+      const key = storage.key(index);
+      if (key?.startsWith(CACHE_KEY_PREFIX) === true) {
+        storage.removeItem(key);
       }
     }
   } catch {
     // Ignore storage failures; live search will still query Planning Center.
   }
-}
-
-export function normalizePeopleSearchQuery(query: string) {
-  return query.trim().toLowerCase();
-}
-
-function buildCacheKey(query: string) {
-  return presentationCacheKey(
-    `${CACHE_KEY_PREFIX}${encodeURIComponent(query)}`
-  );
-}
-
-function isPeopleSearchResultArray(
-  value: unknown
-): value is PeopleSearchResult[] {
-  return Array.isArray(value) && value.every(isPeopleSearchResult);
-}
-
-function isPeopleSearchResult(value: unknown): value is PeopleSearchResult {
-  if (!value || typeof value !== "object") return false;
-  const result = value as Partial<PeopleSearchResult>;
-
-  return (
-    typeof result.id === "string" &&
-    typeof result.firstName === "string" &&
-    typeof result.lastName === "string" &&
-    typeof result.fullName === "string" &&
-    (result.photoThumbnailUrl === null ||
-      typeof result.photoThumbnailUrl === "string")
-  );
-}
+};

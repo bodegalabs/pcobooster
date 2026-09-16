@@ -11,10 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
-import {
-  type PlanPersonStatusCode,
-  useUpdatePlanPersonStatus,
-} from "@/hooks/use-update-plan-person-status";
+import { useUpdatePlanPersonStatus } from "@/hooks/use-update-plan-person-status";
+import type { PlanPersonStatusCode } from "@/hooks/use-update-plan-person-status";
 import { cn } from "@/lib/utils";
 
 export type PlanPersonStatusValue = "confirmed" | "scheduled" | "declined";
@@ -47,7 +45,7 @@ export interface PlanPersonStatusMenuProps {
   onError?: (message: string) => void;
 }
 
-export function PlanPersonStatusMenu({
+export const PlanPersonStatusMenu = ({
   planPersonId,
   currentStatus,
   serviceTypeId,
@@ -57,7 +55,7 @@ export function PlanPersonStatusMenu({
   positionId,
   onSuccess,
   onError,
-}: PlanPersonStatusMenuProps) {
+}: PlanPersonStatusMenuProps) => {
   const { isUpdating, handleUpdate } = useUpdatePlanPersonStatus({
     onSuccess,
     onError,
@@ -77,7 +75,13 @@ export function PlanPersonStatusMenu({
           size="icon"
           className="ml-auto size-8"
           aria-label="Change status"
-          disabled={!planPersonId || isBusy}
+          disabled={
+            !(
+              planPersonId !== null &&
+              planPersonId !== undefined &&
+              planPersonId !== ""
+            ) || isBusy
+          }
         >
           {isBusy ? (
             <Loader2 className="size-4 animate-spin" />
@@ -91,15 +95,15 @@ export function PlanPersonStatusMenu({
           <DropdownMenuItem
             key={value}
             disabled={currentStatus === value}
-            onSelect={() =>
+            onSelect={() => {
               handleUpdate(planPersonId, STATUS_TO_CODE[value], {
                 serviceTypeId,
                 personId,
                 planId,
                 teamId,
                 positionId,
-              })
-            }
+              });
+            }}
           >
             <span
               className={cn("size-1.5 shrink-0 rounded-full", dotClassName)}
@@ -113,15 +117,15 @@ export function PlanPersonStatusMenu({
         ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onSelect={() =>
+          onSelect={() => {
             handleUnschedule(planPersonId, {
               serviceTypeId,
               personId,
               planId,
               teamId,
               positionId,
-            })
-          }
+            });
+          }}
         >
           <Trash2 className="size-3.5" aria-hidden />
           <span className="flex-1">Unschedule</span>
@@ -129,4 +133,4 @@ export function PlanPersonStatusMenu({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};

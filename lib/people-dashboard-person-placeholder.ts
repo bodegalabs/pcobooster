@@ -3,20 +3,38 @@ import type {
   PeopleDashboardPersonDetail,
 } from "@/lib/use-cases/planning-center/people-dashboard-types";
 
-export function getCachedPeopleDashboardPersonDetail(
-  dashboards: Array<PeopleDashboardData | undefined>,
+const formatDashboardMonthKey = (month: PeopleDashboardData["month"]): string =>
+  `${month.year}-${String(month.monthIndex + 1).padStart(2, "0")}`;
+
+const shiftMonthKey = (
+  year: number,
+  monthIndex: number,
+  delta: number
+): string => {
+  const date = new Date(Date.UTC(year, monthIndex + delta, 1, 12));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+};
+
+export const getCachedPeopleDashboardPersonDetail = (
+  dashboards: (PeopleDashboardData | undefined)[],
   personId: string,
   month: string | null
-): PeopleDashboardPersonDetail | undefined {
+): PeopleDashboardPersonDetail | undefined => {
   for (const dashboard of dashboards) {
-    if (!dashboard) continue;
+    if (!dashboard) {
+      continue;
+    }
     const dashboardMonth = formatDashboardMonthKey(dashboard.month);
-    if (month && month !== dashboardMonth) continue;
+    if (month !== null && month !== dashboardMonth) {
+      continue;
+    }
 
     const person = dashboard.people.find(
       (candidate) => candidate.id === personId
     );
-    if (!person) continue;
+    if (!person) {
+      continue;
+    }
 
     return {
       generatedAt: dashboard.generatedAt,
@@ -41,13 +59,4 @@ export function getCachedPeopleDashboardPersonDetail(
   }
 
   return undefined;
-}
-
-function formatDashboardMonthKey(month: PeopleDashboardData["month"]) {
-  return `${month.year}-${String(month.monthIndex + 1).padStart(2, "0")}`;
-}
-
-function shiftMonthKey(year: number, monthIndex: number, delta: number) {
-  const date = new Date(Date.UTC(year, monthIndex + delta, 1, 12));
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
-}
+};

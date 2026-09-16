@@ -6,7 +6,7 @@ import {
   writeCachedOrganizationTimeZone,
 } from "@/lib/organization-time-zone-cache";
 
-function installLocalStorageMock() {
+const installLocalStorageMock = () => {
   const storage = new Map<string, string>();
   vi.stubGlobal("window", {
     localStorage: {
@@ -19,7 +19,7 @@ function installLocalStorageMock() {
       },
     },
   });
-}
+};
 
 describe("organization time zone cache", () => {
   beforeEach(() => {
@@ -34,7 +34,7 @@ describe("organization time zone cache", () => {
 
     writeCachedOrganizationTimeZone("America/Los_Angeles");
 
-    expect(readCachedOrganizationTimeZone()).toEqual({
+    expect(readCachedOrganizationTimeZone()).toStrictEqual({
       savedAt,
       timeZone: "America/Los_Angeles",
     });

@@ -6,7 +6,7 @@ import {
   writeCachedMyScheduledPlans,
 } from "@/lib/my-scheduled-plans-cache";
 
-function installLocalStorageMock() {
+const installLocalStorageMock = () => {
   const storage = new Map<string, string>();
   vi.stubGlobal("window", {
     localStorage: {
@@ -23,7 +23,7 @@ function installLocalStorageMock() {
       },
     },
   });
-}
+};
 
 describe("my scheduled plans cache", () => {
   beforeEach(() => {
@@ -38,7 +38,7 @@ describe("my scheduled plans cache", () => {
 
     writeCachedMyScheduledPlans("plan-1,plan-2", { planIds: ["plan-2"] });
 
-    expect(readCachedMyScheduledPlans("plan-1,plan-2")).toEqual({
+    expect(readCachedMyScheduledPlans("plan-1,plan-2")).toStrictEqual({
       savedAt,
       data: { planIds: ["plan-2"] },
     });

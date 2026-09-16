@@ -1,0 +1,222 @@
+"use client";
+
+import type { CSSProperties } from "react";
+
+import { RecommendationPopover } from "@/components/schedule/popovers/recommendation-popover";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import type { PersonWithAvailability } from "@/lib/types";
+import { cn } from "@/lib/utils";
+
+export type CandidateStatus =
+  | "confirmed"
+  | "scheduled"
+  | "declined"
+  | "blocked"
+  | "available";
+
+const recTone = (score: number): string => {
+  if (score >= 80) {
+    return "text-emerald-600 dark:text-emerald-400";
+  }
+  if (score >= 50) {
+    return "text-amber-700 dark:text-status-scheduled";
+  }
+  return "text-orange-700 dark:text-orange-400";
+};
+
+const recBar = (score: number): string => {
+  if (score >= 80) {
+    return "bg-status-confirmed-bright";
+  }
+  if (score >= 50) {
+    return "bg-status-scheduled-bright";
+  }
+  return "bg-orange-500";
+};
+
+export const ScheduleCandidateAvatar = ({
+  person,
+  status,
+  statusLabel,
+  isBlocked,
+  isDeclined,
+  isScheduledElsewhereOnPlan,
+  selectedPlanAssignments,
+}: {
+  person: PersonWithAvailability;
+  status: CandidateStatus;
+  statusLabel: string;
+  isBlocked: boolean;
+  isDeclined: boolean;
+  isScheduledElsewhereOnPlan: boolean;
+  selectedPlanAssignments: string[];
+}) => {
+  const initials =
+    `${person.firstName?.[0] ?? ""}${person.lastName?.[0] ?? ""}` || "?";
+  const avatarInner = (
+    <>
+      <AvatarImage
+        src={person.photoThumbnailUrl ?? undefined}
+        alt={person.fullName}
+      />
+      <AvatarFallback size="small">{initials}</AvatarFallback>
+    </>
+  );
+  const blockedAvatarTint = isBlocked ? (
+    <span
+      aria-hidden
+      className="bg-destructive/[0.26] dark:bg-destructive/[0.2] pointer-events-none absolute inset-0 z-[1] rounded-full"
+    />
+  ) : null;
+
+  if (isDeclined && !isBlocked) {
+    const trimmedReason = person.selectedPlanDeclineReason?.trim() ?? "";
+    const declineReason =
+      trimmedReason.length > 0
+        ? trimmedReason
+        : "No note was saved with this decline in Planning Center.";
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "relative inline-flex shrink-0 cursor-pointer overflow-visible rounded-full border-0 bg-transparent p-0",
+              "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+            )}
+            aria-label={`Decline reason for ${person.fullName}`}
+            title="View decline reason"
+          >
+            <Avatar size="responsive" status={status} aria-hidden>
+              {avatarInner}
+            </Avatar>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          side="right"
+          sideOffset={8}
+          collisionPadding={16}
+          density="tight"
+          className="w-auto max-w-[18rem]"
+        >
+          <p className="text-muted-foreground text-xs font-medium">
+            Decline reason
+          </p>
+          <p className="text-foreground mt-1.5 leading-relaxed [overflow-wrap:anywhere]">
+            {declineReason}
+          </p>
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
+  if (isScheduledElsewhereOnPlan) {
+    const assignmentsLabel = `Also scheduled for: ${selectedPlanAssignments.join(", ")}`;
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "relative shrink-0 cursor-pointer overflow-visible rounded-full border-0 bg-transparent p-0",
+              "outline-status-info outline-2 outline-offset-2 outline-dashed",
+              "hover:outline-status-info dark:outline-status-info dark:hover:outline-info-border",
+              "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+            )}
+            aria-label={`${person.fullName}. ${assignmentsLabel}`}
+            title={assignmentsLabel}
+          >
+            <Avatar size="responsive" status={status} aria-hidden>
+              {avatarInner}
+            </Avatar>
+            {blockedAvatarTint}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          side="right"
+          sideOffset={8}
+          collisionPadding={16}
+          density="tight"
+          className="w-auto max-w-[16rem]"
+        >
+          <p className="text-foreground [overflow-wrap:anywhere]">
+            <span className="text-foreground/90 font-medium">
+              Also scheduled for:
+            </span>{" "}
+            <span className="text-muted-foreground dark:text-info-foreground/85">
+              {selectedPlanAssignments.join(", ")}
+            </span>
+          </p>
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
+  return (
+    <span className="relative inline-flex shrink-0 overflow-visible">
+      <Avatar
+        size="responsive"
+        status={status}
+        title={statusLabel || undefined}
+      >
+        {avatarInner}
+      </Avatar>
+      {blockedAvatarTint}
+    </span>
+  );
+};
+
+export const ScheduleCandidateScore = ({
+  person,
+  percentage,
+}: {
+  person: PersonWithAvailability;
+  percentage: number | null;
+}) => {
+  if (percentage === null) {
+    return <div className="text-muted-foreground text-right text-xs">—</div>;
+  }
+  const progressStyle: CSSProperties & { "--recommendation-width": string } = {
+    "--recommendation-width": `${Math.max(4, percentage)}%`,
+  };
+  return (
+    <RecommendationPopover
+      reasoning={person.recommendationReasoning}
+      personId={person.id}
+    >
+      <button
+        type="button"
+        className="flex w-full items-center gap-2 text-left sm:flex-col sm:items-end sm:gap-1.5 sm:text-right"
+        aria-label={`${percentage} percent fit`}
+      >
+        <span
+          className={cn(
+            "shrink-0 text-xs leading-none font-semibold tabular-nums sm:text-base",
+            recTone(percentage)
+          )}
+        >
+          {percentage}
+          <span className="text-muted-foreground ml-0.5 text-xs font-normal">
+            %
+          </span>
+        </span>
+        <div className="bg-muted/50 h-1.5 w-full overflow-hidden rounded-full sm:h-1.5">
+          <div
+            className={cn(
+              "recommendation-progress h-full rounded-full",
+              recBar(percentage)
+            )}
+            style={progressStyle}
+          />
+        </div>
+      </button>
+    </RecommendationPopover>
+  );
+};

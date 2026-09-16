@@ -35,13 +35,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+const RootLayout = ({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {
+}>) => {
   const peoplePageEnabled =
-    process.env.NODE_ENV !== "production" && !process.env.VERCEL;
+    process.env.NODE_ENV !== "production" &&
+    !(process.env.VERCEL !== undefined && process.env.VERCEL !== "");
 
   const presentationScope = getPresentationCacheScope();
 
@@ -65,4 +66,6 @@ export default async function RootLayout({
       </body>
     </html>
   );
-}
+};
+
+export default RootLayout;

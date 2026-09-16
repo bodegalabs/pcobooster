@@ -13,14 +13,14 @@ interface PlanTabToolbarProps {
   onAddItem: () => void;
 }
 
-export function PlanTabToolbar({
+export const PlanTabToolbar = ({
   pendingItemId,
   isCreatingBasicItem = false,
   disabled = false,
   onAddSong,
   onAddHeader,
   onAddItem,
-}: PlanTabToolbarProps) {
+}: PlanTabToolbarProps) => {
   const reordering = pendingItemId === "reorder";
 
   return (
@@ -29,7 +29,6 @@ export function PlanTabToolbar({
         type="button"
         variant="ghost"
         size="sm"
-        className="h-8 gap-1.5"
         onClick={onAddSong}
         disabled={disabled}
       >
@@ -40,7 +39,6 @@ export function PlanTabToolbar({
         type="button"
         variant="ghost"
         size="sm"
-        className="h-8 gap-1.5"
         onClick={onAddHeader}
         disabled={disabled || isCreatingBasicItem}
       >
@@ -51,7 +49,6 @@ export function PlanTabToolbar({
         type="button"
         variant="ghost"
         size="sm"
-        className="h-8 gap-1.5"
         onClick={onAddItem}
         disabled={disabled || isCreatingBasicItem}
       >
@@ -66,4 +63,4 @@ export function PlanTabToolbar({
       ) : null}
     </div>
   );
-}
+};

@@ -1,48 +1,55 @@
 "use client";
 
-import type { RegisterableHotkey } from "@tanstack/hotkeys";
-import { useEffect, useState } from "react";
+import type { RegisterableHotkey } from "@tanstack/react-hotkeys";
+import { useSyncExternalStore } from "react";
 
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { hotkeyAriaLabel, hotkeyChordSegments } from "@/lib/hotkey-display";
-import { cn } from "@/lib/utils";
 
-type HotkeyChordProps = {
+interface HotkeyChordProps {
   binding: RegisterableHotkey;
   /** Stable identifier for React keys (e.g. shortcut id). */
   id: string;
   className?: string;
+  treatment?: "default" | "menu";
+}
+
+const subscribeToHydration = () => () => {
+  // Hydration needs a client snapshot once; no external listener is required.
 };
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 /**
  * Platform-aware chord (client-only segmentation to avoid SSR / hydration mismatches).
  */
-export function HotkeyChord({
+export const HotkeyChord = ({
   binding,
   id: chordId,
   className,
-}: HotkeyChordProps) {
-  const [segments, setSegments] = useState<string[] | null>(null);
+  treatment = "default",
+}: HotkeyChordProps) => {
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientSnapshot,
+    getServerSnapshot
+  );
+  const segments = isHydrated ? hotkeyChordSegments(binding) : null;
+  const label = isHydrated ? hotkeyAriaLabel(binding) : "Keyboard shortcut";
 
-  useEffect(() => {
-    setSegments(hotkeyChordSegments(binding));
-  }, [binding]);
-
-  const label = hotkeyAriaLabel(binding);
-
-  if (!segments?.length) {
+  if (segments === null || segments.length === 0) {
     return (
-      <Kbd aria-label={label} className={cn("tabular-nums", className)}>
+      <Kbd aria-label={label} treatment={treatment} className={className}>
         …
       </Kbd>
     );
   }
 
   return (
-    <KbdGroup className={cn("tabular-nums", className)} aria-label={label}>
-      {segments.map((segment, index) => (
-        <Kbd key={`${chordId}-${String(index)}-${segment}`}>{segment}</Kbd>
+    <KbdGroup treatment={treatment} className={className} aria-label={label}>
+      {segments.map((segment) => (
+        <Kbd key={`${chordId}-${segment}`}>{segment}</Kbd>
       ))}
     </KbdGroup>
   );
-}
+};

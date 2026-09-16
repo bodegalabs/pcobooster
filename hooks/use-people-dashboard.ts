@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 
+import { peopleDashboardDataSchema } from "@/lib/api-schemas";
 import { getJson } from "@/lib/http/client";
 import {
   readCachedPeopleDashboard,
@@ -13,7 +14,7 @@ import type {
   PeopleDashboardRange,
 } from "@/lib/use-cases/planning-center/people-dashboard-types";
 
-export function usePeopleDashboard(range: PeopleDashboardRange) {
+export const usePeopleDashboard = (range: PeopleDashboardRange) => {
   const queryKey = queryKeys.peopleDashboard(range);
   const readCachedDashboard = useCallback(
     () => readCachedPeopleDashboard(range),
@@ -23,16 +24,21 @@ export function usePeopleDashboard(range: PeopleDashboardRange) {
 
   const query = useQuery<PeopleDashboardData>({
     queryKey,
-    queryFn: () =>
-      getJson<PeopleDashboardData>(`/api/people/dashboard?range=${range}`),
+    queryFn: async () =>
+      await getJson(
+        `/api/people/dashboard?range=${range}`,
+        peopleDashboardDataSchema
+      ),
     staleTime: 2 * 60 * 1000,
     placeholderData: (previousDashboard) => previousDashboard,
   });
 
   useEffect(() => {
-    if (!query.data) return;
+    if (!query.data) {
+      return;
+    }
     writeCachedPeopleDashboard(query.data);
   }, [query.data]);
 
   return query;
-}
+};

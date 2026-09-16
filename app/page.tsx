@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 
-export default function HomePage() {
+const HomePage = () => {
   redirect("/services");
-}
+};
+
+export default HomePage;

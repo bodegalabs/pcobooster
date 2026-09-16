@@ -1,29 +1,35 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 
+import { personWithAvailabilitySchema } from "@/lib/api-schemas";
 import { getJson } from "@/lib/http/client";
+import { isNonEmptyString } from "@/lib/json";
 import { readCachedPeople, writeCachedPeople } from "@/lib/people-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
 import type { PersonWithAvailability } from "@/lib/types";
 
-function normalizePeopleDateKey(date: Date | string | null): string | null {
-  if (!date) return null;
-  return typeof date === "string" ? date : date.toISOString();
-}
+const normalizePeopleDateKey = (date: Date | string | null): string | null => {
+  if (date === null || date === "") {
+    return null;
+  }
+  return date instanceof Date ? date.toISOString() : date;
+};
 
-function normalizePeopleDate(date: Date | string | null): Date | null {
-  if (!date) return null;
-  return typeof date === "string" ? new Date(date) : date;
-}
+const normalizePeopleDate = (date: Date | string | null): Date | null => {
+  if (date === null || date === "") {
+    return null;
+  }
+  return date instanceof Date ? date : new Date(date);
+};
 
-export function createPeopleQueryOptions(
+export const createPeopleQueryOptions = (
   serviceTypeId: string | null,
   teamId: string | null,
   positionId: string | null,
   planId: string | null = null,
   date: Date | string | null = null
-) {
+) => {
   const dateKey = normalizePeopleDateKey(date);
   const dateObj = normalizePeopleDate(date);
 
@@ -36,7 +42,7 @@ export function createPeopleQueryOptions(
       dateKey
     ),
     queryFn: async () => {
-      if (!positionId || !serviceTypeId) {
+      if (!isNonEmptyString(positionId) || !isNonEmptyString(serviceTypeId)) {
         return [];
       }
 
@@ -45,20 +51,21 @@ export function createPeopleQueryOptions(
         position_id: positionId,
       });
 
-      if (teamId) {
+      if (isNonEmptyString(teamId)) {
         params.append("team_id", teamId);
       }
 
-      if (planId) {
+      if (isNonEmptyString(planId)) {
         params.append("plan_id", planId);
       }
 
-      if (dateObj && !isNaN(dateObj.getTime())) {
+      if (dateObj && !Number.isNaN(dateObj.getTime())) {
         params.append("date", dateObj.toISOString());
       }
 
-      const people = await getJson<PersonWithAvailability[]>(
-        `/api/people?${params.toString()}`
+      const people = await getJson(
+        `/api/people?${params.toString()}`,
+        personWithAvailabilitySchema.array()
       );
       writeCachedPeople(
         serviceTypeId,
@@ -70,17 +77,18 @@ export function createPeopleQueryOptions(
       );
       return people;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    // 5 minutes
+    staleTime: 5 * 60 * 1000,
   };
-}
+};
 
-export function usePeople(
+export const usePeople = (
   serviceTypeId: string | null,
   teamId: string | null,
   positionId: string | null,
   planId: string | null = null,
   date: Date | string | null = null
-) {
+) => {
   const dateKey = normalizePeopleDateKey(date);
   const queryKey = queryKeys.people(
     serviceTypeId,
@@ -104,7 +112,7 @@ export function usePeople(
       date
     ),
     queryKey,
-    enabled: !!positionId && !!serviceTypeId,
+    enabled: isNonEmptyString(positionId) && isNonEmptyString(serviceTypeId),
     placeholderData: (previousPeople) => previousPeople,
   });
-}
+};

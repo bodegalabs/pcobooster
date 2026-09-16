@@ -26,25 +26,39 @@ interface ServiceTypeMultiSelectProps {
   onChange: (selectedIds: string[]) => void;
 }
 
-function buildLabel(options: ServiceType[], selectedIds: string[]) {
-  if (options.length === 0) return "All";
-  if (selectedIds.length === options.length) return "All";
-  if (selectedIds.length === 0) return "None";
+const buildLabel = (options: ServiceType[], selectedIds: string[]) => {
+  if (options.length === 0) {
+    return "All";
+  }
+  if (selectedIds.length === options.length) {
+    return "All";
+  }
+  if (selectedIds.length === 0) {
+    return "None";
+  }
 
-  const selectedNames = options
-    .filter((option) => selectedIds.includes(option.id))
-    .map((option) => option.name);
+  const selectedIdSet = new Set(selectedIds);
+  const selectedNames: string[] = [];
+  for (const option of options) {
+    if (selectedIdSet.has(option.id)) {
+      selectedNames.push(option.name);
+    }
+  }
 
-  if (selectedNames.length === 1) return selectedNames[0] ?? "1 selected";
-  if (selectedNames.length <= 2) return selectedNames.join(", ");
+  if (selectedNames.length === 1) {
+    return selectedNames[0] ?? "1 selected";
+  }
+  if (selectedNames.length <= 2) {
+    return selectedNames.join(", ");
+  }
   return `${selectedNames.length} selected`;
-}
+};
 
-export function ServiceTypeMultiSelect({
+export const ServiceTypeMultiSelect = ({
   options,
   selectedIds,
   onChange,
-}: ServiceTypeMultiSelectProps) {
+}: ServiceTypeMultiSelectProps) => {
   const listId = useId();
   const [open, setOpen] = useState(false);
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
@@ -74,7 +88,7 @@ export function ServiceTypeMultiSelect({
         <Button
           type="button"
           variant="outline"
-          role="combobox"
+          aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls={listId}
           aria-label="Filter service types"
@@ -85,7 +99,8 @@ export function ServiceTypeMultiSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[420px] max-w-[calc(100vw-2rem)] p-0"
+        density="flush"
+        className="w-[420px] max-w-[calc(100vw-2rem)]"
         align="start"
       >
         <div className="flex items-center justify-between border-b px-3 py-2">
@@ -96,9 +111,10 @@ export function ServiceTypeMultiSelect({
             <Button
               type="button"
               variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-xs"
-              onClick={() => onChange(allIds)}
+              size="tiny"
+              onClick={() => {
+                onChange(allIds);
+              }}
               disabled={allSelected}
             >
               All
@@ -106,9 +122,10 @@ export function ServiceTypeMultiSelect({
             <Button
               type="button"
               variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-xs"
-              onClick={() => onChange([])}
+              size="tiny"
+              onClick={() => {
+                onChange([]);
+              }}
               disabled={selectedIds.length === 0}
             >
               Clear
@@ -127,7 +144,9 @@ export function ServiceTypeMultiSelect({
                   <CommandItem
                     key={option.id}
                     value={`${option.name} ${option.id}`}
-                    onSelect={() => toggleOption(option.id)}
+                    onSelect={() => {
+                      toggleOption(option.id);
+                    }}
                   >
                     <Check
                       className={cn(
@@ -145,4 +164,4 @@ export function ServiceTypeMultiSelect({
       </PopoverContent>
     </Popover>
   );
-}
+};

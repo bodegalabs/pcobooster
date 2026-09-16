@@ -1,18 +1,20 @@
 import { redirect } from "next/navigation";
 
-type ServicesPlanIndexPageProps = {
+interface ServicesPlanIndexPageProps {
   params: Promise<{
     serviceTypeId: string;
     planId: string;
   }>;
-};
+}
 
-export default async function ServicesPlanIndexPage({
+const ServicesPlanIndexPage = async ({
   params,
-}: ServicesPlanIndexPageProps) {
+}: ServicesPlanIndexPageProps) => {
   const { serviceTypeId, planId } = await params;
 
   redirect(
     `/services/${encodeURIComponent(serviceTypeId)}/plans/${encodeURIComponent(planId)}/assign`
   );
-}
+};
+
+export default ServicesPlanIndexPage;

@@ -7,7 +7,7 @@ import {
 } from "@/lib/song-options-cache";
 import type { SongOptionSet } from "@/lib/types";
 
-function installLocalStorageMock() {
+const installLocalStorageMock = () => {
   const storage = new Map<string, string>();
   vi.stubGlobal("window", {
     localStorage: {
@@ -24,43 +24,41 @@ function installLocalStorageMock() {
       },
     },
   });
-}
+};
 
-function optionSet(): SongOptionSet {
-  return {
-    song: {
-      id: "song-1",
-      title: "Build My Life",
-      author: "Pat Barrett",
-      themes: "Worship",
-      hidden: false,
-      lastScheduledAt: new Date("2026-02-15T00:00:00.000Z"),
+const optionSet = (): SongOptionSet => ({
+  song: {
+    id: "song-1",
+    title: "Build My Life",
+    author: "Pat Barrett",
+    themes: "Worship",
+    hidden: false,
+    lastScheduledAt: new Date("2026-02-15T00:00:00.000Z"),
+  },
+  arrangements: [
+    {
+      id: "arrangement-1",
+      name: "Default",
+      sequence: ["Verse", "Chorus"],
+      length: 300,
+      archived: false,
+      keys: [
+        {
+          id: "key-1",
+          name: "A",
+          startingKey: "A",
+          endingKey: "A",
+        },
+      ],
     },
-    arrangements: [
-      {
-        id: "arrangement-1",
-        name: "Default",
-        sequence: ["Verse", "Chorus"],
-        length: 300,
-        archived: false,
-        keys: [
-          {
-            id: "key-1",
-            name: "A",
-            startingKey: "A",
-            endingKey: "A",
-          },
-        ],
-      },
-    ],
-    layouts: [],
-    currentLayout: null,
-    suggestedArrangementId: "arrangement-1",
-    suggestedKeyId: "key-1",
-    suggestedLayoutId: null,
-    layoutMode: "unavailable",
-  };
-}
+  ],
+  layouts: [],
+  currentLayout: null,
+  suggestedArrangementId: "arrangement-1",
+  suggestedKeyId: "key-1",
+  suggestedLayoutId: null,
+  layoutMode: "unavailable",
+});
 
 describe("song options cache", () => {
   beforeEach(() => {

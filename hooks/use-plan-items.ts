@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 
+import { serializedPlanItemSchema } from "@/lib/api-schemas";
 import { getJson } from "@/lib/http/client";
-import {
-  hydratePlanItems,
-  type SerializedPlanItem,
-} from "@/lib/plan-item-client";
+import { isNonEmptyString } from "@/lib/json";
+import { hydratePlanItems } from "@/lib/plan-item-client";
 import {
   readCachedPlanItems,
   writeCachedPlanItems,
@@ -16,38 +15,39 @@ import type { PlanItem } from "@/lib/types";
 
 const PLAN_ITEMS_STALE_TIME_MS = 60 * 1000;
 
-function buildPlanItemsUrl(serviceTypeId: string, planId: string): string {
+const buildPlanItemsUrl = (serviceTypeId: string, planId: string): string => {
   const params = new URLSearchParams({
     service_type_id: serviceTypeId,
     plan_id: planId,
   });
   return `/api/plan-items?${params.toString()}`;
-}
+};
 
-export function createPlanItemsQueryOptions(
+export const createPlanItemsQueryOptions = (
   serviceTypeId: string | null,
   planId: string | null
-) {
-  return {
-    queryKey: queryKeys.planItems(serviceTypeId, planId),
-    queryFn: async () => {
-      if (!serviceTypeId || !planId) return [];
+) => ({
+  queryKey: queryKeys.planItems(serviceTypeId, planId),
+  queryFn: async () => {
+    if (!isNonEmptyString(serviceTypeId) || !isNonEmptyString(planId)) {
+      return [];
+    }
 
-      const items = await getJson<SerializedPlanItem[]>(
-        buildPlanItemsUrl(serviceTypeId, planId)
-      );
-      const hydratedItems = hydratePlanItems(items);
-      writeCachedPlanItems(serviceTypeId, planId, hydratedItems);
-      return hydratedItems;
-    },
-    staleTime: PLAN_ITEMS_STALE_TIME_MS,
-  };
-}
+    const items = await getJson(
+      buildPlanItemsUrl(serviceTypeId, planId),
+      serializedPlanItemSchema.array()
+    );
+    const hydratedItems = hydratePlanItems(items);
+    writeCachedPlanItems(serviceTypeId, planId, hydratedItems);
+    return hydratedItems;
+  },
+  staleTime: PLAN_ITEMS_STALE_TIME_MS,
+});
 
-export function usePlanItems(
+export const usePlanItems = (
   serviceTypeId: string | null,
   planId: string | null
-) {
+) => {
   const queryKey = queryKeys.planItems(serviceTypeId, planId);
   const readCachedItems = useCallback(
     () => readCachedPlanItems(serviceTypeId, planId),
@@ -58,7 +58,7 @@ export function usePlanItems(
   return useQuery<PlanItem[]>({
     ...createPlanItemsQueryOptions(serviceTypeId, planId),
     queryKey,
-    enabled: !!serviceTypeId && !!planId,
+    enabled: isNonEmptyString(serviceTypeId) && isNonEmptyString(planId),
     placeholderData: (previousItems) => previousItems,
   });
-}
+};

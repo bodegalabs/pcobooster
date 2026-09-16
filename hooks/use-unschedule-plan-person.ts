@@ -1,5 +1,4 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import {
@@ -7,28 +6,33 @@ import {
   optimisticallyUnschedulePlanPerson,
   restoreScheduleCaches,
   settleScheduleMutationQueries,
-  type ScheduleMutationInvalidateContext,
 } from "@/hooks/use-schedule-cache-optimism";
+import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cache-optimism";
+import { successResponseSchema } from "@/lib/api-schemas";
 import { deleteJson, HttpClientError } from "@/lib/http/client";
+import { isNonEmptyString } from "@/lib/json";
 
-function formatUnscheduleError(error: unknown): string {
-  if (error instanceof HttpClientError)
+const formatUnscheduleError = (error: Error): string => {
+  if (error instanceof HttpClientError) {
     return error.message || "Failed to unschedule";
-  if (error instanceof Error) return error.message;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
   return "Failed to unschedule";
-}
+};
 
-export function useUnschedulePlanPerson({
+export const useUnschedulePlanPerson = ({
   onSuccess,
   onError,
 }: {
   onSuccess?: () => void;
   onError?: (message: string) => void;
-} = {}) {
+} = {}) => {
   const queryClient = useQueryClient();
 
   const unscheduleMutation = useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       planPersonId,
       context,
     }: {
@@ -37,8 +41,9 @@ export function useUnschedulePlanPerson({
         personId?: string | null;
       };
     }) =>
-      deleteJson<{ success: boolean }>(
+      await deleteJson(
         `/api/schedule/${encodeURIComponent(planPersonId)}`,
+        successResponseSchema,
         {
           serviceTypeId: context?.serviceTypeId ?? undefined,
           personId: context?.personId ?? undefined,
@@ -69,9 +74,11 @@ export function useUnschedulePlanPerson({
     planPersonId: string | null | undefined,
     context?: ScheduleMutationInvalidateContext & { personId?: string | null }
   ) => {
-    if (!planPersonId || unscheduleMutation.isPending) return;
+    if (!isNonEmptyString(planPersonId) || unscheduleMutation.isPending) {
+      return;
+    }
     unscheduleMutation.mutate({ planPersonId, context });
   };
 
   return { isUnscheduling: unscheduleMutation.isPending, handleUnschedule };
-}
+};

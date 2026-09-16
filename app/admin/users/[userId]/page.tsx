@@ -11,31 +11,35 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { requireAdminSession } from "@/lib/use-cases/admin/auth";
-import {
-  getUserAccountDetail,
-  type AdminLinkedAccount,
-} from "@/lib/use-cases/admin/get-account-activity";
+import { getUserAccountDetail } from "@/lib/use-cases/admin/get-account-activity";
+import type { AdminLinkedAccount } from "@/lib/use-cases/admin/get-account-activity";
 
 export const dynamic = "force-dynamic";
 
-function formatDateTime(value: string | null): string {
-  if (!value) return "Never";
+const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
 
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
+const formatDateTime = (value: string | null): string => {
+  if (!(value !== null && value !== "")) {
+    return "Never";
+  }
 
-function splitScope(scope: string | null): string[] {
-  if (!scope) return [];
+  return dateTimeFormatter.format(new Date(value));
+};
+
+const splitScope = (scope: string | null): string[] => {
+  if (!(scope !== null && scope !== "")) {
+    return [];
+  }
   return scope
-    .split(/[\s,]+/)
+    .split(/[\s,]+/u)
     .map((part) => part.trim())
     .filter(Boolean);
-}
+};
 
-function TokenStatus({ account }: { account: AdminLinkedAccount }) {
+const TokenStatus = ({ account }: { account: AdminLinkedAccount }) => {
   const hasAccessExpiry = Boolean(account.accessTokenExpiresAt);
   const hasRefreshExpiry = Boolean(account.refreshTokenExpiresAt);
 
@@ -55,13 +59,13 @@ function TokenStatus({ account }: { account: AdminLinkedAccount }) {
       </Badge>
     </div>
   );
-}
+};
 
-export default async function AdminUserPage({
+const AdminUserPage = async ({
   params,
 }: {
   params: Promise<{ userId: string }>;
-}) {
+}) => {
   await requireAdminSession();
   const { userId } = await params;
   const user = await getUserAccountDetail(userId);
@@ -169,9 +173,7 @@ export default async function AdminUserPage({
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {account.providerAccountId}
-                  </TableCell>
+                  <TableCell code>{account.providerAccountId}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {splitScope(account.scope).map((scope) => (
@@ -184,7 +186,7 @@ export default async function AdminUserPage({
                   <TableCell>
                     <TokenStatus account={account} />
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">
+                  <TableCell numeric className="text-right">
                     {account.activityEvents}
                   </TableCell>
                   <TableCell>{formatDateTime(account.updatedAt)}</TableCell>
@@ -196,4 +198,6 @@ export default async function AdminUserPage({
       </div>
     </main>
   );
-}
+};
+
+export default AdminUserPage;

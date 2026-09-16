@@ -1,13 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 
+import { serializedSongCatalogEntrySchema } from "@/lib/api-schemas";
 import { getJson } from "@/lib/http/client";
+import { isNonEmptyString } from "@/lib/json";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import {
-  hydrateSongCatalogEntry,
-  type SerializedSongCatalogEntry,
-} from "@/lib/song-catalog-client";
+import { hydrateSongCatalogEntry } from "@/lib/song-catalog-client";
 import {
   normalizeSongSearchQuery,
   readCachedSongSearch,
@@ -17,7 +16,7 @@ import type { SongCatalogEntry } from "@/lib/types";
 
 const SONG_SEARCH_STALE_TIME_MS = 5 * 60 * 1000;
 
-export function useSongSearch(serviceTypeId: string | null, query: string) {
+export const useSongSearch = (serviceTypeId: string | null, query: string) => {
   const trimmedQuery = normalizeSongSearchQuery(query);
   const queryKey = queryKeys.songSearch(serviceTypeId, trimmedQuery);
   const readCachedSongs = useCallback(
@@ -29,23 +28,26 @@ export function useSongSearch(serviceTypeId: string | null, query: string) {
   return useQuery<SongCatalogEntry[]>({
     queryKey,
     queryFn: async () => {
-      if (!serviceTypeId || !trimmedQuery) return [];
+      if (!isNonEmptyString(serviceTypeId) || !trimmedQuery) {
+        return [];
+      }
 
       const params = new URLSearchParams({
         service_type_id: serviceTypeId,
         q: trimmedQuery,
       });
 
-      const songs = await getJson<SerializedSongCatalogEntry[]>(
-        `/api/songs/search?${params.toString()}`
+      const songs = await getJson(
+        `/api/songs/search?${params.toString()}`,
+        serializedSongCatalogEntrySchema.array()
       );
 
       const hydratedSongs = songs.map(hydrateSongCatalogEntry);
       writeCachedSongSearch(serviceTypeId, trimmedQuery, hydratedSongs);
       return hydratedSongs;
     },
-    enabled: !!serviceTypeId && trimmedQuery.length > 0,
+    enabled: isNonEmptyString(serviceTypeId) && trimmedQuery.length > 0,
     placeholderData: (previousSongs) => previousSongs,
     staleTime: SONG_SEARCH_STALE_TIME_MS,
   });
-}
+};

@@ -1,7 +1,7 @@
 "use client";
-
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
 
+import { isNonEmptyString } from "@/lib/json";
 import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
 import { clearCachedPeople } from "@/lib/people-cache";
 import { clearCachedPeopleDashboards } from "@/lib/people-dashboard-cache";
@@ -52,74 +52,35 @@ interface ScheduleMutationSnapshot {
   teamPositions: [QueryKey, TeamPositionGroup[] | undefined][];
 }
 
-function snapshotScheduleCaches(
+const snapshotScheduleCaches = (
   queryClient: QueryClient
-): ScheduleMutationSnapshot {
-  return {
-    people: queryClient.getQueriesData<PersonWithAvailability[]>({
-      queryKey: ["people"],
-    }),
-    teamPositions: queryClient.getQueriesData<TeamPositionGroup[]>({
-      queryKey: ["team-positions"],
-    }),
-  };
-}
+): ScheduleMutationSnapshot => ({
+  people: queryClient.getQueriesData<PersonWithAvailability[]>({
+    queryKey: ["people"],
+  }),
+  teamPositions: queryClient.getQueriesData<TeamPositionGroup[]>({
+    queryKey: ["team-positions"],
+  }),
+});
 
-export function restoreScheduleCaches(
+export const restoreScheduleCaches = (
   queryClient: QueryClient,
   snapshot: ScheduleMutationSnapshot | undefined
-) {
-  if (!snapshot) return;
+) => {
+  if (!snapshot) {
+    return;
+  }
   for (const [queryKey, data] of snapshot.people) {
     queryClient.setQueryData(queryKey, data);
   }
   for (const [queryKey, data] of snapshot.teamPositions) {
     queryClient.setQueryData(queryKey, data);
   }
-}
+};
 
-export function invalidateScheduleMutationQueries(
-  queryClient: QueryClient,
+const getScheduleMutationQueryFilters = (
   context: ScheduleMutationInvalidateContext
-) {
-  for (const filters of getScheduleMutationQueryFilters(context)) {
-    void queryClient.invalidateQueries(filters);
-  }
-}
-
-export function cancelScheduleMutationQueries(
-  queryClient: QueryClient,
-  context: ScheduleMutationInvalidateContext
-) {
-  return Promise.all(
-    getScheduleMutationQueryFilters(context).map((filters) =>
-      queryClient.cancelQueries(filters)
-    )
-  );
-}
-
-export function settleScheduleMutationQueries(
-  queryClient: QueryClient,
-  context: ScheduleMutationInvalidateContext
-) {
-  clearCachedMyScheduledPlans();
-  clearCachedPeople();
-  clearCachedPeopleDashboards();
-  clearCachedTeamPositions();
-  const filtersList = getScheduleMutationQueryFilters(context);
-
-  for (const filters of filtersList) {
-    void queryClient.invalidateQueries({ ...filters, refetchType: "inactive" });
-  }
-
-  for (const filters of filtersList) {
-    scheduleActiveRefetch(queryClient, filters);
-  }
-}
-
-function getScheduleMutationQueryFilters(
-  context: ScheduleMutationInvalidateContext
-) {
+) => {
   const serviceTypeId = context.serviceTypeId ?? null;
   const planId = context.planId ?? null;
   const teamId = context.teamId ?? null;
@@ -131,23 +92,48 @@ function getScheduleMutationQueryFilters(
     },
     {
       queryKey:
-        serviceTypeId && planId
+        isNonEmptyString(serviceTypeId) && planId !== null && planId !== ""
           ? ["team-positions", serviceTypeId, planId]
           : ["team-positions"],
     },
     {
       queryKey:
-        serviceTypeId && teamId && positionId && planId
+        isNonEmptyString(serviceTypeId) &&
+        teamId !== null &&
+        teamId !== "" &&
+        positionId !== null &&
+        positionId !== "" &&
+        planId !== null &&
+        planId !== ""
           ? queryKeys.peopleForSlot(serviceTypeId, teamId, positionId, planId)
           : ["people"],
     },
   ];
-}
+};
 
-function scheduleActiveRefetch(
+export const invalidateScheduleMutationQueries = (
+  queryClient: QueryClient,
+  context: ScheduleMutationInvalidateContext
+) => {
+  for (const filters of getScheduleMutationQueryFilters(context)) {
+    void queryClient.invalidateQueries(filters);
+  }
+};
+
+export const cancelScheduleMutationQueries = async (
+  queryClient: QueryClient,
+  context: ScheduleMutationInvalidateContext
+) =>
+  await Promise.all(
+    getScheduleMutationQueryFilters(context).map(async (filters) => {
+      await queryClient.cancelQueries(filters);
+    })
+  );
+
+const scheduleActiveRefetch = (
   queryClient: QueryClient,
   filters: { queryKey: QueryKey }
-) {
+) => {
   let clientTimers = activeRefetchTimers.get(queryClient);
   if (!clientTimers) {
     clientTimers = new Map();
@@ -165,16 +151,37 @@ function scheduleActiveRefetch(
     void queryClient.refetchQueries({ ...filters, type: "active" });
   }, SCHEDULE_MUTATION_RECONCILE_DELAY_MS);
   clientTimers.set(timerKey, nextTimer);
-}
+};
 
-function statusToFilledStatus(
+export const settleScheduleMutationQueries = (
+  queryClient: QueryClient,
+  context: ScheduleMutationInvalidateContext
+) => {
+  clearCachedMyScheduledPlans();
+  clearCachedPeople();
+  clearCachedPeopleDashboards();
+  clearCachedTeamPositions();
+  const filtersList = getScheduleMutationQueryFilters(context);
+
+  for (const filters of filtersList) {
+    void queryClient.invalidateQueries({ ...filters, refetchType: "inactive" });
+  }
+
+  for (const filters of filtersList) {
+    scheduleActiveRefetch(queryClient, filters);
+  }
+};
+
+const statusToFilledStatus = (
   status: OptimisticPlanPersonStatusCode
-): FilledPositionPerson["status"] | null {
-  if (status === "D") return null;
+): FilledPositionPerson["status"] | null => {
+  if (status === "D") {
+    return null;
+  }
   return status === "C" ? "confirmed" : "pending";
-}
+};
 
-function recalculateFilledCounts(position: TeamPosition): TeamPosition {
+const recalculateFilledCounts = (position: TeamPosition): TeamPosition => {
   const people = position.filledPeople ?? [];
   return {
     ...position,
@@ -185,14 +192,14 @@ function recalculateFilledCounts(position: TeamPosition): TeamPosition {
       .length,
     filledPeople: people.length > 0 ? people : undefined,
   };
-}
+};
 
-function upsertFilledPerson(
+const upsertFilledPerson = (
   position: TeamPosition,
   person: OptimisticSchedulePerson,
   planPersonId: string,
   statusCode: OptimisticPlanPersonStatusCode
-): TeamPosition {
+): TeamPosition => {
   const status = statusToFilledStatus(statusCode);
   const currentPeople = position.filledPeople ?? [];
   const filteredPeople = currentPeople.filter(
@@ -217,35 +224,39 @@ function upsertFilledPerson(
     photoThumbnailUrl: person.photoThumbnailUrl ?? null,
   };
 
-  const filledPeople = [...filteredPeople, nextPerson].sort((a, b) => {
-    if (a.status !== b.status) return a.status === "confirmed" ? -1 : 1;
+  const filledPeople = [...filteredPeople, nextPerson].toSorted((a, b) => {
+    if (a.status !== b.status) {
+      return a.status === "confirmed" ? -1 : 1;
+    }
     return a.name.localeCompare(b.name);
   });
 
   return recalculateFilledCounts({ ...position, filledPeople });
-}
+};
 
-function removeFilledPerson(
+const removeFilledPerson = (
   position: TeamPosition,
   planPersonId: string
-): TeamPosition {
+): TeamPosition => {
   const filledPeople = (position.filledPeople ?? []).filter(
     (person) => person.planPersonId !== planPersonId
   );
   return recalculateFilledCounts({ ...position, filledPeople });
-}
+};
 
-function updateFilledPersonStatus(
+const updateFilledPersonStatus = (
   position: TeamPosition,
   planPersonId: string,
   statusCode: OptimisticPlanPersonStatusCode
-): TeamPosition {
+): TeamPosition => {
   const status = statusToFilledStatus(statusCode);
   const currentPeople = position.filledPeople ?? [];
   const existingPerson = currentPeople.find(
     (person) => person.planPersonId === planPersonId
   );
-  if (!existingPerson) return position;
+  if (!existingPerson) {
+    return position;
+  }
 
   if (!status) {
     return removeFilledPerson(position, planPersonId);
@@ -257,36 +268,36 @@ function updateFilledPersonStatus(
         ? { ...person, status, rawStatus: statusCode }
         : person
     )
-    .sort((a, b) => {
-      if (a.status !== b.status) return a.status === "confirmed" ? -1 : 1;
+    .toSorted((a, b) => {
+      if (a.status !== b.status) {
+        return a.status === "confirmed" ? -1 : 1;
+      }
       return a.name.localeCompare(b.name);
     });
 
   return recalculateFilledCounts({ ...position, filledPeople });
-}
+};
 
-function applyStatusToPerson(
+const applyStatusToPerson = (
   person: PersonWithAvailability,
   statusCode: OptimisticPlanPersonStatusCode,
   planPersonId: string
-): PersonWithAvailability {
-  return {
-    ...person,
-    isScheduledForSelectedPlanPosition: true,
-    isConfirmedForSelectedPlanPosition: statusCode === "C",
-    isDeclinedForSelectedPlanPosition: statusCode === "D",
-    selectedPlanDeclineReason: statusCode === "D" ? null : undefined,
-    scheduledPlanPersonId: planPersonId,
-  };
-}
+): PersonWithAvailability => ({
+  ...person,
+  isScheduledForSelectedPlanPosition: true,
+  isConfirmedForSelectedPlanPosition: statusCode === "C",
+  isDeclinedForSelectedPlanPosition: statusCode === "D",
+  selectedPlanDeclineReason: statusCode === "D" ? null : undefined,
+  scheduledPlanPersonId: planPersonId,
+});
 
-function createOptimisticPerson(
+const createOptimisticPerson = (
   person: OptimisticSchedulePerson,
   planPersonId: string
-): PersonWithAvailability {
+): PersonWithAvailability => {
   const [firstFallback = "", ...lastParts] = person.fullName
     .trim()
-    .split(/\s+/);
+    .split(/\s+/u);
   return applyStatusToPerson(
     {
       id: person.id,
@@ -301,27 +312,25 @@ function createOptimisticPerson(
     "U",
     planPersonId
   );
-}
+};
 
-function clearStatusFromPerson(
+const clearStatusFromPerson = (
   person: PersonWithAvailability
-): PersonWithAvailability {
-  return {
-    ...person,
-    isScheduledForSelectedPlanPosition: false,
-    isConfirmedForSelectedPlanPosition: false,
-    isDeclinedForSelectedPlanPosition: false,
-    selectedPlanDeclineReason: undefined,
-    scheduledPlanPersonId: undefined,
-  };
-}
+): PersonWithAvailability => ({
+  ...person,
+  isScheduledForSelectedPlanPosition: false,
+  isConfirmedForSelectedPlanPosition: false,
+  isDeclinedForSelectedPlanPosition: false,
+  selectedPlanDeclineReason: undefined,
+  scheduledPlanPersonId: undefined,
+});
 
-export function optimisticallySchedulePerson(
+export const optimisticallySchedulePerson = (
   queryClient: QueryClient,
   slot: OptimisticScheduleSlot,
   person: OptimisticSchedulePerson,
   planPersonId: string
-): ScheduleMutationSnapshot {
+): ScheduleMutationSnapshot => {
   const snapshot = snapshotScheduleCaches(queryClient);
 
   queryClient.setQueriesData<PersonWithAvailability[]>(
@@ -334,10 +343,14 @@ export function optimisticallySchedulePerson(
       ),
     },
     (people) => {
-      if (!people) return people;
+      if (!people) {
+        return people;
+      }
       let found = false;
       const updatedPeople = people.map((cachedPerson) => {
-        if (cachedPerson.id !== person.id) return cachedPerson;
+        if (cachedPerson.id !== person.id) {
+          return cachedPerson;
+        }
         found = true;
         return applyStatusToPerson(cachedPerson, "U", planPersonId);
       });
@@ -365,14 +378,16 @@ export function optimisticallySchedulePerson(
   );
 
   return snapshot;
-}
+};
 
-export function reconcileOptimisticPlanPersonId(
+export const reconcileOptimisticPlanPersonId = (
   queryClient: QueryClient,
   optimisticPlanPersonId: string,
   planPersonId: string
-) {
-  if (optimisticPlanPersonId === planPersonId) return;
+) => {
+  if (optimisticPlanPersonId === planPersonId) {
+    return;
+  }
 
   queryClient.setQueriesData<PersonWithAvailability[]>(
     { queryKey: ["people"] },
@@ -399,13 +414,13 @@ export function reconcileOptimisticPlanPersonId(
         })),
       }))
   );
-}
+};
 
-export function optimisticallyUpdatePlanPersonStatus(
+export const optimisticallyUpdatePlanPersonStatus = (
   queryClient: QueryClient,
   planPersonId: string,
   statusCode: OptimisticPlanPersonStatusCode
-): ScheduleMutationSnapshot {
+): ScheduleMutationSnapshot => {
   const snapshot = snapshotScheduleCaches(queryClient);
 
   queryClient.setQueriesData<PersonWithAvailability[]>(
@@ -430,13 +445,13 @@ export function optimisticallyUpdatePlanPersonStatus(
   );
 
   return snapshot;
-}
+};
 
-export function optimisticallyUnschedulePlanPerson(
+export const optimisticallyUnschedulePlanPerson = (
   queryClient: QueryClient,
   planPersonId: string,
   personId?: string | null
-): ScheduleMutationSnapshot {
+): ScheduleMutationSnapshot => {
   const snapshot = snapshotScheduleCaches(queryClient);
 
   queryClient.setQueriesData<PersonWithAvailability[]>(
@@ -444,7 +459,7 @@ export function optimisticallyUnschedulePlanPerson(
     (people) =>
       people?.map((person) =>
         person.scheduledPlanPersonId === planPersonId ||
-        (!!personId && person.id === personId)
+        (isNonEmptyString(personId) && person.id === personId)
           ? clearStatusFromPerson(person)
           : person
       )
@@ -462,4 +477,4 @@ export function optimisticallyUnschedulePlanPerson(
   );
 
   return snapshot;
-}
+};

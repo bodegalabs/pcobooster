@@ -7,39 +7,25 @@ interface AvailabilityBadgeProps {
   checkDate?: Date;
 }
 
-export function AvailabilityBadge({
-  blockouts,
-  checkDate = new Date(),
-}: AvailabilityBadgeProps) {
-  const status = getAvailabilityStatus(blockouts, checkDate);
+const variants = {
+  available: "default",
+  blocked: "destructive",
+  unknown: "secondary",
+} as const;
 
-  const variants = {
-    available: "default",
-    blocked: "destructive",
-    unknown: "secondary",
-  } as const;
+const labels = {
+  available: "Available",
+  blocked: "Blocked Out",
+  unknown: "Unknown",
+};
 
-  const labels = {
-    available: "Available",
-    blocked: "Blocked Out",
-    unknown: "Unknown",
-  };
-
-  return (
-    <Badge variant={variants[status]} className="text-xs">
-      {labels[status]}
-    </Badge>
-  );
-}
-
-function getAvailabilityStatus(
+const getAvailabilityStatus = (
   blockouts: Blockout[],
   checkDate: Date
-): AvailabilityStatus {
-  if (!blockouts || blockouts.length === 0) {
+): AvailabilityStatus => {
+  if (blockouts.length === 0) {
     return "available";
   }
-
   const isBlocked = blockouts.some((blockout) =>
     blockoutCoversPlanSortInstant(checkDate, {
       startsAt: new Date(blockout.startsAt),
@@ -47,6 +33,14 @@ function getAvailabilityStatus(
       timeZone: blockout.timeZone,
     })
   );
-
   return isBlocked ? "blocked" : "available";
-}
+};
+
+export const AvailabilityBadge = ({
+  blockouts,
+  checkDate,
+}: AvailabilityBadgeProps) => {
+  const status = getAvailabilityStatus(blockouts, checkDate ?? new Date());
+
+  return <Badge variant={variants[status]}>{labels[status]}</Badge>;
+};

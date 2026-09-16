@@ -7,7 +7,7 @@ import {
 } from "@/lib/team-positions-cache";
 import type { TeamPositionGroup } from "@/lib/types";
 
-function installLocalStorageMock() {
+const installLocalStorageMock = () => {
   const storage = new Map<string, string>();
   vi.stubGlobal("window", {
     localStorage: {
@@ -24,45 +24,43 @@ function installLocalStorageMock() {
       },
     },
   });
-}
+};
 
-function teamPositionGroups(): TeamPositionGroup[] {
-  return [
-    {
-      teamId: "team-1",
-      teamName: "Vocals",
-      positions: [
-        {
-          id: "position-1",
-          name: "Vocal",
-          teamId: "team-1",
-          teamName: "Vocals",
-          neededCount: 2,
-          filledPendingCount: 1,
-          filledConfirmedCount: 1,
-          filledPeople: [
-            {
-              id: "person-1",
-              planPersonId: "plan-person-1",
-              name: "Andrew Hinea",
-              status: "confirmed",
-              rawStatus: "C",
-              photoThumbnailUrl: null,
-            },
-            {
-              id: "person-2",
-              planPersonId: "plan-person-2",
-              name: "Mina Lee",
-              status: "pending",
-              rawStatus: "U",
-              photoThumbnailUrl: "https://example.com/person-2.jpg",
-            },
-          ],
-        },
-      ],
-    },
-  ];
-}
+const teamPositionGroups = (): TeamPositionGroup[] => [
+  {
+    teamId: "team-1",
+    teamName: "Vocals",
+    positions: [
+      {
+        id: "position-1",
+        name: "Vocal",
+        teamId: "team-1",
+        teamName: "Vocals",
+        neededCount: 2,
+        filledPendingCount: 1,
+        filledConfirmedCount: 1,
+        filledPeople: [
+          {
+            id: "person-1",
+            planPersonId: "plan-person-1",
+            name: "Andrew Hinea",
+            status: "confirmed",
+            rawStatus: "C",
+            photoThumbnailUrl: null,
+          },
+          {
+            id: "person-2",
+            planPersonId: "plan-person-2",
+            name: "Mina Lee",
+            status: "pending",
+            rawStatus: "U",
+            photoThumbnailUrl: "https://example.com/person-2.jpg",
+          },
+        ],
+      },
+    ],
+  },
+];
 
 describe("team positions cache", () => {
   beforeEach(() => {
@@ -84,7 +82,7 @@ describe("team positions cache", () => {
 
     const cached = readCachedTeamPositions("st-1", "plan-1", "series-1");
 
-    expect(cached).toEqual({
+    expect(cached).toStrictEqual({
       savedAt,
       data: teamPositionGroups(),
     });
@@ -136,6 +134,7 @@ describe("team positions cache", () => {
     expect(readCachedTeamPositions("st-1", "plan-2", null)).toBeUndefined();
     expect(window.localStorage.getItem("unrelated")).toBe("keep");
   });
+
   it("isolates presentation storage from live data and other seeds (readCachedTeamPositions)", () => {
     const dataset = { presentationScope: "live" };
     vi.stubGlobal("document", { documentElement: { dataset } });

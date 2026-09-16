@@ -1,3 +1,6 @@
+import { z } from "zod";
+
+import { planSchema, serviceTypeSchema } from "@/lib/api-schemas";
 import type { Plan, ServiceType } from "@/lib/types";
 
 const CACHE_VERSION = "v1";
@@ -15,144 +18,135 @@ export interface ScheduleCatalogCacheEntry<T> {
   data: T;
 }
 
-export function readCachedServiceTypes(): ServiceType[] | undefined {
-  return readCachedServiceTypesEntry()?.data;
-}
+const serviceTypesPayloadSchema = z.object({
+  savedAt: z.number(),
+  data: z.array(serviceTypeSchema),
+});
 
-export function readCachedServiceTypesEntry():
+const plansPayloadSchema = z.object({
+  savedAt: z.number(),
+  data: z.array(planSchema),
+});
+
+const buildPlansKey = (serviceTypeId: string): string =>
+  `${PLANS_KEY_PREFIX}${encodeURIComponent(serviceTypeId)}`;
+
+const readServiceTypesEntry = ():
   | ScheduleCatalogCacheEntry<ServiceType[]>
-  | undefined {
-  return readCache<ServiceType[]>(SERVICE_TYPES_KEY, isServiceTypeArray);
-}
+  | undefined => {
+  const storage = globalThis.window?.localStorage;
+  if (storage === undefined) {
+    return undefined;
+  }
+  try {
+    const raw = storage.getItem(SERVICE_TYPES_KEY);
+    if (raw === null) {
+      return undefined;
+    }
+    const parsed = serviceTypesPayloadSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : undefined;
+  } catch {
+    return undefined;
+  }
+};
 
-export function writeCachedServiceTypes(serviceTypes: ServiceType[]) {
-  writeCache(SERVICE_TYPES_KEY, serviceTypes);
-}
+const readPlansEntry = (
+  serviceTypeId: string
+): ScheduleCatalogCacheEntry<Plan[]> | undefined => {
+  const storage = globalThis.window?.localStorage;
+  if (storage === undefined) {
+    return undefined;
+  }
+  try {
+    const raw = storage.getItem(buildPlansKey(serviceTypeId));
+    if (raw === null) {
+      return undefined;
+    }
+    const parsed = plansPayloadSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : undefined;
+  } catch {
+    return undefined;
+  }
+};
 
-export function readCachedPlans(
+export const readCachedServiceTypes = (): ServiceType[] | undefined =>
+  readServiceTypesEntry()?.data;
+
+export const readCachedServiceTypesEntry = ():
+  | ScheduleCatalogCacheEntry<ServiceType[]>
+  | undefined => readServiceTypesEntry();
+
+export const writeCachedServiceTypes = (serviceTypes: ServiceType[]): void => {
+  const storage = globalThis.window?.localStorage;
+  if (storage === undefined) {
+    return;
+  }
+  try {
+    storage.setItem(
+      SERVICE_TYPES_KEY,
+      JSON.stringify({
+        savedAt: Date.now(),
+        data: serviceTypes,
+      } satisfies CachedPayload<ServiceType[]>)
+    );
+  } catch {
+    // Ignore storage write failures (private mode/quota).
+  }
+};
+
+export const readCachedPlans = (
   serviceTypeId: string | null
-): Plan[] | undefined {
-  return readCachedPlansEntry(serviceTypeId)?.data;
-}
+): Plan[] | undefined =>
+  serviceTypeId === null || serviceTypeId.length === 0
+    ? undefined
+    : readPlansEntry(serviceTypeId)?.data;
 
-export function readCachedPlansEntry(
+export const readCachedPlansEntry = (
   serviceTypeId: string | null
-): ScheduleCatalogCacheEntry<Plan[]> | undefined {
-  if (!serviceTypeId) return undefined;
-  const cached = readCache<Plan[]>(buildPlansKey(serviceTypeId), isPlanArray);
-  if (!cached) return undefined;
+): ScheduleCatalogCacheEntry<Plan[]> | undefined =>
+  serviceTypeId === null || serviceTypeId.length === 0
+    ? undefined
+    : readPlansEntry(serviceTypeId);
 
-  return {
-    savedAt: cached.savedAt,
-    data: cached.data.map((plan) => ({
-      ...plan,
-      createdAt: new Date(plan.createdAt),
-      sortDate: plan.sortDate ? new Date(plan.sortDate) : undefined,
-    })),
-  };
-}
+export const writeCachedPlans = (
+  serviceTypeId: string | null,
+  plans: Plan[]
+): void => {
+  const storage = globalThis.window?.localStorage;
+  if (
+    serviceTypeId === null ||
+    serviceTypeId.length === 0 ||
+    storage === undefined
+  ) {
+    return;
+  }
+  try {
+    storage.setItem(
+      buildPlansKey(serviceTypeId),
+      JSON.stringify({
+        savedAt: Date.now(),
+        data: plans,
+      } satisfies CachedPayload<Plan[]>)
+    );
+  } catch {
+    // Ignore storage write failures (private mode/quota).
+  }
+};
 
-export function writeCachedPlans(serviceTypeId: string | null, plans: Plan[]) {
-  if (!serviceTypeId) return;
-  writeCache(buildPlansKey(serviceTypeId), plans);
-}
-
-export function clearCachedScheduleCatalog() {
-  if (typeof window === "undefined") return;
+export const clearCachedScheduleCatalog = (): void => {
+  const storage = globalThis.window?.localStorage;
+  if (storage === undefined) {
+    return;
+  }
 
   try {
-    for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
-      const key = window.localStorage.key(index);
-      if (key?.startsWith(CACHE_KEY_PREFIX)) {
-        window.localStorage.removeItem(key);
+    for (let index = storage.length - 1; index >= 0; index -= 1) {
+      const key = storage.key(index);
+      if (key?.startsWith(CACHE_KEY_PREFIX) === true) {
+        storage.removeItem(key);
       }
     }
   } catch {
     // Ignore storage failures; query invalidation still refreshes live data.
   }
-}
-
-function buildPlansKey(serviceTypeId: string) {
-  return `${PLANS_KEY_PREFIX}${encodeURIComponent(serviceTypeId)}`;
-}
-
-function readCache<T>(
-  key: string,
-  validate: (value: unknown) => value is T
-): ScheduleCatalogCacheEntry<T> | undefined {
-  if (typeof window === "undefined") return undefined;
-
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (!raw) return undefined;
-    const parsed = JSON.parse(raw) as Partial<CachedPayload<unknown>>;
-    if (!parsed || typeof parsed !== "object") return undefined;
-    if (typeof parsed.savedAt !== "number") return undefined;
-    if (!validate(parsed.data)) return undefined;
-    return {
-      savedAt: parsed.savedAt,
-      data: parsed.data,
-    };
-  } catch {
-    return undefined;
-  }
-}
-
-function writeCache<T>(key: string, data: T) {
-  if (typeof window === "undefined") return;
-
-  try {
-    window.localStorage.setItem(
-      key,
-      JSON.stringify({
-        savedAt: Date.now(),
-        data,
-      } satisfies CachedPayload<T>)
-    );
-  } catch {
-    // Ignore storage write failures (private mode/quota).
-  }
-}
-
-function isServiceTypeArray(value: unknown): value is ServiceType[] {
-  return (
-    Array.isArray(value) &&
-    value.every((item) => {
-      if (!item || typeof item !== "object") return false;
-      const candidate = item as Partial<ServiceType>;
-      return (
-        typeof candidate.id === "string" &&
-        typeof candidate.name === "string" &&
-        typeof candidate.sequence === "number"
-      );
-    })
-  );
-}
-
-function isPlanArray(value: unknown): value is Plan[] {
-  return (
-    Array.isArray(value) &&
-    value.every((item) => {
-      if (!item || typeof item !== "object") return false;
-      const candidate = item as Partial<Record<keyof Plan, unknown>>;
-      return (
-        typeof candidate.id === "string" &&
-        typeof candidate.title === "string" &&
-        isOptionalString(candidate.seriesTitle) &&
-        isOptionalString(candidate.seriesId) &&
-        isOptionalString(candidate.planningCenterUrl) &&
-        isDateLike(candidate.createdAt) &&
-        (candidate.sortDate === undefined || isDateLike(candidate.sortDate))
-      );
-    })
-  );
-}
-
-function isOptionalString(value: unknown) {
-  return value === undefined || value === null || typeof value === "string";
-}
-
-function isDateLike(value: unknown) {
-  if (typeof value !== "string" && !(value instanceof Date)) return false;
-  return !Number.isNaN(new Date(value).getTime());
-}
+};

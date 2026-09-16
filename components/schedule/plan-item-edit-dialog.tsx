@@ -1,7 +1,7 @@
 "use client";
 
 import { LoaderCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { startTransition, useState } from "react";
 
 import {
   buildDraft,
@@ -10,8 +10,10 @@ import {
   pickKeyId,
   synchronizeDraftWithSongOptions,
   textareaClassName,
-  type DraftState,
-  type FieldProps,
+} from "@/components/schedule/plan-tab-helpers";
+import type {
+  DraftState,
+  FieldProps,
 } from "@/components/schedule/plan-tab-helpers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +30,7 @@ import {
 } from "@/components/ui/responsive-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSongOptions } from "@/hooks/use-song-options";
+import { isNonEmptyString } from "@/lib/json";
 import type { PlanItem, PlanItemArrangement, PlanItemKey } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -45,57 +48,58 @@ interface PlanItemEditDialogProps {
   }) => Promise<void>;
 }
 
-export function PlanItemEditDialog({
+const Field = ({ label, className, children }: FieldProps) => (
+  <label className={cn("grid gap-1.5", className)}>
+    <span className="text-sm font-medium">{label}</span>
+    {children}
+  </label>
+);
+
+const PlanItemDialogTitle = ({ item }: { item: PlanItem }) => (
+  <ResponsiveDialogTitle>
+    {item.song ? (
+      <a
+        href={`https://services.planningcenteronline.com/songs/${item.song.id}${
+          item.arrangement ? `/arrangements/${item.arrangement.id}` : ""
+        }`}
+        target="_blank"
+        rel="noreferrer"
+        className="hover:text-primary underline-offset-4 hover:underline"
+      >
+        {item.song.title}
+      </a>
+    ) : (
+      "Plan item"
+    )}
+  </ResponsiveDialogTitle>
+);
+
+const PlanItemEditContent = ({
   item,
   open,
   serviceTypeId,
   onOpenChange,
   onSave,
-}: PlanItemEditDialogProps) {
-  const [draft, setDraft] = useState<DraftState>(() =>
-    item
-      ? buildDraft(item)
-      : {
-          title: "",
-          lengthText: "",
-          servicePosition: "during",
-          description: "",
-          arrangementId: "",
-          keyId: "",
-        }
-  );
+}: Omit<PlanItemEditDialogProps, "item"> & { item: PlanItem }) => {
+  const [draft, setDraft] = useState<DraftState>(() => buildDraft(item));
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const { data: songOptions, isLoading: songOptionsLoading } = useSongOptions(
-    open && item?.song ? item.song.id : null,
+    open && item.song ? item.song.id : null,
     serviceTypeId
   );
-
-  useEffect(() => {
-    if (!item) return;
-    setDraft(buildDraft(item));
-    setSaveError(null);
-  }, [item]);
-
-  useEffect(() => {
-    if (!open) return;
-    setDraft((current) =>
-      synchronizeDraftWithSongOptions(current, songOptions)
-    );
-  }, [open, songOptions]);
-
-  if (!item) return null;
+  const currentDraft = synchronizeDraftWithSongOptions(draft, songOptions);
 
   const arrangements = songOptions?.arrangements ?? [];
   const selectedArrangement =
     arrangements.find(
-      (arrangement) => arrangement.id === draft.arrangementId
+      (arrangement) => arrangement.id === currentDraft.arrangementId
     ) ?? null;
   const keyOptions = selectedArrangement?.keys ?? [];
 
   const handleSubmit = async () => {
-    const parsed = parseLengthText(draft.lengthText);
-    if (parsed.error) {
+    const parsed = parseLengthText(currentDraft.lengthText);
+    if (isNonEmptyString(parsed.error)) {
       setSaveError(parsed.error);
       return;
     }
@@ -106,7 +110,7 @@ export function PlanItemEditDialog({
     try {
       await onSave({
         item,
-        draft,
+        draft: currentDraft,
         length: parsed.length,
         optimisticArrangement: selectedArrangement
           ? {
@@ -117,16 +121,16 @@ export function PlanItemEditDialog({
               archivedAt: null,
             }
           : null,
-        optimisticKey: keyOptions.find((key) => key.id === draft.keyId) ?? null,
+        optimisticKey:
+          keyOptions.find((key) => key.id === currentDraft.keyId) ?? null,
       });
       onOpenChange(false);
     } catch (error) {
       setSaveError(
         error instanceof Error ? error.message : "Could not save this item."
       );
-    } finally {
-      setIsSaving(false);
     }
+    setIsSaving(false);
   };
 
   return (
@@ -135,42 +139,30 @@ export function PlanItemEditDialog({
         desktopClassName="w-[95vw] max-w-2xl"
         mobileClassName="max-h-[90svh]"
       >
-        <ResponsiveDialogHeader className="flex flex-col gap-2 px-4 pt-3 text-left sm:flex-row sm:items-center sm:justify-between sm:px-0 sm:pt-0">
-          <ResponsiveDialogTitle>
-            {item.song ? (
-              <a
-                href={`https://services.planningcenteronline.com/songs/${item.song.id}${
-                  item.arrangement ? `/arrangements/${item.arrangement.id}` : ""
-                }`}
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-primary underline-offset-4 hover:underline"
-              >
-                {item.song.title}
-              </a>
-            ) : (
-              "Plan item"
-            )}
-          </ResponsiveDialogTitle>
+        <ResponsiveDialogHeader
+          treatment="form"
+          className="flex flex-col text-left sm:flex-row sm:items-center sm:justify-between"
+        >
+          <PlanItemDialogTitle item={item} />
         </ResponsiveDialogHeader>
 
         <div className="grid gap-4 overflow-y-auto px-4 pb-2 sm:px-0 lg:grid-cols-2">
-          {!item.song ? (
+          {item.song ? null : (
             <Field label="Title" className="lg:col-span-2">
               <Input
                 placeholder={
                   item.itemType === "header" ? "Header title" : "Item title"
                 }
-                value={draft.title}
-                onChange={(event) =>
+                value={currentDraft.title}
+                onChange={(event) => {
                   setDraft((current) => ({
                     ...current,
                     title: event.target.value,
-                  }))
-                }
+                  }));
+                }}
               />
             </Field>
-          ) : null}
+          )}
 
           {item.song ? (
             <Field label="Arrangement">
@@ -179,9 +171,9 @@ export function PlanItemEditDialog({
               ) : (
                 <NativeSelect
                   wrapperClassName="w-full"
-                  value={draft.arrangementId || NONE_VALUE}
+                  value={currentDraft.arrangementId || NONE_VALUE}
                   onChange={(event) => {
-                    const value = event.target.value;
+                    const { value } = event.target;
                     const normalizedValue = value === NONE_VALUE ? "" : value;
                     const nextArrangement =
                       arrangements.find(
@@ -224,16 +216,16 @@ export function PlanItemEditDialog({
               ) : (
                 <NativeSelect
                   wrapperClassName="w-full"
-                  value={draft.keyId || NONE_VALUE}
-                  onChange={(event) =>
+                  value={currentDraft.keyId || NONE_VALUE}
+                  onChange={(event) => {
                     setDraft((current) => ({
                       ...current,
                       keyId:
                         event.target.value === NONE_VALUE
                           ? ""
                           : event.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                   disabled={!selectedArrangement || keyOptions.length === 0}
                 >
                   <NativeSelectOption value={NONE_VALUE}>
@@ -252,26 +244,26 @@ export function PlanItemEditDialog({
           <Field label="Length">
             <Input
               placeholder="4:35 or 1:5:21"
-              value={draft.lengthText}
-              onChange={(event) =>
+              value={currentDraft.lengthText}
+              onChange={(event) => {
                 setDraft((current) => ({
                   ...current,
                   lengthText: event.target.value,
-                }))
-              }
+                }));
+              }}
             />
           </Field>
 
           <Field label="Service Position">
             <NativeSelect
               wrapperClassName="w-full"
-              value={draft.servicePosition}
-              onChange={(event) =>
+              value={currentDraft.servicePosition}
+              onChange={(event) => {
                 setDraft((current) => ({
                   ...current,
                   servicePosition: event.target.value,
-                }))
-              }
+                }));
+              }}
             >
               <NativeSelectOption value="pre">Pre-service</NativeSelectOption>
               <NativeSelectOption value="during">
@@ -284,33 +276,37 @@ export function PlanItemEditDialog({
           <Field label="Description" className="lg:col-span-2">
             <textarea
               className={textareaClassName}
-              value={draft.description}
-              onChange={(event) =>
+              value={currentDraft.description}
+              onChange={(event) => {
                 setDraft((current) => ({
                   ...current,
                   description: event.target.value,
-                }))
-              }
+                }));
+              }}
             />
           </Field>
         </div>
 
-        {saveError ? (
+        {saveError !== null && saveError !== "" ? (
           <p className="text-destructive mt-3 text-sm">{saveError}</p>
         ) : null}
 
-        <ResponsiveDialogFooter className="gap-2 px-4 pb-0 sm:px-0">
+        <ResponsiveDialogFooter treatment="form">
           <Button
             type="button"
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              onOpenChange(false);
+            }}
             disabled={isSaving}
           >
             Close
           </Button>
           <Button
             type="button"
-            onClick={() => void handleSubmit()}
+            onClick={() => {
+              startTransition(handleSubmit);
+            }}
             disabled={isSaving}
           >
             {isSaving ? <LoaderCircle className="size-4 animate-spin" /> : null}
@@ -320,13 +316,13 @@ export function PlanItemEditDialog({
       </ResponsiveDialogContent>
     </ResponsiveDialog>
   );
-}
+};
 
-function Field({ label, className, children }: FieldProps) {
+export const PlanItemEditDialog = (props: PlanItemEditDialogProps) => {
+  if (props.item === null) {
+    return null;
+  }
   return (
-    <label className={cn("grid gap-1.5", className)}>
-      <span className="text-sm font-medium">{label}</span>
-      {children}
-    </label>
+    <PlanItemEditContent key={props.item.id} {...props} item={props.item} />
   );
-}
+};

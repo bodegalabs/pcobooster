@@ -11,29 +11,27 @@ export interface SerializedSongOptionSet extends Omit<SongOptionSet, "song"> {
   song: SerializedSongCatalogEntry;
 }
 
-export function parseOptionalDate(
+export const parseOptionalDate = (
   value: string | Date | null | undefined
-): Date | null {
-  if (!value) return null;
+): Date | null => {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
 
   const parsed = value instanceof Date ? value : new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
+};
 
-export function hydrateSongCatalogEntry(
+export const hydrateSongCatalogEntry = (
   entry: SerializedSongCatalogEntry
-): SongCatalogEntry {
-  return {
-    ...entry,
-    lastScheduledAt: parseOptionalDate(entry.lastScheduledAt),
-  };
-}
+): SongCatalogEntry => ({
+  ...entry,
+  lastScheduledAt: parseOptionalDate(entry.lastScheduledAt),
+});
 
-export function hydrateSongOptionSet(
+export const hydrateSongOptionSet = (
   optionSet: SerializedSongOptionSet
-): SongOptionSet {
-  return {
-    ...optionSet,
-    song: hydrateSongCatalogEntry(optionSet.song),
-  };
-}
+): SongOptionSet => ({
+  ...optionSet,
+  song: hydrateSongCatalogEntry(optionSet.song),
+});

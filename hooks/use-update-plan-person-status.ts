@@ -1,5 +1,4 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -8,13 +7,15 @@ import {
   optimisticallyUpdatePlanPersonStatus,
   restoreScheduleCaches,
   settleScheduleMutationQueries,
-  type ScheduleMutationInvalidateContext,
 } from "@/hooks/use-schedule-cache-optimism";
+import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cache-optimism";
+import { successResponseSchema } from "@/lib/api-schemas";
 import { HttpClientError, patchJson } from "@/lib/http/client";
+import { isNonEmptyString } from "@/lib/json";
 
 export type PlanPersonStatusCode = "C" | "U" | "D";
 
-function formatUpdateStatusError(error: unknown): string {
+const formatUpdateStatusError = (error: Error): string => {
   if (error instanceof HttpClientError) {
     return error.message || "Failed to update status";
   }
@@ -22,20 +23,20 @@ function formatUpdateStatusError(error: unknown): string {
     return error.message;
   }
   return "Failed to update status";
-}
+};
 
-export function useUpdatePlanPersonStatus({
+export const useUpdatePlanPersonStatus = ({
   onSuccess,
   onError,
 }: {
   onSuccess?: () => void;
   onError?: (message: string) => void;
-} = {}) {
+} = {}) => {
   const queryClient = useQueryClient();
   const [updateError, setUpdateError] = useState<string | null>(null);
 
   const updateMutation = useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       planPersonId,
       status,
       context,
@@ -44,8 +45,9 @@ export function useUpdatePlanPersonStatus({
       status: PlanPersonStatusCode;
       context?: ScheduleMutationInvalidateContext;
     }) =>
-      patchJson<{ success: boolean }>(
+      await patchJson(
         `/api/schedule/${encodeURIComponent(planPersonId)}/status`,
+        successResponseSchema,
         {
           status,
           serviceTypeId: context?.serviceTypeId ?? undefined,
@@ -80,11 +82,13 @@ export function useUpdatePlanPersonStatus({
     status: PlanPersonStatusCode,
     context?: ScheduleMutationInvalidateContext
   ) => {
-    if (!planPersonId || updateMutation.isPending) return;
+    if (!isNonEmptyString(planPersonId) || updateMutation.isPending) {
+      return;
+    }
 
     setUpdateError(null);
     updateMutation.mutate({ planPersonId, status, context });
   };
 
   return { isUpdating: updateMutation.isPending, updateError, handleUpdate };
-}
+};

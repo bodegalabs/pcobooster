@@ -7,7 +7,7 @@ import {
 } from "@/lib/plan-items-cache";
 import type { PlanItem } from "@/lib/types";
 
-function installLocalStorageMock() {
+const installLocalStorageMock = () => {
   const storage = new Map<string, string>();
   vi.stubGlobal("window", {
     localStorage: {
@@ -24,62 +24,60 @@ function installLocalStorageMock() {
       },
     },
   });
-}
+};
 
-function planItems(): PlanItem[] {
-  return [
-    {
-      id: "item-1",
+const planItems = (): PlanItem[] => [
+  {
+    id: "item-1",
+    title: "Opening Song",
+    itemType: "song",
+    sequence: 1,
+    servicePosition: "during",
+    length: 300,
+    description: "Full band",
+    htmlDetails: "<p>Full band</p>",
+    customArrangementSequence: ["Verse 1", "Chorus"],
+    song: {
+      id: "song-1",
       title: "Opening Song",
-      itemType: "song",
-      sequence: 1,
-      servicePosition: "during",
+      author: "Author",
+      themes: "Praise",
+      lastScheduledAt: new Date("2026-05-17T16:00:00.000Z"),
+    },
+    arrangement: {
+      id: "arrangement-1",
+      name: "Default",
+      sequence: ["Verse 1", "Chorus"],
       length: 300,
-      description: "Full band",
-      htmlDetails: "<p>Full band</p>",
-      customArrangementSequence: ["Verse 1", "Chorus"],
-      song: {
-        id: "song-1",
-        title: "Opening Song",
-        author: "Author",
-        themes: "Praise",
-        lastScheduledAt: new Date("2026-05-17T16:00:00.000Z"),
-      },
-      arrangement: {
-        id: "arrangement-1",
-        name: "Default",
-        sequence: ["Verse 1", "Chorus"],
-        length: 300,
-        archivedAt: null,
-      },
-      key: {
-        id: "key-1",
-        name: "G",
-        startingKey: "G",
-        endingKey: null,
-      },
-      layout: {
-        id: "layout-1",
-        name: "Lyrics & Chords",
-      },
+      archivedAt: null,
     },
-    {
-      id: "item-2",
-      title: "Welcome",
-      itemType: "header",
-      sequence: 2,
-      servicePosition: "during",
-      length: null,
-      description: "",
-      htmlDetails: "",
-      customArrangementSequence: [],
-      song: null,
-      arrangement: null,
-      key: null,
-      layout: null,
+    key: {
+      id: "key-1",
+      name: "G",
+      startingKey: "G",
+      endingKey: null,
     },
-  ];
-}
+    layout: {
+      id: "layout-1",
+      name: "Lyrics & Chords",
+    },
+  },
+  {
+    id: "item-2",
+    title: "Welcome",
+    itemType: "header",
+    sequence: 2,
+    servicePosition: "during",
+    length: null,
+    description: "",
+    htmlDetails: "",
+    customArrangementSequence: [],
+    song: null,
+    arrangement: null,
+    key: null,
+    layout: null,
+  },
+];
 
 describe("plan items cache", () => {
   beforeEach(() => {

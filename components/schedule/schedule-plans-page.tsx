@@ -5,17 +5,18 @@ import { startTransition, useCallback, useEffect } from "react";
 
 import { ServicePlanTableSelector } from "@/components/service-plan-table-selector";
 
-function buildPlanWorkspaceUrl(serviceTypeId: string, planId: string): string {
-  return `/services/${encodeURIComponent(serviceTypeId)}/plans/${encodeURIComponent(planId)}/assign`;
-}
+const buildPlanWorkspaceUrl = (serviceTypeId: string, planId: string): string =>
+  `/services/${encodeURIComponent(serviceTypeId)}/plans/${encodeURIComponent(planId)}/assign`;
 
-export function SchedulePlansPage() {
+export const SchedulePlansPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.toString();
 
   useEffect(() => {
-    if (!searchQuery) return;
+    if (!searchQuery) {
+      return;
+    }
 
     startTransition(() => {
       router.replace("/services");
@@ -44,4 +45,4 @@ export function SchedulePlansPage() {
       </div>
     </main>
   );
-}
+};

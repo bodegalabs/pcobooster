@@ -1,7 +1,7 @@
 "use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { z } from "zod";
 
 import {
   cancelScheduleMutationQueries,
@@ -9,54 +9,46 @@ import {
   reconcileOptimisticPlanPersonId,
   restoreScheduleCaches,
   settleScheduleMutationQueries,
-  type OptimisticSchedulePerson,
 } from "@/hooks/use-schedule-cache-optimism";
+import type { OptimisticSchedulePerson } from "@/hooks/use-schedule-cache-optimism";
+import { scheduleResponseSchema } from "@/lib/api-schemas";
 import { HttpClientError, postJson } from "@/lib/http/client";
+import { isNonEmptyString, isString } from "@/lib/json";
 
-function formatSchedulePayloadError(json: unknown): string {
-  if (!json || typeof json !== "object") return "Failed to schedule";
-  const payload = json as {
-    error?: unknown;
-    details?: unknown;
-    code?: unknown;
-  };
+const mismatchDetailsSchema = z.object({
+  selected: z
+    .object({
+      teamName: z.string().optional(),
+      positionName: z.string().optional(),
+    })
+    .optional(),
+  created: z.object({ teamPositionName: z.string().optional() }).optional(),
+});
 
-  if (
-    payload.code === "POSITION_MISMATCH" &&
-    payload.details &&
-    typeof payload.details === "object"
-  ) {
-    const details = payload.details as {
-      selected?: { teamName?: string; positionName?: string };
-      created?: { teamPositionName?: string };
-    };
-    const selectedTeam = details.selected?.teamName || "Unknown team";
-    const selectedPosition =
-      details.selected?.positionName || "Unknown position";
-    const created = details.created?.teamPositionName || "Unknown position";
-    return `Created in "${created}" instead of "${selectedTeam} - ${selectedPosition}".`;
+const formatScheduleClientError = (error: HttpClientError): string => {
+  if (error.code === "ALREADY_SCHEDULED") {
+    return "ALREADY_SCHEDULED";
   }
-
-  if (typeof payload.details === "string" && payload.details.length > 0)
-    return payload.details;
-  if (typeof payload.error === "string" && payload.error.length > 0)
-    return payload.error;
-  return "Failed to schedule";
-}
-
-function formatScheduleClientError(error: HttpClientError): string {
-  if (error.code === "ALREADY_SCHEDULED") return "ALREADY_SCHEDULED";
-  if (error.code === "POSITION_MISMATCH" || error.details) {
-    return formatSchedulePayloadError({
-      error: error.message,
-      code: error.code,
-      details: error.details,
-    });
+  if (error.code === "POSITION_MISMATCH") {
+    const parsed = mismatchDetailsSchema.safeParse(error.details);
+    if (parsed.success) {
+      const { selected, created } = parsed.data;
+      return `Created in "${created?.teamPositionName ?? "Unknown position"}" instead of "${selected?.teamName ?? "Unknown team"} - ${selected?.positionName ?? "Unknown position"}".`;
+    }
+  }
+  if (isString(error.details) && error.details.length > 0) {
+    return error.details;
   }
   return error.message || "Failed to schedule";
+};
+
+interface ScheduleFeedback {
+  scope: string;
+  success: boolean;
+  error: string | null;
 }
 
-export function useSchedulePlanPerson({
+export const useSchedulePlanPerson = ({
   serviceTypeId,
   planId,
   teamId,
@@ -80,30 +72,48 @@ export function useSchedulePlanPerson({
   onScheduleSuccess?: () => void;
   onScheduleError?: (message: string) => void;
   oneOff?: boolean;
-}) {
+}) => {
   const queryClient = useQueryClient();
-  const [scheduleSuccess, setScheduleSuccess] = useState(false);
-  const [scheduleError, setScheduleError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setScheduleSuccess(false);
-    setScheduleError(null);
-  }, [serviceTypeId, planId, teamId, positionId]);
+  const scope = JSON.stringify([serviceTypeId, planId, teamId, positionId]);
+  const [feedback, setFeedback] = useState<ScheduleFeedback | null>(null);
+  const scheduleSuccess = feedback?.scope === scope && feedback.success;
+  const scheduleError = feedback?.scope === scope ? feedback.error : null;
+  const setScheduleSuccess = (success: boolean) => {
+    setFeedback((current) => ({
+      scope,
+      success,
+      error: current?.scope === scope ? current.error : null,
+    }));
+  };
+  const setScheduleError = (error: string | null) => {
+    setFeedback((current) => ({
+      scope,
+      error,
+      success: current?.scope === scope && current.success,
+    }));
+  };
 
   const scheduleMutation = useMutation({
     mutationFn: async ({ person }: { person: OptimisticSchedulePerson }) =>
-      postJson<{ success: boolean; data?: { id?: string } }>("/api/schedule", {
+      await postJson("/api/schedule", scheduleResponseSchema, {
         serviceTypeId,
         personId: person.id,
         planId,
         teamId,
         positionId,
-        teamName: teamName || undefined,
-        positionName: positionName || undefined,
+        teamName: teamName ?? undefined,
+        positionName: positionName ?? undefined,
         oneOff,
       }),
     onMutate: async ({ person }) => {
-      if (!serviceTypeId || !planId || !teamId || !positionId) return {};
+      if (
+        !isNonEmptyString(serviceTypeId) ||
+        !isNonEmptyString(planId) ||
+        !isNonEmptyString(teamId) ||
+        !isNonEmptyString(positionId)
+      ) {
+        return {};
+      }
 
       const optimisticPlanPersonId = `optimistic:${planId}:${teamId}:${positionId}:${person.id}`;
       await cancelScheduleMutationQueries(queryClient, {
@@ -126,7 +136,11 @@ export function useSchedulePlanPerson({
     },
     onSuccess: (result, _variables, context) => {
       const planPersonId = result.data?.id;
-      if (planPersonId && context.optimisticPlanPersonId) {
+      if (
+        isNonEmptyString(planPersonId) &&
+        context.optimisticPlanPersonId !== undefined &&
+        context.optimisticPlanPersonId !== ""
+      ) {
         reconcileOptimisticPlanPersonId(
           queryClient,
           context.optimisticPlanPersonId,
@@ -159,9 +173,7 @@ export function useSchedulePlanPerson({
       const message =
         err instanceof HttpClientError
           ? formatScheduleClientError(err)
-          : err instanceof Error
-            ? err.message
-            : "Failed to schedule";
+          : err.message;
       setScheduleError(message);
       onScheduleError?.(message);
     },
@@ -169,27 +181,27 @@ export function useSchedulePlanPerson({
 
   const handleSchedule = (input: string | OptimisticSchedulePerson) => {
     if (
-      !serviceTypeId ||
-      !planId ||
-      !teamId ||
-      !positionId ||
+      !isNonEmptyString(serviceTypeId) ||
+      !isNonEmptyString(planId) ||
+      !isNonEmptyString(teamId) ||
+      !isNonEmptyString(positionId) ||
       scheduleMutation.isPending ||
       !canSchedule
-    )
+    ) {
       return;
+    }
 
     setScheduleError(null);
-    const person =
-      typeof input === "string"
-        ? { id: input, fullName: "Unknown person", photoThumbnailUrl: null }
-        : {
-            id: input.id,
-            firstName: "firstName" in input ? input.firstName : undefined,
-            lastName: "lastName" in input ? input.lastName : undefined,
-            fullName: input.fullName,
-            photoUrl: "photoUrl" in input ? input.photoUrl : undefined,
-            photoThumbnailUrl: input.photoThumbnailUrl,
-          };
+    const person = isString(input)
+      ? { id: input, fullName: "Unknown person", photoThumbnailUrl: null }
+      : {
+          id: input.id,
+          firstName: "firstName" in input ? input.firstName : undefined,
+          lastName: "lastName" in input ? input.lastName : undefined,
+          fullName: input.fullName,
+          photoUrl: "photoUrl" in input ? input.photoUrl : undefined,
+          photoThumbnailUrl: input.photoThumbnailUrl,
+        };
 
     scheduleMutation.mutate({ person });
   };
@@ -200,4 +212,4 @@ export function useSchedulePlanPerson({
     scheduleError,
     handleSchedule,
   };
-}
+};

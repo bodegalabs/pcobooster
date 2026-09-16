@@ -23,52 +23,47 @@ import {
 } from "@/lib/team-positions-cache";
 import type { PersonWithAvailability, TeamPositionGroup } from "@/lib/types";
 
-function createQueryClient() {
-  return new QueryClient({
+const createQueryClient = () =>
+  new QueryClient({
     defaultOptions: {
       queries: { retry: false },
       mutations: { retry: false },
     },
   });
-}
 
-function person(
+const person = (
   overrides: Partial<PersonWithAvailability> = {}
-): PersonWithAvailability {
-  return {
-    id: "person-1",
-    firstName: "Andrew",
-    lastName: "Hinea",
-    fullName: "Andrew Hinea",
-    photoUrl: null,
-    photoThumbnailUrl: null,
-    archived: false,
-    positions: [],
-    ...overrides,
-  };
-}
+): PersonWithAvailability => ({
+  id: "person-1",
+  firstName: "Andrew",
+  lastName: "Hinea",
+  fullName: "Andrew Hinea",
+  photoUrl: null,
+  photoThumbnailUrl: null,
+  archived: false,
+  positions: [],
+  ...overrides,
+});
 
-function teamGroups(): TeamPositionGroup[] {
-  return [
-    {
-      teamId: "team-1",
-      teamName: "Band",
-      positions: [
-        {
-          id: "position-1",
-          name: "Acoustic Guitar",
-          teamId: "team-1",
-          teamName: "Band",
-          neededCount: 1,
-          filledPendingCount: 0,
-          filledConfirmedCount: 0,
-        },
-      ],
-    },
-  ];
-}
+const teamGroups = (): TeamPositionGroup[] => [
+  {
+    teamId: "team-1",
+    teamName: "Band",
+    positions: [
+      {
+        id: "position-1",
+        name: "Acoustic Guitar",
+        teamId: "team-1",
+        teamName: "Band",
+        neededCount: 1,
+        filledPendingCount: 0,
+        filledConfirmedCount: 0,
+      },
+    ],
+  },
+];
 
-function installLocalStorageMock() {
+const installLocalStorageMock = () => {
   const storage = new Map<string, string>();
   vi.stubGlobal("window", {
     localStorage: {
@@ -85,7 +80,7 @@ function installLocalStorageMock() {
       },
     },
   });
-}
+};
 
 describe("schedule cache optimism", () => {
   afterEach(() => {
@@ -282,54 +277,57 @@ describe("schedule cache optimism", () => {
       "C"
     );
 
-    expect(
-      queryClient.getQueryData<PersonWithAvailability[]>(peopleKey)?.[0]
-    ).toMatchObject({
-      isScheduledForSelectedPlanPosition: true,
-      isConfirmedForSelectedPlanPosition: true,
-      isDeclinedForSelectedPlanPosition: false,
-    });
-    expect(
-      queryClient.getQueryData<TeamPositionGroup[]>(teamPositionsKey)?.[0]
-        ?.positions[0]
-    ).toMatchObject({
-      filledPendingCount: 0,
-      filledConfirmedCount: 1,
+    expect({
+      person:
+        queryClient.getQueryData<PersonWithAvailability[]>(peopleKey)?.[0],
+      position:
+        queryClient.getQueryData<TeamPositionGroup[]>(teamPositionsKey)?.[0]
+          ?.positions[0],
+    }).toMatchObject({
+      person: {
+        isScheduledForSelectedPlanPosition: true,
+        isConfirmedForSelectedPlanPosition: true,
+        isDeclinedForSelectedPlanPosition: false,
+      },
+      position: { filledPendingCount: 0, filledConfirmedCount: 1 },
     });
 
     optimisticallyUpdatePlanPersonStatus(queryClient, "plan-person-1", "D");
 
-    expect(
-      queryClient.getQueryData<PersonWithAvailability[]>(peopleKey)?.[0]
-    ).toMatchObject({
-      isScheduledForSelectedPlanPosition: true,
-      isConfirmedForSelectedPlanPosition: false,
-      isDeclinedForSelectedPlanPosition: true,
-    });
-    expect(
-      queryClient.getQueryData<TeamPositionGroup[]>(teamPositionsKey)?.[0]
-        ?.positions[0]
-    ).toMatchObject({
-      filledPendingCount: 0,
-      filledConfirmedCount: 0,
-      filledPeople: undefined,
+    expect({
+      person:
+        queryClient.getQueryData<PersonWithAvailability[]>(peopleKey)?.[0],
+      position:
+        queryClient.getQueryData<TeamPositionGroup[]>(teamPositionsKey)?.[0]
+          ?.positions[0],
+    }).toMatchObject({
+      person: {
+        isScheduledForSelectedPlanPosition: true,
+        isConfirmedForSelectedPlanPosition: false,
+        isDeclinedForSelectedPlanPosition: true,
+      },
+      position: {
+        filledPendingCount: 0,
+        filledConfirmedCount: 0,
+        filledPeople: undefined,
+      },
     });
 
     restoreScheduleCaches(queryClient, snapshot);
 
-    expect(
-      queryClient.getQueryData<PersonWithAvailability[]>(peopleKey)?.[0]
-    ).toMatchObject({
-      isScheduledForSelectedPlanPosition: true,
-      isConfirmedForSelectedPlanPosition: false,
-      scheduledPlanPersonId: "plan-person-1",
-    });
-    expect(
-      queryClient.getQueryData<TeamPositionGroup[]>(teamPositionsKey)?.[0]
-        ?.positions[0]
-    ).toMatchObject({
-      filledPendingCount: 1,
-      filledConfirmedCount: 0,
+    expect({
+      person:
+        queryClient.getQueryData<PersonWithAvailability[]>(peopleKey)?.[0],
+      position:
+        queryClient.getQueryData<TeamPositionGroup[]>(teamPositionsKey)?.[0]
+          ?.positions[0],
+    }).toMatchObject({
+      person: {
+        isScheduledForSelectedPlanPosition: true,
+        isConfirmedForSelectedPlanPosition: false,
+        scheduledPlanPersonId: "plan-person-1",
+      },
+      position: { filledPendingCount: 1, filledConfirmedCount: 0 },
     });
   });
 
@@ -406,7 +404,7 @@ describe("schedule cache optimism", () => {
     const queryClient = createQueryClient();
     const cancelQueries = vi
       .spyOn(queryClient, "cancelQueries")
-      .mockResolvedValue(undefined);
+      .mockResolvedValue();
 
     await cancelScheduleMutationQueries(queryClient, {
       serviceTypeId: "service-type-1",
@@ -437,10 +435,10 @@ describe("schedule cache optimism", () => {
     const queryClient = createQueryClient();
     const invalidateQueries = vi
       .spyOn(queryClient, "invalidateQueries")
-      .mockResolvedValue(undefined);
+      .mockResolvedValue();
     const refetchQueries = vi
       .spyOn(queryClient, "refetchQueries")
-      .mockResolvedValue(undefined);
+      .mockResolvedValue();
 
     settleScheduleMutationQueries(queryClient, {
       serviceTypeId: "service-type-1",
@@ -476,24 +474,31 @@ describe("schedule cache optimism", () => {
 
     vi.advanceTimersByTime(SCHEDULE_MUTATION_RECONCILE_DELAY_MS);
 
-    expect(refetchQueries).toHaveBeenCalledWith({
-      queryKey: ["my-scheduled-plans"],
-      type: "active",
-    });
-    expect(refetchQueries).toHaveBeenCalledWith({
-      queryKey: ["team-positions", "service-type-1", "plan-1"],
-      type: "active",
-    });
-    expect(refetchQueries).toHaveBeenCalledWith({
-      queryKey: queryKeys.peopleForSlot(
-        "service-type-1",
-        "team-1",
-        "position-1",
-        "plan-1"
-      ),
-      type: "active",
-    });
-    expect(refetchQueries).toHaveBeenCalledTimes(3);
+    expect(refetchQueries.mock.calls).toStrictEqual([
+      [
+        {
+          queryKey: ["my-scheduled-plans"],
+          type: "active",
+        },
+      ],
+      [
+        {
+          queryKey: ["team-positions", "service-type-1", "plan-1"],
+          type: "active",
+        },
+      ],
+      [
+        {
+          queryKey: queryKeys.peopleForSlot(
+            "service-type-1",
+            "team-1",
+            "position-1",
+            "plan-1"
+          ),
+          type: "active",
+        },
+      ],
+    ]);
   });
 
   it("clears persisted schedule snapshots when schedule mutations settle", () => {

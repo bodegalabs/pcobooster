@@ -4,39 +4,37 @@ import {
   parseCachedAccountPanel,
   serializeAccountPanel,
   summarizeAccountPanel,
-  type AccountPanelSource,
 } from "@/lib/account-panel-cache";
+import type { AccountPanelSource } from "@/lib/account-panel-cache";
 
-function source(): AccountPanelSource {
-  return {
-    session: {
-      name: "Jake Bodea",
-      email: "jake@example.com",
-      image: "https://example.com/avatar.jpg",
+const source = (): AccountPanelSource => ({
+  session: {
+    name: "Jake Bodea",
+    email: "jake@example.com",
+    image: "https://example.com/avatar.jpg",
+  },
+  selectedAccountId: "account-2",
+  accounts: [
+    {
+      id: "account-1",
+      identity: {
+        name: "Jake",
+        organizationName: "First Church",
+      },
     },
-    selectedAccountId: "account-2",
-    accounts: [
-      {
-        id: "account-1",
-        identity: {
-          name: "Jake",
-          organizationName: "First Church",
-        },
+    {
+      id: "account-2",
+      identity: {
+        name: "Planning Center Jake",
+        organizationName: "Agape Christian Church",
       },
-      {
-        id: "account-2",
-        identity: {
-          name: "Planning Center Jake",
-          organizationName: "Agape Christian Church",
-        },
-      },
-    ],
-  };
-}
+    },
+  ],
+});
 
 describe("account panel cache", () => {
   it("summarizes only the sidebar identity needed for immediate shell paint", () => {
-    expect(summarizeAccountPanel(source())).toEqual({
+    expect(summarizeAccountPanel(source())).toStrictEqual({
       organizationName: "Agape Christian Church",
       avatarName: "Planning Center Jake",
       image: "https://example.com/avatar.jpg",
@@ -50,9 +48,9 @@ describe("account panel cache", () => {
       image: null,
     };
 
-    expect(parseCachedAccountPanel(serializeAccountPanel(summary))).toEqual(
-      summary
-    );
+    expect(
+      parseCachedAccountPanel(serializeAccountPanel(summary))
+    ).toStrictEqual(summary);
   });
 
   it("ignores invalid cache payloads", () => {
