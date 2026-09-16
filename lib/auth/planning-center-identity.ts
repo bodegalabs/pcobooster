@@ -1,43 +1,41 @@
-import { auth } from "@/lib/auth";
+import { z } from "zod";
 
-const PLANNING_CENTER_PROVIDER_ID = "planning-center";
+import { isString } from "@/lib/json";
+
 const PLANNING_CENTER_USERINFO_URL =
   "https://api.planningcenteronline.com/oauth/userinfo";
 
-export type PlanningCenterIdentity = {
-  sub: string | null;
-  name: string | null;
-  email: string | null;
-  organizationId: string | null;
-  organizationName: string | null;
-};
+const identityText = z.preprocess(
+  (value) => (isString(value) ? value : null),
+  z.string().nullable()
+);
 
-export function normalizePlanningCenterIdentity(
-  user: unknown
-): PlanningCenterIdentity | null {
-  if (!user || typeof user !== "object") return null;
-  const record = user as Record<string, unknown>;
+export const planningCenterIdentitySchema = z
+  .object({
+    sub: identityText,
+    name: identityText,
+    email: identityText,
+    organization_id: identityText,
+    organization_name: identityText,
+  })
+  .transform((user) => ({
+    sub: user.sub,
+    name: user.name,
+    email: user.email,
+    organizationId: user.organization_id,
+    organizationName: user.organization_name,
+  }));
 
-  return {
-    sub: typeof record.sub === "string" ? record.sub : null,
-    name: typeof record.name === "string" ? record.name : null,
-    email: typeof record.email === "string" ? record.email : null,
-    organizationId:
-      typeof record.organization_id === "string"
-        ? record.organization_id
-        : null,
-    organizationName:
-      typeof record.organization_name === "string"
-        ? record.organization_name
-        : null,
-  };
-}
+export type PlanningCenterIdentity = z.infer<
+  typeof planningCenterIdentitySchema
+>;
 
-export async function getPlanningCenterIdentityFromAccessToken(
+export const getPlanningCenterIdentityFromAccessToken = async (
   accessToken: string | null | undefined
-): Promise<PlanningCenterIdentity | null> {
-  if (!accessToken) return null;
-
+): Promise<PlanningCenterIdentity | null> => {
+  if (accessToken === null || accessToken === undefined || accessToken === "") {
+    return null;
+  }
   const response = await fetch(PLANNING_CENTER_USERINFO_URL, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -45,27 +43,9 @@ export async function getPlanningCenterIdentityFromAccessToken(
     },
     cache: "no-store",
   });
-
-  if (!response.ok) return null;
-  const payload = (await response.json()) as unknown;
-  return normalizePlanningCenterIdentity(payload);
-}
-
-export async function getPlanningCenterIdentityForAccount(
-  request: Request,
-  accountId: string
-): Promise<PlanningCenterIdentity | null> {
-  try {
-    const token = await auth.api.getAccessToken({
-      headers: request.headers,
-      body: {
-        providerId: PLANNING_CENTER_PROVIDER_ID,
-        accountId,
-      },
-    });
-
-    return getPlanningCenterIdentityFromAccessToken(token.accessToken);
-  } catch {
+  if (!response.ok) {
     return null;
   }
-}
+  const result = planningCenterIdentitySchema.safeParse(await response.json());
+  return result.success ? result.data : null;
+};

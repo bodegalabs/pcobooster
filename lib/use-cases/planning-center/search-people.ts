@@ -1,3 +1,5 @@
+import { isString } from "@/lib/json";
+import type { JsonValue } from "@/lib/json";
 import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 
 import { getPresentationIdentityMapper } from "./presentation";
@@ -10,28 +12,47 @@ export interface PeopleSearchResult {
   photoThumbnailUrl: string | null;
 }
 
-export async function searchPeople(
+interface SearchPeopleDependencies {
+  people: Pick<
+    typeof planningCenterPeopleService,
+    "getAllPeople" | "searchPeopleByName"
+  >;
+  getIdentityMapper: typeof getPresentationIdentityMapper;
+}
+
+const defaultDependencies: SearchPeopleDependencies = {
+  people: planningCenterPeopleService,
+  getIdentityMapper: getPresentationIdentityMapper,
+};
+
+const readString = (value: JsonValue): string => (isString(value) ? value : "");
+
+const readPhotoThumbnailUrl = (value: JsonValue): string | null =>
+  isString(value) ? value : null;
+
+export const searchPeople = async (
   query: string,
-  limit = 15
-): Promise<PeopleSearchResult[]> {
-  const identity = await getPresentationIdentityMapper();
+  limit = 15,
+  dependencies: SearchPeopleDependencies = defaultDependencies
+): Promise<PeopleSearchResult[]> => {
+  const identity = await dependencies.getIdentityMapper();
   if (identity) {
     // Search aliases locally; fictional names must never be sent to PCO's real-name search.
-    const people = await planningCenterPeopleService.getAllPeople();
-    const terms = query.trim().toLowerCase().split(/\s+/);
-    return people
-      .map((person) => ({ id: person.id, ...identity(person.id) }))
-      .filter((person) =>
-        terms.every((term) => person.fullName.toLowerCase().includes(term))
-      )
+    const people = await dependencies.people.getAllPeople();
+    const terms = query.trim().toLowerCase().split(/\s+/u);
+    const matches: PeopleSearchResult[] = [];
+    for (const person of people) {
+      const result = { id: person.id, ...identity(person.id) };
+      if (terms.every((term) => result.fullName.toLowerCase().includes(term))) {
+        matches.push(result);
+      }
+    }
+    return matches
       .toSorted((a, b) => a.fullName.localeCompare(b.fullName))
       .slice(0, limit);
   }
 
-  const people = await planningCenterPeopleService.searchPeopleByName(
-    query,
-    limit
-  );
+  const people = await dependencies.people.searchPeopleByName(query, limit);
   return people.map((person) => {
     const firstName = readString(person.attributes.first_name);
     const lastName = readString(person.attributes.last_name);
@@ -40,16 +61,9 @@ export async function searchPeople(
       firstName,
       lastName,
       fullName: `${firstName} ${lastName}`.trim() || "Unknown person",
-      photoThumbnailUrl:
-        typeof person.attributes.avatar === "string"
-          ? person.attributes.avatar
-          : typeof person.attributes.photo_thumbnail_url === "string"
-            ? person.attributes.photo_thumbnail_url
-            : null,
+      photoThumbnailUrl: isString(person.attributes.avatar)
+        ? person.attributes.avatar
+        : readPhotoThumbnailUrl(person.attributes.photo_thumbnail_url),
     };
   });
-}
-
-function readString(value: unknown): string {
-  return typeof value === "string" ? value : "";
-}
+};

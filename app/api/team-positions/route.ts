@@ -14,9 +14,9 @@ const querySchema = z.object({
   series_id: z.string().min(1).optional(),
 });
 
-export async function GET(request: Request) {
+export const GET = async (request: Request) => {
   const log = logger.withRequest(request);
-  return handlePlanningCenterRoute(request, async () => {
+  return await handlePlanningCenterRoute(request, async () => {
     log.info("Fetching team positions");
 
     const { searchParams } = new URL(request.url);
@@ -60,6 +60,6 @@ export async function GET(request: Request) {
       "Plan needed team positions fetched"
     );
 
-    return presentTeamPositions(groupedPositions);
+    return await presentTeamPositions(groupedPositions);
   });
-}
+};

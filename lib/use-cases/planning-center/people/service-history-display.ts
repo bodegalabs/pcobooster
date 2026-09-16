@@ -1,51 +1,80 @@
+import { isNonEmptyString } from "@/lib/json";
 import { orgCalendarDaysRefMinusItem } from "@/lib/planning-center/org-calendar";
 import type { ScheduleFrequency, ServiceHistoryItem } from "@/lib/types";
 import { formatCalendarDayInTimeZone } from "@/lib/use-cases/planning-center/people/calendar-day";
 
+const displayDateFormatter = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+const localDayFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
 /** Distinct engagement days in the plan-history band (parity: past = service days + rehearsal-only days; future = same split). */
-export function formatScheduleFrequencyLine(
+export const formatScheduleFrequencyLine = (
   frequency: ScheduleFrequency | undefined
-): string | null {
-  if (!frequency) return null;
+): string | null => {
+  if (!frequency) {
+    return null;
+  }
   const served =
     frequency.recentServedDays + (frequency.recentRehearsalOnlyDays ?? 0);
   const upcoming =
     (frequency.upcomingServices ?? 0) + (frequency.upcomingRehearsals ?? 0);
   return `${served} served | ${upcoming} upcoming`;
-}
+};
 
-export function toServiceHistoryDate(value: Date | string | undefined) {
-  if (value instanceof Date) return value;
-  const parsed = value ? new Date(value) : new Date(NaN);
+export const toServiceHistoryDate = (value: Date | string | undefined) => {
+  if (value instanceof Date) {
+    return value;
+  }
+  const parsed = isNonEmptyString(value)
+    ? new Date(value)
+    : new Date(Number.NaN);
   return parsed;
-}
+};
 
-export function formatServiceHistoryDisplayDate(
+export const formatServiceHistoryDisplayDate = (
   date: Date | string | undefined
-) {
-  if (!date) return "Unknown date";
+) => {
+  if (date === undefined || date === "") {
+    return "Unknown date";
+  }
   const dateObj = toServiceHistoryDate(date);
-  if (Number.isNaN(dateObj.getTime())) return "Invalid date";
+  if (Number.isNaN(dateObj.getTime())) {
+    return "Invalid date";
+  }
 
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(dateObj);
-}
+  return displayDateFormatter.format(dateObj);
+};
 
-export function formatHistoryStatusLabel(status: string | undefined): string {
-  const raw = (status || "").trim();
+export const formatHistoryStatusLabel = (
+  status: string | undefined
+): string => {
+  const raw = (status ?? "").trim();
   const normalized = raw.toLowerCase();
-  if (raw === "C" || normalized === "confirmed") return "Confirmed";
-  if (raw === "U" || normalized === "unconfirmed") return "Scheduled";
-  if (raw === "D" || normalized === "declined") return "Declined";
+  if (raw === "C" || normalized === "confirmed") {
+    return "Confirmed";
+  }
+  if (raw === "U" || normalized === "unconfirmed") {
+    return "Scheduled";
+  }
+  if (raw === "D" || normalized === "declined") {
+    return "Declined";
+  }
   return raw || "Unknown";
-}
+};
 
-export function getHistoryStatusBadgeClass(status: string | undefined): string {
-  const raw = (status || "").trim();
+export const getHistoryStatusBadgeClass = (
+  status: string | undefined
+): string => {
+  const raw = (status ?? "").trim();
   const normalized = raw.toLowerCase();
   if (raw === "C" || normalized === "confirmed") {
     return "border-emerald-400/70 bg-emerald-600/45 text-emerald-50 dark:bg-emerald-600/50";
@@ -57,52 +86,59 @@ export function getHistoryStatusBadgeClass(status: string | undefined): string {
     return "border-red-400/70 bg-red-600/45 text-red-50 dark:bg-red-600/50";
   }
   return "border-border bg-muted/80 text-muted-foreground";
-}
+};
 
-export function getHistoryStatusDotClass(status: string | undefined): string {
-  const raw = (status || "").trim();
+export const getHistoryStatusDotClass = (
+  status: string | undefined
+): string => {
+  const raw = (status ?? "").trim();
   const normalized = raw.toLowerCase();
-  if (raw === "C" || normalized === "confirmed") return "bg-emerald-500";
-  if (raw === "U" || normalized === "unconfirmed") return "bg-amber-500";
-  if (raw === "D" || normalized === "declined") return "bg-red-500";
+  if (raw === "C" || normalized === "confirmed") {
+    return "bg-emerald-500";
+  }
+  if (raw === "U" || normalized === "unconfirmed") {
+    return "bg-amber-500";
+  }
+  if (raw === "D" || normalized === "declined") {
+    return "bg-red-500";
+  }
   return "bg-muted-foreground/50";
-}
+};
 
-function toDayKey(value: Date | string | undefined): string | null {
+const toDayKey = (value: Date | string | undefined): string | null => {
   const date = toServiceHistoryDate(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
-}
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return localDayFormatter.format(date);
+};
 
-export type ServiceHistoryGroup = {
+export interface ServiceHistoryGroup {
   dayKey: string;
   primary: ServiceHistoryItem;
   additionalServices: ServiceHistoryItem[];
   rehearsals: ServiceHistoryItem[];
-};
+}
 
-export function buildServiceHistoryGroups(
+export const buildServiceHistoryGroups = (
   items: ServiceHistoryItem[]
-): ServiceHistoryGroup[] {
+): ServiceHistoryGroup[] => {
   const bySchedule = new Map<string, ServiceHistoryItem[]>();
   const order: string[] = [];
 
   for (const item of items) {
     const key = item.sourceScheduleId || item.id;
-    if (!bySchedule.has(key)) {
-      bySchedule.set(key, []);
+    let scheduleItems = bySchedule.get(key);
+    if (!scheduleItems) {
+      scheduleItems = [];
+      bySchedule.set(key, scheduleItems);
       order.push(key);
     }
-    bySchedule.get(key)!.push(item);
+    scheduleItems.push(item);
   }
 
   const baseGroups = order.map((key) => {
-    const groupItems = [...(bySchedule.get(key) || [])].sort(
+    const groupItems = [...(bySchedule.get(key) ?? [])].toSorted(
       (a, b) =>
         toServiceHistoryDate(a.date).getTime() -
         toServiceHistoryDate(b.date).getTime()
@@ -110,22 +146,37 @@ export function buildServiceHistoryGroups(
     const primary =
       groupItems.find((item) => item.timeType === "service") ??
       groupItems.find((item) => item.timeType !== "rehearsal") ??
-      groupItems[0]!;
+      groupItems[0];
 
     const primaryDayKey = toDayKey(primary.date);
     const seenRehearsalDays = new Set<string>();
     const additionalServices = groupItems.filter((item) => {
-      if (item.id === primary.id) return false;
+      if (item.id === primary.id) {
+        return false;
+      }
       return item.timeType !== "rehearsal";
     });
     const rehearsals = groupItems.filter((item) => {
-      if (item.id === primary.id || item.timeType !== "rehearsal") return false;
+      if (item.id === primary.id || item.timeType !== "rehearsal") {
+        return false;
+      }
       const rehearsalDayKey = toDayKey(item.date);
-      if (primaryDayKey && rehearsalDayKey && primaryDayKey === rehearsalDayKey)
+      if (
+        isNonEmptyString(primaryDayKey) &&
+        isNonEmptyString(rehearsalDayKey) &&
+        primaryDayKey === rehearsalDayKey
+      ) {
         return false;
-      if (rehearsalDayKey && seenRehearsalDays.has(rehearsalDayKey))
+      }
+      if (
+        isNonEmptyString(rehearsalDayKey) &&
+        seenRehearsalDays.has(rehearsalDayKey)
+      ) {
         return false;
-      if (rehearsalDayKey) seenRehearsalDays.add(rehearsalDayKey);
+      }
+      if (isNonEmptyString(rehearsalDayKey)) {
+        seenRehearsalDays.add(rehearsalDayKey);
+      }
       return true;
     });
 
@@ -137,10 +188,10 @@ export function buildServiceHistoryGroups(
 
   for (const group of baseGroups) {
     const mergeKey = [
-      toDayKey(group.primary.date) || group.dayKey,
-      group.primary.teamName || "",
-      group.primary.serviceTypeName || "",
-      group.primary.planTitle || "",
+      toDayKey(group.primary.date) ?? group.dayKey,
+      group.primary.teamName ?? "",
+      group.primary.serviceTypeName ?? "",
+      group.primary.planTitle ?? "",
       (group.primary.status || "").trim().toLowerCase(),
     ].join("|");
 
@@ -164,70 +215,96 @@ export function buildServiceHistoryGroups(
     const seenRehearsalIds = new Set(
       existing.rehearsals.map((item) => item.id)
     );
-    const seenRehearsalDayKeys = new Set(
-      existing.rehearsals
-        .map((r) => toDayKey(r.date))
-        .filter((k): k is string => k != null)
-    );
+    const seenRehearsalDayKeys = new Set<string>();
+    for (const rehearsal of existing.rehearsals) {
+      const dayKey = toDayKey(rehearsal.date);
+      if (dayKey !== null) {
+        seenRehearsalDayKeys.add(dayKey);
+      }
+    }
     for (const rehearsal of group.rehearsals) {
-      if (seenRehearsalIds.has(rehearsal.id)) continue;
+      if (seenRehearsalIds.has(rehearsal.id)) {
+        continue;
+      }
       const rehearsalDay = toDayKey(rehearsal.date);
-      if (rehearsalDay && seenRehearsalDayKeys.has(rehearsalDay)) continue;
+      if (
+        isNonEmptyString(rehearsalDay) &&
+        seenRehearsalDayKeys.has(rehearsalDay)
+      ) {
+        continue;
+      }
       existing.rehearsals.push(rehearsal);
       seenRehearsalIds.add(rehearsal.id);
-      if (rehearsalDay) seenRehearsalDayKeys.add(rehearsalDay);
+      if (isNonEmptyString(rehearsalDay)) {
+        seenRehearsalDayKeys.add(rehearsalDay);
+      }
     }
   }
 
-  return mergedOrder.map((key) => mergedGroups.get(key)!);
-}
+  return mergedOrder.map((key) => {
+    const group = mergedGroups.get(key);
+    if (!group) {
+      throw new Error(`Missing merged service history group: ${key}`);
+    }
+    return group;
+  });
+};
 
-function absOrgCalendarDaysBetween(
+const absOrgCalendarDaysBetween = (
   a: Date,
   b: Date,
   orgTimeZone: string
-): number {
+): number => {
   const tz = orgTimeZone.trim() || "UTC";
   const dayA = formatCalendarDayInTimeZone(a, tz);
   const dayB = formatCalendarDayInTimeZone(b, tz);
   return Math.abs(orgCalendarDaysRefMinusItem(dayA, dayB));
-}
+};
 
 /** Shorthand for strip/summary: latest service day in history. */
-export function pickLatestServiceHistoryGroup(
+export const pickLatestServiceHistoryGroup = (
   groups: ServiceHistoryGroup[]
-): ServiceHistoryGroup | null {
-  if (groups.length === 0) return null;
-  return groups.reduce((best, g) => {
-    const t = toServiceHistoryDate(g.primary.date).getTime();
-    const bt = toServiceHistoryDate(best.primary.date).getTime();
-    return t > bt ? g : best;
-  });
-}
+): ServiceHistoryGroup | null => {
+  if (groups.length === 0) {
+    return null;
+  }
+  const [first] = groups;
+  let best = first;
+  for (const group of groups.slice(1)) {
+    const time = toServiceHistoryDate(group.primary.date).getTime();
+    const bestTime = toServiceHistoryDate(best.primary.date).getTime();
+    if (time > bestTime) {
+      best = group;
+    }
+  }
+  return best;
+};
 
 /**
  * History group whose primary service is on the calendar day closest to `referenceDate` in `orgTimeZone`.
  * Tie-break: more recent calendar instant (later `primary.date`).
  */
-export function pickServiceHistoryGroupClosestToReference(
+export const pickServiceHistoryGroupClosestToReference = (
   groups: ServiceHistoryGroup[],
   referenceDate: Date | string | null | undefined,
   orgTimeZone: string
-): ServiceHistoryGroup | null {
-  if (groups.length === 0) return null;
+): ServiceHistoryGroup | null => {
+  if (groups.length === 0) {
+    return null;
+  }
   const ref = toServiceHistoryDate(referenceDate ?? undefined);
   if (Number.isNaN(ref.getTime())) {
     return pickLatestServiceHistoryGroup(groups);
   }
   const tz = orgTimeZone.trim() || "UTC";
-  let best = groups[0]!;
+  let [best] = groups;
   let bestDelta = absOrgCalendarDaysBetween(
     toServiceHistoryDate(best.primary.date),
     ref,
     tz
   );
-  for (let i = 1; i < groups.length; i++) {
-    const g = groups[i]!;
+  for (let i = 1; i < groups.length; i += 1) {
+    const g = groups[i];
     const delta = absOrgCalendarDaysBetween(
       toServiceHistoryDate(g.primary.date),
       ref,
@@ -239,25 +316,29 @@ export function pickServiceHistoryGroupClosestToReference(
     } else if (delta === bestDelta) {
       const gt = toServiceHistoryDate(g.primary.date).getTime();
       const bt = toServiceHistoryDate(best.primary.date).getTime();
-      if (gt > bt) best = g;
+      if (gt > bt) {
+        best = g;
+      }
     }
   }
   return best;
-}
+};
 
-export function formatCombinedHistoryPositionLabel(
+export const formatCombinedHistoryPositionLabel = (
   primary: ServiceHistoryItem,
   additionalServices: ServiceHistoryItem[]
-) {
+) => {
   const positions = [primary, ...additionalServices]
     .map((item) => item.teamPositionName?.trim())
     .filter((value): value is string => Boolean(value));
 
-  const uniquePositions = Array.from(new Set(positions));
+  const uniquePositions = [...new Set(positions)];
   const positionText = uniquePositions.join(", ");
-  if (!positionText) return "Unknown position";
+  if (!positionText) {
+    return "Unknown position";
+  }
 
-  return primary.teamName
+  return isNonEmptyString(primary.teamName)
     ? `${primary.teamName} - ${positionText}`
     : positionText;
-}
+};

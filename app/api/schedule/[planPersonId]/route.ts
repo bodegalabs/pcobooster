@@ -7,6 +7,8 @@ import {
 } from "@/lib/db/activity-events";
 import { ApiError } from "@/lib/http/api-error";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
+import { isNonEmptyString } from "@/lib/json";
+import type { JsonObject } from "@/lib/json";
 import { logger } from "@/lib/logger";
 import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 import { invalidateCandidateHistoryForPerson } from "@/lib/use-cases/planning-center/get-people-for-position";
@@ -23,22 +25,22 @@ const bodySchema = z.object({
   planId: z.string().min(1).optional(),
 });
 
-export async function DELETE(
+export const DELETE = async (
   request: Request,
   { params }: { params: Promise<{ planPersonId: string }> }
-) {
+) => {
   const activityRequestContext = getActivityRequestContext(request);
   const requestId = activityRequestContext.requestId ?? crypto.randomUUID();
   const log = logger.withRequest(request).child({ requestId });
 
-  return handlePlanningCenterRoute(request, async (authContext) => {
+  return await handlePlanningCenterRoute(request, async (authContext) => {
     let planPersonId: string | null = null;
 
     const recordRemoveEventSafely = (event: {
       success: boolean;
       statusCode: number;
       errorCode: string | null;
-      metadata?: Record<string, unknown>;
+      metadata?: JsonObject;
     }) => {
       after(async () => {
         try {
@@ -76,19 +78,21 @@ export async function DELETE(
           parsedParams.error.issues
         );
       }
-      planPersonId = parsedParams.data.planPersonId;
+      ({ planPersonId } = parsedParams.data);
 
       let body: z.infer<typeof bodySchema> = {};
       try {
-        const json = await request.json();
+        const json: unknown = await request.json();
         const parsedBody = bodySchema.safeParse(json);
-        if (parsedBody.success) body = parsedBody.data;
+        if (parsedBody.success) {
+          body = parsedBody.data;
+        }
       } catch {
         body = {};
       }
 
       await planningCenterPeopleService.deletePlanPerson(planPersonId, body);
-      if (body.personId) {
+      if (isNonEmptyString(body.personId)) {
         invalidateCandidateHistoryForPerson(body.personId);
       }
 
@@ -119,4 +123,4 @@ export async function DELETE(
       throw error;
     }
   });
-}
+};

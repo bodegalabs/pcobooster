@@ -8,13 +8,14 @@ import {
   isDevAuthBypassEnabled,
   loadDevBypassIdentity,
 } from "@/lib/auth/dev-bypass";
-import { getPlanningCenterIdentityForAccount } from "@/lib/auth/planning-center-identity";
+import { getPlanningCenterIdentityForAccount } from "@/lib/auth/planning-center-account-identity";
 import {
   getSelectedPlanningCenterAccountId,
   PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE,
 } from "@/lib/auth/planning-center-session";
 import { ApiError } from "@/lib/http/api-error";
 import { handleRoute } from "@/lib/http/route-handler";
+import { isNonEmptyString } from "@/lib/json";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
 
@@ -24,8 +25,8 @@ const postBodySchema = z.object({
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
-  return handleRoute(async () => {
+export const GET = async (request: Request) =>
+  await handleRoute(async () => {
     if (isDevAuthBypassEnabled()) {
       const identity = await loadDevBypassIdentity();
       const devSession = getDevBypassSession(identity);
@@ -56,7 +57,7 @@ export async function GET(request: Request) {
 
     const planningCenterAccounts = allAccounts
       .filter((account) => account.providerId === PLANNING_CENTER_PROVIDER_ID)
-      .sort((a, b) => {
+      .toSorted((a, b) => {
         const aTime = new Date(a.updatedAt).getTime();
         const bTime = new Date(b.updatedAt).getTime();
         return bTime - aTime;
@@ -64,7 +65,7 @@ export async function GET(request: Request) {
 
     const selectedFromCookie = getSelectedPlanningCenterAccountId(request);
     const selectedAccount =
-      (selectedFromCookie
+      (isNonEmptyString(selectedFromCookie)
         ? planningCenterAccounts.find(
             (account) => account.id === selectedFromCookie
           )
@@ -96,10 +97,9 @@ export async function GET(request: Request) {
       accounts: accountsWithIdentity,
     };
   });
-}
 
-export async function POST(request: Request) {
-  return handleRoute(async () => {
+export const POST = async (request: Request) =>
+  await handleRoute(async () => {
     if (isDevAuthBypassEnabled()) {
       const devAccount = getDevBypassPlanningCenterAccount();
       return NextResponse.json({
@@ -159,4 +159,3 @@ export async function POST(request: Request) {
 
     return response;
   });
-}

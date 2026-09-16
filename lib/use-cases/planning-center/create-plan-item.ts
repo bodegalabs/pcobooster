@@ -26,9 +26,9 @@ export interface CreatePlanItemInput {
   customArrangementSequence?: string[];
 }
 
-export async function createPlanItem(
+export const createPlanItem = async (
   input: CreatePlanItemInput
-): Promise<PlanItem> {
+): Promise<PlanItem> => {
   const resolvedInput = await resolvePlanItemSongDefaults({
     ...input,
     itemType:
@@ -47,4 +47,4 @@ export async function createPlanItem(
   );
 
   return normalizePlanItem(response.data, response.included);
-}
+};

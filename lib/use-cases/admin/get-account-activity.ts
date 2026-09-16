@@ -1,13 +1,13 @@
 import { sql } from "drizzle-orm";
+import { z } from "zod";
 
-import {
-  getPlanningCenterIdentityFromAccessToken,
-  type PlanningCenterIdentity,
-} from "@/lib/auth/planning-center-identity";
+import { getPlanningCenterIdentityFromAccessToken } from "@/lib/auth/planning-center-identity";
+import type { PlanningCenterIdentity } from "@/lib/auth/planning-center-identity";
 import { db } from "@/lib/db";
+import { isNonEmptyString } from "@/lib/json";
 import { getPlanningCenterAccountIdentity } from "@/lib/use-cases/admin/planning-center-account-identities";
 
-export type AdminAccountActivity = {
+export interface AdminAccountActivity {
   userId: string;
   name: string;
   email: string;
@@ -25,9 +25,9 @@ export type AdminAccountActivity = {
   firstLoginAt: string | null;
   lastLoginAt: string | null;
   lastActivityAt: string | null;
-};
+}
 
-export type AdminLinkedAccount = {
+export interface AdminLinkedAccount {
   id: string;
   providerAccountId: string;
   providerId: string;
@@ -41,76 +41,81 @@ export type AdminLinkedAccount = {
   firstActivityAt: string | null;
   lastActivityAt: string | null;
   identity: PlanningCenterIdentity | null;
-};
+}
 
 export type AdminUserAccountDetail = AdminAccountActivity & {
   linkedAccountDetails: AdminLinkedAccount[];
 };
 
-type AccountActivityRow = {
-  user_id: string;
-  name: string;
-  email: string;
-  image: string | null;
-  created_at: Date | string;
-  updated_at: Date | string;
-  linked_accounts: number | string;
-  providers: string[] | null;
-  active_sessions: number | string;
-  login_events: number | string;
-  login_events_7d: number | string;
-  login_events_30d: number | string;
-  sign_out_events: number | string;
-  activity_events: number | string;
-  first_login_at: Date | string | null;
-  last_login_at: Date | string | null;
-  last_activity_at: Date | string | null;
-};
+const databaseDateSchema = z.union([z.date(), z.string()]);
+const databaseCountSchema = z.union([z.number(), z.string()]);
+const accountActivityRowSchema = z.object({
+  user_id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  image: z.string().nullable(),
+  created_at: databaseDateSchema,
+  updated_at: databaseDateSchema,
+  linked_accounts: databaseCountSchema,
+  providers: z.array(z.string()).nullable(),
+  active_sessions: databaseCountSchema,
+  login_events: databaseCountSchema,
+  login_events_7d: databaseCountSchema,
+  login_events_30d: databaseCountSchema,
+  sign_out_events: databaseCountSchema,
+  activity_events: databaseCountSchema,
+  first_login_at: databaseDateSchema.nullable(),
+  last_login_at: databaseDateSchema.nullable(),
+  last_activity_at: databaseDateSchema.nullable(),
+});
+const linkedAccountRowSchema = z.object({
+  id: z.string(),
+  provider_account_id: z.string(),
+  provider_id: z.string(),
+  created_at: databaseDateSchema,
+  updated_at: databaseDateSchema,
+  scope: z.string().nullable(),
+  access_token_expires_at: databaseDateSchema.nullable(),
+  refresh_token_expires_at: databaseDateSchema.nullable(),
+  access_token: z.string().nullable(),
+  activity_events: databaseCountSchema,
+  linked_events: databaseCountSchema,
+  first_activity_at: databaseDateSchema.nullable(),
+  last_activity_at: databaseDateSchema.nullable(),
+});
 
-type LinkedAccountRow = {
-  id: string;
-  provider_account_id: string;
-  provider_id: string;
-  created_at: Date | string;
-  updated_at: Date | string;
-  scope: string | null;
-  access_token_expires_at: Date | string | null;
-  refresh_token_expires_at: Date | string | null;
-  access_token: string | null;
-  activity_events: number | string;
-  linked_events: number | string;
-  first_activity_at: Date | string | null;
-  last_activity_at: Date | string | null;
-};
+const toNumber = Number;
 
-function toNumber(value: number | string): number {
-  return typeof value === "number" ? value : Number(value);
-}
-
-function toIsoString(value: Date | string | null): string | null {
-  if (!value) return null;
+const toIsoString = (value: Date | string | null): string | null => {
+  if (value === null) {
+    return null;
+  }
   return value instanceof Date
     ? value.toISOString()
     : new Date(value).toISOString();
-}
+};
 
-export function getAdminEmailAllowlist(): string[] {
+export const getAdminEmailAllowlist = (): string[] => {
   const configured = process.env.WORSHIP_ADMIN_ADMIN_EMAILS;
-  if (!configured) return ["jakebodea@gmail.com"];
+  if (!isNonEmptyString(configured)) {
+    return ["jakebodea@gmail.com"];
+  }
 
   return configured
     .split(",")
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
-}
+};
 
-export function isAdminEmail(email: string | null | undefined): boolean {
-  if (!email) return false;
+export const isAdminEmail = (email: string | null | undefined): boolean => {
+  if (!isNonEmptyString(email)) {
+    return false;
+  }
   return getAdminEmailAllowlist().includes(email.toLowerCase());
-}
+};
 
-export async function getAccountActivity(): Promise<AdminAccountActivity[]> {
-  const { rows } = await db.execute<AccountActivityRow>(sql`
+export const getAccountActivity = async (): Promise<AdminAccountActivity[]> => {
+  const { rows } = await db.execute(sql`
     with linked_accounts as (
       select
         "userId" as user_id,
@@ -173,35 +178,40 @@ export async function getAccountActivity(): Promise<AdminAccountActivity[]> {
     order by a.last_login_at desc nulls last, u."createdAt" desc;
   `);
 
-  return rows.map((row) => ({
-    userId: row.user_id,
-    name: row.name,
-    email: row.email,
-    image: row.image,
-    createdAt: toIsoString(row.created_at) ?? "",
-    updatedAt: toIsoString(row.updated_at) ?? "",
-    linkedAccounts: toNumber(row.linked_accounts),
-    providers: row.providers ?? [],
-    activeSessions: toNumber(row.active_sessions),
-    loginEvents: toNumber(row.login_events),
-    loginEvents7d: toNumber(row.login_events_7d),
-    loginEvents30d: toNumber(row.login_events_30d),
-    signOutEvents: toNumber(row.sign_out_events),
-    activityEvents: toNumber(row.activity_events),
-    firstLoginAt: toIsoString(row.first_login_at),
-    lastLoginAt: toIsoString(row.last_login_at),
-    lastActivityAt: toIsoString(row.last_activity_at),
-  }));
-}
+  return accountActivityRowSchema
+    .array()
+    .parse(rows)
+    .map((row) => ({
+      userId: row.user_id,
+      name: row.name,
+      email: row.email,
+      image: row.image,
+      createdAt: toIsoString(row.created_at) ?? "",
+      updatedAt: toIsoString(row.updated_at) ?? "",
+      linkedAccounts: toNumber(row.linked_accounts),
+      providers: row.providers ?? [],
+      activeSessions: toNumber(row.active_sessions),
+      loginEvents: toNumber(row.login_events),
+      loginEvents7d: toNumber(row.login_events_7d),
+      loginEvents30d: toNumber(row.login_events_30d),
+      signOutEvents: toNumber(row.sign_out_events),
+      activityEvents: toNumber(row.activity_events),
+      firstLoginAt: toIsoString(row.first_login_at),
+      lastLoginAt: toIsoString(row.last_login_at),
+      lastActivityAt: toIsoString(row.last_activity_at),
+    }));
+};
 
-export async function getUserAccountDetail(
+export const getUserAccountDetail = async (
   userId: string
-): Promise<AdminUserAccountDetail | null> {
+): Promise<AdminUserAccountDetail | null> => {
   const accounts = await getAccountActivity();
   const user = accounts.find((account) => account.userId === userId);
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
 
-  const { rows } = await db.execute<LinkedAccountRow>(
+  const { rows } = await db.execute(
     sql`
       select
         a.id,
@@ -234,30 +244,33 @@ export async function getUserAccountDetail(
   );
 
   const linkedAccountDetails = await Promise.all(
-    rows.map(async (row) => {
-      const storedIdentity = await getPlanningCenterAccountIdentity(row.id);
-      return {
-        id: row.id,
-        providerAccountId: row.provider_account_id,
-        providerId: row.provider_id,
-        createdAt: toIsoString(row.created_at) ?? "",
-        updatedAt: toIsoString(row.updated_at) ?? "",
-        scope: row.scope,
-        accessTokenExpiresAt: toIsoString(row.access_token_expires_at),
-        refreshTokenExpiresAt: toIsoString(row.refresh_token_expires_at),
-        activityEvents: toNumber(row.activity_events),
-        linkedEvents: toNumber(row.linked_events),
-        firstActivityAt: toIsoString(row.first_activity_at),
-        lastActivityAt: toIsoString(row.last_activity_at),
-        identity:
-          storedIdentity ??
-          (await getPlanningCenterIdentityFromAccessToken(row.access_token)),
-      };
-    })
+    linkedAccountRowSchema
+      .array()
+      .parse(rows)
+      .map(async (row) => {
+        const storedIdentity = await getPlanningCenterAccountIdentity(row.id);
+        return {
+          id: row.id,
+          providerAccountId: row.provider_account_id,
+          providerId: row.provider_id,
+          createdAt: toIsoString(row.created_at) ?? "",
+          updatedAt: toIsoString(row.updated_at) ?? "",
+          scope: row.scope,
+          accessTokenExpiresAt: toIsoString(row.access_token_expires_at),
+          refreshTokenExpiresAt: toIsoString(row.refresh_token_expires_at),
+          activityEvents: toNumber(row.activity_events),
+          linkedEvents: toNumber(row.linked_events),
+          firstActivityAt: toIsoString(row.first_activity_at),
+          lastActivityAt: toIsoString(row.last_activity_at),
+          identity:
+            storedIdentity ??
+            (await getPlanningCenterIdentityFromAccessToken(row.access_token)),
+        };
+      })
   );
 
   return {
     ...user,
     linkedAccountDetails,
   };
-}
+};

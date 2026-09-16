@@ -1,23 +1,24 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { getScheduleHistory } from "@/lib/use-cases/planning-center/get-schedule-history";
+import type { ScheduleHistoryDependencies } from "@/lib/use-cases/planning-center/get-schedule-history";
 
-const { getPersonSchedulesMock } = vi.hoisted(() => ({
-  getPersonSchedulesMock: vi.fn(),
-}));
+const createFixture = () => {
+  const getPersonSchedulesMock =
+    vi.fn<ScheduleHistoryDependencies["peopleService"]["getPersonSchedules"]>();
+  const resolveTimeZoneMock = vi
+    .fn<ScheduleHistoryDependencies["resolveTimeZone"]>()
+    .mockResolvedValue("UTC");
+  const dependencies = {
+    peopleService: { getPersonSchedules: getPersonSchedulesMock },
+    resolveTimeZone: resolveTimeZoneMock,
+  } satisfies ScheduleHistoryDependencies;
+  return { getPersonSchedulesMock, dependencies };
+};
 
-vi.mock("@/lib/planning-center/resolve-organization-timezone", () => ({
-  resolveOrganizationTimeZone: vi.fn(() => Promise.resolve("UTC")),
-}));
-
-vi.mock("@/lib/planning-center/services/people-service", () => ({
-  planningCenterPeopleService: {
-    getPersonSchedules: getPersonSchedulesMock,
-  },
-}));
-
-describe("getScheduleHistory", () => {
+describe(getScheduleHistory, () => {
   it("includes confirmed records and computes frequency", async () => {
+    const { getPersonSchedulesMock, dependencies } = createFixture();
     const now = new Date();
     const iso = (offsetDays: number) => {
       const d = new Date(now);
@@ -113,8 +114,11 @@ describe("getScheduleHistory", () => {
       ],
     });
 
-    const result = await getScheduleHistory("person-1", 90);
-    expect(result.planPeople.map((p) => p.id)).toEqual(["sch-3", "sch-1"]);
+    const result = await getScheduleHistory("person-1", 90, dependencies);
+    expect(result.planPeople.map((p) => p.id)).toStrictEqual([
+      "sch-3",
+      "sch-1",
+    ]);
     expect(result.frequency.recentServedDays).toBe(2);
     expect(result.frequency.totalServed).toBe(2);
   });

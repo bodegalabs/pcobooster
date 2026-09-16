@@ -1,40 +1,36 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
+import type { JsonObject } from "@/lib/json";
+import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { PlanningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 import type { PCResource } from "@/lib/types";
 
-function resource(
+const resource = (
   id: string,
   type: string,
-  attributes: Record<string, unknown> = {}
-): PCResource {
-  return {
-    id,
-    type,
-    attributes,
-  };
-}
+  attributes: JsonObject = {}
+): PCResource => ({
+  id,
+  type,
+  attributes,
+});
 
 describe("PlanningCenterPeopleService.getAllPeople", () => {
   it("loads every directory page, caches by account, and returns independent copies", async () => {
     let scope = "account-a";
+    const core = new PlanningCenterCoreClient();
     const fetchAll = vi
-      .fn()
+      .spyOn(core, "fetchAll")
       .mockResolvedValue([
         resource("person-1", "Person", { first_name: "Original" }),
       ]);
-    const service = new PlanningCenterPeopleService({
-      fetchAll,
-      getCacheScope: () => scope,
-    } as unknown as PlanningCenterCoreClient);
+    vi.spyOn(core, "getCacheScope").mockImplementation(() => scope);
+    const service = new PlanningCenterPeopleService(core);
     const first = await service.getAllPeople();
     first[0].attributes.first_name = "Changed";
-    expect((await service.getAllPeople())[0].attributes.first_name).toBe(
-      "Original"
-    );
-    expect(fetchAll).toHaveBeenCalledTimes(1);
-    expect(fetchAll).toHaveBeenCalledWith(
+    const second = await service.getAllPeople();
+    expect(second[0].attributes.first_name).toBe("Original");
+    expect(fetchAll).toHaveBeenCalledExactlyOnceWith(
       "/people/v2/people",
       {},
       Number.POSITIVE_INFINITY
@@ -47,19 +43,15 @@ describe("PlanningCenterPeopleService.getAllPeople", () => {
 
 describe("PlanningCenterPeopleService.getPlanTeamMembers", () => {
   it("uses fetchAllWithIncluded so large rosters are not truncated to the first page", async () => {
+    const core = new PlanningCenterCoreClient();
     const fetchAllWithIncluded = vi
-      .fn()
+      .spyOn(core, "fetchAllWithIncluded")
       .mockResolvedValue({ data: [], included: [] });
-    const core = {
-      fetchAllWithIncluded,
-      getCacheScope: () => "test-scope",
-    } as unknown as PlanningCenterCoreClient;
     const service = new PlanningCenterPeopleService(core);
 
     await service.getPlanTeamMembers("st-123", "plan-456");
 
-    expect(fetchAllWithIncluded).toHaveBeenCalledTimes(1);
-    expect(fetchAllWithIncluded).toHaveBeenCalledWith(
+    expect(fetchAllWithIncluded).toHaveBeenCalledExactlyOnceWith(
       "/services/v2/service_types/st-123/plans/plan-456/team_members",
       { include: "person,team,plan", per_page: "100" },
       25
@@ -69,18 +61,17 @@ describe("PlanningCenterPeopleService.getPlanTeamMembers", () => {
 
 describe("PlanningCenterPeopleService.getPersonTeamPositionAssignments", () => {
   it("caches assignment validation reads used by schedule POST", async () => {
-    const fetch = vi.fn().mockResolvedValue({ data: [], included: [] });
-    const core = {
-      fetch,
-      getCacheScope: () => "test-scope",
-    } as unknown as PlanningCenterCoreClient;
+    const core = new PlanningCenterCoreClient();
+    const fetch = vi.spyOn(core, "fetchCollection").mockResolvedValue({
+      data: [],
+      included: [],
+    });
     const service = new PlanningCenterPeopleService(core);
 
     await service.getPersonTeamPositionAssignments("person-123");
     await service.getPersonTeamPositionAssignments("person-123");
 
-    expect(fetch).toHaveBeenCalledTimes(1);
-    expect(fetch).toHaveBeenCalledWith(
+    expect(fetch).toHaveBeenCalledExactlyOnceWith(
       "/services/v2/people/person-123/person_team_position_assignments?include=team_position,team_position.team"
     );
   });
@@ -88,47 +79,38 @@ describe("PlanningCenterPeopleService.getPersonTeamPositionAssignments", () => {
 
 describe("PlanningCenterPeopleService.searchPeopleByName", () => {
   it("caches normalized people search reads and returns mutation-safe copies", async () => {
-    const buildUrl = vi.fn(
-      (_path: string, params: Record<string, string>) =>
-        `/people/v2/people?search=${params["where[search_name]"]}&limit=${params.per_page}`
-    );
-    const fetch = vi.fn().mockResolvedValue({
+    const core = new PlanningCenterCoreClient();
+    const fetch = vi.spyOn(core, "fetchCollection").mockResolvedValue({
       data: [resource("person-1", "Person", { first_name: "Andrew" })],
     });
-    const core = {
-      buildUrl,
-      fetch,
-      getCacheScope: () => "test-scope",
-    } as unknown as PlanningCenterCoreClient;
     const service = new PlanningCenterPeopleService(core);
 
     const first = await service.searchPeopleByName("  Andrew  ");
     first[0].attributes.first_name = "Mutated";
     const second = await service.searchPeopleByName("andrew");
 
-    expect(buildUrl).toHaveBeenCalledTimes(1);
-    expect(buildUrl).toHaveBeenCalledWith("/people/v2/people", {
+    expect(fetch).toHaveBeenCalledOnce();
+    const requestedUrl = new URL(fetch.mock.calls[0][0]);
+    expect(requestedUrl.pathname).toBe("/people/v2/people");
+    expect(Object.fromEntries(requestedUrl.searchParams)).toStrictEqual({
       "where[search_name]": "Andrew",
       order: "last_name,first_name",
       per_page: "15",
     });
-    expect(fetch).toHaveBeenCalledTimes(1);
-    expect(fetch).toHaveBeenCalledWith(
-      "/people/v2/people?search=Andrew&limit=15"
-    );
     expect(second[0].attributes.first_name).toBe("Andrew");
   });
 });
 
 describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
   it("caches team roster reads and returns mutation-safe copies", async () => {
+    const core = new PlanningCenterCoreClient();
     const fetchAll = vi
-      .fn()
+      .spyOn(core, "fetchAll")
       .mockResolvedValue([
         resource("team-1", "Team", { name: "Band" }),
         resource("team-2", "Team", { name: "Hosts" }),
       ]);
-    const fetch = vi.fn(async (endpoint: string) => {
+    const responseForEndpoint = (endpoint: string) => {
       if (endpoint.includes("/teams/team-1/")) {
         return {
           data: [
@@ -168,12 +150,13 @@ describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
           }),
         ],
       };
-    });
-    const core = {
-      fetch,
-      fetchAll,
-      getCacheScope: () => "test-scope",
-    } as unknown as PlanningCenterCoreClient;
+    };
+    const fetch = vi
+      .spyOn(core, "fetchCollection")
+      .mockImplementation(
+        async (endpoint: string) =>
+          await Promise.resolve(responseForEndpoint(endpoint))
+      );
     const service = new PlanningCenterPeopleService(core);
 
     const first = await service.getAllPeopleFromTeams();
@@ -181,30 +164,25 @@ describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
     first.teamNamesByPersonId.get("person-1")?.add("Mutated Team");
     const second = await service.getAllPeopleFromTeams();
 
-    expect(fetchAll).toHaveBeenCalledTimes(1);
+    expect(fetchAll).toHaveBeenCalledOnce();
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(second.people).toHaveLength(1);
     expect(second.people[0].attributes.first_name).toBe("Alex");
-    expect([...(second.teamNamesByPersonId.get("person-1") ?? [])]).toEqual([
-      "Band",
-      "Hosts",
-    ]);
+    expect([
+      ...(second.teamNamesByPersonId.get("person-1") ?? []),
+    ]).toStrictEqual(["Band", "Hosts"]);
   });
 });
 
 describe("PlanningCenterPeopleService.updatePlanPersonStatus", () => {
   it("invalidates cached plan team members when plan context is available", async () => {
+    const core = new PlanningCenterCoreClient();
     const fetchAllWithIncluded = vi
-      .fn()
+      .spyOn(core, "fetchAllWithIncluded")
       .mockResolvedValue({ data: [], included: [] });
-    const fetch = vi.fn().mockResolvedValue({
+    const fetch = vi.spyOn(core, "fetch").mockResolvedValue({
       data: { id: "pp-123", type: "PlanPerson", attributes: {} },
     });
-    const core = {
-      fetch,
-      fetchAllWithIncluded,
-      getCacheScope: () => "test-scope",
-    } as unknown as PlanningCenterCoreClient;
     const service = new PlanningCenterPeopleService(core);
 
     await service.getPlanTeamMembers("st-789", "plan-101");
@@ -239,17 +217,13 @@ describe("PlanningCenterPeopleService.updatePlanPersonStatus", () => {
 
 describe("PlanningCenterPeopleService.updatePlanPersonTimes", () => {
   it("patches PlanPerson time relationships and invalidates cached plan members", async () => {
+    const core = new PlanningCenterCoreClient();
     const fetchAllWithIncluded = vi
-      .fn()
+      .spyOn(core, "fetchAllWithIncluded")
       .mockResolvedValue({ data: [], included: [] });
-    const fetch = vi.fn().mockResolvedValue({
+    const fetch = vi.spyOn(core, "fetch").mockResolvedValue({
       data: { id: "pp-123", type: "PlanPerson", attributes: {} },
     });
-    const core = {
-      fetch,
-      fetchAllWithIncluded,
-      getCacheScope: () => "test-scope",
-    } as unknown as PlanningCenterCoreClient;
     const service = new PlanningCenterPeopleService(core);
 
     await service.getPlanTeamMembers("st-789", "plan-101");
@@ -294,13 +268,10 @@ describe("PlanningCenterPeopleService.updatePlanPersonTimes", () => {
 
 describe("PlanningCenterPeopleService.invalidateScheduleReadCaches", () => {
   it("clears cached plan team members and person schedules for conflict reconciliation", async () => {
+    const core = new PlanningCenterCoreClient();
     const fetchAllWithIncluded = vi
-      .fn()
+      .spyOn(core, "fetchAllWithIncluded")
       .mockResolvedValue({ data: [], included: [] });
-    const core = {
-      fetchAllWithIncluded,
-      getCacheScope: () => "test-scope",
-    } as unknown as PlanningCenterCoreClient;
     const service = new PlanningCenterPeopleService(core);
 
     await service.getPlanTeamMembers("st-789", "plan-101");
@@ -319,12 +290,12 @@ describe("PlanningCenterPeopleService.invalidateScheduleReadCaches", () => {
 
     expect(
       fetchAllWithIncluded.mock.calls.filter(([endpoint]) =>
-        String(endpoint).includes("/plans/plan-101/team_members")
+        endpoint.includes("/plans/plan-101/team_members")
       )
     ).toHaveLength(2);
     expect(
       fetchAllWithIncluded.mock.calls.filter(([endpoint]) =>
-        String(endpoint).includes("/people/person-456/schedules")
+        endpoint.includes("/people/person-456/schedules")
       )
     ).toHaveLength(2);
   });
@@ -332,17 +303,13 @@ describe("PlanningCenterPeopleService.invalidateScheduleReadCaches", () => {
 
 describe("PlanningCenterPeopleService.getPlanPlanTimes", () => {
   it("fetches all plan times through the shared cache-backed endpoint", async () => {
-    const fetchAll = vi.fn().mockResolvedValue([]);
-    const core = {
-      fetchAll,
-      getCacheScope: () => "test-scope",
-    } as unknown as PlanningCenterCoreClient;
+    const core = new PlanningCenterCoreClient();
+    const fetchAll = vi.spyOn(core, "fetchAll").mockResolvedValue([]);
     const service = new PlanningCenterPeopleService(core);
 
     await service.getPlanPlanTimes("plan-456");
 
-    expect(fetchAll).toHaveBeenCalledTimes(1);
-    expect(fetchAll).toHaveBeenCalledWith(
+    expect(fetchAll).toHaveBeenCalledExactlyOnceWith(
       "/services/v2/plans/plan-456/plan_times",
       { per_page: "200" }
     );
@@ -351,13 +318,10 @@ describe("PlanningCenterPeopleService.getPlanPlanTimes", () => {
 
 describe("PlanningCenterPeopleService.deletePlanPerson", () => {
   it("uses the plan team_members endpoint when plan context is available", async () => {
+    const core = new PlanningCenterCoreClient();
     const request = vi
-      .fn()
+      .spyOn(core, "request")
       .mockResolvedValue(new Response(null, { status: 204 }));
-    const core = {
-      request,
-      getCacheScope: () => "test-scope",
-    } as unknown as PlanningCenterCoreClient;
     const service = new PlanningCenterPeopleService(core);
 
     await service.deletePlanPerson("pp-123", {
@@ -373,13 +337,10 @@ describe("PlanningCenterPeopleService.deletePlanPerson", () => {
   });
 
   it("falls back to the person-scoped plan_people endpoint without plan context", async () => {
+    const core = new PlanningCenterCoreClient();
     const request = vi
-      .fn()
+      .spyOn(core, "request")
       .mockResolvedValue(new Response(null, { status: 204 }));
-    const core = {
-      request,
-      getCacheScope: () => "test-scope",
-    } as unknown as PlanningCenterCoreClient;
     const service = new PlanningCenterPeopleService(core);
 
     await service.deletePlanPerson("pp-123", {

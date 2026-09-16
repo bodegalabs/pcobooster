@@ -1,129 +1,139 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { isNonEmptyString } from "@/lib/json";
 import type { PCResource } from "@/lib/types";
 import { getNeededTeamPositionsForPlan } from "@/lib/use-cases/planning-center/get-team-positions";
+import type { TeamPositionDependencies } from "@/lib/use-cases/planning-center/get-team-positions";
 
-const mocks = vi.hoisted(() => ({
-  getServiceTypeTeamPositionsWithTeams: vi.fn(),
-  getPlanNeededPositionsWithTeams: vi.fn(),
-  getServiceTypePlanNeededPositionsWithTeams: vi.fn(),
-  getPlanTeamMembers: vi.fn(),
-  getPlanForServiceTypeWithSeries: vi.fn(),
-}));
-
-vi.mock("@/lib/planning-center/services/catalog-service", () => ({
-  planningCenterCatalogService: {
+const createFixture = () => {
+  const mocks = {
     getServiceTypeTeamPositionsWithTeams:
-      mocks.getServiceTypeTeamPositionsWithTeams,
-    getPlanNeededPositionsWithTeams: mocks.getPlanNeededPositionsWithTeams,
+      vi.fn<
+        TeamPositionDependencies["catalogService"]["getServiceTypeTeamPositionsWithTeams"]
+      >(),
+    getPlanNeededPositionsWithTeams:
+      vi.fn<
+        TeamPositionDependencies["catalogService"]["getPlanNeededPositionsWithTeams"]
+      >(),
     getServiceTypePlanNeededPositionsWithTeams:
-      mocks.getServiceTypePlanNeededPositionsWithTeams,
-  },
-}));
-
-vi.mock("@/lib/planning-center/services/people-service", () => ({
-  planningCenterPeopleService: {
-    getPlanTeamMembers: mocks.getPlanTeamMembers,
-  },
-}));
-
-vi.mock("@/lib/planning-center/services/plans-service", () => ({
-  planningCenterPlansService: {
-    getPlanForServiceTypeWithSeries: mocks.getPlanForServiceTypeWithSeries,
-  },
-}));
-
-function team(id: string, name: string): PCResource {
-  return {
-    type: "Team",
-    id,
-    attributes: {
-      name,
-      sequence: 1,
-      rehearsal_team: false,
-      archived_at: null,
-    },
+      vi.fn<
+        TeamPositionDependencies["catalogService"]["getServiceTypePlanNeededPositionsWithTeams"]
+      >(),
+    getPlanTeamMembers:
+      vi.fn<TeamPositionDependencies["peopleService"]["getPlanTeamMembers"]>(),
+    getPlanForServiceTypeWithSeries:
+      vi.fn<
+        TeamPositionDependencies["plansService"]["getPlanForServiceTypeWithSeries"]
+      >(),
   };
-}
-
-function teamPosition(id: string, teamId: string, name: string): PCResource {
-  return {
-    type: "TeamPosition",
-    id,
-    attributes: { name },
-    relationships: {
-      team: {
-        data: { type: "Team", id: teamId },
-      },
+  const dependencies = {
+    catalogService: {
+      getServiceTypeTeamPositionsWithTeams:
+        mocks.getServiceTypeTeamPositionsWithTeams,
+      getPlanNeededPositionsWithTeams: mocks.getPlanNeededPositionsWithTeams,
+      getServiceTypePlanNeededPositionsWithTeams:
+        mocks.getServiceTypePlanNeededPositionsWithTeams,
     },
-  };
-}
+    peopleService: { getPlanTeamMembers: mocks.getPlanTeamMembers },
+    plansService: {
+      getPlanForServiceTypeWithSeries: mocks.getPlanForServiceTypeWithSeries,
+    },
+  } satisfies TeamPositionDependencies;
+  return { mocks, dependencies };
+};
 
-function neededPosition(
+const team = (id: string, name: string): PCResource => ({
+  type: "Team",
+  id,
+  attributes: {
+    name,
+    sequence: 1,
+    rehearsal_team: false,
+    archived_at: null,
+  },
+});
+
+const teamPosition = (
+  id: string,
+  teamId: string,
+  name: string
+): PCResource => ({
+  type: "TeamPosition",
+  id,
+  attributes: { name },
+  relationships: {
+    team: {
+      data: { type: "Team", id: teamId },
+    },
+  },
+});
+
+const neededPosition = (
   id: string,
   teamId: string,
   teamPositionName: string,
   quantity: number
-): PCResource {
-  return {
-    type: "NeededPosition",
-    id,
-    attributes: { team_position_name: teamPositionName, quantity },
-    relationships: {
-      team: {
-        data: { type: "Team", id: teamId },
-      },
+): PCResource => ({
+  type: "NeededPosition",
+  id,
+  attributes: { team_position_name: teamPositionName, quantity },
+  relationships: {
+    team: {
+      data: { type: "Team", id: teamId },
     },
-  };
-}
+  },
+});
 
-function person(id: string, firstName: string, lastName: string): PCResource {
-  return {
-    type: "Person",
-    id,
-    attributes: {
-      first_name: firstName,
-      last_name: lastName,
-      photo_url: null,
-      photo_thumbnail_url: null,
-      archived_at: null,
-    },
-  };
-}
+const person = (
+  id: string,
+  firstName: string,
+  lastName: string
+): PCResource => ({
+  type: "Person",
+  id,
+  attributes: {
+    first_name: firstName,
+    last_name: lastName,
+    photo_url: null,
+    photo_thumbnail_url: null,
+    archived_at: null,
+  },
+});
 
-function planTeamMember(params: {
+const planTeamMember = (params: {
   id: string;
   teamId: string;
   teamPositionName: string;
   status: string;
   personId?: string;
-}): PCResource {
-  return {
-    type: "PlanPerson",
-    id: params.id,
-    attributes: {
-      status: params.status,
-      created_at: "2026-01-01T00:00:00Z",
-      team_position_name: params.teamPositionName,
+}): PCResource => ({
+  type: "PlanPerson",
+  id: params.id,
+  attributes: {
+    status: params.status,
+    created_at: "2026-01-01T00:00:00Z",
+    team_position_name: params.teamPositionName,
+  },
+  relationships: {
+    team: {
+      data: { type: "Team", id: params.teamId },
     },
-    relationships: {
-      team: {
-        data: { type: "Team", id: params.teamId },
-      },
-      ...(params.personId
-        ? {
-            person: {
-              data: { type: "Person", id: params.personId },
-            },
-          }
-        : {}),
-    },
-  };
-}
+    ...(isNonEmptyString(params.personId)
+      ? {
+          person: {
+            data: { type: "Person", id: params.personId },
+          },
+        }
+      : undefined),
+  },
+});
 
-describe("getNeededTeamPositionsForPlan", () => {
+describe(getNeededTeamPositionsForPlan, () => {
+  let mocks: ReturnType<typeof createFixture>["mocks"];
+  let dependencies: ReturnType<typeof createFixture>["dependencies"];
+
   beforeEach(() => {
-    vi.clearAllMocks();
+    ({ mocks, dependencies } = createFixture());
     mocks.getPlanTeamMembers.mockResolvedValue({ data: [], included: [] });
   });
 
@@ -140,9 +150,12 @@ describe("getNeededTeamPositionsForPlan", () => {
     mocks.getServiceTypePlanNeededPositionsWithTeams.mockResolvedValue({
       data: [
         neededPosition("np-1", "team-band", "Vocals", 1),
-        neededPosition("np-2", "team-band", " vocals ", 2), // duplicate after normalization
-        neededPosition("np-3", "team-band", "Guitar", 0), // ignored
-        neededPosition("np-4", "team-band", "Keys", 1), // unmatched
+        // Duplicate after normalization.
+        neededPosition("np-2", "team-band", " vocals ", 2),
+        // Ignored because quantity is zero.
+        neededPosition("np-3", "team-band", "Guitar", 0),
+        // No matching team position.
+        neededPosition("np-4", "team-band", "Keys", 1),
         neededPosition("np-5", "team-media", "Slides", 1),
       ],
       included: [team("team-band", "Band"), team("team-media", "Media")],
@@ -152,14 +165,19 @@ describe("getNeededTeamPositionsForPlan", () => {
       included: [],
     });
 
-    const result = await getNeededTeamPositionsForPlan("st-1", "plan-1");
+    const result = await getNeededTeamPositionsForPlan(
+      "st-1",
+      "plan-1",
+      undefined,
+      dependencies
+    );
 
     expect(
       mocks.getServiceTypePlanNeededPositionsWithTeams
     ).toHaveBeenCalledWith("st-1", "plan-1");
     expect(mocks.getPlanForServiceTypeWithSeries).not.toHaveBeenCalled();
     expect(mocks.getPlanNeededPositionsWithTeams).not.toHaveBeenCalled();
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
         teamId: "team-band",
         teamName: "Band",
@@ -221,7 +239,8 @@ describe("getNeededTeamPositionsForPlan", () => {
     const result = await getNeededTeamPositionsForPlan(
       "st-1",
       "plan-1",
-      "series-123"
+      "series-123",
+      dependencies
     );
 
     expect(mocks.getPlanForServiceTypeWithSeries).not.toHaveBeenCalled();
@@ -259,7 +278,12 @@ describe("getNeededTeamPositionsForPlan", () => {
       included: [team("team-1", "Band")],
     });
 
-    const result = await getNeededTeamPositionsForPlan("st-1", "plan-1");
+    const result = await getNeededTeamPositionsForPlan(
+      "st-1",
+      "plan-1",
+      undefined,
+      dependencies
+    );
 
     expect(
       mocks.getServiceTypePlanNeededPositionsWithTeams
@@ -323,12 +347,17 @@ describe("getNeededTeamPositionsForPlan", () => {
       ],
     });
 
-    const result = await getNeededTeamPositionsForPlan("st-1", "plan-1");
+    const result = await getNeededTeamPositionsForPlan(
+      "st-1",
+      "plan-1",
+      undefined,
+      dependencies
+    );
     const vocals = result[0]?.positions.find((p) => p.name === "Vocals");
 
     expect(vocals?.filledConfirmedCount).toBe(1);
     expect(vocals?.filledPendingCount).toBe(1);
-    expect(vocals?.filledPeople).toEqual([
+    expect(vocals?.filledPeople).toStrictEqual([
       {
         id: "person-1",
         planPersonId: "pp-confirmed",
@@ -381,7 +410,12 @@ describe("getNeededTeamPositionsForPlan", () => {
       included: [team("team-1", "Band")],
     });
 
-    const result = await getNeededTeamPositionsForPlan("st-1", "plan-1");
+    const result = await getNeededTeamPositionsForPlan(
+      "st-1",
+      "plan-1",
+      undefined,
+      dependencies
+    );
     const drums = result[0]?.positions[0];
 
     expect(drums?.neededCount).toBe(1);
@@ -415,9 +449,14 @@ describe("getNeededTeamPositionsForPlan", () => {
       ],
     });
 
-    const result = await getNeededTeamPositionsForPlan("st-1", "plan-1");
+    const result = await getNeededTeamPositionsForPlan(
+      "st-1",
+      "plan-1",
+      undefined,
+      dependencies
+    );
 
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
         teamId: "team-leaders",
         teamName: "Leaders and Pastor",
@@ -482,14 +521,18 @@ describe("getNeededTeamPositionsForPlan", () => {
       ],
     });
 
-    const result = await getNeededTeamPositionsForPlan("st-1", "plan-1");
+    const result = await getNeededTeamPositionsForPlan(
+      "st-1",
+      "plan-1",
+      undefined,
+      dependencies
+    );
     const youthLeader = result[0]?.positions[0];
 
     expect(youthLeader?.filledConfirmedCount).toBe(1);
     expect(youthLeader?.filledPendingCount).toBe(1);
-    expect(youthLeader?.filledPeople?.map((entry) => entry.name)).toEqual([
-      "Jake Bodea",
-      "Casey Smith",
-    ]);
+    expect(youthLeader?.filledPeople?.map((entry) => entry.name)).toStrictEqual(
+      ["Jake Bodea", "Casey Smith"]
+    );
   });
 });

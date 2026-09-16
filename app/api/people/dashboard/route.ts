@@ -4,7 +4,6 @@ import { peoplePageFlag } from "@/flags";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
 import { logger } from "@/lib/logger";
 import { getPeopleDashboard } from "@/lib/use-cases/planning-center/get-people-dashboard";
-import type { PeopleDashboardRange } from "@/lib/use-cases/planning-center/people-dashboard-types";
 import { presentDashboard } from "@/lib/use-cases/planning-center/presentation";
 
 export const dynamic = "force-dynamic";
@@ -13,9 +12,9 @@ const querySchema = z.object({
   range: z.enum(["month", "30", "90"]).optional(),
 });
 
-export async function GET(request: Request) {
+export const GET = async (request: Request) => {
   const log = logger.withRequest(request);
-  return handlePlanningCenterRoute(request, async () => {
+  return await handlePlanningCenterRoute(request, async () => {
     if (!(await peoplePageFlag())) {
       return Response.json({ error: "Not found" }, { status: 404 });
     }
@@ -33,7 +32,7 @@ export async function GET(request: Request) {
       throw parsed.error;
     }
 
-    const range = (parsed.data.range ?? "month") as PeopleDashboardRange;
+    const range = parsed.data.range ?? "month";
     const dashboard = await getPeopleDashboard({ range });
 
     log.info(
@@ -45,6 +44,6 @@ export async function GET(request: Request) {
       "People dashboard fetched"
     );
 
-    return presentDashboard(dashboard);
+    return await presentDashboard(dashboard);
   });
-}
+};

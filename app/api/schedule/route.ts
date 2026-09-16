@@ -1,5 +1,5 @@
 import { after, NextResponse } from "next/server";
-import { z } from "zod";
+import type { z } from "zod";
 
 import {
   getActivityRequestContext,
@@ -7,39 +7,32 @@ import {
 } from "@/lib/db/activity-events";
 import { ApiError } from "@/lib/http/api-error";
 import { handlePlanningCenterRoute } from "@/lib/http/planning-center-route";
+import type { JsonObject } from "@/lib/json";
 import { logger } from "@/lib/logger";
-import { planningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
 import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
-import { findIncluded } from "@/lib/planning-center/utils";
 import { isPresentationMode } from "@/lib/presentation-mode";
-import type { RawTeamPosition, RawTeam } from "@/lib/types";
 import { invalidateCandidateHistoryForPerson } from "@/lib/use-cases/planning-center/get-people-for-position";
+import {
+  schedulePerson,
+  schedulePersonSchema,
+} from "@/lib/use-cases/planning-center/schedule-person";
 
 export const dynamic = "force-dynamic";
 
-const bodySchema = z.object({
-  serviceTypeId: z.string().min(1),
-  personId: z.string().min(1),
-  planId: z.string().min(1),
-  teamId: z.string().min(1),
-  positionId: z.string().min(1),
-  teamName: z.string().trim().min(1).optional(),
-  positionName: z.string().trim().min(1).optional(),
-  oneOff: z.boolean().optional().default(false),
-});
+const bodySchema = schedulePersonSchema;
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
   const activityRequestContext = getActivityRequestContext(request);
   const requestId = activityRequestContext.requestId ?? crypto.randomUUID();
   const log = logger.withRequest(request).child({ requestId });
 
-  return handlePlanningCenterRoute(request, async (authContext) => {
+  return await handlePlanningCenterRoute(request, async (authContext) => {
     const recordScheduleEventSafely = (event: {
       success: boolean;
       statusCode: number;
       errorCode: string | null;
       input: z.infer<typeof bodySchema> | null;
-      metadata?: Record<string, unknown>;
+      metadata?: JsonObject;
     }) => {
       after(async () => {
         try {
@@ -89,140 +82,41 @@ export async function POST(request: Request) {
       const { serviceTypeId, personId, planId, teamId, positionId, oneOff } =
         requestBody;
 
-      const personAssignmentsPromise = oneOff
-        ? Promise.resolve(null)
-        : planningCenterPeopleService.getPersonTeamPositionAssignments(
-            personId
-          );
-      const teamPositionsPromise =
-        planningCenterCatalogService.getServiceTypeTeamPositionsWithTeams(
-          serviceTypeId
-        );
-      const [{ data: teamPositions, included }, personAssignments] =
-        await Promise.all([teamPositionsPromise, personAssignmentsPromise]);
-
-      const selectedPosition = teamPositions.find(
-        (p) => p.id === positionId
-      ) as
-        | (RawTeamPosition & {
-            relationships?: { team?: { data?: { id: string } } };
-          })
-        | undefined;
-      if (!selectedPosition && (!oneOff || !requestBody.positionName)) {
-        throw new ApiError(
-          400,
-          "INVALID_REQUEST",
-          "Selected position was not found for this service type"
-        );
-      }
-      const selectedPositionTeamId =
-        selectedPosition?.relationships?.team?.data?.id;
-      if (
-        selectedPosition &&
-        (!selectedPositionTeamId || selectedPositionTeamId !== teamId)
-      ) {
-        throw new ApiError(
-          400,
-          "INVALID_REQUEST",
-          "Selected position does not belong to selected team"
-        );
-      }
-
-      const selectedTeam = findIncluded(included, "Team", teamId) as
-        | RawTeam
-        | undefined;
-      if (!selectedPosition && !selectedTeam) {
-        throw new ApiError(
-          400,
-          "INVALID_REQUEST",
-          "Selected team was not found for this service type"
-        );
-      }
-      const selectedTeamName =
-        requestBody.teamName ||
-        (selectedTeam?.attributes?.name as string | undefined) ||
-        "";
-      const selectedPositionName =
-        selectedPosition?.attributes?.name || requestBody.positionName || "";
-
-      if (!oneOff) {
-        const hasPositionAssignment =
-          personAssignments?.data.some((assignment) => {
-            const rel = assignment.relationships?.team_position?.data;
-            const assignmentPositionId = Array.isArray(rel)
-              ? rel[0]?.id
-              : rel?.id;
-            return assignmentPositionId === positionId;
-          }) ?? false;
-        if (!hasPositionAssignment) {
-          throw new ApiError(
-            400,
-            "INVALID_REQUEST",
-            "Person is not assigned to the selected team position"
-          );
-        }
-      }
-
-      const data = await planningCenterPeopleService.createPlanPerson(
-        serviceTypeId,
-        personId,
-        planId,
-        teamId,
-        selectedPositionName
-      );
-      invalidateCandidateHistoryForPerson(personId);
-
-      const createdTeamPositionName =
-        (data.attributes.team_position_name as string | undefined) || "";
-      if (selectedPositionName && createdTeamPositionName) {
-        const selectedWithTeam = selectedTeamName
-          ? `${selectedTeamName} - ${selectedPositionName}`
-          : "";
-        const positionMatches =
-          createdTeamPositionName === selectedPositionName ||
-          createdTeamPositionName === selectedWithTeam ||
-          createdTeamPositionName.endsWith(` - ${selectedPositionName}`);
-        const teamMatches =
-          !selectedTeamName ||
-          createdTeamPositionName === selectedPositionName ||
-          createdTeamPositionName === selectedWithTeam ||
-          createdTeamPositionName.startsWith(`${selectedTeamName} - `);
-
-        if (!teamMatches || !positionMatches) {
-          recordScheduleEventSafely({
-            success: false,
-            statusCode: 409,
-            errorCode: "POSITION_MISMATCH",
-            input: requestBody,
-            metadata: {
-              selectedTeamName,
-              selectedPositionName,
-              createdTeamPositionName,
-              planPersonId: data.id,
-            },
-          });
-
-          return NextResponse.json(
-            {
-              error:
-                "PlanPerson was created but did not match selected team/position. Please check split-team/time settings in Planning Center.",
-              code: "POSITION_MISMATCH",
-              details: {
-                selected: {
-                  teamId,
-                  teamName: selectedTeamName,
-                  positionId,
-                  positionName: selectedPositionName,
-                },
-                created: {
-                  planPersonId: data.id,
-                  teamPositionName: createdTeamPositionName,
-                },
+      const result = await schedulePerson(requestBody);
+      const data = { id: result.id };
+      if (!result.matchesTarget) {
+        recordScheduleEventSafely({
+          success: false,
+          statusCode: 409,
+          errorCode: "POSITION_MISMATCH",
+          input: requestBody,
+          metadata: {
+            selectedTeamName: result.target.teamName,
+            selectedPositionName: result.target.positionName,
+            createdTeamPositionName: result.createdPositionName,
+            planPersonId: result.id,
+          },
+        });
+        return NextResponse.json(
+          {
+            error:
+              "PlanPerson was created but did not match selected team/position. Please check split-team/time settings in Planning Center.",
+            code: "POSITION_MISMATCH",
+            details: {
+              selected: {
+                teamId,
+                teamName: result.target.teamName,
+                positionId,
+                positionName: result.target.positionName,
+              },
+              created: {
+                planPersonId: result.id,
+                teamPositionName: result.createdPositionName,
               },
             },
-            { status: 409 }
-          );
-        }
+          },
+          { status: 409 }
+        );
       }
 
       log.info(
@@ -304,4 +198,4 @@ export async function POST(request: Request) {
       throw error;
     }
   });
-}
+};

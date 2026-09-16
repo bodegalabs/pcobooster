@@ -1,27 +1,35 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { getSongOptions } from "@/lib/use-cases/planning-center/get-song-options";
+import type { SongOptionsReader } from "@/lib/use-cases/planning-center/get-song-options";
 
-const {
-  getSongMock,
-  getSongArrangementsWithKeysMock,
-  getSongLastScheduledItemMock,
-} = vi.hoisted(() => ({
-  getSongMock: vi.fn(),
-  getSongArrangementsWithKeysMock: vi.fn(),
-  getSongLastScheduledItemMock: vi.fn(),
-}));
-
-vi.mock("@/lib/planning-center/services/songs-service", () => ({
-  planningCenterSongsService: {
+const createFixture = () => {
+  const getSongMock = vi.fn<SongOptionsReader["getSong"]>();
+  const getSongArrangementsWithKeysMock =
+    vi.fn<SongOptionsReader["getSongArrangementsWithKeys"]>();
+  const getSongLastScheduledItemMock =
+    vi.fn<SongOptionsReader["getSongLastScheduledItem"]>();
+  const songsReader = {
     getSong: getSongMock,
     getSongArrangementsWithKeys: getSongArrangementsWithKeysMock,
     getSongLastScheduledItem: getSongLastScheduledItemMock,
-  },
-}));
+  } satisfies SongOptionsReader;
+  return {
+    getSongMock,
+    getSongArrangementsWithKeysMock,
+    getSongLastScheduledItemMock,
+    songsReader,
+  };
+};
 
-describe("getSongOptions", () => {
+describe(getSongOptions, () => {
   it("prefers the last scheduled arrangement and key when available", async () => {
+    const {
+      getSongMock,
+      getSongArrangementsWithKeysMock,
+      getSongLastScheduledItemMock,
+      songsReader,
+    } = createFixture();
     getSongMock.mockResolvedValue({
       id: "song-1",
       type: "Song",
@@ -80,11 +88,11 @@ describe("getSongOptions", () => {
       ],
     });
 
-    const options = await getSongOptions("song-1", "service-1");
+    const options = await getSongOptions("song-1", "service-1", songsReader);
 
     expect(options.suggestedArrangementId).toBe("arr-1");
     expect(options.suggestedKeyId).toBe("key-1");
-    expect(options.currentLayout).toEqual({
+    expect(options.currentLayout).toStrictEqual({
       id: "layout-1",
       name: "Selected layout",
     });
@@ -92,6 +100,12 @@ describe("getSongOptions", () => {
   });
 
   it("falls back to the first non-archived arrangement and key", async () => {
+    const {
+      getSongMock,
+      getSongArrangementsWithKeysMock,
+      getSongLastScheduledItemMock,
+      songsReader,
+    } = createFixture();
     getSongMock.mockResolvedValue({
       id: "song-2",
       type: "Song",
@@ -128,7 +142,7 @@ describe("getSongOptions", () => {
       included: [],
     });
 
-    const options = await getSongOptions("song-2", "service-1");
+    const options = await getSongOptions("song-2", "service-1", songsReader);
 
     expect(options.suggestedArrangementId).toBe("arr-active");
     expect(options.suggestedKeyId).toBe("key-active");
@@ -136,6 +150,12 @@ describe("getSongOptions", () => {
   });
 
   it("builds key labels from starting and ending keys when the name is blank", async () => {
+    const {
+      getSongMock,
+      getSongArrangementsWithKeysMock,
+      getSongLastScheduledItemMock,
+      songsReader,
+    } = createFixture();
     getSongMock.mockResolvedValue({
       id: "song-3",
       type: "Song",
@@ -167,7 +187,7 @@ describe("getSongOptions", () => {
       included: [],
     });
 
-    const options = await getSongOptions("song-3", "service-1");
+    const options = await getSongOptions("song-3", "service-1", songsReader);
 
     expect(options.arrangements[0]?.keys[0]).toMatchObject({
       id: "key-1",

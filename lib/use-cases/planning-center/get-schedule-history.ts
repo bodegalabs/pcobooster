@@ -4,28 +4,41 @@ import {
 } from "@/lib/planning-center/org-calendar";
 import { resolveOrganizationTimeZone } from "@/lib/planning-center/resolve-organization-timezone";
 import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
+import type { PlanningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 import type { PlanPerson, RawSchedule, ScheduleFrequency } from "@/lib/types";
 import {
   buildFrequencyFromServiceHistory,
   buildHistoryAndFrequencyForPerson,
 } from "@/lib/use-cases/planning-center/people/history";
+import { scheduleResourceSchema } from "@/lib/use-cases/planning-center/people/resource-schemas";
 
 export interface ScheduleHistoryResult {
   planPeople: PlanPerson[];
   frequency: ScheduleFrequency;
 }
 
-function isConfirmedStatus(status: string | undefined): boolean {
-  const normalized = (status || "").toLowerCase();
-  return normalized === "confirmed" || normalized === "c";
+export interface ScheduleHistoryDependencies {
+  peopleService: Pick<PlanningCenterPeopleService, "getPersonSchedules">;
+  resolveTimeZone: typeof resolveOrganizationTimeZone;
 }
 
-export async function getScheduleHistory(
+const defaultDependencies: ScheduleHistoryDependencies = {
+  peopleService: planningCenterPeopleService,
+  resolveTimeZone: resolveOrganizationTimeZone,
+};
+
+const isConfirmedStatus = (status: string | undefined): boolean => {
+  const normalized = (status ?? "").toLowerCase();
+  return normalized === "confirmed" || normalized === "c";
+};
+
+export const getScheduleHistory = async (
   personId: string,
-  lookbackDays: number
-): Promise<ScheduleHistoryResult> {
+  lookbackDays: number,
+  dependencies: ScheduleHistoryDependencies = defaultDependencies
+): Promise<ScheduleHistoryResult> => {
   const now = new Date();
-  const orgTz = await resolveOrganizationTimeZone();
+  const orgTz = await dependencies.resolveTimeZone();
   const refDayKey = formatCalendarDayInTimeZone(now, orgTz);
   const earliestDayKey = addCalendarDaysToDayKey(
     refDayKey,
@@ -33,13 +46,19 @@ export async function getScheduleHistory(
     orgTz
   );
 
-  const historyResponse = await planningCenterPeopleService.getPersonSchedules(
+  const historyResponse = await dependencies.peopleService.getPersonSchedules(
     personId,
     {},
     3
   );
-  const schedules = historyResponse.data as unknown as RawSchedule[];
-  const historyIncluded = historyResponse.included || [];
+  const schedules: RawSchedule[] = [];
+  for (const resource of historyResponse.data) {
+    const parsed = scheduleResourceSchema.safeParse(resource);
+    if (parsed.success) {
+      schedules.push(parsed.data);
+    }
+  }
+  const historyIncluded = historyResponse.included ?? [];
 
   const historyResult = buildHistoryAndFrequencyForPerson(
     schedules,
@@ -54,8 +73,12 @@ export async function getScheduleHistory(
     isConfirmedStatus(item.status)
   );
 
-  const planPeople: PlanPerson[] = confirmedHistory
-    .map((item) => ({
+  const planPeople: PlanPerson[] = [];
+  for (const item of confirmedHistory) {
+    if (formatCalendarDayInTimeZone(item.date, orgTz) < earliestDayKey) {
+      continue;
+    }
+    planPeople.push({
       id: item.id,
       status: item.status,
       createdAt: item.date,
@@ -63,11 +86,9 @@ export async function getScheduleHistory(
       planTitle: item.planTitle,
       planDate: item.date,
       declineReason: undefined,
-    }))
-    .filter(
-      (pp) => formatCalendarDayInTimeZone(pp.createdAt, orgTz) >= earliestDayKey
-    )
-    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    });
+  }
+  planPeople.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   const frequency = buildFrequencyFromServiceHistory(
     confirmedHistory,
@@ -79,4 +100,4 @@ export async function getScheduleHistory(
     planPeople: planPeople.slice(0, 20),
     frequency,
   };
-}
+};

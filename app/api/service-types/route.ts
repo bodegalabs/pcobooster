@@ -8,8 +8,8 @@ export const dynamic = "force-dynamic";
 
 const log = logger.for("api/service-types");
 
-export async function GET(request: NextRequest) {
-  return handlePlanningCenterRoute(request, async ({ session }) => {
+export const GET = async (request: NextRequest) =>
+  await handlePlanningCenterRoute(request, async ({ session }) => {
     log.info("Fetching service types");
     const serviceTypes = await getServiceTypes();
 
@@ -19,4 +19,3 @@ export async function GET(request: NextRequest) {
     );
     return serviceTypes;
   });
-}

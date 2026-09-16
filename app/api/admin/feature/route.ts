@@ -9,8 +9,8 @@ import { isAdminEmail } from "@/lib/use-cases/admin/get-account-activity";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
-  return handleRoute(async () => {
+export const GET = async (request: Request) =>
+  await handleRoute(async () => {
     const session = isDevAuthBypassEnabled()
       ? getDevBypassSession(await loadDevBypassIdentity())
       : await auth.api.getSession({
@@ -21,4 +21,3 @@ export async function GET(request: Request) {
       enabled: isAdminEmail(session?.user.email),
     };
   });
-}

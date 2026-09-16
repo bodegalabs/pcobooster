@@ -3,9 +3,8 @@ import { resolveOrganizationTimeZone } from "@/lib/planning-center/resolve-organ
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
-  return handlePlanningCenterRoute(request, async () => {
+export const GET = async (request: Request) =>
+  await handlePlanningCenterRoute(request, async () => {
     const timeZone = await resolveOrganizationTimeZone();
     return { timeZone };
   });
-}

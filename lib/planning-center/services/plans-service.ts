@@ -1,3 +1,5 @@
+import { isNonEmptyString } from "@/lib/json";
+import type { JsonObject } from "@/lib/json";
 import { logger } from "@/lib/logger";
 import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { formatCalendarDayInTimeZone } from "@/lib/planning-center/org-calendar";
@@ -11,16 +13,62 @@ import type { PCResource } from "@/lib/types";
 const log = logger.for("planning-center/plans");
 const PLANS_RANGE_CACHE_TTL_MS = 5 * 60 * 1000;
 
-export class PlanningCenterPlansService {
-  private readonly cache = new PlanningCenterReadCache();
+const cloneResourceResponse = (response: {
+  data: PCResource[];
+  included: PCResource[];
+}) => ({
+  data: structuredClone(response.data),
+  included: structuredClone(response.included),
+});
 
-  constructor(private readonly core: PlanningCenterCoreClient) {}
+const buildPlanTimeAssignmentRelationships = (
+  assignedTeamIds?: string[],
+  assignedPositionIds?: string[]
+) => {
+  const relationships = {
+    ...(assignedTeamIds === undefined
+      ? undefined
+      : {
+          assigned_teams: {
+            data: assignedTeamIds.map((id) => ({ type: "Team", id })),
+          },
+        }),
+    ...(assignedPositionIds === undefined
+      ? undefined
+      : {
+          assigned_positions: {
+            data: assignedPositionIds.map((id) => ({
+              type: "TeamPosition",
+              id,
+            })),
+          },
+        }),
+  };
+  return Object.keys(relationships).length > 0 ? relationships : null;
+};
+
+export class PlanningCenterPlansService {
+  private readonly rangeCache = new PlanningCenterReadCache<{
+    data: PCResource[];
+    included: PCResource[];
+  }>();
+  private readonly planTimesCache = new PlanningCenterReadCache<PCResource[]>();
+  private readonly core: PlanningCenterCoreClient;
+  private readonly resolveTimeZone: () => Promise<string>;
+
+  constructor(
+    core: PlanningCenterCoreClient,
+    resolveTimeZone: () => Promise<string> = resolveOrganizationTimeZone
+  ) {
+    this.core = core;
+    this.resolveTimeZone = resolveTimeZone;
+  }
 
   async getPlans(
     serviceTypeId: string,
     params: Record<string, string> = {}
   ): Promise<PCResource[]> {
-    return this.core.fetchAll<PCResource>(
+    return await this.core.fetchAll(
       `/services/v2/service_types/${serviceTypeId}/plans`,
       { ...params, order: "-sort_date" },
       3
@@ -48,15 +96,15 @@ export class PlanningCenterPlansService {
     serviceTypeId: string,
     afterDayKey: string,
     beforeDayKey: string,
-    include: string = ""
+    include = ""
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const orgTz = await resolveOrganizationTimeZone();
+    const orgTz = await this.resolveTimeZone();
     const params = {
       order: "sort_date",
       per_page: "100",
       filter: "after",
       after: afterDayKey,
-      ...(include ? { include } : {}),
+      ...(include ? { include } : undefined),
     };
     const cacheKey = [
       this.core.getCacheScope(),
@@ -67,7 +115,7 @@ export class PlanningCenterPlansService {
       stableParams(params),
     ].join(":");
 
-    const response = await this.cache.get(
+    const response = await this.rangeCache.get(
       cacheKey,
       PLANS_RANGE_CACHE_TTL_MS,
       async () => {
@@ -81,33 +129,37 @@ export class PlanningCenterPlansService {
           "Fetching plans in date range"
         );
 
-        const response = await this.core.fetchAllWithIncluded<PCResource>(
+        const fetched = await this.core.fetchAllWithIncluded(
           `/services/v2/service_types/${serviceTypeId}/plans`,
           params,
           3
         );
 
-        const plans = response.data.filter((plan) => {
-          const sortDateStr = plan.attributes.sort_date as string | undefined;
-          if (!sortDateStr) return false;
+        const plans = fetched.data.filter((plan) => {
+          const sortDateStr = plan.attributes.sort_date;
+          if (!isNonEmptyString(sortDateStr)) {
+            return false;
+          }
           const sortDate = new Date(sortDateStr);
-          if (Number.isNaN(sortDate.getTime())) return false;
+          if (Number.isNaN(sortDate.getTime())) {
+            return false;
+          }
           const planDay = formatCalendarDayInTimeZone(sortDate, orgTz);
           return planDay >= afterDayKey && planDay <= beforeDayKey;
         });
 
         const planIds = new Set(plans.map((plan) => plan.id));
-        const included = response.included.filter((resource) => {
+        const included = fetched.included.filter((resource) => {
           const planRel = resource.relationships?.plan?.data;
           const planId = Array.isArray(planRel) ? planRel[0]?.id : planRel?.id;
-          return !planId || planIds.has(planId);
+          return !isNonEmptyString(planId) || planIds.has(planId);
         });
 
         log.info(
           {
             serviceTypeId,
             count: plans.length,
-            rawCount: response.data.length,
+            rawCount: fetched.data.length,
             includedCount: included.length,
           },
           "Plans fetched"
@@ -120,26 +172,20 @@ export class PlanningCenterPlansService {
   }
 
   async getPlan(planId: string): Promise<PCResource> {
-    const response = await this.core.fetch<PCResource>(
-      `/services/v2/plans/${planId}`
-    );
+    const response = await this.core.fetch(`/services/v2/plans/${planId}`);
     return response.data;
   }
 
   async getPlanTimes(planId: string): Promise<PCResource[]> {
-    const planTimes = await this.cache.get(
+    const planTimes = await this.planTimesCache.get(
       this.buildCacheKey("plan-times", planId),
       PLANS_RANGE_CACHE_TTL_MS,
-      async () => {
-        return this.core.fetchAll<PCResource>(
-          `/services/v2/plans/${planId}/plan_times`,
-          {
-            order: "starts_at",
-            per_page: "200",
-            include: "split_team_rehearsal_assignments",
-          }
-        );
-      }
+      async () =>
+        await this.core.fetchAll(`/services/v2/plans/${planId}/plan_times`, {
+          order: "starts_at",
+          per_page: "200",
+          include: "split_team_rehearsal_assignments",
+        })
     );
     return structuredClone(planTimes);
   }
@@ -148,16 +194,16 @@ export class PlanningCenterPlansService {
     serviceTypeId: string,
     planId: string,
     planTimeId: string,
-    attributes: Record<string, unknown>,
+    attributes: JsonObject,
     assignedTeamIds?: string[],
     assignedPositionIds?: string[]
   ): Promise<PCResource> {
-    const relationships = this.buildPlanTimeAssignmentRelationships(
+    const relationships = buildPlanTimeAssignmentRelationships(
       assignedTeamIds,
       assignedPositionIds
     );
 
-    const response = await this.core.fetch<PCResource>(
+    const response = await this.core.fetch(
       `/services/v2/service_types/${serviceTypeId}/plan_times/${planTimeId}`,
       {
         method: "PATCH",
@@ -169,7 +215,7 @@ export class PlanningCenterPlansService {
             type: "PlanTime",
             id: planTimeId,
             attributes,
-            ...(relationships ? { relationships } : {}),
+            ...(relationships ? { relationships } : undefined),
           },
         }),
       }
@@ -181,15 +227,15 @@ export class PlanningCenterPlansService {
   async createPlanTime(
     serviceTypeId: string,
     planId: string,
-    attributes: Record<string, unknown>,
+    attributes: JsonObject,
     assignedTeamIds?: string[],
     assignedPositionIds?: string[]
   ): Promise<PCResource> {
-    const relationships = this.buildPlanTimeAssignmentRelationships(
+    const relationships = buildPlanTimeAssignmentRelationships(
       assignedTeamIds,
       assignedPositionIds
     );
-    const response = await this.core.fetch<PCResource>(
+    const response = await this.core.fetch(
       `/services/v2/service_types/${serviceTypeId}/plans/${planId}/plan_times`,
       {
         method: "POST",
@@ -200,7 +246,7 @@ export class PlanningCenterPlansService {
           data: {
             type: "PlanTime",
             attributes,
-            ...(relationships ? { relationships } : {}),
+            ...(relationships ? { relationships } : undefined),
           },
         }),
       }
@@ -214,7 +260,7 @@ export class PlanningCenterPlansService {
     planId: string,
     planTimeId: string
   ): Promise<void> {
-    await this.core.fetch<PCResource>(
+    await this.core.request(
       `/services/v2/service_types/${serviceTypeId}/plan_times/${planTimeId}`,
       {
         method: "DELETE",
@@ -227,12 +273,12 @@ export class PlanningCenterPlansService {
     serviceTypeId: string,
     planId: string
   ): Promise<{ data: PCResource; included: PCResource[] }> {
-    const response = await this.core.fetch<PCResource>(
+    const response = await this.core.fetch(
       `/services/v2/service_types/${serviceTypeId}/plans/${planId}?include=series`
     );
     return {
       data: response.data,
-      included: response.included || [],
+      included: response.included ?? [],
     };
   }
 
@@ -246,9 +292,8 @@ export class PlanningCenterPlansService {
       "",
     ].join(":");
 
-    this.cache.deleteWhere(
-      (key) => key === planTimesKey || key.startsWith(plansRangePrefix)
-    );
+    this.planTimesCache.deleteWhere((key) => key === planTimesKey);
+    this.rangeCache.deleteWhere((key) => key.startsWith(plansRangePrefix));
   }
 
   private buildCacheKey(namespace: string, ...parts: string[]): string {
@@ -258,42 +303,6 @@ export class PlanningCenterPlansService {
       ...parts.map((part) => encodeURIComponent(part)),
     ].join(":");
   }
-
-  private buildPlanTimeAssignmentRelationships(
-    assignedTeamIds?: string[],
-    assignedPositionIds?: string[]
-  ) {
-    const relationships = {
-      ...(assignedTeamIds === undefined
-        ? {}
-        : {
-            assigned_teams: {
-              data: assignedTeamIds.map((id) => ({ type: "Team", id })),
-            },
-          }),
-      ...(assignedPositionIds === undefined
-        ? {}
-        : {
-            assigned_positions: {
-              data: assignedPositionIds.map((id) => ({
-                type: "TeamPosition",
-                id,
-              })),
-            },
-          }),
-    };
-    return Object.keys(relationships).length > 0 ? relationships : null;
-  }
-}
-
-function cloneResourceResponse(response: {
-  data: PCResource[];
-  included: PCResource[];
-}): { data: PCResource[]; included: PCResource[] } {
-  return {
-    data: structuredClone(response.data),
-    included: structuredClone(response.included),
-  };
 }
 
 export const planningCenterPlansService = new PlanningCenterPlansService(

@@ -1,6 +1,8 @@
-import "server-only";
 import { createHmac } from "node:crypto";
 
+import "server-only";
+
+import { isNonEmptyString } from "@/lib/json";
 import { planningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
 import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
 import { PlanningCenterReadCache } from "@/lib/planning-center/services/read-cache";
@@ -90,7 +92,19 @@ const LAST_NAMES = [
   "West",
   "Woods",
 ];
-const organizationCache = new PlanningCenterReadCache();
+interface PresentationDependencies {
+  catalog: Pick<typeof planningCenterCatalogService, "getOrganization">;
+  people: Pick<typeof planningCenterPeopleService, "getCacheScope">;
+}
+
+const defaultDependencies: PresentationDependencies = {
+  catalog: planningCenterCatalogService,
+  people: planningCenterPeopleService,
+};
+const organizationCaches = new WeakMap<
+  PresentationDependencies["catalog"],
+  PlanningCenterReadCache<string>
+>();
 
 export interface PresentationIdentity {
   firstName: string;
@@ -102,11 +116,11 @@ export interface PresentationIdentity {
 }
 
 /** Stable across endpoints, ordering, restarts, and account token refreshes. */
-export function presentationIdentity(
+export const presentationIdentity = (
   organizationId: string,
   personId: string,
   seed: string
-): PresentationIdentity {
+): PresentationIdentity => {
   const digest = createHmac("sha256", seed)
     .update(JSON.stringify([organizationId, personId]))
     .digest();
@@ -122,65 +136,76 @@ export function presentationIdentity(
     photoUrl: null,
     photoThumbnailUrl: null,
   };
-}
+};
 
-export async function getPresentationIdentityMapper() {
-  if (!isPresentationMode()) return null;
+export const getPresentationIdentityMapper = async (
+  dependencies: PresentationDependencies = defaultDependencies
+) => {
+  if (!isPresentationMode()) {
+    return null;
+  }
+  let organizationCache = organizationCaches.get(dependencies.catalog);
+  if (!organizationCache) {
+    organizationCache = new PlanningCenterReadCache<string>();
+    organizationCaches.set(dependencies.catalog, organizationCache);
+  }
   const organizationId = await organizationCache.get(
-    planningCenterPeopleService.getCacheScope(),
+    dependencies.people.getCacheScope(),
     5 * 60 * 1000,
     async () => {
-      const organization = await planningCenterCatalogService.getOrganization();
-      if (!organization.id)
+      const organization = await dependencies.catalog.getOrganization();
+      if (!organization.id) {
         throw new Error("Missing Planning Center organization ID");
+      }
       return organization.id;
     }
   );
   const seed = getPresentationSeed();
   return (personId: string) =>
     presentationIdentity(organizationId, personId, seed);
-}
+};
 
 type IdentityMapper = (personId: string) => PresentationIdentity;
 
-function maskBlockout(blockout: Blockout): Blockout {
-  return { ...blockout, reason: "Unavailable", description: "" };
-}
+const maskBlockout = (blockout: Blockout): Blockout => ({
+  ...blockout,
+  reason: "Unavailable",
+  description: "",
+});
 
-function maskFilledPerson(
+const maskFilledPerson = (
   person: FilledPositionPerson,
   identity: IdentityMapper
-): FilledPositionPerson {
-  return {
-    ...person,
-    name: person.personId
-      ? identity(person.personId).fullName
-      : "Guest volunteer",
-    photoThumbnailUrl: null,
-  };
-}
+): FilledPositionPerson => ({
+  ...person,
+  name: isNonEmptyString(person.personId)
+    ? identity(person.personId).fullName
+    : "Guest volunteer",
+  photoThumbnailUrl: null,
+});
 
-function maskPosition(
+const maskPosition = (
   position: TeamPosition,
   identity: IdentityMapper
-): TeamPosition {
-  return {
-    ...position,
-    ...(position.filledPeople
-      ? {
-          filledPeople: position.filledPeople.map((person) =>
-            maskFilledPerson(person, identity)
-          ),
-        }
-      : {}),
-  };
-}
+): TeamPosition => ({
+  ...position,
+  ...(position.filledPeople
+    ? {
+        filledPeople: position.filledPeople.map((person) =>
+          maskFilledPerson(person, identity)
+        ),
+      }
+    : undefined),
+});
 
-export async function presentPeople(
-  people: PersonWithAvailability[]
-): Promise<PersonWithAvailability[]> {
-  const identity = await getPresentationIdentityMapper();
-  if (!identity) return people;
+export const presentPeople = async (
+  people: PersonWithAvailability[],
+  dependencies: PresentationDependencies = defaultDependencies
+): Promise<PersonWithAvailability[]> => {
+  const identity = await getPresentationIdentityMapper(dependencies);
+  if (!identity) {
+    return people;
+  }
   return people.map((person) => ({
     ...person,
     ...identity(person.id),
@@ -189,30 +214,35 @@ export async function presentPeople(
     ),
     ...(person.blockouts
       ? { blockouts: person.blockouts.map(maskBlockout) }
-      : {}),
-    selectedPlanDeclineReason: person.selectedPlanDeclineReason
+      : undefined),
+    selectedPlanDeclineReason: isNonEmptyString(
+      person.selectedPlanDeclineReason
+    )
       ? "Unavailable"
       : person.selectedPlanDeclineReason,
   }));
-}
+};
 
-export async function presentTeamPositions(
-  groups: TeamPositionGroup[]
-): Promise<TeamPositionGroup[]> {
-  const identity = await getPresentationIdentityMapper();
-  if (!identity) return groups;
+export const presentTeamPositions = async (
+  groups: TeamPositionGroup[],
+  dependencies: PresentationDependencies = defaultDependencies
+): Promise<TeamPositionGroup[]> => {
+  const identity = await getPresentationIdentityMapper(dependencies);
+  if (!identity) {
+    return groups;
+  }
   return groups.map((group) => ({
     ...group,
     positions: group.positions.map((position) =>
       maskPosition(position, identity)
     ),
   }));
-}
+};
 
-function maskDashboardPerson(
+const maskDashboardPerson = (
   person: PeopleDashboardPerson,
   identity: IdentityMapper
-): PeopleDashboardPerson {
+): PeopleDashboardPerson => {
   const alias = identity(person.id);
   return {
     ...person,
@@ -220,12 +250,13 @@ function maskDashboardPerson(
     initials: alias.initials,
     photoThumbnailUrl: null,
   };
-}
+};
 
-export async function presentDashboard(
-  data: PeopleDashboardData
-): Promise<PeopleDashboardData> {
-  const identity = await getPresentationIdentityMapper();
+export const presentDashboard = async (
+  data: PeopleDashboardData,
+  dependencies: PresentationDependencies = defaultDependencies
+): Promise<PeopleDashboardData> => {
+  const identity = await getPresentationIdentityMapper(dependencies);
   return identity
     ? {
         ...data,
@@ -234,17 +265,17 @@ export async function presentDashboard(
         ),
       }
     : data;
-}
+};
 
-export async function presentDashboardPerson(
-  data: PeopleDashboardPersonDetail
-): Promise<PeopleDashboardPersonDetail> {
-  const identity = await getPresentationIdentityMapper();
+export const presentDashboardPerson = async (
+  data: PeopleDashboardPersonDetail,
+  dependencies: PresentationDependencies = defaultDependencies
+): Promise<PeopleDashboardPersonDetail> => {
+  const identity = await getPresentationIdentityMapper(dependencies);
   return identity
     ? { ...data, person: maskDashboardPerson(data.person, identity) }
     : data;
-}
+};
 
-export function presentBlockouts(blockouts: Blockout[]): Blockout[] {
-  return isPresentationMode() ? blockouts.map(maskBlockout) : blockouts;
-}
+export const presentBlockouts = (blockouts: Blockout[]): Blockout[] =>
+  isPresentationMode() ? blockouts.map(maskBlockout) : blockouts;

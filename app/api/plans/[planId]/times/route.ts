@@ -19,12 +19,12 @@ const paramsSchema = z.object({
   planId: z.string().min(1),
 });
 
-export async function GET(
+export const GET = async (
   request: Request,
   { params }: { params: Promise<{ planId: string }> }
-) {
+) => {
   const log = logger.withRequest(request);
-  return handlePlanningCenterRoute(request, async () => {
+  return await handlePlanningCenterRoute(request, async () => {
     const parsedParams = paramsSchema.safeParse(await params);
     if (!parsedParams.success) {
       log.warn(
@@ -59,14 +59,14 @@ export async function GET(
     const planTimes = await getPlanTimes(parsedParams.data.planId);
     return serializePlanTimes(planTimes);
   });
-}
+};
 
-export async function POST(
+export const POST = async (
   request: Request,
   { params }: { params: Promise<{ planId: string }> }
-) {
+) => {
   const log = logger.withRequest(request);
-  return handlePlanningCenterRoute(request, async () => {
+  return await handlePlanningCenterRoute(request, async () => {
     const parsedParams = paramsSchema.safeParse(await params);
     if (!parsedParams.success) {
       log.warn(
@@ -81,7 +81,7 @@ export async function POST(
       );
     }
 
-    const body = await request.json();
+    const body: unknown = await request.json();
     const parsedBody = createPlanTimeBodySchema.safeParse(body);
     if (!parsedBody.success) {
       log.warn(
@@ -109,4 +109,4 @@ export async function POST(
 
     return serializePlanTime(planTime);
   });
-}
+};

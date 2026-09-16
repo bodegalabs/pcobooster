@@ -1,47 +1,67 @@
 import { planningCenterSongsService } from "@/lib/planning-center/services/songs-service";
+import type { PlanningCenterSongsService } from "@/lib/planning-center/services/songs-service";
 import type { ArrangementOption, SongOptionSet } from "@/lib/types";
 import {
   normalizeArrangementOption,
-  normalizeLayoutOption,
   normalizePlanItem,
   normalizeSongCatalogEntry,
 } from "@/lib/use-cases/planning-center/plan-items-shared";
 
-function chooseSuggestedArrangement(
+const chooseSuggestedArrangement = (
   arrangements: ArrangementOption[]
-): ArrangementOption | null {
-  return (
-    arrangements.find((arrangement) => !arrangement.archived) ??
-    arrangements[0] ??
-    null
-  );
+): ArrangementOption | null =>
+  arrangements.find((arrangement) => !arrangement.archived) ??
+  arrangements[0] ??
+  null;
+
+export interface SongOptionsReader {
+  getSong: PlanningCenterSongsService["getSong"];
+  getSongArrangementsWithKeys: PlanningCenterSongsService["getSongArrangementsWithKeys"];
+  getSongLastScheduledItem: PlanningCenterSongsService["getSongLastScheduledItem"];
 }
 
-export async function getSongOptions(
-  songId: string,
-  serviceTypeId: string
-): Promise<SongOptionSet> {
-  const [song, arrangementsResponse, lastScheduledItemResponse] =
-    await Promise.all([
-      planningCenterSongsService.getSong(songId),
-      planningCenterSongsService.getSongArrangementsWithKeys(songId),
-      planningCenterSongsService.getSongLastScheduledItem(
-        songId,
-        serviceTypeId
-      ),
-    ]);
-
-  const arrangements = arrangementsResponse.data.map((arrangement) => {
-    const arrangementKeys = arrangementsResponse.included.filter((included) => {
-      if (included.type !== "Key") return false;
+const normalizeArrangements = (
+  response: Awaited<
+    ReturnType<SongOptionsReader["getSongArrangementsWithKeys"]>
+  >
+): ArrangementOption[] =>
+  response.data.map((arrangement) => {
+    const arrangementKeys = response.included.filter((included) => {
+      if (included.type !== "Key") {
+        return false;
+      }
       const relationship = included.relationships?.arrangement?.data;
       return (
         !Array.isArray(relationship) && relationship?.id === arrangement.id
       );
     });
-
     return normalizeArrangementOption(arrangement, arrangementKeys);
   });
+
+const getSuggestedKeyId = (
+  arrangement: ArrangementOption | null,
+  lastScheduledKeyId: string | undefined
+): string | null => {
+  const lastScheduledKey =
+    lastScheduledKeyId === undefined
+      ? undefined
+      : arrangement?.keys.find((key) => key.id === lastScheduledKeyId);
+  return (lastScheduledKey ?? arrangement?.keys[0])?.id ?? null;
+};
+
+export const getSongOptions = async (
+  songId: string,
+  serviceTypeId: string,
+  songsReader: SongOptionsReader = planningCenterSongsService
+): Promise<SongOptionSet> => {
+  const [song, arrangementsResponse, lastScheduledItemResponse] =
+    await Promise.all([
+      songsReader.getSong(songId),
+      songsReader.getSongArrangementsWithKeys(songId),
+      songsReader.getSongLastScheduledItem(songId, serviceTypeId),
+    ]);
+
+  const arrangements = normalizeArrangements(arrangementsResponse);
 
   const lastScheduledItem = lastScheduledItemResponse.data
     ? normalizePlanItem(
@@ -54,17 +74,13 @@ export async function getSongOptions(
     (lastScheduledItem?.arrangement &&
       arrangements.find(
         (arrangement) => arrangement.id === lastScheduledItem.arrangement?.id
-      )) ||
+      )) ??
     chooseSuggestedArrangement(arrangements);
-  const suggestedKey =
-    (lastScheduledItem?.key &&
-      suggestedArrangement?.keys.find(
-        (key) => key.id === lastScheduledItem.key?.id
-      )) ||
-    suggestedArrangement?.keys[0] ||
-    null;
-  const currentLayout =
-    lastScheduledItem?.layout ?? normalizeLayoutOption(undefined);
+  const suggestedKeyId = getSuggestedKeyId(
+    suggestedArrangement,
+    lastScheduledItem?.key?.id
+  );
+  const currentLayout = lastScheduledItem?.layout ?? null;
 
   return {
     song: normalizeSongCatalogEntry(song),
@@ -72,8 +88,8 @@ export async function getSongOptions(
     layouts: [],
     currentLayout,
     suggestedArrangementId: suggestedArrangement?.id ?? null,
-    suggestedKeyId: suggestedKey?.id ?? null,
+    suggestedKeyId,
     suggestedLayoutId: currentLayout?.id ?? null,
     layoutMode: currentLayout ? "existing-only" : "unavailable",
   };
-}
+};

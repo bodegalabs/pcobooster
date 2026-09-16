@@ -6,15 +6,17 @@ import { logger } from "@/lib/logger";
 
 const log = logger.for("middleware");
 
-function isDevAuthBypassEnabled(): boolean {
-  if (process.env.NODE_ENV === "production") return false;
+const isDevAuthBypassEnabled = (): boolean => {
+  if (process.env.NODE_ENV === "production") {
+    return false;
+  }
   return (
     process.env.DEV_AUTH_BYPASS === "1" ||
     process.env.DEV_AUTH_BYPASS === "true"
   );
-}
+};
 
-export function proxy(request: NextRequest) {
+export const proxy = (request: NextRequest) => {
   if (isDevAuthBypassEnabled()) {
     return NextResponse.next();
   }
@@ -29,7 +31,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (sessionCookie) {
+  if (sessionCookie !== null && sessionCookie !== "") {
     return NextResponse.next();
   }
 
@@ -40,7 +42,7 @@ export function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   url.pathname = "/auth";
   return NextResponse.redirect(url);
-}
+};
 
 export const config = {
   matcher: [

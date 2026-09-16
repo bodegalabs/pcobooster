@@ -3,55 +3,51 @@ import { describe, expect, it } from "vitest";
 import type { PersonWithAvailability, ScheduleFrequency } from "@/lib/types";
 import { scoreAndNormalizePeople } from "@/lib/use-cases/planning-center/people/scoring";
 
-function baseFrequency(partial: Partial<ScheduleFrequency>): ScheduleFrequency {
-  return {
-    recentServedDays: 0,
-    last60Days: 0,
-    last90Days: 0,
-    totalServed: 0,
-    upcomingServices: 0,
-    recentRehearsalOnlyDays: 0,
-    rehearsalLast60Days: 0,
-    rehearsalLast90Days: 0,
-    totalRehearsals: 0,
-    upcomingRehearsals: 0,
-    ...partial,
-  };
-}
+const baseFrequency = (
+  partial: Partial<ScheduleFrequency>
+): ScheduleFrequency => ({
+  recentServedDays: 0,
+  last60Days: 0,
+  last90Days: 0,
+  totalServed: 0,
+  upcomingServices: 0,
+  recentRehearsalOnlyDays: 0,
+  rehearsalLast60Days: 0,
+  rehearsalLast90Days: 0,
+  totalRehearsals: 0,
+  upcomingRehearsals: 0,
+  ...partial,
+});
 
-function person(
+const person = (
   id: string,
   frequency: ScheduleFrequency
-): PersonWithAvailability {
-  return {
-    id,
-    firstName: id,
-    lastName: "Test",
-    fullName: `${id} Test`,
-    photoUrl: null,
-    photoThumbnailUrl: null,
-    archived: false,
-    positions: [],
-    frequency,
-    isBlockedForDate: false,
-  };
-}
+): PersonWithAvailability => ({
+  id,
+  firstName: id,
+  lastName: "Test",
+  fullName: `${id} Test`,
+  photoUrl: null,
+  photoThumbnailUrl: null,
+  archived: false,
+  positions: [],
+  frequency,
+  isBlockedForDate: false,
+});
 
-function personWithoutFrequency(id: string): PersonWithAvailability {
-  return {
-    id,
-    firstName: id,
-    lastName: "Test",
-    fullName: `${id} Test`,
-    photoUrl: null,
-    photoThumbnailUrl: null,
-    archived: false,
-    positions: [],
-    isBlockedForDate: false,
-  };
-}
+const personWithoutFrequency = (id: string): PersonWithAvailability => ({
+  id,
+  firstName: id,
+  lastName: "Test",
+  fullName: `${id} Test`,
+  photoUrl: null,
+  photoThumbnailUrl: null,
+  archived: false,
+  positions: [],
+  isBlockedForDate: false,
+});
 
-describe("scoreAndNormalizePeople", () => {
+describe(scoreAndNormalizePeople, () => {
   it("penalizes upcoming rehearsals less than upcoming services and explains rehearsal impact", () => {
     const referenceDate = new Date("2026-02-22T00:00:00Z");
     const nextDate = new Date("2026-02-25T00:00:00Z");

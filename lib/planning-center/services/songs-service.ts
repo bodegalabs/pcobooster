@@ -1,8 +1,6 @@
 import { logger } from "@/lib/logger";
-import {
-  PlanningCenterApiError,
-  PlanningCenterCoreClient,
-} from "@/lib/planning-center/core-client";
+import { PlanningCenterApiError } from "@/lib/planning-center/api-error";
+import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { PlanningCenterReadCache } from "@/lib/planning-center/services/read-cache";
 import type { PCResource } from "@/lib/types";
 
@@ -11,21 +9,28 @@ const DEFAULT_CATALOG_TTL_MS = 15 * 60 * 1000;
 const DEFAULT_CATALOG_MAX_PAGES = 15;
 const SONG_DETAILS_CACHE_TTL_MS = 5 * 60 * 1000;
 
-type CatalogCacheEntry = {
+interface CatalogCacheEntry {
   expiresAt: number;
   promise: Promise<PCResource[]>;
-};
+}
 
 export class PlanningCenterSongsService {
   private readonly catalogCache = new Map<string, CatalogCacheEntry>();
-  private readonly readCache = new PlanningCenterReadCache();
+  private readonly songCache = new PlanningCenterReadCache<PCResource>();
+  private readonly arrangementsCache = new PlanningCenterReadCache<{
+    data: PCResource[];
+    included: PCResource[];
+  }>();
+  private readonly core: PlanningCenterCoreClient;
 
-  constructor(private readonly core: PlanningCenterCoreClient) {}
+  constructor(core: PlanningCenterCoreClient) {
+    this.core = core;
+  }
 
   async getSongsPage(
     params: Record<string, string> = {}
   ): Promise<PCResource[]> {
-    return this.core.fetchAll<PCResource>("/services/v2/songs", params, 1);
+    return await this.core.fetchAll("/services/v2/songs", params, 1);
   }
 
   async getSongsCatalogCached(
@@ -44,35 +49,35 @@ export class PlanningCenterSongsService {
       return structuredClone(await cached.promise);
     }
 
-    const promise = this.core
-      .fetchAll<PCResource>("/services/v2/songs", { order: "title" }, maxPages)
-      .then((data) => {
-        log.info({ cacheKey, songCount: data.length }, "Songs catalog cached");
-        return data;
-      })
-      .catch((error: unknown) => {
-        if (this.catalogCache.get(cacheKey)?.promise === promise) {
-          this.catalogCache.delete(cacheKey);
-        }
-        throw error;
-      });
+    const promise = this.core.fetchAll(
+      "/services/v2/songs",
+      { order: "title" },
+      maxPages
+    );
 
     this.catalogCache.set(cacheKey, {
       expiresAt: now + ttlMs,
       promise,
     });
 
-    return structuredClone(await promise);
+    try {
+      const data = await promise;
+      log.info({ cacheKey, songCount: data.length }, "Songs catalog cached");
+      return structuredClone(data);
+    } catch (error) {
+      if (this.catalogCache.get(cacheKey)?.promise === promise) {
+        this.catalogCache.delete(cacheKey);
+      }
+      throw error;
+    }
   }
 
   async getSong(songId: string): Promise<PCResource> {
-    const resource = await this.readCache.get(
+    const resource = await this.songCache.get(
       this.buildSongCacheKey("song", songId),
       SONG_DETAILS_CACHE_TTL_MS,
       async () => {
-        const response = await this.core.fetch<PCResource>(
-          `/services/v2/songs/${songId}`
-        );
+        const response = await this.core.fetch(`/services/v2/songs/${songId}`);
         return response.data;
       }
     );
@@ -83,11 +88,11 @@ export class PlanningCenterSongsService {
   async getSongArrangementsWithKeys(
     songId: string
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const response = await this.readCache.get(
+    const response = await this.arrangementsCache.get(
       this.buildSongCacheKey("arrangements", songId),
       SONG_DETAILS_CACHE_TTL_MS,
-      () =>
-        this.core.fetchAllWithIncluded<PCResource>(
+      async () =>
+        await this.core.fetchAllWithIncluded(
           `/services/v2/songs/${songId}/arrangements`,
           { include: "keys" }
         )
@@ -104,13 +109,13 @@ export class PlanningCenterSongsService {
     serviceTypeId: string
   ): Promise<{ data: PCResource | null; included: PCResource[] }> {
     try {
-      const response = await this.core.fetch<PCResource>(
+      const response = await this.core.fetch(
         `/services/v2/songs/${songId}/last_scheduled_item?service_type=${serviceTypeId}&include=arrangement,key`
       );
 
       return {
         data: response.data,
-        included: response.included || [],
+        included: response.included ?? [],
       };
     } catch (error) {
       if (error instanceof PlanningCenterApiError && error.status === 404) {

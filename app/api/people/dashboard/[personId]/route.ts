@@ -11,16 +11,16 @@ export const dynamic = "force-dynamic";
 const querySchema = z.object({
   month: z
     .string()
-    .regex(/^\d{4}-\d{2}$/)
+    .regex(/^\d{4}-\d{2}$/u)
     .optional(),
 });
 
-export async function GET(
+export const GET = async (
   request: Request,
   { params }: { params: Promise<{ personId: string }> }
-) {
+) => {
   const log = logger.withRequest(request);
-  return handlePlanningCenterRoute(request, async () => {
+  return await handlePlanningCenterRoute(request, async () => {
     if (!(await peoplePageFlag())) {
       return Response.json({ error: "Not found" }, { status: 404 });
     }
@@ -52,6 +52,6 @@ export async function GET(
       "People dashboard detail fetched"
     );
 
-    return presentDashboardPerson(detail);
+    return await presentDashboardPerson(detail);
   });
-}
+};

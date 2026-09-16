@@ -1,4 +1,5 @@
 // Planning Center API Response Types
+import type { JsonObject, JsonValue } from "@/lib/json";
 
 export interface PCApiResponse<T> {
   data: T;
@@ -19,12 +20,12 @@ export interface PCApiResponse<T> {
 export interface PCResource {
   type: string;
   id: string;
-  attributes: Record<string, unknown>;
+  attributes: JsonObject;
   relationships?: Record<string, PCRelationship>;
 }
 
 export interface PCRelationship {
-  data?: PCResourceIdentifier | PCResourceIdentifier[];
+  data?: PCResourceIdentifier | PCResourceIdentifier[] | null;
   links?: {
     related?: string;
   };
@@ -241,7 +242,7 @@ export interface RawPlanTime {
     ends_at?: string;
     /** Planning Center may send other values; handled as opaque string when parsing. */
     time_type?: string;
-    team_reminders?: unknown;
+    team_reminders?: JsonValue;
   };
   relationships?: {
     plan?: {
@@ -294,7 +295,7 @@ export interface PlanTime {
   startsAt: Date;
   endsAt: Date | null;
   timeType: PlanTimeType;
-  teamReminders: unknown;
+  teamReminders: JsonValue;
   assignedTeamIds: string[];
   assignedPositionIds: string[];
   splitTeamRehearsalAssignmentIds: string[];
@@ -378,7 +379,7 @@ export interface RawItem {
     length?: number;
     description?: string;
     html_details?: string;
-    custom_arrangement_sequence?: unknown;
+    custom_arrangement_sequence?: JsonValue;
   };
   relationships?: {
     song?: {
@@ -415,7 +416,7 @@ export interface RawArrangement {
   id: string;
   attributes: {
     name?: string;
-    sequence?: unknown;
+    sequence?: JsonValue;
     length?: number;
     archived_at?: string | null;
   };
@@ -519,8 +520,10 @@ export interface ScheduleFrequency {
   recentServedDays: number;
   last60Days: number;
   last90Days: number;
-  lastServedDate?: Date; // Most recent service BEFORE the plan date
-  totalServed: number; // Total past services
+  // Most recent service BEFORE the plan date
+  lastServedDate?: Date;
+  // Total past services
+  totalServed: number;
 
   // Past rehearsals (before the reference/plan date)
   /** Past days with rehearsal but no service, same band as `recentServedDays`; sum with that field for unique engagement days. */
@@ -528,11 +531,12 @@ export interface ScheduleFrequency {
   rehearsalLast60Days: number;
   rehearsalLast90Days: number;
   lastRehearsalDate?: Date;
-  totalRehearsals: number;
-
   // Upcoming services (after the reference/plan date)
-  upcomingServices: number; // Number of services scheduled AFTER the plan date
-  nextUpcomingDate?: Date; // Next scheduled service AFTER the plan date
+  totalRehearsals: number;
+  // Number of services scheduled AFTER the plan date
+  upcomingServices: number;
+  // Next scheduled service AFTER the plan date
+  nextUpcomingDate?: Date;
 
   // Upcoming rehearsals (after the reference/plan date)
   upcomingRehearsals: number;

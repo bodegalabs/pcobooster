@@ -1,82 +1,173 @@
-import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { planningCenterCatalogService } from "@/lib/planning-center/services/catalog-service";
-import { planningCenterPeopleService } from "@/lib/planning-center/services/people-service";
-import { planningCenterPlansService } from "@/lib/planning-center/services/plans-service";
-import { invalidatePlanWindowHistory } from "@/lib/use-cases/planning-center/get-people-for-position";
+import { isNonEmptyString } from "@/lib/json";
+import type { invalidatePlanWindowHistory } from "@/lib/use-cases/planning-center/get-people-for-position";
 import {
   createPlanTime,
   deletePlanTime,
   getPlanTimes,
   updatePlanTime,
 } from "@/lib/use-cases/planning-center/plan-times";
+import type { PlanTimeDependencies } from "@/lib/use-cases/planning-center/plan-times";
 
-vi.mock("@/lib/planning-center/services/catalog-service", () => ({
-  planningCenterCatalogService: {
-    updateServiceTypePlanNeededPositionTime: vi.fn(),
-  },
-}));
-
-vi.mock("@/lib/planning-center/services/plans-service", () => ({
-  planningCenterPlansService: {
-    getPlanTimes: vi.fn(),
-    createPlanTime: vi.fn(),
-    updatePlanTime: vi.fn(),
-    deletePlanTime: vi.fn(),
-  },
-}));
-
-vi.mock("@/lib/planning-center/services/people-service", () => ({
-  planningCenterPeopleService: {
-    getPlanTeamMembers: vi.fn(),
-    updatePlanPersonTimes: vi.fn(),
-    invalidatePlanTimeSensitiveReadCaches: vi.fn(),
-  },
-}));
-
-vi.mock("@/lib/use-cases/planning-center/get-people-for-position", () => ({
-  invalidatePlanWindowHistory: vi.fn(),
-}));
-
-const plansServiceMock = planningCenterPlansService as unknown as {
-  getPlanTimes: Mock<typeof planningCenterPlansService.getPlanTimes>;
-  createPlanTime: Mock<typeof planningCenterPlansService.createPlanTime>;
-  updatePlanTime: Mock<typeof planningCenterPlansService.updatePlanTime>;
-  deletePlanTime: Mock<typeof planningCenterPlansService.deletePlanTime>;
+const createFixture = () => {
+  const getPlanTimesMock =
+    vi.fn<PlanTimeDependencies["plansService"]["getPlanTimes"]>();
+  const createPlanTimeMock =
+    vi.fn<PlanTimeDependencies["plansService"]["createPlanTime"]>();
+  const updatePlanTimeMock =
+    vi.fn<PlanTimeDependencies["plansService"]["updatePlanTime"]>();
+  const deletePlanTimeMock = vi
+    .fn<PlanTimeDependencies["plansService"]["deletePlanTime"]>()
+    .mockResolvedValue();
+  const updateServiceTypePlanNeededPositionTimeMock = vi
+    .fn<
+      PlanTimeDependencies["catalogService"]["updateServiceTypePlanNeededPositionTime"]
+    >()
+    .mockResolvedValue({
+      id: "needed-1",
+      type: "NeededPosition",
+      attributes: {},
+    });
+  const getPlanTeamMembersMock =
+    vi.fn<PlanTimeDependencies["peopleService"]["getPlanTeamMembers"]>();
+  const updatePlanPersonTimesMock = vi
+    .fn<PlanTimeDependencies["peopleService"]["updatePlanPersonTimes"]>()
+    .mockResolvedValue({ id: "pp-1", type: "PlanPerson", attributes: {} });
+  const invalidatePlanTimeSensitiveReadCachesMock =
+    vi.fn<
+      PlanTimeDependencies["peopleService"]["invalidatePlanTimeSensitiveReadCaches"]
+    >();
+  const invalidatePlanWindowHistoryMock =
+    vi.fn<typeof invalidatePlanWindowHistory>();
+  const dependencies = {
+    plansService: {
+      getPlanTimes: getPlanTimesMock,
+      createPlanTime: createPlanTimeMock,
+      updatePlanTime: updatePlanTimeMock,
+      deletePlanTime: deletePlanTimeMock,
+    },
+    peopleService: {
+      getPlanTeamMembers: getPlanTeamMembersMock,
+      updatePlanPersonTimes: updatePlanPersonTimesMock,
+      invalidatePlanTimeSensitiveReadCaches:
+        invalidatePlanTimeSensitiveReadCachesMock,
+    },
+    catalogService: {
+      updateServiceTypePlanNeededPositionTime:
+        updateServiceTypePlanNeededPositionTimeMock,
+    },
+  } satisfies PlanTimeDependencies;
+  return {
+    getPlanTimesMock,
+    createPlanTimeMock,
+    updatePlanTimeMock,
+    deletePlanTimeMock,
+    updateServiceTypePlanNeededPositionTimeMock,
+    getPlanTeamMembersMock,
+    updatePlanPersonTimesMock,
+    invalidatePlanTimeSensitiveReadCachesMock,
+    invalidatePlanWindowHistoryMock,
+    dependencies,
+  };
 };
-const catalogServiceMock = planningCenterCatalogService as unknown as {
-  updateServiceTypePlanNeededPositionTime: Mock<
-    typeof planningCenterCatalogService.updateServiceTypePlanNeededPositionTime
-  >;
-};
-const peopleServiceMock = planningCenterPeopleService as unknown as {
-  getPlanTeamMembers: Mock<
-    typeof planningCenterPeopleService.getPlanTeamMembers
-  >;
-  updatePlanPersonTimes: Mock<
-    typeof planningCenterPeopleService.updatePlanPersonTimes
-  >;
-  invalidatePlanTimeSensitiveReadCaches: Mock<
-    typeof planningCenterPeopleService.invalidatePlanTimeSensitiveReadCaches
-  >;
-};
-const getPlanTimesMock = plansServiceMock.getPlanTimes;
-const createPlanTimeMock = plansServiceMock.createPlanTime;
-const updatePlanTimeMock = plansServiceMock.updatePlanTime;
-const deletePlanTimeMock = plansServiceMock.deletePlanTime;
-const updateServiceTypePlanNeededPositionTimeMock =
-  catalogServiceMock.updateServiceTypePlanNeededPositionTime;
-const getPlanTeamMembersMock = peopleServiceMock.getPlanTeamMembers;
-const updatePlanPersonTimesMock = peopleServiceMock.updatePlanPersonTimes;
-const invalidatePlanTimeSensitiveReadCachesMock =
-  peopleServiceMock.invalidatePlanTimeSensitiveReadCaches;
-const invalidatePlanWindowHistoryMock = invalidatePlanWindowHistory as Mock<
-  typeof invalidatePlanWindowHistory
->;
+
+const planPerson = (
+  id: string,
+  personId: string | null,
+  teamId: string,
+  positionName: string,
+  status: string,
+  timeIds: string[]
+) => ({
+  id,
+  type: "PlanPerson" as const,
+  attributes: {
+    status,
+    created_at: "2026-05-20T00:00:00.000Z",
+    team_position_name: positionName,
+  },
+  relationships: {
+    ...(isNonEmptyString(personId)
+      ? { person: { data: { type: "Person" as const, id: personId } } }
+      : undefined),
+    team: { data: { type: "Team" as const, id: teamId } },
+    times: {
+      data: timeIds.map((timeId) => ({
+        type: "PlanTime" as const,
+        id: timeId,
+      })),
+    },
+    service_times: {
+      data: [],
+    },
+  },
+});
+
+const team = (id: string, name: string) => ({
+  id,
+  type: "Team" as const,
+  attributes: {
+    name,
+    sequence: 1,
+    rehearsal_team: false,
+    archived_at: null,
+  },
+});
+
+const person = (id: string, firstName: string, lastName: string) => ({
+  id,
+  type: "Person" as const,
+  attributes: {
+    first_name: firstName,
+    last_name: lastName,
+    photo_url: null,
+    photo_thumbnail_url: null,
+    archived_at: null,
+  },
+});
 
 describe("plan times use case", () => {
+  let getPlanTimesMock: ReturnType<typeof createFixture>["getPlanTimesMock"];
+  let createPlanTimeMock: ReturnType<
+    typeof createFixture
+  >["createPlanTimeMock"];
+  let updatePlanTimeMock: ReturnType<
+    typeof createFixture
+  >["updatePlanTimeMock"];
+  let deletePlanTimeMock: ReturnType<
+    typeof createFixture
+  >["deletePlanTimeMock"];
+  let updateServiceTypePlanNeededPositionTimeMock: ReturnType<
+    typeof createFixture
+  >["updateServiceTypePlanNeededPositionTimeMock"];
+  let getPlanTeamMembersMock: ReturnType<
+    typeof createFixture
+  >["getPlanTeamMembersMock"];
+  let updatePlanPersonTimesMock: ReturnType<
+    typeof createFixture
+  >["updatePlanPersonTimesMock"];
+  let invalidatePlanTimeSensitiveReadCachesMock: ReturnType<
+    typeof createFixture
+  >["invalidatePlanTimeSensitiveReadCachesMock"];
+  let invalidatePlanWindowHistoryMock: ReturnType<
+    typeof createFixture
+  >["invalidatePlanWindowHistoryMock"];
+  let dependencies: ReturnType<typeof createFixture>["dependencies"];
+
   beforeEach(() => {
-    vi.clearAllMocks();
+    ({
+      getPlanTimesMock,
+      createPlanTimeMock,
+      updatePlanTimeMock,
+      deletePlanTimeMock,
+      updateServiceTypePlanNeededPositionTimeMock,
+      getPlanTeamMembersMock,
+      updatePlanPersonTimesMock,
+      invalidatePlanTimeSensitiveReadCachesMock,
+      invalidatePlanWindowHistoryMock,
+      dependencies,
+    } = createFixture());
   });
 
   it("normalizes and sorts plan times", async () => {
@@ -113,9 +204,9 @@ describe("plan times use case", () => {
       },
     ]);
 
-    const planTimes = await getPlanTimes("plan-1");
+    const planTimes = await getPlanTimes("plan-1", dependencies);
 
-    expect(planTimes.map((planTime) => planTime.id)).toEqual([
+    expect(planTimes.map((planTime) => planTime.id)).toStrictEqual([
       "time-1",
       "time-2",
     ]);
@@ -141,16 +232,20 @@ describe("plan times use case", () => {
       },
     });
 
-    const planTime = await updatePlanTime({
-      serviceTypeId: "st-1",
-      planId: "plan-1",
-      planTimeId: "time-1",
-      name: "Updated",
-      startsAt: "2026-05-24T16:30:00.000Z",
-      endsAt: "2026-05-24T17:30:00.000Z",
-      timeType: "service",
-      assignedTeamIds: ["team-1", "team-2"],
-    });
+    const planTime = await updatePlanTime(
+      {
+        serviceTypeId: "st-1",
+        planId: "plan-1",
+        planTimeId: "time-1",
+        name: "Updated",
+        startsAt: "2026-05-24T16:30:00.000Z",
+        endsAt: "2026-05-24T17:30:00.000Z",
+        timeType: "service",
+        assignedTeamIds: ["team-1", "team-2"],
+      },
+      invalidatePlanWindowHistoryMock,
+      dependencies
+    );
 
     expect(updatePlanTimeMock).toHaveBeenCalledWith(
       "st-1",
@@ -168,7 +263,7 @@ describe("plan times use case", () => {
     expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith(
       "plan-1"
     );
-    expect(invalidatePlanWindowHistoryMock).toHaveBeenCalled();
+    expect(invalidatePlanWindowHistoryMock).toHaveBeenCalledWith();
     expect(planTime.timeType).toBe("service");
   });
 
@@ -184,16 +279,20 @@ describe("plan times use case", () => {
       },
     });
 
-    const planTime = await createPlanTime({
-      serviceTypeId: "st-1",
-      planId: "plan-1",
-      name: "New service",
-      startsAt: "2026-05-24T18:00:00.000Z",
-      endsAt: null,
-      timeType: "service",
-      assignedTeamIds: ["team-1"],
-      assignedPositionIds: ["position-1"],
-    });
+    const planTime = await createPlanTime(
+      {
+        serviceTypeId: "st-1",
+        planId: "plan-1",
+        name: "New service",
+        startsAt: "2026-05-24T18:00:00.000Z",
+        endsAt: null,
+        timeType: "service",
+        assignedTeamIds: ["team-1"],
+        assignedPositionIds: ["position-1"],
+      },
+      invalidatePlanWindowHistoryMock,
+      dependencies
+    );
 
     expect(createPlanTimeMock).toHaveBeenCalledWith(
       "st-1",
@@ -210,22 +309,26 @@ describe("plan times use case", () => {
     expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith(
       "plan-1"
     );
-    expect(invalidatePlanWindowHistoryMock).toHaveBeenCalled();
+    expect(invalidatePlanWindowHistoryMock).toHaveBeenCalledWith();
     expect(planTime.id).toBe("time-new");
   });
 
   it("deletes plan times and invalidates time-sensitive caches", async () => {
-    await deletePlanTime({
-      serviceTypeId: "st-1",
-      planId: "plan-1",
-      planTimeId: "time-1",
-    });
+    await deletePlanTime(
+      {
+        serviceTypeId: "st-1",
+        planId: "plan-1",
+        planTimeId: "time-1",
+      },
+      invalidatePlanWindowHistoryMock,
+      dependencies
+    );
 
     expect(deletePlanTimeMock).toHaveBeenCalledWith("st-1", "plan-1", "time-1");
     expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith(
       "plan-1"
     );
-    expect(invalidatePlanWindowHistoryMock).toHaveBeenCalled();
+    expect(invalidatePlanWindowHistoryMock).toHaveBeenCalledWith();
   });
 
   it("patches plan-level needed position time overrides", async () => {
@@ -239,13 +342,17 @@ describe("plan times use case", () => {
       },
     });
 
-    await updatePlanTime({
-      serviceTypeId: "st-1",
-      planId: "plan-1",
-      planTimeId: "time-1",
-      assignedNeededPositionIds: ["needed-1"],
-      clearedNeededPositionIds: ["needed-2"],
-    });
+    await updatePlanTime(
+      {
+        serviceTypeId: "st-1",
+        planId: "plan-1",
+        planTimeId: "time-1",
+        assignedNeededPositionIds: ["needed-1"],
+        clearedNeededPositionIds: ["needed-2"],
+      },
+      invalidatePlanWindowHistoryMock,
+      dependencies
+    );
 
     expect(updateServiceTypePlanNeededPositionTimeMock).toHaveBeenCalledWith(
       "st-1",
@@ -291,13 +398,17 @@ describe("plan times use case", () => {
       ],
     });
 
-    await updatePlanTime({
-      serviceTypeId: "st-1",
-      planId: "plan-1",
-      planTimeId: "time-2",
-      assignedPlanPersonIds: ["pp-add"],
-      clearedPlanPersonIds: ["pp-clear", "pp-declined", "pp-no-person"],
-    });
+    await updatePlanTime(
+      {
+        serviceTypeId: "st-1",
+        planId: "plan-1",
+        planTimeId: "time-2",
+        assignedPlanPersonIds: ["pp-add"],
+        clearedPlanPersonIds: ["pp-clear", "pp-declined", "pp-no-person"],
+      },
+      invalidatePlanWindowHistoryMock,
+      dependencies
+    );
 
     expect(getPlanTeamMembersMock).toHaveBeenCalledWith("st-1", "plan-1");
     expect(updatePlanPersonTimesMock).toHaveBeenCalledTimes(2);
@@ -317,64 +428,3 @@ describe("plan times use case", () => {
     });
   });
 });
-
-function planPerson(
-  id: string,
-  personId: string | null,
-  teamId: string,
-  positionName: string,
-  status: string,
-  timeIds: string[]
-) {
-  return {
-    id,
-    type: "PlanPerson" as const,
-    attributes: {
-      status,
-      created_at: "2026-05-20T00:00:00.000Z",
-      team_position_name: positionName,
-    },
-    relationships: {
-      ...(personId
-        ? { person: { data: { type: "Person" as const, id: personId } } }
-        : {}),
-      team: { data: { type: "Team" as const, id: teamId } },
-      times: {
-        data: timeIds.map((timeId) => ({
-          type: "PlanTime" as const,
-          id: timeId,
-        })),
-      },
-      service_times: {
-        data: [],
-      },
-    },
-  };
-}
-
-function team(id: string, name: string) {
-  return {
-    id,
-    type: "Team" as const,
-    attributes: {
-      name,
-      sequence: 1,
-      rehearsal_team: false,
-      archived_at: null,
-    },
-  };
-}
-
-function person(id: string, firstName: string, lastName: string) {
-  return {
-    id,
-    type: "Person" as const,
-    attributes: {
-      first_name: firstName,
-      last_name: lastName,
-      photo_url: null,
-      photo_thumbnail_url: null,
-      archived_at: null,
-    },
-  };
-}

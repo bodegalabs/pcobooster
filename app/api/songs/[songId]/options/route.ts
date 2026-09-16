@@ -12,12 +12,12 @@ const paramsSchema = z.object({
   songId: z.string().min(1),
 });
 
-export async function GET(
+export const GET = async (
   request: Request,
   { params }: { params: Promise<{ songId: string }> }
-) {
+) => {
   const log = logger.withRequest(request);
-  return handlePlanningCenterRoute(request, async () => {
+  return await handlePlanningCenterRoute(request, async () => {
     const parsedParams = paramsSchema.safeParse(await params);
     if (!parsedParams.success) {
       log.warn(
@@ -49,9 +49,9 @@ export async function GET(
       );
     }
 
-    return getSongOptions(
+    return await getSongOptions(
       parsedParams.data.songId,
       parsedQuery.data.service_type_id
     );
   });
-}
+};

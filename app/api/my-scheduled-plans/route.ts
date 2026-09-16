@@ -11,10 +11,10 @@ const requestSchema = z.object({
   planIds: z.array(z.string().min(1)).max(500),
 });
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
   const log = logger.withRequest(request);
 
-  return handlePlanningCenterRoute(request, async ({ accountId }) => {
+  return await handlePlanningCenterRoute(request, async ({ accountId }) => {
     const parsed = requestSchema.safeParse(await request.json());
     if (!parsed.success) {
       log.warn(
@@ -46,4 +46,4 @@ export async function POST(request: Request) {
 
     return { planIds: scheduledPlanIds };
   });
-}
+};

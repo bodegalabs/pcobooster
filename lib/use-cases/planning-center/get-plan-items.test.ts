@@ -1,19 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { getPlanItems } from "@/lib/use-cases/planning-center/get-plan-items";
+import type { PlanItemsReader } from "@/lib/use-cases/planning-center/get-plan-items";
 
-const { getPlanItemsMock } = vi.hoisted(() => ({
-  getPlanItemsMock: vi.fn(),
-}));
-
-vi.mock("@/lib/planning-center/services/plan-items-service", () => ({
-  planningCenterPlanItemsService: {
+const createFixture = () => {
+  const getPlanItemsMock = vi.fn<PlanItemsReader["getPlanItems"]>();
+  const planItemsReader = {
     getPlanItems: getPlanItemsMock,
-  },
-}));
+  } satisfies PlanItemsReader;
+  return { getPlanItemsMock, planItemsReader };
+};
 
-describe("getPlanItems", () => {
+describe(getPlanItems, () => {
   it("normalizes items with included song metadata and layout fallback", async () => {
+    const { getPlanItemsMock, planItemsReader } = createFixture();
     getPlanItemsMock.mockResolvedValue({
       data: [
         {
@@ -79,9 +79,9 @@ describe("getPlanItems", () => {
       ],
     });
 
-    const items = await getPlanItems("1", "2");
+    const items = await getPlanItems("1", "2", planItemsReader);
 
-    expect(items.map((item) => item.id)).toEqual(["1", "2"]);
+    expect(items.map((item) => item.id)).toStrictEqual(["1", "2"]);
     expect(items[0]).toMatchObject({
       title: "Praise",
       itemType: "song",
@@ -106,6 +106,7 @@ describe("getPlanItems", () => {
   });
 
   it("falls back to starting and ending key values when key name is blank", async () => {
+    const { getPlanItemsMock, planItemsReader } = createFixture();
     getPlanItemsMock.mockResolvedValue({
       data: [
         {
@@ -135,7 +136,7 @@ describe("getPlanItems", () => {
       ],
     });
 
-    const items = await getPlanItems("1", "2");
+    const items = await getPlanItems("1", "2", planItemsReader);
 
     expect(items[0]?.key).toMatchObject({
       id: "key-1",
