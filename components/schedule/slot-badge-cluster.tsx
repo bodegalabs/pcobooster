@@ -34,14 +34,13 @@ export const SlotBadgeCluster = ({
   const hasPending = pending > 0;
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex shrink-0 items-center gap-1">
       {filled > 0 && !allFilled ? (
         <HoverCard>
           <HoverCardTrigger
             render={
-              <button
-                type="button"
-                className="text-muted-foreground text-xs tabular-nums"
+              <span
+                className="text-muted-foreground cursor-default text-xs tabular-nums"
                 aria-label={`${filled} of ${total} filled`}
               />
             }
