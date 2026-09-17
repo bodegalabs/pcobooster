@@ -72,7 +72,7 @@
 ## Learned User Preferences
 
 - When replacing behavior, remove legacy or unused code paths instead of keeping parallel implementations.
-- Prefer shadcn HoverCard for hover-revealed UI labels/help. Do not introduce Tooltip-based hover UI; replace existing tooltips with HoverCard when touching nearby code.
+- Prefer shadcn HoverCard for hover-revealed UI labels/help. Use the default tight `HoverCardContent` (`variant="label"`) or `HoverLabel` for short text; use `variant="panel"` for richer previews. Do not introduce Tooltip-based hover UI; replace existing tooltips with HoverCard when touching nearby code.
 - For People detail pages, prefer app-shell breadcrumb navigation over in-page back buttons.
 - Prefer lightweight inline and popover edits that persist on close (click outside, Escape, Enter, or field blur where appropriate) instead of explicit Done/Save/Cancel footers. Skip success toasts for these autosaves; keep error toasts. Reuse `hooks/use-persist-on-close-popover.ts` (`usePersistOnClosePopover`, `useDraftPopover`). Opt into Enter-to-close via `enterToClose` (TanStack Hotkeys, scoped to `contentRef`); do not use Enter-to-close for Command/list popovers where Enter selects rows.
 - Keep hover, active, and selection color changes instant. Do not use `transition-colors` or `transition-plan-item`; `local/no-transition-colors` enforces this.

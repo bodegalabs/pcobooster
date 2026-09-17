@@ -265,7 +265,7 @@ const HeatmapCell = ({
           ) : null}
         </span>
       </HoverCardTrigger>
-      <HoverCardContent side="top" className="w-52">
+      <HoverCardContent side="top" variant="panel" className="w-52">
         <p className="text-xs font-medium">
           {month.label.split(" ")[0]} {day}
         </p>
@@ -362,7 +362,7 @@ const MatrixDay = ({
           >
             {dot}
           </HoverCardTrigger>
-          <HoverCardContent side="top" className="w-64">
+          <HoverCardContent side="top" variant="panel" className="w-64">
             <p className="text-xs font-medium">{person.name}</p>
             <div className="text-muted-foreground mt-1 flex items-start gap-2 text-xs">
               <span

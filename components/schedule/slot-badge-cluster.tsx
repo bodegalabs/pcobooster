@@ -48,8 +48,13 @@ export const SlotBadgeCluster = ({
           >
             {filled}/{total}
           </HoverCardTrigger>
-          <HoverCardContent align="end" side="right" className="w-80">
-            <div className="flex flex-col gap-3 p-3">
+          <HoverCardContent
+            align="end"
+            side="right"
+            variant="panel"
+            className="w-80"
+          >
+            <div className="flex flex-col gap-3">
               {confirmedPeople.length > 0 ? (
                 <SlotStatusPopoverContent
                   teamName={teamName}
