@@ -47,6 +47,7 @@ const schedule = (params: {
       team_name: params.teamName ?? "Band",
       team_position_name: params.positionName ?? "Band - Guitar",
       service_type_name: "Sunday",
+      decline_reason: null,
     },
     relationships,
   };

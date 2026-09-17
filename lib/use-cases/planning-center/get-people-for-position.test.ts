@@ -148,6 +148,7 @@ const planMemberEntry = (params: {
     status: params.status,
     created_at: "2026-02-22T00:00:00Z",
     team_position_name: params.teamPositionName,
+    decline_reason: null,
   },
   relationships: {
     person: { data: { type: "Person", id: params.personId } },
@@ -550,6 +551,79 @@ describe(getPeopleForPosition, () => {
       servedRecently: true,
       hasPreviousPlanHistory: true,
     });
+  });
+
+  it("does not collapse every candidate to 50% when shared-window PlanPeople include null decline_reason", async () => {
+    const serviceTypeId = "st-1";
+    const teamId = "team-1";
+    const positionId = "pos-bass";
+    const planId = "plan-target";
+    const previousPlanId = "plan-prev";
+    const recentPersonId = "p-recent";
+    const unusedPersonId = "p-unused";
+
+    mocks.getPeopleForTeamPosition.mockResolvedValue({
+      data: [
+        assignment("a-recent", recentPersonId),
+        assignment("a-unused", unusedPersonId),
+      ],
+      included: [
+        person(recentPersonId, "Recent", "Player"),
+        person(unusedPersonId, "Unused", "Player"),
+        teamPosition(positionId, "Bass Guitar", teamId),
+        team(teamId, "Band"),
+      ],
+    });
+    mocks.getPlansWithIncludedInDateRange.mockResolvedValue({
+      data: [
+        planEntry(previousPlanId, "2026-02-15"),
+        planEntry(planId, "2026-02-22"),
+      ],
+      included: [],
+    });
+    mocks.getPlanTeamMembers.mockImplementation(
+      async (_serviceTypeId: string, requestedPlanId: string) => {
+        if (requestedPlanId === previousPlanId) {
+          return await Promise.resolve({
+            data: [
+              planMemberEntry({
+                id: "pp-prev",
+                personId: recentPersonId,
+                planId: previousPlanId,
+                teamId,
+                status: "C",
+                teamPositionName: "Band - Bass Guitar",
+              }),
+            ],
+            included: [
+              person(recentPersonId, "Recent", "Player"),
+              team(teamId, "Band"),
+              planEntry(previousPlanId, "2026-02-15"),
+            ],
+          });
+        }
+
+        return await Promise.resolve({ data: [], included: [] });
+      }
+    );
+    mocks.getPersonBlockouts.mockResolvedValue([]);
+
+    const result = await getPeopleForPosition(
+      {
+        serviceTypeId,
+        positionId,
+        teamId,
+        planId,
+        date: "2026-02-22",
+      },
+      dependencies
+    );
+
+    const recent = result.find((row) => row.id === recentPersonId);
+    const unused = result.find((row) => row.id === unusedPersonId);
+    expect(recent?.frequency?.recentServedDays).toBeGreaterThan(0);
+    expect(unused?.frequency?.recentServedDays ?? 0).toBe(0);
+    expect(recent?.recommendationScore).not.toBe(unused?.recommendationScore);
   });
 
   it("includes adjacent history from other service types in the shared plan window", async () => {

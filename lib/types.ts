@@ -170,22 +170,22 @@ export interface RawPlanPerson {
   };
   relationships?: {
     plan?: {
-      data: PCResourceIdentifier;
+      data?: PCResourceIdentifier | null;
     };
     team?: {
-      data: PCResourceIdentifier;
+      data?: PCResourceIdentifier | null;
     };
     person?: {
-      data: PCResourceIdentifier | null;
+      data?: PCResourceIdentifier | null;
     };
     times?: {
-      data?: PCResourceIdentifier[];
+      data?: PCResourceIdentifier[] | null;
       links?: {
         related?: string;
       };
     };
     service_times?: {
-      data?: PCResourceIdentifier[];
+      data?: PCResourceIdentifier[] | null;
       links?: {
         related?: string;
       };
@@ -207,25 +207,25 @@ export interface RawSchedule {
   };
   relationships?: {
     plan?: {
-      data: PCResourceIdentifier | null;
+      data?: PCResourceIdentifier | null;
     };
     team?: {
-      data: PCResourceIdentifier | null;
+      data?: PCResourceIdentifier | null;
     };
     service_type?: {
-      data: PCResourceIdentifier | null;
+      data?: PCResourceIdentifier | null;
     };
     plan_person?: {
-      data: PCResourceIdentifier | null;
+      data?: PCResourceIdentifier | null;
     };
     plan_times?: {
-      data: PCResourceIdentifier[];
+      data?: PCResourceIdentifier[] | null;
       links?: {
         related?: string;
       };
     };
     times?: {
-      data: PCResourceIdentifier[];
+      data?: PCResourceIdentifier[] | null;
       links?: {
         related?: string;
       };
