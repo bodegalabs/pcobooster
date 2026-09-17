@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { RecommendationPopover } from "@/components/schedule/popovers/recommendation-popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,6 +18,36 @@ export type CandidateStatus =
   | "declined"
   | "blocked"
   | "available";
+
+export type ScheduleSlotStatus = "confirmed" | "scheduled" | "declined";
+
+const slotStatusRingClassName: Record<ScheduleSlotStatus, string> = {
+  confirmed: "ring-status-confirmed",
+  scheduled: "ring-status-scheduled",
+  declined: "ring-status-declined",
+};
+
+const AvatarStatusRing = ({
+  slotStatus,
+  children,
+}: {
+  slotStatus?: ScheduleSlotStatus | null;
+  children: ReactNode;
+}): ReactNode => (
+  <span
+    className={cn(
+      "inline-flex rounded-full",
+      slotStatus !== null &&
+        slotStatus !== undefined &&
+        "ring-offset-background ring-2 ring-offset-2",
+      slotStatus !== null &&
+        slotStatus !== undefined &&
+        slotStatusRingClassName[slotStatus]
+    )}
+  >
+    {children}
+  </span>
+);
 
 const recTone = (score: number): string => {
   if (score >= 80) {
@@ -42,6 +72,7 @@ const recBar = (score: number): string => {
 export const ScheduleCandidateAvatar = ({
   person,
   statusLabel,
+  slotStatus,
   isBlocked,
   isDeclined,
   isScheduledElsewhereOnPlan,
@@ -49,6 +80,7 @@ export const ScheduleCandidateAvatar = ({
 }: {
   person: PersonWithAvailability;
   statusLabel: string;
+  slotStatus?: ScheduleSlotStatus | null;
   isBlocked: boolean;
   isDeclined: boolean;
   isScheduledElsewhereOnPlan: boolean;
@@ -93,7 +125,9 @@ export const ScheduleCandidateAvatar = ({
             />
           }
         >
-          <Avatar aria-hidden>{avatarInner}</Avatar>
+          <AvatarStatusRing slotStatus={slotStatus}>
+            <Avatar aria-hidden>{avatarInner}</Avatar>
+          </AvatarStatusRing>
         </PopoverTrigger>
         <PopoverContent
           align="start"
@@ -158,10 +192,12 @@ export const ScheduleCandidateAvatar = ({
   }
 
   return (
-    <span className="relative inline-flex shrink-0 overflow-visible">
-      <Avatar title={statusLabel || undefined}>{avatarInner}</Avatar>
-      {blockedAvatarTint}
-    </span>
+    <AvatarStatusRing slotStatus={slotStatus}>
+      <span className="relative inline-flex shrink-0 overflow-visible">
+        <Avatar title={statusLabel || undefined}>{avatarInner}</Avatar>
+        {blockedAvatarTint}
+      </span>
+    </AvatarStatusRing>
   );
 };
 

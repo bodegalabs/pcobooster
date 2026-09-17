@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Loader2, MoreVertical, Trash2 } from "lucide-react";
+import { Check, Loader2, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,15 +23,32 @@ const STATUS_TO_CODE: Record<PlanPersonStatusValue, PlanPersonStatusCode> = {
   declined: "D",
 };
 
-const ITEMS: {
+const STATUS_ITEMS: {
   value: PlanPersonStatusValue;
   label: string;
   dotClassName: string;
 }[] = [
-  { value: "confirmed", label: "Confirmed", dotClassName: "bg-emerald-500" },
-  { value: "scheduled", label: "Pending", dotClassName: "bg-amber-500" },
-  { value: "declined", label: "Declined", dotClassName: "bg-red-500" },
+  {
+    value: "confirmed",
+    label: "Confirmed",
+    dotClassName: "bg-status-confirmed",
+  },
+  {
+    value: "scheduled",
+    label: "Pending",
+    dotClassName: "bg-status-scheduled",
+  },
+  {
+    value: "declined",
+    label: "Declined",
+    dotClassName: "bg-status-declined",
+  },
 ];
+
+const getPlanPersonStatusMeta = (
+  status: PlanPersonStatusValue
+): (typeof STATUS_ITEMS)[number] =>
+  STATUS_ITEMS.find((item) => item.value === status) ?? STATUS_ITEMS[1];
 
 export interface PlanPersonStatusMenuProps {
   planPersonId: string | null | undefined;
@@ -65,6 +82,9 @@ export const PlanPersonStatusMenu = ({
     onError,
   });
   const isBusy = isUpdating || isUnscheduling;
+  const currentItem = getPlanPersonStatusMeta(currentStatus);
+  const hasPlanPersonId =
+    planPersonId !== null && planPersonId !== undefined && planPersonId !== "";
 
   return (
     <DropdownMenu>
@@ -75,25 +95,26 @@ export const PlanPersonStatusMenu = ({
             variant="ghost"
             size="icon"
             className="ml-auto size-8"
-            aria-label="Change status"
-            disabled={
-              !(
-                planPersonId !== null &&
-                planPersonId !== undefined &&
-                planPersonId !== ""
-              ) || isBusy
-            }
+            aria-label={`Change status — ${currentItem.label}`}
+            title={currentItem.label}
+            disabled={!hasPlanPersonId || isBusy}
           />
         }
       >
         {isBusy ? (
           <Loader2 className="size-4 animate-spin" />
         ) : (
-          <MoreVertical className="size-4" />
+          <span
+            className={cn(
+              "animate-status-dot size-2.5 shrink-0 rounded-full",
+              currentItem.dotClassName
+            )}
+            aria-hidden
+          />
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
-        {ITEMS.map(({ value, label, dotClassName }) => (
+        {STATUS_ITEMS.map(({ value, label, dotClassName }) => (
           <DropdownMenuItem
             key={value}
             disabled={currentStatus === value}
