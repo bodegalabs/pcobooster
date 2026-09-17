@@ -90,5 +90,24 @@ export const useUpdatePlanPersonStatus = ({
     updateMutation.mutate({ planPersonId, status, context });
   };
 
-  return { isUpdating: updateMutation.isPending, updateError, handleUpdate };
+  return {
+    isUpdating: updateMutation.isPending,
+    updateError,
+    handleUpdate,
+    updateStatusAsync: async (
+      planPersonId: string | null | undefined,
+      status: PlanPersonStatusCode,
+      context?: ScheduleMutationInvalidateContext
+    ) => {
+      if (!isNonEmptyString(planPersonId)) {
+        throw new Error("Missing plan person");
+      }
+      if (updateMutation.isPending) {
+        throw new Error("Status update already in progress");
+      }
+
+      setUpdateError(null);
+      await updateMutation.mutateAsync({ planPersonId, status, context });
+    },
+  };
 };

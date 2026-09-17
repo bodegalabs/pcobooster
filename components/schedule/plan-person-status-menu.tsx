@@ -2,8 +2,13 @@
 
 import { Check, Loader2, Trash2 } from "lucide-react";
 
+import {
+  getPlanPersonStatusMeta,
+  STATUS_ITEMS,
+  STATUS_TO_CODE,
+} from "@/components/schedule/plan-person-status";
+import type { PlanPersonStatusValue } from "@/components/schedule/plan-person-status";
 import { ScheduleStatusDot } from "@/components/schedule/status-dot";
-import type { ScheduleStatusDotStatus } from "@/components/schedule/status-dot";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,42 +19,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
 import { useUpdatePlanPersonStatus } from "@/hooks/use-update-plan-person-status";
-import type { PlanPersonStatusCode } from "@/hooks/use-update-plan-person-status";
 
-export type PlanPersonStatusValue = "confirmed" | "scheduled" | "declined";
-
-const STATUS_TO_CODE: Record<PlanPersonStatusValue, PlanPersonStatusCode> = {
-  confirmed: "C",
-  scheduled: "U",
-  declined: "D",
-};
-
-const STATUS_ITEMS: {
-  value: PlanPersonStatusValue;
-  label: string;
-  status: ScheduleStatusDotStatus;
-}[] = [
-  {
-    value: "confirmed",
-    label: "Confirmed",
-    status: "confirmed",
-  },
-  {
-    value: "scheduled",
-    label: "Pending",
-    status: "scheduled",
-  },
-  {
-    value: "declined",
-    label: "Declined",
-    status: "declined",
-  },
-];
-
-const getPlanPersonStatusMeta = (
-  status: PlanPersonStatusValue
-): (typeof STATUS_ITEMS)[number] =>
-  STATUS_ITEMS.find((item) => item.value === status) ?? STATUS_ITEMS[1];
+export type { PlanPersonStatusValue } from "@/components/schedule/plan-person-status";
 
 export interface PlanPersonStatusMenuProps {
   planPersonId: string | null | undefined;

@@ -1,11 +1,10 @@
 "use client";
 
-import { CalendarDays, ChevronDown } from "lucide-react";
+import { CalendarDays, ChevronDown, Clock3 } from "lucide-react";
 import { useState } from "react";
 
-import { PersonRehearsalTimesPopover } from "@/components/schedule/person-rehearsal-times-popover";
-import { PlanPersonStatusMenu } from "@/components/schedule/plan-person-status-menu";
-import type { PlanPersonStatusValue } from "@/components/schedule/plan-person-status-menu";
+import { PlanPersonEditDialog } from "@/components/schedule/plan-person-edit-dialog";
+import { getPlanPersonStatusValue } from "@/components/schedule/plan-person-status";
 import { PositionPickerIcon } from "@/components/schedule/position-picker-icon";
 import { SlotBadgeCluster } from "@/components/schedule/slot-badge-cluster";
 import { ScheduleStatusDot } from "@/components/schedule/status-dot";
@@ -78,13 +77,17 @@ const lineupPositionPeopleClass = cn(
   "gap-y-0.5"
 );
 
-const getFilledPersonStatus = (
-  status: FilledPositionPerson["status"]
-): PlanPersonStatusValue =>
-  status === "confirmed" ? "confirmed" : "scheduled";
+const getStatusDotStatus = (
+  person: FilledPositionPerson
+): "confirmed" | "scheduled" | "declined" => {
+  const status = getPlanPersonStatusValue(person);
+  return status === "declined" ? "declined" : status;
+};
 
 const PersonRow = ({
   person,
+  teamName,
+  positionName,
   serviceTypeId,
   planId,
   seriesId,
@@ -93,43 +96,78 @@ const PersonRow = ({
   positionId,
 }: {
   person: FilledPositionPerson;
+  teamName: string;
+  positionName: string;
   serviceTypeId: string | null;
   planId: string | null;
   seriesId: string | null;
   planTimes: PlanTime[];
   teamId: string;
   positionId: string;
-}) => (
-  <li className={cn(lineupPositionRowClass, lineupPositionPersonRowClass)}>
-    <Avatar size="sm">
-      <AvatarImage
-        src={person.photoThumbnailUrl ?? undefined}
-        alt={person.name}
-      />
-      <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
-    </Avatar>
-    <span className="min-w-0 truncate text-sm">{person.name}</span>
-    <div className="flex justify-end">
-      <PersonRehearsalTimesPopover
-        display="lineup"
+}) => {
+  const [editOpen, setEditOpen] = useState(false);
+  const assignedTimeIdSet = person.assignedTimeIds
+    ? new Set(person.assignedTimeIds)
+    : new Set<string>();
+  const assignedTimeCount = planTimes.filter((planTime) =>
+    assignedTimeIdSet.has(planTime.id)
+  ).length;
+  const statusDotStatus = getStatusDotStatus(person);
+
+  return (
+    <>
+      <li className="contents">
+        <button
+          type="button"
+          className={cn(
+            lineupPositionRowClass,
+            lineupPositionPersonRowClass,
+            "cursor-pointer text-left"
+          )}
+          aria-label={`Edit ${person.name} assignment`}
+          onClick={() => {
+            setEditOpen(true);
+          }}
+        >
+          <Avatar size="sm">
+            <AvatarImage
+              src={person.photoThumbnailUrl ?? undefined}
+              alt={person.name}
+            />
+            <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
+          </Avatar>
+          <span className="min-w-0 truncate text-sm">{person.name}</span>
+          <div className="text-muted-foreground flex justify-end">
+            {planTimes.length > 0 ? (
+              <span className="inline-flex items-center gap-1 text-xs tabular-nums">
+                <Clock3 className="size-3.5 shrink-0" aria-hidden />
+                {assignedTimeCount}/{planTimes.length}
+              </span>
+            ) : null}
+          </div>
+          <ScheduleStatusDot
+            status={statusDotStatus}
+            className="justify-self-center"
+            aria-hidden
+          />
+        </button>
+      </li>
+      <PlanPersonEditDialog
         person={person}
+        teamName={teamName}
+        positionName={positionName}
+        planTimes={planTimes}
+        open={editOpen}
+        onOpenChange={setEditOpen}
         serviceTypeId={serviceTypeId}
         planId={planId}
         seriesId={seriesId}
-        planTimes={planTimes}
+        teamId={teamId}
+        positionId={positionId}
       />
-    </div>
-    <PlanPersonStatusMenu
-      planPersonId={person.planPersonId}
-      serviceTypeId={serviceTypeId}
-      personId={person.id}
-      planId={planId}
-      teamId={teamId}
-      positionId={positionId}
-      currentStatus={getFilledPersonStatus(person.status)}
-    />
-  </li>
-);
+    </>
+  );
+};
 
 const LineupPositionCard = ({
   teamId,
@@ -217,6 +255,8 @@ const LineupPositionCard = ({
                   <PersonRow
                     key={`${position.id}-${person.id}-${person.rawStatus}`}
                     person={person}
+                    teamName={teamName}
+                    positionName={position.name}
                     serviceTypeId={serviceTypeId}
                     planId={planId}
                     seriesId={seriesId}
