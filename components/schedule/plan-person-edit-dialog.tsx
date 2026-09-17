@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { startTransition, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -23,6 +23,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  SelectionPickerCheckbox,
+  SelectionPickerOption,
+  SelectionPickerShell,
+} from "@/components/ui/selection-picker";
+import { selectionPickerSectionTitleClass } from "@/components/ui/selection-picker-styles";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cache-optimism";
 import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
@@ -32,7 +38,6 @@ import { patchJson } from "@/lib/http/client";
 import { formatWallTimeInTimeZone } from "@/lib/planning-center/org-calendar";
 import { queryKeys } from "@/lib/query-keys";
 import type { FilledPositionPerson, PlanTime } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 interface PlanPersonEditDialogProps {
   person: FilledPositionPerson;
@@ -76,18 +81,6 @@ const haveSameIds = (a: string[], b: string[]): boolean => {
 const toggleId = (ids: string[], id: string): string[] =>
   ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id];
 
-const sectionTitleClass = "text-muted-foreground text-xs font-medium";
-
-const pickerShellClass = "border-border bg-muted/40 rounded-2xl border p-1.5";
-
-const pickerOptionClass = "rounded-xl outline-none";
-
-const pickerOptionSelectedClass =
-  "bg-background text-foreground shadow-xs ring-foreground/10 ring-1";
-
-const pickerOptionIdleClass =
-  "text-muted-foreground hover:bg-muted/30 hover:text-foreground";
-
 const PlanPersonStatusPicker = ({
   value,
   disabled,
@@ -98,21 +91,16 @@ const PlanPersonStatusPicker = ({
   onChange: (value: PlanPersonStatusValue) => void;
 }) => (
   <section className="flex flex-col gap-2.5">
-    <h3 className={sectionTitleClass}>Confirmation status</h3>
-    <div className={cn(pickerShellClass, "flex")}>
+    <h3 className={selectionPickerSectionTitleClass}>Confirmation status</h3>
+    <SelectionPickerShell layout="segment">
       {STATUS_ITEMS.map(({ value: itemValue, label, status }) => {
         const selected = value === itemValue;
 
         return (
-          <button
+          <SelectionPickerOption
             key={itemValue}
-            type="button"
-            aria-pressed={selected}
-            className={cn(
-              pickerOptionClass,
-              "flex min-w-0 flex-1 flex-col items-center gap-1.5 px-2 py-2.5 text-xs font-medium sm:text-sm",
-              selected ? pickerOptionSelectedClass : pickerOptionIdleClass
-            )}
+            selected={selected}
+            layout="segment"
             disabled={disabled}
             onClick={() => {
               onChange(itemValue);
@@ -120,10 +108,10 @@ const PlanPersonStatusPicker = ({
           >
             <ScheduleStatusDot status={status} aria-hidden />
             <span className="truncate">{label}</span>
-          </button>
+          </SelectionPickerOption>
         );
       })}
-    </div>
+    </SelectionPickerShell>
   </section>
 );
 
@@ -146,38 +134,21 @@ const PlanPersonTimesPicker = ({
 
   return (
     <section className="flex flex-col gap-2.5">
-      <h3 className={sectionTitleClass}>Plan times</h3>
-      <div className={cn(pickerShellClass, "flex flex-col gap-1.5")}>
+      <h3 className={selectionPickerSectionTitleClass}>Plan times</h3>
+      <SelectionPickerShell>
         {planTimes.map((planTime) => {
           const selected = selectedTimeIdSet.has(planTime.id);
 
           return (
-            <button
+            <SelectionPickerOption
               key={planTime.id}
-              type="button"
-              aria-pressed={selected}
-              className={cn(
-                pickerOptionClass,
-                "flex w-full items-start gap-3 px-3 py-2.5 text-left",
-                selected ? pickerOptionSelectedClass : pickerOptionIdleClass,
-                !canEdit && "cursor-not-allowed opacity-60"
-              )}
+              selected={selected}
               disabled={!canEdit || disabled}
               onClick={() => {
                 onToggle(planTime.id);
               }}
             >
-              <span
-                className={cn(
-                  "border-border mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-sm border",
-                  selected
-                    ? "border-foreground bg-foreground text-background"
-                    : "bg-background"
-                )}
-                aria-hidden
-              >
-                {selected ? <Check className="size-2.5" /> : null}
-              </span>
+              <SelectionPickerCheckbox selected={selected} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium">
                   {planTime.name}
@@ -186,10 +157,10 @@ const PlanPersonTimesPicker = ({
                   {formatPlanTimeScheduleLabel(planTime, timeZone)}
                 </span>
               </span>
-            </button>
+            </SelectionPickerOption>
           );
         })}
-      </div>
+      </SelectionPickerShell>
       {canEdit ? null : (
         <p className="text-muted-foreground text-xs">
           Plan times cannot be edited for this assignment.
