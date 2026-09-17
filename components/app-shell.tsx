@@ -17,7 +17,6 @@ import {
   UserAdd01Icon,
   UsersIcon,
 } from "@hugeicons/core-free-icons";
-import type { IconSvgElement } from "@hugeicons/react";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown } from "lucide-react";
@@ -42,6 +41,8 @@ import { z } from "zod";
 import { HotkeyChord } from "@/components/hotkey-chord";
 import { SidebarChromeTrigger } from "@/components/sidebar-chrome-trigger";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
+import type { SidebarTabGroupItem } from "@/components/sidebar-tab-group";
+import { SidebarTabGroup } from "@/components/sidebar-tab-group";
 import { SidebarToggleHotkey } from "@/components/sidebar-toggle-hotkey";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -74,7 +75,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
@@ -172,6 +172,8 @@ const featureSchema = z.object({ enabled: z.boolean() });
 
 const SIDEBAR_WIDTH_STORAGE_KEY = "worshipadmin:sidebar-width";
 const SIDEBAR_OPEN_STORAGE_KEY = "worshipadmin:sidebar-open";
+const APP_CHROME_ROW = "flex h-12 shrink-0 items-center gap-2";
+const APP_CHROME_HEADER_CLASS = cn(APP_CHROME_ROW, "px-2");
 const DEFAULT_SIDEBAR_WIDTH = 288;
 const MIN_SIDEBAR_WIDTH = 232;
 const MAX_SIDEBAR_WIDTH = 380;
@@ -327,6 +329,7 @@ const SidebarResizeRail = ({
 };
 
 type TopBarView = "assign" | "lineup" | "plan" | "times";
+type ServicesSidebarKey = "services" | TopBarView;
 
 const parseTopBarView = (value: string | undefined): TopBarView => {
   if (value === "lineup") {
@@ -407,6 +410,23 @@ const getTopLevelPageLabel = (pathname: string) => {
     return "People";
   }
   return "Services";
+};
+
+const AppInsetChromeHeader = ({ children }: { children: ReactNode }) => {
+  const { open, isMobile } = useSidebar();
+  const alignWithPageContent = open && !isMobile;
+
+  return (
+    <header
+      className={cn(
+        APP_CHROME_ROW,
+        "border-border/50 border-b",
+        alignWithPageContent ? "px-3 sm:px-4" : "px-2"
+      )}
+    >
+      {children}
+    </header>
+  );
 };
 
 const AppTopBar = () => {
@@ -814,37 +834,21 @@ const SidebarAccountPanel = ({
   );
 };
 
-const ServicesSidebarLink = () => {
-  const pathname = usePathname();
-
-  return (
-    <SidebarMenuButton
-      render={<Link href="/services" />}
-      isActive={pathname === "/services"}
-      tooltip="Services"
-    >
-      <SidebarNavIcon icon={Calendar01Icon} />
-      <span>Services</span>
-    </SidebarMenuButton>
-  );
+const servicesRootItem: SidebarTabGroupItem<ServicesSidebarKey> = {
+  key: "services",
+  label: "Services",
+  href: "/services",
+  icon: Calendar01Icon,
 };
 
-const PlanViewsSidebarGroup = () => {
+const ServicesSidebarMenuItem = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const planPath = getServicesPlanPath(pathname);
-
-  if (!planPath) {
-    return null;
-  }
-
-  const activeView = planPath.view;
-  const planViewItems: {
-    key: TopBarView;
-    label: string;
-    href: string;
-    icon: IconSvgElement;
-  }[] = [
+  const isPlanWorkspace = Boolean(planPath);
+  const activeScheduleView = planPath?.view ?? "assign";
+  const servicesViewItems: SidebarTabGroupItem<ServicesSidebarKey>[] = [
+    servicesRootItem,
     {
       key: "assign",
       label: "Assign",
@@ -870,27 +874,20 @@ const PlanViewsSidebarGroup = () => {
       icon: Clock01Icon,
     },
   ];
+  let servicesActiveKey: ServicesSidebarKey | null = null;
+  if (pathname === "/services") {
+    servicesActiveKey = "services";
+  } else if (isPlanWorkspace) {
+    servicesActiveKey = activeScheduleView;
+  }
 
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>Plan</SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {planViewItems.map((item) => (
-            <SidebarMenuItem key={item.key}>
-              <SidebarMenuButton
-                render={<Link href={item.href} />}
-                isActive={activeView === item.key}
-                tooltip={item.label}
-              >
-                <SidebarNavIcon icon={item.icon} />
-                <span>{item.label}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+    <SidebarTabGroup
+      activeKey={servicesActiveKey}
+      fallbackItem={servicesRootItem}
+      isGrouped={isPlanWorkspace}
+      items={isPlanWorkspace ? servicesViewItems : [servicesRootItem]}
+    />
   );
 };
 
@@ -930,8 +927,8 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
   return (
     <>
       <Sidebar variant="inset" collapsible="offcanvas">
-        <SidebarHeader>
-          <div className="border-sidebar-border/50 flex h-12 shrink-0 flex-row items-center border-b px-2">
+        <SidebarHeader size="chrome">
+          <div className={APP_CHROME_HEADER_CLASS}>
             <SidebarChromeTrigger when="sidebar" />
           </div>
         </SidebarHeader>
@@ -941,7 +938,7 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
               <SidebarMenu>
                 <SidebarMenuItem>
                   <Suspense fallback={<ServicesSidebarMenuItemFallback />}>
-                    <ServicesSidebarLink />
+                    <ServicesSidebarMenuItem />
                   </Suspense>
                 </SidebarMenuItem>
                 {peopleNavEnabled ? (
@@ -971,9 +968,6 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-          <Suspense fallback={null}>
-            <PlanViewsSidebarGroup />
-          </Suspense>
         </SidebarContent>
         <SidebarFooter>
           <div className="border-sidebar-border/50 flex flex-col gap-2 border-t pt-2">
@@ -1082,7 +1076,7 @@ export const AppShell = ({
         onWidthChange={handleSidebarWidthChange}
       />
       <SidebarInset className="min-h-0 overflow-hidden">
-        <header className="border-border/50 flex h-12 shrink-0 items-center gap-2 border-b px-3">
+        <AppInsetChromeHeader>
           <SidebarChromeTrigger when="inset" />
           <Suspense fallback={<AppTopBarFallback pathname={pathname} />}>
             <AppTopBar />
@@ -1092,7 +1086,7 @@ export const AppShell = ({
               Presentation mode
             </span>
           ) : null}
-        </header>
+        </AppInsetChromeHeader>
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
       </SidebarInset>
     </SidebarProvider>
