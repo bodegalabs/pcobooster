@@ -1,25 +1,25 @@
 "use client";
 
+import {
+  ArrowDown01Icon,
+  Calendar01Icon,
+  Clock01Icon,
+  KeyboardIcon,
+  LaptopIcon,
+  LayoutThreeColumnIcon,
+  ListMusicIcon,
+  Logout01Icon,
+  Moon02Icon,
+  Settings02Icon,
+  Shield01Icon,
+  Sun01Icon,
+  Tick02Icon,
+  UserAdd01Icon,
+  UsersIcon,
+} from "@hugeicons/core-free-icons";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  CalendarDays,
-  Check,
-  ChevronDown,
-  Clock3,
-  Columns3,
-  Keyboard,
-  Laptop,
-  ListMusic,
-  Loader2,
-  LogOut,
-  Moon,
-  Settings2,
-  Shield,
-  Sun,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -39,6 +39,7 @@ import {
 import { z } from "zod";
 
 import { HotkeyChord } from "@/components/hotkey-chord";
+import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
 import type { SidebarTabGroupItem } from "@/components/sidebar-tab-group";
 import { SidebarTabGroup } from "@/components/sidebar-tab-group";
 import { SidebarToggleHotkey } from "@/components/sidebar-toggle-hotkey";
@@ -82,6 +83,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Spinner } from "@/components/ui/spinner";
 import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import {
   ACCOUNT_PANEL_CACHE_KEY,
@@ -223,10 +225,10 @@ const fetchAdminNavFeature = async () =>
   await getJson("/api/admin/feature", featureSchema);
 
 const themeOptions = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Laptop },
-];
+  { value: "light", label: "Light", icon: Sun01Icon },
+  { value: "dark", label: "Dark", icon: Moon02Icon },
+  { value: "system", label: "System", icon: LaptopIcon },
+] as const;
 
 const SidebarResizeRail = ({
   width,
@@ -577,13 +579,11 @@ const AccountSwitcher = ({
             >
               <span className="min-w-0 flex-1 truncate">{orgName}</span>
               {switchingAccountId === account.id ? (
-                <Loader2 className="size-4 shrink-0 animate-spin" />
+                <Spinner />
               ) : (
-                <Check
-                  className={cn(
-                    "size-4 shrink-0",
-                    isSelected ? "opacity-80" : "invisible"
-                  )}
+                <SidebarNavIcon
+                  icon={Tick02Icon}
+                  className={cn(isSelected ? "opacity-80" : "invisible")}
                 />
               )}
             </DropdownMenuItem>
@@ -706,7 +706,8 @@ const SidebarAccountPanel = ({
             <span className="flex-1 truncate text-left text-sm font-medium">
               {triggerSummary.organizationName}
             </span>
-            <ChevronDown
+            <SidebarNavIcon
+              icon={ArrowDown01Icon}
               className={cn(
                 "text-muted-foreground ml-auto size-3.5 transition-transform group-data-[collapsible=icon]:hidden",
                 accountMenuOpen ? "rotate-180" : null
@@ -742,7 +743,6 @@ const SidebarAccountPanel = ({
             <DropdownMenuGroup>
               <DropdownMenuLabel>Appearance</DropdownMenuLabel>
               {themeOptions.map((option) => {
-                const Icon = option.icon;
                 const selected = (theme ?? "system") === option.value;
                 return (
                   <DropdownMenuItem
@@ -751,14 +751,14 @@ const SidebarAccountPanel = ({
                       setTheme(option.value);
                     }}
                   >
-                    <Icon
-                      className="text-muted-foreground size-4 shrink-0"
-                      aria-hidden
+                    <SidebarNavIcon
+                      icon={option.icon}
+                      className="text-muted-foreground"
                     />
                     <span>{option.label}</span>
-                    <Check
+                    <SidebarNavIcon
+                      icon={Tick02Icon}
                       className={cn(
-                        "size-4 shrink-0",
                         selected ? "ml-auto opacity-80" : "invisible ml-auto"
                       )}
                     />
@@ -774,9 +774,9 @@ const SidebarAccountPanel = ({
                 onOpenShortcuts();
               }}
             >
-              <Keyboard
-                className="text-muted-foreground size-4 shrink-0"
-                aria-hidden
+              <SidebarNavIcon
+                icon={KeyboardIcon}
+                className="text-muted-foreground"
               />
               <span className="flex-1">Keyboard shortcuts</span>
               <HotkeyChord
@@ -802,9 +802,9 @@ const SidebarAccountPanel = ({
               }}
             >
               {isSigningOut ? (
-                <Loader2 className="size-4 animate-spin" />
+                <Spinner />
               ) : (
-                <LogOut className="size-4" />
+                <SidebarNavIcon icon={Logout01Icon} />
               )}
               {isSigningOut ? "Signing out…" : "Sign out"}
             </DropdownMenuItem>
@@ -819,7 +819,7 @@ const servicesRootItem: SidebarTabGroupItem<ServicesSidebarKey> = {
   key: "services",
   label: "Services",
   href: "/services",
-  icon: CalendarDays,
+  icon: Calendar01Icon,
 };
 
 const ServicesSidebarMenuItem = () => {
@@ -834,25 +834,25 @@ const ServicesSidebarMenuItem = () => {
       key: "assign",
       label: "Assign",
       href: buildScheduleViewUrl(pathname, searchParams, "assign"),
-      icon: UserPlus,
+      icon: UserAdd01Icon,
     },
     {
       key: "lineup",
       label: "Lineup",
       href: buildScheduleViewUrl(pathname, searchParams, "lineup"),
-      icon: Columns3,
+      icon: LayoutThreeColumnIcon,
     },
     {
       key: "plan",
       label: "Plan",
       href: buildScheduleViewUrl(pathname, searchParams, "plan"),
-      icon: ListMusic,
+      icon: ListMusicIcon,
     },
     {
       key: "times",
       label: "Times",
       href: buildScheduleViewUrl(pathname, searchParams, "times"),
-      icon: Clock3,
+      icon: Clock01Icon,
     },
   ];
   let servicesActiveKey: ServicesSidebarKey | null = null;
@@ -874,7 +874,7 @@ const ServicesSidebarMenuItem = () => {
 
 const ServicesSidebarMenuItemFallback = () => (
   <SidebarMenuButton render={<Link href="/services" />} tooltip="Services">
-    <CalendarDays />
+    <SidebarNavIcon icon={Calendar01Icon} />
     <span>Services</span>
   </SidebarMenuButton>
 );
@@ -931,7 +931,7 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
                       isActive={pathname.startsWith("/people")}
                       tooltip="People"
                     >
-                      <Users />
+                      <SidebarNavIcon icon={UsersIcon} />
                       <span>People</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -943,7 +943,7 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
                       isActive={pathname.startsWith("/admin")}
                       tooltip="Admin"
                     >
-                      <Shield />
+                      <SidebarNavIcon icon={Shield01Icon} />
                       <span>Admin</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -962,7 +962,7 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
                   setShortcutsOpen(true);
                 }}
               >
-                <Settings2 />
+                <SidebarNavIcon icon={Settings02Icon} />
                 <span>Shortcuts</span>
               </SidebarMenuButton>
             </SidebarMenuItem>

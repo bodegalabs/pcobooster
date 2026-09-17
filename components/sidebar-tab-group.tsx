@@ -1,9 +1,10 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
+import type { IconSvgElement } from "@hugeicons/react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
 import {
   SidebarMenuButton,
   SidebarMenuSub,
@@ -15,7 +16,7 @@ export interface SidebarTabGroupItem<Key extends string = string> {
   key: Key;
   label: string;
   href: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
 }
 
 interface SidebarTabGroupProps<Key extends string = string> {
@@ -31,8 +32,6 @@ export const SidebarTabGroup = <Key extends string>({
   isGrouped,
   items,
 }: SidebarTabGroupProps<Key>) => {
-  const FallbackIcon = fallbackItem.icon;
-
   if (!isGrouped) {
     return (
       <SidebarMenuButton
@@ -40,7 +39,7 @@ export const SidebarTabGroup = <Key extends string>({
         isActive={activeKey === fallbackItem.key}
         tooltip={fallbackItem.label}
       >
-        <FallbackIcon />
+        <SidebarNavIcon icon={fallbackItem.icon} />
         <span>{fallbackItem.label}</span>
       </SidebarMenuButton>
     );
@@ -51,14 +50,13 @@ export const SidebarTabGroup = <Key extends string>({
     if (item.key === fallbackItem.key) {
       continue;
     }
-    const Icon = item.icon;
     groupedItems.push(
       <SidebarMenuSubItem key={item.key}>
         <SidebarMenuSubButton
           render={<Link href={item.href} />}
           isActive={activeKey === item.key}
         >
-          <Icon />
+          <SidebarNavIcon icon={item.icon} />
           <span>{item.label}</span>
         </SidebarMenuSubButton>
       </SidebarMenuSubItem>
@@ -72,7 +70,7 @@ export const SidebarTabGroup = <Key extends string>({
         isActive={activeKey === fallbackItem.key}
         tooltip={fallbackItem.label}
       >
-        <FallbackIcon />
+        <SidebarNavIcon icon={fallbackItem.icon} />
         <span>{fallbackItem.label}</span>
       </SidebarMenuButton>
       <SidebarMenuSub>{groupedItems}</SidebarMenuSub>
