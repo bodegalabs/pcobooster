@@ -1,20 +1,18 @@
 "use client";
 
-import {
-  RowsThreeIcon,
-  UnfoldMoreIcon,
-  UserAdd01Icon,
-  UsersIcon,
-} from "@hugeicons/core-free-icons";
+import { UnfoldMoreIcon, UsersIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useId, useMemo, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
+import {
+  PositionPickerIcon,
+  TeamPickerIcon,
+} from "@/components/schedule/position-picker-icon";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
   CommandList,
 } from "@/components/ui/command";
@@ -27,7 +25,10 @@ import {
 import {
   SelectionPickerCheckbox,
   SelectionPickerCommandItem,
+  SelectionPickerShell,
 } from "@/components/ui/selection-picker";
+import { selectionPickerSectionTitleClass } from "@/components/ui/selection-picker-styles";
+import { getInitials } from "@/lib/format/initials";
 import type { FilledPositionPerson, TeamPositionGroup } from "@/lib/types";
 
 export interface TimeAssignmentValue {
@@ -164,6 +165,13 @@ export const TimeAssignmentSelector = ({
     [value.planPersonIds]
   );
   const memberRows = useMemo(() => buildMemberRows(positions), [positions]);
+  const allTeamsSelected =
+    groups.length > 0 && value.teamIds.length === groups.length;
+  const hasSelection =
+    value.teamIds.length > 0 ||
+    value.positionIds.length > 0 ||
+    value.neededPositionIds.length > 0 ||
+    value.planPersonIds.length > 0;
 
   const setTeams = (teamIds: string[]) => {
     onChange({ ...value, teamIds: unique(teamIds) });
@@ -204,12 +212,12 @@ export const TimeAssignmentSelector = ({
         <HugeiconsIcon
           icon={UnfoldMoreIcon}
           strokeWidth={2}
-          className="text-muted-foreground size-4 shrink-0"
+          className="text-muted-foreground pointer-events-none size-4 shrink-0"
           aria-hidden
         />
       </PopoverTrigger>
       <PopoverContent
-        className="w-[520px] max-w-[calc(100vw-2rem)]"
+        className="w-[420px] max-w-[calc(100vw-2rem)]"
         align="start"
       >
         <div className="flex items-center justify-between px-3 py-2">
@@ -219,9 +227,7 @@ export const TimeAssignmentSelector = ({
               type="button"
               variant="ghost"
               size="xs"
-              disabled={
-                groups.length === 0 || value.teamIds.length === groups.length
-              }
+              disabled={groups.length === 0 || allTeamsSelected}
               onClick={() => {
                 setTeams(groups.map((group) => group.teamId));
               }}
@@ -232,12 +238,7 @@ export const TimeAssignmentSelector = ({
               type="button"
               variant="ghost"
               size="xs"
-              disabled={
-                value.teamIds.length === 0 &&
-                value.positionIds.length === 0 &&
-                value.neededPositionIds.length === 0 &&
-                value.planPersonIds.length === 0
-              }
+              disabled={!hasSelection}
               onClick={() => {
                 onChange({
                   teamIds: [],
@@ -256,101 +257,154 @@ export const TimeAssignmentSelector = ({
           <CommandInput placeholder="Search teams, slots, positions, or people..." />
           <CommandList id={listId} className="max-h-[420px]">
             <CommandEmpty>No assignments found.</CommandEmpty>
-            <CommandGroup heading="Teams">
-              {groups.map((group) => {
-                const selected = selectedTeamIds.has(group.teamId);
+            <div className="flex flex-col gap-3 p-1.5">
+              {groups.length > 0 ? (
+                <section className="flex flex-col gap-2.5">
+                  <h3 className={selectionPickerSectionTitleClass}>Teams</h3>
+                  <SelectionPickerShell>
+                    {groups.map((group) => {
+                      const selected = selectedTeamIds.has(group.teamId);
 
-                return (
-                  <SelectionPickerCommandItem
-                    key={group.teamId}
-                    selected={selected}
-                    value={`${group.teamName} ${group.teamId}`}
-                    onSelect={() => {
-                      setTeams(toggleId(value.teamIds, group.teamId));
-                    }}
-                  >
-                    <SelectionPickerCheckbox selected={selected} />
-                    <HugeiconsIcon icon={UsersIcon} strokeWidth={2} />
-                    <span className="min-w-0 flex-1 truncate">
-                      {group.teamName}
-                    </span>
-                    <Badge variant="secondary">{group.positions.length}</Badge>
-                  </SelectionPickerCommandItem>
-                );
-              })}
-            </CommandGroup>
-            <CommandGroup heading="Positions and plan slots">
-              {positions.map((position) => {
-                const { neededPositionId } = position;
-                const isNeeded =
-                  position.source === "needed_position" &&
-                  neededPositionId !== undefined &&
-                  neededPositionId !== "";
-                const selected =
-                  isNeeded && neededPositionId !== undefined
-                    ? selectedNeededPositionIds.has(neededPositionId)
-                    : selectedPositionIds.has(position.id);
-                const rowLabel = isNeeded ? "Plan slot" : "Position";
+                      return (
+                        <SelectionPickerCommandItem
+                          key={group.teamId}
+                          selected={selected}
+                          value={`${group.teamName} ${group.teamId}`}
+                          onSelect={() => {
+                            setTeams(toggleId(value.teamIds, group.teamId));
+                          }}
+                        >
+                          <SelectionPickerCheckbox
+                            selected={selected}
+                            className="mt-0"
+                          />
+                          <TeamPickerIcon teamName={group.teamName} />
+                          <span className="min-w-0 flex-1 truncate">
+                            {group.teamName}
+                          </span>
+                          <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
+                            {group.positions.length}
+                          </span>
+                        </SelectionPickerCommandItem>
+                      );
+                    })}
+                  </SelectionPickerShell>
+                </section>
+              ) : null}
 
-                return (
-                  <SelectionPickerCommandItem
-                    key={`${position.source}:${position.id}`}
-                    selected={selected}
-                    value={`${position.teamName} ${position.name} ${position.id}`}
-                    onSelect={() => {
-                      if (isNeeded && neededPositionId !== undefined) {
-                        setNeededPositions(
-                          toggleId(value.neededPositionIds, neededPositionId)
-                        );
-                        return;
-                      }
-                      if (position.source === "team_position") {
-                        setPositions(toggleId(value.positionIds, position.id));
-                      }
-                    }}
-                    disabled={position.source !== "team_position" && !isNeeded}
-                  >
-                    <SelectionPickerCheckbox selected={selected} />
-                    <HugeiconsIcon icon={RowsThreeIcon} strokeWidth={2} />
-                    <span className="min-w-0 flex-1 truncate">
-                      {position.teamName} / {position.name}
-                    </span>
-                    <Badge variant="outline">{rowLabel}</Badge>
-                  </SelectionPickerCommandItem>
-                );
-              })}
-            </CommandGroup>
-            {memberRows.length > 0 ? (
-              <CommandGroup heading="People">
-                {memberRows.map((person) => {
-                  const selected = selectedPlanPersonIds.has(
-                    person.planPersonId
-                  );
+              {positions.length > 0 ? (
+                <section className="flex flex-col gap-2.5">
+                  <h3 className={selectionPickerSectionTitleClass}>
+                    Positions and plan slots
+                  </h3>
+                  <SelectionPickerShell>
+                    {positions.map((position) => {
+                      const { neededPositionId } = position;
+                      const isNeeded =
+                        position.source === "needed_position" &&
+                        neededPositionId !== undefined &&
+                        neededPositionId !== "";
+                      const selected =
+                        isNeeded && neededPositionId !== undefined
+                          ? selectedNeededPositionIds.has(neededPositionId)
+                          : selectedPositionIds.has(position.id);
 
-                  return (
-                    <SelectionPickerCommandItem
-                      key={person.planPersonId}
-                      selected={selected}
-                      value={`${person.name} ${person.teamName} ${person.positionName}`}
-                      onSelect={() => {
-                        setPlanPeople(
-                          toggleId(value.planPersonIds, person.planPersonId)
-                        );
-                      }}
-                    >
-                      <SelectionPickerCheckbox selected={selected} />
-                      <HugeiconsIcon icon={UserAdd01Icon} strokeWidth={2} />
-                      <span className="min-w-0 flex-1 truncate">
-                        {person.name}
-                      </span>
-                      <span className="text-muted-foreground truncate text-xs">
-                        {person.teamName} / {person.positionName}
-                      </span>
-                    </SelectionPickerCommandItem>
-                  );
-                })}
-              </CommandGroup>
-            ) : null}
+                      return (
+                        <SelectionPickerCommandItem
+                          key={`${position.source}:${position.id}`}
+                          selected={selected}
+                          value={`${position.teamName} ${position.name} ${position.id}`}
+                          onSelect={() => {
+                            if (isNeeded && neededPositionId !== undefined) {
+                              setNeededPositions(
+                                toggleId(
+                                  value.neededPositionIds,
+                                  neededPositionId
+                                )
+                              );
+                              return;
+                            }
+                            if (position.source === "team_position") {
+                              setPositions(
+                                toggleId(value.positionIds, position.id)
+                              );
+                            }
+                          }}
+                          disabled={
+                            position.source !== "team_position" && !isNeeded
+                          }
+                        >
+                          <SelectionPickerCheckbox
+                            selected={selected}
+                            className="mt-0"
+                          />
+                          <PositionPickerIcon
+                            positionName={position.name}
+                            teamName={position.teamName}
+                          />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-medium">
+                              {position.name}
+                            </span>
+                            <span className="text-muted-foreground block truncate text-xs">
+                              {position.teamName}
+                            </span>
+                          </span>
+                        </SelectionPickerCommandItem>
+                      );
+                    })}
+                  </SelectionPickerShell>
+                </section>
+              ) : null}
+
+              {memberRows.length > 0 ? (
+                <section className="flex flex-col gap-2.5">
+                  <h3 className={selectionPickerSectionTitleClass}>People</h3>
+                  <SelectionPickerShell>
+                    {memberRows.map((person) => {
+                      const selected = selectedPlanPersonIds.has(
+                        person.planPersonId
+                      );
+
+                      return (
+                        <SelectionPickerCommandItem
+                          key={person.planPersonId}
+                          selected={selected}
+                          value={`${person.name} ${person.teamName} ${person.positionName}`}
+                          onSelect={() => {
+                            setPlanPeople(
+                              toggleId(value.planPersonIds, person.planPersonId)
+                            );
+                          }}
+                        >
+                          <SelectionPickerCheckbox
+                            selected={selected}
+                            className="mt-0"
+                          />
+                          <Avatar size="sm" className="shrink-0">
+                            <AvatarImage
+                              src={person.photoThumbnailUrl ?? undefined}
+                              alt={person.name}
+                            />
+                            <AvatarFallback>
+                              {getInitials(person.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-medium">
+                              {person.name}
+                            </span>
+                            <span className="text-muted-foreground block truncate text-xs">
+                              {person.teamName} / {person.positionName}
+                            </span>
+                          </span>
+                        </SelectionPickerCommandItem>
+                      );
+                    })}
+                  </SelectionPickerShell>
+                </section>
+              ) : null}
+            </div>
           </CommandList>
         </Command>
       </PopoverContent>
