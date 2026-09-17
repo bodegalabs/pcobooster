@@ -7,7 +7,6 @@ import type { SlotRef } from "@/components/schedule/types";
 import {
   Accordion,
   AccordionContent,
-  AccordionHeader,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
@@ -51,12 +50,12 @@ const PersonRow = ({
   planTimes: PlanTime[];
 }) => (
   <li data-slot="lineup-person-row" className="flex items-center gap-2 text-sm">
-    <Avatar size="small">
+    <Avatar size="sm">
       <AvatarImage
         src={person.photoThumbnailUrl ?? undefined}
         alt={person.name}
       />
-      <AvatarFallback size="tiny">{getInitials(person.name)}</AvatarFallback>
+      <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
     </Avatar>
 
     <span className="truncate">{person.name}</span>
@@ -116,9 +115,9 @@ const PositionAccordionItem = ({
   };
 
   return (
-    <AccordionItem value={position.id} treatment="lineup">
-      <AccordionHeader density="lineup">
-        <AccordionTrigger density="lineup" className="min-w-0 flex-1">
+    <AccordionItem value={position.id}>
+      <div className="flex items-center">
+        <AccordionTrigger className="min-w-0 flex-1">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <span
               className={cn(
@@ -140,7 +139,7 @@ const PositionAccordionItem = ({
         </AccordionTrigger>
         <Button
           type="button"
-          variant="ghost-muted"
+          variant="ghost"
           size="icon-xs"
           title={`Open ${position.name} in scheduler`}
           aria-label={`Open ${position.name} in scheduler`}
@@ -155,10 +154,9 @@ const PositionAccordionItem = ({
         >
           <CalendarDays className="size-3.5" />
         </Button>
-      </AccordionHeader>
+      </div>
 
       <AccordionContent
-        density="lineup"
         className="cursor-pointer"
         onClick={(event) => {
           const { target } = event;
@@ -246,9 +244,8 @@ const TeamColumn = ({
         </header>
 
         <Accordion
-          type="multiple"
+          multiple
           defaultValue={group.positions.map((position) => position.id)}
-          density="lineup"
           className="w-full"
         >
           {group.positions.map((position, index) => (
@@ -264,7 +261,7 @@ const TeamColumn = ({
                 onSelectPosition={onSelectPosition}
                 onPreviewPosition={onPreviewPosition}
               />
-              {index < group.positions.length - 1 ? <Separator muted /> : null}
+              {index < group.positions.length - 1 ? <Separator /> : null}
             </div>
           ))}
         </Accordion>

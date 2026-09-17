@@ -1,14 +1,14 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Inter } from "next/font/google";
 
 import { Providers } from "@/components/providers";
 
 import "./globals.css";
 import { getPresentationCacheScope } from "@/lib/presentation-mode";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
@@ -51,10 +51,9 @@ const RootLayout = ({
       lang="en"
       data-presentation-scope={presentationScope}
       suppressHydrationWarning
+      className={inter.variable}
     >
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistMono.variable} antialiased`}>
         <Providers
           key={presentationScope}
           presentationScope={presentationScope}

@@ -1,20 +1,9 @@
-import { cn } from "@/lib/utils";
+import { cn } from "cn";
 
-const Skeleton = ({
-  className,
-  corners = "default",
-  ...props
-}: React.ComponentProps<"div"> & {
-  corners?: "default" | "large" | "pill";
-}) => (
+const Skeleton = ({ className, ...props }: React.ComponentProps<"div">) => (
   <div
     data-slot="skeleton"
-    className={cn(
-      "bg-accent animate-pulse rounded-md",
-      corners === "large" && "rounded-lg",
-      corners === "pill" && "rounded-full",
-      className
-    )}
+    className={cn("bg-muted animate-pulse rounded-2xl", className)}
     {...props}
   />
 );

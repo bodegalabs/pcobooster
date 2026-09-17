@@ -69,7 +69,7 @@ export const SchedulePlanWorkspaceFallback = () => (
           <div className="divide-border/25 divide-y">
             {Array.from({ length: 8 }).map((_, index) => (
               <div key={index} className="flex items-center gap-3 px-4 py-3">
-                <Skeleton corners="pill" className="size-10 shrink-0" />
+                <Skeleton className="size-10 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <Skeleton className="h-3.5 w-36" />
                   <Skeleton className="mt-2 h-3 w-56" />

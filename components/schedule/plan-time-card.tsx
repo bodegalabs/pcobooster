@@ -107,31 +107,26 @@ const DatePickerField = ({
   const selectedDate = parseCalendarDay(value);
 
   return (
-    <Field density="tight">
+    <Field>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <Popover open={open} onOpenChange={onOpenChange}>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            id={id}
-            weight="normal"
-            className="w-full justify-between"
-            aria-invalid={invalid || undefined}
-          >
-            <span className="truncate">
-              {selectedDate
-                ? format(selectedDate, "MMM d, yyyy")
-                : "Select date"}
-            </span>
-            <ChevronDownIcon />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          density="flush"
-          className="w-auto overflow-hidden"
-          align="start"
+        <PopoverTrigger
+          render={
+            <Button
+              type="button"
+              variant="outline"
+              id={id}
+              className="w-full justify-between"
+              aria-invalid={invalid || undefined}
+            />
+          }
         >
+          <span className="truncate">
+            {selectedDate ? format(selectedDate, "MMM d, yyyy") : "Select date"}
+          </span>
+          <ChevronDownIcon />
+        </PopoverTrigger>
+        <PopoverContent className="w-auto overflow-hidden" align="start">
           <Calendar
             mode="single"
             selected={selectedDate}
@@ -166,7 +161,7 @@ const TimePickerField = ({
   invalid = false,
   onChange,
 }: TimePickerFieldProps) => (
-  <Field density="tight" className="min-w-0 flex-1">
+  <Field className="min-w-0 flex-1">
     <FieldLabel htmlFor={id}>{label}</FieldLabel>
     <Input
       type="time"
@@ -213,46 +208,39 @@ const PlanTimeRangeEditor = ({
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange} modal={false}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost-muted"
-          size="sm"
-          className="group/time-range w-full justify-start"
-          data-invalid={invalid || undefined}
-          aria-label={`Edit time, ${displayLabel}`}
-          aria-expanded={open}
-        >
-          <Clock3 className="size-3.5 shrink-0" />
-          <span
-            className={cn(
-              "min-w-0 flex-1 text-left",
-              invalid && "text-destructive"
-            )}
-          >
-            {displayLabel}
-          </span>
-          <Pencil
-            className={cn(
-              "size-3.5 shrink-0 transition-opacity",
-              open
-                ? "opacity-60"
-                : "opacity-0 group-hover/time-range:opacity-60"
-            )}
-            aria-hidden="true"
+      <PopoverTrigger
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="group/time-range w-full justify-start"
+            data-invalid={invalid || undefined}
+            aria-label={`Edit time, ${displayLabel}`}
+            aria-expanded={open}
           />
-        </Button>
+        }
+      >
+        <Clock3 className="size-3.5 shrink-0" />
+        <span
+          className={cn(
+            "min-w-0 flex-1 text-left",
+            invalid && "text-destructive"
+          )}
+        >
+          {displayLabel}
+        </span>
+        <Pencil
+          className={cn(
+            "size-3.5 shrink-0 transition-opacity",
+            open ? "opacity-60" : "opacity-0 group-hover/time-range:opacity-60"
+          )}
+          aria-hidden="true"
+        />
       </PopoverTrigger>
 
-      <PopoverContent
-        ref={contentRef}
-        align="start"
-        className="w-80"
-        onOpenAutoFocus={(event) => {
-          event.preventDefault();
-        }}
-      >
-        <FieldGroup density="compact" data-invalid={invalid || undefined}>
+      <PopoverContent ref={contentRef} align="start" className="w-80">
+        <FieldGroup data-invalid={invalid || undefined}>
           <DatePickerField
             id={`${id}-date`}
             label="Date"
@@ -330,8 +318,8 @@ export const PlanTimeCard = ({
   };
 
   return (
-    <Card density="compact" aria-busy={saving} className="group/plan-time">
-      <CardContent density="compact" layout="stack" className="min-w-0 flex-1">
+    <Card aria-busy={saving} className="group/plan-time">
+      <CardContent className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <Input
             id={`plan-time-name-${planTimeId}`}
@@ -380,7 +368,7 @@ export const PlanTimeCard = ({
           </NativeSelect>
           <Button
             type="button"
-            variant="ghost-destructive"
+            variant="destructive"
             size="icon-xs"
             className="shrink-0"
             aria-label={`Delete ${edit.name || "time"}`}

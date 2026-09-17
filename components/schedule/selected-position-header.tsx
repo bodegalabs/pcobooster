@@ -45,7 +45,7 @@ export const SelectedPositionHeader = ({
         <Button
           type="button"
           variant="outline"
-          size="responsive"
+          size="sm"
           className="shrink-0 lg:hidden"
           onClick={onOpenPicker}
           disabled={!hasSlots || teamPositionsLoading}
@@ -69,7 +69,6 @@ export const SelectedPositionHeader = ({
               onFilterChange(event.target.value);
             }}
             placeholder="Filter"
-            treatment="search"
             aria-label="Filter people"
           />
           {filter ? (

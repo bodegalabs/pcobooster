@@ -84,22 +84,23 @@ export const ServiceTypeMultiSelect = ({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          aria-haspopup="dialog"
-          aria-expanded={open}
-          aria-controls={listId}
-          aria-label="Filter service types"
-          className="w-full justify-between"
-        >
-          <span className="truncate text-left">{label}</span>
-          <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            aria-haspopup="dialog"
+            aria-expanded={open}
+            aria-controls={listId}
+            aria-label="Filter service types"
+            className="w-full justify-between"
+          />
+        }
+      >
+        <span className="truncate text-left">{label}</span>
+        <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
       </PopoverTrigger>
       <PopoverContent
-        density="flush"
         className="w-[420px] max-w-[calc(100vw-2rem)]"
         align="start"
       >
@@ -111,7 +112,7 @@ export const ServiceTypeMultiSelect = ({
             <Button
               type="button"
               variant="ghost"
-              size="tiny"
+              size="xs"
               onClick={() => {
                 onChange(allIds);
               }}
@@ -122,7 +123,7 @@ export const ServiceTypeMultiSelect = ({
             <Button
               type="button"
               variant="ghost"
-              size="tiny"
+              size="xs"
               onClick={() => {
                 onChange([]);
               }}

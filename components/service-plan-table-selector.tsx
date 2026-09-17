@@ -67,16 +67,16 @@ const DesktopPlanRows = ({
   if (isInitialLoading) {
     return Array.from({ length: 8 }).map((_, index) => (
       <TableRow key={`loading-${index}`} className="[&>td]:h-10">
-        <TableCell inset="leading-wide">
+        <TableCell>
           <Skeleton className="h-3.5 w-40" />
         </TableCell>
-        <TableCell inset="compact">
+        <TableCell>
           <Skeleton className="h-3.5 w-28" />
         </TableCell>
-        <TableCell inset="compact">
+        <TableCell>
           <Skeleton className="h-3.5 w-36" />
         </TableCell>
-        <TableCell inset="compact">
+        <TableCell>
           <Skeleton className="h-3.5 w-48" />
         </TableCell>
       </TableRow>
@@ -85,7 +85,7 @@ const DesktopPlanRows = ({
   if (errorMessage && visibleRows.length === 0) {
     return (
       <TableRow>
-        <TableCell inset="empty-tall" colSpan={4}>
+        <TableCell colSpan={4}>
           <Empty>
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -102,7 +102,7 @@ const DesktopPlanRows = ({
   if (visibleRows.length === 0) {
     return (
       <TableRow>
-        <TableCell inset="empty-tall" colSpan={4}>
+        <TableCell colSpan={4}>
           <Empty>
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -126,8 +126,6 @@ const DesktopPlanRows = ({
       <TableRow
         key={`${row.serviceTypeId}:${row.planId}`}
         data-state={isActive ? "selected" : undefined}
-        treatment="selector"
-        scheduled={isScheduledForCurrentUser}
         className="group/row relative cursor-pointer"
         tabIndex={0}
         aria-selected={isActive}
@@ -151,24 +149,16 @@ const DesktopPlanRows = ({
           handleSelectRow(row);
         }}
       >
-        <TableCell
-          inset="leading-wide"
-          emphasis="strong"
-          scheduled={isScheduledForCurrentUser}
-        >
-          {row.serviceTypeName}
-        </TableCell>
-        <TableCell inset="compact" tone="muted" numeric>
-          {formatDate(row.sortDate)}
-        </TableCell>
-        <TableCell inset="compact" tone="muted">
+        <TableCell>{row.serviceTypeName}</TableCell>
+        <TableCell>{formatDate(row.sortDate)}</TableCell>
+        <TableCell>
           {isNonEmptyString(row.seriesTitle) ? (
             <span className="truncate">{row.seriesTitle}</span>
           ) : (
             <span className="opacity-30">—</span>
           )}
         </TableCell>
-        <TableCell inset="compact">
+        <TableCell>
           <span className="truncate">{row.planTitle || "Untitled plan"}</span>
         </TableCell>
       </TableRow>
@@ -347,14 +337,8 @@ export const ServicePlanTableSelector = ({
           }}
         >
           <TabsList className="h-8">
-            <TabsTrigger value="all" density="compact">
-              All
-            </TabsTrigger>
-            <TabsTrigger
-              value="mine"
-              density="compact"
-              disabled={mineTabDisabled}
-            >
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="mine" disabled={mineTabDisabled}>
               <span
                 aria-hidden
                 className="bg-status-confirmed-bright size-1.5 rounded-full"
@@ -392,7 +376,7 @@ export const ServicePlanTableSelector = ({
         />
 
         <NativeSelect
-          wrapperClassName="w-full"
+          className="w-full"
           value={dateRangeFilter}
           onChange={(event) => {
             setDateRangeFilter(dateRangeSchema.parse(event.target.value));
@@ -408,18 +392,12 @@ export const ServicePlanTableSelector = ({
 
       <div className="border-border/40 min-h-0 flex-1 overflow-y-auto rounded-lg border">
         <Table className="hidden md:table">
-          <TableHeader surface="background" className="sticky top-0 z-10">
-            <TableRow treatment="heading" className="[&>th]:h-9">
-              <TableHead inset="leading-wide" className="w-[30%]">
-                Service type
-              </TableHead>
-              <TableHead inset="compact" className="w-[20%]">
-                Date
-              </TableHead>
-              <TableHead inset="compact" className="w-[25%]">
-                Series
-              </TableHead>
-              <TableHead inset="compact">Plan</TableHead>
+          <TableHeader className="sticky top-0 z-10">
+            <TableRow className="[&>th]:h-9">
+              <TableHead className="w-[30%]">Service type</TableHead>
+              <TableHead className="w-[20%]">Date</TableHead>
+              <TableHead className="w-[25%]">Series</TableHead>
+              <TableHead>Plan</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -61,6 +61,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -230,11 +231,9 @@ const themeOptions = [
 const SidebarResizeRail = ({
   width,
   onWidthChange,
-  onCollapsePreviewChange,
 }: {
   width: number;
   onWidthChange: (width: number) => void;
-  onCollapsePreviewChange?: (preview: boolean) => void;
 }) => {
   const { isMobile, setOpen } = useSidebar();
   const pendingCollapseRef = useRef(false);
@@ -254,12 +253,10 @@ const SidebarResizeRail = ({
       document.body.style.userSelect = "none";
 
       pendingCollapseRef.current = false;
-      onCollapsePreviewChange?.(false);
 
       const listeners = new AbortController();
       const handlePointerUp = (upEvent: PointerEvent) => {
         document.body.style.userSelect = prevUserSelect;
-        onCollapsePreviewChange?.(false);
         if (pendingCollapseRef.current) {
           setOpen(false);
         }
@@ -274,11 +271,9 @@ const SidebarResizeRail = ({
         const nextWidth = startWidth + moveEvent.clientX - startX;
         if (nextWidth < MIN_SIDEBAR_WIDTH) {
           pendingCollapseRef.current = true;
-          onCollapsePreviewChange?.(true);
           return;
         }
         pendingCollapseRef.current = false;
-        onCollapsePreviewChange?.(false);
         onWidthChange(clampSidebarWidth(nextWidth));
       };
 
@@ -292,7 +287,7 @@ const SidebarResizeRail = ({
         signal: listeners.signal,
       });
     },
-    [isMobile, onCollapsePreviewChange, onWidthChange, setOpen, width]
+    [isMobile, onWidthChange, setOpen, width]
   );
 
   const handleDoubleClick = useCallback(
@@ -301,11 +296,10 @@ const SidebarResizeRail = ({
       if (isMobile) {
         return;
       }
-      onCollapsePreviewChange?.(false);
       pendingCollapseRef.current = false;
       onWidthChange(MIN_SIDEBAR_WIDTH);
     },
-    [isMobile, onCollapsePreviewChange, onWidthChange]
+    [isMobile, onWidthChange]
   );
 
   if (isMobile) {
@@ -433,12 +427,12 @@ const AppTopBar = () => {
             <>
               <BreadcrumbItem>
                 {isPersonDetail ? (
-                  <BreadcrumbLink asChild>
-                    <Link href="/people">People</Link>
+                  <BreadcrumbLink render={<Link href="/people" />}>
+                    People
                   </BreadcrumbLink>
                 ) : (
-                  <BreadcrumbLink asChild>
-                    <Link href="/admin">Admin</Link>
+                  <BreadcrumbLink render={<Link href="/admin" />}>
+                    Admin
                   </BreadcrumbLink>
                 )}
               </BreadcrumbItem>
@@ -453,8 +447,8 @@ const AppTopBar = () => {
             <>
               <BreadcrumbItem>
                 {hasPlan ? (
-                  <BreadcrumbLink asChild>
-                    <Link href="/services">Services</Link>
+                  <BreadcrumbLink render={<Link href="/services" />}>
+                    Services
                   </BreadcrumbLink>
                 ) : (
                   <BreadcrumbPage>{pageLabel}</BreadcrumbPage>
@@ -465,17 +459,20 @@ const AppTopBar = () => {
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          type="button"
-                          className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
-                        >
-                          <span>{planViewLabel}</span>
-                          <ChevronDown
-                            className="text-muted-foreground size-3.5"
-                            aria-hidden
+                      <DropdownMenuTrigger
+                        render={
+                          <button
+                            type="button"
+                            aria-label={`Change view from ${planViewLabel}`}
+                            className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
                           />
-                        </button>
+                        }
+                      >
+                        <span>{planViewLabel}</span>
+                        <ChevronDown
+                          className="text-muted-foreground size-3.5"
+                          aria-hidden
+                        />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-36">
                         {planViewOptions.map((view) => (
@@ -561,11 +558,9 @@ const AccountSwitcher = ({
 }) =>
   (loading && !data) || (data !== null && data.accounts.length > 1) ? (
     <>
-      <DropdownMenuSeparator subtle className="my-0" />
+      <DropdownMenuSeparator className="my-0" />
       {loading && !data ? (
-        <DropdownMenuItem disabled density="account">
-          Loading…
-        </DropdownMenuItem>
+        <DropdownMenuItem disabled>Loading…</DropdownMenuItem>
       ) : (
         data?.accounts.map((account) => {
           const isSelected = account.id === data.selectedAccountId;
@@ -574,7 +569,6 @@ const AccountSwitcher = ({
           return (
             <DropdownMenuItem
               key={account.id}
-              density="account"
               disabled={Boolean(switchingAccountId) || isSigningOut}
               onSelect={(event) => {
                 event.preventDefault();
@@ -608,11 +602,8 @@ const signOutSession = async () => {
 
 const SidebarAccountPanel = ({
   onOpenShortcuts,
-  onPeekLockChange,
 }: {
   onOpenShortcuts: () => void;
-  /** Keeps collapsed offcanvas sidebar peek visible while dropdown content is portaled. */
-  onPeekLockChange?: (locked: boolean) => void;
 }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -698,94 +689,87 @@ const SidebarAccountPanel = ({
           open={accountMenuOpen}
           onOpenChange={(open) => {
             setAccountMenuOpen(open);
-            onPeekLockChange?.(open);
           }}
         >
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton variant="account">
-              <Avatar size="small" corners="square">
-                {isNonEmptyString(triggerSummary.image) ? (
-                  <AvatarImage
-                    src={triggerSummary.image}
-                    alt={triggerSummary.avatarName ?? "User"}
-                  />
-                ) : null}
-                <AvatarFallback corners="square" size="tiny" tone="primary">
-                  {initialsFromName(triggerSummary.avatarName)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="flex-1 truncate text-left text-sm font-medium">
-                {triggerSummary.organizationName}
-              </span>
-              <ChevronDown
-                className={cn(
-                  "text-muted-foreground ml-auto size-3.5 transition-transform group-data-[collapsible=icon]:hidden",
-                  accountMenuOpen ? "rotate-180" : null
-                )}
-              />
-            </SidebarMenuButton>
+          <DropdownMenuTrigger render={<SidebarMenuButton />}>
+            <Avatar size="sm">
+              {isNonEmptyString(triggerSummary.image) ? (
+                <AvatarImage
+                  src={triggerSummary.image}
+                  alt={triggerSummary.avatarName ?? "User"}
+                />
+              ) : null}
+              <AvatarFallback>
+                {initialsFromName(triggerSummary.avatarName)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="flex-1 truncate text-left text-sm font-medium">
+              {triggerSummary.organizationName}
+            </span>
+            <ChevronDown
+              className={cn(
+                "text-muted-foreground ml-auto size-3.5 transition-transform group-data-[collapsible=icon]:hidden",
+                accountMenuOpen ? "rotate-180" : null
+              )}
+            />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             side="bottom"
             align="start"
-            treatment="account"
             className="z-[80] w-[var(--radix-dropdown-menu-trigger-width)] max-w-none min-w-[14rem]"
           >
-            <DropdownMenuLabel
-              treatment="account-heading"
-              className="cursor-default"
-            >
-              <span className="text-foreground block truncate text-sm font-semibold">
-                {data?.session.name ?? "Account"}
-              </span>
-              <span className="text-muted-foreground mt-1 block truncate text-xs">
-                {data?.session.email ?? ""}
-              </span>
-            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="cursor-default">
+                <span className="text-foreground block truncate text-sm font-semibold">
+                  {data?.session.name ?? "Account"}
+                </span>
+                <span className="text-muted-foreground mt-1 block truncate text-xs">
+                  {data?.session.email ?? ""}
+                </span>
+              </DropdownMenuLabel>
 
-            <AccountSwitcher
-              data={data}
-              loading={loading}
-              switchingAccountId={switchingAccountId}
-              isSigningOut={isSigningOut}
-              onSelectAccount={handleSelectAccount}
-            />
+              <AccountSwitcher
+                data={data}
+                loading={loading}
+                switchingAccountId={switchingAccountId}
+                isSigningOut={isSigningOut}
+                onSelectAccount={handleSelectAccount}
+              />
+            </DropdownMenuGroup>
 
-            <DropdownMenuSeparator subtle className="my-0" />
+            <DropdownMenuSeparator className="my-0" />
 
-            <DropdownMenuLabel treatment="account">
-              Appearance
-            </DropdownMenuLabel>
-            {themeOptions.map((option) => {
-              const Icon = option.icon;
-              const selected = (theme ?? "system") === option.value;
-              return (
-                <DropdownMenuItem
-                  key={option.value}
-                  density="account"
-                  onSelect={() => {
-                    setTheme(option.value);
-                  }}
-                >
-                  <Icon
-                    className="text-muted-foreground size-4 shrink-0"
-                    aria-hidden
-                  />
-                  <span>{option.label}</span>
-                  <Check
-                    className={cn(
-                      "size-4 shrink-0",
-                      selected ? "ml-auto opacity-80" : "invisible ml-auto"
-                    )}
-                  />
-                </DropdownMenuItem>
-              );
-            })}
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Appearance</DropdownMenuLabel>
+              {themeOptions.map((option) => {
+                const Icon = option.icon;
+                const selected = (theme ?? "system") === option.value;
+                return (
+                  <DropdownMenuItem
+                    key={option.value}
+                    onSelect={() => {
+                      setTheme(option.value);
+                    }}
+                  >
+                    <Icon
+                      className="text-muted-foreground size-4 shrink-0"
+                      aria-hidden
+                    />
+                    <span>{option.label}</span>
+                    <Check
+                      className={cn(
+                        "size-4 shrink-0",
+                        selected ? "ml-auto opacity-80" : "invisible ml-auto"
+                      )}
+                    />
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuGroup>
 
-            <DropdownMenuSeparator subtle className="my-0" />
+            <DropdownMenuSeparator className="my-0" />
 
             <DropdownMenuItem
-              density="account"
               onSelect={() => {
                 onOpenShortcuts();
               }}
@@ -798,7 +782,6 @@ const SidebarAccountPanel = ({
               <HotkeyChord
                 id="acct-menu-shortcuts"
                 binding={SHORTCUTS_PALETTE_HOTKEY}
-                treatment="menu"
                 className="ml-2 shrink-0"
               />
             </DropdownMenuItem>
@@ -809,11 +792,10 @@ const SidebarAccountPanel = ({
               </p>
             ) : null}
 
-            <DropdownMenuSeparator subtle className="my-0" />
+            <DropdownMenuSeparator className="my-0" />
 
             <DropdownMenuItem
               variant="destructive"
-              density="account"
               disabled={isSigningOut || Boolean(switchingAccountId)}
               onSelect={() => {
                 void handleSignOut();
@@ -891,23 +873,13 @@ const ServicesSidebarMenuItem = () => {
 };
 
 const ServicesSidebarMenuItemFallback = () => (
-  <SidebarMenuButton asChild hoverCard="Services">
-    <Link href="/services">
-      <CalendarDays />
-      <span>Services</span>
-    </Link>
+  <SidebarMenuButton render={<Link href="/services" />} tooltip="Services">
+    <CalendarDays />
+    <span>Services</span>
   </SidebarMenuButton>
 );
 
-const AppSidebar = ({
-  trailingChrome,
-  collapsePreview = false,
-  peoplePageEnabled,
-}: {
-  trailingChrome: ReactNode;
-  collapsePreview?: boolean;
-  peoplePageEnabled: boolean;
-}) => {
+const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
   const pathname = usePathname();
   const [cachedPeopleFeature] = useBrowserStorage(PEOPLE_PAGE_NAV_CACHE_KEY);
   const peopleFeatureQuery = useQuery({
@@ -924,7 +896,6 @@ const AppSidebar = ({
     peoplePageEnabled;
   const adminNavEnabled = adminFeatureQuery.data?.enabled ?? false;
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [sidebarPeekLocked, setSidebarPeekLocked] = useState(false);
 
   useHotkey(
     SHORTCUTS_PALETTE_HOTKEY,
@@ -936,19 +907,12 @@ const AppSidebar = ({
 
   return (
     <>
-      <Sidebar
-        variant="inset"
-        collapsible="offcanvas"
-        collapsePreview={collapsePreview}
-        peekLocked={sidebarPeekLocked}
-        trailingChrome={trailingChrome}
-      >
+      <Sidebar variant="inset" collapsible="offcanvas">
         <SidebarHeader>
           <SidebarAccountPanel
             onOpenShortcuts={() => {
               setShortcutsOpen(true);
             }}
-            onPeekLockChange={setSidebarPeekLocked}
           />
         </SidebarHeader>
         <SidebarContent>
@@ -963,28 +927,24 @@ const AppSidebar = ({
                 {peopleNavEnabled ? (
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      asChild
+                      render={<Link href="/people" />}
                       isActive={pathname.startsWith("/people")}
-                      hoverCard="People"
+                      tooltip="People"
                     >
-                      <Link href="/people">
-                        <Users />
-                        <span>People</span>
-                      </Link>
+                      <Users />
+                      <span>People</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ) : null}
                 {adminNavEnabled ? (
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      asChild
+                      render={<Link href="/admin" />}
                       isActive={pathname.startsWith("/admin")}
-                      hoverCard="Admin"
+                      tooltip="Admin"
                     >
-                      <Link href="/admin">
-                        <Shield />
-                        <span>Admin</span>
-                      </Link>
+                      <Shield />
+                      <span>Admin</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ) : null}
@@ -997,17 +957,7 @@ const AppSidebar = ({
             <SidebarMenuItem>
               <SidebarMenuButton
                 type="button"
-                hoverCard={{
-                  children: (
-                    <div className="flex items-center gap-3">
-                      <p className="text-xs font-medium">Shortcuts</p>
-                      <HotkeyChord
-                        binding={SHORTCUTS_PALETTE_HOTKEY}
-                        id="shortcuts-sidebar-hover"
-                      />
-                    </div>
-                  ),
-                }}
+                tooltip="Shortcuts"
                 onClick={() => {
                   setShortcutsOpen(true);
                 }}
@@ -1065,7 +1015,6 @@ export const AppShell = ({
   );
   const sidebarWidth = parseSidebarWidth(storedWidth);
   const sidebarOpen = storedOpen !== "false";
-  const [sidebarCollapsePreview, setSidebarCollapsePreview] = useState(false);
 
   const handleSidebarWidthChange = useCallback(
     (nextWidth: number) => {
@@ -1097,16 +1046,10 @@ export const AppShell = ({
       style={sidebarStyle}
     >
       <SidebarToggleHotkey />
-      <AppSidebar
-        collapsePreview={sidebarCollapsePreview}
-        peoplePageEnabled={peoplePageEnabled}
-        trailingChrome={
-          <SidebarResizeRail
-            width={sidebarWidth}
-            onWidthChange={handleSidebarWidthChange}
-            onCollapsePreviewChange={setSidebarCollapsePreview}
-          />
-        }
+      <AppSidebar peoplePageEnabled={peoplePageEnabled} />
+      <SidebarResizeRail
+        width={sidebarWidth}
+        onWidthChange={handleSidebarWidthChange}
       />
       <SidebarInset className="min-h-0 overflow-hidden">
         <header className="border-border/50 flex h-12 shrink-0 items-center gap-2 border-b px-3">

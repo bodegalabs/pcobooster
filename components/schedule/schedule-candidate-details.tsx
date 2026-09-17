@@ -41,7 +41,6 @@ const recBar = (score: number): string => {
 
 export const ScheduleCandidateAvatar = ({
   person,
-  status,
   statusLabel,
   isBlocked,
   isDeclined,
@@ -49,7 +48,6 @@ export const ScheduleCandidateAvatar = ({
   selectedPlanAssignments,
 }: {
   person: PersonWithAvailability;
-  status: CandidateStatus;
   statusLabel: string;
   isBlocked: boolean;
   isDeclined: boolean;
@@ -64,7 +62,7 @@ export const ScheduleCandidateAvatar = ({
         src={person.photoThumbnailUrl ?? undefined}
         alt={person.fullName}
       />
-      <AvatarFallback size="small">{initials}</AvatarFallback>
+      <AvatarFallback>{initials}</AvatarFallback>
     </>
   );
   const blockedAvatarTint = isBlocked ? (
@@ -82,27 +80,25 @@ export const ScheduleCandidateAvatar = ({
         : "No note was saved with this decline in Planning Center.";
     return (
       <Popover>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            className={cn(
-              "relative inline-flex shrink-0 cursor-pointer overflow-visible rounded-full border-0 bg-transparent p-0",
-              "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-            )}
-            aria-label={`Decline reason for ${person.fullName}`}
-            title="View decline reason"
-          >
-            <Avatar size="responsive" status={status} aria-hidden>
-              {avatarInner}
-            </Avatar>
-          </button>
+        <PopoverTrigger
+          render={
+            <button
+              type="button"
+              className={cn(
+                "relative inline-flex shrink-0 cursor-pointer overflow-visible rounded-full border-0 bg-transparent p-0",
+                "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              )}
+              aria-label={`Decline reason for ${person.fullName}`}
+              title="View decline reason"
+            />
+          }
+        >
+          <Avatar aria-hidden>{avatarInner}</Avatar>
         </PopoverTrigger>
         <PopoverContent
           align="start"
           side="right"
           sideOffset={8}
-          collisionPadding={16}
-          density="tight"
           className="w-auto max-w-[18rem]"
         >
           <p className="text-muted-foreground text-xs font-medium">
@@ -120,30 +116,28 @@ export const ScheduleCandidateAvatar = ({
     const assignmentsLabel = `Also scheduled for: ${selectedPlanAssignments.join(", ")}`;
     return (
       <Popover>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            className={cn(
-              "relative shrink-0 cursor-pointer overflow-visible rounded-full border-0 bg-transparent p-0",
-              "outline-status-info outline-2 outline-offset-2 outline-dashed",
-              "hover:outline-status-info dark:outline-status-info dark:hover:outline-info-border",
-              "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-            )}
-            aria-label={`${person.fullName}. ${assignmentsLabel}`}
-            title={assignmentsLabel}
-          >
-            <Avatar size="responsive" status={status} aria-hidden>
-              {avatarInner}
-            </Avatar>
-            {blockedAvatarTint}
-          </button>
+        <PopoverTrigger
+          render={
+            <button
+              type="button"
+              className={cn(
+                "relative shrink-0 cursor-pointer overflow-visible rounded-full border-0 bg-transparent p-0",
+                "outline-status-info outline-2 outline-offset-2 outline-dashed",
+                "hover:outline-status-info dark:outline-status-info dark:hover:outline-info-border",
+                "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              )}
+              aria-label={`${person.fullName}. ${assignmentsLabel}`}
+              title={assignmentsLabel}
+            />
+          }
+        >
+          <Avatar aria-hidden>{avatarInner}</Avatar>
+          {blockedAvatarTint}
         </PopoverTrigger>
         <PopoverContent
           align="start"
           side="right"
           sideOffset={8}
-          collisionPadding={16}
-          density="tight"
           className="w-auto max-w-[16rem]"
         >
           <p className="text-foreground [overflow-wrap:anywhere]">
@@ -161,13 +155,7 @@ export const ScheduleCandidateAvatar = ({
 
   return (
     <span className="relative inline-flex shrink-0 overflow-visible">
-      <Avatar
-        size="responsive"
-        status={status}
-        title={statusLabel || undefined}
-      >
-        {avatarInner}
-      </Avatar>
+      <Avatar title={statusLabel || undefined}>{avatarInner}</Avatar>
       {blockedAvatarTint}
     </span>
   );

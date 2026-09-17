@@ -21,17 +21,13 @@ export const DateRangePicker = ({
   onDateChange,
 }: DateRangePickerProps) => (
   <Popover>
-    <PopoverTrigger asChild>
-      <Button
-        variant="outline"
-        weight="normal"
-        className="justify-start text-left"
-      >
-        <CalendarIcon className="mr-2 h-4 w-4" />
-        {format(date, "PPP")}
-      </Button>
+    <PopoverTrigger
+      render={<Button variant="outline" className="justify-start text-left" />}
+    >
+      <CalendarIcon className="mr-2 h-4 w-4" />
+      {format(date, "PPP")}
     </PopoverTrigger>
-    <PopoverContent density="flush" className="w-auto" align="start">
+    <PopoverContent className="w-auto" align="start">
       <Calendar
         mode="single"
         selected={date}

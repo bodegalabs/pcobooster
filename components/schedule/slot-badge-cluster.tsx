@@ -35,21 +35,19 @@ export const SlotBadgeCluster = ({
   return (
     <div className="flex items-center gap-1">
       {filled > 0 && !allFilled ? (
-        <HoverCard openDelay={120} closeDelay={120}>
-          <HoverCardTrigger asChild>
-            <span
-              className="text-muted-foreground text-xs tabular-nums"
-              aria-label={`${filled} of ${total} filled`}
-            >
-              {filled}/{total}
-            </span>
-          </HoverCardTrigger>
-          <HoverCardContent
-            align="end"
-            side="right"
-            density="spacious"
-            className="w-80"
+        <HoverCard>
+          <HoverCardTrigger
+            render={
+              <button
+                type="button"
+                className="text-muted-foreground text-xs tabular-nums"
+                aria-label={`${filled} of ${total} filled`}
+              />
+            }
           >
+            {filled}/{total}
+          </HoverCardTrigger>
+          <HoverCardContent align="end" side="right" className="w-80">
             {confirmedPeople.length > 0 ? (
               <SlotStatusPopoverContent
                 teamName={teamName}

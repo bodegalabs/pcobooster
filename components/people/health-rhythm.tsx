@@ -97,37 +97,40 @@ const RhythmDay = ({ cell, monthDay, monthLabel }: RhythmDayProps) => {
   const hasNoCommitments = serviceCount === 0 && rehearsalCount === 0;
 
   return (
-    <HoverCard openDelay={120} closeDelay={120}>
-      <HoverCardTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            "border-border/35 hover:bg-muted/60 flex aspect-square flex-col items-start justify-between rounded-md border p-1.5 text-left text-xs tabular-nums",
-            heatLevelClass(serviceCount),
-            hasRehearsalOnly ? "bg-muted" : "",
-            hasNoCommitments && "text-muted-foreground"
-          )}
-        >
-          <span>{day}</span>
-          <span className="flex items-center gap-0.5">
-            {confirmedServiceCount > 0 ? (
-              <span className="bg-status-confirmed-bright size-1.5 rounded-full" />
-            ) : null}
-            {potentialServiceCount > 0 ? (
-              <span className="bg-status-scheduled-bright size-1.5 rounded-full" />
-            ) : null}
-            {rehearsalCount > 0 ? (
-              <span
-                className={cn(
-                  "size-1.5 rounded-full",
-                  commitmentMarkerClass("rehearsal")
-                )}
-              />
-            ) : null}
-          </span>
-        </button>
+    <HoverCard>
+      <HoverCardTrigger
+        render={
+          <button
+            type="button"
+            aria-label={`${monthLabel.split(" ")[0]} ${day}`}
+            className={cn(
+              "border-border/35 hover:bg-muted/60 flex aspect-square flex-col items-start justify-between rounded-md border p-1.5 text-left text-xs tabular-nums",
+              heatLevelClass(serviceCount),
+              hasRehearsalOnly ? "bg-muted" : "",
+              hasNoCommitments && "text-muted-foreground"
+            )}
+          />
+        }
+      >
+        <span>{day}</span>
+        <span className="flex items-center gap-0.5">
+          {confirmedServiceCount > 0 ? (
+            <span className="bg-status-confirmed-bright size-1.5 rounded-full" />
+          ) : null}
+          {potentialServiceCount > 0 ? (
+            <span className="bg-status-scheduled-bright size-1.5 rounded-full" />
+          ) : null}
+          {rehearsalCount > 0 ? (
+            <span
+              className={cn(
+                "size-1.5 rounded-full",
+                commitmentMarkerClass("rehearsal")
+              )}
+            />
+          ) : null}
+        </span>
       </HoverCardTrigger>
-      <HoverCardContent side="top" density="compact" className="w-48">
+      <HoverCardContent side="top" className="w-48">
         <p className="text-xs font-medium">
           {monthLabel.split(" ")[0]} {day}
         </p>
@@ -150,9 +153,9 @@ export const HealthRhythm = ({
   dashboard,
   calendarCells,
 }: HealthRhythmProps) => (
-  <Card density="compact">
-    <CardHeader density="compact">
-      <CardTitle scale="section-icon">
+  <Card>
+    <CardHeader>
+      <CardTitle>
         <CalendarDays className="text-muted-foreground size-4" />
         {dashboard?.month.label ?? "Month"} rhythm
       </CardTitle>
@@ -160,7 +163,7 @@ export const HealthRhythm = ({
         Org-level serving pressure across the month.
       </CardDescription>
     </CardHeader>
-    <CardContent density="compact">
+    <CardContent>
       <div className="text-muted-foreground grid grid-cols-7 gap-1 pb-2 text-center text-xs">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((dayName) => (
           <div key={dayName}>{dayName}</div>

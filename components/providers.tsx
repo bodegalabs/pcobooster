@@ -12,6 +12,7 @@ import { useMemo } from "react";
 
 import { AppShell } from "@/components/app-shell";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 
 const QUERY_GC_TIME_MS = 30 * 60 * 1000;
@@ -43,29 +44,34 @@ export const Providers = ({
   );
 
   return (
-    <HotkeysProvider>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <QueryClientProvider client={queryClient}>
-          <AppShell
-            presentationMode={presentationScope !== "live"}
-            peoplePageEnabled={peoplePageEnabled}
-          >
-            {children}
-          </AppShell>
-          {process.env.NODE_ENV === "production" ? null : (
-            <ReactQueryDevtools
-              initialIsOpen={false}
-              buttonPosition="bottom-right"
+    <TooltipProvider>
+      <HotkeysProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <QueryClientProvider client={queryClient}>
+            <AppShell
+              presentationMode={presentationScope !== "live"}
+              peoplePageEnabled={peoplePageEnabled}
+            >
+              {children}
+            </AppShell>
+            {process.env.NODE_ENV === "production" ? null : (
+              <ReactQueryDevtools
+                initialIsOpen={false}
+                buttonPosition="bottom-right"
+              />
+            )}
+            <Toaster
+              richColors
+              position={isMobile ? "top-center" : undefined}
             />
-          )}
-          <Toaster richColors position={isMobile ? "top-center" : undefined} />
-        </QueryClientProvider>
-      </ThemeProvider>
-    </HotkeysProvider>
+          </QueryClientProvider>
+        </ThemeProvider>
+      </HotkeysProvider>
+    </TooltipProvider>
   );
 };

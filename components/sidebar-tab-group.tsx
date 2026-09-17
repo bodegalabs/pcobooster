@@ -53,14 +53,12 @@ export const SidebarTabGroup = <Key extends string>({
     const Icon = fallbackItem.icon;
     return (
       <SidebarMenuButton
-        asChild
+        render={<Link href={fallbackItem.href} />}
         isActive={activeKey === fallbackItem.key}
-        hoverCard={fallbackItem.label}
+        tooltip={fallbackItem.label}
       >
-        <Link href={fallbackItem.href}>
-          <Icon />
-          <span>{fallbackItem.label}</span>
-        </Link>
+        <Icon />
+        <span>{fallbackItem.label}</span>
       </SidebarMenuButton>
     );
   }
@@ -75,15 +73,12 @@ export const SidebarTabGroup = <Key extends string>({
     groupedItems.push(
       <SidebarMenuSubItem key={item.key}>
         <SidebarMenuSubButton
-          asChild
+          render={<Link href={item.href} />}
           isActive={activeKey === item.key}
-          treatment="group-tab"
           className="ml-5 h-9 w-[calc(100%-1.25rem)]"
         >
-          <Link href={item.href}>
-            <Icon />
-            <span>{item.label}</span>
-          </Link>
+          <Icon />
+          <span>{item.label}</span>
         </SidebarMenuSubButton>
       </SidebarMenuSubItem>
     );
@@ -100,18 +95,15 @@ export const SidebarTabGroup = <Key extends string>({
       className="sidebar-tab-group sidebar-highlight-shadow border-sidebar-border/65 bg-sidebar-accent/45 rounded-2xl border p-1.5"
     >
       <SidebarMenuButton
-        asChild
+        render={<Link href={fallbackItem.href} />}
         isActive={activeKey === fallbackItem.key}
-        hoverCard={fallbackItem.label}
-        variant="group-tab"
+        tooltip={fallbackItem.label}
         className="mb-1 h-9"
       >
-        <Link href={fallbackItem.href}>
-          <FallbackIcon />
-          <span>{fallbackItem.label}</span>
-        </Link>
+        <FallbackIcon />
+        <span>{fallbackItem.label}</span>
       </SidebarMenuButton>
-      <SidebarMenuSub density="grouped" className="mx-0 translate-x-0">
+      <SidebarMenuSub className="mx-0 translate-x-0">
         {groupedItems}
       </SidebarMenuSub>
     </div>

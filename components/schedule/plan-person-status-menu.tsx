@@ -68,27 +68,29 @@ export const PlanPersonStatusMenu = ({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="ml-auto size-8"
-          aria-label="Change status"
-          disabled={
-            !(
-              planPersonId !== null &&
-              planPersonId !== undefined &&
-              planPersonId !== ""
-            ) || isBusy
-          }
-        >
-          {isBusy ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <MoreVertical className="size-4" />
-          )}
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="ml-auto size-8"
+            aria-label="Change status"
+            disabled={
+              !(
+                planPersonId !== null &&
+                planPersonId !== undefined &&
+                planPersonId !== ""
+              ) || isBusy
+            }
+          />
+        }
+      >
+        {isBusy ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <MoreVertical className="size-4" />
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
         {ITEMS.map(({ value, label, dotClassName }) => (

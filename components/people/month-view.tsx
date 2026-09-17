@@ -68,14 +68,14 @@ const SelectedDayPanel = ({
   onPreviewPerson: (person: PeopleDashboardPerson) => void;
 }) => (
   <aside className="flex min-w-0 flex-col gap-2 pb-1">
-    <Card density="compact">
-      <CardHeader density="compact">
-        <CardTitle scale="section">
+    <Card>
+      <CardHeader>
+        <CardTitle>
           {month.label.split(" ")[0]} {selectedDay}
         </CardTitle>
         <CardDescription>Selected service day snapshot.</CardDescription>
       </CardHeader>
-      <CardContent density="compact" layout="tight-stack">
+      <CardContent>
         {scheduledPeople.length === 0 ? (
           <p className="text-muted-foreground px-2 py-1.5 text-sm">
             No scheduled people on this date.
@@ -113,14 +113,14 @@ const SelectedDayPanel = ({
         )}
       </CardContent>
     </Card>
-    <Card density="compact">
-      <CardHeader density="compact">
-        <CardTitle scale="section">Legend</CardTitle>
+    <Card>
+      <CardHeader>
+        <CardTitle>Legend</CardTitle>
         <CardDescription>
           Calendar markers match person detail markers.
         </CardDescription>
       </CardHeader>
-      <CardContent density="compact" layout="grid" textSize="body">
+      <CardContent>
         <LegendDot className="bg-status-confirmed-bright" label="Confirmed" />
         <LegendDot className="bg-status-scheduled-bright" label="Potential" />
         <LegendDot className="bg-muted-foreground/70" label="Rehearsal" />
@@ -227,42 +227,45 @@ const HeatmapCell = ({
   const selectedClass = day === selectedDay ? "ring-ring/40 ring-2" : "";
 
   return (
-    <HoverCard openDelay={120} closeDelay={120}>
-      <HoverCardTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            "border-border/40 hover:bg-muted/60 flex aspect-square min-h-10 flex-col items-start justify-between rounded-md border p-1 text-left sm:min-h-16 sm:p-2",
-            heatClass,
-            hasRehearsalOnly ? "bg-muted" : "",
-            selectedClass
-          )}
-          onClick={() => {
-            onSelectDay(day);
-          }}
-        >
-          <span className="text-muted-foreground text-xs tabular-nums">
-            {day}
-          </span>
-          <span className="flex items-center gap-1">
-            {confirmedServiceCount > 0 ? (
-              <Badge variant="confirmed">{confirmedServiceCount}</Badge>
-            ) : null}
-            {potentialServiceCount > 0 ? (
-              <Badge variant="scheduled">{potentialServiceCount}</Badge>
-            ) : null}
-            {rehearsalCount > 0 ? (
-              <span
-                className={cn(
-                  "size-1.5 rounded-full",
-                  commitmentMarkerClass("rehearsal")
-                )}
-              />
-            ) : null}
-          </span>
-        </button>
+    <HoverCard>
+      <HoverCardTrigger
+        render={
+          <button
+            type="button"
+            aria-label={`${month.label.split(" ")[0]} ${day}`}
+            className={cn(
+              "border-border/40 hover:bg-muted/60 flex aspect-square min-h-10 flex-col items-start justify-between rounded-md border p-1 text-left sm:min-h-16 sm:p-2",
+              heatClass,
+              hasRehearsalOnly ? "bg-muted" : "",
+              selectedClass
+            )}
+            onClick={() => {
+              onSelectDay(day);
+            }}
+          />
+        }
+      >
+        <span className="text-muted-foreground text-xs tabular-nums">
+          {day}
+        </span>
+        <span className="flex items-center gap-1">
+          {confirmedServiceCount > 0 ? (
+            <Badge variant="secondary">{confirmedServiceCount}</Badge>
+          ) : null}
+          {potentialServiceCount > 0 ? (
+            <Badge variant="outline">{potentialServiceCount}</Badge>
+          ) : null}
+          {rehearsalCount > 0 ? (
+            <span
+              className={cn(
+                "size-1.5 rounded-full",
+                commitmentMarkerClass("rehearsal")
+              )}
+            />
+          ) : null}
+        </span>
       </HoverCardTrigger>
-      <HoverCardContent side="top" density="compact" className="w-52">
+      <HoverCardContent side="top" className="w-52">
         <p className="text-xs font-medium">
           {month.label.split(" ")[0]} {day}
         </p>
@@ -290,9 +293,9 @@ const MonthHeatmap = ({
   selectedDay: number;
   onSelectDay: (day: number) => void;
 }) => (
-  <Card density="compact">
-    <CardHeader density="compact">
-      <CardTitle scale="section-icon">
+  <Card>
+    <CardHeader>
+      <CardTitle>
         <CalendarDays className="text-muted-foreground size-4" />
         {month.label} serving rhythm
       </CardTitle>
@@ -300,7 +303,7 @@ const MonthHeatmap = ({
         Heatmap of scheduled people across all service days.
       </CardDescription>
     </CardHeader>
-    <CardContent density="compact">
+    <CardContent>
       <div className="text-muted-foreground grid grid-cols-7 gap-1.5 pb-2 text-center text-xs">
         {weekDayNames.map((dayName) => (
           <div key={dayName}>{dayName}</div>
@@ -347,17 +350,19 @@ const MatrixDay = ({
   return (
     <div className="flex justify-center px-3 py-2">
       {marker ? (
-        <HoverCard openDelay={120} closeDelay={120}>
-          <HoverCardTrigger asChild>
-            <button
-              type="button"
-              className="hover:bg-muted flex size-6 items-center justify-center rounded-md"
-              aria-label={`${person.name} ${month.label.split(" ")[0]} ${day}`}
-            >
-              {dot}
-            </button>
+        <HoverCard>
+          <HoverCardTrigger
+            render={
+              <button
+                type="button"
+                className="hover:bg-muted flex size-6 items-center justify-center rounded-md"
+                aria-label={`${person.name} ${month.label.split(" ")[0]} ${day}`}
+              />
+            }
+          >
+            {dot}
           </HoverCardTrigger>
-          <HoverCardContent side="top" density="compact" className="w-64">
+          <HoverCardContent side="top" className="w-64">
             <p className="text-xs font-medium">{person.name}</p>
             <div className="text-muted-foreground mt-1 flex items-start gap-2 text-xs">
               <span

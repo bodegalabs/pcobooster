@@ -136,7 +136,7 @@ const PlanItemCard = ({
                   </span>
                 ) : null}
                 {item.key ? (
-                  <Badge variant="plan-key">{item.key.name}</Badge>
+                  <Badge variant="secondary">{item.key.name}</Badge>
                 ) : null}
                 {lengthLabel !== null && lengthLabel !== "" ? (
                   <Badge variant="outline">{lengthLabel}</Badge>
@@ -153,7 +153,7 @@ const PlanItemCard = ({
         <div className="border-border/0 group-hover/plan-item:border-border/50 group-focus-within/plan-item:border-border/50 flex items-center border-l px-2 py-1.5 transition-colors">
           <Button
             type="button"
-            variant="ghost-destructive"
+            variant="destructive"
             size="icon-sm"
             className="group/delete"
             onPointerDown={(event) => {
@@ -203,7 +203,7 @@ const PlanItemCard = ({
                 </span>
               ) : null}
               {item.key ? (
-                <Badge variant="plan-key">{item.key.name}</Badge>
+                <Badge variant="secondary">{item.key.name}</Badge>
               ) : null}
               {lengthLabel !== null && lengthLabel !== "" ? (
                 <Badge variant="outline">{lengthLabel}</Badge>
@@ -219,7 +219,7 @@ const PlanItemCard = ({
         <div className="border-border/0 group-hover/plan-item:border-border/50 group-focus-within/plan-item:border-border/50 flex items-start border-l px-2 py-2 transition-colors">
           <Button
             type="button"
-            variant="ghost-destructive"
+            variant="destructive"
             size="icon-sm"
             className="group/delete shrink-0"
             onPointerDown={(event) => {
@@ -402,7 +402,7 @@ export const PlanItemList = ({
           </div>
         ) : null}
         {showEmpty ? (
-          <Card density="empty" className="mx-0 text-center sm:mr-3">
+          <Card className="mx-0 text-center sm:mr-3">
             <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
               <FileMusic className="text-muted-foreground/70 size-5" />
               <div>

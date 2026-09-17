@@ -173,7 +173,7 @@ const AdminUserPage = async ({
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell code>{account.providerAccountId}</TableCell>
+                  <TableCell>{account.providerAccountId}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {splitScope(account.scope).map((scope) => (
@@ -186,7 +186,7 @@ const AdminUserPage = async ({
                   <TableCell>
                     <TokenStatus account={account} />
                   </TableCell>
-                  <TableCell numeric className="text-right">
+                  <TableCell className="text-right">
                     {account.activityEvents}
                   </TableCell>
                   <TableCell>{formatDateTime(account.updatedAt)}</TableCell>

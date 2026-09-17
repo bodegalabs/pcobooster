@@ -1,54 +1,48 @@
 "use client";
 
-import { ScrollArea as ScrollAreaPrimitive } from "radix-ui";
+import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area";
+import { cn } from "cn";
 import * as React from "react";
-
-import { cn } from "@/lib/utils";
 
 const ScrollBar = ({
   className,
   orientation = "vertical",
   ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) => (
-  <ScrollAreaPrimitive.ScrollAreaScrollbar
+}: ScrollAreaPrimitive.Scrollbar.Props) => (
+  <ScrollAreaPrimitive.Scrollbar
     data-slot="scroll-area-scrollbar"
+    data-orientation={orientation}
     orientation={orientation}
     className={cn(
-      "flex touch-none p-0.5 transition-colors select-none",
-      orientation === "vertical" && "h-full w-2 border-l border-l-transparent",
-      orientation === "horizontal" &&
-        "h-2 flex-col border-t border-t-transparent",
+      "flex touch-none p-px transition-colors select-none data-horizontal:h-2.5 data-horizontal:flex-col data-horizontal:border-t data-horizontal:border-t-transparent data-vertical:h-full data-vertical:w-2.5 data-vertical:border-l data-vertical:border-l-transparent",
       className
     )}
     {...props}
   >
-    <ScrollAreaPrimitive.ScrollAreaThumb
+    <ScrollAreaPrimitive.Thumb
       data-slot="scroll-area-thumb"
-      className="bg-border/70 relative flex-1 rounded-full"
+      className="bg-border relative flex-1 rounded-full"
     />
-  </ScrollAreaPrimitive.ScrollAreaScrollbar>
+  </ScrollAreaPrimitive.Scrollbar>
 );
 
 const ScrollArea = ({
   className,
   children,
-  ref,
   ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) => (
+}: ScrollAreaPrimitive.Root.Props) => (
   <ScrollAreaPrimitive.Root
-    ref={ref}
     data-slot="scroll-area"
     className={cn("relative", className)}
     {...props}
   >
     <ScrollAreaPrimitive.Viewport
       data-slot="scroll-area-viewport"
-      className="size-full rounded-[inherit]"
+      className="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
     >
       {children}
     </ScrollAreaPrimitive.Viewport>
-    <ScrollBar orientation="vertical" />
-    <ScrollBar orientation="horizontal" />
+    <ScrollBar />
     <ScrollAreaPrimitive.Corner />
   </ScrollAreaPrimitive.Root>
 );

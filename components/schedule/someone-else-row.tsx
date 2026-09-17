@@ -82,14 +82,13 @@ const SomeoneElseResultRow = ({
         handleSchedule(person);
       }}
       disabled={!canSchedule || isScheduling}
-      density="roomy"
     >
       <Avatar className="size-8 shrink-0">
         <AvatarImage
           src={person.photoThumbnailUrl ?? undefined}
           alt={person.fullName}
         />
-        <AvatarFallback size="small">{initials}</AvatarFallback>
+        <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>
       <p className="min-w-0 flex-1 truncate text-sm font-medium">
         {person.fullName}
@@ -278,25 +277,26 @@ export const SomeoneElseRow = ({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="hover:bg-muted/30 flex w-full items-center gap-3 px-3 py-3 text-left transition-colors"
-        >
-          <span className="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-full sm:size-9">
-            <UserPlus className="size-4" aria-hidden />
-          </span>
-          <span className="text-foreground min-w-0 flex-1 truncate text-sm font-medium sm:text-base">
-            Someone else...
-          </span>
-        </button>
+      <PopoverTrigger
+        render={
+          <button
+            type="button"
+            aria-label="Schedule someone else"
+            className="hover:bg-muted/30 flex w-full items-center gap-3 px-3 py-3 text-left transition-colors"
+          />
+        }
+      >
+        <span className="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-full sm:size-9">
+          <UserPlus className="size-4" aria-hidden />
+        </span>
+        <span className="text-foreground min-w-0 flex-1 truncate text-sm font-medium sm:text-base">
+          Someone else...
+        </span>
       </PopoverTrigger>
       <PopoverContent
         align="start"
         side="bottom"
         sideOffset={8}
-        collisionPadding={16}
-        density="tight"
         className="w-[min(24rem,calc(100vw-2rem))]"
       >
         <SomeoneElseSearchContent

@@ -40,7 +40,6 @@ export const AdminAccountRow = ({
 
   return (
     <TableRow
-      treatment="admin-link"
       className="cursor-pointer"
       tabIndex={0}
       aria-label={`Open ${account.name}`}
@@ -63,21 +62,13 @@ export const AdminAccountRow = ({
           ))}
         </div>
       </TableCell>
-      <TableCell numeric className="text-right">
-        {account.activeSessions}
-      </TableCell>
-      <TableCell numeric className="text-right">
-        {account.loginEvents7d}
-      </TableCell>
-      <TableCell numeric className="text-right">
-        {account.loginEvents30d}
-      </TableCell>
-      <TableCell numeric className="text-right">
-        {account.loginEvents}
-      </TableCell>
+      <TableCell className="text-right">{account.activeSessions}</TableCell>
+      <TableCell className="text-right">{account.loginEvents7d}</TableCell>
+      <TableCell className="text-right">{account.loginEvents30d}</TableCell>
+      <TableCell className="text-right">{account.loginEvents}</TableCell>
       <TableCell>{lastLoginLabel}</TableCell>
       <TableCell>{createdLabel}</TableCell>
-      <TableCell tone="muted" className="text-right">
+      <TableCell className="text-right">
         <ChevronRight className="ml-auto size-4" aria-hidden="true" />
       </TableCell>
     </TableRow>

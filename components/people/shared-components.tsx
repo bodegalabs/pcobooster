@@ -40,7 +40,7 @@ export const PersonAvatar = ({ person }: { person: PeopleDashboardPerson }) => {
     person.photoThumbnailUrl !== null && person.photoThumbnailUrl !== "";
 
   return (
-    <Avatar corners="square">
+    <Avatar size="sm">
       {hasPhoto ? (
         <AvatarImage
           src={person.photoThumbnailUrl ?? ""}
@@ -48,9 +48,7 @@ export const PersonAvatar = ({ person }: { person: PeopleDashboardPerson }) => {
           className="object-cover"
         />
       ) : null}
-      <AvatarFallback corners="square" size="small" tone="soft-primary">
-        {person.initials}
-      </AvatarFallback>
+      <AvatarFallback>{person.initials}</AvatarFallback>
     </Avatar>
   );
 };

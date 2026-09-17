@@ -8,7 +8,7 @@ import { LineupTab } from "@/components/schedule/lineup-tab";
 import { PlanTab } from "@/components/schedule/plan-tab";
 import { ScheduleViewTab } from "@/components/schedule/schedule-view-tab";
 import { TimesTab } from "@/components/schedule/times-tab";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import {
   HoverCard,
   HoverCardContent,
@@ -145,9 +145,9 @@ export const DashboardPage = ({
         <p className="text-muted-foreground text-sm">
           This plan could not be loaded. Choose a plan from Services.
         </p>
-        <Button asChild>
-          <Link href="/services">Go to Services</Link>
-        </Button>
+        <Link href="/services" className={buttonVariants()}>
+          Go to Services
+        </Link>
       </main>
     );
   }
@@ -179,29 +179,28 @@ export const DashboardPage = ({
                 </span>
               </h1>
               {isNonEmptyString(selectedPlan.planningCenterUrl) ? (
-                <HoverCard openDelay={120} closeDelay={120}>
-                  <HoverCardTrigger asChild>
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="icon-sm"
-                      className="shrink-0"
-                    >
+                <HoverCard>
+                  <HoverCardTrigger
+                    render={
                       <a
                         href={selectedPlan.planningCenterUrl}
                         target="_blank"
                         rel="noreferrer"
                         aria-label="Open in Planning Center"
-                      >
-                        <PlanningCenterServicesIcon className="size-4" />
-                      </a>
-                    </Button>
+                        className={buttonVariants({
+                          variant: "outline",
+                          size: "icon-sm",
+                          className: "shrink-0",
+                        })}
+                      />
+                    }
+                  >
+                    <PlanningCenterServicesIcon className="size-4" />
                   </HoverCardTrigger>
                   <HoverCardContent
                     side="bottom"
                     align="end"
                     sideOffset={8}
-                    density="compact"
                     className="w-auto"
                   >
                     <p className="text-xs font-medium">

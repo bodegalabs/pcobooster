@@ -113,15 +113,12 @@ const TemporaryFilledPersonRow = ({
 
   return (
     <article className="group/row hover:bg-muted/30 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 transition-colors sm:py-3">
-      <Avatar
-        size="responsive"
-        status={person.status === "confirmed" ? "confirmed" : "none"}
-      >
+      <Avatar size="default">
         <AvatarImage
           src={person.photoThumbnailUrl ?? undefined}
           alt={person.name}
         />
-        <AvatarFallback size="small">{getInitials(person.name)}</AvatarFallback>
+        <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
       </Avatar>
 
       <div className="min-w-0">
@@ -197,7 +194,7 @@ const SchedulePeopleList = ({
       <div className="border-border/40 bg-card/30 divide-border/25 divide-y overflow-hidden rounded-2xl border shadow-sm">
         {Array.from({ length: 8 }).map((_, i) => (
           <div key={i} className="flex items-center gap-3 px-3 py-3">
-            <Skeleton corners="pill" className="size-10 shrink-0" />
+            <Skeleton className="size-10 shrink-0" />
             <div className="flex flex-1 flex-col gap-1.5">
               <Skeleton className="h-3.5 w-32" />
               <Skeleton className="h-3 w-48" />
@@ -227,7 +224,7 @@ const SchedulePeopleList = ({
             />
           ))
         ) : (
-          <Empty density="roomy" className="mx-2">
+          <Empty className="mx-2">
             <EmptyHeader>
               <EmptyMedia variant="icon">
                 <CalendarDays />
@@ -473,13 +470,10 @@ const ScheduleViewContent = ({
           open={pickerOpen && !isWidePickerLayout}
           onOpenChange={setPickerOpen}
         >
-          <DialogContent showCloseButton={false} treatment="sidebar-picker">
-            <DialogHeader
-              treatment="sidebar-picker"
-              className="flex h-12 shrink-0 flex-row items-center justify-between text-left"
-            >
+          <DialogContent showCloseButton={false}>
+            <DialogHeader className="flex h-12 shrink-0 flex-row items-center justify-between text-left">
               <div className="min-w-0">
-                <DialogTitle density="compact">Positions</DialogTitle>
+                <DialogTitle>Positions</DialogTitle>
                 <DialogDescription className="sr-only">
                   Choose a team position for this plan.
                 </DialogDescription>

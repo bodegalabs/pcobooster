@@ -46,15 +46,13 @@ export const PositionPickerList = ({
 }) => {
   let body: ReactNode;
   if (teamPositionsLoading) {
-    body = skeletonWidths.map((width) => (
-      <SidebarMenuSkeleton key={width} width={width} />
-    ));
+    body = skeletonWidths.map((width) => <SidebarMenuSkeleton key={width} />);
   } else if (
     teamPositionGroups === undefined ||
     teamPositionGroups.length === 0
   ) {
     body = (
-      <Empty density="compact">
+      <Empty>
         <EmptyHeader>
           <EmptyMedia variant="icon">
             <CalendarDays />

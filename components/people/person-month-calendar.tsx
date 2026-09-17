@@ -57,9 +57,9 @@ export const PersonMonthCalendar = ({
           return button;
         }
         return (
-          <HoverCard key={cell.key} openDelay={120} closeDelay={120}>
-            <HoverCardTrigger asChild>{button}</HoverCardTrigger>
-            <HoverCardContent side="top" density="compact" className="w-72">
+          <HoverCard key={cell.key}>
+            <HoverCardTrigger render={button} />
+            <HoverCardContent side="top" className="w-72">
               <p className="text-xs font-medium">
                 {monthLabel.split(" ")[0]} {day}
               </p>

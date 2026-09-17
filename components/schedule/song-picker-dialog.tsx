@@ -93,11 +93,11 @@ export const SongPickerDialog = ({
         desktopClassName="max-w-2xl"
         mobileClassName="max-h-[90svh]"
       >
-        <ResponsiveDialogHeader treatment="picker" className="text-left">
+        <ResponsiveDialogHeader className="text-left">
           <ResponsiveDialogTitle>Add Song</ResponsiveDialogTitle>
         </ResponsiveDialogHeader>
 
-        <Command shouldFilter={false} treatment="song-picker">
+        <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search songs, writers, or themes..."
             value={query}
@@ -107,11 +107,7 @@ export const SongPickerDialog = ({
             {showInitialLoading ? (
               <div className="space-y-2 p-3">
                 {Array.from({ length: 6 }).map((_, index) => (
-                  <Skeleton
-                    key={index}
-                    corners="large"
-                    className="h-20 w-full"
-                  />
+                  <Skeleton key={index} className="h-20 w-full" />
                 ))}
               </div>
             ) : null}
