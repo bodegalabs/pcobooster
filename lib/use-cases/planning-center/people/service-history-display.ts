@@ -94,13 +94,13 @@ export const getHistoryStatusDotClass = (
   const raw = (status ?? "").trim();
   const normalized = raw.toLowerCase();
   if (raw === "C" || normalized === "confirmed") {
-    return "bg-emerald-500";
+    return "bg-status-confirmed";
   }
   if (raw === "U" || normalized === "unconfirmed") {
-    return "bg-amber-500";
+    return "bg-status-scheduled";
   }
   if (raw === "D" || normalized === "declined") {
-    return "bg-red-500";
+    return "bg-status-declined";
   }
   return "bg-muted-foreground/50";
 };
@@ -247,6 +247,29 @@ export const buildServiceHistoryGroups = (
       throw new Error(`Missing merged service history group: ${key}`);
     }
     return group;
+  });
+};
+
+export const filterServiceHistoryWithinHalfRange = (
+  items: ServiceHistoryItem[],
+  referenceDate: Date | string | null | undefined,
+  halfRangeDays: number,
+  orgTimeZone: string
+): ServiceHistoryItem[] => {
+  if (halfRangeDays <= 0) {
+    return [];
+  }
+
+  const reference = toServiceHistoryDate(referenceDate ?? undefined);
+  if (Number.isNaN(reference.getTime())) {
+    return items;
+  }
+
+  const refDayKey = formatCalendarDayInTimeZone(reference, orgTimeZone);
+  return items.filter((item) => {
+    const itemDayKey = formatCalendarDayInTimeZone(item.date, orgTimeZone);
+    const daysDiff = orgCalendarDaysRefMinusItem(itemDayKey, refDayKey);
+    return daysDiff >= -halfRangeDays && daysDiff <= halfRangeDays;
   });
 };
 

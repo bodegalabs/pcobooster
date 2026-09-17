@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { formatPlanHistoryHalfRangeWeeksLabel } from "@/lib/planning-center/schedule-load-constants";
 import type { PersonWithAvailability, ScheduleFrequency } from "@/lib/types";
 import { scoreAndNormalizePeople } from "@/lib/use-cases/planning-center/people/scoring";
 
@@ -99,6 +100,24 @@ describe(scoreAndNormalizePeople, () => {
     );
     expect(missingFrequency.recommendationReasoning?.join(" ")).toContain(
       "No service history available"
+    );
+  });
+
+  it("explains recent schedule load using the plan-history week window", () => {
+    const referenceDate = new Date("2026-02-22T00:00:00Z");
+    const busy = person(
+      "busy",
+      baseFrequency({
+        recentServedDays: 3,
+        totalServed: 5,
+        lastServedDate: new Date("2026-02-01T00:00:00Z"),
+      })
+    );
+
+    scoreAndNormalizePeople([busy], referenceDate, "UTC");
+
+    expect(busy.recommendationReasoning?.join(" ")).toContain(
+      formatPlanHistoryHalfRangeWeeksLabel()
     );
   });
 });
