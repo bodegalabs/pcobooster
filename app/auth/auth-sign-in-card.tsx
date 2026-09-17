@@ -22,8 +22,8 @@ export const AuthSignInCard = () => {
     setLoading(true);
 
     try {
-      const result = await authClient.signIn.oauth2({
-        providerId: "planning-center",
+      const result = await authClient.signIn.social({
+        provider: "planning-center",
         callbackURL: "/",
         errorCallbackURL: "/auth",
       });

@@ -14,7 +14,7 @@ const requestSchema = z.object({
 export const POST = async (request: Request) => {
   const log = logger.withRequest(request);
 
-  return await handlePlanningCenterRoute(request, async ({ accountId }) => {
+  return await handlePlanningCenterRoute(request, async ({ account }) => {
     const parsed = requestSchema.safeParse(await request.json());
     if (!parsed.success) {
       log.warn(
@@ -32,7 +32,7 @@ export const POST = async (request: Request) => {
     const uniquePlanIds = [...new Set(parsed.data.planIds)];
     const scheduledPlanIds = await getCurrentUserScheduledPlanIds(
       request,
-      accountId,
+      account,
       uniquePlanIds
     );
 

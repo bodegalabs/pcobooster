@@ -77,7 +77,7 @@ export const GET = async (request: Request) =>
       planningCenterAccounts.map(async (account) => {
         const identity = await getPlanningCenterIdentityForAccount(
           request,
-          account.id
+          account
         );
         return {
           ...account,

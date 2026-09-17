@@ -45,7 +45,7 @@ const isScheduledStatus = (status: string | undefined): boolean => {
 
 export const getCurrentUserScheduledPlanIds = async (
   request: Request,
-  accountId: string,
+  account: { id: string; accountId: string },
   planIds: string[]
 ): Promise<string[]> => {
   if (planIds.length === 0) {
@@ -60,7 +60,7 @@ export const getCurrentUserScheduledPlanIds = async (
   } else {
     const identity = await getPlanningCenterIdentityForAccount(
       request,
-      accountId
+      account
     );
     personId = extractPersonIdFromIdentitySub(identity?.sub ?? null);
   }
