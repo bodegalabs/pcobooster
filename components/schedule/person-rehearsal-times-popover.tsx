@@ -34,6 +34,7 @@ interface PersonRehearsalTimesPopoverProps {
   serviceTypeId: string | null;
   planId: string | null;
   seriesId: string | null;
+  display?: "default" | "lineup";
 }
 
 const formatPlanTimeScheduleLabel = (
@@ -70,6 +71,7 @@ export const PersonRehearsalTimesPopover = ({
   serviceTypeId,
   planId,
   seriesId,
+  display = "default",
 }: PersonRehearsalTimesPopoverProps) => {
   const queryClient = useQueryClient();
   const timeZone = useOrganizationTimeZone();
@@ -150,63 +152,72 @@ export const PersonRehearsalTimesPopover = ({
   const selectedTimeCount = editablePlanTimeIds.filter((id) =>
     displayTimeIdSet.has(id)
   ).length;
+  const isPartialAssignment = selectedTimeCount < planTimes.length;
 
   if (planTimes.length === 0) {
     return null;
   }
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
-      <PopoverTrigger
-        render={
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            className="max-w-full"
-            disabled={!canEdit}
-            aria-label={`Edit times for ${person.name}`}
-          />
-        }
-      >
-        <Clock3 data-icon="inline-start" />
-        {selectedTimeCount}/{planTimes.length}
-      </PopoverTrigger>
-      <PopoverContent align="end" sideOffset={8} className="w-96">
-        <Command>
-          <CommandList>
-            <CommandGroup>
-              {planTimes.map((planTime) => {
-                const selected = draftTimeIdSet.has(planTime.id);
+    <div
+      className={cn(
+        display === "lineup" &&
+          !isPartialAssignment &&
+          "opacity-0 group-hover/person:opacity-100 focus-within:opacity-100"
+      )}
+    >
+      <Popover open={open} onOpenChange={handleOpenChange}>
+        <PopoverTrigger
+          render={
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              className="max-w-full"
+              disabled={!canEdit}
+              aria-label={`Edit times for ${person.name}`}
+            />
+          }
+        >
+          <Clock3 data-icon="inline-start" />
+          {selectedTimeCount}/{planTimes.length}
+        </PopoverTrigger>
+        <PopoverContent align="end" sideOffset={8} className="w-96">
+          <Command>
+            <CommandList>
+              <CommandGroup>
+                {planTimes.map((planTime) => {
+                  const selected = draftTimeIdSet.has(planTime.id);
 
-                return (
-                  <CommandItem
-                    key={planTime.id}
-                    value={`${planTime.name} ${planTime.id}`}
-                    onSelect={() => {
-                      setDraft((current) => toggleId(current, planTime.id));
-                    }}
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                    }}
-                  >
-                    <Check
-                      className={cn(selected ? "opacity-100" : "opacity-0")}
-                    />
-                    <span className="min-w-0 flex-1 truncate">
-                      {planTime.name}
-                    </span>
-                    <Badge variant="outline" className="max-w-[14rem]">
-                      {formatPlanTimeScheduleLabel(planTime, timeZone)}
-                    </Badge>
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+                  return (
+                    <CommandItem
+                      key={planTime.id}
+                      value={`${planTime.name} ${planTime.id}`}
+                      onSelect={() => {
+                        setDraft((current) => toggleId(current, planTime.id));
+                      }}
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                      }}
+                    >
+                      <Check
+                        className={cn(selected ? "opacity-100" : "opacity-0")}
+                      />
+                      <span className="min-w-0 flex-1 truncate">
+                        {planTime.name}
+                      </span>
+                      <Badge variant="outline" className="max-w-[14rem]">
+                        {formatPlanTimeScheduleLabel(planTime, timeZone)}
+                      </Badge>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 };
