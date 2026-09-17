@@ -13,110 +13,152 @@ export type PositionIconId =
 const normalizeLabel = (value: string): string =>
   value.trim().toLowerCase().replaceAll(/\s+/gu, " ");
 
-const includesAny = (haystack: string, needles: readonly string[]): boolean =>
-  needles.some((needle) => haystack.includes(needle));
+const buildSearchContexts = (positionName: string, teamName: string) => {
+  const position = normalizeLabel(positionName);
+  const team = normalizeLabel(teamName);
+  const combined = normalizeLabel(`${positionName} ${teamName}`);
+  const roleContexts = [
+    ...new Set([position, combined].filter((text) => text.length > 0)),
+  ];
+  const teamContexts = team.length > 0 ? [team] : [];
+
+  return {
+    roleContexts,
+    teamContexts,
+    allContexts: [...new Set([...roleContexts, ...teamContexts])],
+  };
+};
+
+const matchesAny = (
+  contexts: readonly string[],
+  patterns: readonly RegExp[]
+): boolean =>
+  patterns.some((pattern) => contexts.some((text) => pattern.test(text)));
 
 export const resolvePositionIconId = (
   positionName: string,
   teamName: string
 ): PositionIconId => {
-  const position = normalizeLabel(positionName);
-  const team = normalizeLabel(teamName);
+  const { roleContexts, teamContexts, allContexts } = buildSearchContexts(
+    positionName,
+    teamName
+  );
 
   if (
-    includesAny(position, [
-      "livestream",
-      "live stream",
-      "streaming",
-      "broadcast",
+    matchesAny(roleContexts, [
+      /\blivestreams?\b/u,
+      /\bstreaming\b/u,
+      /\bbroadcast(?:ing)?\b/u,
     ])
   ) {
     return "livestream";
   }
-  if (includesAny(position, ["photograph", "photo"])) {
-    return "camera";
-  }
-  if (includesAny(position, ["camera", "cam 1", "cam 2"])) {
+  if (matchesAny(roleContexts, [/\bphotographs?\b/u, /\bphotos?\b/u])) {
     return "camera";
   }
   if (
-    includesAny(position, [
-      "lyric",
-      "proclaim",
-      "propresenter",
-      "presentation",
-      "slide",
+    matchesAny(roleContexts, [/\bcameras?\b/u, /\bcam\s*[12]\b/u, /\bcam\b/u])
+  ) {
+    return "camera";
+  }
+  if (
+    matchesAny(roleContexts, [
+      /\blyrics?\b/u,
+      /\bproclaim\b/u,
+      /\bpropresenter\b/u,
+      /\bpresentations?\b/u,
+      /\bslides?\b/u,
     ])
   ) {
     return "music-note";
   }
   if (
-    includesAny(position, [
-      "sound",
-      "foh",
-      "audio engineer",
-      "monitor",
-      "a1",
-      "a2",
+    matchesAny(roleContexts, [
+      /\bsounds?\b/u,
+      /\bfoh\b/u,
+      /\baudio\s+engineers?\b/u,
+      /\bmonitors?\b/u,
+      /\ba[12]\b/u,
     ])
   ) {
     return "sound";
   }
-  if (includesAny(position, ["video", "switcher", "director", "switch"])) {
+  if (
+    matchesAny(roleContexts, [
+      /\bvideos?\b/u,
+      /\bswitchers?\b/u,
+      /\bdirectors?\b/u,
+    ])
+  ) {
     return "camera-video";
   }
   if (
-    includesAny(position, [
-      "guitar",
-      "bass",
-      "ukulele",
-      "banjo",
-      "mandolin",
-      "electric",
-      "acoustic",
+    matchesAny(allContexts, [
+      /\bguitars?\b/u,
+      /\bbass\b/u,
+      /\bukuleles?\b/u,
+      /\bbanjos?\b/u,
+      /\bmandolins?\b/u,
+      /\b(?:electric|acoustic)\b/u,
     ])
   ) {
     return "guitar";
   }
-  if (includesAny(position, ["drum", "percussion", "cajon", "cajón"])) {
+  if (
+    matchesAny(allContexts, [
+      /\bdrums?\b/u,
+      /\bpercussions?\b/u,
+      /\bcaj[oó]ns?\b/u,
+    ])
+  ) {
     return "drum";
   }
-  if (includesAny(position, ["key", "piano", "organ", "pad", "synth"])) {
+  if (
+    matchesAny(allContexts, [
+      /\bkeys?\b/u,
+      /\bkeyboards?\b/u,
+      /\bpianos?\b/u,
+      /\borgans?\b/u,
+      /\bpads?\b/u,
+      /\bsynths?\b/u,
+    ])
+  ) {
     return "piano";
   }
   if (
-    includesAny(position, [
-      "vocal",
-      "vocals",
-      "singer",
-      "alto",
-      "soprano",
-      "tenor",
-      "lead",
-      "worship leader",
-      "choir",
-      "mic",
-      "microphone",
+    matchesAny(allContexts, [
+      /\bvocals?\b/u,
+      /\bsingers?\b/u,
+      /\b(?:alto|soprano|tenor|baritone)\b/u,
+      /\bworship\s+leaders?\b/u,
+      /\bchoirs?\b/u,
+      /\bmicrophones?\b/u,
+      /\bmics?\b/u,
+      /\bleads?\b/u,
     ])
   ) {
     return "mic-vocal";
   }
 
-  if (includesAny(team, ["vocal", "choir", "singer"])) {
+  if (
+    matchesAny(teamContexts, [/\bvocals?\b/u, /\bchoirs?\b/u, /\bsingers?\b/u])
+  ) {
     return "mic-vocal";
   }
-  if (includesAny(team, ["band", "music", "orchestra"])) {
+  if (
+    matchesAny(teamContexts, [/\bbands?\b/u, /\bmusic\b/u, /\borchestras?\b/u])
+  ) {
     return "music";
   }
   if (
-    includesAny(team, [
-      "audio",
-      "visual",
-      "a/v",
-      "av",
-      "media",
-      "production",
-      "tech",
+    matchesAny(teamContexts, [
+      /\ba\/v\b/u,
+      /\bav\b/u,
+      /\baudio\b.*\bvisual\b/u,
+      /\bvisuals?\b/u,
+      /\bmedia\b/u,
+      /\bproduction\b/u,
+      /\btech\b/u,
     ])
   ) {
     return "camera";
