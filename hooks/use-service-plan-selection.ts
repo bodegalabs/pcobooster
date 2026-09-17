@@ -68,7 +68,6 @@ export const useServicePlanSelection = ({
     [setStoredIds]
   );
   const [dateRangeFilter, setDateRangeFilter] = useState<DateRangeFilter>("60");
-  const [showMineOnly, setShowMineOnly] = useState(false);
 
   const allServiceTypeIds = useMemo(
     () => (serviceTypes ?? []).map((serviceType) => serviceType.id),
@@ -193,11 +192,8 @@ export const useServicePlanSelection = ({
     () => [...new Set(rows.map((row) => row.planId))],
     [rows]
   );
-  const {
-    data: myScheduledPlans,
-    isLoading: myScheduledPlansLoading,
-    isFetching: myScheduledPlansFetching,
-  } = useMyScheduledPlans(planIdsForLookup);
+  const { data: myScheduledPlans, isLoading: myScheduledPlansLoading } =
+    useMyScheduledPlans(planIdsForLookup);
   const myScheduledPlanIdSet = useMemo(
     () => new Set(myScheduledPlans?.planIds),
     [myScheduledPlans?.planIds]
@@ -207,15 +203,16 @@ export const useServicePlanSelection = ({
   const errorMessage = planQueries.find((query) => query.isError)?.error;
   const isInitialLoading =
     serviceTypesLoading || (plansLoading && rows.length === 0);
-  const myScheduledCount = useMemo(
-    () => rows.filter((row) => myScheduledPlanIdSet.has(row.planId)).length,
-    [rows, myScheduledPlanIdSet]
+
+  const myScheduledRows = useMemo(
+    () =>
+      rows.filter(
+        (row) =>
+          myScheduledPlanIdSet.has(row.planId) &&
+          isInDateWindow(row.sortDate, dateRangeFilter, orgTimeZone)
+      ),
+    [dateRangeFilter, myScheduledPlanIdSet, orgTimeZone, rows]
   );
-  const mineTabDisabled =
-    isInitialLoading ||
-    myScheduledPlansLoading ||
-    (!myScheduledPlans && myScheduledPlansFetching) ||
-    myScheduledCount === 0;
 
   const visibleRows = useMemo(() => {
     const normalizedSearch = deferredSearchValue.trim().toLowerCase();
@@ -225,10 +222,6 @@ export const useServicePlanSelection = ({
         return false;
       }
       if (!selectedServiceTypeIdSet.has(row.serviceTypeId)) {
-        return false;
-      }
-
-      if (showMineOnly && !myScheduledPlanIdSet.has(row.planId)) {
         return false;
       }
 
@@ -254,11 +247,9 @@ export const useServicePlanSelection = ({
   }, [
     dateRangeFilter,
     deferredSearchValue,
-    myScheduledPlanIdSet,
     orgTimeZone,
     rows,
     selectedServiceTypeIdSet,
-    showMineOnly,
   ]);
 
   useEffect(() => {
@@ -381,10 +372,6 @@ export const useServicePlanSelection = ({
   }, [firstVisibleRow, warmPeopleHistory]);
 
   return {
-    showMineOnly,
-    setShowMineOnly,
-    mineTabDisabled,
-    myScheduledCount,
     searchValue,
     setSearchValue,
     serviceTypes,
@@ -393,8 +380,10 @@ export const useServicePlanSelection = ({
     dateRangeFilter,
     setDateRangeFilter,
     isInitialLoading,
+    myScheduledPlansLoading,
     errorMessage,
     visibleRows,
+    myScheduledRows,
     myScheduledPlanIdSet,
     handleSelectRow,
     scheduleDelayedPrefetch,

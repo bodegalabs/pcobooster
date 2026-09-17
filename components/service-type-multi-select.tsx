@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronsUpDown } from "lucide-react";
+import { UnfoldMoreIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useId, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -92,7 +93,7 @@ export const ServiceTypeMultiSelect = ({
         render={
           <Button
             type="button"
-            variant="outline"
+            variant="input"
             aria-haspopup="dialog"
             aria-expanded={open}
             aria-controls={listId}
@@ -102,7 +103,12 @@ export const ServiceTypeMultiSelect = ({
         }
       >
         <span className="truncate text-left">{label}</span>
-        <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
+        <HugeiconsIcon
+          icon={UnfoldMoreIcon}
+          strokeWidth={2}
+          className="text-muted-foreground pointer-events-none size-4 shrink-0"
+          aria-hidden
+        />
       </PopoverTrigger>
       <PopoverContent
         className="w-[420px] max-w-[calc(100vw-2rem)]"

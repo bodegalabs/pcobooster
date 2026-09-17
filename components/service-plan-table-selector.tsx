@@ -19,6 +19,8 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
+import { selectionPickerSectionTitleClass } from "@/components/ui/selection-picker-styles";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -28,7 +30,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useServicePlanSelection } from "@/hooks/use-service-plan-selection";
 import { isNonEmptyString } from "@/lib/json";
 import type {
@@ -41,6 +42,8 @@ import {
   formatMobileDate,
 } from "@/lib/service-plan-selection";
 import { cn } from "@/lib/utils";
+
+const myScheduledMobileRowClass = "bg-status-confirmed/5";
 
 interface PlanListProps {
   isInitialLoading: boolean;
@@ -125,6 +128,7 @@ const DesktopPlanRows = ({
     return (
       <TableRow
         key={`${row.serviceTypeId}:${row.planId}`}
+        scheduled={isScheduledForCurrentUser}
         data-state={isActive ? "selected" : undefined}
         className="group/row relative cursor-pointer"
         tabIndex={0}
@@ -235,7 +239,7 @@ const MobilePlanRows = ({
         className={cn(
           "border-border/35 hover:bg-muted/50 focus-visible:ring-ring relative flex w-full cursor-pointer flex-col gap-1.5 border-b px-4 py-3 text-left last:border-b-0 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
           isActive && "bg-muted/60",
-          isScheduledForCurrentUser && "border-l-status-confirmed border-l-4"
+          isScheduledForCurrentUser && myScheduledMobileRowClass
         )}
         aria-current={isActive ? "page" : undefined}
         aria-label={
@@ -252,12 +256,7 @@ const MobilePlanRows = ({
       >
         <div className="flex min-w-0 items-start justify-between gap-3">
           <div className="min-w-0">
-            <p
-              className={cn(
-                "truncate text-sm leading-tight font-semibold",
-                isScheduledForCurrentUser && "text-status-confirmed"
-              )}
-            >
+            <p className="truncate text-sm leading-tight font-semibold">
               {row.serviceTypeName}
             </p>
             <p className="mt-1 truncate text-base leading-tight font-medium">
@@ -269,15 +268,6 @@ const MobilePlanRows = ({
           </span>
         </div>
         <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-xs">
-          {isScheduledForCurrentUser ? (
-            <span className="text-status-confirmed inline-flex shrink-0 items-center gap-1 font-medium">
-              <span
-                aria-hidden
-                className="bg-status-confirmed-bright size-1.5 rounded-full"
-              />
-              Mine
-            </span>
-          ) : null}
           <span className="min-w-0 truncate">
             {row.seriesTitle ?? "No series"}
           </span>
@@ -286,16 +276,74 @@ const MobilePlanRows = ({
     );
   });
 };
+
+interface MyScheduledServiceCardsProps {
+  rows: ServicePlanRow[];
+  isLoading: boolean;
+  onSelect: (row: ServicePlanRow) => void;
+  onPrefetch: (row: ServicePlanRow) => void;
+  onCancelPrefetch: () => void;
+}
+
+const myScheduledServiceCardClass =
+  "border-border bg-background hover:bg-accent text-foreground flex w-full min-h-24 flex-col items-start justify-center gap-1.5 rounded-xl border px-4 py-4 text-left";
+
+const MyScheduledServiceCards = ({
+  rows,
+  isLoading,
+  onSelect,
+  onPrefetch,
+  onCancelPrefetch,
+}: MyScheduledServiceCardsProps) => {
+  if (!isLoading && rows.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="flex shrink-0 flex-col gap-2.5">
+      <h2 className={selectionPickerSectionTitleClass}>Your services</h2>
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {isLoading
+          ? Array.from({ length: 3 }).map((_, index) => (
+              <Skeleton
+                key={`my-service-card-skeleton-${index}`}
+                className="h-24 w-full"
+              />
+            ))
+          : rows.map((row) => (
+              <button
+                key={`${row.serviceTypeId}:${row.planId}`}
+                type="button"
+                className={myScheduledServiceCardClass}
+                onClick={() => {
+                  onSelect(row);
+                }}
+                onMouseEnter={() => {
+                  onPrefetch(row);
+                }}
+                onMouseLeave={onCancelPrefetch}
+              >
+                <span className="w-full truncate text-base font-medium">
+                  {formatDate(row.sortDate)}
+                </span>
+                <span className="text-muted-foreground w-full truncate text-sm">
+                  {row.serviceTypeName}
+                  {row.planTitle ? ` · ${row.planTitle}` : null}
+                </span>
+              </button>
+            ))}
+      </div>
+      <Separator className="mt-1" />
+    </section>
+  );
+};
+
 export const ServicePlanTableSelector = ({
   selectedServiceTypeId,
   selectedPlanId,
   onSelect,
 }: ServicePlanTableSelectorProps) => {
   const {
-    showMineOnly,
-    setShowMineOnly,
-    mineTabDisabled,
-    myScheduledCount,
     searchValue,
     setSearchValue,
     serviceTypes,
@@ -304,8 +352,10 @@ export const ServicePlanTableSelector = ({
     dateRangeFilter,
     setDateRangeFilter,
     isInitialLoading,
+    myScheduledPlansLoading,
     errorMessage,
     visibleRows,
+    myScheduledRows,
     myScheduledPlanIdSet,
     handleSelectRow,
     scheduleDelayedPrefetch,
@@ -329,30 +379,13 @@ export const ServicePlanTableSelector = ({
   };
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">
-      <div className="flex shrink-0 flex-wrap items-center gap-2">
-        <Tabs
-          value={showMineOnly ? "mine" : "all"}
-          onValueChange={(next) => {
-            setShowMineOnly(next === "mine");
-          }}
-        >
-          <TabsList className="h-8">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="mine" disabled={mineTabDisabled}>
-              <span
-                aria-hidden
-                className="bg-status-confirmed-bright size-1.5 rounded-full"
-              />
-              Mine
-              {myScheduledCount > 0 ? (
-                <span className="text-muted-foreground tabular-nums">
-                  {myScheduledCount}
-                </span>
-              ) : null}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+      <MyScheduledServiceCards
+        rows={myScheduledRows}
+        isLoading={isInitialLoading || myScheduledPlansLoading}
+        onSelect={handleSelectRow}
+        onPrefetch={scheduleDelayedPrefetch}
+        onCancelPrefetch={cancelDelayedPrefetch}
+      />
 
       <div className="grid shrink-0 gap-2 sm:grid-cols-[minmax(0,1fr)_180px_160px]">
         <InputGroup>

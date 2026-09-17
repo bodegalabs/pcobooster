@@ -27,6 +27,29 @@ export const selectionPickerOptionRowClass =
 export const selectionPickerOptionDisabledClass =
   "cursor-not-allowed opacity-60";
 
+const getSelectionPickerLayoutClass = (layout: "segment" | "row"): string => {
+  if (layout === "segment") {
+    return selectionPickerOptionSegmentClass;
+  }
+  return selectionPickerOptionRowClass;
+};
+
+const getSelectionPickerStateClass = (selected: boolean): string => {
+  if (selected) {
+    return selectionPickerOptionSelectedClass;
+  }
+  return selectionPickerOptionIdleClass;
+};
+
+export const getSelectionPickerShellLayoutClass = (
+  layout: "list" | "segment"
+): string => {
+  if (layout === "segment") {
+    return selectionPickerShellSegmentClass;
+  }
+  return selectionPickerShellListClass;
+};
+
 export const getSelectionPickerOptionClassName = ({
   selected,
   layout = "row",
@@ -38,11 +61,7 @@ export const getSelectionPickerOptionClassName = ({
 }) =>
   cn(
     selectionPickerOptionClass,
-    layout === "segment"
-      ? selectionPickerOptionSegmentClass
-      : selectionPickerOptionRowClass,
-    selected
-      ? selectionPickerOptionSelectedClass
-      : selectionPickerOptionIdleClass,
+    getSelectionPickerLayoutClass(layout),
+    getSelectionPickerStateClass(selected),
     disabled && selectionPickerOptionDisabledClass
   );

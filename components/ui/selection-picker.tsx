@@ -6,9 +6,8 @@ import type { ComponentProps } from "react";
 import { CommandItem } from "@/components/ui/command";
 import {
   getSelectionPickerOptionClassName,
+  getSelectionPickerShellLayoutClass,
   selectionPickerShellClass,
-  selectionPickerShellListClass,
-  selectionPickerShellSegmentClass,
 } from "@/components/ui/selection-picker-styles";
 import { cn } from "@/lib/utils";
 
@@ -20,9 +19,7 @@ export const SelectionPickerShell = ({
   <div
     className={cn(
       selectionPickerShellClass,
-      layout === "segment"
-        ? selectionPickerShellSegmentClass
-        : selectionPickerShellListClass,
+      getSelectionPickerShellLayoutClass(layout),
       className
     )}
     {...props}
