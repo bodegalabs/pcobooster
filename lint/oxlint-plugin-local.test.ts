@@ -14,32 +14,37 @@ const ruleTester = new RuleTester({
   },
 });
 
-ruleTester.run("no-absolute-input-overlay", noAbsoluteInputOverlayRule, {
-  valid: [
-    {
-      name: "input group search field",
-      code: `
+// Oxlint's Rule union treats JS-exported create()-only rules as CreateOnceRule
+// because meta.type widens to string; assert the create()-based shape for RuleTester.
+ruleTester.run(
+  "no-absolute-input-overlay",
+  noAbsoluteInputOverlayRule as Parameters<typeof ruleTester.run>[1],
+  {
+    valid: [
+      {
+        name: "input group search field",
+        code: `
         <InputGroup>
           <InputGroupAddon><Search /></InputGroupAddon>
           <InputGroupInput placeholder="Filter" />
         </InputGroup>
       `,
-    },
-    {
-      name: "plain input without affixes",
-      code: `<Input placeholder="Name" />`,
-    },
-    {
-      name: "relative wrapper without absolute siblings",
-      code: `
+      },
+      {
+        name: "plain input without affixes",
+        code: `<Input placeholder="Name" />`,
+      },
+      {
+        name: "relative wrapper without absolute siblings",
+        code: `
         <div className="relative">
           <Input placeholder="Name" />
         </div>
       `,
-    },
-    {
-      name: "absolute decoration without bare Input sibling",
-      code: `
+      },
+      {
+        name: "absolute decoration without bare Input sibling",
+        code: `
         <div className="relative">
           <span className="absolute left-3 top-1/2">icon</span>
           <InputGroup>
@@ -47,22 +52,22 @@ ruleTester.run("no-absolute-input-overlay", noAbsoluteInputOverlayRule, {
           </InputGroup>
         </div>
       `,
-    },
-  ],
-  invalid: [
-    {
-      name: "absolute search icon overlaps input",
-      code: `
+      },
+    ],
+    invalid: [
+      {
+        name: "absolute search icon overlaps input",
+        code: `
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
           <Input placeholder="Filter" />
         </div>
       `,
-      errors: [{ messageId: "overlay" }],
-    },
-    {
-      name: "absolute clear button overlaps input",
-      code: `
+        errors: [{ messageId: "overlay" }],
+      },
+      {
+        name: "absolute clear button overlaps input",
+        code: `
         <div className="relative">
           <Input value="query" />
           <button
@@ -74,11 +79,11 @@ ruleTester.run("no-absolute-input-overlay", noAbsoluteInputOverlayRule, {
           </button>
         </div>
       `,
-      errors: [{ messageId: "overlay" }],
-    },
-    {
-      name: "conditional absolute affix still counted",
-      code: `
+        errors: [{ messageId: "overlay" }],
+      },
+      {
+        name: "conditional absolute affix still counted",
+        code: `
         <div className="relative">
           <Input placeholder="Filter" />
           {query ? (
@@ -92,37 +97,38 @@ ruleTester.run("no-absolute-input-overlay", noAbsoluteInputOverlayRule, {
           ) : null}
         </div>
       `,
-      errors: [{ messageId: "overlay" }],
-    },
-    {
-      name: "native input with absolute icon",
-      code: `
+        errors: [{ messageId: "overlay" }],
+      },
+      {
+        name: "native input with absolute icon",
+        code: `
         <div className="relative">
           <span className="absolute inset-y-0 left-3 flex items-center">icon</span>
           <input className="w-full" />
         </div>
       `,
-      errors: [{ messageId: "overlay" }],
-    },
-    {
-      name: "textarea with absolute overlay",
-      code: `
+        errors: [{ messageId: "overlay" }],
+      },
+      {
+        name: "textarea with absolute overlay",
+        code: `
         <div className="relative">
           <span className="absolute left-3 top-3">icon</span>
           <Textarea placeholder="Notes" />
         </div>
       `,
-      errors: [{ messageId: "overlay" }],
-    },
-    {
-      name: "cn()-built absolute classes",
-      code: `
+        errors: [{ messageId: "overlay" }],
+      },
+      {
+        name: "cn()-built absolute classes",
+        code: `
         <div className="relative">
           <Search className={cn("pointer-events-none absolute left-3 top-1/2 size-4", "-translate-y-1/2")} />
           <Input placeholder="Filter" />
         </div>
       `,
-      errors: [{ messageId: "overlay" }],
-    },
-  ],
-});
+        errors: [{ messageId: "overlay" }],
+      },
+    ],
+  }
+);

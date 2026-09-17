@@ -25,7 +25,7 @@ export default defineConfig({
     antiSlop,
     jsPlugins,
   ],
-  ignorePatterns: [...core.ignorePatterns, "lint/**"],
+  ignorePatterns: [...(core.ignorePatterns ?? []), "lint/**"],
   options: { typeAware: true },
   jsPlugins: [
     ...(jsPlugins.jsPlugins ?? []),
