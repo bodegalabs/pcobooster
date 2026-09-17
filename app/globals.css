@@ -6,10 +6,6 @@
   font: inherit;
 }
 
-@utility transition-plan-item {
-  transition-property: background-color, box-shadow;
-}
-
 @utility transition-plan-item-drag {
   transition-property: transform, box-shadow, opacity;
 }

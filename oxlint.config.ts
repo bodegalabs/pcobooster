@@ -42,6 +42,8 @@ export default defineConfig({
     "local/no-popover-content-padding": "error",
     // Section dividers use Separator primitives, not border-b headers.
     "local/no-overlay-section-border-b": "error",
+    // Hover and selection colors snap instantly; no color fade utilities.
+    "local/no-transition-colors": "error",
   },
   settings: jsPluginSettings,
 });

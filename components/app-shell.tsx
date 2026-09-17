@@ -485,7 +485,7 @@ const AppTopBar = () => {
                           <button
                             type="button"
                             aria-label={`Change view from ${planViewLabel}`}
-                            className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                            className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-sm focus-visible:ring-2 focus-visible:outline-none"
                           />
                         }
                       >

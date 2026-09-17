@@ -239,7 +239,7 @@ export const ScheduleCandidateTile = ({
   return (
     <article
       className={cn(
-        "group/row relative grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1.5 px-3 py-2.5 transition-colors sm:flex sm:gap-4 sm:py-3",
+        "group/row relative grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1.5 px-3 py-2.5 sm:flex sm:gap-4 sm:py-3",
         "hover:bg-muted/30"
       )}
     >
