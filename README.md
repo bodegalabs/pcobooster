@@ -46,8 +46,8 @@ Required values are documented in `.env.example`:
 
 In your Planning Center OAuth app settings, add:
 
-- Local: `http://localhost:3000/api/auth/oauth2/callback/planning-center`
-- Production: `https://worshipadmin.com/api/auth/oauth2/callback/planning-center`
+- Local: `http://localhost:3000/api/auth/callback/planning-center`
+- Production: `https://worshipadmin.com/api/auth/callback/planning-center`
 
 ### 4. Run database migrations and seeds
 

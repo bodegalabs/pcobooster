@@ -36,7 +36,7 @@ export const GET = async (request: Request) =>
     const selectedAccount = planningCenterAccounts.at(0) ?? null;
 
     const pcoUser = selectedAccount
-      ? await getPlanningCenterIdentityForAccount(request, selectedAccount.id)
+      ? await getPlanningCenterIdentityForAccount(request, selectedAccount)
       : null;
 
     return {

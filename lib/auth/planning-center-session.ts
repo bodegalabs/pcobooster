@@ -3,6 +3,7 @@ import {
   getDevBypassSession,
   isDevAuthBypassEnabled,
 } from "@/lib/auth/dev-bypass";
+import { getPlanningCenterToken } from "@/lib/auth/planning-center-token";
 import { ApiError } from "@/lib/http/api-error";
 import { isNonEmptyString } from "@/lib/json";
 import { runWithPlanningCenterRequestAuth } from "@/lib/planning-center/request-auth-context";
@@ -47,6 +48,7 @@ export interface PlanningCenterUserAuthContext {
   accessToken: string;
   scopes: string[];
   accountId: string;
+  account: { id: string; accountId: string };
 }
 
 export const requirePlanningCenterAccessToken = async (request: Request) => {
@@ -56,6 +58,7 @@ export const requirePlanningCenterAccessToken = async (request: Request) => {
       accessToken: "",
       scopes: [],
       accountId: "dev-bypass-account",
+      account: { id: "dev-bypass-account", accountId: "dev-bypass-account" },
     };
   }
 
@@ -99,47 +102,13 @@ export const requirePlanningCenterAccessToken = async (request: Request) => {
     );
   }
 
-  try {
-    const token = await auth.api.getAccessToken({
-      headers: request.headers,
-      body: {
-        providerId: PLANNING_CENTER_PROVIDER_ID,
-        accountId: selectedAccount.id,
-      },
-    });
-
-    return {
-      session,
-      accessToken: token.accessToken,
-      scopes: token.scopes,
-      accountId: selectedAccount.id,
-    };
-  } catch {
-    const refreshed = await auth.api.refreshToken({
-      headers: request.headers,
-      body: {
-        providerId: PLANNING_CENTER_PROVIDER_ID,
-        accountId: selectedAccount.id,
-      },
-    });
-
-    if (!isNonEmptyString(refreshed.accessToken)) {
-      throw new ApiError(
-        401,
-        "PLANNING_CENTER_REAUTH_REQUIRED",
-        "Planning Center connection expired. Please sign in again."
-      );
-    }
-
-    return {
-      session,
-      accessToken: refreshed.accessToken,
-      scopes: isNonEmptyString(refreshed.scope)
-        ? refreshed.scope.split(/\s+/u).filter(Boolean)
-        : [],
-      accountId: selectedAccount.id,
-    };
-  }
+  const token = await getPlanningCenterToken(request.headers, selectedAccount);
+  return {
+    session,
+    ...token,
+    accountId: selectedAccount.id,
+    account: selectedAccount,
+  };
 };
 
 export const withPlanningCenterUser = async <T>(

@@ -207,7 +207,7 @@ export const auth = betterAuth({
           prompt: "login",
           pkce: true,
           accessType: "offline",
-          authentication: "basic",
+          tokenEndpointAuth: { method: "client_secret_basic" },
           overrideUserInfo: true,
         },
       ],
