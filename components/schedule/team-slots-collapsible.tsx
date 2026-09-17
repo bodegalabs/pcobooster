@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { PositionPickerIcon } from "@/components/schedule/position-picker-icon";
 import { PositionPickerRow } from "@/components/schedule/position-picker-row";
 import { SlotBadgeCluster } from "@/components/schedule/slot-badge-cluster";
+import { ScheduleStatusDot } from "@/components/schedule/status-dot";
 import type { SlotRef } from "@/components/schedule/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -154,10 +155,7 @@ export const TeamSlotsCollapsible = ({
               {openNeededCount}
             </span>
           ) : (
-            <span
-              className="bg-status-confirmed-bright/70 size-1.5 rounded-full"
-              aria-label="All set"
-            />
+            <ScheduleStatusDot status="confirmed" aria-label="All set" />
           )}
           <ChevronDown
             className={cn(

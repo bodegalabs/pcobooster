@@ -2,6 +2,8 @@
 
 import { Check, Loader2, Trash2 } from "lucide-react";
 
+import { ScheduleStatusDot } from "@/components/schedule/status-dot";
+import type { ScheduleStatusDotStatus } from "@/components/schedule/status-dot";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,7 +15,6 @@ import {
 import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
 import { useUpdatePlanPersonStatus } from "@/hooks/use-update-plan-person-status";
 import type { PlanPersonStatusCode } from "@/hooks/use-update-plan-person-status";
-import { cn } from "@/lib/utils";
 
 export type PlanPersonStatusValue = "confirmed" | "scheduled" | "declined";
 
@@ -26,22 +27,22 @@ const STATUS_TO_CODE: Record<PlanPersonStatusValue, PlanPersonStatusCode> = {
 const STATUS_ITEMS: {
   value: PlanPersonStatusValue;
   label: string;
-  dotClassName: string;
+  status: ScheduleStatusDotStatus;
 }[] = [
   {
     value: "confirmed",
     label: "Confirmed",
-    dotClassName: "bg-status-confirmed",
+    status: "confirmed",
   },
   {
     value: "scheduled",
     label: "Pending",
-    dotClassName: "bg-status-scheduled",
+    status: "scheduled",
   },
   {
     value: "declined",
     label: "Declined",
-    dotClassName: "bg-status-declined",
+    status: "declined",
   },
 ];
 
@@ -94,7 +95,7 @@ export const PlanPersonStatusMenu = ({
             type="button"
             variant="ghost"
             size="icon"
-            className="ml-auto size-8"
+            className="size-8 shrink-0 justify-self-center"
             aria-label={`Change status — ${currentItem.label}`}
             title={currentItem.label}
             disabled={!hasPlanPersonId || isBusy}
@@ -104,17 +105,11 @@ export const PlanPersonStatusMenu = ({
         {isBusy ? (
           <Loader2 className="size-4 animate-spin" />
         ) : (
-          <span
-            className={cn(
-              "animate-status-dot size-2.5 shrink-0 rounded-full",
-              currentItem.dotClassName
-            )}
-            aria-hidden
-          />
+          <ScheduleStatusDot status={currentItem.status} aria-hidden />
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
-        {STATUS_ITEMS.map(({ value, label, dotClassName }) => (
+        {STATUS_ITEMS.map(({ value, label, status }) => (
           <DropdownMenuItem
             key={value}
             disabled={currentStatus === value}
@@ -128,10 +123,7 @@ export const PlanPersonStatusMenu = ({
               });
             }}
           >
-            <span
-              className={cn("size-1.5 shrink-0 rounded-full", dotClassName)}
-              aria-hidden
-            />
+            <ScheduleStatusDot status={status} aria-hidden />
             <span className="flex-1">{label}</span>
             {currentStatus === value ? (
               <Check className="size-3.5 opacity-70" aria-hidden />
