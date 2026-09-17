@@ -38,6 +38,8 @@ export default defineConfig({
   rules: {
     // Keep icons/buttons from overlapping Input/Textarea text; use InputGroup.
     "local/no-absolute-input-overlay": "error",
+    // Popover shells stay flush; inner sections own spacing.
+    "local/no-popover-content-padding": "error",
   },
   settings: jsPluginSettings,
 });

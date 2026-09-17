@@ -240,57 +240,59 @@ const PlanTimeRangeEditor = ({
       </PopoverTrigger>
 
       <PopoverContent ref={contentRef} align="start" className="w-80">
-        <FieldGroup data-invalid={invalid || undefined}>
-          <DatePickerField
-            id={`${id}-date`}
-            label="Date"
-            value={startDate}
-            invalid={invalid}
-            open={dateOpen}
-            onOpenChange={setDateOpen}
-            onChange={(dateKey) => {
-              onCommitEdit({
-                startDate: dateKey,
-                endDate: endDate || dateKey,
-              });
-            }}
-          />
-
-          <div className="flex gap-3">
-            <TimePickerField
-              id={`${id}-start-time`}
-              label="Start"
-              value={startTime}
-              invalid={invalid}
-              onChange={(nextStartTime) => {
-                onEditChange({ startTime: nextStartTime });
-              }}
-            />
-            <TimePickerField
-              id={`${id}-end-time`}
-              label="End"
-              value={endTime}
-              invalid={invalid}
-              onChange={(nextEndTime) => {
-                onEditChange({ endTime: nextEndTime });
-              }}
-            />
-          </div>
-
-          {sameDay ? null : (
+        <div className="p-3">
+          <FieldGroup data-invalid={invalid || undefined}>
             <DatePickerField
-              id={`${id}-end-date`}
-              label="End date"
-              value={endDate || startDate}
+              id={`${id}-date`}
+              label="Date"
+              value={startDate}
               invalid={invalid}
-              open={endDateOpen}
-              onOpenChange={setEndDateOpen}
+              open={dateOpen}
+              onOpenChange={setDateOpen}
               onChange={(dateKey) => {
-                onCommitEdit({ endDate: dateKey });
+                onCommitEdit({
+                  startDate: dateKey,
+                  endDate: endDate || dateKey,
+                });
               }}
             />
-          )}
-        </FieldGroup>
+
+            <div className="flex gap-3">
+              <TimePickerField
+                id={`${id}-start-time`}
+                label="Start"
+                value={startTime}
+                invalid={invalid}
+                onChange={(nextStartTime) => {
+                  onEditChange({ startTime: nextStartTime });
+                }}
+              />
+              <TimePickerField
+                id={`${id}-end-time`}
+                label="End"
+                value={endTime}
+                invalid={invalid}
+                onChange={(nextEndTime) => {
+                  onEditChange({ endTime: nextEndTime });
+                }}
+              />
+            </div>
+
+            {sameDay ? null : (
+              <DatePickerField
+                id={`${id}-end-date`}
+                label="End date"
+                value={endDate || startDate}
+                invalid={invalid}
+                open={endDateOpen}
+                onOpenChange={setEndDateOpen}
+                onChange={(dateKey) => {
+                  onCommitEdit({ endDate: dateKey });
+                }}
+              />
+            )}
+          </FieldGroup>
+        </div>
       </PopoverContent>
     </Popover>
   );
