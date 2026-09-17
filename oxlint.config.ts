@@ -25,8 +25,19 @@ export default defineConfig({
     antiSlop,
     jsPlugins,
   ],
-  ignorePatterns: core.ignorePatterns,
+  ignorePatterns: [...core.ignorePatterns, "lint/**"],
   options: { typeAware: true },
-  jsPlugins: [...(jsPlugins.jsPlugins ?? []), ...(shadcn.jsPlugins ?? [])],
+  jsPlugins: [
+    ...(jsPlugins.jsPlugins ?? []),
+    ...(shadcn.jsPlugins ?? []),
+    {
+      name: "local",
+      specifier: "./lint/oxlint-plugin-local.mjs",
+    },
+  ],
+  rules: {
+    // Keep icons/buttons from overlapping Input/Textarea text; use InputGroup.
+    "local/no-absolute-input-overlay": "error",
+  },
   settings: jsPluginSettings,
 });

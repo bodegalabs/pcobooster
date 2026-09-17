@@ -3,7 +3,12 @@
 import { ChevronsUpDown, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import type { TeamPosition } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -58,12 +63,11 @@ export const SelectedPositionHeader = ({
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="relative w-full flex-1 sm:max-w-sm">
-          <Search
-            className="text-muted-foreground/70 pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-            aria-hidden
-          />
-          <Input
+        <InputGroup className="w-full flex-1 sm:max-w-sm">
+          <InputGroupAddon>
+            <Search aria-hidden />
+          </InputGroupAddon>
+          <InputGroupInput
             value={filter}
             onChange={(event) => {
               onFilterChange(event.target.value);
@@ -72,18 +76,19 @@ export const SelectedPositionHeader = ({
             aria-label="Filter people"
           />
           {filter ? (
-            <button
-              type="button"
-              onClick={() => {
-                onFilterChange("");
-              }}
-              className="text-muted-foreground hover:bg-muted/60 hover:text-foreground absolute top-1/2 right-1 -translate-y-1/2 rounded-md p-1"
-              aria-label="Clear filter"
-            >
-              <X className="size-4" />
-            </button>
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                size="icon-xs"
+                aria-label="Clear filter"
+                onClick={() => {
+                  onFilterChange("");
+                }}
+              >
+                <X />
+              </InputGroupButton>
+            </InputGroupAddon>
           ) : null}
-        </div>
+        </InputGroup>
       </div>
     </div>
   );
