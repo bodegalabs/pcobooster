@@ -40,6 +40,7 @@ import { z } from "zod";
 
 import { HotkeyChord } from "@/components/hotkey-chord";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
+import { SidebarSeamTrigger } from "@/components/sidebar-seam-trigger";
 import type { SidebarTabGroupItem } from "@/components/sidebar-tab-group";
 import { SidebarTabGroup } from "@/components/sidebar-tab-group";
 import { SidebarToggleHotkey } from "@/components/sidebar-toggle-hotkey";
@@ -1046,6 +1047,7 @@ export const AppShell = ({
       style={sidebarStyle}
     >
       <SidebarToggleHotkey />
+      <SidebarSeamTrigger />
       <AppSidebar peoplePageEnabled={peoplePageEnabled} />
       <SidebarResizeRail
         width={sidebarWidth}
@@ -1053,7 +1055,8 @@ export const AppShell = ({
       />
       <SidebarInset className="min-h-0 overflow-hidden">
         <header className="border-border/50 flex h-12 shrink-0 items-center gap-2 border-b px-3">
-          <SidebarTrigger />
+          <div aria-hidden className="size-8 shrink-0 max-md:hidden" />
+          <SidebarTrigger className="md:hidden" />
           <Suspense fallback={<AppTopBarFallback pathname={pathname} />}>
             <AppTopBar />
           </Suspense>
