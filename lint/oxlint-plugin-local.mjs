@@ -8,6 +8,21 @@ const ABSOLUTE_CLASS = /(^|\s)absolute(\s|$)/;
 const RELATIVE_CLASS = /(^|\s)relative(\s|$)/;
 const POPOVER_CONTENT_PADDING_CLASS =
   /(^|\s)(p-[234]|px-[234]|py-[234]|pt-[234]|pr-[234]|pb-[234]|pl-[234]|gap-[34])(\s|$)/;
+const OVERLAY_SECTION_BORDER_CLASS = /(^|\s)border-b(\s|$)/;
+const OVERLAY_SECTION_PADDING_CLASS = /(^|\s)px-[345](\s|$)/;
+const LIST_ROW_BORDER_CLASS = /last:border-b-0/;
+const OVERLAY_SECTION_BORDER_IGNORED_FILES = [
+  "components/ui/",
+  "components/schedule/plan-tab-toolbar.tsx",
+  "components/schedule/schedule-page-fallbacks.tsx",
+  "components/people/health-roster.tsx",
+  "components/service-plan-table-selector.tsx",
+  "components/schedule/plan-item-list.tsx",
+  "components/app-shell.tsx",
+  "app/admin/page.tsx",
+  "app/admin/users/",
+  "components/people/month-view.tsx",
+];
 const BARE_INPUT_NAMES = new Set(["Input", "Textarea", "input", "textarea"]);
 
 /**
@@ -233,6 +248,58 @@ const noPopoverContentPaddingRule = {
   },
 };
 
+const noOverlaySectionBorderRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow border-b section dividers in overlay/list panels. Use ItemSeparator, DropdownMenuSeparator inset, or SidebarSeparator instead.",
+    },
+    messages: {
+      border:
+        "Do not use `border-b` for section dividers in menus, popovers, or list panels. Use `ItemSeparator`, `<DropdownMenuSeparator inset />`, or `<SidebarSeparator />` after the section header/content.",
+    },
+    schema: [],
+  },
+  create(context) {
+    const filename = context.filename.replaceAll("\\", "/");
+    if (
+      OVERLAY_SECTION_BORDER_IGNORED_FILES.some((ignoredPath) =>
+        filename.includes(ignoredPath)
+      )
+    ) {
+      return {};
+    }
+
+    return {
+      JSXOpeningElement(node) {
+        const tagName =
+          node.name.type === "JSXIdentifier" ? node.name.name : null;
+        if (
+          tagName !== "div" &&
+          tagName !== "header" &&
+          tagName !== "section"
+        ) {
+          return;
+        }
+        if (!openingHasClass(node, OVERLAY_SECTION_BORDER_CLASS)) {
+          return;
+        }
+        if (!openingHasClass(node, OVERLAY_SECTION_PADDING_CLASS)) {
+          return;
+        }
+        if (openingHasClass(node, LIST_ROW_BORDER_CLASS)) {
+          return;
+        }
+        context.report({
+          node,
+          messageId: "border",
+        });
+      },
+    };
+  },
+};
+
 export default {
   meta: {
     name: "local",
@@ -240,7 +307,12 @@ export default {
   rules: {
     "no-absolute-input-overlay": noAbsoluteInputOverlayRule,
     "no-popover-content-padding": noPopoverContentPaddingRule,
+    "no-overlay-section-border-b": noOverlaySectionBorderRule,
   },
 };
 
-export { noAbsoluteInputOverlayRule, noPopoverContentPaddingRule };
+export {
+  noAbsoluteInputOverlayRule,
+  noOverlaySectionBorderRule,
+  noPopoverContentPaddingRule,
+};

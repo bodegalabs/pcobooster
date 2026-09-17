@@ -17,6 +17,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { ItemSeparator } from "@/components/ui/item";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -115,12 +116,15 @@ export const SongPickerDialog = ({
               <>
                 <CommandEmpty>No songs matched that search.</CommandEmpty>
                 {showRefreshing ? (
-                  <div
-                    className="text-muted-foreground border-b px-3 py-2 text-xs"
-                    aria-live="polite"
-                  >
-                    Searching…
-                  </div>
+                  <>
+                    <ItemSeparator className="my-0" />
+                    <div
+                      className="text-muted-foreground px-3 py-2 text-xs"
+                      aria-live="polite"
+                    >
+                      Searching…
+                    </div>
+                  </>
                 ) : null}
                 <div className="space-y-2 p-3">
                   {songs.map((song) => {

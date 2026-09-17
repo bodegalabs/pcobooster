@@ -12,7 +12,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { SidebarMenuSkeleton } from "@/components/ui/sidebar";
+import { SidebarMenuSkeleton, SidebarSeparator } from "@/components/ui/sidebar";
 import type { TeamPositionGroup } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -68,9 +68,12 @@ export const PositionPickerList = ({
     body = (
       <div aria-busy={teamPositionsPlaceholder}>
         {teamPositionsPlaceholder ? (
-          <div className="border-sidebar-border/50 bg-sidebar/95 text-sidebar-foreground/70 sticky top-0 z-10 border-b px-3 py-1.5 text-xs font-medium backdrop-blur">
-            Loading selected plan...
-          </div>
+          <>
+            <div className="bg-sidebar/95 text-sidebar-foreground/70 sticky top-0 z-10 px-3 py-1.5 text-xs font-medium backdrop-blur">
+              Loading selected plan...
+            </div>
+            <SidebarSeparator className="my-0" />
+          </>
         ) : null}
         <div
           className={cn(

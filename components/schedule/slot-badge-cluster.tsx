@@ -6,6 +6,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { ItemSeparator } from "@/components/ui/item";
 import type { TeamPosition } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -48,24 +49,29 @@ export const SlotBadgeCluster = ({
             {filled}/{total}
           </HoverCardTrigger>
           <HoverCardContent align="end" side="right" className="w-80">
-            {confirmedPeople.length > 0 ? (
-              <SlotStatusPopoverContent
-                teamName={teamName}
-                positionName={positionName}
-                label="Confirmed"
-                tone="confirmed"
-                people={confirmedPeople}
-              />
-            ) : null}
-            {pendingPeople.length > 0 ? (
-              <SlotStatusPopoverContent
-                teamName={teamName}
-                positionName={positionName}
-                label="Pending"
-                tone="pending"
-                people={pendingPeople}
-              />
-            ) : null}
+            <div className="flex flex-col gap-3 p-3">
+              {confirmedPeople.length > 0 ? (
+                <SlotStatusPopoverContent
+                  teamName={teamName}
+                  positionName={positionName}
+                  label="Confirmed"
+                  tone="confirmed"
+                  people={confirmedPeople}
+                />
+              ) : null}
+              {confirmedPeople.length > 0 && pendingPeople.length > 0 ? (
+                <ItemSeparator className="my-0" />
+              ) : null}
+              {pendingPeople.length > 0 ? (
+                <SlotStatusPopoverContent
+                  teamName={teamName}
+                  positionName={positionName}
+                  label="Pending"
+                  tone="pending"
+                  people={pendingPeople}
+                />
+              ) : null}
+            </div>
           </HoverCardContent>
         </HoverCard>
       ) : null}
