@@ -4,7 +4,11 @@ const rootDir = import.meta.dirname;
 
 export default defineConfig({
   test: {
-    include: ["lib/**/*.test.ts", "components/**/*.test.ts"],
+    include: [
+      "lib/**/*.test.ts",
+      "components/**/*.test.ts",
+      "lint/**/*.test.ts",
+    ],
     environment: "node",
     globals: true,
     clearMocks: true,
