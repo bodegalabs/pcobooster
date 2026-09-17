@@ -12,6 +12,8 @@ The application database layer is Drizzle ORM backed by PostgreSQL.
 
 ## Commands
 
+Database commands that connect to PostgreSQL load Infisical Development secrets from `/` automatically. They do not load the local Planning Center PAT from `/local`. `db:generate` only writes migration files and does not need a database connection.
+
 - `bun run db:generate`: generate a migration from `lib/db/schema.ts`.
 - `bun run db:migrate`: apply pending migrations.
 - `bun run db:push`: push schema changes directly during local experiments.

@@ -26,21 +26,23 @@ Use Node.js 24 (see `.node-version`) and Bun 1.3.9 (pinned in `package.json` and
 bun install --frozen-lockfile
 ```
 
-### 2. Configure environment variables
+### 2. Configure local secrets with Infisical
 
-Create a local env file from the template:
+Install the [Infisical CLI](https://infisical.com/docs/cli/usage) and run `infisical login`. This repository's `.infisical.json` links to the dedicated `worshipadmin.com` project. Add local values to its **Development** environment at the root path (`/`); `.env.example` lists the expected keys. Do not paste secret values into issues, chat, or committed files.
 
-```bash
-cp .env.example .env.local
-```
-
-Required values are documented in `.env.example`:
+Required local keys:
 
 - `BETTER_AUTH_URL`
 - `BETTER_AUTH_SECRET`
 - `DATABASE_URL`
 - `PLANNING_CENTER_OAUTH_CLIENT_ID`
 - `PLANNING_CENTER_OAUTH_CLIENT_SECRET`
+
+For the local Planning Center PAT shortcut, set `DEV_AUTH_BYPASS=1`, `PLANNING_CENTER_CLIENT`, and `PLANNING_CENTER_PAT` **only in Development's `/local` folder**. `bun run dev` and `bun run dev:present` read both `/` and `/local`, but database tools and Vercel secret sync read only `/`. The dev servers bind to `127.0.0.1` so this bypass is not exposed on your LAN. `DEV_AUTH_BYPASS` is ignored when `NODE_ENV=production`, but the PAT must never be copied to production or preview. Use separate database credentials per environment. Presentation mode can be started with a command, so it does not need a stored secret.
+
+The normal Bun commands load Infisical automatically. The CLI injects variables into the command process and does not write an env file. For one-off local commands that need the bypass, use `infisical run --env=dev --path=/ --path=/local -- <command>`. Use only `--path=/` for deployable Development secrets.
+
+For deployments, the one-way flow is Infisical Development/Staging/Production `/` to Vercel Development/Preview/Production respectively. Infisical is the source of truth for application secrets through the [three active Vercel syncs](https://infisical.com/docs/integrations/secret-syncs/vercel); Vercel still stores the synchronized copies for builds and runtime. This does **not** make Vercel secret-free. Existing deployments need redeployment to pick up changes. `FLAGS` and `FLAGS_SECRET` stay Vercel-managed. See [environment and secret ownership](docs/neon-infisical-preview.md) for Neon branches, preview limitations, and token rotation.
 
 ### 3. Configure Planning Center OAuth callback URL
 
@@ -74,7 +76,7 @@ This enables `PRESENTATION_MODE=1` for the local dev server. The app shows a "Pr
 
 Search matches the fictional names. Its first request loads the People directory; subsequent requests reuse the account-scoped directory cache for five minutes. Browser people caches and React Query caches are isolated from normal mode. `PRESENTATION_SEED` optionally changes the aliases and browser cache namespace.
 
-Stop the server, run `bun run dev`, and reload open tabs to return to normal mode (remove `PRESENTATION_MODE` if you set it in `.env.local`). The flag is ignored in production and on Vercel. It does not change authentication or grant API access.
+Stop the server, run `bun run dev`, and reload open tabs to return to normal mode. Do not store `PRESENTATION_MODE` in Infisical if you want the command to control it. The flag is ignored in production and on Vercel. It does not change authentication or grant API access.
 
 This masks person fields for app presentations, not the underlying dataset: IDs, schedules, team/position names, plan titles, and free-form plan-item text remain real. Review those custom labels before a public recording. Actions still write to the real Planning Center account; server logs and external Planning Center pages are outside the masking scope.
 
