@@ -204,7 +204,7 @@ describe("plan times use case", () => {
       },
     ]);
 
-    const planTimes = await getPlanTimes("plan-1", dependencies);
+    const planTimes = await getPlanTimes("st-1", "plan-1", dependencies);
 
     expect(planTimes.map((planTime) => planTime.id)).toStrictEqual([
       "time-1",

@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  Check,
-  ChevronsUpDown,
-  CircleUserRound,
-  Rows3,
-  Users,
-} from "lucide-react";
+  RowsThreeIcon,
+  UnfoldMoreIcon,
+  UserAdd01Icon,
+  UsersIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useId, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,6 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandInput,
-  CommandItem,
   CommandList,
 } from "@/components/ui/command";
 import { ItemSeparator } from "@/components/ui/item";
@@ -25,8 +24,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  SelectionPickerCheckbox,
+  SelectionPickerCommandItem,
+} from "@/components/ui/selection-picker";
 import type { FilledPositionPerson, TeamPositionGroup } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 export interface TimeAssignmentValue {
   teamIds: string[];
@@ -182,7 +184,7 @@ export const TimeAssignmentSelector = ({
         render={
           <Button
             type="button"
-            variant="outline"
+            variant="input"
             aria-haspopup="dialog"
             aria-expanded={open}
             aria-controls={listId}
@@ -192,10 +194,19 @@ export const TimeAssignmentSelector = ({
         }
       >
         <span className="flex min-w-0 items-center gap-2">
-          <Users data-icon="inline-start" />
+          <HugeiconsIcon
+            icon={UsersIcon}
+            strokeWidth={2}
+            className="text-muted-foreground size-4 shrink-0"
+          />
           <span className="truncate text-left">{label}</span>
         </span>
-        <ChevronsUpDown className="opacity-50" />
+        <HugeiconsIcon
+          icon={UnfoldMoreIcon}
+          strokeWidth={2}
+          className="text-muted-foreground size-4 shrink-0"
+          aria-hidden
+        />
       </PopoverTrigger>
       <PopoverContent
         className="w-[520px] max-w-[calc(100vw-2rem)]"
@@ -250,22 +261,21 @@ export const TimeAssignmentSelector = ({
                 const selected = selectedTeamIds.has(group.teamId);
 
                 return (
-                  <CommandItem
+                  <SelectionPickerCommandItem
                     key={group.teamId}
+                    selected={selected}
                     value={`${group.teamName} ${group.teamId}`}
                     onSelect={() => {
                       setTeams(toggleId(value.teamIds, group.teamId));
                     }}
                   >
-                    <Check
-                      className={cn(selected ? "opacity-100" : "opacity-0")}
-                    />
-                    <Users />
+                    <SelectionPickerCheckbox selected={selected} />
+                    <HugeiconsIcon icon={UsersIcon} strokeWidth={2} />
                     <span className="min-w-0 flex-1 truncate">
                       {group.teamName}
                     </span>
                     <Badge variant="secondary">{group.positions.length}</Badge>
-                  </CommandItem>
+                  </SelectionPickerCommandItem>
                 );
               })}
             </CommandGroup>
@@ -283,8 +293,9 @@ export const TimeAssignmentSelector = ({
                 const rowLabel = isNeeded ? "Plan slot" : "Position";
 
                 return (
-                  <CommandItem
+                  <SelectionPickerCommandItem
                     key={`${position.source}:${position.id}`}
+                    selected={selected}
                     value={`${position.teamName} ${position.name} ${position.id}`}
                     onSelect={() => {
                       if (isNeeded && neededPositionId !== undefined) {
@@ -299,46 +310,45 @@ export const TimeAssignmentSelector = ({
                     }}
                     disabled={position.source !== "team_position" && !isNeeded}
                   >
-                    <Check
-                      className={cn(selected ? "opacity-100" : "opacity-0")}
-                    />
-                    <Rows3 />
+                    <SelectionPickerCheckbox selected={selected} />
+                    <HugeiconsIcon icon={RowsThreeIcon} strokeWidth={2} />
                     <span className="min-w-0 flex-1 truncate">
                       {position.teamName} / {position.name}
                     </span>
                     <Badge variant="outline">{rowLabel}</Badge>
-                  </CommandItem>
+                  </SelectionPickerCommandItem>
                 );
               })}
             </CommandGroup>
             {memberRows.length > 0 ? (
               <CommandGroup heading="People">
-                {memberRows.map((person) => (
-                  <CommandItem
-                    key={person.planPersonId}
-                    value={`${person.name} ${person.teamName} ${person.positionName}`}
-                    onSelect={() => {
-                      setPlanPeople(
-                        toggleId(value.planPersonIds, person.planPersonId)
-                      );
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        selectedPlanPersonIds.has(person.planPersonId)
-                          ? "opacity-100"
-                          : "opacity-0"
-                      )}
-                    />
-                    <CircleUserRound />
-                    <span className="min-w-0 flex-1 truncate">
-                      {person.name}
-                    </span>
-                    <span className="text-muted-foreground truncate text-xs">
-                      {person.teamName} / {person.positionName}
-                    </span>
-                  </CommandItem>
-                ))}
+                {memberRows.map((person) => {
+                  const selected = selectedPlanPersonIds.has(
+                    person.planPersonId
+                  );
+
+                  return (
+                    <SelectionPickerCommandItem
+                      key={person.planPersonId}
+                      selected={selected}
+                      value={`${person.name} ${person.teamName} ${person.positionName}`}
+                      onSelect={() => {
+                        setPlanPeople(
+                          toggleId(value.planPersonIds, person.planPersonId)
+                        );
+                      }}
+                    >
+                      <SelectionPickerCheckbox selected={selected} />
+                      <HugeiconsIcon icon={UserAdd01Icon} strokeWidth={2} />
+                      <span className="min-w-0 flex-1 truncate">
+                        {person.name}
+                      </span>
+                      <span className="text-muted-foreground truncate text-xs">
+                        {person.teamName} / {person.positionName}
+                      </span>
+                    </SelectionPickerCommandItem>
+                  );
+                })}
               </CommandGroup>
             ) : null}
           </CommandList>
