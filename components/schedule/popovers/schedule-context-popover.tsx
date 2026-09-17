@@ -197,6 +197,7 @@ export const ScheduleContextPopover = ({
         side="right"
         sideOffset={10}
         className="w-80"
+        initialFocus={false}
       >
         <div className="flex items-center justify-between gap-3 px-3 py-2.5">
           <PopoverTitle>Nearby schedule</PopoverTitle>
