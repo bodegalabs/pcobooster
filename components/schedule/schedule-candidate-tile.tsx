@@ -168,6 +168,7 @@ export interface ScheduleCandidateTileProps {
   person: PersonWithAvailability;
   serviceTypeId?: string | null;
   planId?: string | null;
+  planReferenceDate?: Date | null;
   teamId?: string | null;
   positionId?: string | null;
   teamName?: string | null;
@@ -177,10 +178,62 @@ export interface ScheduleCandidateTileProps {
   onScheduleError?: (message: string) => void;
 }
 
+const ScheduleCandidateIdentityRow = ({
+  fullName,
+  isUnavailableForSlot,
+  unavailableSlotLabel,
+  isBlocked,
+  serviceHistory,
+  planReferenceDate,
+}: {
+  fullName: string;
+  isUnavailableForSlot: boolean;
+  unavailableSlotLabel: string | null;
+  isBlocked: boolean;
+  serviceHistory: PersonWithAvailability["serviceHistory"];
+  planReferenceDate: Date | null;
+}) => (
+  <div className="flex min-w-0 flex-1 items-center gap-1">
+    <p
+      className={cn(
+        "text-foreground min-w-0 truncate text-sm leading-tight font-medium sm:text-base",
+        isUnavailableForSlot && "text-muted-foreground line-through"
+      )}
+    >
+      {fullName}
+    </p>
+    {unavailableSlotLabel === null ? null : (
+      <span
+        className={cn(
+          "shrink-0 text-xs font-semibold tracking-wide uppercase",
+          isBlocked
+            ? "text-status-scheduled dark:text-status-scheduled"
+            : "text-status-declined dark:text-status-declined"
+        )}
+      >
+        {unavailableSlotLabel}
+      </span>
+    )}
+    <ScheduleContextPopover
+      serviceHistory={serviceHistory ?? []}
+      referenceDate={planReferenceDate}
+    >
+      <button
+        type="button"
+        className="text-muted-foreground/70 hover:bg-muted/60 hover:text-foreground inline-flex size-6 shrink-0 cursor-pointer appearance-none items-center justify-center rounded-md border-0 bg-transparent p-0 sm:size-8"
+        aria-label="Schedule context"
+      >
+        <Info className="size-4" />
+      </button>
+    </ScheduleContextPopover>
+  </div>
+);
+
 export const ScheduleCandidateTile = ({
   person,
   serviceTypeId,
   planId,
+  planReferenceDate = null,
   teamId,
   positionId,
   teamName,
@@ -265,37 +318,14 @@ export const ScheduleCandidateTile = ({
         selectedPlanAssignments={selectedPlanAssignments}
       />
 
-      <div className="flex min-w-0 flex-1 items-center gap-1">
-        <p
-          className={cn(
-            "text-foreground min-w-0 truncate text-sm leading-tight font-medium sm:text-base",
-            isUnavailableForSlot && "text-muted-foreground line-through"
-          )}
-        >
-          {person.fullName}
-        </p>
-        {unavailableSlotLabel === null ? null : (
-          <span
-            className={cn(
-              "shrink-0 text-xs font-semibold tracking-wide uppercase",
-              isBlocked
-                ? "text-status-scheduled dark:text-status-scheduled"
-                : "text-status-declined dark:text-status-declined"
-            )}
-          >
-            {unavailableSlotLabel}
-          </span>
-        )}
-        <ScheduleContextPopover serviceHistory={serviceHistory}>
-          <button
-            type="button"
-            className="text-muted-foreground/70 hover:bg-muted/60 hover:text-foreground inline-flex size-6 shrink-0 cursor-pointer appearance-none items-center justify-center rounded-md border-0 bg-transparent p-0 sm:size-8"
-            aria-label="Schedule context"
-          >
-            <Info className="size-4" />
-          </button>
-        </ScheduleContextPopover>
-      </div>
+      <ScheduleCandidateIdentityRow
+        fullName={person.fullName}
+        isUnavailableForSlot={isUnavailableForSlot}
+        unavailableSlotLabel={unavailableSlotLabel}
+        isBlocked={isBlocked}
+        serviceHistory={serviceHistory}
+        planReferenceDate={planReferenceDate}
+      />
 
       <div className="col-span-2 col-start-2 row-start-2 min-w-0 sm:col-auto sm:row-auto sm:block sm:w-28 sm:shrink-0">
         <ScheduleCandidateScore

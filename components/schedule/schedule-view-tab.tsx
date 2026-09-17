@@ -50,6 +50,7 @@ interface ScheduleViewTabProps {
   peoplePlaceholder: boolean;
   selectedServiceTypeId: string | null;
   selectedPlanId: string | null;
+  planReferenceDate?: Date | null;
   onToggleTeam: (teamId: string) => void;
   onSelectSlot: (slot: SlotRef) => void;
   onPreviewSlot?: (slot: SlotRef) => void;
@@ -152,6 +153,7 @@ interface SchedulePeopleListProps {
   filteredExceptions: PersonWithAvailability[];
   selectedServiceTypeId: string | null;
   selectedPlanId: string | null;
+  planReferenceDate?: Date | null;
   selectedTeam: string | null;
   selectedPosition: string | null;
   teamName?: string;
@@ -170,6 +172,7 @@ const SchedulePeopleList = ({
   filteredExceptions,
   selectedServiceTypeId,
   selectedPlanId,
+  planReferenceDate = null,
   selectedTeam,
   selectedPosition,
   teamName,
@@ -271,6 +274,7 @@ const SchedulePeopleList = ({
               person={person}
               serviceTypeId={selectedServiceTypeId}
               planId={selectedPlanId}
+              planReferenceDate={planReferenceDate}
               teamId={selectedTeam}
               positionId={selectedPosition}
               teamName={teamName}
@@ -308,6 +312,7 @@ const SchedulePeopleList = ({
                 person={person}
                 serviceTypeId={selectedServiceTypeId}
                 planId={selectedPlanId}
+                planReferenceDate={planReferenceDate}
                 teamId={selectedTeam}
                 positionId={selectedPosition}
                 teamName={teamName}
@@ -336,6 +341,7 @@ const ScheduleViewContent = ({
   peoplePlaceholder,
   selectedServiceTypeId,
   selectedPlanId,
+  planReferenceDate = null,
   onToggleTeam,
   onSelectSlot,
   onPreviewSlot,
@@ -442,6 +448,7 @@ const ScheduleViewContent = ({
                 filteredExceptions={filteredExceptions}
                 selectedServiceTypeId={selectedServiceTypeId}
                 selectedPlanId={selectedPlanId}
+                planReferenceDate={planReferenceDate}
                 selectedTeam={selectedTeam}
                 selectedPosition={selectedPosition}
                 teamName={selectedSlotInfo?.teamName}

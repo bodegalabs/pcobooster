@@ -96,6 +96,79 @@ const handleScheduleError = (message: string) => {
   toast.error(message);
 };
 
+const WorkspaceUnavailable = () => (
+  <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6">
+    <h1 className="text-xl font-semibold">Plan unavailable</h1>
+    <p className="text-muted-foreground text-sm">
+      This plan could not be loaded. Choose a plan from Services.
+    </p>
+    <Link href="/services" className={buttonVariants()}>
+      Go to Services
+    </Link>
+  </main>
+);
+
+const DashboardPlanHeader = ({
+  serviceTypeName,
+  planSubtitle,
+  sortDate,
+  planningCenterUrl,
+}: {
+  serviceTypeName: string;
+  planSubtitle: string | null;
+  sortDate: Date | string | undefined;
+  planningCenterUrl: string | null | undefined;
+}) => (
+  <header className="mb-3 shrink-0 sm:mb-5">
+    <div className="flex min-w-0 items-start justify-between gap-3">
+      <h1 className="flex min-w-0 flex-col gap-0.5 text-base leading-tight font-semibold tracking-tight sm:block sm:truncate sm:text-xl md:text-2xl">
+        <span className="min-w-0 truncate">
+          {serviceTypeName}
+          {isNonEmptyString(planSubtitle) ? (
+            <span className="text-muted-foreground font-normal">
+              {" "}
+              / {planSubtitle}
+            </span>
+          ) : null}
+        </span>
+        <span className="text-muted-foreground min-w-0 truncate text-sm font-light tabular-nums sm:text-xl md:text-2xl">
+          <span className="hidden sm:inline"> / </span>
+          {formatPlanDate(sortDate)}
+        </span>
+      </h1>
+      {isNonEmptyString(planningCenterUrl) ? (
+        <HoverCard>
+          <HoverCardTrigger
+            render={
+              <a
+                href={planningCenterUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Open in Planning Center"
+                className={buttonVariants({
+                  variant: "outline",
+                  size: "icon-sm",
+                  className: "shrink-0",
+                })}
+              />
+            }
+          >
+            <PlanningCenterServicesIcon className="size-4" />
+          </HoverCardTrigger>
+          <HoverCardContent
+            side="bottom"
+            align="end"
+            sideOffset={8}
+            className="w-auto"
+          >
+            <p className="text-xs font-medium">Open in Planning Center</p>
+          </HoverCardContent>
+        </HoverCard>
+      ) : null}
+    </div>
+  </header>
+);
+
 export const DashboardPage = ({
   serviceTypeId,
   planId,
@@ -130,6 +203,7 @@ export const DashboardPage = ({
     handleAddCustomPosition,
     planTimes,
   } = useDashboardController({ serviceTypeId, planId, view });
+  const planReferenceDate = selectedPlan?.sortDate ?? null;
   const planSubtitle =
     selectedServiceType && selectedPlan
       ? buildPlanSubtitle(
@@ -139,17 +213,7 @@ export const DashboardPage = ({
         )
       : null;
   if (workspaceUnavailable) {
-    return (
-      <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6">
-        <h1 className="text-xl font-semibold">Plan unavailable</h1>
-        <p className="text-muted-foreground text-sm">
-          This plan could not be loaded. Choose a plan from Services.
-        </p>
-        <Link href="/services" className={buttonVariants()}>
-          Go to Services
-        </Link>
-      </main>
-    );
+    return <WorkspaceUnavailable />;
   }
 
   return (
@@ -161,56 +225,12 @@ export const DashboardPage = ({
         )}
       >
         {hasSelectedPlanMetadata && selectedServiceType && selectedPlan ? (
-          <header className="mb-3 shrink-0 sm:mb-5">
-            <div className="flex min-w-0 items-start justify-between gap-3">
-              <h1 className="flex min-w-0 flex-col gap-0.5 text-base leading-tight font-semibold tracking-tight sm:block sm:truncate sm:text-xl md:text-2xl">
-                <span className="min-w-0 truncate">
-                  {selectedServiceType.name}
-                  {isNonEmptyString(planSubtitle) ? (
-                    <span className="text-muted-foreground font-normal">
-                      {" "}
-                      / {planSubtitle}
-                    </span>
-                  ) : null}
-                </span>
-                <span className="text-muted-foreground min-w-0 truncate text-sm font-light tabular-nums sm:text-xl md:text-2xl">
-                  <span className="hidden sm:inline"> / </span>
-                  {formatPlanDate(selectedPlan.sortDate)}
-                </span>
-              </h1>
-              {isNonEmptyString(selectedPlan.planningCenterUrl) ? (
-                <HoverCard>
-                  <HoverCardTrigger
-                    render={
-                      <a
-                        href={selectedPlan.planningCenterUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        aria-label="Open in Planning Center"
-                        className={buttonVariants({
-                          variant: "outline",
-                          size: "icon-sm",
-                          className: "shrink-0",
-                        })}
-                      />
-                    }
-                  >
-                    <PlanningCenterServicesIcon className="size-4" />
-                  </HoverCardTrigger>
-                  <HoverCardContent
-                    side="bottom"
-                    align="end"
-                    sideOffset={8}
-                    className="w-auto"
-                  >
-                    <p className="text-xs font-medium">
-                      Open in Planning Center
-                    </p>
-                  </HoverCardContent>
-                </HoverCard>
-              ) : null}
-            </div>
-          </header>
+          <DashboardPlanHeader
+            serviceTypeName={selectedServiceType.name}
+            planSubtitle={planSubtitle}
+            sortDate={selectedPlan.sortDate}
+            planningCenterUrl={selectedPlan.planningCenterUrl}
+          />
         ) : null}
 
         {hasPlanUrlSelection ? (
@@ -235,6 +255,7 @@ export const DashboardPage = ({
                 }
                 selectedServiceTypeId={routeServiceTypeId}
                 selectedPlanId={routePlanId}
+                planReferenceDate={planReferenceDate}
                 onToggleTeam={toggleTeamCollapsed}
                 onSelectSlot={handleSlotSelect}
                 onPreviewSlot={handleSlotPreview}
