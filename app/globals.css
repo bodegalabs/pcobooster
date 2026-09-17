@@ -165,18 +165,6 @@
   }
 }
 
-.sidebar-seam-trigger {
-  left: calc(0.5rem + 0.75rem);
-  transform: translateX(0);
-  transition-property: transform;
-  transition-duration: 200ms;
-  transition-timing-function: linear;
-}
-
-.sidebar-seam-trigger[data-open] {
-  transform: translateX(var(--sidebar-width));
-}
-
 .dark {
   --status-confirmed-deep: oklch(0.29 0.08 164);
   --status-scheduled-deep: oklch(0.31 0.08 80);

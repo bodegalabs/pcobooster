@@ -17,6 +17,7 @@ import {
   UserAdd01Icon,
   UsersIcon,
 } from "@hugeicons/core-free-icons";
+import type { IconSvgElement } from "@hugeicons/react";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown } from "lucide-react";
@@ -39,10 +40,8 @@ import {
 import { z } from "zod";
 
 import { HotkeyChord } from "@/components/hotkey-chord";
+import { SidebarChromeTrigger } from "@/components/sidebar-chrome-trigger";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
-import { SidebarSeamTrigger } from "@/components/sidebar-seam-trigger";
-import type { SidebarTabGroupItem } from "@/components/sidebar-tab-group";
-import { SidebarTabGroup } from "@/components/sidebar-tab-group";
 import { SidebarToggleHotkey } from "@/components/sidebar-toggle-hotkey";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -75,13 +74,13 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
@@ -328,7 +327,6 @@ const SidebarResizeRail = ({
 };
 
 type TopBarView = "assign" | "lineup" | "plan" | "times";
-type ServicesSidebarKey = "services" | TopBarView;
 
 const parseTopBarView = (value: string | undefined): TopBarView => {
   if (value === "lineup") {
@@ -816,21 +814,37 @@ const SidebarAccountPanel = ({
   );
 };
 
-const servicesRootItem: SidebarTabGroupItem<ServicesSidebarKey> = {
-  key: "services",
-  label: "Services",
-  href: "/services",
-  icon: Calendar01Icon,
+const ServicesSidebarLink = () => {
+  const pathname = usePathname();
+
+  return (
+    <SidebarMenuButton
+      render={<Link href="/services" />}
+      isActive={pathname === "/services"}
+      tooltip="Services"
+    >
+      <SidebarNavIcon icon={Calendar01Icon} />
+      <span>Services</span>
+    </SidebarMenuButton>
+  );
 };
 
-const ServicesSidebarMenuItem = () => {
+const PlanViewsSidebarGroup = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const planPath = getServicesPlanPath(pathname);
-  const isPlanWorkspace = Boolean(planPath);
-  const activeScheduleView = planPath?.view ?? "assign";
-  const servicesViewItems: SidebarTabGroupItem<ServicesSidebarKey>[] = [
-    servicesRootItem,
+
+  if (!planPath) {
+    return null;
+  }
+
+  const activeView = planPath.view;
+  const planViewItems: {
+    key: TopBarView;
+    label: string;
+    href: string;
+    icon: IconSvgElement;
+  }[] = [
     {
       key: "assign",
       label: "Assign",
@@ -856,20 +870,27 @@ const ServicesSidebarMenuItem = () => {
       icon: Clock01Icon,
     },
   ];
-  let servicesActiveKey: ServicesSidebarKey | null = null;
-  if (pathname === "/services") {
-    servicesActiveKey = "services";
-  } else if (isPlanWorkspace) {
-    servicesActiveKey = activeScheduleView;
-  }
 
   return (
-    <SidebarTabGroup
-      activeKey={servicesActiveKey}
-      fallbackItem={servicesRootItem}
-      isGrouped={isPlanWorkspace}
-      items={isPlanWorkspace ? servicesViewItems : [servicesRootItem]}
-    />
+    <SidebarGroup>
+      <SidebarGroupLabel>Plan</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {planViewItems.map((item) => (
+            <SidebarMenuItem key={item.key}>
+              <SidebarMenuButton
+                render={<Link href={item.href} />}
+                isActive={activeView === item.key}
+                tooltip={item.label}
+              >
+                <SidebarNavIcon icon={item.icon} />
+                <span>{item.label}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   );
 };
 
@@ -910,11 +931,9 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
     <>
       <Sidebar variant="inset" collapsible="offcanvas">
         <SidebarHeader>
-          <SidebarAccountPanel
-            onOpenShortcuts={() => {
-              setShortcutsOpen(true);
-            }}
-          />
+          <div className="border-sidebar-border/50 flex h-12 shrink-0 flex-row items-center border-b px-2">
+            <SidebarChromeTrigger when="sidebar" />
+          </div>
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
@@ -922,7 +941,7 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
               <SidebarMenu>
                 <SidebarMenuItem>
                   <Suspense fallback={<ServicesSidebarMenuItemFallback />}>
-                    <ServicesSidebarMenuItem />
+                    <ServicesSidebarLink />
                   </Suspense>
                 </SidebarMenuItem>
                 {peopleNavEnabled ? (
@@ -952,22 +971,32 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+          <Suspense fallback={null}>
+            <PlanViewsSidebarGroup />
+          </Suspense>
         </SidebarContent>
         <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                type="button"
-                tooltip="Shortcuts"
-                onClick={() => {
-                  setShortcutsOpen(true);
-                }}
-              >
-                <SidebarNavIcon icon={Settings02Icon} />
-                <span>Shortcuts</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <div className="border-sidebar-border/50 flex flex-col gap-2 border-t pt-2">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  type="button"
+                  tooltip="Shortcuts"
+                  onClick={() => {
+                    setShortcutsOpen(true);
+                  }}
+                >
+                  <SidebarNavIcon icon={Settings02Icon} />
+                  <span>Shortcuts</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+            <SidebarAccountPanel
+              onOpenShortcuts={() => {
+                setShortcutsOpen(true);
+              }}
+            />
+          </div>
         </SidebarFooter>
       </Sidebar>
       <Dialog open={shortcutsOpen} onOpenChange={setShortcutsOpen}>
@@ -1047,7 +1076,6 @@ export const AppShell = ({
       style={sidebarStyle}
     >
       <SidebarToggleHotkey />
-      <SidebarSeamTrigger />
       <AppSidebar peoplePageEnabled={peoplePageEnabled} />
       <SidebarResizeRail
         width={sidebarWidth}
@@ -1055,8 +1083,7 @@ export const AppShell = ({
       />
       <SidebarInset className="min-h-0 overflow-hidden">
         <header className="border-border/50 flex h-12 shrink-0 items-center gap-2 border-b px-3">
-          <div aria-hidden className="size-8 shrink-0 max-md:hidden" />
-          <SidebarTrigger className="md:hidden" />
+          <SidebarChromeTrigger when="inset" />
           <Suspense fallback={<AppTopBarFallback pathname={pathname} />}>
             <AppTopBar />
           </Suspense>
