@@ -29,15 +29,15 @@ export const HealthQueues = ({
   onOpenPerson,
 }: HealthQueuesProps) => (
   <div className="grid gap-3 lg:grid-cols-2">
-    <Card density="compact">
-      <CardHeader density="compact">
-        <CardTitle scale="section-icon">
+    <Card>
+      <CardHeader>
+        <CardTitle>
           <ListChecks className="text-muted-foreground size-4" />
           Rotation queue
         </CardTitle>
         <CardDescription>Good candidates to consider next.</CardDescription>
       </CardHeader>
-      <CardContent density="compact" layout="tight-stack">
+      <CardContent>
         {underused.length === 0 && !isLoading ? (
           <p className="text-muted-foreground px-2 py-1.5 text-sm">
             No underused people in this sample.
@@ -76,9 +76,9 @@ export const HealthQueues = ({
       </CardContent>
     </Card>
 
-    <Card density="compact">
-      <CardHeader density="compact">
-        <CardTitle scale="section-icon">
+    <Card>
+      <CardHeader>
+        <CardTitle>
           <Clock3 className="text-muted-foreground size-4" />
           Cadence watch
         </CardTitle>
@@ -86,7 +86,7 @@ export const HealthQueues = ({
           People whose serving rhythm changed this month.
         </CardDescription>
       </CardHeader>
-      <CardContent density="compact" layout="tight-stack">
+      <CardContent>
         {needsRest.length === 0 && !isLoading ? (
           <p className="text-muted-foreground px-2 py-1.5 text-sm">
             No high-load people in this sample.

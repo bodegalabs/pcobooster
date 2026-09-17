@@ -11,7 +11,6 @@ interface HotkeyChordProps {
   /** Stable identifier for React keys (e.g. shortcut id). */
   id: string;
   className?: string;
-  treatment?: "default" | "menu";
 }
 
 const subscribeToHydration = () => () => {
@@ -27,7 +26,6 @@ export const HotkeyChord = ({
   binding,
   id: chordId,
   className,
-  treatment = "default",
 }: HotkeyChordProps) => {
   const isHydrated = useSyncExternalStore(
     subscribeToHydration,
@@ -39,14 +37,14 @@ export const HotkeyChord = ({
 
   if (segments === null || segments.length === 0) {
     return (
-      <Kbd aria-label={label} treatment={treatment} className={className}>
+      <Kbd aria-label={label} className={className}>
         …
       </Kbd>
     );
   }
 
   return (
-    <KbdGroup treatment={treatment} className={className} aria-label={label}>
+    <KbdGroup className={className} aria-label={label}>
       {segments.map((segment) => (
         <Kbd key={`${chordId}-${segment}`}>{segment}</Kbd>
       ))}

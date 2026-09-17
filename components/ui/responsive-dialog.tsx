@@ -61,7 +61,7 @@ const ResponsiveDialog = ({
 
 const ResponsiveDialogTrigger = ({
   ...props
-}: React.ComponentProps<typeof DialogTrigger>) => {
+}: Omit<React.ComponentProps<typeof DialogTrigger>, "handle">) => {
   const { isMobile } = React.useContext(ResponsiveDialogContext);
   const Trigger = isMobile ? DrawerTrigger : DialogTrigger;
 
@@ -70,7 +70,7 @@ const ResponsiveDialogTrigger = ({
 
 const ResponsiveDialogClose = ({
   ...props
-}: React.ComponentProps<typeof DialogClose>) => {
+}: Omit<React.ComponentProps<typeof DialogClose>, "handle">) => {
   const { isMobile } = React.useContext(ResponsiveDialogContext);
   const Close = isMobile ? DrawerClose : DialogClose;
 
@@ -112,48 +112,22 @@ const ResponsiveDialogContent = ({
 
 const ResponsiveDialogHeader = ({
   className,
-  treatment = "default",
   ...props
-}: React.ComponentProps<"div"> & {
-  treatment?: "default" | "form" | "picker";
-}) => {
+}: React.ComponentProps<"div">) => {
   const { isMobile } = React.useContext(ResponsiveDialogContext);
   const Header = isMobile ? DrawerHeader : DialogHeader;
 
-  return (
-    <Header
-      className={cn(
-        treatment === "form" && "gap-2 px-4 pt-3 sm:px-0 sm:pt-0",
-        treatment === "picker" && "px-4 pt-3 sm:px-0 sm:pt-0",
-        className
-      )}
-      {...props}
-    />
-  );
+  return <Header className={className} {...props} />;
 };
 
 const ResponsiveDialogFooter = ({
   className,
-  showCloseButton = false,
-  treatment = "default",
   ...props
-}: React.ComponentProps<"div"> & {
-  showCloseButton?: boolean;
-  treatment?: "default" | "form";
-}) => {
+}: React.ComponentProps<"div">) => {
   const { isMobile } = React.useContext(ResponsiveDialogContext);
   const Footer = isMobile ? DrawerFooter : DialogFooter;
 
-  return (
-    <Footer
-      className={cn(
-        treatment === "form" && "gap-2 px-4 pb-0 sm:px-0",
-        className
-      )}
-      showCloseButton={showCloseButton}
-      {...props}
-    />
-  );
+  return <Footer className={className} {...props} />;
 };
 
 const ResponsiveDialogTitle = ({

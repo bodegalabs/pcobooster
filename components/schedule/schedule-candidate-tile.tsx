@@ -245,7 +245,6 @@ export const ScheduleCandidateTile = ({
     >
       <ScheduleCandidateAvatar
         person={person}
-        status={statusVariant}
         statusLabel={statusMeta.label}
         isBlocked={isBlocked}
         isDeclined={isDeclined}

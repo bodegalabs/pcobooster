@@ -1,11 +1,20 @@
-import { ChevronRight, MoreHorizontal } from "lucide-react";
-import { Slot } from "radix-ui";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
+import {
+  ArrowRight01Icon,
+  MoreHorizontalCircle01Icon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { cn } from "cn";
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
-
-const Breadcrumb = ({ ...props }: React.ComponentProps<"nav">) => (
-  <nav aria-label="breadcrumb" data-slot="breadcrumb" {...props} />
+const Breadcrumb = ({ className, ...props }: React.ComponentProps<"nav">) => (
+  <nav
+    aria-label="breadcrumb"
+    data-slot="breadcrumb"
+    className={cn(className)}
+    {...props}
+  />
 );
 
 const BreadcrumbList = ({
@@ -15,7 +24,7 @@ const BreadcrumbList = ({
   <ol
     data-slot="breadcrumb-list"
     className={cn(
-      "text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm break-words sm:gap-2.5",
+      "text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm wrap-break-word sm:gap-2.5",
       className
     )}
     {...props}
@@ -34,22 +43,23 @@ const BreadcrumbItem = ({
 );
 
 const BreadcrumbLink = ({
-  asChild,
   className,
+  render,
   ...props
-}: React.ComponentProps<"a"> & {
-  asChild?: boolean;
-}) => {
-  const Comp = asChild === true ? Slot.Root : "a";
-
-  return (
-    <Comp
-      data-slot="breadcrumb-link"
-      className={cn("hover:text-primary transition-colors", className)}
-      {...props}
-    />
-  );
-};
+}: useRender.ComponentProps<"a">) =>
+  useRender({
+    defaultTagName: "a",
+    props: mergeProps<"a">(
+      {
+        className: cn("hover:text-foreground transition-colors", className),
+      },
+      props
+    ),
+    render,
+    state: {
+      slot: "breadcrumb-link",
+    },
+  });
 
 const BreadcrumbPage = ({
   className,
@@ -57,6 +67,8 @@ const BreadcrumbPage = ({
 }: React.ComponentProps<"span">) => (
   <span
     data-slot="breadcrumb-page"
+    /* eslint-disable-next-line jsx-a11y/prefer-tag-over-role -- The current breadcrumb item is intentionally non-interactive but keeps shadcn's disabled link semantics. */
+    role="link"
     aria-disabled="true"
     aria-current="page"
     className={cn("text-foreground font-normal", className)}
@@ -76,7 +88,7 @@ const BreadcrumbSeparator = ({
     className={cn("[&>svg]:size-3.5", className)}
     {...props}
   >
-    {children ?? <ChevronRight />}
+    {children ?? <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />}
   </li>
 );
 
@@ -88,10 +100,13 @@ const BreadcrumbEllipsis = ({
     data-slot="breadcrumb-ellipsis"
     role="presentation"
     aria-hidden="true"
-    className={cn("flex size-9 items-center justify-center", className)}
+    className={cn(
+      "flex size-5 items-center justify-center [&>svg]:size-4",
+      className
+    )}
     {...props}
   >
-    <MoreHorizontal className="size-4" />
+    <HugeiconsIcon icon={MoreHorizontalCircle01Icon} strokeWidth={2} />
     <span className="sr-only">More</span>
   </span>
 );

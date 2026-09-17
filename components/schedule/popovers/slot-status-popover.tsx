@@ -19,7 +19,7 @@ const FilledPeopleSection = ({
 }) => (
   <div className="space-y-2">
     <div className="flex items-center gap-2">
-      <Badge variant={tone === "confirmed" ? "slot-confirmed" : "slot-pending"}>
+      <Badge variant={tone === "confirmed" ? "secondary" : "outline"}>
         {label}
       </Badge>
       <span className="text-muted-foreground text-xs">{people.length}</span>
@@ -43,9 +43,7 @@ const FilledPeopleSection = ({
                 src={person.photoThumbnailUrl ?? undefined}
                 alt={person.name}
               />
-              <AvatarFallback size="tiny">
-                {getInitials(person.name)}
-              </AvatarFallback>
+              <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{person.name}</p>

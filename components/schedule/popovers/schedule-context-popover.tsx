@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
-import type { ReactNode } from "react";
+import type { ReactElement } from "react";
 
 import {
   Popover,
@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 
 interface ScheduleContextPopoverProps {
   serviceHistory: ServiceHistoryItem[];
-  children: ReactNode;
+  children: ReactElement;
 }
 const historyDateFormatter = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
@@ -109,13 +109,11 @@ export const ScheduleContextPopover = ({
 
   return (
     <Popover>
-      <PopoverTrigger asChild>{children}</PopoverTrigger>
+      <PopoverTrigger render={children} />
       <PopoverContent
         align="start"
         side="right"
         sideOffset={10}
-        collisionPadding={16}
-        density="flush"
         className="w-auto max-w-[min(44rem,calc(100vw-2rem))] overflow-hidden"
       >
         <div className="border-border/40 border-b px-5 py-3">

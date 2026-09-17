@@ -1,57 +1,26 @@
-"use client";
+import { Accordion as AccordionPrimitive } from "@base-ui/react/accordion";
+import { ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { cn } from "cn";
 
-import { ChevronDown } from "lucide-react";
-import { Accordion as AccordionPrimitive } from "radix-ui";
-import * as React from "react";
-
-import { cn } from "@/lib/utils";
-
-const Accordion = ({
-  className,
-  density = "default",
-  ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Root> & {
-  density?: "default" | "lineup";
-}) => (
+const Accordion = ({ className, ...props }: AccordionPrimitive.Root.Props) => (
   <AccordionPrimitive.Root
     data-slot="accordion"
-    className={cn(density === "lineup" && "px-2 py-0.5", className)}
+    className={cn(
+      "flex w-full flex-col overflow-hidden rounded-2xl border",
+      className
+    )}
     {...props}
   />
 );
 
 const AccordionItem = ({
   className,
-  treatment = "default",
   ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Item> & {
-  treatment?: "default" | "lineup";
-}) => (
+}: AccordionPrimitive.Item.Props) => (
   <AccordionPrimitive.Item
     data-slot="accordion-item"
-    className={cn(
-      "border-b last:border-b-0",
-      treatment === "lineup" &&
-        "hover:bg-muted/40 rounded-sm border-b-0 transition-colors",
-      className
-    )}
-    {...props}
-  />
-);
-
-const AccordionHeader = ({
-  className,
-  density = "default",
-  ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Header> & {
-  density?: "default" | "lineup";
-}) => (
-  <AccordionPrimitive.Header
-    className={cn(
-      "flex items-center gap-1",
-      density === "lineup" && "rounded-none px-1 py-0",
-      className
-    )}
+    className={cn("data-open:bg-muted/50 not-last:border-b", className)}
     {...props}
   />
 );
@@ -59,50 +28,53 @@ const AccordionHeader = ({
 const AccordionTrigger = ({
   className,
   children,
-  density = "default",
   ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Trigger> & {
-  density?: "default" | "lineup";
-}) => (
-  <AccordionPrimitive.Trigger
-    data-slot="accordion-trigger"
-    className={cn(
-      "focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center justify-between gap-2 rounded-sm py-3 text-left text-sm font-medium transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]>svg]:rotate-180",
-      density === "lineup" && "gap-1 rounded-none py-2 hover:no-underline",
-      className
-    )}
-    {...props}
-  >
-    {children}
-    <ChevronDown className="text-muted-foreground size-4 shrink-0 transition-transform duration-200" />
-  </AccordionPrimitive.Trigger>
+}: AccordionPrimitive.Trigger.Props) => (
+  <AccordionPrimitive.Header className="flex">
+    <AccordionPrimitive.Trigger
+      data-slot="accordion-trigger"
+      className={cn(
+        "group/accordion-trigger **:data-[slot=accordion-trigger-icon]:text-muted-foreground relative flex flex-1 items-start justify-between gap-6 border border-transparent p-4 text-left text-sm font-medium transition-all outline-none hover:underline aria-disabled:pointer-events-none aria-disabled:opacity-50 **:data-[slot=accordion-trigger-icon]:ml-auto **:data-[slot=accordion-trigger-icon]:size-4",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <HugeiconsIcon
+        icon={ArrowDown01Icon}
+        strokeWidth={2}
+        data-slot="accordion-trigger-icon"
+        className="pointer-events-none shrink-0 group-aria-expanded/accordion-trigger:hidden"
+      />
+      <HugeiconsIcon
+        icon={ArrowUp01Icon}
+        strokeWidth={2}
+        data-slot="accordion-trigger-icon"
+        className="pointer-events-none hidden shrink-0 group-aria-expanded/accordion-trigger:inline"
+      />
+    </AccordionPrimitive.Trigger>
+  </AccordionPrimitive.Header>
 );
 
 const AccordionContent = ({
   className,
   children,
-  density = "default",
   ...props
-}: React.ComponentProps<typeof AccordionPrimitive.Content> & {
-  density?: "default" | "lineup";
-}) => (
-  <AccordionPrimitive.Content
+}: AccordionPrimitive.Panel.Props) => (
+  <AccordionPrimitive.Panel
     data-slot="accordion-content"
-    className={cn(
-      "data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm",
-      density === "lineup" && "pt-0 pb-3",
-      className
-    )}
+    className="data-open:animate-accordion-down data-closed:animate-accordion-up overflow-hidden px-4 text-sm"
     {...props}
   >
-    <div className="pb-3">{children}</div>
-  </AccordionPrimitive.Content>
+    <div
+      className={cn(
+        "[&_a]:hover:text-foreground h-(--accordion-panel-height) pt-0 pb-4 data-ending-style:h-0 data-starting-style:h-0 [&_a]:underline [&_a]:underline-offset-3 [&_p:not(:last-child)]:mb-4",
+        className
+      )}
+    >
+      {children}
+    </div>
+  </AccordionPrimitive.Panel>
 );
 
-export {
-  Accordion,
-  AccordionContent,
-  AccordionHeader,
-  AccordionItem,
-  AccordionTrigger,
-};
+export { Accordion, AccordionItem, AccordionTrigger, AccordionContent };

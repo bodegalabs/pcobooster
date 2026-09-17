@@ -1,21 +1,12 @@
 import { cva } from "class-variance-authority";
 import type { VariantProps } from "class-variance-authority";
+import { cn } from "cn";
 
-import { cn } from "@/lib/utils";
-
-const Empty = ({
-  className,
-  density = "default",
-  ...props
-}: React.ComponentProps<"div"> & {
-  density?: "default" | "compact" | "roomy";
-}) => (
+const Empty = ({ className, ...props }: React.ComponentProps<"div">) => (
   <div
     data-slot="empty"
     className={cn(
-      "flex min-w-0 flex-1 flex-col items-center justify-center gap-6 rounded-lg border-dashed p-6 text-center text-balance md:p-12",
-      density === "compact" && "py-6",
-      density === "roomy" && "py-8",
+      "flex w-full min-w-0 flex-1 flex-col items-center justify-center gap-4 rounded-2xl border-dashed p-12 text-center text-balance",
       className
     )}
     {...props}
@@ -25,10 +16,7 @@ const Empty = ({
 const EmptyHeader = ({ className, ...props }: React.ComponentProps<"div">) => (
   <div
     data-slot="empty-header"
-    className={cn(
-      "flex max-w-sm flex-col items-center gap-2 text-center",
-      className
-    )}
+    className={cn("flex max-w-sm flex-col items-center gap-2", className)}
     {...props}
   />
 );
@@ -39,7 +27,7 @@ const emptyMediaVariants = cva(
     variants: {
       variant: {
         default: "bg-transparent",
-        icon: "bg-muted text-foreground flex size-10 shrink-0 items-center justify-center rounded-lg [&_svg:not([class*='size-'])]:size-6",
+        icon: "bg-muted text-foreground flex size-10 shrink-0 items-center justify-center rounded-xl [&_svg:not([class*='size-'])]:size-5",
       },
     },
     defaultVariants: {
@@ -64,7 +52,7 @@ const EmptyMedia = ({
 const EmptyTitle = ({ className, ...props }: React.ComponentProps<"div">) => (
   <div
     data-slot="empty-title"
-    className={cn("text-lg font-medium tracking-tight", className)}
+    className={cn("font-heading text-lg font-medium tracking-tight", className)}
     {...props}
   />
 );

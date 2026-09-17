@@ -25,8 +25,8 @@ export const RosterTableBody = ({
     return (
       <TableBody>
         {Array.from({ length: 6 }).map((_, index) => (
-          <TableRow key={`loading-${index}`} treatment="loading">
-            <TableCell inset="leading">
+          <TableRow key={`loading-${index}`}>
+            <TableCell>
               <div className="flex items-center gap-3">
                 <Skeleton className="size-8" />
                 <div className="flex flex-col gap-1.5">
@@ -35,19 +35,19 @@ export const RosterTableBody = ({
                 </div>
               </div>
             </TableCell>
-            <TableCell inset="compact">
+            <TableCell>
               <Skeleton className="h-3.5 w-12" />
             </TableCell>
-            <TableCell inset="compact">
+            <TableCell>
               <Skeleton className="h-3.5 w-12" />
             </TableCell>
-            <TableCell inset="compact">
+            <TableCell>
               <Skeleton className="h-3.5 w-16" />
             </TableCell>
-            <TableCell inset="compact">
+            <TableCell>
               <Skeleton className="h-3.5 w-6" />
             </TableCell>
-            <TableCell inset="compact">
+            <TableCell>
               <Skeleton className="h-3.5 w-24" />
             </TableCell>
           </TableRow>
@@ -60,13 +60,7 @@ export const RosterTableBody = ({
     return (
       <TableBody>
         <TableRow>
-          <TableCell
-            colSpan={6}
-            inset="empty"
-            tone="muted"
-            emphasis="body"
-            className="text-center"
-          >
+          <TableCell colSpan={6} className="text-center">
             No people matched the current filters.
           </TableCell>
         </TableRow>
@@ -81,7 +75,6 @@ export const RosterTableBody = ({
         return (
           <TableRow
             key={person.id}
-            treatment="interactive"
             className="group/row cursor-pointer"
             onPointerEnter={() => {
               onPreviewPerson(person);
@@ -90,7 +83,7 @@ export const RosterTableBody = ({
               onOpenPerson(person);
             }}
           >
-            <TableCell inset="leading">
+            <TableCell>
               <div className="flex min-w-0 items-center gap-3">
                 <PersonAvatar person={person} />
                 <div className="min-w-0">
@@ -113,19 +106,13 @@ export const RosterTableBody = ({
                 </div>
               </div>
             </TableCell>
-            <TableCell inset="compact" emphasis="strong">
+            <TableCell>
               <span className={badge.className}>{badge.label}</span>
             </TableCell>
-            <TableCell inset="compact" tone="muted" emphasis="body" numeric>
-              {person.lastServed}
-            </TableCell>
-            <TableCell inset="compact" emphasis="body" numeric>
-              {person.nextScheduled}
-            </TableCell>
-            <TableCell inset="compact" emphasis="body" numeric>
-              {person.monthCount}
-            </TableCell>
-            <TableCell inset="compact">
+            <TableCell>{person.lastServed}</TableCell>
+            <TableCell>{person.nextScheduled}</TableCell>
+            <TableCell>{person.monthCount}</TableCell>
+            <TableCell>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-muted-foreground truncate text-sm">
                   {person.status}

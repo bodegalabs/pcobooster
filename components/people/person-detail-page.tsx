@@ -51,33 +51,35 @@ export const PersonDetailPage = ({ personId }: { personId: string }) => {
             {data ? (
               <div className="flex items-center gap-1">
                 <Button
-                  asChild
+                  nativeButton={false}
+                  render={
+                    <Link
+                      href={`/people/${personId}?month=${data.previousMonth}`}
+                      aria-label="Previous month"
+                    />
+                  }
                   variant="outline"
                   size="icon"
                   className="size-8"
                 >
-                  <Link
-                    href={`/people/${personId}?month=${data.previousMonth}`}
-                    aria-label="Previous month"
-                  >
-                    <ChevronLeft className="size-4" />
-                  </Link>
+                  <ChevronLeft className="size-4" />
                 </Button>
                 <div className="border-border/40 flex h-8 min-w-36 items-center justify-center rounded-md border px-3 text-sm font-medium">
                   {monthLabel}
                 </div>
                 <Button
-                  asChild
+                  nativeButton={false}
+                  render={
+                    <Link
+                      href={`/people/${personId}?month=${data.nextMonth}`}
+                      aria-label="Next month"
+                    />
+                  }
                   variant="outline"
                   size="icon"
                   className="size-8"
                 >
-                  <Link
-                    href={`/people/${personId}?month=${data.nextMonth}`}
-                    aria-label="Next month"
-                  >
-                    <ChevronRight className="size-4" />
-                  </Link>
+                  <ChevronRight className="size-4" />
                 </Button>
               </div>
             ) : null}

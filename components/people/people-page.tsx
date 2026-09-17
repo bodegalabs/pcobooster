@@ -192,12 +192,8 @@ export const PeoplePage = () => {
               }}
             >
               <TabsList className="h-8">
-                <TabsTrigger value="health" density="compact">
-                  Health
-                </TabsTrigger>
-                <TabsTrigger value="month" density="compact">
-                  Month
-                </TabsTrigger>
+                <TabsTrigger value="health">Health</TabsTrigger>
+                <TabsTrigger value="month">Month</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -217,7 +213,7 @@ export const PeoplePage = () => {
               />
             </InputGroup>
             <NativeSelect
-              wrapperClassName="w-full"
+              className="w-full"
               aria-label="Select time range"
               value={range}
               onChange={(event) => {
@@ -236,7 +232,7 @@ export const PeoplePage = () => {
               <NativeSelectOption value="90">Last 90 days</NativeSelectOption>
             </NativeSelect>
             <NativeSelect
-              wrapperClassName="w-full"
+              className="w-full"
               aria-label="Filter team"
               value={selectedTeam}
               onChange={(event) => {

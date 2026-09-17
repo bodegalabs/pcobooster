@@ -157,28 +157,22 @@ export const PersonRehearsalTimesPopover = ({
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost-muted"
-          size="tiny"
-          className="max-w-full"
-          disabled={!canEdit}
-          aria-label={`Edit times for ${person.name}`}
-        >
-          <Clock3 data-icon="inline-start" />
-          {selectedTimeCount}/{planTimes.length}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        sideOffset={8}
-        density="flush"
-        className="w-96"
-        onOpenAutoFocus={(event) => {
-          event.preventDefault();
-        }}
+      <PopoverTrigger
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            className="max-w-full"
+            disabled={!canEdit}
+            aria-label={`Edit times for ${person.name}`}
+          />
+        }
       >
+        <Clock3 data-icon="inline-start" />
+        {selectedTimeCount}/{planTimes.length}
+      </PopoverTrigger>
+      <PopoverContent align="end" sideOffset={8} className="w-96">
         <Command>
           <CommandList>
             <CommandGroup>
@@ -203,12 +197,7 @@ export const PersonRehearsalTimesPopover = ({
                     <span className="min-w-0 flex-1 truncate">
                       {planTime.name}
                     </span>
-                    <Badge
-                      variant="outline"
-                      weight="normal"
-                      clipped
-                      className="max-w-[14rem]"
-                    >
+                    <Badge variant="outline" className="max-w-[14rem]">
                       {formatPlanTimeScheduleLabel(planTime, timeZone)}
                     </Badge>
                   </CommandItem>

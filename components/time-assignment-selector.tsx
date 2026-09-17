@@ -177,25 +177,26 @@ export const TimeAssignmentSelector = ({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          aria-haspopup="dialog"
-          aria-expanded={open}
-          aria-controls={listId}
-          disabled={disabled}
-          className="w-full justify-between"
-        >
-          <span className="flex min-w-0 items-center gap-2">
-            <Users data-icon="inline-start" />
-            <span className="truncate text-left">{label}</span>
-          </span>
-          <ChevronsUpDown className="opacity-50" />
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            aria-haspopup="dialog"
+            aria-expanded={open}
+            aria-controls={listId}
+            disabled={disabled}
+            className="w-full justify-between"
+          />
+        }
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          <Users data-icon="inline-start" />
+          <span className="truncate text-left">{label}</span>
+        </span>
+        <ChevronsUpDown className="opacity-50" />
       </PopoverTrigger>
       <PopoverContent
-        density="flush"
         className="w-[520px] max-w-[calc(100vw-2rem)]"
         align="start"
       >
@@ -205,7 +206,7 @@ export const TimeAssignmentSelector = ({
             <Button
               type="button"
               variant="ghost"
-              size="tiny"
+              size="xs"
               disabled={
                 groups.length === 0 || value.teamIds.length === groups.length
               }
@@ -218,7 +219,7 @@ export const TimeAssignmentSelector = ({
             <Button
               type="button"
               variant="ghost"
-              size="tiny"
+              size="xs"
               disabled={
                 value.teamIds.length === 0 &&
                 value.positionIds.length === 0 &&
@@ -261,9 +262,7 @@ export const TimeAssignmentSelector = ({
                     <span className="min-w-0 flex-1 truncate">
                       {group.teamName}
                     </span>
-                    <Badge variant="secondary" weight="normal">
-                      {group.positions.length}
-                    </Badge>
+                    <Badge variant="secondary">{group.positions.length}</Badge>
                   </CommandItem>
                 );
               })}
@@ -305,9 +304,7 @@ export const TimeAssignmentSelector = ({
                     <span className="min-w-0 flex-1 truncate">
                       {position.teamName} / {position.name}
                     </span>
-                    <Badge variant="outline" weight="normal">
-                      {rowLabel}
-                    </Badge>
+                    <Badge variant="outline">{rowLabel}</Badge>
                   </CommandItem>
                 );
               })}

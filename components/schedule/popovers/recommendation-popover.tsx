@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { ReactElement } from "react";
 
 import {
   Popover,
@@ -11,7 +11,7 @@ import {
 interface RecommendationPopoverProps {
   reasoning: string[] | undefined;
   personId: string;
-  children: ReactNode;
+  children: ReactElement;
 }
 
 export const RecommendationPopover = ({
@@ -20,7 +20,7 @@ export const RecommendationPopover = ({
   children,
 }: RecommendationPopoverProps) => (
   <Popover>
-    <PopoverTrigger asChild>{children}</PopoverTrigger>
+    <PopoverTrigger render={children} />
     <PopoverContent align="end" sideOffset={6} className="w-80">
       <p className="text-foreground text-sm font-semibold tracking-tight">
         Why this ranking

@@ -46,9 +46,9 @@ export const PersonDetailBody = ({
           <Metric label="90 days" value={String(person.ninetyDayCount)} />
         </div>
 
-        <Card density="comfortable">
-          <CardHeader density="compact">
-            <CardTitle scale="section-icon">
+        <Card>
+          <CardHeader>
+            <CardTitle>
               <CalendarDays className="text-muted-foreground size-4" />
               {monthLabel} calendar
             </CardTitle>
@@ -57,7 +57,7 @@ export const PersonDetailBody = ({
               status.
             </CardDescription>
           </CardHeader>
-          <CardContent density="compact">
+          <CardContent>
             <PersonMonthCalendar
               person={person}
               monthLabel={monthLabel}
@@ -68,9 +68,9 @@ export const PersonDetailBody = ({
       </section>
 
       <aside className="flex flex-col gap-2">
-        <Card density="comfortable">
-          <CardHeader density="compact">
-            <CardTitle scale="section-icon">
+        <Card>
+          <CardHeader>
+            <CardTitle>
               <Sparkles className="text-muted-foreground size-4" />
               Current signal
             </CardTitle>
@@ -78,24 +78,17 @@ export const PersonDetailBody = ({
               <Badge variant="outline">{person.status}</Badge>
             </CardAction>
           </CardHeader>
-          <CardContent density="compact" tone="muted" textSize="body">
-            {person.highlight}
-          </CardContent>
+          <CardContent>{person.highlight}</CardContent>
         </Card>
 
-        <Card density="compact">
-          <CardHeader density="compact">
-            <CardTitle scale="section-icon">
+        <Card>
+          <CardHeader>
+            <CardTitle>
               <Clock3 className="text-muted-foreground size-4" />
               Rotation notes
             </CardTitle>
           </CardHeader>
-          <CardContent
-            density="compact"
-            layout="grid"
-            tone="muted"
-            textSize="body"
-          >
+          <CardContent>
             <p>
               Last service:{" "}
               <span className="text-foreground">{person.lastServed}</span>
@@ -117,14 +110,14 @@ export const PersonDetailBody = ({
           </CardContent>
         </Card>
 
-        <Card density="compact">
-          <CardHeader density="compact">
-            <CardTitle scale="section">Legend</CardTitle>
+        <Card>
+          <CardHeader>
+            <CardTitle>Legend</CardTitle>
             <CardDescription>
               Markers use live Planning Center schedule status.
             </CardDescription>
           </CardHeader>
-          <CardContent density="compact" layout="grid" textSize="body">
+          <CardContent>
             <LegendDot
               className="bg-status-confirmed-bright"
               label="Confirmed"

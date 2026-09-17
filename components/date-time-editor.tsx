@@ -59,33 +59,27 @@ export const DateTimeEditor = ({
   const selectedDate = parseCalendarDay(dateValue);
 
   return (
-    <Field
-      density="tight"
-      className={className}
-      data-invalid={invalid || undefined}
-    >
+    <Field className={className} data-invalid={invalid || undefined}>
       <FieldLabel htmlFor={`${id}-time`}>{label}</FieldLabel>
       <div className="grid grid-cols-[minmax(0,1fr)_112px] gap-2">
         <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              weight="normal"
-              tone={selectedDate ? "default" : "muted"}
-              className="justify-start text-left"
-              aria-invalid={invalid || undefined}
-              disabled={disabled}
-            >
-              <CalendarIcon data-icon="inline-start" />
-              <span className="truncate">
-                {selectedDate
-                  ? format(selectedDate, "MMM d, yyyy")
-                  : "Pick date"}
-              </span>
-            </Button>
+          <PopoverTrigger
+            render={
+              <Button
+                type="button"
+                variant="outline"
+                className="justify-start text-left"
+                aria-invalid={invalid || undefined}
+                disabled={disabled}
+              />
+            }
+          >
+            <CalendarIcon data-icon="inline-start" />
+            <span className="truncate">
+              {selectedDate ? format(selectedDate, "MMM d, yyyy") : "Pick date"}
+            </span>
           </PopoverTrigger>
-          <PopoverContent density="flush" className="w-auto" align="start">
+          <PopoverContent className="w-auto" align="start">
             <Calendar
               mode="single"
               selected={selectedDate}

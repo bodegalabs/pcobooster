@@ -41,9 +41,9 @@ export const HealthSidebar = ({
   onOpenPerson,
 }: HealthSidebarProps) => (
   <aside className="flex min-w-0 flex-col gap-2 pb-1">
-    <Card density="compact">
-      <CardHeader density="compact">
-        <CardTitle scale="section-icon">
+    <Card>
+      <CardHeader>
+        <CardTitle>
           <Medal className="text-muted-foreground size-4" />
           MVP of the month
         </CardTitle>
@@ -52,7 +52,7 @@ export const HealthSidebar = ({
             (isLoading ? "Loading current roster..." : "No people loaded yet.")}
         </CardDescription>
       </CardHeader>
-      <CardContent density="compact">
+      <CardContent>
         {mvp ? (
           <button
             type="button"
@@ -87,9 +87,9 @@ export const HealthSidebar = ({
       </CardContent>
     </Card>
 
-    <Card density="compact">
-      <CardHeader density="compact">
-        <CardTitle scale="section-icon">
+    <Card>
+      <CardHeader>
+        <CardTitle>
           <ShieldAlert className="text-muted-foreground size-4" />
           Needs attention
         </CardTitle>
@@ -97,7 +97,7 @@ export const HealthSidebar = ({
           People above cadence or ready to re-enter rotation.
         </CardDescription>
       </CardHeader>
-      <CardContent density="compact" layout="tight-stack">
+      <CardContent>
         {[...needsRest, ...underused].length === 0 && !isLoading ? (
           <p className="text-muted-foreground px-2 py-1.5 text-sm">
             No attention items in this sample.

@@ -80,7 +80,7 @@ export const TeamSlotsCollapsible = ({
     return (
       <SidebarMenuItem key={position.id}>
         <SidebarMenuButton
-          variant="schedule"
+          variant="default"
           isActive={active}
           onClick={() => {
             onSelect(slot);
@@ -133,43 +133,39 @@ export const TeamSlotsCollapsible = ({
       onOpenChange={() => {
         onToggle(group.teamId);
       }}
-      asChild
     >
-      <SidebarGroup treatment="schedule">
-        <CollapsibleTrigger asChild>
-          <SidebarGroupLabel
-            asChild
-            treatment="schedule"
-            className="group/team-label h-9 w-full cursor-pointer justify-start text-left"
-          >
-            <button type="button">
-              <span className="flex-1 truncate text-left text-sm font-semibold">
-                {group.teamName}
-              </span>
-              {openNeededCount > 0 ? (
-                <span className="text-status-declined dark:text-status-declined text-xs font-medium tabular-nums">
-                  {openNeededCount}
-                </span>
-              ) : (
-                <span
-                  className="bg-status-confirmed-bright/70 size-1.5 rounded-full"
-                  aria-label="All set"
-                />
-              )}
-              <ChevronDown
-                className={cn(
-                  "text-muted-foreground size-3.5 shrink-0 transition-transform duration-200 ease-out",
-                  isCollapsed && "-rotate-90"
-                )}
-                aria-hidden
-              />
-            </button>
-          </SidebarGroupLabel>
+      <SidebarGroup>
+        <CollapsibleTrigger
+          render={
+            <SidebarGroupLabel className="group/team-label h-9 w-full cursor-pointer justify-start text-left" />
+          }
+          nativeButton={false}
+        >
+          <span className="flex-1 truncate text-left text-sm font-semibold">
+            {group.teamName}
+          </span>
+          {openNeededCount > 0 ? (
+            <span className="text-status-declined dark:text-status-declined text-xs font-medium tabular-nums">
+              {openNeededCount}
+            </span>
+          ) : (
+            <span
+              className="bg-status-confirmed-bright/70 size-1.5 rounded-full"
+              aria-label="All set"
+            />
+          )}
+          <ChevronDown
+            className={cn(
+              "text-muted-foreground size-3.5 shrink-0 transition-transform duration-200 ease-out",
+              isCollapsed && "-rotate-90"
+            )}
+            aria-hidden
+          />
         </CollapsibleTrigger>
 
         {!isOpen && selectedPositionInGroup ? (
           <SidebarGroupContent>
-            <SidebarMenu density="flush">
+            <SidebarMenu>
               {renderPositionRow(selectedPositionInGroup)}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -177,28 +173,26 @@ export const TeamSlotsCollapsible = ({
 
         <CollapsibleContent>
           <SidebarGroupContent>
-            <SidebarMenu density="flush">
+            <SidebarMenu>
               {group.positions.map(renderPositionRow)}
               {onAddPosition ? (
                 <SidebarMenuItem>
                   <Popover open={addOpen} onOpenChange={setAddOpen}>
-                    <PopoverTrigger asChild>
-                      <SidebarMenuButton variant="schedule-add" size="sm">
-                        <Plus
-                          className="size-3 shrink-0 opacity-70"
-                          aria-hidden
-                        />
-                        <span className="truncate text-sm font-normal">
-                          Add position
-                        </span>
-                      </SidebarMenuButton>
+                    <PopoverTrigger
+                      render={<SidebarMenuButton variant="outline" size="sm" />}
+                    >
+                      <Plus
+                        className="size-3 shrink-0 opacity-70"
+                        aria-hidden
+                      />
+                      <span className="truncate text-sm font-normal">
+                        Add position
+                      </span>
                     </PopoverTrigger>
                     <PopoverContent
                       align="start"
                       side="right"
                       sideOffset={8}
-                      collisionPadding={16}
-                      density="tight"
                       className="w-[min(18rem,calc(100vw-2rem))]"
                     >
                       <form className="flex gap-2" onSubmit={handleAddPosition}>

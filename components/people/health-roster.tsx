@@ -35,10 +35,10 @@ export const HealthRoster = ({
 }: HealthRosterProps) => (
   <>
     <div className="grid shrink-0 gap-2 sm:grid-cols-3">
-      <Card density="compact">
-        <CardHeader density="compact">
+      <Card>
+        <CardHeader>
           <CardDescription>Scheduled people</CardDescription>
-          <CardTitle scale="metric">
+          <CardTitle>
             {isLoading ? (
               <Skeleton className="h-7 w-10" />
             ) : (
@@ -47,10 +47,10 @@ export const HealthRoster = ({
           </CardTitle>
         </CardHeader>
       </Card>
-      <Card density="compact">
-        <CardHeader density="compact">
+      <Card>
+        <CardHeader>
           <CardDescription>High load</CardDescription>
-          <CardTitle scale="metric">
+          <CardTitle>
             {isLoading ? (
               <Skeleton className="h-7 w-8" />
             ) : (
@@ -59,10 +59,10 @@ export const HealthRoster = ({
           </CardTitle>
         </CardHeader>
       </Card>
-      <Card density="compact">
-        <CardHeader density="compact">
+      <Card>
+        <CardHeader>
           <CardDescription>Available soon</CardDescription>
-          <CardTitle scale="metric">
+          <CardTitle>
             {isLoading ? (
               <Skeleton className="h-7 w-10" />
             ) : (
@@ -76,16 +76,14 @@ export const HealthRoster = ({
     <div className="border-border/40 shrink-0 overflow-hidden rounded-lg border md:h-96">
       <ScrollArea className="hidden h-full md:block">
         <Table className="table-fixed">
-          <TableHeader surface="background" className="sticky top-0 z-10">
-            <TableRow treatment="heading" className="[&>th]:h-9">
-              <TableHead inset="leading" className="w-[34%]">
-                Person
-              </TableHead>
-              <TableHead inset="compact">Load</TableHead>
-              <TableHead inset="compact">Last</TableHead>
-              <TableHead inset="compact">Next</TableHead>
-              <TableHead inset="compact">Month</TableHead>
-              <TableHead inset="compact">Signal</TableHead>
+          <TableHeader className="sticky top-0 z-10">
+            <TableRow className="[&>th]:h-9">
+              <TableHead className="w-[34%]">Person</TableHead>
+              <TableHead>Load</TableHead>
+              <TableHead>Last</TableHead>
+              <TableHead>Next</TableHead>
+              <TableHead>Month</TableHead>
+              <TableHead>Signal</TableHead>
             </TableRow>
           </TableHeader>
           <RosterTableBody

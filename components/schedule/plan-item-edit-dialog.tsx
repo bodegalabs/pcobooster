@@ -139,10 +139,7 @@ const PlanItemEditContent = ({
         desktopClassName="w-[95vw] max-w-2xl"
         mobileClassName="max-h-[90svh]"
       >
-        <ResponsiveDialogHeader
-          treatment="form"
-          className="flex flex-col text-left sm:flex-row sm:items-center sm:justify-between"
-        >
+        <ResponsiveDialogHeader className="flex flex-col text-left sm:flex-row sm:items-center sm:justify-between">
           <PlanItemDialogTitle item={item} />
         </ResponsiveDialogHeader>
 
@@ -170,7 +167,7 @@ const PlanItemEditContent = ({
                 <Skeleton className="h-9 w-full" />
               ) : (
                 <NativeSelect
-                  wrapperClassName="w-full"
+                  className="w-full"
                   value={currentDraft.arrangementId || NONE_VALUE}
                   onChange={(event) => {
                     const { value } = event.target;
@@ -215,7 +212,7 @@ const PlanItemEditContent = ({
                 <Skeleton className="h-9 w-full" />
               ) : (
                 <NativeSelect
-                  wrapperClassName="w-full"
+                  className="w-full"
                   value={currentDraft.keyId || NONE_VALUE}
                   onChange={(event) => {
                     setDraft((current) => ({
@@ -256,7 +253,7 @@ const PlanItemEditContent = ({
 
           <Field label="Service Position">
             <NativeSelect
-              wrapperClassName="w-full"
+              className="w-full"
               value={currentDraft.servicePosition}
               onChange={(event) => {
                 setDraft((current) => ({
@@ -291,7 +288,7 @@ const PlanItemEditContent = ({
           <p className="text-destructive mt-3 text-sm">{saveError}</p>
         ) : null}
 
-        <ResponsiveDialogFooter treatment="form">
+        <ResponsiveDialogFooter>
           <Button
             type="button"
             variant="outline"
