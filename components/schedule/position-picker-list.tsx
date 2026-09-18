@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarDays } from "lucide-react";
+import { Fragment } from "react";
 import type { ReactNode } from "react";
 
 import { TeamSlotsCollapsible } from "@/components/schedule/team-slots-collapsible";
@@ -80,25 +81,27 @@ export const PositionPickerList = ({
             teamPositionsPlaceholder && "pointer-events-none opacity-60"
           )}
         >
-          {teamPositionGroups.map((group) => (
-            <TeamSlotsCollapsible
-              key={group.teamId}
-              group={group}
-              isCollapsed={collapsedTeams[group.teamId]}
-              selectedTeam={selectedTeam}
-              selectedPosition={selectedPosition}
-              onToggle={onToggleTeam}
-              onSelect={onSelect}
-              onPreview={onPreviewSlot}
-              onAddPosition={onAddPosition}
-            />
+          {teamPositionGroups.map((group, index) => (
+            <Fragment key={group.teamId}>
+              {index > 0 ? <SidebarSeparator className="my-0" /> : null}
+              <TeamSlotsCollapsible
+                group={group}
+                isCollapsed={collapsedTeams[group.teamId]}
+                selectedTeam={selectedTeam}
+                selectedPosition={selectedPosition}
+                onToggle={onToggleTeam}
+                onSelect={onSelect}
+                onPreview={onPreviewSlot}
+                onAddPosition={onAddPosition}
+              />
+            </Fragment>
           ))}
         </div>
       </div>
     );
   }
   return (
-    <div className="min-h-0 flex-1 overflow-auto">
+    <div className="min-h-0 flex-1 overflow-auto py-1">
       <div className="flex flex-col">{body}</div>
     </div>
   );

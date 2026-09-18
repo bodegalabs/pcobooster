@@ -4,6 +4,8 @@ import { ChevronDown, Plus } from "lucide-react";
 import type { SubmitEvent as ReactSubmitEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
+import { PositionPickerIcon } from "@/components/schedule/position-picker-icon";
+import { PositionPickerRow } from "@/components/schedule/position-picker-row";
 import { SlotBadgeCluster } from "@/components/schedule/slot-badge-cluster";
 import type { SlotRef } from "@/components/schedule/types";
 import { Button } from "@/components/ui/button";
@@ -23,7 +25,6 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import type { TeamPosition, TeamPositionGroup } from "@/lib/types";
@@ -79,15 +80,18 @@ export const TeamSlotsCollapsible = ({
     };
     return (
       <SidebarMenuItem key={position.id}>
-        <SidebarMenuButton
-          variant="default"
-          isActive={active}
+        <PositionPickerRow
+          active={active}
           onClick={() => {
             onSelect(slot);
           }}
           onMouseEnter={() => onPreview?.(slot)}
           onFocus={() => onPreview?.(slot)}
         >
+          <PositionPickerIcon
+            positionName={position.name}
+            teamName={group.teamName}
+          />
           <span className="flex min-w-0 flex-1 items-center gap-1.5">
             <span className={cn("truncate", isTemporaryPosition && "italic")}>
               {position.name}
@@ -98,7 +102,7 @@ export const TeamSlotsCollapsible = ({
             teamName={group.teamName}
             positionName={position.name}
           />
-        </SidebarMenuButton>
+        </PositionPickerRow>
       </SidebarMenuItem>
     );
   };
@@ -137,13 +141,11 @@ export const TeamSlotsCollapsible = ({
       <SidebarGroup>
         <CollapsibleTrigger
           render={
-            <SidebarGroupLabel className="group/team-label h-9 w-full cursor-pointer justify-start text-left" />
+            <SidebarGroupLabel className="group/team-label w-full cursor-pointer justify-start text-left" />
           }
           nativeButton={false}
         >
-          <span className="flex-1 truncate text-left text-sm font-semibold">
-            {group.teamName}
-          </span>
+          <span className="flex-1 truncate text-left">{group.teamName}</span>
           {openNeededCount > 0 ? (
             <span className="text-status-declined dark:text-status-declined text-xs font-medium tabular-nums">
               {openNeededCount}
@@ -178,16 +180,12 @@ export const TeamSlotsCollapsible = ({
               {onAddPosition ? (
                 <SidebarMenuItem>
                   <Popover open={addOpen} onOpenChange={setAddOpen}>
-                    <PopoverTrigger
-                      render={<SidebarMenuButton variant="outline" size="sm" />}
-                    >
+                    <PopoverTrigger render={<PositionPickerRow tone="muted" />}>
                       <Plus
-                        className="size-3 shrink-0 opacity-70"
+                        className="size-3.5 shrink-0 opacity-70"
                         aria-hidden
                       />
-                      <span className="truncate text-sm font-normal">
-                        Add position
-                      </span>
+                      <span className="truncate font-normal">Add position</span>
                     </PopoverTrigger>
                     <PopoverContent
                       align="start"
