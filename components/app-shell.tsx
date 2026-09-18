@@ -2,7 +2,7 @@
 
 import {
   ArrowDown01Icon,
-  Calendar01Icon,
+  Calendar04Icon,
   Clock01Icon,
   KeyboardIcon,
   LaptopIcon,
@@ -838,7 +838,7 @@ const servicesRootItem: SidebarTabGroupItem<ServicesSidebarKey> = {
   key: "services",
   label: "Services",
   href: "/services",
-  icon: Calendar01Icon,
+  icon: Calendar04Icon,
 };
 
 const ServicesSidebarMenuItem = () => {
@@ -893,7 +893,7 @@ const ServicesSidebarMenuItem = () => {
 
 const ServicesSidebarMenuItemFallback = () => (
   <SidebarMenuButton render={<Link href="/services" />} tooltip="Services">
-    <SidebarNavIcon icon={Calendar01Icon} />
+    <SidebarNavIcon icon={Calendar04Icon} />
     <span>Services</span>
   </SidebarMenuButton>
 );

@@ -12,7 +12,7 @@ import {
   Speaker01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Piano } from "lucide-react";
+import { KeyboardMusic } from "lucide-react";
 
 import {
   HoverCard,
@@ -51,7 +51,7 @@ export const PositionPickerIcon = ({
 
   if (iconId === "piano") {
     return (
-      <Piano
+      <KeyboardMusic
         className={positionPickerIconClassName(className)}
         strokeWidth={2}
         aria-hidden
