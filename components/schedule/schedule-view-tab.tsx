@@ -112,7 +112,7 @@ const TemporaryFilledPersonRow = ({
     person.status === "confirmed" ? "confirmed" : "scheduled";
 
   return (
-    <article className="group/row hover:bg-muted/30 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 transition-colors sm:py-3">
+    <article className="group/row hover:bg-muted/30 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 sm:py-3">
       <Avatar size="default">
         <AvatarImage
           src={person.photoThumbnailUrl ?? undefined}

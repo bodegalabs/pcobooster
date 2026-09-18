@@ -5,6 +5,7 @@ import {
   noAbsoluteInputOverlayRule,
   noOverlaySectionBorderRule,
   noPopoverContentPaddingRule,
+  noTransitionColorsRule,
 } from "./oxlint-plugin-local.mjs";
 
 RuleTester.describe = describe;
@@ -194,6 +195,42 @@ ruleTester.run(
         name: "border-b section header in popover",
         code: `<div className="border-b px-3 py-2">Header</div>`,
         errors: [{ messageId: "border" }],
+      },
+    ],
+  }
+);
+
+ruleTester.run(
+  "no-transition-colors",
+  noTransitionColorsRule as Parameters<typeof ruleTester.run>[1],
+  {
+    valid: [
+      {
+        name: "layout-only transition",
+        code: `<button className="transition-transform duration-200" />`,
+      },
+      {
+        name: "form focus transition",
+        code: `<input className="transition-[color,box-shadow,background-color]" />`,
+      },
+    ],
+    invalid: [
+      {
+        name: "transition-colors on row",
+        code: `<button className="hover:bg-muted transition-colors" />`,
+        errors: [{ messageId: "transitionColors" }],
+      },
+      {
+        name: "transition-plan-item utility",
+        code: `<div className="group/plan-item transition-plan-item duration-200" />`,
+        errors: [{ messageId: "transitionColors" }],
+      },
+      {
+        name: "cva variant string",
+        code: `
+        const rowVariants = cva("hover:bg-muted transition-colors");
+      `,
+        errors: [{ messageId: "transitionColors" }],
       },
     ],
   }

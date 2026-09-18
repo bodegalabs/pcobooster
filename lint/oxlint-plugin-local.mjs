@@ -11,6 +11,7 @@ const POPOVER_CONTENT_PADDING_CLASS =
 const OVERLAY_SECTION_BORDER_CLASS = /(^|\s)border-b(\s|$)/;
 const OVERLAY_SECTION_PADDING_CLASS = /(^|\s)px-[345](\s|$)/;
 const LIST_ROW_BORDER_CLASS = /last:border-b-0/;
+const TRANSITION_COLORS_CLASS = /transition-colors|transition-plan-item/;
 const OVERLAY_SECTION_BORDER_IGNORED_FILES = [
   "components/ui/",
   "components/schedule/plan-tab-toolbar.tsx",
@@ -300,6 +301,62 @@ const noOverlaySectionBorderRule = {
   },
 };
 
+const noTransitionColorsRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow transition-colors and transition-plan-item so hover and selection states snap instantly.",
+    },
+    messages: {
+      transitionColors:
+        "Do not use `transition-colors` or `transition-plan-item`. Keep hover, active, and selection color changes instant.",
+    },
+    schema: [],
+  },
+  create(context) {
+    /**
+     * @param {import("oxlint/plugins-dev").Node} node
+     */
+    const reportIfTransitionColors = (node) => {
+      const text = classNameText(node);
+      if (!TRANSITION_COLORS_CLASS.test(text)) {
+        return;
+      }
+      context.report({
+        node,
+        messageId: "transitionColors",
+      });
+    };
+
+    return {
+      JSXOpeningElement(node) {
+        for (const attribute of node.attributes) {
+          if (
+            attribute.type !== "JSXAttribute" ||
+            attribute.name.type !== "JSXIdentifier" ||
+            attribute.name.name !== "className" ||
+            attribute.value === null
+          ) {
+            continue;
+          }
+          reportIfTransitionColors(attribute.value);
+        }
+      },
+      CallExpression(node) {
+        if (
+          node.callee.type !== "Identifier" ||
+          node.callee.name !== "cva" ||
+          node.arguments.length === 0
+        ) {
+          return;
+        }
+        reportIfTransitionColors(node.arguments[0]);
+      },
+    };
+  },
+};
+
 export default {
   meta: {
     name: "local",
@@ -308,6 +365,7 @@ export default {
     "no-absolute-input-overlay": noAbsoluteInputOverlayRule,
     "no-popover-content-padding": noPopoverContentPaddingRule,
     "no-overlay-section-border-b": noOverlaySectionBorderRule,
+    "no-transition-colors": noTransitionColorsRule,
   },
 };
 
@@ -315,4 +373,5 @@ export {
   noAbsoluteInputOverlayRule,
   noOverlaySectionBorderRule,
   noPopoverContentPaddingRule,
+  noTransitionColorsRule,
 };

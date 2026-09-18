@@ -88,14 +88,14 @@ const PlanItemCard = ({
       ? "hover:ring-border/80 hover:ring-1 hover:ring-inset"
       : "hover:bg-accent/45";
   const dragHandleClassName =
-    "flex w-9 shrink-0 touch-manipulation items-center justify-center self-stretch border-0 bg-transparent text-muted-foreground/55 outline-none transition-colors hover:text-foreground focus-visible:ring-ring/50 focus-visible:ring-3 active:cursor-grabbing disabled:pointer-events-none disabled:opacity-50";
+    "flex w-9 shrink-0 touch-manipulation items-center justify-center self-stretch border-0 bg-transparent text-muted-foreground/55 outline-none hover:text-foreground focus-visible:ring-ring/50 focus-visible:ring-3 active:cursor-grabbing disabled:pointer-events-none disabled:opacity-50";
   const editButtonClassName =
-    "min-w-0 flex-1 border-0 bg-transparent text-left font-inherit outline-none transition-colors focus-visible:ring-ring/50 focus-visible:ring-3";
+    "min-w-0 flex-1 border-0 bg-transparent text-left font-inherit outline-none focus-visible:ring-ring/50 focus-visible:ring-3";
 
   return (
     <div
       className={cn(
-        "group/plan-item transition-plan-item duration-200",
+        "group/plan-item",
         tone.row,
         !isDragged && rowHoverClassName,
         isDragged && "bg-muted/80 shadow-lg"
@@ -150,7 +150,7 @@ const PlanItemCard = ({
             </div>
           </div>
         </button>
-        <div className="border-border/0 group-hover/plan-item:border-border/50 group-focus-within/plan-item:border-border/50 flex items-center border-l px-2 py-1.5 transition-colors">
+        <div className="border-border/0 group-hover/plan-item:border-border/50 group-focus-within/plan-item:border-border/50 flex items-center border-l px-2 py-1.5">
           <Button
             type="button"
             variant="destructive"
@@ -216,7 +216,7 @@ const PlanItemCard = ({
             ) : null}
           </div>
         </button>
-        <div className="border-border/0 group-hover/plan-item:border-border/50 group-focus-within/plan-item:border-border/50 flex items-start border-l px-2 py-2 transition-colors">
+        <div className="border-border/0 group-hover/plan-item:border-border/50 group-focus-within/plan-item:border-border/50 flex items-start border-l px-2 py-2">
           <Button
             type="button"
             variant="destructive"

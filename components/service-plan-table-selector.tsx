@@ -233,7 +233,7 @@ const MobilePlanRows = ({
         type="button"
         data-state={isActive ? "selected" : undefined}
         className={cn(
-          "border-border/35 hover:bg-muted/50 focus-visible:ring-ring relative flex w-full cursor-pointer flex-col gap-1.5 border-b px-4 py-3 text-left transition-colors last:border-b-0 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
+          "border-border/35 hover:bg-muted/50 focus-visible:ring-ring relative flex w-full cursor-pointer flex-col gap-1.5 border-b px-4 py-3 text-left last:border-b-0 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
           isActive && "bg-muted/60",
           isScheduledForCurrentUser && "border-l-status-confirmed border-l-4"
         )}

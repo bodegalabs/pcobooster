@@ -282,7 +282,7 @@ export const SomeoneElseRow = ({
           <button
             type="button"
             aria-label="Schedule someone else"
-            className="hover:bg-muted/30 flex w-full items-center gap-3 px-3 py-3 text-left transition-colors"
+            className="hover:bg-muted/30 flex w-full items-center gap-3 px-3 py-3 text-left"
           />
         }
       >
