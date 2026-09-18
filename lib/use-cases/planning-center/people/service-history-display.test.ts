@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import type { ServiceHistoryItem } from "@/lib/types";
 
-import { pickServiceHistoryGroupClosestToReference } from "./service-history-display";
+import {
+  filterServiceHistoryWithinHalfRange,
+  pickServiceHistoryGroupClosestToReference,
+} from "./service-history-display";
 import type { ServiceHistoryGroup } from "./service-history-display";
 
 const historyItem = (id: string, iso: string): ServiceHistoryItem => ({
@@ -56,5 +59,28 @@ describe(pickServiceHistoryGroupClosestToReference, () => {
       orgTz
     );
     expect(picked?.primary.id).toBe("later");
+  });
+});
+
+describe(filterServiceHistoryWithinHalfRange, () => {
+  const orgTz = "America/Los_Angeles";
+  const planSort = new Date("2026-05-04T17:00:00.000Z");
+  const items = [
+    historyItem("inside", "2026-05-01T12:00:00.000Z"),
+    historyItem("outside", "2026-04-01T12:00:00.000Z"),
+  ];
+
+  it("keeps items within the selected half-range of the reference plan", () => {
+    expect(
+      filterServiceHistoryWithinHalfRange(items, planSort, 7, orgTz).map(
+        (item) => item.id
+      )
+    ).toStrictEqual(["inside"]);
+  });
+
+  it("returns all items when the reference date is missing", () => {
+    expect(
+      filterServiceHistoryWithinHalfRange(items, null, 7, orgTz)
+    ).toStrictEqual(items);
   });
 });

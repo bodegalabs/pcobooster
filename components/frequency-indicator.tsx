@@ -1,4 +1,4 @@
-import { PLAN_HISTORY_HALF_RANGE_DAYS } from "@/lib/planning-center/schedule-load-constants";
+import { PLAN_HISTORY_HALF_RANGE_WEEKS } from "@/lib/planning-center/schedule-load-constants";
 import type { ScheduleFrequency, FrequencyLevel } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +46,7 @@ export const FrequencyIndicator = ({
         {labels[level]}
       </span>
       <span className="text-muted-foreground text-xs">
-        ({frequency.recentServedDays} in {PLAN_HISTORY_HALF_RANGE_DAYS}d)
+        ({frequency.recentServedDays} in {PLAN_HISTORY_HALF_RANGE_WEEKS}w)
       </span>
     </div>
   );
@@ -61,7 +61,7 @@ export const FrequencyStats = ({
     <div>
       <div className="font-semibold">{frequency.recentServedDays}</div>
       <div className="text-muted-foreground">
-        {PLAN_HISTORY_HALF_RANGE_DAYS}d
+        {PLAN_HISTORY_HALF_RANGE_WEEKS}w
       </div>
     </div>
     <div>

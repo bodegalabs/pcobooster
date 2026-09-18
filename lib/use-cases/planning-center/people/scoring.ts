@@ -1,5 +1,5 @@
 import { orgCalendarDaysBetween } from "@/lib/planning-center/org-calendar";
-import { PLAN_HISTORY_HALF_RANGE_DAYS } from "@/lib/planning-center/schedule-load-constants";
+import { formatPlanHistoryHalfRangeWeeksLabel } from "@/lib/planning-center/schedule-load-constants";
 import type { PersonWithAvailability, ScheduleFrequency } from "@/lib/types";
 
 const recommendationDateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -144,12 +144,12 @@ const appendRecentLoadReasoning = (
     frequency.recentServedDays + (frequency.recentRehearsalOnlyDays ?? 0);
   if (recentEngagementDays >= 3) {
     reasoning.push(
-      `Ranked lower: on the schedule ${recentEngagementDays} distinct days in the ${PLAN_HISTORY_HALF_RANGE_DAYS} days before this plan`
+      `Ranked lower: on the schedule ${recentEngagementDays} distinct days in the ${formatPlanHistoryHalfRangeWeeksLabel()} before this plan`
     );
   }
   if (frequency.recentRehearsalOnlyDays >= 2) {
     reasoning.push(
-      `Light penalty: rehearsed ${frequency.recentRehearsalOnlyDays} day${frequency.recentRehearsalOnlyDays === 1 ? "" : "s"} in the ${PLAN_HISTORY_HALF_RANGE_DAYS} days before this plan`
+      `Light penalty: rehearsed ${frequency.recentRehearsalOnlyDays} day${frequency.recentRehearsalOnlyDays === 1 ? "" : "s"} in the ${formatPlanHistoryHalfRangeWeeksLabel()} before this plan`
     );
   }
 };
