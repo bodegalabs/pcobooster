@@ -64,7 +64,7 @@ export const SidebarTabGroup = <Key extends string>({
   }
 
   return (
-    <>
+    <div className="group/tab-group flex flex-col">
       <SidebarMenuButton
         render={<Link href={fallbackItem.href} />}
         isActive={activeKey === fallbackItem.key}
@@ -74,6 +74,6 @@ export const SidebarTabGroup = <Key extends string>({
         <span>{fallbackItem.label}</span>
       </SidebarMenuButton>
       <SidebarMenuSub>{groupedItems}</SidebarMenuSub>
-    </>
+    </div>
   );
 };
