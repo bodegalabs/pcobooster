@@ -13,6 +13,17 @@ describe(resolvePositionIconId, () => {
     expect(resolvePositionIconId("Pads", "Band")).toBe("piano");
   });
 
+  it("maps guitar roles from split team and position labels", () => {
+    expect(resolvePositionIconId("Electric Guitar - Rhythm", "Band")).toBe(
+      "guitar"
+    );
+    expect(resolvePositionIconId("Electric Guitar - Lead", "Band")).toBe(
+      "guitar"
+    );
+    expect(resolvePositionIconId("Rhythm", "Electric Guitar")).toBe("guitar");
+    expect(resolvePositionIconId("Lead", "Electric Guitar")).toBe("guitar");
+  });
+
   it("maps percussion and acoustic guitar", () => {
     expect(resolvePositionIconId("Acoustic Guitar", "Band")).toBe("guitar");
     expect(resolvePositionIconId("Percussion", "Band")).toBe("drum");

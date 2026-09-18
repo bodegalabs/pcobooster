@@ -14,6 +14,11 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Piano } from "lucide-react";
 
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { resolvePositionIconId } from "@/lib/format/position-icon";
 import type { PositionIconId } from "@/lib/format/position-icon";
 import { cn } from "@/lib/utils";
@@ -63,3 +68,43 @@ export const PositionPickerIcon = ({
     />
   );
 };
+
+export interface PositionIconEntry {
+  key: string;
+  positionName: string;
+  teamName: string;
+}
+
+export const PositionIconsHoverCard = ({
+  label,
+  positions,
+  iconClassName,
+}: {
+  label: string;
+  positions: PositionIconEntry[];
+  iconClassName?: string;
+}) => (
+  <HoverCard>
+    <HoverCardTrigger
+      render={
+        <button
+          type="button"
+          className="inline-flex cursor-default items-center justify-end gap-0.5 rounded-md"
+          aria-label={label}
+        />
+      }
+    >
+      {positions.map((position) => (
+        <PositionPickerIcon
+          key={position.key}
+          positionName={position.positionName}
+          teamName={position.teamName}
+          className={iconClassName}
+        />
+      ))}
+    </HoverCardTrigger>
+    <HoverCardContent side="top">
+      <div className="px-3 py-2 text-sm">{label}</div>
+    </HoverCardContent>
+  </HoverCard>
+);
