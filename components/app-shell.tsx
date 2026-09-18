@@ -21,7 +21,6 @@ import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
@@ -29,6 +28,7 @@ import { Suspense, startTransition, useCallback, useState } from "react";
 import { z } from "zod";
 
 import { HotkeyChord } from "@/components/hotkey-chord";
+import { SidebarBrandMark } from "@/components/sidebar-brand-mark";
 import { SidebarChromeTrigger } from "@/components/sidebar-chrome-trigger";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
 import type { SidebarTabGroupItem } from "@/components/sidebar-tab-group";
@@ -810,18 +810,7 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
         <SidebarHeader size="chrome">
           <div className={APP_CHROME_HEADER_CLASS}>
             <SidebarChromeTrigger when="sidebar" />
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="truncate text-base">
-                <strong className="font-bold">PCO</strong>Booster
-              </span>
-              <Image
-                src="/logo.svg"
-                alt=""
-                width={32}
-                height={32}
-                className="size-8 shrink-0"
-              />
-            </div>
+            <SidebarBrandMark />
           </div>
         </SidebarHeader>
         <SidebarContent>
