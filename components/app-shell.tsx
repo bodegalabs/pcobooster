@@ -39,6 +39,7 @@ import {
 import { z } from "zod";
 
 import { HotkeyChord } from "@/components/hotkey-chord";
+import { SidebarChromeTrigger } from "@/components/sidebar-chrome-trigger";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
 import type { SidebarTabGroupItem } from "@/components/sidebar-tab-group";
 import { SidebarTabGroup } from "@/components/sidebar-tab-group";
@@ -80,7 +81,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
@@ -172,6 +172,8 @@ const featureSchema = z.object({ enabled: z.boolean() });
 
 const SIDEBAR_WIDTH_STORAGE_KEY = "worshipadmin:sidebar-width";
 const SIDEBAR_OPEN_STORAGE_KEY = "worshipadmin:sidebar-open";
+const APP_CHROME_ROW = "flex h-12 shrink-0 items-center gap-2";
+const APP_CHROME_HEADER_CLASS = cn(APP_CHROME_ROW, "px-2");
 const DEFAULT_SIDEBAR_WIDTH = 288;
 const MIN_SIDEBAR_WIDTH = 232;
 const MAX_SIDEBAR_WIDTH = 380;
@@ -408,6 +410,23 @@ const getTopLevelPageLabel = (pathname: string) => {
     return "People";
   }
   return "Services";
+};
+
+const AppInsetChromeHeader = ({ children }: { children: ReactNode }) => {
+  const { open, isMobile } = useSidebar();
+  const alignWithPageContent = open && !isMobile;
+
+  return (
+    <header
+      className={cn(
+        APP_CHROME_ROW,
+        "border-border/50 border-b",
+        alignWithPageContent ? "px-3 sm:px-4" : "px-2"
+      )}
+    >
+      {children}
+    </header>
+  );
 };
 
 const AppTopBar = () => {
@@ -908,12 +927,10 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
   return (
     <>
       <Sidebar variant="inset" collapsible="offcanvas">
-        <SidebarHeader>
-          <SidebarAccountPanel
-            onOpenShortcuts={() => {
-              setShortcutsOpen(true);
-            }}
-          />
+        <SidebarHeader size="chrome">
+          <div className={APP_CHROME_HEADER_CLASS}>
+            <SidebarChromeTrigger when="sidebar" />
+          </div>
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
@@ -953,20 +970,27 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                type="button"
-                tooltip="Shortcuts"
-                onClick={() => {
-                  setShortcutsOpen(true);
-                }}
-              >
-                <SidebarNavIcon icon={Settings02Icon} />
-                <span>Shortcuts</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+          <div className="border-sidebar-border/50 flex flex-col gap-2 border-t pt-2">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  type="button"
+                  tooltip="Shortcuts"
+                  onClick={() => {
+                    setShortcutsOpen(true);
+                  }}
+                >
+                  <SidebarNavIcon icon={Settings02Icon} />
+                  <span>Shortcuts</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+            <SidebarAccountPanel
+              onOpenShortcuts={() => {
+                setShortcutsOpen(true);
+              }}
+            />
+          </div>
         </SidebarFooter>
       </Sidebar>
       <Dialog open={shortcutsOpen} onOpenChange={setShortcutsOpen}>
@@ -1052,8 +1076,8 @@ export const AppShell = ({
         onWidthChange={handleSidebarWidthChange}
       />
       <SidebarInset className="min-h-0 overflow-hidden">
-        <header className="border-border/50 flex h-12 shrink-0 items-center gap-2 border-b px-3">
-          <SidebarTrigger />
+        <AppInsetChromeHeader>
+          <SidebarChromeTrigger when="inset" />
           <Suspense fallback={<AppTopBarFallback pathname={pathname} />}>
             <AppTopBar />
           </Suspense>
@@ -1062,7 +1086,7 @@ export const AppShell = ({
               Presentation mode
             </span>
           ) : null}
-        </header>
+        </AppInsetChromeHeader>
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
       </SidebarInset>
     </SidebarProvider>

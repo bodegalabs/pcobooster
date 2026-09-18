@@ -15,7 +15,7 @@ export const SidebarNavIcon = ({
   <HugeiconsIcon
     icon={icon}
     strokeWidth={2}
-    className={cn("size-4 shrink-0", className)}
+    className={cn("size-[1.125rem] shrink-0", className)}
     aria-hidden
   />
 );
