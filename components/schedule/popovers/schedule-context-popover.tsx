@@ -1,18 +1,37 @@
 "use client";
 
-import { Fragment } from "react";
+import { useMemo, useState } from "react";
 import type { ReactElement } from "react";
 
-import { ItemSeparator } from "@/components/ui/item";
+import { PositionIconsHoverCard } from "@/components/schedule/position-picker-icon";
+import type { PositionIconEntry } from "@/components/schedule/position-picker-icon";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemTitle,
+} from "@/components/ui/item";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
 import {
   Popover,
   PopoverContent,
+  PopoverTitle,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { PLAN_HISTORY_HALF_RANGE_DAYS } from "@/lib/planning-center/schedule-load-constants";
+import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
+import {
+  getScheduleContextHalfRangeWeekOptions,
+  SCHEDULE_CONTEXT_DEFAULT_HALF_RANGE_WEEKS,
+} from "@/lib/planning-center/schedule-load-constants";
 import type { ServiceHistoryItem } from "@/lib/types";
 import {
   buildServiceHistoryGroups,
+  filterServiceHistoryWithinHalfRange,
   formatCombinedHistoryPositionLabel,
   getHistoryStatusDotClass,
   toServiceHistoryDate,
@@ -21,8 +40,12 @@ import { cn } from "@/lib/utils";
 
 interface ScheduleContextPopoverProps {
   serviceHistory: ServiceHistoryItem[];
+  referenceDate?: Date | null;
   children: ReactElement;
 }
+
+const halfRangeWeekOptions = getScheduleContextHalfRangeWeekOptions();
+
 const historyDateFormatter = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
   month: "short",
@@ -43,69 +66,127 @@ const formatServiceHistoryDisplayDateWithoutYear = (
   return historyDateFormatter.format(dateObj);
 };
 
-const formatPopoverHistoryDate = (
-  item: ServiceHistoryItem,
-  options: { includeServiceTypeName?: boolean } = {}
-) => {
-  const base = formatServiceHistoryDisplayDateWithoutYear(item.date);
-  if (options.includeServiceTypeName === false) {
-    return base;
+const formatHistoryDayLabel = (item: ServiceHistoryItem) =>
+  formatServiceHistoryDisplayDateWithoutYear(item.date);
+
+const getUniqueHistoryPositionEntries = (
+  primary: ServiceHistoryItem,
+  additionalServices: ServiceHistoryItem[]
+): PositionIconEntry[] => {
+  const items = [primary, ...additionalServices];
+  const seen = new Set<string>();
+  const entries: PositionIconEntry[] = [];
+
+  for (const item of items) {
+    const positionName = item.teamPositionName?.trim();
+    if (
+      positionName === undefined ||
+      positionName === "" ||
+      seen.has(positionName)
+    ) {
+      continue;
+    }
+    seen.add(positionName);
+    entries.push({
+      key: item.id,
+      positionName,
+      teamName: item.teamName ?? primary.teamName ?? "",
+    });
   }
-  const serviceTypeName = item.serviceTypeName?.trim();
-  return serviceTypeName !== undefined && serviceTypeName !== ""
-    ? `${base} (${serviceTypeName})`
-    : base;
+
+  if (entries.length === 0) {
+    return [
+      {
+        key: primary.id,
+        positionName: "",
+        teamName: primary.teamName ?? "",
+      },
+    ];
+  }
+
+  return entries;
+};
+
+const ScheduleContextHistoryGroup = ({
+  primary,
+  additionalServices,
+  rehearsals,
+}: {
+  primary: ServiceHistoryItem;
+  additionalServices: ServiceHistoryItem[];
+  rehearsals: ServiceHistoryItem[];
+}) => {
+  const serviceTypeName = primary.serviceTypeName?.trim();
+  const serviceLabel =
+    serviceTypeName !== undefined && serviceTypeName !== ""
+      ? serviceTypeName
+      : "Unknown service";
+  const positionLabel = formatCombinedHistoryPositionLabel(
+    primary,
+    additionalServices
+  );
+
+  return (
+    <Item variant="muted" size="sm">
+      <ItemContent>
+        <ItemTitle>
+          <span
+            aria-hidden
+            className={cn(
+              "size-2 shrink-0 rounded-full",
+              getHistoryStatusDotClass(primary.status)
+            )}
+          />
+          {formatHistoryDayLabel(primary)}
+        </ItemTitle>
+        <ItemDescription>{serviceLabel}</ItemDescription>
+        {rehearsals.map((rehearsal) => (
+          <ItemDescription key={rehearsal.id}>
+            {formatHistoryDayLabel(rehearsal)} · Rehearsal
+          </ItemDescription>
+        ))}
+      </ItemContent>
+      <ItemActions>
+        <PositionIconsHoverCard
+          label={positionLabel}
+          positions={getUniqueHistoryPositionEntries(
+            primary,
+            additionalServices
+          )}
+          iconClassName="size-3.5"
+        />
+      </ItemActions>
+    </Item>
+  );
 };
 
 export const ScheduleContextPopover = ({
   serviceHistory,
+  referenceDate = null,
   children,
 }: ScheduleContextPopoverProps) => {
-  const historyGroups = buildServiceHistoryGroups(serviceHistory).toSorted(
+  const orgTimeZone = useOrganizationTimeZone();
+  const defaultHalfRangeWeeks: number =
+    SCHEDULE_CONTEXT_DEFAULT_HALF_RANGE_WEEKS;
+  const [halfRangeWeeks, setHalfRangeWeeks] = useState(defaultHalfRangeWeeks);
+
+  const filteredServiceHistory = useMemo(
+    () =>
+      filterServiceHistoryWithinHalfRange(
+        serviceHistory,
+        referenceDate,
+        halfRangeWeeks * 7,
+        orgTimeZone
+      ),
+    [serviceHistory, referenceDate, halfRangeWeeks, orgTimeZone]
+  );
+
+  const historyGroups = buildServiceHistoryGroups(
+    filteredServiceHistory
+  ).toSorted(
     (a, b) =>
       toServiceHistoryDate(a.primary.date).getTime() -
       toServiceHistoryDate(b.primary.date).getTime()
-  );
-
-  const rows = (
-    <ul className="inline-grid max-w-full grid-cols-[auto_auto_auto] items-start gap-x-3 gap-y-2 px-3 py-2.5">
-      {historyGroups.map(
-        ({ dayKey, primary, additionalServices, rehearsals }) => (
-          <Fragment key={dayKey}>
-            <li className="contents">
-              <span
-                aria-hidden
-                className={cn(
-                  "mt-1.5 size-1.5 shrink-0 self-start rounded-full",
-                  getHistoryStatusDotClass(primary.status)
-                )}
-              />
-              <span className="text-foreground text-sm font-normal whitespace-nowrap tabular-nums">
-                {formatPopoverHistoryDate(primary)}
-              </span>
-              <span className="text-muted-foreground text-sm leading-snug">
-                {formatCombinedHistoryPositionLabel(
-                  primary,
-                  additionalServices
-                )}
-              </span>
-            </li>
-            {rehearsals.map((rehearsal) => (
-              <li key={rehearsal.id} className="contents">
-                <span aria-hidden />
-                <span className="text-muted-foreground/70 -mt-1 text-xs leading-none whitespace-nowrap tabular-nums">
-                  {formatPopoverHistoryDate(rehearsal, {
-                    includeServiceTypeName: false,
-                  })}{" "}
-                  - <span className="text-muted-foreground/50">Rehearsal</span>
-                </span>
-                <span aria-hidden />
-              </li>
-            ))}
-          </Fragment>
-        )
-      )}
-    </ul>
   );
 
   return (
@@ -115,21 +196,43 @@ export const ScheduleContextPopover = ({
         align="start"
         side="right"
         sideOffset={10}
-        className="w-auto max-w-[min(44rem,calc(100vw-2rem))] overflow-hidden"
+        className="w-80"
       >
-        <div className="px-5 py-3">
-          <p className="text-foreground text-sm font-semibold tracking-tight">
-            Schedule ±{PLAN_HISTORY_HALF_RANGE_DAYS} days from this service
-          </p>
+        <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+          <PopoverTitle>Nearby schedule</PopoverTitle>
+          <NativeSelect
+            size="sm"
+            value={String(halfRangeWeeks)}
+            aria-label="Nearby schedule range"
+            onChange={(event) => {
+              setHalfRangeWeeks(Number(event.target.value));
+            }}
+          >
+            {halfRangeWeekOptions.map((weeks) => (
+              <NativeSelectOption key={weeks} value={String(weeks)}>
+                ±{weeks}w
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
         </div>
-        <ItemSeparator className="mx-5 my-0" />
         {historyGroups.length === 0 ? (
-          <p className="text-muted-foreground px-5 py-4 text-sm">
+          <p className="text-muted-foreground px-3 py-4 text-sm">
             No recent history
           </p>
         ) : (
-          <div className="max-h-[min(40rem,calc(100vh-8rem),calc(var(--radix-popover-content-available-height)-1rem))] overflow-y-auto">
-            {rows}
+          <div className="max-h-[min(40rem,calc(100vh-8rem),calc(var(--radix-popover-content-available-height)-1rem))] overflow-y-auto p-3">
+            <ItemGroup>
+              {historyGroups.map(
+                ({ dayKey, primary, additionalServices, rehearsals }) => (
+                  <ScheduleContextHistoryGroup
+                    key={dayKey}
+                    primary={primary}
+                    additionalServices={additionalServices}
+                    rehearsals={rehearsals}
+                  />
+                )
+              )}
+            </ItemGroup>
           </div>
         )}
       </PopoverContent>
