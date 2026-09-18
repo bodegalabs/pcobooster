@@ -130,7 +130,7 @@ const RhythmDay = ({ cell, monthDay, monthLabel }: RhythmDayProps) => {
           ) : null}
         </span>
       </HoverCardTrigger>
-      <HoverCardContent side="top" className="w-48">
+      <HoverCardContent side="top" variant="panel" className="w-48">
         <p className="text-xs font-medium">
           {monthLabel.split(" ")[0]} {day}
         </p>

@@ -103,8 +103,6 @@ export const PositionIconsHoverCard = ({
         />
       ))}
     </HoverCardTrigger>
-    <HoverCardContent side="top">
-      <div className="px-3 py-2 text-sm">{label}</div>
-    </HoverCardContent>
+    <HoverCardContent side="top">{label}</HoverCardContent>
   </HoverCard>
 );

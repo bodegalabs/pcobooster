@@ -10,6 +10,11 @@ import { cn } from "cn";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -20,11 +25,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { isString } from "@/lib/json";
 
@@ -538,7 +538,7 @@ const SidebarMenuButton = ({
 }: useRender.ComponentProps<"button"> &
   React.ComponentProps<"button"> & {
     isActive?: boolean;
-    tooltip?: string | React.ComponentProps<typeof TooltipContent>;
+    tooltip?: string | React.ComponentProps<typeof HoverCardContent>;
   } & VariantProps<typeof sidebarMenuButtonVariants>) => {
   const { isMobile, state } = useSidebar();
   const comp = useRender({
@@ -549,7 +549,8 @@ const SidebarMenuButton = ({
       },
       props
     ),
-    render: tooltip === undefined ? render : <TooltipTrigger render={render} />,
+    render:
+      tooltip === undefined ? render : <HoverCardTrigger render={render} />,
     state: {
       slot: "sidebar-menu-button",
       sidebar: "menu-button",
@@ -565,15 +566,15 @@ const SidebarMenuButton = ({
   const tooltipProps = isString(tooltip) ? { children: tooltip } : tooltip;
 
   return (
-    <Tooltip>
+    <HoverCard>
       {comp}
-      <TooltipContent
+      <HoverCardContent
         side="right"
         align="center"
         hidden={state !== "collapsed" || isMobile}
         {...tooltipProps}
       />
-    </Tooltip>
+    </HoverCard>
   );
 };
 

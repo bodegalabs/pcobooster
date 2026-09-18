@@ -9,11 +9,7 @@ import { PlanTab } from "@/components/schedule/plan-tab";
 import { ScheduleViewTab } from "@/components/schedule/schedule-view-tab";
 import { TimesTab } from "@/components/schedule/times-tab";
 import { buttonVariants } from "@/components/ui/button-variants";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+import { HoverLabel } from "@/components/ui/hover-card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useDashboardController } from "@/hooks/use-dashboard-controller";
 import { isNonEmptyString } from "@/lib/json";
@@ -137,33 +133,27 @@ const DashboardPlanHeader = ({
         </span>
       </h1>
       {isNonEmptyString(planningCenterUrl) ? (
-        <HoverCard>
-          <HoverCardTrigger
-            render={
-              <a
-                href={planningCenterUrl}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Open in Planning Center"
-                className={buttonVariants({
-                  variant: "outline",
-                  size: "icon-sm",
-                  className: "shrink-0",
-                })}
-              />
-            }
-          >
-            <PlanningCenterServicesIcon className="size-4" />
-          </HoverCardTrigger>
-          <HoverCardContent
-            side="bottom"
-            align="end"
-            sideOffset={8}
-            className="w-auto"
-          >
-            <p className="text-xs font-medium">Open in Planning Center</p>
-          </HoverCardContent>
-        </HoverCard>
+        <HoverLabel
+          label="Open in Planning Center"
+          side="bottom"
+          align="end"
+          sideOffset={8}
+          render={
+            <a
+              href={planningCenterUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Open in Planning Center"
+              className={buttonVariants({
+                variant: "outline",
+                size: "icon-sm",
+                className: "shrink-0",
+              })}
+            />
+          }
+        >
+          <PlanningCenterServicesIcon className="size-4" />
+        </HoverLabel>
       ) : null}
     </div>
   </header>
