@@ -156,6 +156,163 @@
   }
 }
 
+@utility sidebar-brand-unroll {
+  animation: sidebar-brand-unroll 200ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@utility sidebar-brand-rocket-takeoff {
+  & .sidebar-brand-rocket-flight {
+    animation: sidebar-brand-rocket-flight 280ms cubic-bezier(0.23, 1, 0.32, 1)
+      forwards;
+    opacity: 0;
+    transform: translate(-15px, 15px);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  & .sidebar-brand-rocket-exhaust {
+    clip-path: inset(0 0 0 100%);
+    transform-box: fill-box;
+    transform-origin: 100% 50%;
+    animation: sidebar-brand-exhaust-reveal 150ms cubic-bezier(0.23, 1, 0.32, 1)
+      forwards;
+  }
+
+  & .sidebar-brand-rocket-exhaust > :nth-child(1) {
+    animation: sidebar-brand-exhaust-trail 160ms cubic-bezier(0.23, 1, 0.32, 1)
+      forwards;
+  }
+
+  & .sidebar-brand-rocket-exhaust > :nth-child(2) {
+    animation: sidebar-brand-exhaust-trail 160ms cubic-bezier(0.23, 1, 0.32, 1)
+      12ms forwards;
+  }
+
+  & .sidebar-brand-rocket-exhaust > :nth-child(3) {
+    animation: sidebar-brand-exhaust-trail 160ms cubic-bezier(0.23, 1, 0.32, 1)
+      24ms forwards;
+  }
+
+  & .sidebar-brand-rocket-exhaust > :nth-child(4) {
+    animation: sidebar-brand-exhaust-dot-near 170ms
+      cubic-bezier(0.23, 1, 0.32, 1) 18ms forwards;
+  }
+
+  & .sidebar-brand-rocket-exhaust > :nth-child(5) {
+    animation: sidebar-brand-exhaust-dot-mid 170ms
+      cubic-bezier(0.23, 1, 0.32, 1) 32ms forwards;
+  }
+
+  & .sidebar-brand-rocket-exhaust > :nth-child(6) {
+    animation: sidebar-brand-exhaust-dot-far 170ms
+      cubic-bezier(0.23, 1, 0.32, 1) 46ms forwards;
+  }
+}
+
+@keyframes sidebar-brand-unroll {
+  from {
+    clip-path: inset(0 100% 0 0);
+    opacity: 0.75;
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+}
+
+@keyframes sidebar-brand-rocket-flight {
+  0% {
+    opacity: 0;
+    transform: translate(-15px, 15px);
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  82% {
+    transform: translate(2px, -2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes sidebar-brand-exhaust-reveal {
+  from {
+    clip-path: inset(0 0 0 100%);
+    transform: rotate(45deg) translate(7px, -7px) rotate(-45deg) scaleX(0.3);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scaleX(1);
+  }
+}
+
+@keyframes sidebar-brand-exhaust-trail {
+  from {
+    opacity: 0;
+    transform: rotate(45deg) translate(9px, -9px) rotate(-45deg) scaleX(0.25);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scaleX(1);
+  }
+}
+
+@keyframes sidebar-brand-exhaust-dot-near {
+  from {
+    opacity: 0;
+    transform: rotate(45deg) translate(10px, -10px) rotate(-45deg) scale(0.3);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scale(1);
+  }
+}
+
+@keyframes sidebar-brand-exhaust-dot-mid {
+  from {
+    opacity: 0;
+    transform: rotate(45deg) translate(13px, -13px) rotate(-45deg) scale(0.25);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scale(1);
+  }
+}
+
+@keyframes sidebar-brand-exhaust-dot-far {
+  from {
+    opacity: 0;
+    transform: rotate(45deg) translate(16px, -16px) rotate(-45deg) scale(0.2);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-brand-unroll,
+  .sidebar-brand-rocket-takeoff .sidebar-brand-rocket-flight,
+  .sidebar-brand-rocket-takeoff .sidebar-brand-rocket-exhaust,
+  .sidebar-brand-rocket-takeoff .sidebar-brand-rocket-exhaust > * {
+    animation: none;
+    clip-path: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @utility no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
