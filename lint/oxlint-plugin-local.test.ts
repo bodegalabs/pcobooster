@@ -1,7 +1,10 @@
 import { RuleTester } from "oxlint/plugins-dev";
 import { describe, it } from "vitest";
 
-import { noAbsoluteInputOverlayRule } from "./oxlint-plugin-local.mjs";
+import {
+  noAbsoluteInputOverlayRule,
+  noPopoverContentPaddingRule,
+} from "./oxlint-plugin-local.mjs";
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -128,6 +131,39 @@ ruleTester.run(
         </div>
       `,
         errors: [{ messageId: "overlay" }],
+      },
+    ],
+  }
+);
+
+ruleTester.run(
+  "no-popover-content-padding",
+  noPopoverContentPaddingRule as Parameters<typeof ruleTester.run>[1],
+  {
+    valid: [
+      {
+        name: "width-only popover content",
+        code: `<PopoverContent className="w-80" />`,
+      },
+      {
+        name: "inner section owns spacing",
+        code: `
+        <PopoverContent className="w-80">
+          <div className="p-3">Body</div>
+        </PopoverContent>
+      `,
+      },
+    ],
+    invalid: [
+      {
+        name: "padding on popover shell",
+        code: `<PopoverContent className="w-80 p-4" />`,
+        errors: [{ messageId: "padding" }],
+      },
+      {
+        name: "gap on popover shell",
+        code: `<PopoverContent className="gap-4" />`,
+        errors: [{ messageId: "padding" }],
       },
     ],
   }

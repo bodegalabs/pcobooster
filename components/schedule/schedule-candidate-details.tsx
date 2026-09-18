@@ -101,12 +101,14 @@ export const ScheduleCandidateAvatar = ({
           sideOffset={8}
           className="w-auto max-w-[18rem]"
         >
-          <p className="text-muted-foreground text-xs font-medium">
-            Decline reason
-          </p>
-          <p className="text-foreground mt-1.5 leading-relaxed [overflow-wrap:anywhere]">
-            {declineReason}
-          </p>
+          <div className="p-3">
+            <p className="text-muted-foreground text-xs font-medium">
+              Decline reason
+            </p>
+            <p className="text-foreground mt-1.5 leading-relaxed [overflow-wrap:anywhere]">
+              {declineReason}
+            </p>
+          </div>
         </PopoverContent>
       </Popover>
     );
@@ -140,14 +142,16 @@ export const ScheduleCandidateAvatar = ({
           sideOffset={8}
           className="w-auto max-w-[16rem]"
         >
-          <p className="text-foreground [overflow-wrap:anywhere]">
-            <span className="text-foreground/90 font-medium">
-              Also scheduled for:
-            </span>{" "}
-            <span className="text-muted-foreground dark:text-info-foreground/85">
-              {selectedPlanAssignments.join(", ")}
-            </span>
-          </p>
+          <div className="p-3">
+            <p className="text-foreground [overflow-wrap:anywhere]">
+              <span className="text-foreground/90 font-medium">
+                Also scheduled for:
+              </span>{" "}
+              <span className="text-muted-foreground dark:text-info-foreground/85">
+                {selectedPlanAssignments.join(", ")}
+              </span>
+            </p>
+          </div>
         </PopoverContent>
       </Popover>
     );

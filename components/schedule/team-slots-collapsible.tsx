@@ -195,7 +195,10 @@ export const TeamSlotsCollapsible = ({
                       sideOffset={8}
                       className="w-[min(18rem,calc(100vw-2rem))]"
                     >
-                      <form className="flex gap-2" onSubmit={handleAddPosition}>
+                      <form
+                        className="flex gap-2 p-3"
+                        onSubmit={handleAddPosition}
+                      >
                         <Input
                           ref={inputRef}
                           value={positionName}

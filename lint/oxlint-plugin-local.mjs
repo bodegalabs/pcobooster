@@ -6,6 +6,8 @@
 
 const ABSOLUTE_CLASS = /(^|\s)absolute(\s|$)/;
 const RELATIVE_CLASS = /(^|\s)relative(\s|$)/;
+const POPOVER_CONTENT_PADDING_CLASS =
+  /(^|\s)(p-[234]|px-[234]|py-[234]|pt-[234]|pr-[234]|pb-[234]|pl-[234]|gap-[34])(\s|$)/;
 const BARE_INPUT_NAMES = new Set(["Input", "Textarea", "input", "textarea"]);
 
 /**
@@ -194,13 +196,51 @@ const noAbsoluteInputOverlayRule = {
   },
 };
 
+const noPopoverContentPaddingRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow padding and large gap utilities on PopoverContent call sites. The popover shell stays flush; inner sections own spacing.",
+    },
+    messages: {
+      padding:
+        "Do not add padding or large gap utilities to `<PopoverContent />`. Keep the shell at `p-0` and put spacing on inner sections, headers, or Command/Calendar content.",
+    },
+    schema: [],
+  },
+  create(context) {
+    const filename = context.filename.replaceAll("\\", "/");
+    if (filename.endsWith("components/ui/popover.tsx")) {
+      return {};
+    }
+
+    return {
+      JSXOpeningElement(node) {
+        const name = getJsxName(node.name);
+        if (name !== "PopoverContent") {
+          return;
+        }
+        if (!openingHasClass(node, POPOVER_CONTENT_PADDING_CLASS)) {
+          return;
+        }
+        context.report({
+          node,
+          messageId: "padding",
+        });
+      },
+    };
+  },
+};
+
 export default {
   meta: {
     name: "local",
   },
   rules: {
     "no-absolute-input-overlay": noAbsoluteInputOverlayRule,
+    "no-popover-content-padding": noPopoverContentPaddingRule,
   },
 };
 
-export { noAbsoluteInputOverlayRule };
+export { noAbsoluteInputOverlayRule, noPopoverContentPaddingRule };
