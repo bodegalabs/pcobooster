@@ -14,14 +14,17 @@ const ScrollBar = ({
     data-orientation={orientation}
     orientation={orientation}
     className={cn(
-      "flex touch-none p-px select-none data-horizontal:h-2.5 data-horizontal:flex-col data-horizontal:border-t data-horizontal:border-t-transparent data-vertical:h-full data-vertical:w-2.5 data-vertical:border-l data-vertical:border-l-transparent",
+      "pointer-events-none flex touch-none opacity-0 transition-opacity duration-150 select-none",
+      "data-hovering:pointer-events-auto data-hovering:opacity-100",
+      "data-scrolling:pointer-events-auto data-scrolling:opacity-100 data-scrolling:duration-0",
+      "justify-center data-horizontal:h-3 data-horizontal:flex-col data-vertical:h-full data-vertical:w-3",
       className
     )}
     {...props}
   >
     <ScrollAreaPrimitive.Thumb
       data-slot="scroll-area-thumb"
-      className="bg-border relative flex-1 rounded-full"
+      className="relative flex-1 rounded-full bg-(--scrollbar-thumb) data-[orientation=horizontal]:mx-1 data-[orientation=horizontal]:my-0.5 data-[orientation=vertical]:mx-0.5 data-[orientation=vertical]:my-1 data-[orientation=vertical]:w-full"
     />
   </ScrollAreaPrimitive.Scrollbar>
 );
@@ -38,7 +41,7 @@ const ScrollArea = ({
   >
     <ScrollAreaPrimitive.Viewport
       data-slot="scroll-area-viewport"
-      className="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
+      className="focus-visible:ring-ring/50 size-full rounded-[inherit] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
     >
       {children}
     </ScrollAreaPrimitive.Viewport>

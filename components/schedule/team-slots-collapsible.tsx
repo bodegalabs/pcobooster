@@ -92,10 +92,13 @@ export const TeamSlotsCollapsible = ({
             positionName={position.name}
             teamName={group.teamName}
           />
-          <span className="flex min-w-0 flex-1 items-center gap-1.5">
-            <span className={cn("truncate", isTemporaryPosition && "italic")}>
-              {position.name}
-            </span>
+          <span
+            className={cn(
+              "min-w-0 flex-1 truncate",
+              isTemporaryPosition && "italic"
+            )}
+          >
+            {position.name}
           </span>
           <SlotBadgeCluster
             position={position}

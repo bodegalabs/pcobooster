@@ -625,16 +625,12 @@ const SidebarMenuBadge = ({
 const SidebarMenuSkeleton = ({
   className,
   showIcon = false,
+  width = "70%",
   ...props
 }: React.ComponentProps<"div"> & {
   showIcon?: boolean;
+  width?: string;
 }) => {
-  // Random width between 50 to 90%.
-  const [width, setWidth] = React.useState(
-    () => `${Math.floor(Math.random() * 40) + 50}%`
-  );
-  // The generated sidebar intentionally keeps this state read-only.
-  void setWidth;
   const skeletonStyle: SidebarCSSProperties = {
     "--skeleton-width": width,
   };

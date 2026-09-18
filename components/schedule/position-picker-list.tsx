@@ -13,6 +13,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarMenuSkeleton, SidebarSeparator } from "@/components/ui/sidebar";
 import type { TeamPositionGroup } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -47,7 +48,9 @@ export const PositionPickerList = ({
 }) => {
   let body: ReactNode;
   if (teamPositionsLoading) {
-    body = skeletonWidths.map((width) => <SidebarMenuSkeleton key={width} />);
+    body = skeletonWidths.map((width) => (
+      <SidebarMenuSkeleton key={width} width={width} />
+    ));
   } else if (
     teamPositionGroups === undefined ||
     teamPositionGroups.length === 0
@@ -101,8 +104,8 @@ export const PositionPickerList = ({
     );
   }
   return (
-    <div className="min-h-0 flex-1 overflow-auto py-1">
-      <div className="flex flex-col">{body}</div>
-    </div>
+    <ScrollArea className="min-h-0 flex-1">
+      <div className="flex flex-col py-1">{body}</div>
+    </ScrollArea>
   );
 };
