@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none" role="img" aria-labelledby="logo-title">
+  <title id="logo-title">worshipadmin.com</title>
+  <rect width="256" height="256" rx="60" fill="#2d362b"/>
+  <g transform="translate(128 128) rotate(-45) scale(1.12) translate(-128 -128)" fill="#eff2ee">
+    <path d="M105 115L97 88Q95 80 104 80H121C139 80 151 88 164 102L164 115Z"/>
+    <path d="M105 141L97 168Q95 176 104 176H121C139 176 151 168 164 154L164 141Z"/>
+    <!-- A 6-unit outline separates the fins. Equal exhaust trails follow the curved base, with the middle trail set farther back. -->
+    <path d="M112 104C146 83 187 90 224 120Q233 128 224 136C187 166 146 173 112 152C97 142 97 114 112 104Z" stroke="#2d362b" stroke-width="12" stroke-linejoin="round" paint-order="stroke"/>
+    <rect x="63" y="104" width="33" height="12" rx="6"/>
+    <rect x="50" y="122" width="33" height="12" rx="6"/>
+    <rect x="63" y="140" width="33" height="12" rx="6"/>
+    <circle cx="51" cy="110" r="6"/>
+    <circle cx="38" cy="128" r="6"/>
+    <circle cx="51" cy="146" r="6"/>
+    <circle cx="184" cy="128" r="14" fill="#2d362b"/>
+  </g>
+</svg>
