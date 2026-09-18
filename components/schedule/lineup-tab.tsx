@@ -1,20 +1,35 @@
 "use client";
 
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, ChevronDown, Clock3 } from "lucide-react";
+import { useState } from "react";
 
-import { PersonRehearsalTimesPopover } from "@/components/schedule/person-rehearsal-times-popover";
+import { PlanPersonEditDialog } from "@/components/schedule/plan-person-edit-dialog";
+import { getPlanPersonStatusValue } from "@/components/schedule/plan-person-status";
+import { PositionPickerIcon } from "@/components/schedule/position-picker-icon";
+import { SlotBadgeCluster } from "@/components/schedule/slot-badge-cluster";
+import { ScheduleStatusDot } from "@/components/schedule/status-dot";
 import type { SlotRef } from "@/components/schedule/types";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { ItemSeparator } from "@/components/ui/item";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { Item, ItemContent, ItemGroup, ItemTitle } from "@/components/ui/item";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+import { SidebarMenuSkeleton } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getInitials } from "@/lib/format/initials";
 import type {
@@ -37,49 +52,124 @@ interface LineupTabProps {
   onPreviewPosition?: (slot: SlotRef) => void;
 }
 
+const lineupSkeletonWidths = ["78%", "66%", "84%", "58%"];
+const lineupColumnWidthClass = "w-[min(22rem,78vw)]";
+const teamColumnClass =
+  "border-border bg-background text-foreground shadow-xs flex shrink-0 flex-col overflow-hidden rounded-xl border";
+const lineupPositionGridClass =
+  "grid w-full grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_2rem] items-center gap-x-2 gap-y-0";
+const lineupPositionRowClass = "col-span-4 grid grid-cols-subgrid items-center";
+const lineupPositionRowSizeClass = "min-h-10 py-1";
+const lineupRowHoverClass = "hover:bg-muted dark:hover:bg-muted/80";
+const lineupPositionHeaderClass = cn(
+  "rounded-lg text-left",
+  lineupRowHoverClass,
+  lineupPositionRowSizeClass
+);
+const lineupPositionPersonRowClass = cn(
+  "group/person rounded-lg",
+  lineupRowHoverClass,
+  lineupPositionRowSizeClass
+);
+const lineupPositionPeopleClass = cn(
+  "col-span-4 pl-2",
+  lineupPositionGridClass,
+  "gap-y-0.5"
+);
+
+const getStatusDotStatus = (
+  person: FilledPositionPerson
+): "confirmed" | "scheduled" | "declined" => {
+  const status = getPlanPersonStatusValue(person);
+  return status === "declined" ? "declined" : status;
+};
+
 const PersonRow = ({
   person,
+  teamName,
+  positionName,
   serviceTypeId,
   planId,
   seriesId,
   planTimes,
+  teamId,
+  positionId,
 }: {
   person: FilledPositionPerson;
+  teamName: string;
+  positionName: string;
   serviceTypeId: string | null;
   planId: string | null;
   seriesId: string | null;
   planTimes: PlanTime[];
-}) => (
-  <li data-slot="lineup-person-row" className="flex items-center gap-2 text-sm">
-    <Avatar size="sm">
-      <AvatarImage
-        src={person.photoThumbnailUrl ?? undefined}
-        alt={person.name}
+  teamId: string;
+  positionId: string;
+}) => {
+  const [editOpen, setEditOpen] = useState(false);
+  const assignedTimeIdSet = person.assignedTimeIds
+    ? new Set(person.assignedTimeIds)
+    : new Set<string>();
+  const assignedTimeCount = planTimes.filter((planTime) =>
+    assignedTimeIdSet.has(planTime.id)
+  ).length;
+  const statusDotStatus = getStatusDotStatus(person);
+
+  return (
+    <>
+      <li className="contents">
+        <button
+          type="button"
+          className={cn(
+            lineupPositionRowClass,
+            lineupPositionPersonRowClass,
+            "cursor-pointer text-left"
+          )}
+          aria-label={`Edit ${person.name} assignment`}
+          onClick={() => {
+            setEditOpen(true);
+          }}
+        >
+          <Avatar size="sm">
+            <AvatarImage
+              src={person.photoThumbnailUrl ?? undefined}
+              alt={person.name}
+            />
+            <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
+          </Avatar>
+          <span className="min-w-0 truncate text-sm">{person.name}</span>
+          <div className="text-muted-foreground flex justify-end">
+            {planTimes.length > 0 ? (
+              <span className="inline-flex items-center gap-1 text-xs tabular-nums">
+                <Clock3 className="size-3.5 shrink-0" aria-hidden />
+                {assignedTimeCount}/{planTimes.length}
+              </span>
+            ) : null}
+          </div>
+          <ScheduleStatusDot
+            status={statusDotStatus}
+            className="justify-self-center"
+            aria-hidden
+          />
+        </button>
+      </li>
+      <PlanPersonEditDialog
+        person={person}
+        teamName={teamName}
+        positionName={positionName}
+        planTimes={planTimes}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        serviceTypeId={serviceTypeId}
+        planId={planId}
+        seriesId={seriesId}
+        teamId={teamId}
+        positionId={positionId}
       />
-      <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
-    </Avatar>
+    </>
+  );
+};
 
-    <span className="truncate">{person.name}</span>
-    <PersonRehearsalTimesPopover
-      person={person}
-      serviceTypeId={serviceTypeId}
-      planId={planId}
-      seriesId={seriesId}
-      planTimes={planTimes}
-    />
-    <span
-      className={cn(
-        "ml-auto size-2 shrink-0 rounded-full",
-        person.status === "confirmed"
-          ? "bg-status-confirmed-bright"
-          : "bg-status-scheduled-bright"
-      )}
-      title={person.status === "confirmed" ? "Confirmed" : "Pending"}
-    />
-  </li>
-);
-
-const PositionAccordionItem = ({
+const LineupPositionCard = ({
   teamId,
   teamName,
   position,
@@ -100,11 +190,6 @@ const PositionAccordionItem = ({
   onSelectPosition: (slot: SlotRef) => void;
   onPreviewPosition?: (slot: SlotRef) => void;
 }) => {
-  const confirmed = position.filledConfirmedCount ?? 0;
-  const pending = position.filledPendingCount ?? 0;
-  const scheduledCount = confirmed + pending;
-  const needed = position.neededCount ?? 0;
-  const total = scheduledCount + needed;
   const people = position.filledPeople ?? [];
   const isTemporaryPosition =
     !!position.source && position.source !== "team_position";
@@ -113,91 +198,79 @@ const PositionAccordionItem = ({
     teamName,
     positionId: position.id,
     positionName: position.name,
+    source: position.source,
   };
 
   return (
-    <AccordionItem value={position.id}>
-      <div className="flex items-center">
-        <AccordionTrigger className="min-w-0 flex-1">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <span
-              className={cn(
-                "truncate text-sm font-medium",
-                isTemporaryPosition && "italic"
-              )}
+    <Item variant="muted" size="sm">
+      <ItemContent>
+        <div className={lineupPositionGridClass}>
+          <HoverCard>
+            <HoverCardTrigger
+              render={
+                <button
+                  type="button"
+                  className={cn(
+                    lineupPositionRowClass,
+                    lineupPositionHeaderClass,
+                    people.length === 0 && "min-h-0 py-0.5"
+                  )}
+                  aria-label={`Open ${position.name} in scheduler`}
+                  onPointerEnter={() => onPreviewPosition?.(slot)}
+                  onFocus={() => onPreviewPosition?.(slot)}
+                  onTouchStart={() => onPreviewPosition?.(slot)}
+                  onClick={() => {
+                    onSelectPosition(slot);
+                  }}
+                />
+              }
             >
-              {position.name}
-            </span>
-            <span className="text-muted-foreground text-xs tabular-nums">
-              {needed > 0 ? `${scheduledCount}/${total}` : `${scheduledCount}`}
-            </span>
-            {needed > 0 ? (
-              <span className="text-status-declined dark:text-status-declined text-xs font-medium tabular-nums">
-                +{needed}
-              </span>
-            ) : null}
-          </div>
-        </AccordionTrigger>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          title={`Open ${position.name} in scheduler`}
-          aria-label={`Open ${position.name} in scheduler`}
-          onPointerEnter={() => onPreviewPosition?.(slot)}
-          onFocus={() => onPreviewPosition?.(slot)}
-          onTouchStart={() => onPreviewPosition?.(slot)}
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            onSelectPosition(slot);
-          }}
-        >
-          <CalendarDays className="size-3.5" />
-        </Button>
-      </div>
-
-      <AccordionContent
-        className="cursor-pointer"
-        onClick={(event) => {
-          const { target } = event;
-          if (!(target instanceof Element)) {
-            return;
-          }
-          if (
-            target.closest(
-              "button, a, input, textarea, select, [role='button'], [data-slot='popover-content'], [data-slot='command-item'], [cmdk-item], [data-slot='lineup-person-row']"
-            )
-          ) {
-            return;
-          }
-
-          const trigger = event.currentTarget
-            .closest("[data-slot='accordion-item']")
-            ?.querySelector<HTMLButtonElement>(
-              "[data-slot='accordion-trigger']"
-            );
-          trigger?.click();
-        }}
-      >
-        {people.length === 0 ? (
-          <p className="text-muted-foreground pl-1 text-xs">No one</p>
-        ) : (
-          <ul className="space-y-1.5 pl-1">
-            {people.map((person) => (
-              <PersonRow
-                key={`${position.id}-${person.id}-${person.rawStatus}`}
-                person={person}
-                serviceTypeId={serviceTypeId}
-                planId={planId}
-                seriesId={seriesId}
-                planTimes={planTimes}
+              <div className="flex size-6 items-center justify-center">
+                <PositionPickerIcon
+                  positionName={position.name}
+                  teamName={teamName}
+                />
+              </div>
+              <ItemTitle className="min-w-0">
+                <span className={cn(isTemporaryPosition && "italic")}>
+                  {position.name}
+                </span>
+              </ItemTitle>
+              <span aria-hidden />
+              <SlotBadgeCluster
+                className="justify-self-center"
+                position={position}
+                teamName={teamName}
+                positionName={position.name}
               />
-            ))}
-          </ul>
-        )}
-      </AccordionContent>
-    </AccordionItem>
+            </HoverCardTrigger>
+            <HoverCardContent side="left" variant="label">
+              Open in schedule view
+            </HoverCardContent>
+          </HoverCard>
+          {people.length > 0 ? (
+            <div className={lineupPositionPeopleClass}>
+              <ul className="contents">
+                {people.map((person) => (
+                  <PersonRow
+                    key={`${position.id}-${person.id}-${person.rawStatus}`}
+                    person={person}
+                    teamName={teamName}
+                    positionName={position.name}
+                    serviceTypeId={serviceTypeId}
+                    planId={planId}
+                    seriesId={seriesId}
+                    planTimes={planTimes}
+                    teamId={teamId}
+                    positionId={position.id}
+                  />
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      </ItemContent>
+    </Item>
   );
 };
 
@@ -218,59 +291,91 @@ const TeamColumn = ({
   onSelectPosition: (slot: SlotRef) => void;
   onPreviewPosition?: (slot: SlotRef) => void;
 }) => {
-  const totalScheduled = group.positions.reduce(
-    (sum, position) =>
-      sum +
-      (position.filledConfirmedCount ?? 0) +
-      (position.filledPendingCount ?? 0),
-    0
-  );
-  const totalNeeded = group.positions.reduce(
+  const openNeededCount = group.positions.reduce(
     (sum, position) => sum + (position.neededCount ?? 0),
     0
   );
+  const [open, setOpen] = useState(() => openNeededCount > 0);
 
   return (
-    <section className="w-[380px] shrink-0">
-      <div className="border-border/40 bg-card/50 overflow-hidden rounded-lg border">
-        <header className="flex items-baseline justify-between gap-2 px-3 py-2">
-          <h3 className="truncate text-sm font-semibold tracking-tight">
+    <section className={cn(teamColumnClass, lineupColumnWidthClass)}>
+      <Collapsible
+        open={open}
+        onOpenChange={setOpen}
+        className="flex min-h-0 flex-1 flex-col"
+      >
+        <CollapsibleTrigger
+          nativeButton
+          render={
+            <button
+              type="button"
+              className={cn(
+                "flex w-full items-center gap-2 px-3 py-2.5 text-left",
+                lineupRowHoverClass
+              )}
+              aria-label={`${group.teamName} team lineup`}
+            />
+          }
+        >
+          <h3 className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight">
             {group.teamName}
           </h3>
-          <p className="text-muted-foreground text-xs tabular-nums">
-            {totalNeeded > 0
-              ? `${totalScheduled}/${totalNeeded}`
-              : `${totalScheduled}`}
-          </p>
-        </header>
-        <ItemSeparator className="my-0" />
-
-        <Accordion
-          multiple
-          defaultValue={group.positions.map((position) => position.id)}
-          className="w-full"
-        >
-          {group.positions.map((position, index) => (
-            <div key={position.id}>
-              <PositionAccordionItem
-                teamId={group.teamId}
-                teamName={group.teamName}
-                position={position}
-                serviceTypeId={serviceTypeId}
-                planId={planId}
-                seriesId={seriesId}
-                planTimes={planTimes}
-                onSelectPosition={onSelectPosition}
-                onPreviewPosition={onPreviewPosition}
-              />
-              {index < group.positions.length - 1 ? <Separator /> : null}
-            </div>
-          ))}
-        </Accordion>
-      </div>
+          {openNeededCount > 0 ? (
+            <span className="text-status-declined dark:text-status-declined shrink-0 text-xs font-medium tabular-nums">
+              {openNeededCount}
+            </span>
+          ) : (
+            <ScheduleStatusDot status="confirmed" aria-label="All set" />
+          )}
+          <ChevronDown
+            className={cn(
+              "text-muted-foreground size-3.5 shrink-0 opacity-60",
+              !open && "-rotate-90"
+            )}
+          />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="min-h-0 flex-1">
+          <div className="p-2 pt-0">
+            <ItemGroup>
+              {group.positions.map((position) => (
+                <LineupPositionCard
+                  key={position.id}
+                  teamId={group.teamId}
+                  teamName={group.teamName}
+                  position={position}
+                  serviceTypeId={serviceTypeId}
+                  planId={planId}
+                  seriesId={seriesId}
+                  planTimes={planTimes}
+                  onSelectPosition={onSelectPosition}
+                  onPreviewPosition={onPreviewPosition}
+                />
+              ))}
+            </ItemGroup>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </section>
   );
 };
+
+const LineupLoadingState = () => (
+  <ScrollArea className="min-h-0 flex-1">
+    <div className="flex min-w-max items-stretch gap-4 pr-4 pb-3">
+      {["a", "b", "c", "d"].map((columnKey) => (
+        <div
+          key={`lineup-skeleton-column-${columnKey}`}
+          className={cn(teamColumnClass, "gap-2 p-3", lineupColumnWidthClass)}
+        >
+          <Skeleton className="h-5 w-28" />
+          {lineupSkeletonWidths.map((width) => (
+            <SidebarMenuSkeleton key={width} width={width} showIcon />
+          ))}
+        </div>
+      ))}
+    </div>
+  </ScrollArea>
+);
 
 export const LineupTab = ({
   groups,
@@ -284,22 +389,22 @@ export const LineupTab = ({
   onPreviewPosition,
 }: LineupTabProps) => {
   if (isLoading) {
-    return (
-      <ScrollArea className="min-h-0 flex-1">
-        <div className="flex min-w-max items-start gap-6 pr-4 pb-3">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton key={index} className="h-80 w-[420px]" />
-          ))}
-        </div>
-      </ScrollArea>
-    );
+    return <LineupLoadingState />;
   }
 
   if (groups.length === 0) {
     return (
-      <div className="text-muted-foreground rounded-md border border-dashed px-4 py-10 text-center text-sm">
-        No slots found for this plan.
-      </div>
+      <Empty className="min-h-[16rem]">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <CalendarDays />
+          </EmptyMedia>
+          <EmptyTitle>No slots found</EmptyTitle>
+          <EmptyDescription>
+            This plan has no team positions yet.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
@@ -307,13 +412,13 @@ export const LineupTab = ({
     <ScrollArea className="min-h-0 flex-1">
       <div className="relative" aria-busy={isPlaceholderData}>
         {isPlaceholderData ? (
-          <div className="border-border/60 bg-background/95 text-muted-foreground sticky top-0 left-0 z-10 mb-2 w-fit rounded-md border px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur">
+          <div className="bg-background/95 text-muted-foreground sticky top-0 z-10 mb-2 w-fit rounded-md border px-3 py-1.5 text-xs font-medium backdrop-blur">
             Loading selected plan...
           </div>
         ) : null}
         <div
           className={cn(
-            "flex min-w-max items-start gap-6 pr-4 pb-3",
+            "flex min-w-max items-stretch gap-4 pr-4 pb-3",
             isPlaceholderData && "pointer-events-none opacity-60"
           )}
         >

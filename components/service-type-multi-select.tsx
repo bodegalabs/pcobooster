@@ -1,15 +1,13 @@
 "use client";
 
-import { Check, ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
 import { useId, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
-  CommandItem,
   CommandList,
 } from "@/components/ui/command";
 import { ItemSeparator } from "@/components/ui/item";
@@ -18,8 +16,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  SelectionPickerCheckbox,
+  SelectionPickerCommandItem,
+  SelectionPickerShell,
+} from "@/components/ui/selection-picker";
+import { selectionPickerSectionTitleClass } from "@/components/ui/selection-picker-styles";
 import type { ServiceType } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 interface ServiceTypeMultiSelectProps {
   options: ServiceType[];
@@ -139,29 +142,35 @@ export const ServiceTypeMultiSelect = ({
           <CommandInput placeholder="Search service types..." />
           <CommandList id={listId}>
             <CommandEmpty>No service types found.</CommandEmpty>
-            <CommandGroup heading="Service Types">
-              {options.map((option) => {
-                const selected = selectedSet.has(option.id);
+            <div className="flex flex-col gap-2.5 p-1.5">
+              <h3 className={selectionPickerSectionTitleClass}>
+                Service Types
+              </h3>
+              <SelectionPickerShell>
+                {options.map((option) => {
+                  const selected = selectedSet.has(option.id);
 
-                return (
-                  <CommandItem
-                    key={option.id}
-                    value={`${option.name} ${option.id}`}
-                    onSelect={() => {
-                      toggleOption(option.id);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "size-4",
-                        selected ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {option.name}
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
+                  return (
+                    <SelectionPickerCommandItem
+                      key={option.id}
+                      selected={selected}
+                      value={`${option.name} ${option.id}`}
+                      onSelect={() => {
+                        toggleOption(option.id);
+                      }}
+                    >
+                      <SelectionPickerCheckbox
+                        selected={selected}
+                        className="mt-0"
+                      />
+                      <span className="min-w-0 flex-1 truncate">
+                        {option.name}
+                      </span>
+                    </SelectionPickerCommandItem>
+                  );
+                })}
+              </SelectionPickerShell>
+            </div>
           </CommandList>
         </Command>
       </PopoverContent>

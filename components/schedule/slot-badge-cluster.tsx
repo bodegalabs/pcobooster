@@ -1,6 +1,7 @@
 "use client";
 
 import { SlotStatusPopoverContent } from "@/components/schedule/popovers/slot-status-popover";
+import { ScheduleStatusDot } from "@/components/schedule/status-dot";
 import {
   HoverCard,
   HoverCardContent,
@@ -14,10 +15,12 @@ export const SlotBadgeCluster = ({
   position,
   teamName,
   positionName,
+  className,
 }: {
   position: TeamPosition;
   teamName: string;
   positionName: string;
+  className?: string;
 }) => {
   const confirmed = position.filledConfirmedCount ?? 0;
   const pending = position.filledPendingCount ?? 0;
@@ -34,7 +37,7 @@ export const SlotBadgeCluster = ({
   const hasPending = pending > 0;
 
   return (
-    <div className="flex shrink-0 items-center gap-1">
+    <div className={cn("flex shrink-0 items-center gap-1", className)}>
       {filled > 0 && !allFilled ? (
         <HoverCard>
           <HoverCardTrigger
@@ -88,14 +91,9 @@ export const SlotBadgeCluster = ({
         </span>
       ) : null}
       {needed === 0 && allFilled ? (
-        <span
+        <ScheduleStatusDot
+          status={hasPending ? "scheduled" : "confirmed"}
           aria-label="All filled"
-          className={cn(
-            "size-1.5 shrink-0 rounded-full",
-            hasPending
-              ? "bg-status-scheduled-bright"
-              : "bg-status-confirmed-bright"
-          )}
         />
       ) : null}
     </div>
