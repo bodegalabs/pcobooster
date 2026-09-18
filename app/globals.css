@@ -209,6 +209,52 @@
   }
 }
 
+@utility sidebar-brand-rocket-replay {
+  & .sidebar-brand-rocket-flight {
+    animation: sidebar-brand-rocket-replay-flight 340ms
+      cubic-bezier(0.77, 0, 0.175, 1) forwards;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  & .sidebar-brand-rocket-exhaust {
+    transform-box: fill-box;
+    transform-origin: 100% 50%;
+    animation: sidebar-brand-exhaust-replay-reveal 340ms
+      cubic-bezier(0.77, 0, 0.175, 1) forwards;
+  }
+
+  & .sidebar-brand-rocket-exhaust > :nth-child(1) {
+    animation: sidebar-brand-exhaust-replay-trail-1 340ms
+      cubic-bezier(0.77, 0, 0.175, 1) forwards;
+  }
+
+  & .sidebar-brand-rocket-exhaust > :nth-child(2) {
+    animation: sidebar-brand-exhaust-replay-trail-2 340ms
+      cubic-bezier(0.77, 0, 0.175, 1) forwards;
+  }
+
+  & .sidebar-brand-rocket-exhaust > :nth-child(3) {
+    animation: sidebar-brand-exhaust-replay-trail-3 340ms
+      cubic-bezier(0.77, 0, 0.175, 1) forwards;
+  }
+
+  & .sidebar-brand-rocket-exhaust > :nth-child(4) {
+    animation: sidebar-brand-exhaust-replay-dot-near 340ms
+      cubic-bezier(0.77, 0, 0.175, 1) forwards;
+  }
+
+  & .sidebar-brand-rocket-exhaust > :nth-child(5) {
+    animation: sidebar-brand-exhaust-replay-dot-mid 340ms
+      cubic-bezier(0.77, 0, 0.175, 1) forwards;
+  }
+
+  & .sidebar-brand-rocket-exhaust > :nth-child(6) {
+    animation: sidebar-brand-exhaust-replay-dot-far 340ms
+      cubic-bezier(0.77, 0, 0.175, 1) forwards;
+  }
+}
+
 @keyframes sidebar-brand-unroll {
   from {
     clip-path: inset(0 100% 0 0);
@@ -301,11 +347,168 @@
   }
 }
 
+@keyframes sidebar-brand-rocket-replay-flight {
+  0%,
+  12% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  24% {
+    opacity: 1;
+    transform: translate(-15px, 15px);
+  }
+
+  84% {
+    transform: translate(2px, -2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes sidebar-brand-exhaust-replay-reveal {
+  0%,
+  12% {
+    clip-path: inset(0 0 0 0);
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scaleX(1);
+  }
+
+  24% {
+    clip-path: inset(0 0 0 100%);
+    transform: rotate(45deg) translate(7px, -7px) rotate(-45deg) scaleX(0.3);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scaleX(1);
+  }
+}
+
+@keyframes sidebar-brand-exhaust-replay-trail-1 {
+  0%,
+  12% {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scaleX(1);
+  }
+
+  24%,
+  28% {
+    opacity: 0;
+    transform: rotate(45deg) translate(9px, -9px) rotate(-45deg) scaleX(0.25);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scaleX(1);
+  }
+}
+
+@keyframes sidebar-brand-exhaust-replay-trail-2 {
+  0%,
+  12% {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scaleX(1);
+  }
+
+  24%,
+  32% {
+    opacity: 0;
+    transform: rotate(45deg) translate(9px, -9px) rotate(-45deg) scaleX(0.25);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scaleX(1);
+  }
+}
+
+@keyframes sidebar-brand-exhaust-replay-trail-3 {
+  0%,
+  12% {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scaleX(1);
+  }
+
+  24%,
+  36% {
+    opacity: 0;
+    transform: rotate(45deg) translate(9px, -9px) rotate(-45deg) scaleX(0.25);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scaleX(1);
+  }
+}
+
+@keyframes sidebar-brand-exhaust-replay-dot-near {
+  0%,
+  12% {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scale(1);
+  }
+
+  24%,
+  30% {
+    opacity: 0;
+    transform: rotate(45deg) translate(10px, -10px) rotate(-45deg) scale(0.3);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scale(1);
+  }
+}
+
+@keyframes sidebar-brand-exhaust-replay-dot-mid {
+  0%,
+  12% {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scale(1);
+  }
+
+  24%,
+  34% {
+    opacity: 0;
+    transform: rotate(45deg) translate(13px, -13px) rotate(-45deg) scale(0.25);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scale(1);
+  }
+}
+
+@keyframes sidebar-brand-exhaust-replay-dot-far {
+  0%,
+  12% {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scale(1);
+  }
+
+  24%,
+  38% {
+    opacity: 0;
+    transform: rotate(45deg) translate(16px, -16px) rotate(-45deg) scale(0.2);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(45deg) translate(0, 0) rotate(-45deg) scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sidebar-brand-unroll,
   .sidebar-brand-rocket-takeoff .sidebar-brand-rocket-flight,
   .sidebar-brand-rocket-takeoff .sidebar-brand-rocket-exhaust,
-  .sidebar-brand-rocket-takeoff .sidebar-brand-rocket-exhaust > * {
+  .sidebar-brand-rocket-takeoff .sidebar-brand-rocket-exhaust > *,
+  .sidebar-brand-rocket-replay .sidebar-brand-rocket-flight,
+  .sidebar-brand-rocket-replay .sidebar-brand-rocket-exhaust,
+  .sidebar-brand-rocket-replay .sidebar-brand-rocket-exhaust > * {
     animation: none;
     clip-path: none;
     opacity: 1;
