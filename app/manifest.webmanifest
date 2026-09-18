@@ -1,0 +1,23 @@
+{
+  "name": "PCOBooster",
+  "short_name": "PCOBooster",
+  "description": "Planning Center scheduling tools for worship admins.",
+  "start_url": "/services",
+  "display": "standalone",
+  "background_color": "#eff2ee",
+  "theme_color": "#73866d",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

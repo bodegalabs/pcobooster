@@ -18,18 +18,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "worshipadmin.com",
+  applicationName: "PCOBooster",
+  appleWebApp: { title: "PCOBooster" },
+  title: "PCOBooster",
   description:
     "Church-agnostic Planning Center scheduling tools for worship admins.",
   openGraph: {
-    title: "worshipadmin.com",
+    title: "PCOBooster",
     description:
       "Church-agnostic Planning Center scheduling tools for worship admins.",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "worshipadmin.com",
+    title: "PCOBooster",
     description:
       "Church-agnostic Planning Center scheduling tools for worship admins.",
   },
