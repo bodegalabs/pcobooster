@@ -23,19 +23,8 @@ import { Check, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type {
-  CSSProperties,
-  MouseEvent as ReactMouseEvent,
-  ReactNode,
-  PointerEvent as ReactPointerEvent,
-} from "react";
-import {
-  Suspense,
-  startTransition,
-  useCallback,
-  useRef,
-  useState,
-} from "react";
+import type { ReactNode } from "react";
+import { Suspense, startTransition, useCallback, useState } from "react";
 import { z } from "zod";
 
 import { HotkeyChord } from "@/components/hotkey-chord";
@@ -170,16 +159,9 @@ const accountSwitchSchema = z.object({
 });
 const featureSchema = z.object({ enabled: z.boolean() });
 
-const SIDEBAR_WIDTH_STORAGE_KEY = "worshipadmin:sidebar-width";
 const SIDEBAR_OPEN_STORAGE_KEY = "worshipadmin:sidebar-open";
 const APP_CHROME_ROW = "flex h-12 shrink-0 items-center gap-2";
 const APP_CHROME_HEADER_CLASS = cn(APP_CHROME_ROW, "px-2");
-const DEFAULT_SIDEBAR_WIDTH = 288;
-const MIN_SIDEBAR_WIDTH = 232;
-const MAX_SIDEBAR_WIDTH = 380;
-
-const clampSidebarWidth = (width: number): number =>
-  Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, width));
 
 const initialsFromName = (name: string | null | undefined): string => {
   if (!isNonEmptyString(name)) {
@@ -193,13 +175,6 @@ const initialsFromName = (name: string | null | undefined): string => {
     return parts[0].slice(0, 2).toUpperCase();
   }
   return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
-};
-
-const parseSidebarWidth = (raw: string | null): number => {
-  const width = raw === null ? Number.NaN : Number(raw);
-  return Number.isFinite(width)
-    ? clampSidebarWidth(width)
-    : DEFAULT_SIDEBAR_WIDTH;
 };
 
 const fetchAccounts = async () => {
@@ -231,102 +206,6 @@ const themeOptions = [
   { value: "dark", label: "Dark", icon: Moon02Icon },
   { value: "system", label: "System", icon: LaptopIcon },
 ] as const;
-
-const SidebarResizeRail = ({
-  width,
-  onWidthChange,
-}: {
-  width: number;
-  onWidthChange: (width: number) => void;
-}) => {
-  const { isMobile, setOpen } = useSidebar();
-  const pendingCollapseRef = useRef(false);
-
-  const handlePointerDown = useCallback(
-    (event: ReactPointerEvent<HTMLButtonElement>) => {
-      if (isMobile) {
-        return;
-      }
-      event.preventDefault();
-      const target = event.currentTarget;
-      target.setPointerCapture(event.pointerId);
-
-      const startX = event.clientX;
-      const startWidth = width;
-      const prevUserSelect = document.body.style.userSelect;
-      document.body.style.userSelect = "none";
-
-      pendingCollapseRef.current = false;
-
-      const listeners = new AbortController();
-      const handlePointerUp = (upEvent: PointerEvent) => {
-        document.body.style.userSelect = prevUserSelect;
-        if (pendingCollapseRef.current) {
-          setOpen(false);
-        }
-        pendingCollapseRef.current = false;
-        if (target.hasPointerCapture(upEvent.pointerId)) {
-          target.releasePointerCapture(upEvent.pointerId);
-        }
-        listeners.abort();
-      };
-
-      const handlePointerMove = (moveEvent: PointerEvent) => {
-        const nextWidth = startWidth + moveEvent.clientX - startX;
-        if (nextWidth < MIN_SIDEBAR_WIDTH) {
-          pendingCollapseRef.current = true;
-          return;
-        }
-        pendingCollapseRef.current = false;
-        onWidthChange(clampSidebarWidth(nextWidth));
-      };
-
-      window.addEventListener("pointermove", handlePointerMove, {
-        signal: listeners.signal,
-      });
-      window.addEventListener("pointerup", handlePointerUp, {
-        signal: listeners.signal,
-      });
-      window.addEventListener("pointercancel", handlePointerUp, {
-        signal: listeners.signal,
-      });
-    },
-    [isMobile, onWidthChange, setOpen, width]
-  );
-
-  const handleDoubleClick = useCallback(
-    (event: ReactMouseEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-      if (isMobile) {
-        return;
-      }
-      pendingCollapseRef.current = false;
-      onWidthChange(MIN_SIDEBAR_WIDTH);
-    },
-    [isMobile, onWidthChange]
-  );
-
-  if (isMobile) {
-    return null;
-  }
-
-  return (
-    <button
-      type="button"
-      aria-label="Resize sidebar. Double-click for minimum width."
-      title="Drag to resize. Double-click for minimum width."
-      tabIndex={-1}
-      className={cn(
-        /* Inset card uses m-2 + rounded-lg (~--radius); shorten rail slightly so it avoids corner curves */
-        "absolute top-3 right-0 bottom-3 z-[70] hidden w-3 cursor-col-resize rounded-none border-0 bg-transparent p-0 md:block",
-        "after:bg-border touch-none after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-px after:rounded-full after:opacity-0 after:transition-opacity hover:after:opacity-100",
-        "focus-visible:outline-none focus-visible:after:opacity-100"
-      )}
-      onPointerDown={handlePointerDown}
-      onDoubleClick={handleDoubleClick}
-    />
-  );
-};
 
 type TopBarView = "assign" | "lineup" | "plan" | "times";
 type ServicesSidebarKey = "services" | TopBarView;
@@ -1031,21 +910,10 @@ export const AppShell = ({
 }): ReactNode => {
   const pathname = usePathname();
   const isAuthRoute = pathname.startsWith("/auth");
-  const [storedWidth, setStoredWidth] = useBrowserStorage(
-    SIDEBAR_WIDTH_STORAGE_KEY
-  );
   const [storedOpen, setStoredOpen] = useBrowserStorage(
     SIDEBAR_OPEN_STORAGE_KEY
   );
-  const sidebarWidth = parseSidebarWidth(storedWidth);
   const sidebarOpen = storedOpen !== "false";
-
-  const handleSidebarWidthChange = useCallback(
-    (nextWidth: number) => {
-      setStoredWidth(String(clampSidebarWidth(nextWidth)));
-    },
-    [setStoredWidth]
-  );
 
   const handleSidebarOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -1053,10 +921,6 @@ export const AppShell = ({
     },
     [setStoredOpen]
   );
-
-  const sidebarStyle: CSSProperties & { "--sidebar-width": string } = {
-    "--sidebar-width": `${sidebarWidth}px`,
-  };
 
   if (isAuthRoute) {
     return children;
@@ -1067,14 +931,9 @@ export const AppShell = ({
       open={sidebarOpen}
       onOpenChange={handleSidebarOpenChange}
       className="h-svh min-h-0 overflow-hidden"
-      style={sidebarStyle}
     >
       <SidebarToggleHotkey />
       <AppSidebar peoplePageEnabled={peoplePageEnabled} />
-      <SidebarResizeRail
-        width={sidebarWidth}
-        onWidthChange={handleSidebarWidthChange}
-      />
       <SidebarInset className="min-h-0 overflow-hidden">
         <AppInsetChromeHeader>
           <SidebarChromeTrigger when="inset" />
