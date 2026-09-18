@@ -19,6 +19,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { ItemSeparator } from "@/components/ui/item";
 import {
   Popover,
   PopoverContent,
@@ -200,7 +201,7 @@ export const TimeAssignmentSelector = ({
         className="w-[520px] max-w-[calc(100vw-2rem)]"
         align="start"
       >
-        <div className="flex items-center justify-between border-b px-3 py-2">
+        <div className="flex items-center justify-between px-3 py-2">
           <span className="text-muted-foreground text-xs">{label}</span>
           <div className="flex items-center gap-1">
             <Button
@@ -239,6 +240,7 @@ export const TimeAssignmentSelector = ({
             </Button>
           </div>
         </div>
+        <ItemSeparator className="my-0" />
         <Command>
           <CommandInput placeholder="Search teams, slots, positions, or people..." />
           <CommandList id={listId} className="max-h-[420px]">

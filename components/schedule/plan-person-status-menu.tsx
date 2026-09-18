@@ -117,7 +117,7 @@ export const PlanPersonStatusMenu = ({
             ) : null}
           </DropdownMenuItem>
         ))}
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator inset />
         <DropdownMenuItem
           onSelect={() => {
             handleUnschedule(planPersonId, {

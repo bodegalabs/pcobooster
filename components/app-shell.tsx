@@ -558,7 +558,7 @@ const AccountSwitcher = ({
 }) =>
   (loading && !data) || (data !== null && data.accounts.length > 1) ? (
     <>
-      <DropdownMenuSeparator className="my-0" />
+      <DropdownMenuSeparator inset />
       {loading && !data ? (
         <DropdownMenuItem disabled>Loading…</DropdownMenuItem>
       ) : (
@@ -737,7 +737,7 @@ const SidebarAccountPanel = ({
               />
             </DropdownMenuGroup>
 
-            <DropdownMenuSeparator className="my-0" />
+            <DropdownMenuSeparator inset />
 
             <DropdownMenuGroup>
               <DropdownMenuLabel>Appearance</DropdownMenuLabel>
@@ -767,7 +767,7 @@ const SidebarAccountPanel = ({
               })}
             </DropdownMenuGroup>
 
-            <DropdownMenuSeparator className="my-0" />
+            <DropdownMenuSeparator inset />
 
             <DropdownMenuItem
               onSelect={() => {
@@ -792,7 +792,7 @@ const SidebarAccountPanel = ({
               </p>
             ) : null}
 
-            <DropdownMenuSeparator className="my-0" />
+            <DropdownMenuSeparator inset />
 
             <DropdownMenuItem
               variant="destructive"
