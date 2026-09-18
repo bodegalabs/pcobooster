@@ -3,6 +3,7 @@
 import { Fragment } from "react";
 import type { ReactElement } from "react";
 
+import { ItemSeparator } from "@/components/ui/item";
 import {
   Popover,
   PopoverContent,
@@ -116,11 +117,12 @@ export const ScheduleContextPopover = ({
         sideOffset={10}
         className="w-auto max-w-[min(44rem,calc(100vw-2rem))] overflow-hidden"
       >
-        <div className="border-border/40 border-b px-5 py-3">
+        <div className="px-5 py-3">
           <p className="text-foreground text-sm font-semibold tracking-tight">
             Schedule ±{PLAN_HISTORY_HALF_RANGE_DAYS} days from this service
           </p>
         </div>
+        <ItemSeparator className="mx-5 my-0" />
         {historyGroups.length === 0 ? (
           <p className="text-muted-foreground px-5 py-4 text-sm">
             No recent history

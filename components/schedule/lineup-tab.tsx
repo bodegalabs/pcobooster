@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ItemSeparator } from "@/components/ui/item";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -232,7 +233,7 @@ const TeamColumn = ({
   return (
     <section className="w-[380px] shrink-0">
       <div className="border-border/40 bg-card/50 overflow-hidden rounded-lg border">
-        <header className="border-border/40 flex items-baseline justify-between gap-2 border-b px-3 py-2">
+        <header className="flex items-baseline justify-between gap-2 px-3 py-2">
           <h3 className="truncate text-sm font-semibold tracking-tight">
             {group.teamName}
           </h3>
@@ -242,6 +243,7 @@ const TeamColumn = ({
               : `${totalScheduled}`}
           </p>
         </header>
+        <ItemSeparator className="my-0" />
 
         <Accordion
           multiple

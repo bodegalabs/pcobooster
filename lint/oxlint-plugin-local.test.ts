@@ -3,6 +3,7 @@ import { describe, it } from "vitest";
 
 import {
   noAbsoluteInputOverlayRule,
+  noOverlaySectionBorderRule,
   noPopoverContentPaddingRule,
 } from "./oxlint-plugin-local.mjs";
 
@@ -164,6 +165,35 @@ ruleTester.run(
         name: "gap on popover shell",
         code: `<PopoverContent className="gap-4" />`,
         errors: [{ messageId: "padding" }],
+      },
+    ],
+  }
+);
+
+ruleTester.run(
+  "no-overlay-section-border-b",
+  noOverlaySectionBorderRule as Parameters<typeof ruleTester.run>[1],
+  {
+    valid: [
+      {
+        name: "list row divider",
+        code: `<div className="border-b px-4 py-3 last:border-b-0" />`,
+      },
+      {
+        name: "separator-based section break",
+        code: `
+        <PopoverContent>
+          <div className="px-3 py-2">Header</div>
+          <ItemSeparator className="my-0" />
+        </PopoverContent>
+      `,
+      },
+    ],
+    invalid: [
+      {
+        name: "border-b section header in popover",
+        code: `<div className="border-b px-3 py-2">Header</div>`,
+        errors: [{ messageId: "border" }],
       },
     ],
   }
