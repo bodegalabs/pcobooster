@@ -125,9 +125,6 @@ const TemporaryFilledPersonRow = ({
         <p className="text-foreground truncate text-sm leading-tight font-medium sm:text-base">
           {person.name}
         </p>
-        <p className="text-muted-foreground text-xs">
-          {person.status === "confirmed" ? "Confirmed" : "Pending"}
-        </p>
       </div>
 
       <PlanPersonStatusMenu

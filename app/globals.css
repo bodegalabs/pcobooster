@@ -6,6 +6,10 @@
   font: inherit;
 }
 
+@utility animate-status-dot {
+  animation: status-dot-pulse 2.4s ease-in-out infinite;
+}
+
 @utility transition-plan-item-drag {
   transition-property: transform, box-shadow, opacity;
 }
@@ -135,6 +139,19 @@
   --chart-5: oklch(0.286 0.016 107.4);
   --background: oklch(1 0 0);
   --foreground: oklch(0.153 0.006 107.1);
+}
+
+@keyframes status-dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.72;
+    transform: scale(0.9);
+  }
 }
 
 @layer base {

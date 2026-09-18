@@ -79,6 +79,17 @@ const getCurrentStatus = (
   return "scheduled";
 };
 
+const getSlotStatus = (
+  isScheduled: boolean,
+  isConfirmed: boolean,
+  isDeclined: boolean
+): PlanPersonStatusValue | null => {
+  if (!isScheduled) {
+    return null;
+  }
+  return getCurrentStatus(isConfirmed, isDeclined);
+};
+
 const ScheduleCandidateAction = ({
   person,
   serviceTypeId,
@@ -235,6 +246,7 @@ export const ScheduleCandidateTile = ({
   const canSchedule = disableReason === undefined;
 
   const serviceHistory = person.serviceHistory ?? [];
+  const slotStatus = getSlotStatus(isScheduled, isConfirmed, isDeclined);
 
   return (
     <article
@@ -246,6 +258,7 @@ export const ScheduleCandidateTile = ({
       <ScheduleCandidateAvatar
         person={person}
         statusLabel={statusMeta.label}
+        slotStatus={slotStatus}
         isBlocked={isBlocked}
         isDeclined={isDeclined}
         isScheduledElsewhereOnPlan={isScheduledElsewhereOnPlan}
