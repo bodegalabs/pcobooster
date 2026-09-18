@@ -236,10 +236,14 @@ const normalizePlanTime = (raw: PCResource): PlanTime | null => {
 };
 
 export const getPlanTimes = async (
+  serviceTypeId: string,
   planId: string,
   dependencies: PlanTimeDependencies = defaultDependencies
 ): Promise<PlanTime[]> => {
-  const rawPlanTimes = await dependencies.plansService.getPlanTimes(planId);
+  const rawPlanTimes = await dependencies.plansService.getPlanTimes(
+    serviceTypeId,
+    planId
+  );
   return rawPlanTimes
     .map((raw) => normalizePlanTime(raw))
     .filter((planTime): planTime is PlanTime => planTime !== null)

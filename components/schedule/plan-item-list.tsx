@@ -150,7 +150,7 @@ const PlanItemCard = ({
             </div>
           </div>
         </button>
-        <div className="border-border/0 group-hover/plan-item:border-border/50 group-focus-within/plan-item:border-border/50 flex items-center border-l px-2 py-1.5">
+        <div className="flex items-center px-2 py-1.5">
           <Button
             type="button"
             variant="destructive"
@@ -216,7 +216,7 @@ const PlanItemCard = ({
             ) : null}
           </div>
         </button>
-        <div className="border-border/0 group-hover/plan-item:border-border/50 group-focus-within/plan-item:border-border/50 flex items-start border-l px-2 py-2">
+        <div className="flex items-start px-2 py-2">
           <Button
             type="button"
             variant="destructive"

@@ -56,7 +56,10 @@ export const GET = async (
       );
     }
 
-    const planTimes = await getPlanTimes(parsedParams.data.planId);
+    const planTimes = await getPlanTimes(
+      parsedQuery.data.service_type_id,
+      parsedParams.data.planId
+    );
     return serializePlanTimes(planTimes);
   });
 };

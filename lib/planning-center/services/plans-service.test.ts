@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { PlanningCenterApiError } from "@/lib/planning-center/api-error";
 import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { PlanningCenterPlansService } from "@/lib/planning-center/services/plans-service";
 import type { PCResource } from "@/lib/types";
@@ -63,7 +64,7 @@ describe("PlanningCenterPlansService.getPlansWithIncludedInDateRange", () => {
 });
 
 describe("PlanningCenterPlansService plan times", () => {
-  it("fetches plan times through the plan-scoped endpoint and returns cache-safe copies", async () => {
+  it("fetches plan times through the service-type plan endpoint and returns cache-safe copies", async () => {
     const core = new PlanningCenterCoreClient();
     const fetchAll = vi.spyOn(core, "fetchAll").mockResolvedValue([
       {
@@ -74,12 +75,12 @@ describe("PlanningCenterPlansService plan times", () => {
     ]);
     const service = new PlanningCenterPlansService(core);
 
-    const first = await service.getPlanTimes("plan-1");
+    const first = await service.getPlanTimes("st-1", "plan-1");
     first[0].attributes.name = "Mutated";
-    const second = await service.getPlanTimes("plan-1");
+    const second = await service.getPlanTimes("st-1", "plan-1");
 
     expect(fetchAll).toHaveBeenCalledExactlyOnceWith(
-      "/services/v2/plans/plan-1/plan_times",
+      "/services/v2/service_types/st-1/plans/plan-1/plan_times",
       {
         order: "starts_at",
         per_page: "200",
@@ -190,5 +191,21 @@ describe("PlanningCenterPlansService plan times", () => {
         method: "DELETE",
       }
     );
+  });
+
+  it("treats missing plan times as already deleted", async () => {
+    const core = new PlanningCenterCoreClient();
+    const request = vi.spyOn(core, "request").mockRejectedValue(
+      new PlanningCenterApiError({
+        message: "Planning Center API error: 404",
+        status: 404,
+      })
+    );
+    const service = new PlanningCenterPlansService(core);
+
+    await expect(
+      service.deletePlanTime("st-1", "plan-1", "time-1")
+    ).resolves.toBeUndefined();
+    expect(request).toHaveBeenCalledOnce();
   });
 });

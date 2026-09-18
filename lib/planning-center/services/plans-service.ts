@@ -1,6 +1,7 @@
 import { isNonEmptyString } from "@/lib/json";
 import type { JsonObject } from "@/lib/json";
 import { logger } from "@/lib/logger";
+import { PlanningCenterApiError } from "@/lib/planning-center/api-error";
 import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
 import { formatCalendarDayInTimeZone } from "@/lib/planning-center/org-calendar";
 import { resolveOrganizationTimeZone } from "@/lib/planning-center/resolve-organization-timezone";
@@ -176,16 +177,22 @@ export class PlanningCenterPlansService {
     return response.data;
   }
 
-  async getPlanTimes(planId: string): Promise<PCResource[]> {
+  async getPlanTimes(
+    serviceTypeId: string,
+    planId: string
+  ): Promise<PCResource[]> {
     const planTimes = await this.planTimesCache.get(
-      this.buildCacheKey("plan-times", planId),
+      this.buildCacheKey("plan-times", serviceTypeId, planId),
       PLANS_RANGE_CACHE_TTL_MS,
       async () =>
-        await this.core.fetchAll(`/services/v2/plans/${planId}/plan_times`, {
-          order: "starts_at",
-          per_page: "200",
-          include: "split_team_rehearsal_assignments",
-        })
+        await this.core.fetchAll(
+          `/services/v2/service_types/${serviceTypeId}/plans/${planId}/plan_times`,
+          {
+            order: "starts_at",
+            per_page: "200",
+            include: "split_team_rehearsal_assignments",
+          }
+        )
     );
     return structuredClone(planTimes);
   }
@@ -260,12 +267,18 @@ export class PlanningCenterPlansService {
     planId: string,
     planTimeId: string
   ): Promise<void> {
-    await this.core.request(
-      `/services/v2/service_types/${serviceTypeId}/plan_times/${planTimeId}`,
-      {
-        method: "DELETE",
+    try {
+      await this.core.request(
+        `/services/v2/service_types/${serviceTypeId}/plan_times/${planTimeId}`,
+        {
+          method: "DELETE",
+        }
+      );
+    } catch (error) {
+      if (!(error instanceof PlanningCenterApiError && error.status === 404)) {
+        throw error;
       }
-    );
+    }
     this.invalidatePlanTimesCache(serviceTypeId, planId);
   }
 
@@ -284,7 +297,11 @@ export class PlanningCenterPlansService {
 
   invalidatePlanTimesCache(serviceTypeId: string, planId: string) {
     const scope = this.core.getCacheScope();
-    const planTimesKey = this.buildCacheKey("plan-times", planId);
+    const planTimesKey = this.buildCacheKey(
+      "plan-times",
+      serviceTypeId,
+      planId
+    );
     const plansRangePrefix = [
       scope,
       "plans-range",

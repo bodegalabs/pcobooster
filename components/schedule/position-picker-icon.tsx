@@ -69,6 +69,20 @@ export const PositionPickerIcon = ({
   );
 };
 
+export const TeamPickerIcon = ({
+  teamName,
+  className,
+}: {
+  teamName: string;
+  className?: string;
+}) => (
+  <PositionPickerIcon
+    positionName={teamName}
+    teamName={teamName}
+    className={className}
+  />
+);
+
 export interface PositionIconEntry {
   key: string;
   positionName: string;

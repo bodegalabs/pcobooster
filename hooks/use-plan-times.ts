@@ -42,5 +42,4 @@ export const usePlanTimes = (
   useQuery<PlanTime[]>({
     ...createPlanTimesQueryOptions(serviceTypeId, planId),
     enabled: isNonEmptyString(serviceTypeId) && isNonEmptyString(planId),
-    placeholderData: (previousTimes) => previousTimes,
   });
