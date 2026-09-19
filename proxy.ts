@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import { logger } from "@/lib/logger";
+import { isPublicPath } from "@/lib/public-paths";
 
 const log = logger.for("middleware");
 
@@ -17,6 +18,9 @@ const isDevAuthBypassEnabled = (): boolean => {
 };
 
 export const proxy = (request: NextRequest) => {
+  if (isPublicPath(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
   if (isDevAuthBypassEnabled()) {
     return NextResponse.next();
   }

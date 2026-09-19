@@ -1,4 +1,4 @@
-# worshipadmin.com
+# PCOBooster
 
 Planning Center scheduling tools for worship admins.
 
@@ -12,7 +12,9 @@ This app helps teams schedule people into open positions for specific plans by c
 - availability and recent scheduling history context
 - one-click scheduling into Planning Center
 
-The root route (`/`) redirects to `/services`.
+The public marketing site lives at `/`, with the origin story at `/about`. The authenticated product starts at `/services`.
+
+This is a Bun workspace monorepo: `apps/marketing` is an independent Next.js app, while the existing product stays at the repository root for a later package split. See [marketing development and deployment](docs/marketing.md).
 
 ## Setup
 
@@ -64,7 +66,7 @@ bun run db:seed
 bun run dev
 ```
 
-Open `http://localhost:3000`.
+Open `http://localhost:3000`. This starts both the product on port 3000 and marketing on port 3001; port 3000 serves the complete site.
 
 ### Present locally
 
