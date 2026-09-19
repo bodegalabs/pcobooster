@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="46 42 168 168" fill="none" role="img" aria-labelledby="logo-title">
+  <title id="logo-title">PCOBooster</title>
+  <defs>
+    <mask id="fin-clearance" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+      <rect width="256" height="256" fill="white"/>
+      <path d="M121 103C158 89 196 100 219 122Q225 128 219 134C196 156 158 167 121 153Q112 149 112 140V116Q112 107 121 103Z" fill="black" stroke="black" stroke-width="12" stroke-linejoin="round"/>
+    </mask>
+    <mask id="rocket-window" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+      <rect width="256" height="256" fill="white"/>
+      <circle cx="176" cy="128" r="13" fill="black"/>
+    </mask>
+  </defs>
+  <g transform="translate(128 128) rotate(-45) scale(1.12) translate(-128 -128)" fill="#73866d">
+    <!-- A single rounded hull and compact tail fins keep the silhouette simple. -->
+    <g mask="url(#fin-clearance)">
+      <path d="M150 104C137 90 127 83 118 82Q112 82 112 89V104Z"/>
+      <path d="M150 152C137 166 127 173 118 174Q112 174 112 167V152Z"/>
+    </g>
+    <path d="M121 103C158 89 196 100 219 122Q225 128 219 134C196 156 158 167 121 153Q112 149 112 140V116Q112 107 121 103Z" mask="url(#rocket-window)"/>
+    <!-- Equal trails, 6-unit dot gaps, and a recessed middle trail. -->
+    <rect x="71" y="104" width="33" height="12" rx="6"/>
+    <rect x="65" y="122" width="33" height="12" rx="6"/>
+    <rect x="71" y="140" width="33" height="12" rx="6"/>
+    <circle cx="59" cy="110" r="6"/>
+    <circle cx="53" cy="128" r="6"/>
+    <circle cx="59" cy="146" r="6"/>
+  </g>
+</svg>

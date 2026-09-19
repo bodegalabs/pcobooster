@@ -2,16 +2,19 @@
   "name": "worship-admin",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "type": "module",
   "scripts": {
-    "dev": "infisical run --env=dev --path=/ --path=/local -- next dev --hostname 127.0.0.1",
-    "dev:present": "infisical run --env=dev --path=/ --path=/local -- env PRESENTATION_MODE=1 next dev --hostname 127.0.0.1",
-    "build": "next build",
+    "dev": "bun run --parallel dev:app dev:marketing",
+    "dev:present": "bun run --parallel dev:app:present dev:marketing",
+    "build": "bun run build:marketing && bun run build:app",
     "start": "next start",
     "lint": "bun run check",
     "lint:fix": "bun run fix",
     "lint:ci": "bun run check --format github",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit && bun run --cwd apps/marketing typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "auth:generate": "infisical run --env=dev --path=/ -- bunx auth@1.7.5 generate",
@@ -27,7 +30,12 @@
     "prepare": "lefthook install",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
-    "verify": "bun run check && bun run typecheck && bun run test"
+    "verify": "bun run check && bun run typecheck && bun run test",
+    "dev:app": "infisical run --env=dev --path=/ --path=/local -- next dev --hostname 127.0.0.1",
+    "dev:app:present": "infisical run --env=dev --path=/ --path=/local -- env PRESENTATION_MODE=1 next dev --hostname 127.0.0.1",
+    "dev:marketing": "bun run --cwd apps/marketing dev",
+    "build:app": "next build",
+    "build:marketing": "bun run --cwd apps/marketing build && bun run scripts/stage-marketing.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
