@@ -1,8 +1,16 @@
-import { auth } from "@worship-admin/api/auth";
+import type { RpcContext } from "@worship-admin/api/transport/orpc/context";
 
-export const createContext = async ({ request }: { request: Request }) => ({
-  headers: request.headers,
-  session: await auth.api.getSession({ headers: request.headers }),
-});
-
-export type AppContext = Awaited<ReturnType<typeof createContext>>;
+export const createContext = ({
+  request,
+}: {
+  request: Request;
+}): RpcContext => {
+  const requestedId = request.headers.get("x-request-id")?.trim();
+  return {
+    request,
+    requestId:
+      requestedId !== undefined && requestedId !== ""
+        ? requestedId
+        : crypto.randomUUID(),
+  };
+};

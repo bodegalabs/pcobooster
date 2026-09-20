@@ -2,6 +2,7 @@ import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
+import { ResponseHeadersPlugin } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { auth } from "@worship-admin/api/auth";
 import { logger } from "@worship-admin/api/logger";
@@ -42,6 +43,7 @@ app.on(
 
 const apiHandler = new OpenAPIHandler(appRouter, {
   plugins: [
+    new ResponseHeadersPlugin(),
     new OpenAPIReferencePlugin({
       schemaConverters: [new ZodToJsonSchemaConverter()],
     }),
@@ -55,6 +57,7 @@ const apiHandler = new OpenAPIHandler(appRouter, {
 });
 
 const rpcHandler = new RPCHandler(appRouter, {
+  plugins: [new ResponseHeadersPlugin()],
   interceptors: [
     // oxlint-disable-next-line promise/prefer-await-to-callbacks -- oRPC exposes error interceptors as callbacks.
     onError((error) => {
@@ -65,7 +68,7 @@ const rpcHandler = new RPCHandler(appRouter, {
 
 const handleRpcRequest = async (request: Request): Promise<Response> => {
   const result = await rpcHandler.handle(request, {
-    context: await createContext({ request }),
+    context: createContext({ request }),
     prefix: "/api/rpc",
   });
 
@@ -76,7 +79,7 @@ const handleRpcRequest = async (request: Request): Promise<Response> => {
 
 const handleOpenApiRequest = async (request: Request): Promise<Response> => {
   const result = await apiHandler.handle(request, {
-    context: await createContext({ request }),
+    context: createContext({ request }),
     prefix: "/api/reference",
   });
 

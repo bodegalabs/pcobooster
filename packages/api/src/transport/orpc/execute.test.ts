@@ -1,0 +1,70 @@
+import { RequestContext } from "@worship-admin/api/application/context";
+import { Forbidden } from "@worship-admin/api/application/errors/forbidden";
+import { createApplicationRuntime } from "@worship-admin/api/application/runtime";
+import { executeApplicationEffect } from "@worship-admin/api/transport/orpc/execute";
+import { Effect, Layer } from "effect";
+import { describe, expect, it } from "vitest";
+
+const createRpcContext = () => ({
+  request: new Request("https://worshipadmin.com/api/rpc/health"),
+  requestId: "request-1",
+});
+
+describe(executeApplicationEffect, () => {
+  it("provides request context to an Effect program", async () => {
+    const runtime = createApplicationRuntime(Layer.empty);
+
+    try {
+      await expect(
+        executeApplicationEffect(
+          runtime,
+          Effect.gen(function* readRequestId() {
+            const { requestId } = yield* RequestContext;
+            return requestId;
+          }),
+          createRpcContext()
+        )
+      ).resolves.toBe("request-1");
+    } finally {
+      await runtime.dispose();
+    }
+  });
+
+  it("maps typed application faults to oRPC errors", async () => {
+    const runtime = createApplicationRuntime(Layer.empty);
+
+    try {
+      const result = executeApplicationEffect(
+        runtime,
+        Effect.fail(new Forbidden({ message: "Admin access required" })),
+        createRpcContext()
+      );
+      await expect(result).rejects.toMatchObject({
+        code: "FORBIDDEN",
+        data: { message: "Admin access required" },
+        status: 403,
+      });
+    } finally {
+      await runtime.dispose();
+    }
+  });
+
+  it("keeps defects opaque", async () => {
+    const runtime = createApplicationRuntime(Layer.empty);
+    const defect = new Error("Database credentials leaked here");
+
+    try {
+      const result = executeApplicationEffect(
+        runtime,
+        Effect.die(defect),
+        createRpcContext()
+      );
+      await expect(result).rejects.toMatchObject({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Internal Server Error",
+      });
+    } finally {
+      await runtime.dispose();
+    }
+  });
+});
