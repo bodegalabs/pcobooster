@@ -5,10 +5,12 @@
   "type": "module",
   "exports": {
     ".": "./src/router.ts",
+    "./catalog": "./src/catalog.ts",
     "./errors": "./src/errors.ts",
     "./router": "./src/router.ts"
   },
   "scripts": {
+    "test": "vitest run src",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -17,6 +19,7 @@
   },
   "devDependencies": {
     "@worship-admin/config": "workspace:*",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
   }
 }

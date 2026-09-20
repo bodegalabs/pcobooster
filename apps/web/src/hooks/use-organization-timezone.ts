@@ -2,16 +2,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 
-import { organizationTimeZoneSchema } from "@/lib/api-schemas";
-import { getJson } from "@/lib/http/client";
 import {
   readCachedOrganizationTimeZone,
   writeCachedOrganizationTimeZone,
 } from "@/lib/organization-time-zone-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
+import { orpc } from "@/orpc-client";
 
-/** Client hook for the Services org `time_zone` (via `/api/planning-center/organization`). */
+/** Client hook for the Planning Center Services organization time zone via oRPC. */
 export const useOrganizationTimeZone = (): string => {
   const queryKey = queryKeys.organizationTimeZone();
   const readCachedTimeZone = useCallback(() => {
@@ -27,11 +26,8 @@ export const useOrganizationTimeZone = (): string => {
 
   const { data } = useQuery({
     queryKey,
-    queryFn: async () => {
-      const response = await getJson(
-        "/api/planning-center/organization",
-        organizationTimeZoneSchema
-      );
+    queryFn: async ({ signal }) => {
+      const response = await orpc.catalog.organization({}, { signal });
       writeCachedOrganizationTimeZone(response.timeZone);
       return response;
     },

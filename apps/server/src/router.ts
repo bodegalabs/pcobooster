@@ -28,21 +28,17 @@ import {
   GET as getPlanningCenterAccounts,
   POST as selectPlanningCenterAccount,
 } from "@worship-admin/api/http-routes/planning-center/accounts/route";
-import { GET as getPlanningCenterOrganization } from "@worship-admin/api/http-routes/planning-center/organization/route";
 import {
   GET as getPlanTimes,
   POST as createPlanTime,
 } from "@worship-admin/api/http-routes/plans/[planId]/times/route";
-import { GET as getPlans } from "@worship-admin/api/http-routes/plans/route";
 import { GET as getScheduleHistory } from "@worship-admin/api/http-routes/schedule-history/[id]/route";
 import { DELETE as removeScheduledPerson } from "@worship-admin/api/http-routes/schedule/[planPersonId]/route";
 import { PATCH as updateScheduleStatus } from "@worship-admin/api/http-routes/schedule/[planPersonId]/status/route";
 import { POST as schedulePerson } from "@worship-admin/api/http-routes/schedule/route";
-import { GET as getServiceTypes } from "@worship-admin/api/http-routes/service-types/route";
 import { GET as getSessionStatus } from "@worship-admin/api/http-routes/session/route";
 import { GET as getSongOptions } from "@worship-admin/api/http-routes/songs/[songId]/options/route";
 import { GET as searchSongs } from "@worship-admin/api/http-routes/songs/search/route";
-import { GET as getTeamPositions } from "@worship-admin/api/http-routes/team-positions/route";
 import type { Hono } from "hono";
 
 const params = <T extends Record<string, string>>(value: T) => ({
@@ -144,10 +140,6 @@ export const registerRestRoutes = (app: Hono): void => {
     async (c) => await selectPlanningCenterAccount(c.req.raw)
   );
   app.get(
-    "/api/planning-center/organization",
-    async (c) => await getPlanningCenterOrganization(c.req.raw)
-  );
-  app.get(
     "/api/plans/:planId/times",
     async (c) =>
       await getPlanTimes(
@@ -163,7 +155,6 @@ export const registerRestRoutes = (app: Hono): void => {
         params({ planId: c.req.param("planId") ?? "" })
       )
   );
-  app.get("/api/plans", async (c) => await getPlans(c.req.raw));
   app.get(
     "/api/schedule-history/:id",
     async (c) =>
@@ -189,7 +180,6 @@ export const registerRestRoutes = (app: Hono): void => {
       )
   );
   app.post("/api/schedule", async (c) => await schedulePerson(c.req.raw));
-  app.get("/api/service-types", async (c) => await getServiceTypes(c.req.raw));
   app.get("/api/session", async (c) => await getSessionStatus(c.req.raw));
   app.get(
     "/api/songs/:songId/options",
@@ -200,8 +190,4 @@ export const registerRestRoutes = (app: Hono): void => {
       )
   );
   app.get("/api/songs/search", async (c) => await searchSongs(c.req.raw));
-  app.get(
-    "/api/team-positions",
-    async (c) => await getTeamPositions(c.req.raw)
-  );
 };

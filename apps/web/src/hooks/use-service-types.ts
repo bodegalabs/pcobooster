@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 
-import { serviceTypeSchema } from "@/lib/api-schemas";
-import { getJson } from "@/lib/http/client";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
 import {
@@ -10,6 +8,7 @@ import {
   writeCachedServiceTypes,
 } from "@/lib/schedule-catalog-cache";
 import type { ServiceType } from "@/lib/types";
+import { orpc } from "@/orpc-client";
 
 export const useServiceTypes = () => {
   const queryKey = queryKeys.serviceTypes();
@@ -21,8 +20,8 @@ export const useServiceTypes = () => {
 
   const query = useQuery<ServiceType[]>({
     queryKey,
-    queryFn: async () =>
-      await getJson("/api/service-types", serviceTypeSchema.array()),
+    queryFn: async ({ signal }) =>
+      await orpc.catalog.serviceTypes({}, { signal }),
     // 10 minutes
     staleTime: 10 * 60 * 1000,
   });

@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+import type { QueryFunctionContext } from "@tanstack/react-query";
 import { useCallback } from "react";
 
-import { teamPositionGroupSchema } from "@/lib/api-schemas";
-import { getJson } from "@/lib/http/client";
 import { isNonEmptyString } from "@/lib/json";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
@@ -11,23 +10,9 @@ import {
   writeCachedTeamPositions,
 } from "@/lib/team-positions-cache";
 import type { TeamPositionGroup } from "@/lib/types";
+import { orpc } from "@/orpc-client";
 
 const TEAM_POSITIONS_STALE_TIME_MS = 10 * 60 * 1000;
-
-const buildTeamPositionsUrl = (
-  serviceTypeId: string,
-  planId: string,
-  seriesId: string | null
-): string => {
-  const params = new URLSearchParams({
-    service_type_id: serviceTypeId,
-    plan_id: planId,
-  });
-  if (isNonEmptyString(seriesId)) {
-    params.set("series_id", seriesId);
-  }
-  return `/api/team-positions?${params.toString()}`;
-};
 
 export const createTeamPositionsQueryOptions = (
   serviceTypeId: string | null,
@@ -35,13 +20,13 @@ export const createTeamPositionsQueryOptions = (
   seriesId: string | null
 ) => ({
   queryKey: queryKeys.teamPositions(serviceTypeId, planId, seriesId),
-  queryFn: async () => {
+  queryFn: async ({ signal }: QueryFunctionContext) => {
     if (!isNonEmptyString(serviceTypeId) || !isNonEmptyString(planId)) {
       return [];
     }
-    const groups = await getJson(
-      buildTeamPositionsUrl(serviceTypeId, planId, seriesId),
-      teamPositionGroupSchema.array()
+    const groups = await orpc.catalog.teamPositions(
+      { serviceTypeId, planId, seriesId: seriesId ?? undefined },
+      { signal }
     );
     writeCachedTeamPositions(serviceTypeId, planId, seriesId, groups);
     return groups;

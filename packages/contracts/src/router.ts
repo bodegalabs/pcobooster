@@ -1,4 +1,5 @@
 import { oc } from "@orpc/contract";
+import { catalogContract } from "@worship-admin/contracts/catalog";
 import { z } from "zod";
 
 const healthInputSchema = z.object({});
@@ -14,6 +15,7 @@ export const healthContract = oc
   .output(healthOutputSchema);
 
 export const appContract = oc.router({
+  catalog: catalogContract,
   health: healthContract,
 });
 
