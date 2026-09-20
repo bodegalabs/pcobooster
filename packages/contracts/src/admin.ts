@@ -1,3 +1,6 @@
+import { oc } from "@orpc/contract";
+import { applicationErrorMap } from "@worship-admin/contracts/errors";
+import { planningCenterIdentitySchema } from "@worship-admin/contracts/identity";
 import { z } from "zod";
 
 export const adminAccountActivitySchema = z.object({
@@ -21,14 +24,6 @@ export const adminAccountActivitySchema = z.object({
 });
 
 export type AdminAccountActivity = z.infer<typeof adminAccountActivitySchema>;
-
-export const planningCenterIdentitySchema = z.object({
-  sub: z.string().nullable(),
-  name: z.string().nullable(),
-  email: z.string().nullable(),
-  organizationId: z.string().nullable(),
-  organizationName: z.string().nullable(),
-});
 
 export const adminLinkedAccountSchema = z.object({
   id: z.string(),
@@ -65,4 +60,34 @@ export const adminUserResponseSchema = z.object({
   user: adminUserAccountDetailSchema.nullable(),
 });
 
-export const sessionStatusSchema = z.object({ authenticated: z.boolean() });
+export const adminAccountsInputSchema = z.object({});
+export const adminUserInputSchema = z.object({
+  userId: z.string().trim().min(1),
+});
+
+const adminProcedure = oc.errors({
+  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
+  FORBIDDEN: applicationErrorMap.FORBIDDEN,
+  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
+});
+
+export const adminContract = {
+  accounts: adminProcedure
+    .route({
+      method: "GET",
+      path: "/admin/accounts",
+      summary: "List account activity for administrators",
+    })
+    .input(adminAccountsInputSchema)
+    .output(adminAccountsResponseSchema),
+  user: adminProcedure
+    .route({
+      method: "GET",
+      path: "/admin/users/{userId}",
+      summary: "Read linked accounts and activity for a user",
+    })
+    .input(adminUserInputSchema)
+    .output(adminUserResponseSchema),
+};
+
+export type AdminUserInput = z.input<typeof adminUserInputSchema>;

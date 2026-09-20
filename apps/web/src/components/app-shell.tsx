@@ -19,13 +19,14 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { QueryFunctionContext } from "@tanstack/react-query";
+import type { PlanningCenterAccountsResponse } from "@worship-admin/contracts/accounts";
 import { Check, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { Suspense, startTransition, useCallback, useState } from "react";
-import { z } from "zod";
 
 import { HotkeyChord } from "@/components/hotkey-chord";
 import { SidebarBrandMark } from "@/components/sidebar-brand-mark";
@@ -84,7 +85,6 @@ import {
 import { APP_SHORTCUTS, SHORTCUTS_PALETTE_HOTKEY } from "@/lib/app-hotkeys";
 import { authClient } from "@/lib/auth-client";
 import { writeBrowserStorage } from "@/lib/browser-storage";
-import { getJson, postJson } from "@/lib/http/client";
 import { isNonEmptyString } from "@/lib/json";
 import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
 import { clearCachedOrganizationTimeZone } from "@/lib/organization-time-zone-cache";
@@ -103,62 +103,7 @@ import { clearCachedSongOptions } from "@/lib/song-options-cache";
 import { clearCachedSongSearch } from "@/lib/song-search-cache";
 import { clearCachedTeamPositions } from "@/lib/team-positions-cache";
 import { cn } from "@/lib/utils";
-
-interface PlanningCenterAccount {
-  id: string;
-  providerId: string;
-  updatedAt: string;
-  identity: {
-    sub: string | null;
-    name: string | null;
-    email: string | null;
-    organizationId: string | null;
-    organizationName: string | null;
-  } | null;
-}
-
-interface PlanningCenterAccountsResponse {
-  session: {
-    userId: string;
-    name: string;
-    email: string;
-    image: string | null;
-  };
-  selectedAccountId: string | null;
-  accounts: PlanningCenterAccount[];
-}
-
-const planningCenterAccountSchema = z.object({
-  id: z.string(),
-  providerId: z.string(),
-  updatedAt: z.string(),
-  identity: z
-    .object({
-      sub: z.string().nullable(),
-      name: z.string().nullable(),
-      email: z.string().nullable(),
-      organizationId: z.string().nullable(),
-      organizationName: z.string().nullable(),
-    })
-    .nullable(),
-}) satisfies z.ZodType<PlanningCenterAccount>;
-
-const planningCenterAccountsSchema = z.object({
-  session: z.object({
-    userId: z.string(),
-    name: z.string(),
-    email: z.string(),
-    image: z.string().nullable(),
-  }),
-  selectedAccountId: z.string().nullable(),
-  accounts: z.array(planningCenterAccountSchema),
-}) satisfies z.ZodType<PlanningCenterAccountsResponse>;
-
-const accountSwitchSchema = z.object({
-  success: z.boolean(),
-  selectedAccountId: z.string(),
-});
-const featureSchema = z.object({ enabled: z.boolean() });
+import { orpc } from "@/orpc-client";
 
 const SIDEBAR_OPEN_STORAGE_KEY = "worshipadmin:sidebar-open";
 const APP_CHROME_ROW = "flex h-12 shrink-0 items-center gap-2";
@@ -178,11 +123,8 @@ const initialsFromName = (name: string | null | undefined): string => {
   return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
 };
 
-const fetchAccounts = async () => {
-  const response = await getJson(
-    "/api/planning-center/accounts",
-    planningCenterAccountsSchema
-  );
+const fetchAccounts = async ({ signal }: QueryFunctionContext) => {
+  const response = await orpc.accounts.list({}, { signal });
   writeBrowserStorage(
     ACCOUNT_PANEL_CACHE_KEY,
     serializeAccountPanel(summarizeAccountPanel(response))
@@ -190,8 +132,8 @@ const fetchAccounts = async () => {
   return response;
 };
 
-const fetchPeopleNavFeature = async () => {
-  const response = await getJson("/api/people/feature", featureSchema);
+const fetchPeopleNavFeature = async ({ signal }: QueryFunctionContext) => {
+  const response = await orpc.features.people({}, { signal });
   writeBrowserStorage(
     PEOPLE_PAGE_NAV_CACHE_KEY,
     serializePeoplePageNavState(response)
@@ -199,8 +141,8 @@ const fetchPeopleNavFeature = async () => {
   return response;
 };
 
-const fetchAdminNavFeature = async () =>
-  await getJson("/api/admin/feature", featureSchema);
+const fetchAdminNavFeature = async ({ signal }: QueryFunctionContext) =>
+  await orpc.features.admin({}, { signal });
 
 const themeOptions = [
   { value: "light", label: "Light", icon: Sun01Icon },
@@ -532,9 +474,7 @@ const SidebarAccountPanel = ({
     setActionError("");
     setSwitchingAccountId(accountId);
     try {
-      await postJson("/api/planning-center/accounts", accountSwitchSchema, {
-        accountId,
-      });
+      await orpc.accounts.select({ accountId });
       clearCachedPeople();
       clearCachedPeopleDashboards();
       clearCachedPeopleSearch();

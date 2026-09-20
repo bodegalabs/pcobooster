@@ -1,6 +1,7 @@
 import { RequestContext } from "@worship-admin/api/application/context";
 import { catalogRouter } from "@worship-admin/api/transport/orpc/catalog";
 import { executeApplicationEffect } from "@worship-admin/api/transport/orpc/execute";
+import { identityRouter } from "@worship-admin/api/transport/orpc/identity";
 import {
   applicationRuntime,
   rpc,
@@ -19,9 +20,13 @@ const health = rpc.health.handler(
 );
 
 export const appRouter = rpc.router({
+  accounts: identityRouter.accounts,
+  admin: identityRouter.admin,
   catalog: catalogRouter,
+  features: identityRouter.features,
   health,
   people: peopleRouter,
+  session: identityRouter.session,
 });
 
 export type AppRouter = typeof appRouter;
