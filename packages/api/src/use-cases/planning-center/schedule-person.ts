@@ -5,22 +5,12 @@ import { planningCenterPeopleService } from "@worship-admin/api/planning-center/
 import { findIncluded } from "@worship-admin/api/planning-center/utils";
 import type { PCResource } from "@worship-admin/api/types";
 import { invalidateCandidateHistoryForPerson } from "@worship-admin/api/use-cases/planning-center/get-people-for-position";
-import { z } from "zod";
+import type { scheduleAssignInputSchema } from "@worship-admin/contracts/schedule";
+import type { z } from "zod";
 
-export const schedulePersonSchema = z.object({
-  serviceTypeId: z.string().min(1),
-  personId: z.string().min(1),
-  planId: z.string().min(1),
-  teamId: z.string().min(1),
-  positionId: z.string().min(1),
-  teamName: z.string().trim().min(1).optional(),
-  positionName: z.string().trim().min(1).optional(),
-  oneOff: z.boolean().default(false),
-});
+export type SchedulePersonInput = z.output<typeof scheduleAssignInputSchema>;
 
-export type SchedulePersonInput = z.infer<typeof schedulePersonSchema>;
-
-interface ScheduleDependencies {
+export interface ScheduleDependencies {
   catalog: Pick<
     typeof planningCenterCatalogService,
     "getServiceTypeTeamPositionsWithTeams"
@@ -29,13 +19,18 @@ interface ScheduleDependencies {
     typeof planningCenterPeopleService,
     "getPersonTeamPositionAssignments" | "createPlanPerson"
   >;
-  invalidate: typeof invalidateCandidateHistoryForPerson;
+  invalidate: (personId: string) => void;
 }
 
 const defaultDependencies: ScheduleDependencies = {
   catalog: planningCenterCatalogService,
   people: planningCenterPeopleService,
-  invalidate: invalidateCandidateHistoryForPerson,
+  invalidate: (personId) => {
+    invalidateCandidateHistoryForPerson(
+      personId,
+      planningCenterPeopleService.getCacheScope()
+    );
+  },
 };
 
 interface ScheduleTarget {
@@ -64,7 +59,7 @@ const getPositionTeamId = (
   return Array.isArray(relation) ? undefined : relation?.id;
 };
 
-const resolveScheduleTarget = async (
+export const resolveScheduleTarget = async (
   input: SchedulePersonInput,
   dependencies: ScheduleDependencies
 ): Promise<ScheduleTarget> => {

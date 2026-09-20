@@ -12,6 +12,7 @@ import {
   planPeopleRouter,
   planTimesRouter,
 } from "@worship-admin/api/transport/orpc/plan-times";
+import { scheduleRouter } from "@worship-admin/api/transport/orpc/schedule";
 import { songsRouter } from "@worship-admin/api/transport/orpc/songs";
 import { Effect } from "effect";
 
@@ -36,6 +37,7 @@ export const appRouter = rpc.router({
   planPeople: planPeopleRouter,
   planTimes: planTimesRouter,
   session: identityRouter.session,
+  schedule: scheduleRouter,
   songs: songsRouter,
 });
 

@@ -1,6 +1,8 @@
 "use client";
+import { ORPCError } from "@orpc/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { z } from "zod";
 
 import {
   cancelScheduleMutationQueries,
@@ -9,14 +11,20 @@ import {
   settleScheduleMutationQueries,
 } from "@/hooks/use-schedule-cache-optimism";
 import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cache-optimism";
-import { successResponseSchema } from "@/lib/api-schemas";
-import { HttpClientError, patchJson } from "@/lib/http/client";
 import { isNonEmptyString } from "@/lib/json";
+import { orpc } from "@/orpc-client";
 
 export type PlanPersonStatusCode = "C" | "U" | "D";
 
+const messageErrorDataSchema = z.object({ message: z.string().optional() });
+
 const formatUpdateStatusError = (error: Error): string => {
-  if (error instanceof HttpClientError) {
+  if (error instanceof ORPCError) {
+    const parsed = messageErrorDataSchema.safeParse(error.data);
+    const message = parsed.success ? parsed.data.message : undefined;
+    if (isNonEmptyString(message)) {
+      return message;
+    }
     return error.message || "Failed to update status";
   }
   if (error instanceof Error) {
@@ -45,16 +53,13 @@ export const useUpdatePlanPersonStatus = ({
       status: PlanPersonStatusCode;
       context?: ScheduleMutationInvalidateContext;
     }) =>
-      await patchJson(
-        `/api/schedule/${encodeURIComponent(planPersonId)}/status`,
-        successResponseSchema,
-        {
-          status,
-          serviceTypeId: context?.serviceTypeId ?? undefined,
-          personId: context?.personId ?? undefined,
-          planId: context?.planId ?? undefined,
-        }
-      ),
+      await orpc.schedule.updateStatus({
+        planPersonId,
+        status,
+        serviceTypeId: context?.serviceTypeId ?? undefined,
+        personId: context?.personId ?? undefined,
+        planId: context?.planId ?? undefined,
+      }),
     onMutate: async ({ planPersonId, status, context }) => {
       await cancelScheduleMutationQueries(queryClient, context ?? {});
       return {

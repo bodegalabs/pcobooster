@@ -6,7 +6,8 @@ import type { Exit, Layer } from "effect";
 export interface ApplicationRuntime<Services, InitializationError = never> {
   readonly execute: <Value, Failure>(
     program: Effect.Effect<Value, Failure, Services | RequestContext>,
-    context: RequestContextValue
+    context: RequestContextValue,
+    executionSignal?: AbortSignal
   ) => Promise<Exit.Exit<Value, Failure | InitializationError>>;
   readonly dispose: () => Promise<void>;
 }
@@ -18,10 +19,10 @@ export const createApplicationRuntime = <Services, InitializationError>(
   const runtime = ManagedRuntime.make(layer);
 
   return {
-    execute: async (program, context) =>
+    execute: async (program, context, executionSignal = context.signal) =>
       await runtime.runPromiseExit(
         Effect.provideService(program, RequestContext, context),
-        { signal: context.signal }
+        { signal: executionSignal }
       ),
     dispose: async () => {
       await runtime.dispose();

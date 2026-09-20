@@ -12,6 +12,7 @@ import { createPlanningCenterServices } from "@worship-admin/api/planning-center
 import { Context, Effect } from "effect";
 
 export interface RequestAuthentication {
+  readonly userId: string;
   readonly accessToken: string;
   readonly scopes: readonly string[];
   readonly accountId: string;
@@ -45,6 +46,7 @@ const defaultDependencies: PlanningCenterAccessDependencies = {
   authorize: async (request) => {
     const authenticated = await requirePlanningCenterAccessToken(request);
     return {
+      userId: authenticated.session.user.id,
       accessToken: authenticated.accessToken,
       scopes: authenticated.scopes,
       accountId: authenticated.accountId,

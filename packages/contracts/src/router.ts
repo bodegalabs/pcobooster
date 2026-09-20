@@ -7,6 +7,7 @@ import { peopleContract } from "@worship-admin/contracts/people";
 import { planItemsContract } from "@worship-admin/contracts/plan-items";
 import { planPeopleContract } from "@worship-admin/contracts/plan-people";
 import { planTimesContract } from "@worship-admin/contracts/plan-times";
+import { scheduleContract } from "@worship-admin/contracts/schedule";
 import { sessionContract } from "@worship-admin/contracts/session";
 import { songsContract } from "@worship-admin/contracts/songs";
 import { z } from "zod";
@@ -33,6 +34,7 @@ export const appContract = oc.router({
   planItems: planItemsContract,
   planPeople: planPeopleContract,
   planTimes: planTimesContract,
+  schedule: scheduleContract,
   session: sessionContract,
   songs: songsContract,
 });

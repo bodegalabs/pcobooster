@@ -1,11 +1,8 @@
 import type { planningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
 import type { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import type { PCResource } from "@worship-admin/api/types";
-import type { invalidateCandidateHistoryForPerson } from "@worship-admin/api/use-cases/planning-center/get-people-for-position";
-import {
-  schedulePerson,
-  schedulePersonSchema,
-} from "@worship-admin/api/use-cases/planning-center/schedule-person";
+import { schedulePerson } from "@worship-admin/api/use-cases/planning-center/schedule-person";
+import { scheduleAssignInputSchema as schedulePersonSchema } from "@worship-admin/contracts/schedule";
 import { describe, expect, it, vi } from "vitest";
 
 type ScheduleDependencies = NonNullable<Parameters<typeof schedulePerson>[1]>;
@@ -81,7 +78,7 @@ const makeDependencies = (
   createPlanPersonMock.mockResolvedValue(
     createdPlanPerson(createdPositionName)
   );
-  const invalidateMock = vi.fn<typeof invalidateCandidateHistoryForPerson>();
+  const invalidateMock = vi.fn<ScheduleDependencies["invalidate"]>();
 
   const dependencies = {
     catalog: {
