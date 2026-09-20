@@ -3,19 +3,10 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { startTransition, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { usePlanTimes } from "@/hooks/use-plan-times";
 import { useTeamPositions } from "@/hooks/use-team-positions";
-import { serializedPlanTimeSchema } from "@/lib/api-schemas";
-import {
-  deleteJson,
-  HttpClientError,
-  patchJson,
-  postJson,
-} from "@/lib/http/client";
-import { hydratePlanTime } from "@/lib/plan-time-client";
 import { queryKeys } from "@/lib/query-keys";
 import {
   buildCreatePlanTimeRequest,
@@ -28,6 +19,7 @@ import {
 } from "@/lib/schedule/plan-time-edits";
 import type { EditablePlanTime } from "@/lib/schedule/plan-time-edits";
 import type { PlanTime } from "@/lib/types";
+import { orpc } from "@/orpc-client";
 
 interface UseTimesTabControllerProps {
   serviceTypeId: string | null;
@@ -116,20 +108,27 @@ export const useTimesTabController = ({
 
     setSavingId(planTime.id);
     try {
-      await patchJson(
-        `/api/plan-times/${planTime.id}`,
-        serializedPlanTimeSchema,
-        {
-          service_type_id: serviceTypeId,
-          plan_id: planId,
-          ...buildPlanTimePatch(
-            planTime,
-            edit,
-            timeZone,
-            teamPositionsQuery.data
-          ),
-        }
+      const patch = buildPlanTimePatch(
+        planTime,
+        edit,
+        timeZone,
+        teamPositionsQuery.data
       );
+      await orpc.planTimes.update({
+        planTimeId: planTime.id,
+        serviceTypeId,
+        planId,
+        name: patch.name,
+        timeType: patch.time_type,
+        startsAt: patch.starts_at,
+        endsAt: patch.ends_at,
+        assignedTeamIds: patch.assigned_team_ids,
+        assignedPositionIds: patch.assigned_position_ids,
+        assignedNeededPositionIds: patch.assigned_needed_position_ids,
+        clearedNeededPositionIds: patch.cleared_needed_position_ids,
+        assignedPlanPersonIds: patch.assigned_plan_person_ids,
+        clearedPlanPersonIds: patch.cleared_plan_person_ids,
+      });
       await invalidatePlanTimeQueries();
       setEdits((current) =>
         Object.fromEntries(
@@ -154,16 +153,17 @@ export const useTimesTabController = ({
     setCreating(true);
     try {
       await queryClient.cancelQueries({ queryKey: planTimesQueryKey });
-      const created = hydratePlanTime(
-        await postJson(
-          `/api/plans/${encodeURIComponent(planId)}/times`,
-          serializedPlanTimeSchema,
-          {
-            service_type_id: serviceTypeId,
-            ...buildCreatePlanTimeRequest(edit, timeZone),
-          }
-        )
-      );
+      const request = buildCreatePlanTimeRequest(edit, timeZone);
+      const created = await orpc.planTimes.create({
+        serviceTypeId,
+        planId,
+        name: request.name,
+        timeType: request.time_type,
+        startsAt: request.starts_at,
+        endsAt: request.ends_at,
+        assignedTeamIds: request.assigned_team_ids,
+        assignedPositionIds: request.assigned_position_ids,
+      });
       queryClient.setQueryData<PlanTime[]>(
         planTimesQueryKey,
         (current = emptyPlanTimes) => {
@@ -200,14 +200,11 @@ export const useTimesTabController = ({
           current.filter((time) => time.id !== planTime.id)
       );
 
-      await deleteJson(
-        `/api/plan-times/${encodeURIComponent(planTime.id)}`,
-        z.undefined(),
-        {
-          service_type_id: serviceTypeId,
-          plan_id: planId,
-        }
-      );
+      await orpc.planTimes.delete({
+        planTimeId: planTime.id,
+        serviceTypeId,
+        planId,
+      });
       setEdits((current) =>
         Object.fromEntries(
           Object.entries(current).filter(([id]) => id !== planTime.id)
@@ -215,16 +212,12 @@ export const useTimesTabController = ({
       );
       await invalidateRelatedPlanTimeQueries();
     } catch (error) {
-      const alreadyDeleted =
-        error instanceof HttpClientError && error.status === 404;
-      if (!alreadyDeleted && snapshot !== undefined) {
+      if (snapshot !== undefined) {
         queryClient.setQueryData(planTimesQueryKey, snapshot);
       }
-      if (!alreadyDeleted) {
-        toast.error(
-          error instanceof Error ? error.message : "Unable to delete time"
-        );
-      }
+      toast.error(
+        error instanceof Error ? error.message : "Unable to delete time"
+      );
     }
     setDeletingId(null);
   };

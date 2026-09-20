@@ -7,13 +7,7 @@ import { getItemTypeLabel } from "@/components/schedule/plan-tab-helpers";
 import type { DraftState } from "@/components/schedule/plan-tab-helpers";
 import { usePlanItems } from "@/hooks/use-plan-items";
 import { createSongOptionsQueryOptions } from "@/hooks/use-song-options";
-import {
-  serializedPlanItemSchema,
-  successResponseSchema,
-} from "@/lib/api-schemas";
-import { deleteJson, patchJson, postJson } from "@/lib/http/client";
 import { isNonEmptyString } from "@/lib/json";
-import { hydratePlanItem } from "@/lib/plan-item-client";
 import {
   appendPlanItem,
   applyPlanItemDraft,
@@ -39,6 +33,7 @@ import type {
   SongCatalogEntry,
   SongOptionSet,
 } from "@/lib/types";
+import { orpc } from "@/orpc-client";
 
 interface UsePlanTabControllerArgs {
   serviceTypeId: string | null;
@@ -47,17 +42,13 @@ interface UsePlanTabControllerArgs {
 
 const EMPTY_PLAN_ITEMS: PlanItem[] = [];
 
-const buildDeletePlanItemUrl = (
-  itemId: string,
-  serviceTypeId: string,
-  planId: string
-): string => {
-  const params = new URLSearchParams({
-    service_type_id: serviceTypeId,
-    plan_id: planId,
-  });
-
-  return `/api/plan-items/${itemId}?${params.toString()}`;
+const toPlanItemServicePosition = (
+  value: string
+): "pre" | "during" | "post" | undefined => {
+  if (value === "pre" || value === "during" || value === "post") {
+    return value;
+  }
+  return undefined;
 };
 
 const toErrorMessage = (error: Error, fallback: string) =>
@@ -172,14 +163,12 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      const item = await postJson("/api/plan-items", serializedPlanItemSchema, {
-        service_type_id: serviceTypeId,
-        plan_id: planId,
-        item_type: kind,
+      return await orpc.planItems.create({
+        serviceTypeId,
+        planId,
+        itemType: kind,
         title: kind === "header" ? "New Header" : "New Item",
       });
-
-      return hydratePlanItem(item);
     },
     onMutate: async (kind) => {
       await queryClient.cancelQueries({ queryKey });
@@ -246,17 +235,15 @@ export const usePlanTabController = ({
           songOptionsQuery.queryKey
         ) ?? null;
 
-      const item = await postJson("/api/plan-items", serializedPlanItemSchema, {
-        service_type_id: serviceTypeId,
-        plan_id: planId,
+      return await orpc.planItems.create({
+        serviceTypeId,
+        planId,
         title: songOptions?.song.title ?? song.title,
-        song_id: song.id,
-        arrangement_id: songOptions?.suggestedArrangementId ?? undefined,
-        key_id: songOptions?.suggestedKeyId ?? undefined,
-        selected_layout_id: songOptions?.suggestedLayoutId ?? undefined,
+        songId: song.id,
+        arrangementId: songOptions?.suggestedArrangementId ?? undefined,
+        keyId: songOptions?.suggestedKeyId ?? undefined,
+        selectedLayoutId: songOptions?.suggestedLayoutId ?? undefined,
       });
-
-      return hydratePlanItem(item);
     },
     onMutate: async (song) => {
       await queryClient.cancelQueries({ queryKey });
@@ -314,10 +301,7 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      await deleteJson(
-        buildDeletePlanItemUrl(itemId, serviceTypeId, planId),
-        successResponseSchema
-      );
+      await orpc.planItems.delete({ itemId, serviceTypeId, planId });
     },
     onMutate: async (itemId) => {
       setPendingItemId(itemId);
@@ -359,9 +343,9 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      await postJson("/api/plan-items/reorder", successResponseSchema, {
-        service_type_id: serviceTypeId,
-        plan_id: planId,
+      await orpc.planItems.reorder({
+        serviceTypeId,
+        planId,
         sequence: nextItems.map((item) => item.id),
       });
     },
@@ -419,29 +403,21 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      const itemResponse = await patchJson(
-        `/api/plan-items/${item.id}`,
-        serializedPlanItemSchema,
-        {
-          service_type_id: serviceTypeId,
-          plan_id: planId,
-          title: item.song ? item.title : draft.title,
-          service_position: draft.servicePosition,
-          length:
-            length !== null &&
-            length !== 0 &&
-            !Number.isNaN(length) &&
-            length > 0
-              ? length
-              : null,
-          description: draft.description,
-          song_id: undefined,
-          arrangement_id: draft.arrangementId || undefined,
-          key_id: draft.keyId || undefined,
-        }
-      );
-
-      return hydratePlanItem(itemResponse);
+      return await orpc.planItems.update({
+        itemId: item.id,
+        serviceTypeId,
+        planId,
+        title: item.song ? item.title : draft.title,
+        servicePosition: toPlanItemServicePosition(draft.servicePosition),
+        length:
+          length !== null && length !== 0 && !Number.isNaN(length) && length > 0
+            ? length
+            : null,
+        description: draft.description,
+        songId: undefined,
+        arrangementId: draft.arrangementId || undefined,
+        keyId: draft.keyId || undefined,
+      });
     },
     onMutate: async ({
       item,

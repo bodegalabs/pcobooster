@@ -4,7 +4,11 @@ import { adminContract } from "@worship-admin/contracts/admin";
 import { catalogContract } from "@worship-admin/contracts/catalog";
 import { featuresContract } from "@worship-admin/contracts/features";
 import { peopleContract } from "@worship-admin/contracts/people";
+import { planItemsContract } from "@worship-admin/contracts/plan-items";
+import { planPeopleContract } from "@worship-admin/contracts/plan-people";
+import { planTimesContract } from "@worship-admin/contracts/plan-times";
 import { sessionContract } from "@worship-admin/contracts/session";
+import { songsContract } from "@worship-admin/contracts/songs";
 import { z } from "zod";
 
 const healthInputSchema = z.object({});
@@ -26,7 +30,11 @@ export const appContract = oc.router({
   features: featuresContract,
   health: healthContract,
   people: peopleContract,
+  planItems: planItemsContract,
+  planPeople: planPeopleContract,
+  planTimes: planTimesContract,
   session: sessionContract,
+  songs: songsContract,
 });
 
 export type AppContract = typeof appContract;

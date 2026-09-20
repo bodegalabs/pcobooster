@@ -4,7 +4,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Check, Clock3 } from "lucide-react";
 import { useMemo } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { formatPlanTimeRangeLabel } from "@/components/schedule/plan-time-display";
 import { Badge } from "@/components/ui/badge";
@@ -22,11 +21,11 @@ import {
 } from "@/components/ui/popover";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { useDraftPopover } from "@/hooks/use-persist-on-close-popover";
-import { patchJson } from "@/lib/http/client";
 import { formatWallTimeInTimeZone } from "@/lib/planning-center/org-calendar";
 import { queryKeys } from "@/lib/query-keys";
 import type { FilledPositionPerson, PlanTime } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { orpc } from "@/orpc-client";
 
 interface PersonRehearsalTimesPopoverProps {
   person: FilledPositionPerson;
@@ -107,16 +106,13 @@ export const PersonRehearsalTimesPopover = ({
     }
 
     try {
-      await patchJson(
-        `/api/plan-people/${encodeURIComponent(person.planPersonId)}/times`,
-        z.object({ ok: z.literal(true) }),
-        {
-          service_type_id: serviceTypeId,
-          plan_id: planId,
-          person_id: person.personId,
-          plan_time_ids: timeIds,
-        }
-      );
+      await orpc.planPeople.updateTimes({
+        planPersonId: person.planPersonId,
+        serviceTypeId,
+        planId,
+        personId: person.personId,
+        planTimeIds: timeIds,
+      });
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: queryKeys.teamPositions(serviceTypeId, planId, seriesId),

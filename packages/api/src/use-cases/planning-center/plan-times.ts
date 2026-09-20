@@ -74,9 +74,27 @@ const defaultDependencies: PlanTimeDependencies = {
   catalogService: planningCenterCatalogService,
 };
 
+const awaitAllWrites = async <Value>(
+  writes: Promise<Value>[],
+  failureMessage: string
+): Promise<void> => {
+  const results = await Promise.allSettled(writes);
+  for (const result of results) {
+    if (result.status === "rejected") {
+      throw result.reason instanceof Error
+        ? result.reason
+        : new Error(failureMessage, { cause: result.reason });
+    }
+  }
+};
+
+const invalidateDefaultPlanWindowHistory = (): void => {
+  invalidatePlanWindowHistory(planningCenterPeopleService.getCacheScope());
+};
+
 export const deletePlanTime = async (
   input: DeletePlanTimeInput,
-  invalidateHistory: () => void = invalidatePlanWindowHistory,
+  invalidateHistory: () => void = invalidateDefaultPlanWindowHistory,
   dependencies: PlanTimeDependencies = defaultDependencies
 ): Promise<void> => {
   await dependencies.plansService.deletePlanTime(
@@ -138,7 +156,7 @@ const updateIndividualTimeAssignments = async (
       })
     );
   }
-  await Promise.all(updates);
+  await awaitAllWrites(updates, "A plan person time update failed");
 };
 
 const updateNeededPositionAssignments = async (
@@ -151,26 +169,28 @@ const updateNeededPositionAssignments = async (
     return;
   }
 
-  await Promise.all([
-    ...assignIds.map(
-      async (id) =>
-        await dependencies.catalogService.updateServiceTypePlanNeededPositionTime(
-          input.serviceTypeId,
-          input.planId,
-          id,
-          input.planTimeId
-        )
-    ),
-    ...clearIds.map(
-      async (id) =>
-        await dependencies.catalogService.updateServiceTypePlanNeededPositionTime(
-          input.serviceTypeId,
-          input.planId,
-          id,
-          null
-        )
-    ),
-  ]);
+  const writes: Promise<PCResource>[] = [];
+  for (const id of assignIds) {
+    writes.push(
+      dependencies.catalogService.updateServiceTypePlanNeededPositionTime(
+        input.serviceTypeId,
+        input.planId,
+        id,
+        input.planTimeId
+      )
+    );
+  }
+  for (const id of clearIds) {
+    writes.push(
+      dependencies.catalogService.updateServiceTypePlanNeededPositionTime(
+        input.serviceTypeId,
+        input.planId,
+        id,
+        null
+      )
+    );
+  }
+  await awaitAllWrites(writes, "A needed position time update failed");
 };
 
 const getRelationshipIds = (data: PCRelationship["data"]): string[] => {
@@ -252,7 +272,7 @@ export const getPlanTimes = async (
 
 export const updatePlanTime = async (
   input: UpdatePlanTimeInput,
-  invalidateHistory: () => void = invalidatePlanWindowHistory,
+  invalidateHistory: () => void = invalidateDefaultPlanWindowHistory,
   dependencies: PlanTimeDependencies = defaultDependencies
 ): Promise<PlanTime> => {
   const attributes: JsonObject = {};
@@ -277,12 +297,15 @@ export const updatePlanTime = async (
     input.assignedTeamIds,
     input.assignedPositionIds
   );
-  await updateNeededPositionAssignments(input, dependencies);
-  await updateIndividualTimeAssignments(input, dependencies);
-  dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
-    input.planId
-  );
-  invalidateHistory();
+  try {
+    await updateNeededPositionAssignments(input, dependencies);
+    await updateIndividualTimeAssignments(input, dependencies);
+  } finally {
+    dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
+      input.planId
+    );
+    invalidateHistory();
+  }
 
   const planTime = normalizePlanTime(rawPlanTime);
   if (!planTime) {
@@ -293,7 +316,7 @@ export const updatePlanTime = async (
 
 export const createPlanTime = async (
   input: CreatePlanTimeInput,
-  invalidateHistory: () => void = invalidatePlanWindowHistory,
+  invalidateHistory: () => void = invalidateDefaultPlanWindowHistory,
   dependencies: PlanTimeDependencies = defaultDependencies
 ): Promise<PlanTime> => {
   const attributes: JsonObject = {

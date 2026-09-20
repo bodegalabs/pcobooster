@@ -9,22 +9,37 @@ const DEFAULT_CATALOG_TTL_MS = 15 * 60 * 1000;
 const DEFAULT_CATALOG_MAX_PAGES = 15;
 const SONG_DETAILS_CACHE_TTL_MS = 5 * 60 * 1000;
 
-interface CatalogCacheEntry {
-  expiresAt: number;
-  promise: Promise<PCResource[]>;
+interface SongArrangementsResponse {
+  data: PCResource[];
+  included: PCResource[];
 }
 
-export class PlanningCenterSongsService {
-  private readonly catalogCache = new Map<string, CatalogCacheEntry>();
-  private readonly songCache = new PlanningCenterReadCache<PCResource>();
-  private readonly arrangementsCache = new PlanningCenterReadCache<{
-    data: PCResource[];
-    included: PCResource[];
-  }>();
-  private readonly core: PlanningCenterCoreClient;
+export interface PlanningCenterSongsServiceCaches {
+  readonly catalogs: PlanningCenterReadCache<PCResource[]>;
+  readonly songs: PlanningCenterReadCache<PCResource>;
+  readonly arrangements: PlanningCenterReadCache<SongArrangementsResponse>;
+}
 
-  constructor(core: PlanningCenterCoreClient) {
+export const createPlanningCenterSongsServiceCaches =
+  (): PlanningCenterSongsServiceCaches => ({
+    catalogs: new PlanningCenterReadCache<PCResource[]>(),
+    songs: new PlanningCenterReadCache<PCResource>(),
+    arrangements: new PlanningCenterReadCache<SongArrangementsResponse>(),
+  });
+
+export const planningCenterSongsServiceCaches =
+  createPlanningCenterSongsServiceCaches();
+
+export class PlanningCenterSongsService {
+  private readonly core: PlanningCenterCoreClient;
+  private readonly caches: PlanningCenterSongsServiceCaches;
+
+  constructor(
+    core: PlanningCenterCoreClient,
+    caches: PlanningCenterSongsServiceCaches = createPlanningCenterSongsServiceCaches()
+  ) {
     this.core = core;
+    this.caches = caches;
   }
 
   async getSongsPage(
@@ -40,40 +55,34 @@ export class PlanningCenterSongsService {
       maxPages?: number;
     }
   ): Promise<PCResource[]> {
-    const now = Date.now();
     const ttlMs = options?.ttlMs ?? DEFAULT_CATALOG_TTL_MS;
     const maxPages = options?.maxPages ?? DEFAULT_CATALOG_MAX_PAGES;
-    const cached = this.catalogCache.get(cacheKey);
-
-    if (cached && cached.expiresAt > now) {
-      return structuredClone(await cached.promise);
-    }
-
-    const promise = this.core.fetchAll(
-      "/services/v2/songs",
-      { order: "title" },
-      maxPages
+    const scopedCacheKey = this.buildSongCacheKey(
+      "catalog",
+      cacheKey,
+      String(maxPages)
     );
-
-    this.catalogCache.set(cacheKey, {
-      expiresAt: now + ttlMs,
-      promise,
-    });
-
-    try {
-      const data = await promise;
-      log.info({ cacheKey, songCount: data.length }, "Songs catalog cached");
-      return structuredClone(data);
-    } catch (error) {
-      if (this.catalogCache.get(cacheKey)?.promise === promise) {
-        this.catalogCache.delete(cacheKey);
+    const data = await this.caches.catalogs.get(
+      scopedCacheKey,
+      ttlMs,
+      async () => {
+        const songs = await this.core.fetchAll(
+          "/services/v2/songs",
+          { order: "title" },
+          maxPages
+        );
+        log.info(
+          { cacheKey: scopedCacheKey, songCount: songs.length },
+          "Songs catalog cached"
+        );
+        return songs;
       }
-      throw error;
-    }
+    );
+    return structuredClone(data);
   }
 
   async getSong(songId: string): Promise<PCResource> {
-    const resource = await this.songCache.get(
+    const resource = await this.caches.songs.get(
       this.buildSongCacheKey("song", songId),
       SONG_DETAILS_CACHE_TTL_MS,
       async () => {
@@ -88,7 +97,7 @@ export class PlanningCenterSongsService {
   async getSongArrangementsWithKeys(
     songId: string
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const response = await this.arrangementsCache.get(
+    const response = await this.caches.arrangements.get(
       this.buildSongCacheKey("arrangements", songId),
       SONG_DETAILS_CACHE_TTL_MS,
       async () =>
@@ -129,18 +138,19 @@ export class PlanningCenterSongsService {
   }
 
   private buildSongCacheKey(
-    kind: "song" | "arrangements",
-    songId: string
+    kind: "catalog" | "song" | "arrangements",
+    ...parts: string[]
   ): string {
     return [
       this.core.getCacheScope(),
       "songs",
       kind,
-      encodeURIComponent(songId),
+      ...parts.map((part) => encodeURIComponent(part)),
     ].join(":");
   }
 }
 
 export const planningCenterSongsService = new PlanningCenterSongsService(
-  new PlanningCenterCoreClient()
+  new PlanningCenterCoreClient(),
+  planningCenterSongsServiceCaches
 );

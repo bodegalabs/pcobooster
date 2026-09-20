@@ -1,40 +1,33 @@
 import { useQuery } from "@tanstack/react-query";
+import type { QueryFunctionContext } from "@tanstack/react-query";
 import { useCallback } from "react";
 
-import { serializedSongOptionSetSchema } from "@/lib/api-schemas";
-import { getJson } from "@/lib/http/client";
 import { isNonEmptyString } from "@/lib/json";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import { hydrateSongOptionSet } from "@/lib/song-catalog-client";
 import {
   readCachedSongOptions,
   writeCachedSongOptions,
 } from "@/lib/song-options-cache";
 import type { SongOptionSet } from "@/lib/types";
+import { orpc } from "@/orpc-client";
 
 export const createSongOptionsQueryOptions = (
   songId: string | null,
   serviceTypeId: string | null
 ) => ({
   queryKey: queryKeys.songOptions(songId, serviceTypeId),
-  queryFn: async () => {
+  queryFn: async ({ signal }: QueryFunctionContext) => {
     if (!isNonEmptyString(songId) || !isNonEmptyString(serviceTypeId)) {
       return null;
     }
 
-    const params = new URLSearchParams({
-      service_type_id: serviceTypeId,
-    });
-
-    const optionSet = await getJson(
-      `/api/songs/${songId}/options?${params.toString()}`,
-      serializedSongOptionSetSchema
+    const optionSet = await orpc.songs.options(
+      { songId, serviceTypeId },
+      { signal }
     );
-
-    const hydratedOptions = hydrateSongOptionSet(optionSet);
-    writeCachedSongOptions(songId, serviceTypeId, hydratedOptions);
-    return hydratedOptions;
+    writeCachedSongOptions(songId, serviceTypeId, optionSet);
+    return optionSet;
   },
   placeholderData: (previousOptions: SongOptionSet | null | undefined) =>
     previousOptions,

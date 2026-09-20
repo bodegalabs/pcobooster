@@ -8,6 +8,26 @@ const log = logger.for("planning-center/catalog");
 const TEAM_POSITIONS_CACHE_TTL_MS = 5 * 60 * 1000;
 const NEEDED_POSITIONS_CACHE_TTL_MS = 60 * 1000;
 
+export interface PlanningCenterCatalogServiceCaches {
+  readonly serviceTypes: PlanningCenterReadCache<PCResource[]>;
+  readonly reads: PlanningCenterReadCache<{
+    data: PCResource[];
+    included: PCResource[];
+  }>;
+}
+
+export const createPlanningCenterCatalogServiceCaches =
+  (): PlanningCenterCatalogServiceCaches => ({
+    serviceTypes: new PlanningCenterReadCache<PCResource[]>(),
+    reads: new PlanningCenterReadCache<{
+      data: PCResource[];
+      included: PCResource[];
+    }>(),
+  });
+
+export const planningCenterCatalogServiceCaches =
+  createPlanningCenterCatalogServiceCaches();
+
 const cloneResourceResponse = (response: {
   data: PCResource[];
   included: PCResource[];
@@ -18,15 +38,14 @@ const cloneResourceResponse = (response: {
 
 export class PlanningCenterCatalogService {
   private readonly core: PlanningCenterCoreClient;
-  private serviceTypesCache: { expiresAt: number; data: PCResource[] } | null =
-    null;
-  private readonly cache = new PlanningCenterReadCache<{
-    data: PCResource[];
-    included: PCResource[];
-  }>();
+  private readonly caches: PlanningCenterCatalogServiceCaches;
 
-  constructor(core: PlanningCenterCoreClient) {
+  constructor(
+    core: PlanningCenterCoreClient,
+    caches: PlanningCenterCatalogServiceCaches = createPlanningCenterCatalogServiceCaches()
+  ) {
     this.core = core;
+    this.caches = caches;
   }
 
   async getTeam(teamId: string): Promise<PCResource> {
@@ -55,23 +74,18 @@ export class PlanningCenterCatalogService {
   async getServiceTypesCached(
     ttlMs: number = 5 * 60 * 1000
   ): Promise<PCResource[]> {
-    const now = Date.now();
-    if (this.serviceTypesCache && this.serviceTypesCache.expiresAt > now) {
-      return structuredClone(this.serviceTypesCache.data);
-    }
-
-    const data = await this.getServiceTypes();
-    this.serviceTypesCache = {
-      expiresAt: now + ttlMs,
-      data,
-    };
-    return structuredClone(data);
+    const serviceTypes = await this.caches.serviceTypes.get(
+      `${this.core.getCacheScope()}:service-types`,
+      ttlMs,
+      async () => await this.getServiceTypes()
+    );
+    return structuredClone(serviceTypes);
   }
 
   async getServiceTypeTeamPositionsWithTeams(
     serviceTypeId: string
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const response = await this.cache.get(
+    const response = await this.caches.reads.get(
       this.buildCacheKey("service-type-team-positions", serviceTypeId),
       TEAM_POSITIONS_CACHE_TTL_MS,
       async () => {
@@ -99,7 +113,7 @@ export class PlanningCenterCatalogService {
     seriesId: string,
     planId: string
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const response = await this.cache.get(
+    const response = await this.caches.reads.get(
       this.buildCacheKey("series-plan-needed-positions", seriesId, planId),
       NEEDED_POSITIONS_CACHE_TTL_MS,
       async () => {
@@ -124,7 +138,7 @@ export class PlanningCenterCatalogService {
     serviceTypeId: string,
     planId: string
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const response = await this.cache.get(
+    const response = await this.caches.reads.get(
       this.buildCacheKey(
         "service-type-plan-needed-positions",
         serviceTypeId,
@@ -191,7 +205,7 @@ export class PlanningCenterCatalogService {
     ].join(":");
     const seriesPrefix = [scope, "series-plan-needed-positions"].join(":");
 
-    this.cache.deleteWhere(
+    this.caches.reads.deleteWhere(
       (key) => key.startsWith(serviceTypePrefix) || key.startsWith(seriesPrefix)
     );
   }
@@ -206,5 +220,6 @@ export class PlanningCenterCatalogService {
 }
 
 export const planningCenterCatalogService = new PlanningCenterCatalogService(
-  new PlanningCenterCoreClient()
+  new PlanningCenterCoreClient(),
+  planningCenterCatalogServiceCaches
 );

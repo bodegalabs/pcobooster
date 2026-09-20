@@ -14,6 +14,26 @@ import type { PCResource } from "@worship-admin/api/types";
 const log = logger.for("planning-center/plans");
 const PLANS_RANGE_CACHE_TTL_MS = 5 * 60 * 1000;
 
+export interface PlanningCenterPlansServiceCaches {
+  readonly ranges: PlanningCenterReadCache<{
+    data: PCResource[];
+    included: PCResource[];
+  }>;
+  readonly planTimes: PlanningCenterReadCache<PCResource[]>;
+}
+
+export const createPlanningCenterPlansServiceCaches =
+  (): PlanningCenterPlansServiceCaches => ({
+    ranges: new PlanningCenterReadCache<{
+      data: PCResource[];
+      included: PCResource[];
+    }>(),
+    planTimes: new PlanningCenterReadCache<PCResource[]>(),
+  });
+
+export const planningCenterPlansServiceCaches =
+  createPlanningCenterPlansServiceCaches();
+
 const cloneResourceResponse = (response: {
   data: PCResource[];
   included: PCResource[];
@@ -49,20 +69,18 @@ const buildPlanTimeAssignmentRelationships = (
 };
 
 export class PlanningCenterPlansService {
-  private readonly rangeCache = new PlanningCenterReadCache<{
-    data: PCResource[];
-    included: PCResource[];
-  }>();
-  private readonly planTimesCache = new PlanningCenterReadCache<PCResource[]>();
   private readonly core: PlanningCenterCoreClient;
   private readonly resolveTimeZone: () => Promise<string>;
+  private readonly caches: PlanningCenterPlansServiceCaches;
 
   constructor(
     core: PlanningCenterCoreClient,
-    resolveTimeZone: () => Promise<string> = resolveOrganizationTimeZone
+    resolveTimeZone: () => Promise<string> = resolveOrganizationTimeZone,
+    caches: PlanningCenterPlansServiceCaches = createPlanningCenterPlansServiceCaches()
   ) {
     this.core = core;
     this.resolveTimeZone = resolveTimeZone;
+    this.caches = caches;
   }
 
   async getPlans(
@@ -120,7 +138,7 @@ export class PlanningCenterPlansService {
       stableParams(params),
     ].join(":");
 
-    const response = await this.rangeCache.get(
+    const response = await this.caches.ranges.get(
       cacheKey,
       PLANS_RANGE_CACHE_TTL_MS,
       async () => {
@@ -185,7 +203,7 @@ export class PlanningCenterPlansService {
     serviceTypeId: string,
     planId: string
   ): Promise<PCResource[]> {
-    const planTimes = await this.planTimesCache.get(
+    const planTimes = await this.caches.planTimes.get(
       this.buildCacheKey("plan-times", serviceTypeId, planId),
       PLANS_RANGE_CACHE_TTL_MS,
       async () =>
@@ -313,8 +331,8 @@ export class PlanningCenterPlansService {
       "",
     ].join(":");
 
-    this.planTimesCache.deleteWhere((key) => key === planTimesKey);
-    this.rangeCache.deleteWhere((key) => key.startsWith(plansRangePrefix));
+    this.caches.planTimes.deleteWhere((key) => key === planTimesKey);
+    this.caches.ranges.deleteWhere((key) => key.startsWith(plansRangePrefix));
   }
 
   private buildCacheKey(namespace: string, ...parts: string[]): string {
@@ -327,5 +345,7 @@ export class PlanningCenterPlansService {
 }
 
 export const planningCenterPlansService = new PlanningCenterPlansService(
-  new PlanningCenterCoreClient()
+  new PlanningCenterCoreClient(),
+  resolveOrganizationTimeZone,
+  planningCenterPlansServiceCaches
 );

@@ -7,6 +7,12 @@ import {
   rpc,
 } from "@worship-admin/api/transport/orpc/implementation";
 import { peopleRouter } from "@worship-admin/api/transport/orpc/people";
+import { planItemsRouter } from "@worship-admin/api/transport/orpc/plan-items";
+import {
+  planPeopleRouter,
+  planTimesRouter,
+} from "@worship-admin/api/transport/orpc/plan-times";
+import { songsRouter } from "@worship-admin/api/transport/orpc/songs";
 import { Effect } from "effect";
 
 const health = rpc.health.handler(
@@ -26,7 +32,11 @@ export const appRouter = rpc.router({
   features: identityRouter.features,
   health,
   people: peopleRouter,
+  planItems: planItemsRouter,
+  planPeople: planPeopleRouter,
+  planTimes: planTimesRouter,
   session: identityRouter.session,
+  songs: songsRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -4,7 +4,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, Trash2 } from "lucide-react";
 import { startTransition, useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import {
   getPlanPersonStatusValue,
@@ -34,10 +33,10 @@ import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cac
 import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
 import { useUpdatePlanPersonStatus } from "@/hooks/use-update-plan-person-status";
 import { getInitials } from "@/lib/format/initials";
-import { patchJson } from "@/lib/http/client";
 import { formatWallTimeInTimeZone } from "@/lib/planning-center/org-calendar";
 import { queryKeys } from "@/lib/query-keys";
 import type { FilledPositionPerson, PlanTime } from "@/lib/types";
+import { orpc } from "@/orpc-client";
 
 interface PlanPersonEditDialogProps {
   person: FilledPositionPerson;
@@ -235,20 +234,18 @@ const PlanPersonEditDialogBody = ({
   const hasChanges = statusChanged || timesChanged;
 
   const persistTimes = async (timeIds: string[]) => {
-    if (!canEditTimes) {
+    const { personId } = person;
+    if (!canEditTimes || personId === null || personId === undefined) {
       return;
     }
 
-    await patchJson(
-      `/api/plan-people/${encodeURIComponent(person.planPersonId)}/times`,
-      z.object({ ok: z.literal(true) }),
-      {
-        service_type_id: serviceTypeId,
-        plan_id: planId,
-        person_id: person.personId,
-        plan_time_ids: timeIds,
-      }
-    );
+    await orpc.planPeople.updateTimes({
+      planPersonId: person.planPersonId,
+      serviceTypeId,
+      planId,
+      personId,
+      planTimeIds: timeIds,
+    });
 
     await Promise.all([
       queryClient.invalidateQueries({

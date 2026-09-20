@@ -1,8 +1,10 @@
 import { planningCenterPlanItemsService } from "@worship-admin/api/planning-center/services/plan-items-service";
+import type { PlanningCenterPlanItemsService } from "@worship-admin/api/planning-center/services/plan-items-service";
 import type {
   PlanItem,
   PlanItemServicePosition,
 } from "@worship-admin/api/types";
+import { getSongOptions } from "@worship-admin/api/use-cases/planning-center/get-song-options";
 import {
   buildPlanItemAttributes,
   resolvePlanItemSongDefaults,
@@ -25,12 +27,26 @@ export interface UpdatePlanItemInput {
   customArrangementSequence?: string[];
 }
 
-export const updatePlanItem = async (
-  input: UpdatePlanItemInput
-): Promise<PlanItem> => {
-  const resolvedInput = await resolvePlanItemSongDefaults(input);
+export interface UpdatePlanItemDependencies {
+  planItemsService: Pick<PlanningCenterPlanItemsService, "updatePlanItem">;
+  loadSongOptions: typeof getSongOptions;
+}
 
-  const response = await planningCenterPlanItemsService.updatePlanItem(
+const defaultDependencies: UpdatePlanItemDependencies = {
+  planItemsService: planningCenterPlanItemsService,
+  loadSongOptions: getSongOptions,
+};
+
+export const updatePlanItem = async (
+  input: UpdatePlanItemInput,
+  dependencies: UpdatePlanItemDependencies = defaultDependencies
+): Promise<PlanItem> => {
+  const resolvedInput = await resolvePlanItemSongDefaults(
+    input,
+    dependencies.loadSongOptions
+  );
+
+  const response = await dependencies.planItemsService.updatePlanItem(
     input.serviceTypeId,
     input.planId,
     input.itemId,

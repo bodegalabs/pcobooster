@@ -28,6 +28,29 @@ interface AllTeamPeopleResponse {
   teamNamesByPersonId: Map<string, Set<string>>;
 }
 
+interface ResourceCollectionResponse {
+  data: PCResource[];
+  included: PCResource[];
+}
+
+export interface PlanningCenterPeopleServiceCaches {
+  readonly people: PlanningCenterReadCache<PCResource>;
+  readonly resourceLists: PlanningCenterReadCache<PCResource[]>;
+  readonly collections: PlanningCenterReadCache<ResourceCollectionResponse>;
+  readonly allTeamPeople: PlanningCenterReadCache<AllTeamPeopleResponse>;
+}
+
+export const createPlanningCenterPeopleServiceCaches =
+  (): PlanningCenterPeopleServiceCaches => ({
+    people: new PlanningCenterReadCache<PCResource>(),
+    resourceLists: new PlanningCenterReadCache<PCResource[]>(),
+    collections: new PlanningCenterReadCache<ResourceCollectionResponse>(),
+    allTeamPeople: new PlanningCenterReadCache<AllTeamPeopleResponse>(),
+  });
+
+export const planningCenterPeopleServiceCaches =
+  createPlanningCenterPeopleServiceCaches();
+
 const getRelationshipIdentifiers = (
   data: PCRelationship["data"]
 ): PCResourceIdentifier[] => {
@@ -89,21 +112,23 @@ const cloneAllTeamPeopleResponse = (
   ),
 });
 
-export class PlanningCenterPeopleService {
-  private readonly personCache = new PlanningCenterReadCache<PCResource>();
-  private readonly resourceListCache = new PlanningCenterReadCache<
-    PCResource[]
-  >();
-  private readonly collectionCache = new PlanningCenterReadCache<{
-    data: PCResource[];
-    included: PCResource[];
-  }>();
-  private readonly allTeamPeopleCache =
-    new PlanningCenterReadCache<AllTeamPeopleResponse>();
-  private readonly core: PlanningCenterCoreClient;
+const cloneResourceCollectionResponse = (
+  response: ResourceCollectionResponse
+): ResourceCollectionResponse => ({
+  data: structuredClone(response.data),
+  included: structuredClone(response.included),
+});
 
-  constructor(core: PlanningCenterCoreClient) {
+export class PlanningCenterPeopleService {
+  private readonly core: PlanningCenterCoreClient;
+  private readonly caches: PlanningCenterPeopleServiceCaches;
+
+  constructor(
+    core: PlanningCenterCoreClient,
+    caches: PlanningCenterPeopleServiceCaches = createPlanningCenterPeopleServiceCaches()
+  ) {
     this.core = core;
+    this.caches = caches;
   }
 
   async getPeopleFromTeam(teamId: string): Promise<PCResource[]> {
@@ -113,7 +138,7 @@ export class PlanningCenterPeopleService {
   }
 
   async getPerson(personId: string): Promise<PCResource> {
-    return await this.personCache.get(
+    const person = await this.caches.people.get(
       this.buildCacheKey("person", personId),
       PERSON_READ_CACHE_TTL_MS,
       async () => {
@@ -123,6 +148,7 @@ export class PlanningCenterPeopleService {
         return response.data;
       }
     );
+    return structuredClone(person);
   }
 
   async searchPeopleByName(query: string, limit = 15): Promise<PCResource[]> {
@@ -131,7 +157,7 @@ export class PlanningCenterPeopleService {
       return [];
     }
 
-    const data = await this.resourceListCache.get(
+    const data = await this.caches.resourceLists.get(
       this.buildCacheKey(
         "people-search",
         normalizedQuery.toLowerCase(),
@@ -153,7 +179,7 @@ export class PlanningCenterPeopleService {
   }
 
   async getAllPeople(): Promise<PCResource[]> {
-    const people = await this.resourceListCache.get(
+    const people = await this.caches.resourceLists.get(
       this.buildCacheKey("all-people"),
       ALL_TEAM_PEOPLE_CACHE_TTL_MS,
       async () =>
@@ -173,7 +199,7 @@ export class PlanningCenterPeopleService {
   }
 
   async getAllPeopleFromTeams(): Promise<AllTeamPeopleResponse> {
-    const response = await this.allTeamPeopleCache.get(
+    const response = await this.caches.allTeamPeople.get(
       this.buildCacheKey("all-team-people"),
       ALL_TEAM_PEOPLE_CACHE_TTL_MS,
       async () => await this.loadAllPeopleFromTeams()
@@ -186,7 +212,7 @@ export class PlanningCenterPeopleService {
     personId: string,
     params: Record<string, string> = {}
   ): Promise<PCResource[]> {
-    return await this.resourceListCache.get(
+    const blockouts = await this.caches.resourceLists.get(
       this.buildCacheKey("person-blockouts", personId, stableParams(params)),
       PERSON_READ_CACHE_TTL_MS,
       async () =>
@@ -195,13 +221,14 @@ export class PlanningCenterPeopleService {
           params
         )
     );
+    return structuredClone(blockouts);
   }
 
   async getPersonBlockoutDates(
     personId: string,
     blockoutId: string
   ): Promise<PCResource[]> {
-    return await this.resourceListCache.get(
+    const dates = await this.caches.resourceLists.get(
       this.buildCacheKey("person-blockout-dates", personId, blockoutId),
       PERSON_READ_CACHE_TTL_MS,
       async () =>
@@ -209,6 +236,7 @@ export class PlanningCenterPeopleService {
           `/services/v2/people/${personId}/blockouts/${blockoutId}/blockout_dates`
         )
     );
+    return structuredClone(dates);
   }
 
   async getPersonSchedules(
@@ -216,7 +244,7 @@ export class PlanningCenterPeopleService {
     params: Record<string, string> = {},
     maxPages = 2
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    return await this.collectionCache.get(
+    const response = await this.caches.collections.get(
       this.buildCacheKey(
         "person-schedules",
         personId,
@@ -225,14 +253,14 @@ export class PlanningCenterPeopleService {
       ),
       PERSON_READ_CACHE_TTL_MS,
       async () => {
-        const response = await this.core.fetchAllWithIncluded(
+        const fetched = await this.core.fetchAllWithIncluded(
           `/services/v2/people/${personId}/schedules`,
           { include: "plan_times", ...params },
           maxPages
         );
 
-        const { data } = response;
-        const included = response.included ?? [];
+        const { data } = fetched;
+        const included = fetched.included ?? [];
         const enrichedIncluded = await this.enrichSchedulesWithRehearsalTimes(
           data,
           included
@@ -244,6 +272,7 @@ export class PlanningCenterPeopleService {
         };
       }
     );
+    return cloneResourceCollectionResponse(response);
   }
 
   /**
@@ -302,7 +331,7 @@ export class PlanningCenterPeopleService {
    * change, so the TTL is longer than per-person caches.
    */
   async getPlanPlanTimes(planId: string): Promise<PCResource[]> {
-    return await this.resourceListCache.get(
+    const planTimes = await this.caches.resourceLists.get(
       this.buildCacheKey("plan-plan-times", planId),
       PLAN_TIMES_CACHE_TTL_MS,
       async () => {
@@ -316,13 +345,14 @@ export class PlanningCenterPeopleService {
         }
       }
     );
+    return structuredClone(planTimes);
   }
 
   async getPeopleForTeamPosition(
     serviceTypeId: string,
     positionId: string
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    return await this.collectionCache.get(
+    const response = await this.caches.collections.get(
       this.buildCacheKey(
         "team-position-assignments",
         serviceTypeId,
@@ -330,59 +360,62 @@ export class PlanningCenterPeopleService {
       ),
       ASSIGNMENTS_CACHE_TTL_MS,
       async () => {
-        const response = await this.core.fetchAllWithIncluded(
+        const fetched = await this.core.fetchAllWithIncluded(
           `/services/v2/service_types/${serviceTypeId}/team_positions/${positionId}/person_team_position_assignments`,
           { include: "person,team_position" },
           10
         );
 
         return {
-          data: response.data,
-          included: response.included ?? [],
+          data: fetched.data,
+          included: fetched.included ?? [],
         };
       }
     );
+    return cloneResourceCollectionResponse(response);
   }
 
   async getPlanTeamMembers(
     serviceTypeId: string,
     planId: string
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    return await this.collectionCache.get(
+    const response = await this.caches.collections.get(
       this.buildCacheKey("plan-team-members", serviceTypeId, planId),
       PLAN_TEAM_MEMBERS_CACHE_TTL_MS,
       async () => {
-        const response = await this.core.fetchAllWithIncluded(
+        const fetched = await this.core.fetchAllWithIncluded(
           `/services/v2/service_types/${serviceTypeId}/plans/${planId}/team_members`,
           { include: "person,team,plan", per_page: "100" },
           25
         );
 
         return {
-          data: response.data,
-          included: response.included ?? [],
+          data: fetched.data,
+          included: fetched.included ?? [],
         };
       }
     );
+    return cloneResourceCollectionResponse(response);
   }
 
   async getPersonTeamPositionAssignments(
     personId: string
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    return await this.collectionCache.get(
+    const response = await this.caches.collections.get(
       this.buildCacheKey("person-team-position-assignments", personId),
       PERSON_TEAM_POSITION_ASSIGNMENTS_CACHE_TTL_MS,
       async () => {
-        const response = await this.core.fetchCollection(
+        const fetched = await this.core.fetchCollection(
           `/services/v2/people/${personId}/person_team_position_assignments?include=team_position,team_position.team`
         );
 
         return {
-          data: response.data,
-          included: response.included ?? [],
+          data: fetched.data,
+          included: fetched.included ?? [],
         };
       }
     );
+    return cloneResourceCollectionResponse(response);
   }
 
   async updatePlanPersonStatus(
@@ -540,7 +573,7 @@ export class PlanningCenterPeopleService {
       planId
     );
 
-    this.collectionCache.deleteWhere(
+    this.caches.collections.deleteWhere(
       (key) =>
         (isNonEmptyString(personSchedulesPrefix)
           ? key.startsWith(personSchedulesPrefix)
@@ -553,8 +586,8 @@ export class PlanningCenterPeopleService {
     const planTimesKey = this.buildCacheKey("plan-plan-times", planId);
     const personSchedulesPrefix = [scope, "person-schedules"].join(":");
 
-    this.resourceListCache.deleteWhere((key) => key === planTimesKey);
-    this.collectionCache.deleteWhere((key) =>
+    this.caches.resourceLists.deleteWhere((key) => key === planTimesKey);
+    this.caches.collections.deleteWhere((key) =>
       key.startsWith(personSchedulesPrefix)
     );
   }
@@ -649,5 +682,6 @@ export class PlanningCenterPeopleService {
 }
 
 export const planningCenterPeopleService = new PlanningCenterPeopleService(
-  new PlanningCenterCoreClient()
+  new PlanningCenterCoreClient(),
+  planningCenterPeopleServiceCaches
 );

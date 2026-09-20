@@ -8,6 +8,23 @@ import type { PCResource } from "@worship-admin/api/types";
 const log = logger.for("planning-center/plan-items");
 const PLAN_ITEMS_CACHE_TTL_MS = 30 * 1000;
 
+export interface PlanningCenterPlanItemsServiceCaches {
+  readonly items: PlanningCenterReadCache<PlanItemsResponse>;
+}
+
+export const createPlanningCenterPlanItemsServiceCaches =
+  (): PlanningCenterPlanItemsServiceCaches => ({
+    items: new PlanningCenterReadCache<PlanItemsResponse>(),
+  });
+
+export const planningCenterPlanItemsServiceCaches =
+  createPlanningCenterPlanItemsServiceCaches();
+
+interface PlanItemsResponse {
+  data: PCResource[];
+  included: PCResource[];
+}
+
 const buildItemPayload = (attributes: JsonObject, id?: string) => ({
   data: {
     type: "Item",
@@ -16,30 +33,28 @@ const buildItemPayload = (attributes: JsonObject, id?: string) => ({
   },
 });
 
-const clonePlanItemsResponse = (response: {
-  data: PCResource[];
-  included: PCResource[];
-}) => ({
+const clonePlanItemsResponse = (response: PlanItemsResponse) => ({
   data: structuredClone(response.data),
   included: structuredClone(response.included),
 });
 
 export class PlanningCenterPlanItemsService {
   private readonly core: PlanningCenterCoreClient;
-  private readonly cache = new PlanningCenterReadCache<{
-    data: PCResource[];
-    included: PCResource[];
-  }>();
+  private readonly caches: PlanningCenterPlanItemsServiceCaches;
 
-  constructor(core: PlanningCenterCoreClient) {
+  constructor(
+    core: PlanningCenterCoreClient,
+    caches: PlanningCenterPlanItemsServiceCaches = createPlanningCenterPlanItemsServiceCaches()
+  ) {
     this.core = core;
+    this.caches = caches;
   }
 
   async getPlanItems(
     serviceTypeId: string,
     planId: string
-  ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const response = await this.cache.get(
+  ): Promise<PlanItemsResponse> {
+    const response = await this.caches.items.get(
       this.buildPlanItemsCacheKey(serviceTypeId, planId),
       PLAN_ITEMS_CACHE_TTL_MS,
       async () => {
@@ -177,9 +192,12 @@ export class PlanningCenterPlanItemsService {
 
   private invalidatePlanItemsCache(serviceTypeId: string, planId: string) {
     const cacheKey = this.buildPlanItemsCacheKey(serviceTypeId, planId);
-    this.cache.deleteWhere((key) => key === cacheKey);
+    this.caches.items.deleteWhere((key) => key === cacheKey);
   }
 }
 
 export const planningCenterPlanItemsService =
-  new PlanningCenterPlanItemsService(new PlanningCenterCoreClient());
+  new PlanningCenterPlanItemsService(
+    new PlanningCenterCoreClient(),
+    planningCenterPlanItemsServiceCaches
+  );
