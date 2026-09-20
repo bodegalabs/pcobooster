@@ -1,20 +1,12 @@
-import { implement } from "@orpc/server";
-import {
-  getCatalogOrganization,
-  getCatalogPlans,
-  getCatalogServiceTypes,
-  getCatalogTeamPositions,
-} from "@worship-admin/api/application/catalog";
 import { RequestContext } from "@worship-admin/api/application/context";
-import { withPlanningCenterAccess } from "@worship-admin/api/application/planning-center-access";
-import { createApplicationRuntime } from "@worship-admin/api/application/runtime";
-import type { RpcContext } from "@worship-admin/api/transport/orpc/context";
+import { catalogRouter } from "@worship-admin/api/transport/orpc/catalog";
 import { executeApplicationEffect } from "@worship-admin/api/transport/orpc/execute";
-import { appContract } from "@worship-admin/contracts";
-import { Effect, Layer } from "effect";
-
-const applicationRuntime = createApplicationRuntime(Layer.empty);
-const rpc = implement(appContract).$context<RpcContext>();
+import {
+  applicationRuntime,
+  rpc,
+} from "@worship-admin/api/transport/orpc/implementation";
+import { peopleRouter } from "@worship-admin/api/transport/orpc/people";
+import { Effect } from "effect";
 
 const health = rpc.health.handler(
   async ({ context, signal }) =>
@@ -26,54 +18,10 @@ const health = rpc.health.handler(
     )
 );
 
-const catalogServiceTypes = rpc.catalog.serviceTypes.handler(
-  async ({ context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getCatalogServiceTypes),
-      context,
-      signal
-    )
-);
-
-const catalogPlans = rpc.catalog.plans.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getCatalogPlans(input)),
-      context,
-      signal
-    )
-);
-
-const catalogOrganization = rpc.catalog.organization.handler(
-  async ({ context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getCatalogOrganization),
-      context,
-      signal
-    )
-);
-
-const catalogTeamPositions = rpc.catalog.teamPositions.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getCatalogTeamPositions(input)),
-      context,
-      signal
-    )
-);
-
 export const appRouter = rpc.router({
-  catalog: {
-    serviceTypes: catalogServiceTypes,
-    plans: catalogPlans,
-    organization: catalogOrganization,
-    teamPositions: catalogTeamPositions,
-  },
+  catalog: catalogRouter,
   health,
+  people: peopleRouter,
 });
 
 export type AppRouter = typeof appRouter;

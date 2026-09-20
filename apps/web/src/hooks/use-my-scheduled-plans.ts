@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 
-import { myScheduledPlansDataSchema } from "@/lib/api-schemas";
-import { postJson } from "@/lib/http/client";
 import {
   readCachedMyScheduledPlans,
   writeCachedMyScheduledPlans,
@@ -10,6 +8,7 @@ import {
 import type { MyScheduledPlansData } from "@/lib/my-scheduled-plans-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
+import { orpc } from "@/orpc-client";
 
 export const useMyScheduledPlans = (planIds: string[]) => {
   const normalizedPlanIds = useMemo(
@@ -26,17 +25,14 @@ export const useMyScheduledPlans = (planIds: string[]) => {
 
   return useQuery<MyScheduledPlansData>({
     queryKey,
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (normalizedPlanIds.length === 0) {
         return { planIds: [] };
       }
 
-      const scheduledPlans = await postJson(
-        "/api/my-scheduled-plans",
-        myScheduledPlansDataSchema,
-        {
-          planIds: normalizedPlanIds,
-        }
+      const scheduledPlans = await orpc.people.myScheduledPlans(
+        { planIds: normalizedPlanIds },
+        { signal }
       );
       writeCachedMyScheduledPlans(planIdsKey, scheduledPlans);
       return scheduledPlans;

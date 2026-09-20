@@ -5,6 +5,7 @@ import {
 import { getPlanningCenterIdentityForAccount } from "@worship-admin/api/auth/planning-center-account-identity";
 import { isNonEmptyString, isString } from "@worship-admin/api/json";
 import { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
+import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import type { PCResource } from "@worship-admin/api/types";
 
 const extractPersonIdFromIdentitySub = (sub: string | null): string | null => {
@@ -43,10 +44,28 @@ const isScheduledStatus = (status: string | undefined): boolean => {
   return normalized !== "declined" && normalized !== "d";
 };
 
+export interface CurrentUserScheduledPlansDependencies {
+  readonly isDevAuthBypassEnabled: typeof isDevAuthBypassEnabled;
+  readonly loadDevBypassIdentity: typeof loadDevBypassIdentity;
+  readonly getPlanningCenterIdentityForAccount: typeof getPlanningCenterIdentityForAccount;
+  readonly peopleService: Pick<
+    PlanningCenterPeopleService,
+    "getPersonSchedules"
+  >;
+}
+
+const defaultDependencies: CurrentUserScheduledPlansDependencies = {
+  isDevAuthBypassEnabled,
+  loadDevBypassIdentity,
+  getPlanningCenterIdentityForAccount,
+  peopleService: planningCenterPeopleService,
+};
+
 export const getCurrentUserScheduledPlanIds = async (
   request: Request,
   account: { id: string; accountId: string },
-  planIds: string[]
+  planIds: string[],
+  dependencies: CurrentUserScheduledPlansDependencies = defaultDependencies
 ): Promise<string[]> => {
   if (planIds.length === 0) {
     return [];
@@ -54,11 +73,11 @@ export const getCurrentUserScheduledPlanIds = async (
 
   const requestedPlanIds = new Set(planIds);
   let personId: string | null;
-  if (isDevAuthBypassEnabled()) {
-    const identity = await loadDevBypassIdentity();
+  if (dependencies.isDevAuthBypassEnabled()) {
+    const identity = await dependencies.loadDevBypassIdentity();
     ({ personId } = identity);
   } else {
-    const identity = await getPlanningCenterIdentityForAccount(
+    const identity = await dependencies.getPlanningCenterIdentityForAccount(
       request,
       account
     );
@@ -68,7 +87,7 @@ export const getCurrentUserScheduledPlanIds = async (
     return [];
   }
 
-  const response = await planningCenterPeopleService.getPersonSchedules(
+  const response = await dependencies.peopleService.getPersonSchedules(
     personId,
     { order: "-starts_at" },
     5

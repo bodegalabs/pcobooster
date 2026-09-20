@@ -29,10 +29,7 @@ type PeopleDashboardReader = Pick<
   PlanningCenterPeopleService,
   "getCacheScope" | "getAllPeopleFromTeams" | "getPersonSchedules"
 >;
-const peopleDashboardCaches = new WeakMap<
-  PeopleDashboardReader,
-  PlanningCenterReadCache<PeopleDashboardData>
->();
+const peopleDashboardCache = new PlanningCenterReadCache<PeopleDashboardData>();
 const monthLabelFormatter = new Intl.DateTimeFormat("en-US", {
   month: "long",
   year: "numeric",
@@ -727,12 +724,7 @@ export const getPeopleDashboard = async ({
   resolveTimeZone?: typeof resolveOrganizationTimeZone;
 } = {}): Promise<PeopleDashboardData> => {
   const orgTimeZone = await resolveTimeZone();
-  let cache = peopleDashboardCaches.get(peopleService);
-  if (!cache) {
-    cache = new PlanningCenterReadCache<PeopleDashboardData>();
-    peopleDashboardCaches.set(peopleService, cache);
-  }
-  return await cache.get(
+  return await peopleDashboardCache.get(
     [
       peopleService.getCacheScope(),
       PEOPLE_DASHBOARD_CACHE_VERSION,

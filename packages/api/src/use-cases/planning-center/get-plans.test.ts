@@ -43,7 +43,8 @@ describe(getPlansForServiceType, () => {
     expect(getPlansInDateRangeMock).toHaveBeenCalledWith(
       "686882",
       "2026-06-15",
-      expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/u)
+      expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/u),
+      "UTC"
     );
     const [firstCall] = getPlansInDateRangeMock.mock.calls;
     const [, afterKey, beforeKey] = firstCall;
