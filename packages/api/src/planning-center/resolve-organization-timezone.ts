@@ -1,6 +1,7 @@
 import { isNonEmptyString, isString } from "@worship-admin/api/json";
 import { getPlanningCenterRequestAccessToken } from "@worship-admin/api/planning-center/request-auth-context";
 import { planningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
+import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
 import type { PCResource } from "@worship-admin/api/types";
 
 const HIT_TTL_MS = 60 * 60 * 1000;
@@ -8,8 +9,24 @@ const MISS_TTL_MS = 2 * 60 * 1000;
 
 const cache = new Map<string, { timeZone: string; expiresAt: number }>();
 
-const cacheKey = (): string =>
+const legacyCacheScope = (): string =>
   getPlanningCenterRequestAccessToken() ?? "__application__";
+
+export interface OrganizationTimeZoneDependencies {
+  readonly catalogService: Pick<
+    PlanningCenterCatalogService,
+    "getOrganization"
+  >;
+  /**
+   * Converted Effect programs pass a request-owned scope. The legacy default
+   * keeps existing REST callers working until they are migrated.
+   */
+  readonly cacheScope?: string;
+}
+
+const defaultDependencies: OrganizationTimeZoneDependencies = {
+  catalogService: planningCenterCatalogService,
+};
 
 /** When Planning Center does not return a zone (or the request fails). */
 const configuredFallbackTimeZone = (): string =>
@@ -31,8 +48,10 @@ const readTimeZoneFromOrganization = (org: PCResource): string | null => {
  * Cached per access token / app credentials. Falls back to env (then Los Angeles) only if the API
  * does not expose a zone or the fetch fails.
  */
-export const resolveOrganizationTimeZone = async (): Promise<string> => {
-  const key = cacheKey();
+export const resolveOrganizationTimeZone = async (
+  dependencies: OrganizationTimeZoneDependencies = defaultDependencies
+): Promise<string> => {
+  const key = dependencies.cacheScope ?? legacyCacheScope();
   const now = Date.now();
   const hit = cache.get(key);
   if (hit && hit.expiresAt > now) {
@@ -40,7 +59,7 @@ export const resolveOrganizationTimeZone = async (): Promise<string> => {
   }
 
   try {
-    const org = await planningCenterCatalogService.getOrganization();
+    const org = await dependencies.catalogService.getOrganization();
     const tz = readTimeZoneFromOrganization(org);
     if (isNonEmptyString(tz)) {
       cache.set(key, { timeZone: tz, expiresAt: now + HIT_TTL_MS });

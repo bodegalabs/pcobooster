@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueries, useQueryClient } from "@tanstack/react-query";
+import type { QueryFunctionContext } from "@tanstack/react-query";
 import {
   useCallback,
   useDeferredValue,
@@ -9,7 +10,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { z } from "zod";
 
 import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import { useMyScheduledPlans } from "@/hooks/use-my-scheduled-plans";
@@ -17,7 +17,6 @@ import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
 import { useServiceTypes } from "@/hooks/use-service-types";
 import { createTeamPositionsQueryOptions } from "@/hooks/use-team-positions";
-import { planSchema } from "@/lib/api-schemas";
 import { getJson } from "@/lib/http/client";
 import { isNonEmptyString } from "@/lib/json";
 import { hydrateQueryFromCache } from "@/lib/query-cache-hydration";
@@ -41,6 +40,7 @@ import {
   TEAM_POSITIONS_PREFETCH_DELAY_MS,
   warmupResponseSchema,
 } from "@/lib/service-plan-selection";
+import { orpc } from "@/orpc-client";
 
 export const useServicePlanSelection = ({
   selectedServiceTypeId,
@@ -105,10 +105,10 @@ export const useServicePlanSelection = ({
     () =>
       (serviceTypes ?? []).map((serviceType) => ({
         queryKey: queryKeys.plans(serviceType.id),
-        queryFn: async () =>
-          await getJson(
-            `/api/plans?service_type_id=${serviceType.id}`,
-            z.array(planSchema)
+        queryFn: async ({ signal }: QueryFunctionContext) =>
+          await orpc.catalog.plans(
+            { serviceTypeId: serviceType.id },
+            { signal }
           ),
         staleTime: 5 * 60 * 1000,
         enabled: !!serviceTypes && selectedServiceTypeIdSet.has(serviceType.id),
