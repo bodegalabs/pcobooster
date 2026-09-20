@@ -15,11 +15,15 @@ package-lock.json
 /coverage
 
 # next.js
-.next/
-out/
+**/.next/
+**/out/
+
+# turborepo
+.turbo/
 
 # production
 /build
+/apps/server/dist/
 
 # misc
 .DS_Store
@@ -42,5 +46,5 @@ yarn-error.log*
 next-env.d.ts
 .env*.local
 
-# Generated marketing export
-/public/marketing/
+# Generated marketing export staged into the product app
+/apps/web/public/marketing/

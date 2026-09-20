@@ -1,4 +1,4 @@
-# PCOBooster
+# worshipadmin.com
 
 Planning Center scheduling tools for worship admins.
 
@@ -14,7 +14,7 @@ This app helps teams schedule people into open positions for specific plans by c
 
 The public marketing site lives at `/`, with the origin story at `/about`. The authenticated product starts at `/services`.
 
-This is a Bun workspace monorepo: `apps/marketing` is an independent Next.js app, while the existing product stays at the repository root for a later package split. See [marketing development and deployment](docs/marketing.md).
+This is a Bun/Turborepo monorepo. The product UI lives in `apps/web`, the Bun/Hono API service lives in `apps/server`, shared API/domain code lives in `packages/api`, and the static marketing site lives in `apps/marketing`. See [marketing development and deployment](docs/marketing.md).
 
 ## Setup
 
@@ -51,9 +51,9 @@ For deployments, the one-way flow is Infisical Development/Staging/Production `/
 In your Planning Center OAuth app settings, add:
 
 - Local: `http://localhost:3000/api/auth/callback/planning-center`
-- Production: `https://pcobooster.com/api/auth/callback/planning-center`
+- Production: `https://worshipadmin.com/api/auth/callback/planning-center`
 
-Production `BETTER_AUTH_URL` is `https://pcobooster.com`, managed in Infisical Production `/` and synced to Vercel. See the [domain migration record](docs/pcobooster-domain-migration.md) for redirects, verification, and rollback.
+Production `BETTER_AUTH_URL` is `https://worshipadmin.com`, managed in Infisical Production `/` and synced to Vercel. The older domain migration record remains in `docs/` as historical context.
 
 ### 4. Run database migrations and seeds
 
@@ -68,7 +68,7 @@ bun run db:seed
 bun run dev
 ```
 
-Open `http://localhost:3000`. This starts both the product on port 3000 and marketing on port 3001; port 3000 serves the complete site.
+Open `http://localhost:3001`. Turborepo starts the Hono API on port 3000, the product on port 3001, and marketing on port 3002. The product proxies `/api/*` to Hono and the public marketing routes to port 3002.
 
 ### Present locally
 
@@ -86,7 +86,7 @@ This masks person fields for app presentations, not the underlying dataset: IDs,
 
 ## API Routes
 
-All routes are server-side and use authenticated Planning Center access where required.
+Existing REST routes are served by Hono and use authenticated Planning Center access where required. New typed procedures can be added through oRPC at `/api/rpc`; its OpenAPI reference is available at `/api/reference`.
 
 - `GET /api/service-types`
 - `GET /api/plans?service_type_id=...`
@@ -98,40 +98,18 @@ All routes are server-side and use authenticated Planning Center access where re
 - `POST /api/schedule`
 - `GET/POST /api/planning-center/accounts`
 - `GET /api/debug/planning-center-context` (debug endpoint)
-- `ALL /api/auth/[...all]` (Better Auth handler)
+- `ALL /api/auth/*` (Better Auth handler)
 
 ## Project Structure
 
 ```text
-app/
-  api/                       # Next.js API routes
-  auth/page.tsx              # Sign-in route
-  services/page.tsx          # Service plan selection route
-  services/[serviceTypeId]/plans/[planId]/[view]/page.tsx
-                             # Main plan workspace route
-
-components/
-  dashboard-page.tsx         # Main schedule workflow UI
-  schedule/                  # Plan editing and scheduling UI
-  people/                    # People dashboard and detail views
-  service-plan-table-selector.tsx
-  app-shell.tsx              # Navigation and account menu
-  ui/                        # UI primitives
-
-hooks/
-  use-service-types.ts
-  use-plans.ts
-  use-team-positions.ts
-  use-people.ts
-  use-schedule-history.ts
-  use-blockouts.ts
-  use-my-scheduled-plans.ts
-
-lib/
-  use-cases/planning-center/ # Business logic
-  planning-center/services/  # Planning Center API wrappers
-  http/                      # Shared route/client helpers
-  auth.ts                    # Better Auth config
+apps/
+  web/                       # Next.js product UI
+  server/                    # Bun/Hono transport and oRPC entrypoint
+  marketing/                 # Static-export Next.js marketing site
+packages/
+  api/                       # REST handlers, auth, DB, domain logic, clients
+  config/                    # Shared TypeScript configuration
 ```
 
 ## Development Commands
@@ -153,7 +131,7 @@ bun run verify
 bun run build
 ```
 
-Tests are colocated under `lib/` and `components/`. Use-cases accept narrow typed dependencies so tests can exercise behavior without replacing modules. HTTP responses and persisted caches are validated with shared Zod schemas before entering the app.
+Tests are colocated under `packages/api/src` and `apps/web/src`. Use-cases accept narrow typed dependencies so tests can exercise behavior without replacing modules. HTTP responses and persisted caches are validated with shared Zod schemas before entering the app.
 
 ## Code Quality
 
@@ -163,7 +141,7 @@ The OXC VS Code extension is recommended in `.vscode/extensions.json`; workspace
 
 Shared UI primitives expose appearance through variants, with semantic theme tokens for scheduling states. Call sites own layout.
 
-Better Auth is pinned to the patched 1.6 release line. Moving to 1.7 requires an explicit OAuth callback migration; keep the registered callback URLs above aligned with the auth version.
+Better Auth is pinned to 1.7.5; keep the registered callback URLs above aligned with the service origin.
 
 ## Stacked Pull Requests
 
