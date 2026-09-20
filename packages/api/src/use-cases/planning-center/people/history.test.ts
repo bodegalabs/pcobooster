@@ -1,15 +1,15 @@
-import { isNonEmptyString } from "@worship-admin/api/json";
-import type {
-  PCResource,
-  RawPlanPerson,
-  ServiceHistoryItem,
-} from "@worship-admin/api/types";
 import {
   buildFrequencyFromServiceHistory,
   buildHistoryAndFrequencyForPerson,
   buildHistoryAndFrequencyForPlanPeople,
 } from "@worship-admin/api/use-cases/planning-center/people/history";
 import { scheduleResourceSchema } from "@worship-admin/api/use-cases/planning-center/people/resource-schemas";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type {
+  PCResource,
+  RawPlanPerson,
+  ServiceHistoryItem,
+} from "@worship-admin/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 const schedule = (params: {

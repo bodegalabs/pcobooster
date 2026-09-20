@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type { PersonWithAvailability } from "@worship-admin/planning-center-models/types";
 import { useCallback } from "react";
 
-import { isNonEmptyString } from "@/lib/json";
 import { readCachedPeople, writeCachedPeople } from "@/lib/people-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import type { PersonWithAvailability } from "@/lib/types";
 import { orpc } from "@/orpc-client";
 
 const normalizePeopleDateKey = (date: Date | string | null): string | null => {

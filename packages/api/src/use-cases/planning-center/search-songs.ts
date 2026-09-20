@@ -1,10 +1,10 @@
 import { planningCenterSongsService } from "@worship-admin/api/planning-center/services/songs-service";
 import type { PlanningCenterSongsService } from "@worship-admin/api/planning-center/services/songs-service";
-import type { SongCatalogEntry } from "@worship-admin/api/types";
 import {
   normalizeSongCatalogEntry,
   scoreSongSearch,
 } from "@worship-admin/api/use-cases/planning-center/plan-items-shared";
+import type { SongCatalogEntry } from "@worship-admin/planning-center-models/types";
 
 const MAX_RESULTS = 24;
 const SONG_SEARCH_RESULT_CACHE_TTL_MS = 5 * 60 * 1000;

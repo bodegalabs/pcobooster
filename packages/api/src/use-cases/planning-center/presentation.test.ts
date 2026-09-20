@@ -8,7 +8,7 @@ import type {
   Blockout,
   PersonWithAvailability,
   TeamPositionGroup,
-} from "@worship-admin/api/types";
+} from "@worship-admin/planning-center-models/types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {

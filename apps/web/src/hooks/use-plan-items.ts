@@ -1,15 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type { PlanItem } from "@worship-admin/planning-center-models/types";
 import { useCallback } from "react";
 
-import { isNonEmptyString } from "@/lib/json";
 import {
   readCachedPlanItems,
   writeCachedPlanItems,
 } from "@/lib/plan-items-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import type { PlanItem } from "@/lib/types";
 import { orpc } from "@/orpc-client";
 
 const PLAN_ITEMS_STALE_TIME_MS = 60 * 1000;

@@ -1,7 +1,7 @@
 import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
 import { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
 import { PlanningCenterPlansService } from "@worship-admin/api/planning-center/services/plans-service";
-import type { PCResource } from "@worship-admin/api/types";
+import type { PCResource } from "@worship-admin/planning-center-models/types";
 import { describe, expect, it, vi } from "vitest";
 
 const planResource = (id: string, sortDate: string): PCResource => ({

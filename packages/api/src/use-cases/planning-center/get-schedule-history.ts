@@ -1,20 +1,20 @@
-import {
-  addCalendarDaysToDayKey,
-  formatCalendarDayInTimeZone,
-} from "@worship-admin/api/planning-center/org-calendar";
 import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
 import { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import type {
-  PlanPerson,
-  RawSchedule,
-  ScheduleFrequency,
-} from "@worship-admin/api/types";
 import {
   buildFrequencyFromServiceHistory,
   buildHistoryAndFrequencyForPerson,
 } from "@worship-admin/api/use-cases/planning-center/people/history";
 import { scheduleResourceSchema } from "@worship-admin/api/use-cases/planning-center/people/resource-schemas";
+import {
+  addCalendarDaysToDayKey,
+  formatCalendarDayInTimeZone,
+} from "@worship-admin/planning-center-models/calendar";
+import type {
+  PlanPerson,
+  RawSchedule,
+  ScheduleFrequency,
+} from "@worship-admin/planning-center-models/types";
 
 export interface ScheduleHistoryResult {
   planPeople: PlanPerson[];

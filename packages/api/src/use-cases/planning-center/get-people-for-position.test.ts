@@ -1,10 +1,10 @@
-import { isNonEmptyString } from "@worship-admin/api/json";
 import type { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
 import type { planningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
 import type { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import type { planningCenterPlansService } from "@worship-admin/api/planning-center/services/plans-service";
-import type { PCResource } from "@worship-admin/api/types";
 import { getPeopleForPosition } from "@worship-admin/api/use-cases/planning-center/get-people-for-position";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type { PCResource } from "@worship-admin/planning-center-models/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const createFixture = () => {

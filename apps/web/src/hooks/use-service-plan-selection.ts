@@ -2,6 +2,7 @@
 
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import {
   useCallback,
   useDeferredValue,
@@ -17,7 +18,6 @@ import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
 import { useServiceTypes } from "@/hooks/use-service-types";
 import { createTeamPositionsQueryOptions } from "@/hooks/use-team-positions";
-import { isNonEmptyString } from "@/lib/json";
 import { hydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
 import {

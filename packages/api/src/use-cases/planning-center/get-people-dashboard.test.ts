@@ -1,7 +1,7 @@
 import type { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
 import type { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import type { PCResource } from "@worship-admin/api/types";
 import { getPeopleDashboard } from "@worship-admin/api/use-cases/planning-center/get-people-dashboard";
+import type { PCResource } from "@worship-admin/planning-center-models/types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const person = (

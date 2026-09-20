@@ -14,7 +14,6 @@ import {
 import { getPlanningCenterIdentityForAccount } from "@worship-admin/api/auth/planning-center-account-identity";
 import { getSelectedPlanningCenterAccountId } from "@worship-admin/api/auth/planning-center-session";
 import { ApiError } from "@worship-admin/api/http/api-error";
-import { isNonEmptyString } from "@worship-admin/api/json";
 import { peoplePageFlag } from "@worship-admin/api/people-page-flag";
 import { authorizeAdminRequest } from "@worship-admin/api/use-cases/admin/authorize-admin";
 import {
@@ -22,6 +21,7 @@ import {
   getUserAccountDetail,
   isAdminEmail,
 } from "@worship-admin/api/use-cases/admin/get-account-activity";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import { Effect } from "effect";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";

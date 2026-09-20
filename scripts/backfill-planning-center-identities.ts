@@ -1,14 +1,13 @@
-import { eq } from "drizzle-orm";
-import { z } from "zod";
-
-import { planningCenterIdentitySchema } from "@/lib/auth/planning-center-identity";
-import type { PlanningCenterIdentity } from "@/lib/auth/planning-center-identity";
-import { db } from "@/lib/db";
+import { planningCenterIdentitySchema } from "@worship-admin/api/auth/planning-center-identity";
+import type { PlanningCenterIdentity } from "@worship-admin/api/auth/planning-center-identity";
+import { db } from "@worship-admin/api/db";
 import {
   account,
   planningCenterAccountIdentities,
   user,
-} from "@/lib/db/schema";
+} from "@worship-admin/api/db/schema";
+import { eq } from "drizzle-orm";
+import { z } from "zod";
 
 const clientId = process.env.PLANNING_CENTER_OAUTH_CLIENT_ID;
 const clientSecret = process.env.PLANNING_CENTER_OAUTH_CLIENT_SECRET;

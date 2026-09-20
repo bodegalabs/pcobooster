@@ -1,5 +1,7 @@
 "use client";
 
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type { PersonWithAvailability } from "@worship-admin/planning-center-models/types";
 import { CalendarPlus, Info, Loader2 } from "lucide-react";
 
 import { PlanPersonStatusMenu } from "@/components/schedule/plan-person-status-menu";
@@ -12,8 +14,6 @@ import {
 import type { CandidateStatus } from "@/components/schedule/schedule-candidate-details";
 import { Button } from "@/components/ui/button";
 import { useSchedulePlanPerson } from "@/hooks/use-schedule-plan-person";
-import { isNonEmptyString } from "@/lib/json";
-import type { PersonWithAvailability } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const STATUS_META: Record<CandidateStatus, { label: string }> = {

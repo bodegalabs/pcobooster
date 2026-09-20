@@ -1,5 +1,9 @@
 "use client";
 
+import type {
+  PeopleDashboardData,
+  PeopleDashboardPerson,
+} from "@worship-admin/contracts/people-schemas";
 import { Medal, ShieldAlert } from "lucide-react";
 
 import type { CalendarCell } from "@/components/people/calendar";
@@ -14,10 +18,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type {
-  PeopleDashboardData,
-  PeopleDashboardPerson,
-} from "@/lib/use-cases/planning-center/people-dashboard-types";
 
 interface HealthSidebarProps {
   dashboard: PeopleDashboardData | undefined;

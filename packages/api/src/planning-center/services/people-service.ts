@@ -1,4 +1,3 @@
-import { isNonEmptyString, isString } from "@worship-admin/api/json";
 import {
   buildPlanningCenterUrl,
   PlanningCenterCoreClient,
@@ -7,11 +6,15 @@ import {
   PlanningCenterReadCache,
   stableParams,
 } from "@worship-admin/api/planning-center/services/read-cache";
+import {
+  isNonEmptyString,
+  isString,
+} from "@worship-admin/planning-center-models/json";
 import type {
   PCRelationship,
   PCResource,
   PCResourceIdentifier,
-} from "@worship-admin/api/types";
+} from "@worship-admin/planning-center-models/types";
 
 const ASSIGNMENTS_CACHE_TTL_MS = 5 * 60 * 1000;
 const PERSON_READ_CACHE_TTL_MS = 60 * 1000;

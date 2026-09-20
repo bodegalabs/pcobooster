@@ -1,7 +1,7 @@
 import { planningCenterPlanItemsService } from "@worship-admin/api/planning-center/services/plan-items-service";
 import type { PlanningCenterPlanItemsService } from "@worship-admin/api/planning-center/services/plan-items-service";
-import type { PlanItem } from "@worship-admin/api/types";
 import { normalizePlanItem } from "@worship-admin/api/use-cases/planning-center/plan-items-shared";
+import type { PlanItem } from "@worship-admin/planning-center-models/types";
 
 export interface PlanItemsReader {
   getPlanItems: PlanningCenterPlanItemsService["getPlanItems"];

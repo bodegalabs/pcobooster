@@ -1,6 +1,11 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { formatWallTimeInTimeZone } from "@worship-admin/planning-center-models/calendar";
+import type {
+  FilledPositionPerson,
+  PlanTime,
+} from "@worship-admin/planning-center-models/types";
 import { Loader2, Trash2 } from "lucide-react";
 import { startTransition, useState } from "react";
 import { toast } from "sonner";
@@ -33,9 +38,7 @@ import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cac
 import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
 import { useUpdatePlanPersonStatus } from "@/hooks/use-update-plan-person-status";
 import { getInitials } from "@/lib/format/initials";
-import { formatWallTimeInTimeZone } from "@/lib/planning-center/org-calendar";
 import { queryKeys } from "@/lib/query-keys";
-import type { FilledPositionPerson, PlanTime } from "@/lib/types";
 import { orpc } from "@/orpc-client";
 
 interface PlanPersonEditDialogProps {

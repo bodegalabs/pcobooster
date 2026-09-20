@@ -1,7 +1,11 @@
-import { isNonEmptyString, isNumber, isString } from "@worship-admin/api/json";
 import { planningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
 import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
-import type { ServiceType } from "@worship-admin/api/types";
+import {
+  isNonEmptyString,
+  isNumber,
+  isString,
+} from "@worship-admin/planning-center-models/json";
+import type { ServiceType } from "@worship-admin/planning-center-models/types";
 
 export const getServiceTypes = async (
   catalogService: Pick<

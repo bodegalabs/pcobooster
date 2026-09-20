@@ -1,12 +1,12 @@
 "use client";
 
+import type { PeopleDashboardPerson } from "@worship-admin/contracts/people-schemas";
 import { ChevronRight } from "lucide-react";
 
 import { loadBadge } from "@/components/people/calendar";
 import { PersonAvatar } from "@/components/people/shared-components";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
-import type { PeopleDashboardPerson } from "@/lib/use-cases/planning-center/people-dashboard-types";
 
 interface RosterTableBodyProps {
   visiblePeople: PeopleDashboardPerson[];

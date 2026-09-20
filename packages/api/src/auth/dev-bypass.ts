@@ -1,4 +1,3 @@
-import { isNonEmptyString } from "@worship-admin/api/json";
 /**
  * Dev-only auth shortcut. When DEV_AUTH_BYPASS=1 (and NODE_ENV !== "production"),
  * server-side auth helpers return a synthesized session so the app can hit Planning
@@ -10,6 +9,7 @@ import { isNonEmptyString } from "@worship-admin/api/json";
  * This file MUST stay server-only — never import from client components.
  */
 import { logger } from "@worship-admin/api/logger";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import { z } from "zod";
 
 const DEV_BYPASS_USER_ID = "dev-bypass-user";

@@ -1,5 +1,6 @@
 "use client";
 
+import type { PeopleDashboardPerson } from "@worship-admin/contracts/people-schemas";
 import { Clock3, ListChecks } from "lucide-react";
 
 import { PersonAvatar } from "@/components/people/shared-components";
@@ -11,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { PeopleDashboardPerson } from "@/lib/use-cases/planning-center/people-dashboard-types";
 
 interface HealthQueuesProps {
   underused: PeopleDashboardPerson[];

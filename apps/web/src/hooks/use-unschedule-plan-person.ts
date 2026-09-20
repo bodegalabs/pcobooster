@@ -1,6 +1,7 @@
 "use client";
 import { ORPCError } from "@orpc/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import { z } from "zod";
 
 import {
@@ -10,7 +11,6 @@ import {
   settleScheduleMutationQueries,
 } from "@/hooks/use-schedule-cache-optimism";
 import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cache-optimism";
-import { isNonEmptyString } from "@/lib/json";
 import { orpc } from "@/orpc-client";
 
 const messageErrorDataSchema = z.object({ message: z.string().optional() });

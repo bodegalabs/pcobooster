@@ -1,8 +1,3 @@
-import { isNonEmptyString } from "@worship-admin/api/json";
-import type {
-  PersonWithAvailability,
-  RawPerson,
-} from "@worship-admin/api/types";
 import {
   applySelectedPlanRosterStatus,
   getSelectedPlanRosterOverlay,
@@ -13,6 +8,11 @@ import type {
   PlanRosterEntry,
   PlanSchedulingContext,
 } from "@worship-admin/api/use-cases/planning-center/plan-scheduling-context";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type {
+  PersonWithAvailability,
+  RawPerson,
+} from "@worship-admin/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 const rawPerson = (id: string, firstName = id): RawPerson => ({

@@ -29,10 +29,6 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: /^@\/lib\/(?<module>.*)$/u,
-        replacement: `${rootDir}/packages/api/src/$<module>`,
-      },
-      {
         find: "@",
         replacement: `${rootDir}/apps/web/src`,
       },

@@ -1,13 +1,16 @@
-import { isNonEmptyString, isString } from "@worship-admin/api/json";
-import type { JsonValue } from "@worship-admin/api/json";
 import { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import { findIncluded } from "@worship-admin/api/planning-center/utils";
+import { rosterPersonSchema } from "@worship-admin/api/use-cases/planning-center/people/resource-schemas";
+import {
+  isNonEmptyString,
+  isString,
+} from "@worship-admin/planning-center-models/json";
+import type { JsonValue } from "@worship-admin/planning-center-models/json";
 import type {
   PCResource,
   RawPerson,
   RawPlanPerson,
-} from "@worship-admin/api/types";
-import { rosterPersonSchema } from "@worship-admin/api/use-cases/planning-center/people/resource-schemas";
+} from "@worship-admin/planning-center-models/types";
 
 export type PlanRosterStatus = "confirmed" | "pending" | "declined";
 

@@ -1,7 +1,7 @@
-import { isNonEmptyString } from "@worship-admin/api/json";
-import type { PCResource } from "@worship-admin/api/types";
 import { getNeededTeamPositionsForPlan } from "@worship-admin/api/use-cases/planning-center/get-team-positions";
 import type { TeamPositionDependencies } from "@worship-admin/api/use-cases/planning-center/get-team-positions";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type { PCResource } from "@worship-admin/planning-center-models/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const createFixture = () => {

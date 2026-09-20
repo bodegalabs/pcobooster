@@ -3,7 +3,7 @@ import type {
   RawSchedule,
   ScheduleFrequency,
   ServiceHistoryItem,
-} from "@worship-admin/api/types";
+} from "@worship-admin/planning-center-models/types";
 
 export interface SelectedPlanMatchContext {
   planId?: string;

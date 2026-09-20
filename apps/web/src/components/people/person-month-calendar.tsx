@@ -1,5 +1,7 @@
 "use client";
 
+import type { PeopleDashboardPerson } from "@worship-admin/contracts/people-schemas";
+
 import {
   commitmentCellClass,
   commitmentMarkerClass,
@@ -13,7 +15,6 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import type { PeopleDashboardPerson } from "@/lib/use-cases/planning-center/people-dashboard-types";
 import { cn } from "@/lib/utils";
 
 const weekDayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];

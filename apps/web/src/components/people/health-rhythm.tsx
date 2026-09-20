@@ -1,5 +1,6 @@
 "use client";
 
+import type { PeopleDashboardData } from "@worship-admin/contracts/people-schemas";
 import { CalendarDays } from "lucide-react";
 
 import {
@@ -19,7 +20,6 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import type { PeopleDashboardData } from "@/lib/use-cases/planning-center/people-dashboard-types";
 import { cn } from "@/lib/utils";
 
 type MonthDay = PeopleDashboardData["monthDays"][number];

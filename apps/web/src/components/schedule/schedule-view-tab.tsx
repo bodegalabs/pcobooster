@@ -1,5 +1,10 @@
 "use client";
 
+import type {
+  FilledPositionPerson,
+  PersonWithAvailability,
+  TeamPositionGroup,
+} from "@worship-admin/planning-center-models/types";
 import { CalendarDays, X } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 
@@ -31,12 +36,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { getInitials } from "@/lib/format/initials";
-import type {
-  FilledPositionPerson,
-  PersonWithAvailability,
-  TeamPositionGroup,
-} from "@/lib/types";
-import { partitionPeopleForRecommendationStrip } from "@/lib/use-cases/planning-center/people/recommendation-strip-order";
+import { partitionPeopleForRecommendationStrip } from "@/lib/people/recommendation-strip-order";
 
 interface ScheduleViewTabProps {
   teamPositionsLoading: boolean;

@@ -1,5 +1,5 @@
-import type { JsonValue } from "@worship-admin/api/json";
 import { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
+import type { JsonValue } from "@worship-admin/planning-center-models/json";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 

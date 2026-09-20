@@ -1,4 +1,4 @@
-import type { JsonValue } from "@worship-admin/api/json";
+import type { JsonValue } from "@worship-admin/planning-center-models/json";
 
 export interface PlanningCenterRateLimitInfo {
   limit?: number;

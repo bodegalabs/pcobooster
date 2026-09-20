@@ -1,6 +1,7 @@
 "use client";
 import { ORPCError } from "@orpc/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -11,7 +12,6 @@ import {
   settleScheduleMutationQueries,
 } from "@/hooks/use-schedule-cache-optimism";
 import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cache-optimism";
-import { isNonEmptyString } from "@/lib/json";
 import { orpc } from "@/orpc-client";
 
 export type PlanPersonStatusCode = "C" | "U" | "D";

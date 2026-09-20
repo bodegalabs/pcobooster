@@ -1,5 +1,9 @@
 "use client";
 
+import type {
+  TeamPosition,
+  TeamPositionGroup,
+} from "@worship-admin/planning-center-models/types";
 import { ChevronDown, Plus } from "lucide-react";
 import type { SubmitEvent as ReactSubmitEvent } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -28,7 +32,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import type { TeamPosition, TeamPositionGroup } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export const TeamSlotsCollapsible = ({

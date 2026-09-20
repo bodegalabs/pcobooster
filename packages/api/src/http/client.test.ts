@@ -4,7 +4,7 @@ import {
   patchJson,
   postJson,
 } from "@worship-admin/api/http/client";
-import type { JsonValue } from "@worship-admin/api/json";
+import type { JsonValue } from "@worship-admin/planning-center-models/json";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 

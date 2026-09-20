@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type { Blockout } from "@worship-admin/planning-center-models/types";
 
-import { isNonEmptyString } from "@/lib/json";
 import { queryKeys } from "@/lib/query-keys";
-import type { Blockout } from "@/lib/types";
 import { orpc } from "@/orpc-client";
 
 export const useBlockouts = (personId: string | undefined) =>

@@ -1,4 +1,3 @@
-import { isNonEmptyString, isNumber, isString } from "@worship-admin/api/json";
 import { logger } from "@worship-admin/api/logger";
 import { planningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
 import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
@@ -10,18 +9,23 @@ import {
   findAllIncluded,
   findIncluded,
 } from "@worship-admin/api/planning-center/utils";
-import type {
-  FilledPositionPerson,
-  PCResource,
-  TeamPosition,
-  TeamPositionGroup,
-} from "@worship-admin/api/types";
 import {
   buildPlanSchedulingContext,
   buildSlotKey,
   isDeclinedRosterStatus,
 } from "@worship-admin/api/use-cases/planning-center/plan-scheduling-context";
 import type { PlanRosterEntry } from "@worship-admin/api/use-cases/planning-center/plan-scheduling-context";
+import {
+  isNonEmptyString,
+  isNumber,
+  isString,
+} from "@worship-admin/planning-center-models/json";
+import type {
+  FilledPositionPerson,
+  PCResource,
+  TeamPosition,
+  TeamPositionGroup,
+} from "@worship-admin/planning-center-models/types";
 
 const log = logger.for("use-case/get-team-positions");
 

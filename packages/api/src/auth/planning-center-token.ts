@@ -1,6 +1,6 @@
 import { auth } from "@worship-admin/api/auth";
 import { ApiError } from "@worship-admin/api/http/api-error";
-import { isNonEmptyString } from "@worship-admin/api/json";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 
 interface PlanningCenterAccountSelector {
   id: string;

@@ -16,6 +16,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import type { PlanItem } from "@worship-admin/planning-center-models/types";
 import { FileMusic, GripVertical, Music4, Trash2 } from "lucide-react";
 import { startTransition, useState } from "react";
 import type { CSSProperties } from "react";
@@ -31,7 +32,6 @@ import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-di
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { reorderPlanItems } from "@/lib/plan-items-query-state";
-import type { PlanItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface PlanItemListProps {

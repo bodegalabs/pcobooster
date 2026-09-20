@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  getScheduleContextHalfRangeWeekOptions,
+  SCHEDULE_CONTEXT_DEFAULT_HALF_RANGE_WEEKS,
+} from "@worship-admin/planning-center-models/schedule-constants";
+import type { ServiceHistoryItem } from "@worship-admin/planning-center-models/types";
 import { useMemo, useState } from "react";
 import type { ReactElement } from "react";
 
@@ -25,17 +30,12 @@ import {
 } from "@/components/ui/popover";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import {
-  getScheduleContextHalfRangeWeekOptions,
-  SCHEDULE_CONTEXT_DEFAULT_HALF_RANGE_WEEKS,
-} from "@/lib/planning-center/schedule-load-constants";
-import type { ServiceHistoryItem } from "@/lib/types";
-import {
   buildServiceHistoryGroups,
   filterServiceHistoryWithinHalfRange,
   formatCombinedHistoryPositionLabel,
   getHistoryStatusDotClass,
   toServiceHistoryDate,
-} from "@/lib/use-cases/planning-center/people/service-history-display";
+} from "@/lib/people/service-history-display";
 import { cn } from "@/lib/utils";
 
 interface ScheduleContextPopoverProps {

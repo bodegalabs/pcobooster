@@ -4,7 +4,7 @@ import {
   formatDurationMs,
   nowMs,
 } from "@worship-admin/api/http/timing";
-import type { JsonValue } from "@worship-admin/api/json";
+import type { JsonValue } from "@worship-admin/planning-center-models/json";
 import { z } from "zod";
 
 export class HttpClientError extends Error {

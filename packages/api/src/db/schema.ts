@@ -1,4 +1,4 @@
-import type { JsonObject } from "@worship-admin/api/json";
+import type { JsonObject } from "@worship-admin/planning-center-models/json";
 import { relations, sql } from "drizzle-orm";
 import {
   bigserial,

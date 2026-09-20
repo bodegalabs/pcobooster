@@ -1,5 +1,13 @@
 "use client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type {
+  PlanItem,
+  PlanItemArrangement,
+  PlanItemKey,
+  SongCatalogEntry,
+  SongOptionSet,
+} from "@worship-admin/planning-center-models/types";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -7,7 +15,6 @@ import { getItemTypeLabel } from "@/components/schedule/plan-tab-helpers";
 import type { DraftState } from "@/components/schedule/plan-tab-helpers";
 import { usePlanItems } from "@/hooks/use-plan-items";
 import { createSongOptionsQueryOptions } from "@/hooks/use-song-options";
-import { isNonEmptyString } from "@/lib/json";
 import {
   appendPlanItem,
   applyPlanItemDraft,
@@ -26,13 +33,6 @@ import {
 } from "@/lib/plan-items-query-state";
 import type { PlanItemsOptimisticSnapshot } from "@/lib/plan-items-query-state";
 import { queryKeys } from "@/lib/query-keys";
-import type {
-  PlanItem,
-  PlanItemArrangement,
-  PlanItemKey,
-  SongCatalogEntry,
-  SongOptionSet,
-} from "@/lib/types";
 import { orpc } from "@/orpc-client";
 
 interface UsePlanTabControllerArgs {

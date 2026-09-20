@@ -5,8 +5,8 @@ import {
 } from "@worship-admin/api/auth/dev-bypass";
 import { getPlanningCenterToken } from "@worship-admin/api/auth/planning-center-token";
 import { ApiError } from "@worship-admin/api/http/api-error";
-import { isNonEmptyString } from "@worship-admin/api/json";
 import { runWithPlanningCenterRequestAuth } from "@worship-admin/api/planning-center/request-auth-context";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
 export const PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE =

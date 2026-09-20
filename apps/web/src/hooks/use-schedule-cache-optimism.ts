@@ -1,18 +1,18 @@
 "use client";
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
-
-import { isNonEmptyString } from "@/lib/json";
-import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
-import { clearCachedPeople } from "@/lib/people-cache";
-import { clearCachedPeopleDashboards } from "@/lib/people-dashboard-cache";
-import { queryKeys } from "@/lib/query-keys";
-import { clearCachedTeamPositions } from "@/lib/team-positions-cache";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import type {
   FilledPositionPerson,
   PersonWithAvailability,
   TeamPosition,
   TeamPositionGroup,
-} from "@/lib/types";
+} from "@worship-admin/planning-center-models/types";
+
+import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
+import { clearCachedPeople } from "@/lib/people-cache";
+import { clearCachedPeopleDashboards } from "@/lib/people-dashboard-cache";
+import { queryKeys } from "@/lib/query-keys";
+import { clearCachedTeamPositions } from "@/lib/team-positions-cache";
 
 export type OptimisticPlanPersonStatusCode = "C" | "U" | "D";
 

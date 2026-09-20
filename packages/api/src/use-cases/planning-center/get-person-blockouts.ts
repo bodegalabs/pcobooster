@@ -1,7 +1,7 @@
 import { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import type { Blockout } from "@worship-admin/api/types";
 import { toBlockout } from "@worship-admin/api/use-cases/planning-center/people/transforms";
+import type { Blockout } from "@worship-admin/planning-center-models/types";
 
 export interface FutureBlockoutsDependencies {
   readonly peopleService: Pick<
