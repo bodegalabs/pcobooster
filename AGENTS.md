@@ -8,10 +8,14 @@
 ## Project Structure & Module Organization
 
 - `apps/web/`: Next.js product UI. App Router pages, components, hooks, proxy, and public assets live under `apps/web/src` and `apps/web/public`.
-- `apps/server/`: Bun/Hono transport. `src/router.ts` maps the existing REST contracts and the entrypoint mounts Better Auth and oRPC.
+- `apps/server/`: Bun/Hono composition root. It mounts Better Auth, oRPC, the OpenAPI reference, CORS, and cache policy.
 - `apps/marketing/`: independent static-export Next.js marketing site.
-- `packages/api/src/http-routes/`: framework-neutral REST handlers. Keep them thin and delegate business logic. `packages/api/src/orpc.ts` owns the typed oRPC router.
-- `packages/api/src/use-cases/planning-center/`: business logic and data transforms (preferred home for app behavior).
+- `packages/contracts/`: browser-safe oRPC contracts, transport schemas, and safe error payloads.
+- `packages/planning-center-models/`: browser-safe Planning Center shapes and pure calendar/scheduling rules.
+- `packages/presentation-mode/`: server-side presentation-mode guard, seed, and cache namespace.
+- `packages/api/src/application/`: Effect programs and typed application faults.
+- `packages/api/src/modules/`: server business behavior grouped by the external capability it implements.
+- `packages/api/src/transport/orpc/`: thin oRPC adapters; `packages/api/src/orpc.ts` assembles the router.
 - `packages/api/src/planning-center/services/`: Planning Center API service wrappers (raw API access only).
 - `packages/api/src/db/` and `packages/api/migrations/`: Drizzle client, schema, and migrations.
 - `packages/config/`: shared TypeScript configuration.
@@ -40,8 +44,7 @@
 
 - TypeScript throughout; prefer explicit types at module boundaries.
 - Use `camelCase` for variables/functions, `PascalCase` for components/types.
-- Keep API routes as transport layers: validate with `zod`, return via `handleRoute(...)`.
-- Put business rules in use-cases, external API calls in services.
+- Keep oRPC handlers as transport layers. Put behavior in explicit feature modules and raw external API calls in services.
 - Use `oxlint.config.ts` and `oxfmt.config.ts` as the standards source of truth. Keep all selected presets enabled and fix the underlying cause of findings. Prefer runtime validation and type narrowing to assertions; comments should explain verified invariants.
 - Shared UI primitives own appearance through variants; compose layout at call sites and use semantic color tokens. Reuse existing variants. Add a variant only for an intentional, reusable design treatment, never solely to relocate forbidden caller styles.
 
@@ -49,7 +52,7 @@
 
 - Framework: Vitest, with tests colocated beside API and web source.
 - Prioritize tests for transforms/matching/sorting logic and Planning Center edge cases.
-- Inject narrow typed service dependencies into use-cases and pass fresh test implementations explicitly. Keep imported module exports and service singletons intact; spies may observe local test instances or runtime I/O. Preserve exact assertions on optional flags so missing values cannot pass as `false`.
+- Inject narrow typed service dependencies into feature modules and pass fresh test implementations explicitly. Request paths must not rely on process-global credentials or implicit async context. Preserve exact assertions on optional flags so missing values cannot pass as `false`.
 - Prefer test-driven fixes for regressions: reproduce the bug or edge case with a focused failing test, then implement the smallest code change that makes it pass.
 - Run `bun run verify` and `bun run build` before opening a PR.
 
@@ -62,12 +65,11 @@
 
 ## Architecture Notes
 
-- Preferred flow: `apps/web` -> `/api` -> `apps/server` Hono transport -> `packages/api/src/http-routes/*` -> `packages/api/src/use-cases/*` -> `packages/api/src/planning-center/services/*`.
+- Preferred flow: `apps/web` -> oRPC contract -> `apps/server` -> `packages/api/src/transport/orpc/*` -> Effect application program -> `packages/api/src/modules/*` -> service adapter.
 - Better Auth is mounted directly by Hono at `/api/auth/*`. Vercel and the local Next.js rewrite keep browser requests on the web origin.
-- Preserve existing REST contracts while migrating deliberately chosen endpoints to oRPC; put reusable procedure/domain logic in `packages/api`, not in the Hono entrypoint.
+- Product operations use oRPC. Better Auth, liveness health, and the OpenAPI reference are the intentional non-oRPC surfaces.
 - Database access uses Drizzle through `packages/api/src/db`; migrations include Better Auth tables.
-- React Query keys are centralized in `packages/api/src/query-keys.ts`; use them for hooks/invalidation.
-- Use `packages/api/src/http/client.ts` for client-side API calls, passing a response schema from `packages/api/src/api-schemas.ts`. Validate untrusted HTTP and persisted-cache data with Zod before using domain types.
+- Browser query keys, persistence schemas, and cache hydration live in `apps/web/src/lib`. The web app may import contracts and Planning Center models, never `packages/api`.
 - Backward compatibility is not a priority during the current dev phase; prefer cleaner APIs/URLs/UX over temporary compatibility shims unless explicitly requested.
 
 ## Learned User Preferences
@@ -80,8 +82,8 @@
 
 ## Learned Workspace Facts
 
-- People availability and blockouts: compare the plan `sort_date` instant to blockouts using each blockout’s Planning Center `time_zone` (calendar-day logic); pass full ISO `date` from the client to `/api/people`. Naive UTC-midnight or date-only string overlap checks can mislabel people near timezone boundaries.
-- Congregation-local business dates (plan windows, schedule history frequency, calendar-day deltas) use the org IANA zone from `NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE` / `PLANNING_CENTER_TIME_ZONE` with shared helpers in `packages/api/src/planning-center/org-calendar.ts`.
+- People availability and blockouts: compare the plan `sort_date` instant to blockouts using each blockout’s Planning Center `time_zone` (calendar-day logic); pass the full ISO `date` through the `people.list` oRPC input. Naive UTC-midnight or date-only string overlap checks can mislabel people near timezone boundaries.
+- Congregation-local business dates (plan windows, schedule history frequency, calendar-day deltas) use the org IANA zone from `NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE` / `PLANNING_CENTER_TIME_ZONE` with shared helpers in `packages/planning-center-models/src/calendar.ts`.
 - Person card frequency labels should align with recommendation scoring: distinct calendar service/rehearsal days in org TZ, not raw plan-time row counts or grouped-card counts.
 
 # Ultracite Code Standards
