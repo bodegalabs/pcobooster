@@ -51,7 +51,9 @@ For deployments, the one-way flow is Infisical Development/Staging/Production `/
 In your Planning Center OAuth app settings, add:
 
 - Local: `http://localhost:3000/api/auth/callback/planning-center`
-- Production: `https://worshipadmin.com/api/auth/callback/planning-center`
+- Production: `https://pcobooster.com/api/auth/callback/planning-center`
+
+Production `BETTER_AUTH_URL` is `https://pcobooster.com`, managed in Infisical Production `/` and synced to Vercel. See the [domain migration record](docs/pcobooster-domain-migration.md) for redirects, verification, and rollback.
 
 ### 4. Run database migrations and seeds
 
