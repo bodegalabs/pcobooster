@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { scheduleHistoryResponseSchema } from "@/lib/api-schemas";
-import { getJson } from "@/lib/http/client";
 import { isNonEmptyString } from "@/lib/json";
 import { queryKeys } from "@/lib/query-keys";
 import type { PlanPerson, ScheduleFrequency } from "@/lib/types";
+import { orpc } from "@/orpc-client";
 
 interface ScheduleHistoryResponse {
   planPeople: PlanPerson[];
@@ -14,7 +13,7 @@ interface ScheduleHistoryResponse {
 export const useScheduleHistory = (personId: string | undefined, days = 90) =>
   useQuery<ScheduleHistoryResponse>({
     queryKey: queryKeys.scheduleHistory(personId ?? null, days),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!isNonEmptyString(personId)) {
         return {
           planPeople: [],
@@ -33,10 +32,7 @@ export const useScheduleHistory = (personId: string | undefined, days = 90) =>
         };
       }
 
-      return await getJson(
-        `/api/schedule-history/${personId}?days=${days}`,
-        scheduleHistoryResponseSchema
-      );
+      return await orpc.people.scheduleHistory({ personId, days }, { signal });
     },
     enabled: isNonEmptyString(personId),
     // 5 minutes

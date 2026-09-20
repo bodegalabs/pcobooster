@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
+import type { QueryFunctionContext } from "@tanstack/react-query";
 import { useCallback } from "react";
 
-import { personWithAvailabilitySchema } from "@/lib/api-schemas";
-import { getJson } from "@/lib/http/client";
 import { isNonEmptyString } from "@/lib/json";
 import { readCachedPeople, writeCachedPeople } from "@/lib/people-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
 import type { PersonWithAvailability } from "@/lib/types";
+import { orpc } from "@/orpc-client";
 
 const normalizePeopleDateKey = (date: Date | string | null): string | null => {
   if (date === null || date === "") {
@@ -41,31 +41,23 @@ export const createPeopleQueryOptions = (
       planId,
       dateKey
     ),
-    queryFn: async () => {
+    queryFn: async ({ signal }: QueryFunctionContext) => {
       if (!isNonEmptyString(positionId) || !isNonEmptyString(serviceTypeId)) {
         return [];
       }
 
-      const params = new URLSearchParams({
-        service_type_id: serviceTypeId,
-        position_id: positionId,
-      });
-
-      if (isNonEmptyString(teamId)) {
-        params.append("team_id", teamId);
-      }
-
-      if (isNonEmptyString(planId)) {
-        params.append("plan_id", planId);
-      }
-
-      if (dateObj && !Number.isNaN(dateObj.getTime())) {
-        params.append("date", dateObj.toISOString());
-      }
-
-      const people = await getJson(
-        `/api/people?${params.toString()}`,
-        personWithAvailabilitySchema.array()
+      const people = await orpc.people.list(
+        {
+          serviceTypeId,
+          positionId,
+          teamId: isNonEmptyString(teamId) ? teamId : undefined,
+          planId: isNonEmptyString(planId) ? planId : undefined,
+          date:
+            dateObj && !Number.isNaN(dateObj.getTime())
+              ? dateObj.toISOString()
+              : undefined,
+        },
+        { signal }
       );
       writeCachedPeople(
         serviceTypeId,

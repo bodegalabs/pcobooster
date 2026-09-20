@@ -3,9 +3,11 @@ import type { JsonValue } from "@worship-admin/api/json";
 import { formatCalendarDayInTimeZone } from "@worship-admin/api/planning-center/org-calendar";
 import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
 import { planningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
+import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
 import { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import { planningCenterPlansService } from "@worship-admin/api/planning-center/services/plans-service";
+import type { PlanningCenterPlansService } from "@worship-admin/api/planning-center/services/plans-service";
 import { PlanningCenterReadCache } from "@worship-admin/api/planning-center/services/read-cache";
 import type { PCResource } from "@worship-admin/api/types";
 import {
@@ -38,6 +40,35 @@ const monthLabelFormatter = new Intl.DateTimeFormat("en-US", {
 });
 const peopleDashboardPersonCache =
   new PlanningCenterReadCache<PeopleDashboardPersonDetail>();
+
+type PeopleDashboardPersonReader = Pick<
+  PlanningCenterPeopleService,
+  | "getCacheScope"
+  | "getPerson"
+  | "getPersonSchedules"
+  | "getPlanTeamMembers"
+  | "getPlanPlanTimes"
+>;
+
+export interface PeopleDashboardPersonDependencies {
+  readonly peopleService: PeopleDashboardPersonReader;
+  readonly catalogService: Pick<
+    PlanningCenterCatalogService,
+    "getServiceTypesCached"
+  >;
+  readonly plansService: Pick<
+    PlanningCenterPlansService,
+    "getPlansInDateRange"
+  >;
+  readonly resolveTimeZone: () => Promise<string>;
+}
+
+const defaultDependencies: PeopleDashboardPersonDependencies = {
+  peopleService: planningCenterPeopleService,
+  catalogService: planningCenterCatalogService,
+  plansService: planningCenterPlansService,
+  resolveTimeZone: resolveOrganizationTimeZone,
+};
 
 const getPersonSchedulesForDetail = async (
   peopleService: Pick<PlanningCenterPeopleService, "getPersonSchedules">,
@@ -91,12 +122,16 @@ const readPlanTimeType = (
 const getMonthRosterScheduleItems = async (
   personId: string,
   monthInfo: PeopleDashboardPersonDetail["month"],
-  orgTimeZone: string
+  orgTimeZone: string,
+  dependencies: Pick<
+    PeopleDashboardPersonDependencies,
+    "catalogService" | "peopleService" | "plansService"
+  >
 ): Promise<ScheduleItem[]> => {
   const afterDayKey = `${monthInfo.year}-${String(monthInfo.monthIndex + 1).padStart(2, "0")}-01`;
   const beforeDayKey = `${monthInfo.year}-${String(monthInfo.monthIndex + 1).padStart(2, "0")}-${String(monthInfo.daysInMonth).padStart(2, "0")}`;
   const serviceTypes =
-    await planningCenterCatalogService.getServiceTypesCached();
+    await dependencies.catalogService.getServiceTypesCached();
   const results = await Promise.all(
     serviceTypes.map(async (serviceType) => {
       const serviceTypeId = serviceType.id;
@@ -104,17 +139,22 @@ const getMonthRosterScheduleItems = async (
       const serviceTypeName = isString(rawServiceTypeName)
         ? rawServiceTypeName
         : "";
-      const plans = await planningCenterPlansService
-        .getPlansInDateRange(serviceTypeId, afterDayKey, beforeDayKey)
+      const plans = await dependencies.plansService
+        .getPlansInDateRange(
+          serviceTypeId,
+          afterDayKey,
+          beforeDayKey,
+          orgTimeZone
+        )
         .catch(() => []);
 
       const itemsForPlans = await Promise.all(
         plans.map(async (plan) => {
           const [members, planTimes] = await Promise.all([
-            planningCenterPeopleService
+            dependencies.peopleService
               .getPlanTeamMembers(serviceTypeId, plan.id)
               .catch(() => ({ data: [], included: [] })),
-            planningCenterPeopleService
+            dependencies.peopleService
               .getPlanPlanTimes(plan.id)
               .catch(() => []),
           ]);
@@ -453,30 +493,31 @@ const buildDashboardPersonDetail = (
 
 const buildPeopleDashboardPerson = async ({
   personId,
-  peopleService,
+  dependencies,
   now,
   monthKey,
   monthInfo,
   orgTimeZone,
 }: {
   personId: string;
-  peopleService: Pick<
-    PlanningCenterPeopleService,
-    "getPerson" | "getPersonSchedules"
-  >;
+  dependencies: PeopleDashboardPersonDependencies;
   now: Date;
   monthKey: string;
   monthInfo: PeopleDashboardPersonDetail["month"];
   orgTimeZone: string;
 }): Promise<PeopleDashboardPersonDetail> => {
-  const [personResource, schedulesResponse] = await Promise.all([
-    peopleService.getPerson(personId),
-    getPersonSchedulesForDetail(peopleService, personId),
-  ]);
-  const monthRosterItems =
-    peopleService === planningCenterPeopleService
-      ? await getMonthRosterScheduleItems(personId, monthInfo, orgTimeZone)
-      : [];
+  const { peopleService } = dependencies;
+  const [personResource, schedulesResponse, monthRosterItems] =
+    await Promise.all([
+      peopleService.getPerson(personId),
+      getPersonSchedulesForDetail(peopleService, personId),
+      getMonthRosterScheduleItems(
+        personId,
+        monthInfo,
+        orgTimeZone,
+        dependencies
+      ),
+    ]);
 
   const person = buildDashboardPersonDetail(
     personResource,
@@ -512,43 +553,36 @@ const buildPeopleDashboardPerson = async ({
 export const getPeopleDashboardPerson = async ({
   personId,
   month,
-  peopleService = planningCenterPeopleService,
+  dependencies = defaultDependencies,
 }: {
   personId: string;
   month?: string;
-  peopleService?: Pick<
-    PlanningCenterPeopleService,
-    "getPerson" | "getPersonSchedules"
-  >;
+  dependencies?: PeopleDashboardPersonDependencies;
 }): Promise<PeopleDashboardPersonDetail> => {
-  const orgTimeZone = await resolveOrganizationTimeZone();
+  const orgTimeZone = await dependencies.resolveTimeZone();
   const now = new Date();
   const monthDate = parseMonthDate(month, now);
   const monthInfo = getMonthInfo(monthDate, orgTimeZone);
   const monthKey = `${monthInfo.year}-${String(monthInfo.monthIndex + 1).padStart(2, "0")}`;
 
-  if (peopleService === planningCenterPeopleService) {
-    return await peopleDashboardPersonCache.get(
-      `${PEOPLE_DASHBOARD_PERSON_CACHE_VERSION}:people-dashboard-person:${personId}:${monthKey}`,
-      PEOPLE_DASHBOARD_PERSON_CACHE_TTL_MS,
-      async () =>
-        await buildPeopleDashboardPerson({
-          personId,
-          peopleService,
-          now,
-          monthKey,
-          monthInfo,
-          orgTimeZone,
-        })
-    );
-  }
-
-  return await buildPeopleDashboardPerson({
-    personId,
-    peopleService,
-    now,
-    monthKey,
-    monthInfo,
-    orgTimeZone,
-  });
+  return await peopleDashboardPersonCache.get(
+    [
+      PEOPLE_DASHBOARD_PERSON_CACHE_VERSION,
+      "people-dashboard-person",
+      dependencies.peopleService.getCacheScope(),
+      personId,
+      monthKey,
+      orgTimeZone,
+    ].join(":"),
+    PEOPLE_DASHBOARD_PERSON_CACHE_TTL_MS,
+    async () =>
+      await buildPeopleDashboardPerson({
+        personId,
+        dependencies,
+        now,
+        monthKey,
+        monthInfo,
+        orgTimeZone,
+      })
+  );
 };

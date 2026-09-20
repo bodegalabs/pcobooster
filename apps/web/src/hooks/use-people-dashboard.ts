@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 
-import { peopleDashboardDataSchema } from "@/lib/api-schemas";
-import { getJson } from "@/lib/http/client";
 import {
   readCachedPeopleDashboard,
   writeCachedPeopleDashboard,
@@ -13,6 +11,7 @@ import type {
   PeopleDashboardData,
   PeopleDashboardRange,
 } from "@/lib/use-cases/planning-center/people-dashboard-types";
+import { orpc } from "@/orpc-client";
 
 export const usePeopleDashboard = (range: PeopleDashboardRange) => {
   const queryKey = queryKeys.peopleDashboard(range);
@@ -24,11 +23,8 @@ export const usePeopleDashboard = (range: PeopleDashboardRange) => {
 
   const query = useQuery<PeopleDashboardData>({
     queryKey,
-    queryFn: async () =>
-      await getJson(
-        `/api/people/dashboard?range=${range}`,
-        peopleDashboardDataSchema
-      ),
+    queryFn: async ({ signal }) =>
+      await orpc.people.dashboard({ range }, { signal }),
     staleTime: 2 * 60 * 1000,
     placeholderData: (previousDashboard) => previousDashboard,
   });
