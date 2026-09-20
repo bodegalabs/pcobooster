@@ -1,4 +1,4 @@
-import type { AdminAccountActivity } from "@worship-admin/api/admin-contracts";
+import type { AdminAccountActivity } from "@worship-admin/contracts/admin";
 import {
   Activity,
   CalendarClock,

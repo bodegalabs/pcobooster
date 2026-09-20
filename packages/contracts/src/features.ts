@@ -1,0 +1,31 @@
+import { oc } from "@orpc/contract";
+import { applicationErrorMap } from "@worship-admin/contracts/errors";
+import { z } from "zod";
+
+export const featureInputSchema = z.object({});
+export const featureSchema = z.object({ enabled: z.boolean() });
+
+const featureProcedure = oc.errors({
+  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
+});
+
+export const featuresContract = {
+  people: featureProcedure
+    .route({
+      method: "GET",
+      path: "/features/people",
+      summary: "Check whether the People dashboard is enabled",
+    })
+    .input(featureInputSchema)
+    .output(featureSchema),
+  admin: featureProcedure
+    .route({
+      method: "GET",
+      path: "/features/admin",
+      summary: "Check whether the current user has admin access",
+    })
+    .input(featureInputSchema)
+    .output(featureSchema),
+};
+
+export type FeatureStatus = z.output<typeof featureSchema>;

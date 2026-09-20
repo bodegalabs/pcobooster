@@ -1,4 +1,4 @@
-import type { AdminLinkedAccount } from "@worship-admin/api/admin-contracts";
+import type { AdminLinkedAccount } from "@worship-admin/contracts/admin";
 import { CalendarClock, KeyRound, LinkIcon, ShieldCheck } from "lucide-react";
 import { notFound } from "next/navigation";
 

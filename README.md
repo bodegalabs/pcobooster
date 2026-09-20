@@ -86,18 +86,21 @@ This masks person fields for app presentations, not the underlying dataset: IDs,
 
 ## API Routes
 
-Existing REST routes are served by Hono and use authenticated Planning Center access where required. New typed procedures can be added through oRPC at `/api/rpc`; its OpenAPI reference is available at `/api/reference`.
+Typed catalog, people, identity, feature, and admin reads are served through oRPC at `/api/rpc`; its OpenAPI reference is available at `/api/reference`.
 
-- `GET /api/service-types`
-- `GET /api/plans?service_type_id=...`
-- `GET /api/team-positions?service_type_id=...&plan_id=...`
-- `GET /api/people?service_type_id=...&position_id=...`
-- `GET /api/blockouts/[id]`
-- `GET /api/schedule-history/[id]?days=...`
-- `POST /api/my-scheduled-plans`
+The remaining REST routes cover run-sheet editing, scheduling mutations, and song lookup:
+
 - `POST /api/schedule`
-- `GET/POST /api/planning-center/accounts`
-- `GET /api/debug/planning-center-context` (debug endpoint)
+- `PATCH /api/schedule/[planPersonId]/status`
+- `DELETE /api/schedule/[planPersonId]`
+- `GET/POST /api/plan-items`
+- `PATCH/DELETE /api/plan-items/[itemId]`
+- `POST /api/plan-items/reorder`
+- `GET/POST /api/plans/[planId]/times`
+- `PATCH/DELETE /api/plan-times/[planTimeId]`
+- `PATCH /api/plan-people/[planPersonId]/times`
+- `GET /api/songs/search`
+- `GET /api/songs/[songId]/options`
 - `ALL /api/auth/*` (Better Auth handler)
 
 ## Project Structure
