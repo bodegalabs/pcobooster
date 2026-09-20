@@ -28,7 +28,8 @@ const create = rpc.planTimes.create.handler(
       applicationRuntime,
       withPlanningCenterAccess(createRunSheetTime(input)),
       context,
-      signal
+      signal,
+      { interruptOnAbort: false }
     )
 );
 
@@ -38,7 +39,8 @@ const update = rpc.planTimes.update.handler(
       applicationRuntime,
       withPlanningCenterAccess(updateRunSheetTime(input)),
       context,
-      signal
+      signal,
+      { interruptOnAbort: false }
     )
 );
 
@@ -48,7 +50,8 @@ const deleteTime = rpc.planTimes.delete.handler(
       applicationRuntime,
       withPlanningCenterAccess(deleteRunSheetTime(input)),
       context,
-      signal
+      signal,
+      { interruptOnAbort: false }
     );
   }
 );
@@ -59,7 +62,8 @@ const updatePersonTimes = rpc.planPeople.updateTimes.handler(
       applicationRuntime,
       withPlanningCenterAccess(updateRunSheetPersonTimes(input)),
       context,
-      signal
+      signal,
+      { interruptOnAbort: false }
     )
 );
 

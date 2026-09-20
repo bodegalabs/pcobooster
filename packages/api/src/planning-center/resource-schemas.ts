@@ -23,7 +23,7 @@ export const pcRelationshipSchema = z.object({
   links: z.object({ related: optionalLinkSchema }).optional(),
 }) satisfies z.ZodType<PCRelationship>;
 
-// Preserve API attributes so each use-case can validate the fields it consumes.
+// Preserve API attributes so each module can validate the fields it consumes.
 export const pcResourceSchema = z.object({
   type: z.string(),
   id: z.string(),

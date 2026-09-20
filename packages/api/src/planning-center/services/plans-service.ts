@@ -1,7 +1,8 @@
 import { logger } from "@worship-admin/api/logger";
 import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
-import { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
+import type { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
 import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
+import { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
 import {
   PlanningCenterReadCache,
   stableParams,
@@ -70,12 +71,19 @@ const buildPlanTimeAssignmentRelationships = (
 
 export class PlanningCenterPlansService {
   private readonly core: PlanningCenterCoreClient;
-  private readonly resolveTimeZone: () => Promise<string>;
+  private readonly resolveTimeZone: (signal?: AbortSignal) => Promise<string>;
   private readonly caches: PlanningCenterPlansServiceCaches;
 
   constructor(
     core: PlanningCenterCoreClient,
-    resolveTimeZone: () => Promise<string> = resolveOrganizationTimeZone,
+    resolveTimeZone: (signal?: AbortSignal) => Promise<string> = async (
+      signal
+    ) =>
+      await resolveOrganizationTimeZone({
+        catalogService: new PlanningCenterCatalogService(core),
+        cacheScope: core.getCacheScope(),
+        signal,
+      }),
     caches: PlanningCenterPlansServiceCaches = createPlanningCenterPlansServiceCaches()
   ) {
     this.core = core;
@@ -85,12 +93,14 @@ export class PlanningCenterPlansService {
 
   async getPlans(
     serviceTypeId: string,
-    params: Record<string, string> = {}
+    params: Record<string, string> = {},
+    signal?: AbortSignal
   ): Promise<PCResource[]> {
     return await this.core.fetchAll(
       `/services/v2/service_types/${serviceTypeId}/plans`,
       { ...params, order: "-sort_date" },
-      3
+      3,
+      signal
     );
   }
 
@@ -102,14 +112,16 @@ export class PlanningCenterPlansService {
     serviceTypeId: string,
     afterDayKey: string,
     beforeDayKey: string,
-    organizationTimeZone?: string
+    organizationTimeZone?: string,
+    signal?: AbortSignal
   ): Promise<PCResource[]> {
     const response = await this.getPlansWithIncludedInDateRange(
       serviceTypeId,
       afterDayKey,
       beforeDayKey,
       "",
-      organizationTimeZone
+      organizationTimeZone,
+      signal
     );
     return response.data;
   }
@@ -119,9 +131,10 @@ export class PlanningCenterPlansService {
     afterDayKey: string,
     beforeDayKey: string,
     include = "",
-    organizationTimeZone?: string
+    organizationTimeZone?: string,
+    signal?: AbortSignal
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const orgTz = organizationTimeZone ?? (await this.resolveTimeZone());
+    const orgTz = organizationTimeZone ?? (await this.resolveTimeZone(signal));
     const params = {
       order: "sort_date",
       per_page: "100",
@@ -141,7 +154,7 @@ export class PlanningCenterPlansService {
     const response = await this.caches.ranges.get(
       cacheKey,
       PLANS_RANGE_CACHE_TTL_MS,
-      async () => {
+      async (loadSignal) => {
         log.info(
           {
             serviceTypeId,
@@ -155,7 +168,8 @@ export class PlanningCenterPlansService {
         const fetched = await this.core.fetchAllWithIncluded(
           `/services/v2/service_types/${serviceTypeId}/plans`,
           params,
-          3
+          3,
+          loadSignal
         );
 
         const plans = fetched.data.filter((plan) => {
@@ -188,33 +202,40 @@ export class PlanningCenterPlansService {
           "Plans fetched"
         );
         return { data: plans, included };
-      }
+      },
+      signal
     );
 
     return cloneResourceResponse(response);
   }
 
-  async getPlan(planId: string): Promise<PCResource> {
-    const response = await this.core.fetch(`/services/v2/plans/${planId}`);
+  async getPlan(planId: string, signal?: AbortSignal): Promise<PCResource> {
+    const response = await this.core.fetch(`/services/v2/plans/${planId}`, {
+      signal,
+    });
     return response.data;
   }
 
   async getPlanTimes(
     serviceTypeId: string,
-    planId: string
+    planId: string,
+    signal?: AbortSignal
   ): Promise<PCResource[]> {
     const planTimes = await this.caches.planTimes.get(
       this.buildCacheKey("plan-times", serviceTypeId, planId),
       PLANS_RANGE_CACHE_TTL_MS,
-      async () =>
+      async (loadSignal) =>
         await this.core.fetchAll(
           `/services/v2/service_types/${serviceTypeId}/plans/${planId}/plan_times`,
           {
             order: "starts_at",
             per_page: "200",
             include: "split_team_rehearsal_assignments",
-          }
-        )
+          },
+          10,
+          loadSignal
+        ),
+      signal
     );
     return structuredClone(planTimes);
   }
@@ -306,10 +327,12 @@ export class PlanningCenterPlansService {
 
   async getPlanForServiceTypeWithSeries(
     serviceTypeId: string,
-    planId: string
+    planId: string,
+    signal?: AbortSignal
   ): Promise<{ data: PCResource; included: PCResource[] }> {
     const response = await this.core.fetch(
-      `/services/v2/service_types/${serviceTypeId}/plans/${planId}?include=series`
+      `/services/v2/service_types/${serviceTypeId}/plans/${planId}?include=series`,
+      { signal }
     );
     return {
       data: response.data,
@@ -343,9 +366,3 @@ export class PlanningCenterPlansService {
     ].join(":");
   }
 }
-
-export const planningCenterPlansService = new PlanningCenterPlansService(
-  new PlanningCenterCoreClient(),
-  resolveOrganizationTimeZone,
-  planningCenterPlansServiceCaches
-);

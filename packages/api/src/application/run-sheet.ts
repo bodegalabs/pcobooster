@@ -1,25 +1,35 @@
+import { ensureRequestIsOpen } from "@worship-admin/api/application/context";
+import type { RequestContext } from "@worship-admin/api/application/context";
 import type { ApplicationFault } from "@worship-admin/api/application/errors";
 import {
   PlanningCenterAccess,
   tryPlanningCenter,
 } from "@worship-admin/api/application/planning-center-access";
 import type { PlanningCenterRequestAccess } from "@worship-admin/api/application/planning-center-access";
-import { createPlanItem } from "@worship-admin/api/use-cases/planning-center/create-plan-item";
-import { deletePlanItem } from "@worship-admin/api/use-cases/planning-center/delete-plan-item";
-import { invalidatePlanWindowHistory } from "@worship-admin/api/use-cases/planning-center/get-people-for-position";
-import { getPlanItems } from "@worship-admin/api/use-cases/planning-center/get-plan-items";
-import { getSongOptions } from "@worship-admin/api/use-cases/planning-center/get-song-options";
-import { updatePlanPersonTimes } from "@worship-admin/api/use-cases/planning-center/plan-person-times";
+import {
+  commitCreatePlanItem,
+  prepareCreatePlanItem,
+} from "@worship-admin/api/modules/planning-center/create-plan-item";
+import type { PreparedCreatePlanItem } from "@worship-admin/api/modules/planning-center/create-plan-item";
+import { deletePlanItem } from "@worship-admin/api/modules/planning-center/delete-plan-item";
+import { invalidatePlanWindowHistory } from "@worship-admin/api/modules/planning-center/get-people-for-position";
+import { getPlanItems } from "@worship-admin/api/modules/planning-center/get-plan-items";
+import { getSongOptions } from "@worship-admin/api/modules/planning-center/get-song-options";
+import { updatePlanPersonTimes } from "@worship-admin/api/modules/planning-center/plan-person-times";
 import {
   createPlanTime,
   deletePlanTime,
   getPlanTimes,
   updatePlanTime,
-} from "@worship-admin/api/use-cases/planning-center/plan-times";
-import type { PlanTimeDependencies } from "@worship-admin/api/use-cases/planning-center/plan-times";
-import { reorderPlanItems } from "@worship-admin/api/use-cases/planning-center/reorder-plan-items";
-import { searchSongs } from "@worship-admin/api/use-cases/planning-center/search-songs";
-import { updatePlanItem } from "@worship-admin/api/use-cases/planning-center/update-plan-item";
+} from "@worship-admin/api/modules/planning-center/plan-times";
+import type { PlanTimeDependencies } from "@worship-admin/api/modules/planning-center/plan-times";
+import { reorderPlanItems } from "@worship-admin/api/modules/planning-center/reorder-plan-items";
+import { searchSongs } from "@worship-admin/api/modules/planning-center/search-songs";
+import {
+  commitUpdatePlanItem,
+  prepareUpdatePlanItem,
+} from "@worship-admin/api/modules/planning-center/update-plan-item";
+import type { PreparedUpdatePlanItem } from "@worship-admin/api/modules/planning-center/update-plan-item";
 import type {
   PlanItemsCreateInput,
   PlanItemsDeleteInput,
@@ -47,11 +57,13 @@ import type {
 import { Effect } from "effect";
 
 const planTimeDependenciesFor = (
-  access: PlanningCenterRequestAccess
+  access: PlanningCenterRequestAccess,
+  signal?: AbortSignal
 ): PlanTimeDependencies => ({
   plansService: access.services.plans,
   peopleService: access.services.people,
   catalogService: access.services.catalog,
+  signal,
 });
 
 const invalidateRequestPlanHistory =
@@ -61,9 +73,9 @@ const invalidateRequestPlanHistory =
   };
 
 const loadRequestSongOptions =
-  (access: PlanningCenterRequestAccess) =>
+  (access: PlanningCenterRequestAccess, signal?: AbortSignal) =>
   async (songId: string, serviceTypeId: string) =>
-    await getSongOptions(songId, serviceTypeId, access.services.songs);
+    await getSongOptions(songId, serviceTypeId, access.services.songs, signal);
 
 export const listPlanItems = (
   input: PlanItemsListInput
@@ -71,23 +83,28 @@ export const listPlanItems = (
   Effect.gen(function* listItems() {
     const access = yield* PlanningCenterAccess;
     return yield* tryPlanningCenter(
-      async () =>
+      async (signal) =>
         await getPlanItems(
           input.serviceTypeId,
           input.planId,
-          access.services.planItems
+          access.services.planItems,
+          signal
         )
     );
   });
 
-export const createRunSheetItem = (
+export const prepareRunSheetItemCreate = (
   input: PlanItemsCreateInput
-): Effect.Effect<PlanItem, ApplicationFault, PlanningCenterAccess> =>
-  Effect.gen(function* createItem() {
+): Effect.Effect<
+  PreparedCreatePlanItem,
+  ApplicationFault,
+  PlanningCenterAccess
+> =>
+  Effect.gen(function* prepareItemCreate() {
     const access = yield* PlanningCenterAccess;
     return yield* tryPlanningCenter(
-      async () =>
-        await createPlanItem(
+      async (signal) =>
+        await prepareCreatePlanItem(
           {
             ...input,
             songId: input.songId ?? undefined,
@@ -95,22 +112,39 @@ export const createRunSheetItem = (
             keyId: input.keyId ?? undefined,
             selectedLayoutId: input.selectedLayoutId ?? undefined,
           },
-          {
-            planItemsService: access.services.planItems,
-            loadSongOptions: loadRequestSongOptions(access),
-          }
+          loadRequestSongOptions(access, signal)
         )
     );
   });
 
-export const updateRunSheetItem = (
-  input: PlanItemsUpdateInput
-): Effect.Effect<PlanItem, ApplicationFault, PlanningCenterAccess> =>
-  Effect.gen(function* updateItem() {
+export const commitRunSheetItemCreate = (
+  prepared: PreparedCreatePlanItem
+): Effect.Effect<
+  PlanItem,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
+  Effect.gen(function* commitItemCreate() {
     const access = yield* PlanningCenterAccess;
+    yield* ensureRequestIsOpen;
     return yield* tryPlanningCenter(
       async () =>
-        await updatePlanItem(
+        await commitCreatePlanItem(prepared, access.services.planItems)
+    );
+  });
+
+export const prepareRunSheetItemUpdate = (
+  input: PlanItemsUpdateInput
+): Effect.Effect<
+  PreparedUpdatePlanItem,
+  ApplicationFault,
+  PlanningCenterAccess
+> =>
+  Effect.gen(function* prepareItemUpdate() {
+    const access = yield* PlanningCenterAccess;
+    return yield* tryPlanningCenter(
+      async (signal) =>
+        await prepareUpdatePlanItem(
           {
             ...input,
             songId: input.songId ?? undefined,
@@ -118,11 +152,24 @@ export const updateRunSheetItem = (
             keyId: input.keyId ?? undefined,
             selectedLayoutId: input.selectedLayoutId ?? undefined,
           },
-          {
-            planItemsService: access.services.planItems,
-            loadSongOptions: loadRequestSongOptions(access),
-          }
+          loadRequestSongOptions(access, signal)
         )
+    );
+  });
+
+export const commitRunSheetItemUpdate = (
+  prepared: PreparedUpdatePlanItem
+): Effect.Effect<
+  PlanItem,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
+  Effect.gen(function* commitItemUpdate() {
+    const access = yield* PlanningCenterAccess;
+    yield* ensureRequestIsOpen;
+    return yield* tryPlanningCenter(
+      async () =>
+        await commitUpdatePlanItem(prepared, access.services.planItems)
     );
   });
 
@@ -131,10 +178,11 @@ export const deleteRunSheetItem = (
 ): Effect.Effect<
   { readonly success: true },
   ApplicationFault,
-  PlanningCenterAccess
+  PlanningCenterAccess | RequestContext
 > =>
   Effect.gen(function* deleteItem() {
     const access = yield* PlanningCenterAccess;
+    yield* ensureRequestIsOpen;
     yield* tryPlanningCenter(async () => {
       await deletePlanItem(input.serviceTypeId, input.planId, input.itemId, {
         planItemsService: access.services.planItems,
@@ -148,10 +196,11 @@ export const reorderRunSheetItems = (
 ): Effect.Effect<
   { readonly success: true },
   ApplicationFault,
-  PlanningCenterAccess
+  PlanningCenterAccess | RequestContext
 > =>
   Effect.gen(function* reorderItems() {
     const access = yield* PlanningCenterAccess;
+    yield* ensureRequestIsOpen;
     yield* tryPlanningCenter(async () => {
       await reorderPlanItems(
         input.serviceTypeId,
@@ -169,20 +218,25 @@ export const listPlanTimes = (
   Effect.gen(function* listTimes() {
     const access = yield* PlanningCenterAccess;
     return yield* tryPlanningCenter(
-      async () =>
+      async (signal) =>
         await getPlanTimes(
           input.serviceTypeId,
           input.planId,
-          planTimeDependenciesFor(access)
+          planTimeDependenciesFor(access, signal)
         )
     );
   });
 
 export const createRunSheetTime = (
   input: PlanTimesCreateInput
-): Effect.Effect<PlanTime, ApplicationFault, PlanningCenterAccess> =>
+): Effect.Effect<
+  PlanTime,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
   Effect.gen(function* createTime() {
     const access = yield* PlanningCenterAccess;
+    yield* ensureRequestIsOpen;
     return yield* tryPlanningCenter(
       async () =>
         await createPlanTime(
@@ -195,9 +249,14 @@ export const createRunSheetTime = (
 
 export const updateRunSheetTime = (
   input: PlanTimesUpdateInput
-): Effect.Effect<PlanTime, ApplicationFault, PlanningCenterAccess> =>
+): Effect.Effect<
+  PlanTime,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
   Effect.gen(function* updateTime() {
     const access = yield* PlanningCenterAccess;
+    yield* ensureRequestIsOpen;
     return yield* tryPlanningCenter(
       async () =>
         await updatePlanTime(
@@ -210,9 +269,14 @@ export const updateRunSheetTime = (
 
 export const deleteRunSheetTime = (
   input: PlanTimesDeleteInput
-): Effect.Effect<void, ApplicationFault, PlanningCenterAccess> =>
+): Effect.Effect<
+  void,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
   Effect.gen(function* deleteTime() {
     const access = yield* PlanningCenterAccess;
+    yield* ensureRequestIsOpen;
     yield* tryPlanningCenter(async () => {
       await deletePlanTime(
         input,
@@ -227,10 +291,11 @@ export const updateRunSheetPersonTimes = (
 ): Effect.Effect<
   { readonly ok: true },
   ApplicationFault,
-  PlanningCenterAccess
+  PlanningCenterAccess | RequestContext
 > =>
   Effect.gen(function* updatePersonTimes() {
     const access = yield* PlanningCenterAccess;
+    yield* ensureRequestIsOpen;
     yield* tryPlanningCenter(
       async () =>
         await updatePlanPersonTimes(input, {
@@ -247,12 +312,13 @@ export const searchRunSheetSongs = (
   Effect.gen(function* searchRunSheetCatalog() {
     const access = yield* PlanningCenterAccess;
     return yield* tryPlanningCenter(
-      async () =>
+      async (signal) =>
         await searchSongs(
           access.cacheScope,
           input.serviceTypeId,
           input.query,
-          access.services.songs
+          access.services.songs,
+          signal
         )
     );
   });
@@ -263,11 +329,12 @@ export const getRunSheetSongOptions = (
   Effect.gen(function* readSongOptions() {
     const access = yield* PlanningCenterAccess;
     return yield* tryPlanningCenter(
-      async () =>
+      async (signal) =>
         await getSongOptions(
           input.songId,
           input.serviceTypeId,
-          access.services.songs
+          access.services.songs,
+          signal
         )
     );
   });

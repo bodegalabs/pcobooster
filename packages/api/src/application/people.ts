@@ -11,45 +11,51 @@ import {
   loadDevBypassIdentity,
 } from "@worship-admin/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@worship-admin/api/auth/planning-center-account-identity";
-import { peoplePageFlag } from "@worship-admin/api/people-page-flag";
-import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
-import { getCurrentUserScheduledPlanIds } from "@worship-admin/api/use-cases/planning-center/get-current-user-scheduled-plans";
-import { getPeopleDashboard as getPeopleDashboardData } from "@worship-admin/api/use-cases/planning-center/get-people-dashboard";
-import { getPeopleDashboardPerson as getPeopleDashboardPersonDetail } from "@worship-admin/api/use-cases/planning-center/get-people-dashboard-person";
+import { getCurrentUserScheduledPlanIds } from "@worship-admin/api/modules/planning-center/get-current-user-scheduled-plans";
+import { getPeopleDashboard as getPeopleDashboardData } from "@worship-admin/api/modules/planning-center/get-people-dashboard";
+import { getPeopleDashboardPerson as getPeopleDashboardPersonDetail } from "@worship-admin/api/modules/planning-center/get-people-dashboard-person";
 import {
   getPeopleForPosition,
   warmPeopleHistoryForPlan,
-} from "@worship-admin/api/use-cases/planning-center/get-people-for-position";
-import type { PeopleForPositionDependencies } from "@worship-admin/api/use-cases/planning-center/get-people-for-position";
-import { getFutureBlockoutsForPerson } from "@worship-admin/api/use-cases/planning-center/get-person-blockouts";
-import { getScheduleHistory } from "@worship-admin/api/use-cases/planning-center/get-schedule-history";
-import type { ScheduleHistoryResult } from "@worship-admin/api/use-cases/planning-center/get-schedule-history";
+} from "@worship-admin/api/modules/planning-center/get-people-for-position";
+import type { PeopleForPositionDependencies } from "@worship-admin/api/modules/planning-center/get-people-for-position";
+import { getFutureBlockoutsForPerson } from "@worship-admin/api/modules/planning-center/get-person-blockouts";
+import { getScheduleHistory } from "@worship-admin/api/modules/planning-center/get-schedule-history";
+import type { ScheduleHistoryResult } from "@worship-admin/api/modules/planning-center/get-schedule-history";
 import type {
   PeopleDashboardData,
   PeopleDashboardPersonDetail,
   PeopleDashboardRange,
-} from "@worship-admin/api/use-cases/planning-center/people-dashboard-types";
+} from "@worship-admin/api/modules/planning-center/people-dashboard-types";
 import {
   presentBlockouts,
   presentDashboard,
   presentDashboardPerson,
   presentPeople,
   getPresentationIdentityMapper,
-} from "@worship-admin/api/use-cases/planning-center/presentation";
-import { searchPeople } from "@worship-admin/api/use-cases/planning-center/search-people";
-import type { PeopleSearchResult } from "@worship-admin/api/use-cases/planning-center/search-people";
+} from "@worship-admin/api/modules/planning-center/presentation";
+import { searchPeople } from "@worship-admin/api/modules/planning-center/search-people";
+import type { PeopleSearchResult } from "@worship-admin/api/modules/planning-center/search-people";
+import { peoplePageFlag } from "@worship-admin/api/people-page-flag";
+import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
 import type {
   Blockout,
   PersonWithAvailability,
 } from "@worship-admin/planning-center-models/types";
+import {
+  getPresentationSeed,
+  isPresentationMode,
+} from "@worship-admin/presentation-mode";
 import { Effect } from "effect";
 
 const resolveRequestTimeZone = async (
-  access: PlanningCenterRequestAccess
+  access: PlanningCenterRequestAccess,
+  signal?: AbortSignal
 ): Promise<string> =>
   await resolveOrganizationTimeZone({
     cacheScope: access.cacheScope,
     catalogService: access.services.catalog,
+    signal,
   });
 
 const requestPresentationDependencies = (
@@ -57,15 +63,20 @@ const requestPresentationDependencies = (
 ) => ({
   catalog: access.services.catalog,
   people: access.services.people,
+  isPresentationMode,
+  getPresentationSeed,
 });
 
 const requestPeopleForPositionDependencies = (
-  access: PlanningCenterRequestAccess
+  access: PlanningCenterRequestAccess,
+  signal?: AbortSignal
 ): PeopleForPositionDependencies => ({
   catalog: access.services.catalog,
   people: access.services.people,
   plans: access.services.plans,
-  resolveTimeZone: async () => await resolveRequestTimeZone(access),
+  resolveTimeZone: async (timeZoneSignal) =>
+    await resolveRequestTimeZone(access, timeZoneSignal),
+  signal,
 });
 
 const requirePeopleDashboard = Effect.gen(function* requirePeopleDashboard() {
@@ -97,15 +108,19 @@ export const getPeopleList = (input: {
   Effect.gen(function* listPeople() {
     const access = yield* PlanningCenterAccess;
     const people = yield* tryPlanningCenter(
-      async () =>
+      async (signal) =>
         await getPeopleForPosition(
           input,
-          requestPeopleForPositionDependencies(access)
+          requestPeopleForPositionDependencies(access, signal)
         )
     );
     return yield* tryPlanningCenter(
-      async () =>
-        await presentPeople(people, requestPresentationDependencies(access))
+      async (signal) =>
+        await presentPeople(
+          people,
+          requestPresentationDependencies(access),
+          signal
+        )
     );
   });
 
@@ -119,14 +134,20 @@ export const getPeopleSearch = (input: {
   Effect.gen(function* searchDirectory() {
     const access = yield* PlanningCenterAccess;
     return yield* tryPlanningCenter(
-      async () =>
-        await searchPeople(input.query, 15, {
-          people: access.services.people,
-          getIdentityMapper: async () =>
-            await getPresentationIdentityMapper(
-              requestPresentationDependencies(access)
-            ),
-        })
+      async (signal) =>
+        await searchPeople(
+          input.query,
+          15,
+          {
+            people: access.services.people,
+            getIdentityMapper: async (mapperSignal) =>
+              await getPresentationIdentityMapper(
+                requestPresentationDependencies(access),
+                mapperSignal
+              ),
+          },
+          signal
+        )
     );
   });
 
@@ -140,10 +161,10 @@ export const warmPeople = (input: {
 > =>
   Effect.gen(function* warmPeopleHistory() {
     const access = yield* PlanningCenterAccess;
-    yield* tryPlanningCenter(async () => {
+    yield* tryPlanningCenter(async (signal) => {
       await warmPeopleHistoryForPlan(
         input,
-        requestPeopleForPositionDependencies(access)
+        requestPeopleForPositionDependencies(access, signal)
       );
     });
     return { warmed: true };
@@ -155,12 +176,16 @@ export const getPeopleBlockouts = (input: {
   Effect.gen(function* listPeopleBlockouts() {
     const access = yield* PlanningCenterAccess;
     const blockouts = yield* tryPlanningCenter(
-      async () =>
-        await getFutureBlockoutsForPerson(input.personId, {
-          peopleService: access.services.people,
-        })
+      async (signal) =>
+        await getFutureBlockoutsForPerson(
+          input.personId,
+          {
+            peopleService: access.services.people,
+          },
+          signal
+        )
     );
-    return presentBlockouts(blockouts);
+    return presentBlockouts(blockouts, isPresentationMode());
   });
 
 export const getPeopleDashboard = (input: {
@@ -174,18 +199,23 @@ export const getPeopleDashboard = (input: {
     yield* requirePeopleDashboard;
     const access = yield* PlanningCenterAccess;
     const dashboard = yield* tryPlanningCenter(
-      async () =>
-        await getPeopleDashboardData({
-          range: input.range,
-          peopleService: access.services.people,
-          resolveTimeZone: async () => await resolveRequestTimeZone(access),
-        })
+      async (signal) =>
+        await getPeopleDashboardData(
+          {
+            range: input.range,
+            peopleService: access.services.people,
+            resolveTimeZone: async (timeZoneSignal) =>
+              await resolveRequestTimeZone(access, timeZoneSignal),
+          },
+          signal
+        )
     );
     return yield* tryPlanningCenter(
-      async () =>
+      async (signal) =>
         await presentDashboard(
           dashboard,
-          requestPresentationDependencies(access)
+          requestPresentationDependencies(access),
+          signal
         )
     );
   });
@@ -202,23 +232,28 @@ export const getPeopleDashboardPerson = (input: {
     yield* requirePeopleDashboard;
     const access = yield* PlanningCenterAccess;
     const detail = yield* tryPlanningCenter(
-      async () =>
-        await getPeopleDashboardPersonDetail({
-          personId: input.personId,
-          month: input.month,
-          dependencies: {
-            peopleService: access.services.people,
-            catalogService: access.services.catalog,
-            plansService: access.services.plans,
-            resolveTimeZone: async () => await resolveRequestTimeZone(access),
+      async (signal) =>
+        await getPeopleDashboardPersonDetail(
+          {
+            personId: input.personId,
+            month: input.month,
+            dependencies: {
+              peopleService: access.services.people,
+              catalogService: access.services.catalog,
+              plansService: access.services.plans,
+              resolveTimeZone: async (timeZoneSignal) =>
+                await resolveRequestTimeZone(access, timeZoneSignal),
+            },
           },
-        })
+          signal
+        )
     );
     return yield* tryPlanningCenter(
-      async () =>
+      async (signal) =>
         await presentDashboardPerson(
           detail,
-          requestPresentationDependencies(access)
+          requestPresentationDependencies(access),
+          signal
         )
     );
   });
@@ -234,11 +269,17 @@ export const getPeopleScheduleHistory = (input: {
   Effect.gen(function* readPeopleScheduleHistory() {
     const access = yield* PlanningCenterAccess;
     return yield* tryPlanningCenter(
-      async () =>
-        await getScheduleHistory(input.personId, input.days, {
-          peopleService: access.services.people,
-          resolveTimeZone: async () => await resolveRequestTimeZone(access),
-        })
+      async (signal) =>
+        await getScheduleHistory(
+          input.personId,
+          input.days,
+          {
+            peopleService: access.services.people,
+            resolveTimeZone: async (timeZoneSignal) =>
+              await resolveRequestTimeZone(access, timeZoneSignal),
+          },
+          signal
+        )
     );
   });
 
@@ -254,7 +295,7 @@ export const getMyScheduledPlans = (input: {
     const { request } = yield* RequestContext;
     const uniquePlanIds = [...new Set(input.planIds)];
     const planIds = yield* tryPlanningCenter(
-      async () =>
+      async (signal) =>
         await getCurrentUserScheduledPlanIds(
           request,
           access.authentication.account,
@@ -264,7 +305,8 @@ export const getMyScheduledPlans = (input: {
             isDevAuthBypassEnabled,
             loadDevBypassIdentity,
             getPlanningCenterIdentityForAccount,
-          }
+          },
+          signal
         )
     );
     return { planIds };

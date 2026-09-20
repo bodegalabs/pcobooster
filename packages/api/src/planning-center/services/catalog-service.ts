@@ -1,5 +1,5 @@
 import { logger } from "@worship-admin/api/logger";
-import { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
+import type { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
 import { PlanningCenterReadCache } from "@worship-admin/api/planning-center/services/read-cache";
 import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import type { PCResource } from "@worship-admin/planning-center-models/types";
@@ -48,14 +48,18 @@ export class PlanningCenterCatalogService {
     this.caches = caches;
   }
 
-  async getTeam(teamId: string): Promise<PCResource> {
-    const response = await this.core.fetch(`/services/v2/teams/${teamId}`);
+  async getTeam(teamId: string, signal?: AbortSignal): Promise<PCResource> {
+    const response = await this.core.fetch(`/services/v2/teams/${teamId}`, {
+      signal,
+    });
     return response.data;
   }
 
   /** Root Services `Organization` (account settings include `time_zone`). */
-  async getOrganization(): Promise<PCResource> {
-    const response = await this.core.fetchCollection("/services/v2");
+  async getOrganization(signal?: AbortSignal): Promise<PCResource> {
+    const response = await this.core.fetchCollection("/services/v2", {
+      signal,
+    });
     const [first] = response.data;
     if (first === undefined) {
       throw new Error(
@@ -66,31 +70,41 @@ export class PlanningCenterCatalogService {
   }
 
   async getServiceTypes(
-    params: Record<string, string> = {}
+    params: Record<string, string> = {},
+    signal?: AbortSignal
   ): Promise<PCResource[]> {
-    return await this.core.fetchAll("/services/v2/service_types", params);
+    return await this.core.fetchAll(
+      "/services/v2/service_types",
+      params,
+      10,
+      signal
+    );
   }
 
   async getServiceTypesCached(
-    ttlMs: number = 5 * 60 * 1000
+    ttlMs: number = 5 * 60 * 1000,
+    signal?: AbortSignal
   ): Promise<PCResource[]> {
     const serviceTypes = await this.caches.serviceTypes.get(
       `${this.core.getCacheScope()}:service-types`,
       ttlMs,
-      async () => await this.getServiceTypes()
+      async (loadSignal) => await this.getServiceTypes({}, loadSignal),
+      signal
     );
     return structuredClone(serviceTypes);
   }
 
   async getServiceTypeTeamPositionsWithTeams(
-    serviceTypeId: string
+    serviceTypeId: string,
+    signal?: AbortSignal
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
     const response = await this.caches.reads.get(
       this.buildCacheKey("service-type-team-positions", serviceTypeId),
       TEAM_POSITIONS_CACHE_TTL_MS,
-      async () => {
+      async (loadSignal) => {
         const result = await this.core.fetchCollection(
-          `/services/v2/service_types/${serviceTypeId}/team_positions?include=team&per_page=100`
+          `/services/v2/service_types/${serviceTypeId}/team_positions?include=team&per_page=100`,
+          { signal: loadSignal }
         );
 
         const { data } = result;
@@ -103,7 +117,8 @@ export class PlanningCenterCatalogService {
           data,
           included: result.included ?? [],
         };
-      }
+      },
+      signal
     );
 
     return cloneResourceResponse(response);
@@ -111,15 +126,18 @@ export class PlanningCenterCatalogService {
 
   async getPlanNeededPositionsWithTeams(
     seriesId: string,
-    planId: string
+    planId: string,
+    signal?: AbortSignal
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
     const response = await this.caches.reads.get(
       this.buildCacheKey("series-plan-needed-positions", seriesId, planId),
       NEEDED_POSITIONS_CACHE_TTL_MS,
-      async () => {
+      async (loadSignal) => {
         const result = await this.core.fetchAllWithIncluded(
           `/services/v2/series/${seriesId}/plans/${planId}/needed_positions`,
-          { include: "team" }
+          { include: "team" },
+          5,
+          loadSignal
         );
 
         log.info(
@@ -128,7 +146,8 @@ export class PlanningCenterCatalogService {
         );
 
         return result;
-      }
+      },
+      signal
     );
 
     return cloneResourceResponse(response);
@@ -136,7 +155,8 @@ export class PlanningCenterCatalogService {
 
   async getServiceTypePlanNeededPositionsWithTeams(
     serviceTypeId: string,
-    planId: string
+    planId: string,
+    signal?: AbortSignal
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
     const response = await this.caches.reads.get(
       this.buildCacheKey(
@@ -145,10 +165,12 @@ export class PlanningCenterCatalogService {
         planId
       ),
       NEEDED_POSITIONS_CACHE_TTL_MS,
-      async () => {
+      async (loadSignal) => {
         const result = await this.core.fetchAllWithIncluded(
           `/services/v2/service_types/${serviceTypeId}/plans/${planId}/needed_positions`,
-          { include: "team" }
+          { include: "team" },
+          5,
+          loadSignal
         );
 
         log.info(
@@ -157,7 +179,8 @@ export class PlanningCenterCatalogService {
         );
 
         return result;
-      }
+      },
+      signal
     );
 
     return cloneResourceResponse(response);
@@ -218,8 +241,3 @@ export class PlanningCenterCatalogService {
     ].join(":");
   }
 }
-
-export const planningCenterCatalogService = new PlanningCenterCatalogService(
-  new PlanningCenterCoreClient(),
-  planningCenterCatalogServiceCaches
-);

@@ -553,7 +553,7 @@ export type FrequencyLevel = "low" | "medium" | "high";
 export interface PersonWithAvailability extends Person {
   availability?: AvailabilityStatus;
   frequency?: ScheduleFrequency;
-  /** Not sent from `/api/people` (use `isBlockedForDate` or `/api/blockouts/:id`). */
+  /** Not returned by `people.list`; use `isBlockedForDate` or `people.blockouts`. */
   blockouts?: Blockout[];
   serviceHistory?: ServiceHistoryItem[];
   isBlockedForDate?: boolean;

@@ -114,6 +114,7 @@
         "@worship-admin/contracts": "workspace:*",
         "@worship-admin/marketing": "workspace:*",
         "@worship-admin/planning-center-models": "workspace:*",
+        "@worship-admin/presentation-mode": "workspace:*",
         "better-auth": "1.7.5",
         "class-variance-authority": "^0.7.1",
         "cmdk": "^1.1.1",
@@ -150,6 +151,7 @@
         "@orpc/server": "^1.15.0",
         "@worship-admin/contracts": "workspace:*",
         "@worship-admin/planning-center-models": "workspace:*",
+        "@worship-admin/presentation-mode": "workspace:*",
         "better-auth": "1.7.5",
         "drizzle-orm": "^0.45.2",
         "effect": "3.22.2",
@@ -192,6 +194,16 @@
         "zod": "^4.6.5",
       },
       "devDependencies": {
+        "@worship-admin/config": "workspace:*",
+        "typescript": "^5.9.3",
+        "vitest": "^4.1.11",
+      },
+    },
+    "packages/presentation-mode": {
+      "name": "@worship-admin/presentation-mode",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@types/node": "^24.13.5",
         "@worship-admin/config": "workspace:*",
         "typescript": "^5.9.3",
         "vitest": "^4.1.11",
@@ -1102,6 +1114,8 @@
     "@worship-admin/marketing": ["@worship-admin/marketing@workspace:apps/marketing"],
 
     "@worship-admin/planning-center-models": ["@worship-admin/planning-center-models@workspace:packages/planning-center-models"],
+
+    "@worship-admin/presentation-mode": ["@worship-admin/presentation-mode@workspace:packages/presentation-mode"],
 
     "@worship-admin/server": ["@worship-admin/server@workspace:apps/server"],
 

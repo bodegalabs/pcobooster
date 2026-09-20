@@ -1,0 +1,7 @@
+{
+  "extends": "@worship-admin/config/tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["src/**/*.ts"]
+}

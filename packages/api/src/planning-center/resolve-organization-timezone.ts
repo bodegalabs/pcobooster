@@ -1,5 +1,3 @@
-import { getPlanningCenterRequestAccessToken } from "@worship-admin/api/planning-center/request-auth-context";
-import { planningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
 import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
 import {
   isNonEmptyString,
@@ -12,24 +10,14 @@ const MISS_TTL_MS = 2 * 60 * 1000;
 
 const cache = new Map<string, { timeZone: string; expiresAt: number }>();
 
-const legacyCacheScope = (): string =>
-  getPlanningCenterRequestAccessToken() ?? "__application__";
-
 export interface OrganizationTimeZoneDependencies {
   readonly catalogService: Pick<
     PlanningCenterCatalogService,
     "getOrganization"
   >;
-  /**
-   * Converted Effect programs pass a request-owned scope. The legacy default
-   * keeps existing REST callers working until they are migrated.
-   */
-  readonly cacheScope?: string;
+  readonly cacheScope: string;
+  readonly signal?: AbortSignal;
 }
-
-const defaultDependencies: OrganizationTimeZoneDependencies = {
-  catalogService: planningCenterCatalogService,
-};
 
 /** When Planning Center does not return a zone (or the request fails). */
 const configuredFallbackTimeZone = (): string =>
@@ -52,9 +40,9 @@ const readTimeZoneFromOrganization = (org: PCResource): string | null => {
  * does not expose a zone or the fetch fails.
  */
 export const resolveOrganizationTimeZone = async (
-  dependencies: OrganizationTimeZoneDependencies = defaultDependencies
+  dependencies: OrganizationTimeZoneDependencies
 ): Promise<string> => {
-  const key = dependencies.cacheScope ?? legacyCacheScope();
+  const key = dependencies.cacheScope;
   const now = Date.now();
   const hit = cache.get(key);
   if (hit && hit.expiresAt > now) {
@@ -62,13 +50,18 @@ export const resolveOrganizationTimeZone = async (
   }
 
   try {
-    const org = await dependencies.catalogService.getOrganization();
+    const org = await dependencies.catalogService.getOrganization(
+      dependencies.signal
+    );
     const tz = readTimeZoneFromOrganization(org);
     if (isNonEmptyString(tz)) {
       cache.set(key, { timeZone: tz, expiresAt: now + HIT_TTL_MS });
       return tz;
     }
-  } catch {
+  } catch (error) {
+    if (dependencies.signal?.aborted === true) {
+      throw error;
+    }
     // fall through to fallback
   }
 

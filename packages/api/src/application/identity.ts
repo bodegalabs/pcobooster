@@ -1,9 +1,9 @@
 import { RequestContext } from "@worship-admin/api/application/context";
 import type { ApplicationFault } from "@worship-admin/api/application/errors";
+import { Forbidden } from "@worship-admin/api/application/errors/forbidden";
 import { NotFound } from "@worship-admin/api/application/errors/not-found";
 import { PersistenceFailure } from "@worship-admin/api/application/errors/persistence-failure";
 import { Unauthenticated } from "@worship-admin/api/application/errors/unauthenticated";
-import { toApplicationFault } from "@worship-admin/api/application/planning-center-access";
 import { auth } from "@worship-admin/api/auth";
 import {
   getDevBypassPlanningCenterAccount,
@@ -13,14 +13,13 @@ import {
 } from "@worship-admin/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@worship-admin/api/auth/planning-center-account-identity";
 import { getSelectedPlanningCenterAccountId } from "@worship-admin/api/auth/planning-center-session";
-import { ApiError } from "@worship-admin/api/http/api-error";
-import { peoplePageFlag } from "@worship-admin/api/people-page-flag";
-import { authorizeAdminRequest } from "@worship-admin/api/use-cases/admin/authorize-admin";
+import { authorizeAdminRequest } from "@worship-admin/api/modules/admin/authorize-admin";
 import {
   getAccountActivity,
   getUserAccountDetail,
   isAdminEmail,
-} from "@worship-admin/api/use-cases/admin/get-account-activity";
+} from "@worship-admin/api/modules/admin/get-account-activity";
+import { peoplePageFlag } from "@worship-admin/api/people-page-flag";
 import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import { Effect } from "effect";
 
@@ -77,8 +76,8 @@ const defaultIdentityDependencies: IdentityDependencies = {
 };
 
 const toIdentityFault = (error: Error, operation: string): ApplicationFault =>
-  error instanceof ApiError
-    ? toApplicationFault(error)
+  error instanceof Unauthenticated || error instanceof Forbidden
+    ? error
     : new PersistenceFailure({
         message: "Could not load account data.",
         operation,

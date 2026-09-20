@@ -1,10 +1,10 @@
-import { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
+import { createBasicPlanningCenterClient } from "@worship-admin/api/planning-center/core-client";
 import { PlanningCenterPlanItemsService } from "@worship-admin/api/planning-center/services/plan-items-service";
 import type { PCResource } from "@worship-admin/planning-center-models/types";
 import { describe, expect, it, vi } from "vitest";
 
 const createCoreClientMock = () => {
-  const core = new PlanningCenterCoreClient();
+  const core = createBasicPlanningCenterClient();
   const fetchAllWithIncluded = vi.spyOn(core, "fetchAllWithIncluded");
   const fetch = vi.spyOn(core, "fetch");
   const request = vi.spyOn(core, "request");

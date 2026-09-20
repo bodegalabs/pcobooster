@@ -1,3 +1,4 @@
+import { ensureRequestIsOpen } from "@worship-admin/api/application/context";
 import type { ApplicationFault } from "@worship-admin/api/application/errors";
 import { AlreadyScheduled } from "@worship-admin/api/application/errors/already-scheduled";
 import { PositionMismatch } from "@worship-admin/api/application/errors/position-mismatch";
@@ -6,21 +7,21 @@ import {
   toApplicationFault,
   tryPlanningCenter,
 } from "@worship-admin/api/application/planning-center-access";
-import { isPresentationMode } from "@worship-admin/api/presentation-mode";
-import { invalidateCandidateHistoryForPerson } from "@worship-admin/api/use-cases/planning-center/get-people-for-position";
+import { invalidateCandidateHistoryForPerson } from "@worship-admin/api/modules/planning-center/get-people-for-position";
 import {
   matchesScheduleTarget,
   resolveScheduleTarget,
-} from "@worship-admin/api/use-cases/planning-center/schedule-person";
+} from "@worship-admin/api/modules/planning-center/schedule-person";
 import type {
   ScheduleAssignInput,
   ScheduleRemoveInput,
   ScheduleUpdateStatusInput,
 } from "@worship-admin/contracts/schedule";
 import { isString } from "@worship-admin/planning-center-models/json";
+import { isPresentationMode } from "@worship-admin/presentation-mode";
 import { Effect } from "effect";
 
-import { RequestContext } from "./context";
+import type { RequestContext } from "./context";
 
 export interface ScheduleApplicationDependencies {
   readonly invalidateHistory: typeof invalidateCandidateHistoryForPerson;
@@ -39,19 +40,6 @@ const defaultDependencies: ScheduleApplicationDependencies = {
   presentationMode: isPresentationMode,
 };
 
-/**
- * A disconnect during preflight must never turn into a delayed provider
- * mutation. The scheduling transport keeps execution alive long enough to
- * audit this interruption, while this boundary prevents a subsequent write.
- */
-const ensureRequestIsOpen: Effect.Effect<void, never, RequestContext> =
-  Effect.gen(function* ensureRequestIsOpen() {
-    const { signal } = yield* RequestContext;
-    if (signal.aborted) {
-      yield* Effect.interrupt;
-    }
-  });
-
 /** Read-only validation remains in the request's interruptible phase. */
 export const prepareScheduledPerson = (
   input: ScheduleAssignInput,
@@ -65,14 +53,15 @@ export const prepareScheduledPerson = (
     const access = yield* PlanningCenterAccess;
     const normalizedInput = { ...input, oneOff: input.oneOff ?? false };
     const target = yield* tryPlanningCenter(
-      async () =>
-        await resolveScheduleTarget(normalizedInput, {
-          catalog: access.services.catalog,
-          people: access.services.people,
-          invalidate: (personId) => {
-            void personId;
+      async (signal) =>
+        await resolveScheduleTarget(
+          normalizedInput,
+          {
+            catalog: access.services.catalog,
+            people: access.services.people,
           },
-        })
+          signal
+        )
     );
     return { target };
   });

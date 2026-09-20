@@ -1,11 +1,10 @@
+import { Unauthenticated } from "@worship-admin/api/application/errors/unauthenticated";
 import { auth } from "@worship-admin/api/auth";
 import {
   getDevBypassSession,
   isDevAuthBypassEnabled,
 } from "@worship-admin/api/auth/dev-bypass";
 import { getPlanningCenterToken } from "@worship-admin/api/auth/planning-center-token";
-import { ApiError } from "@worship-admin/api/http/api-error";
-import { runWithPlanningCenterRequestAuth } from "@worship-admin/api/planning-center/request-auth-context";
 import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
@@ -51,7 +50,9 @@ export interface PlanningCenterUserAuthContext {
   account: { id: string; accountId: string };
 }
 
-export const requirePlanningCenterAccessToken = async (request: Request) => {
+export const requirePlanningCenterAccessToken = async (
+  request: Request
+): Promise<PlanningCenterUserAuthContext> => {
   if (isDevAuthBypassEnabled()) {
     return {
       session: getDevBypassSession(),
@@ -67,11 +68,9 @@ export const requirePlanningCenterAccessToken = async (request: Request) => {
   });
 
   if (!session) {
-    throw new ApiError(
-      401,
-      "UNAUTHORIZED",
-      "Sign in with Planning Center to continue"
-    );
+    throw new Unauthenticated({
+      message: "Sign in with Planning Center to continue",
+    });
   }
 
   const linkedAccounts = await auth.api.listUserAccounts({
@@ -95,11 +94,9 @@ export const requirePlanningCenterAccessToken = async (request: Request) => {
       : null) ?? planningCenterAccounts.at(0);
 
   if (!selectedAccount) {
-    throw new ApiError(
-      401,
-      "PLANNING_CENTER_NOT_LINKED",
-      "No Planning Center account is linked for this user."
-    );
+    throw new Unauthenticated({
+      message: "No Planning Center account is linked for this user.",
+    });
   }
 
   const token = await getPlanningCenterToken(request.headers, selectedAccount);
@@ -109,22 +106,4 @@ export const requirePlanningCenterAccessToken = async (request: Request) => {
     accountId: selectedAccount.id,
     account: selectedAccount,
   };
-};
-
-export const withPlanningCenterUser = async <T>(
-  request: Request,
-  handler: (ctx: PlanningCenterUserAuthContext) => Promise<T>
-): Promise<T> => {
-  const authContext = await requirePlanningCenterAccessToken(request);
-
-  if (!authContext.accessToken) {
-    // Dev bypass: skip the per-request bearer so the core client falls back to
-    // Basic auth using PLANNING_CENTER_CLIENT/PLANNING_CENTER_PAT.
-    return await handler(authContext);
-  }
-
-  return await runWithPlanningCenterRequestAuth(
-    { accessToken: authContext.accessToken },
-    async () => await handler(authContext)
-  );
 };

@@ -1,5 +1,5 @@
 import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
-import { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
+import { createBasicPlanningCenterClient } from "@worship-admin/api/planning-center/core-client";
 import { PlanningCenterPlansService } from "@worship-admin/api/planning-center/services/plans-service";
 import type { PCResource } from "@worship-admin/planning-center-models/types";
 import { describe, expect, it, vi } from "vitest";
@@ -14,7 +14,7 @@ const planResource = (id: string, sortDate: string): PCResource => ({
 
 describe("PlanningCenterPlansService.getPlansWithIncludedInDateRange", () => {
   it("caches range reads and returns mutation-safe copies", async () => {
-    const core = new PlanningCenterCoreClient();
+    const core = createBasicPlanningCenterClient();
     const fetchAllWithIncluded = vi
       .spyOn(core, "fetchAllWithIncluded")
       .mockResolvedValue({
@@ -64,7 +64,7 @@ describe("PlanningCenterPlansService.getPlansWithIncludedInDateRange", () => {
 
 describe("PlanningCenterPlansService plan times", () => {
   it("fetches plan times through the service-type plan endpoint and returns cache-safe copies", async () => {
-    const core = new PlanningCenterCoreClient();
+    const core = createBasicPlanningCenterClient();
     const fetchAll = vi.spyOn(core, "fetchAll").mockResolvedValue([
       {
         id: "time-1",
@@ -78,19 +78,22 @@ describe("PlanningCenterPlansService plan times", () => {
     first[0].attributes.name = "Mutated";
     const second = await service.getPlanTimes("st-1", "plan-1");
 
-    expect(fetchAll).toHaveBeenCalledExactlyOnceWith(
+    expect(fetchAll).toHaveBeenCalledOnce();
+    expect(fetchAll.mock.calls[0]?.slice(0, 3)).toStrictEqual([
       "/services/v2/service_types/st-1/plans/plan-1/plan_times",
       {
         order: "starts_at",
         per_page: "200",
         include: "split_team_rehearsal_assignments",
-      }
-    );
+      },
+      10,
+    ]);
+    expect(fetchAll.mock.calls[0]?.[3]).toBeInstanceOf(AbortSignal);
     expect(second[0].attributes.name).toBe("Service");
   });
 
   it("patches plan times through the service-type plan-time endpoint", async () => {
-    const core = new PlanningCenterCoreClient();
+    const core = createBasicPlanningCenterClient();
     const fetch = vi.spyOn(core, "fetch").mockResolvedValue({
       data: {
         id: "time-1",
@@ -133,7 +136,7 @@ describe("PlanningCenterPlansService plan times", () => {
   });
 
   it("creates plan times through the plan-scoped endpoint", async () => {
-    const core = new PlanningCenterCoreClient();
+    const core = createBasicPlanningCenterClient();
     const fetch = vi.spyOn(core, "fetch").mockResolvedValue({
       data: {
         id: "time-new",
@@ -176,7 +179,7 @@ describe("PlanningCenterPlansService plan times", () => {
   });
 
   it("deletes plan times through the service-type plan-time endpoint", async () => {
-    const core = new PlanningCenterCoreClient();
+    const core = createBasicPlanningCenterClient();
     const request = vi
       .spyOn(core, "request")
       .mockResolvedValue(new Response(null, { status: 204 }));
@@ -193,7 +196,7 @@ describe("PlanningCenterPlansService plan times", () => {
   });
 
   it("treats missing plan times as already deleted", async () => {
-    const core = new PlanningCenterCoreClient();
+    const core = createBasicPlanningCenterClient();
     const request = vi.spyOn(core, "request").mockRejectedValue(
       new PlanningCenterApiError({
         message: "Planning Center API error: 404",
