@@ -1,8 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { QueryFunctionContext } from "@tanstack/react-query";
 import { useCallback } from "react";
 
-import { peopleDashboardPersonDetailSchema } from "@/lib/api-schemas";
-import { getJson } from "@/lib/http/client";
 import {
   readCachedPeopleDashboardPerson,
   writeCachedPeopleDashboardPerson,
@@ -14,20 +13,17 @@ import type {
   PeopleDashboardData,
   PeopleDashboardPersonDetail,
 } from "@/lib/use-cases/planning-center/people-dashboard-types";
+import { orpc } from "@/orpc-client";
 
 export const createPeopleDashboardPersonQueryOptions = (
   personId: string,
   month: string | null
 ) => ({
   queryKey: queryKeys.peopleDashboardPerson(personId, month),
-  queryFn: async () => {
-    const params =
-      month !== null && month !== ""
-        ? `?month=${encodeURIComponent(month)}`
-        : "";
-    const detail = await getJson(
-      `/api/people/dashboard/${personId}${params}`,
-      peopleDashboardPersonDetailSchema
+  queryFn: async ({ signal }: QueryFunctionContext) => {
+    const detail = await orpc.people.dashboardPerson(
+      { personId, month: month !== null && month !== "" ? month : undefined },
+      { signal }
     );
     writeCachedPeopleDashboardPerson(personId, month, detail);
     return detail;

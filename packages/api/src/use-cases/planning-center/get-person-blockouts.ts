@@ -1,12 +1,25 @@
 import { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
+import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import type { Blockout } from "@worship-admin/api/types";
 import { toBlockout } from "@worship-admin/api/use-cases/planning-center/people/transforms";
 
+export interface FutureBlockoutsDependencies {
+  readonly peopleService: Pick<
+    PlanningCenterPeopleService,
+    "getPersonBlockouts"
+  >;
+}
+
+const defaultDependencies: FutureBlockoutsDependencies = {
+  peopleService: planningCenterPeopleService,
+};
+
 export const getFutureBlockoutsForPerson = async (
-  personId: string
+  personId: string,
+  dependencies: FutureBlockoutsDependencies = defaultDependencies
 ): Promise<Blockout[]> => {
   const rawBlockouts =
-    await planningCenterPeopleService.getPersonBlockouts(personId);
+    await dependencies.peopleService.getPersonBlockouts(personId);
   const now = new Date();
 
   const blockouts: Blockout[] = [];

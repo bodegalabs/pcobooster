@@ -12,7 +12,7 @@ export interface PeopleSearchResult {
   photoThumbnailUrl: string | null;
 }
 
-interface SearchPeopleDependencies {
+export interface SearchPeopleDependencies {
   people: Pick<
     typeof planningCenterPeopleService,
     "getAllPeople" | "searchPeopleByName"

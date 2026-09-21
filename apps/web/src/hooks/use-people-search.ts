@@ -2,8 +2,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 
-import { peopleSearchResultSchema } from "@/lib/api-schemas";
-import { getJson } from "@/lib/http/client";
 import {
   normalizePeopleSearchQuery,
   readCachedPeopleSearch,
@@ -12,6 +10,7 @@ import {
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
 import type { PeopleSearchResult } from "@/lib/use-cases/planning-center/search-people";
+import { orpc } from "@/orpc-client";
 
 export type { PeopleSearchResult } from "@/lib/use-cases/planning-center/search-people";
 
@@ -26,10 +25,10 @@ export const usePeopleSearch = (query: string) => {
 
   return useQuery<PeopleSearchResult[]>({
     queryKey,
-    queryFn: async () => {
-      const results = await getJson(
-        `/api/people/search?q=${encodeURIComponent(normalizedQuery)}`,
-        peopleSearchResultSchema.array()
+    queryFn: async ({ signal }) => {
+      const results = await orpc.people.search(
+        { query: normalizedQuery },
+        { signal }
       );
       writeCachedPeopleSearch(normalizedQuery, results);
       return results;

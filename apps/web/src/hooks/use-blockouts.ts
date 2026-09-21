@@ -1,23 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { blockoutSchema } from "@/lib/api-schemas";
-import { getJson } from "@/lib/http/client";
 import { isNonEmptyString } from "@/lib/json";
 import { queryKeys } from "@/lib/query-keys";
 import type { Blockout } from "@/lib/types";
+import { orpc } from "@/orpc-client";
 
 export const useBlockouts = (personId: string | undefined) =>
   useQuery<Blockout[]>({
     queryKey: queryKeys.blockouts(personId ?? null),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!isNonEmptyString(personId)) {
         return [];
       }
 
-      return await getJson(
-        `/api/blockouts/${personId}`,
-        blockoutSchema.array()
-      );
+      return await orpc.people.blockouts({ personId }, { signal });
     },
     enabled: isNonEmptyString(personId),
     // 5 minutes

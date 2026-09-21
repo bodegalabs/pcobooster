@@ -83,12 +83,15 @@ export class PlanningCenterPlansService {
   async getPlansInDateRange(
     serviceTypeId: string,
     afterDayKey: string,
-    beforeDayKey: string
+    beforeDayKey: string,
+    organizationTimeZone?: string
   ): Promise<PCResource[]> {
     const response = await this.getPlansWithIncludedInDateRange(
       serviceTypeId,
       afterDayKey,
-      beforeDayKey
+      beforeDayKey,
+      "",
+      organizationTimeZone
     );
     return response.data;
   }
@@ -97,9 +100,10 @@ export class PlanningCenterPlansService {
     serviceTypeId: string,
     afterDayKey: string,
     beforeDayKey: string,
-    include = ""
+    include = "",
+    organizationTimeZone?: string
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const orgTz = await this.resolveTimeZone();
+    const orgTz = organizationTimeZone ?? (await this.resolveTimeZone());
     const params = {
       order: "sort_date",
       per_page: "100",

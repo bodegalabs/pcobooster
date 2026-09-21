@@ -101,7 +101,7 @@ interface Params {
   date?: string;
 }
 
-interface PeopleForPositionDependencies {
+export interface PeopleForPositionDependencies {
   catalog: Pick<typeof planningCenterCatalogService, "getServiceTypesCached">;
   people: Pick<
     typeof planningCenterPeopleService,
@@ -350,7 +350,8 @@ const getSharedPlanWindowHistorySnapshot = async (
               serviceType.id,
               afterDayKey,
               beforeDayKey,
-              "plan_times"
+              "plan_times",
+              orgTimeZone
             );
 
           return {

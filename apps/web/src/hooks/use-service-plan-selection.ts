@@ -17,7 +17,6 @@ import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
 import { useServiceTypes } from "@/hooks/use-service-types";
 import { createTeamPositionsQueryOptions } from "@/hooks/use-team-positions";
-import { getJson } from "@/lib/http/client";
 import { isNonEmptyString } from "@/lib/json";
 import { hydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
@@ -38,7 +37,6 @@ import {
   readStoredServiceTypeIds,
   SERVICE_TYPE_FILTER_STORAGE_KEY,
   TEAM_POSITIONS_PREFETCH_DELAY_MS,
-  warmupResponseSchema,
 } from "@/lib/service-plan-selection";
 import { orpc } from "@/orpc-client";
 
@@ -302,18 +300,14 @@ export const useServicePlanSelection = ({
   const warmPeopleHistory = useCallback(
     async (row: ServicePlanRow) => {
       const dateKey = row.sortDate.toISOString();
-      const params = new URLSearchParams({
-        service_type_id: row.serviceTypeId,
-        date: dateKey,
-      });
 
       try {
         await queryClient.query({
           queryKey: queryKeys.peopleHistoryWarmup(row.serviceTypeId, dateKey),
-          queryFn: async () =>
-            await getJson(
-              `/api/people/warmup?${params.toString()}`,
-              warmupResponseSchema
+          queryFn: async ({ signal }: QueryFunctionContext) =>
+            await orpc.people.warmup(
+              { serviceTypeId: row.serviceTypeId, date: dateKey },
+              { signal }
             ),
           staleTime: PEOPLE_HISTORY_WARMUP_STALE_TIME_MS,
         });

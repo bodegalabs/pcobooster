@@ -29,7 +29,8 @@ export const getPlansForServiceType = async (
   const rawPlans = await dependencies.plansService.getPlansInDateRange(
     serviceTypeId,
     afterKey,
-    beforeKey
+    beforeKey,
+    orgTz
   );
 
   const plans: Plan[] = [];

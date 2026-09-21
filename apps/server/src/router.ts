@@ -1,15 +1,8 @@
 import { GET as getAdminAccounts } from "@worship-admin/api/http-routes/admin/accounts/route";
 import { GET as getAdminFeature } from "@worship-admin/api/http-routes/admin/feature/route";
 import { GET as getAdminUser } from "@worship-admin/api/http-routes/admin/users/[userId]/route";
-import { GET as getBlockout } from "@worship-admin/api/http-routes/blockouts/[id]/route";
 import { GET as getPlanningCenterContext } from "@worship-admin/api/http-routes/debug/planning-center-context/route";
-import { POST as getMyScheduledPlans } from "@worship-admin/api/http-routes/my-scheduled-plans/route";
-import { GET as getPeopleDashboardPerson } from "@worship-admin/api/http-routes/people/dashboard/[personId]/route";
-import { GET as getPeopleDashboard } from "@worship-admin/api/http-routes/people/dashboard/route";
 import { GET as getPeopleFeature } from "@worship-admin/api/http-routes/people/feature/route";
-import { GET as getPeople } from "@worship-admin/api/http-routes/people/route";
-import { GET as searchPeople } from "@worship-admin/api/http-routes/people/search/route";
-import { GET as warmPeopleCache } from "@worship-admin/api/http-routes/people/warmup/route";
 import {
   DELETE as deletePlanItem,
   PATCH as updatePlanItem,
@@ -32,7 +25,6 @@ import {
   GET as getPlanTimes,
   POST as createPlanTime,
 } from "@worship-admin/api/http-routes/plans/[planId]/times/route";
-import { GET as getScheduleHistory } from "@worship-admin/api/http-routes/schedule-history/[id]/route";
 import { DELETE as removeScheduledPerson } from "@worship-admin/api/http-routes/schedule/[planPersonId]/route";
 import { PATCH as updateScheduleStatus } from "@worship-admin/api/http-routes/schedule/[planPersonId]/status/route";
 import { POST as schedulePerson } from "@worship-admin/api/http-routes/schedule/route";
@@ -60,37 +52,13 @@ export const registerRestRoutes = (app: Hono): void => {
       )
   );
   app.get(
-    "/api/blockouts/:id",
-    async (c) =>
-      await getBlockout(c.req.raw, params({ id: c.req.param("id") ?? "" }))
-  );
-  app.get(
     "/api/debug/planning-center-context",
     async (c) => await getPlanningCenterContext(c.req.raw)
-  );
-  app.post(
-    "/api/my-scheduled-plans",
-    async (c) => await getMyScheduledPlans(c.req.raw)
-  );
-  app.get(
-    "/api/people/dashboard/:personId",
-    async (c) =>
-      await getPeopleDashboardPerson(
-        c.req.raw,
-        params({ personId: c.req.param("personId") ?? "" })
-      )
-  );
-  app.get(
-    "/api/people/dashboard",
-    async (c) => await getPeopleDashboard(c.req.raw)
   );
   app.get(
     "/api/people/feature",
     async (c) => await getPeopleFeature(c.req.raw)
   );
-  app.get("/api/people/search", async (c) => await searchPeople(c.req.raw));
-  app.get("/api/people/warmup", async (c) => await warmPeopleCache(c.req.raw));
-  app.get("/api/people", async (c) => await getPeople(c.req.raw));
   app.post(
     "/api/plan-items/reorder",
     async (c) => await reorderPlanItems(c.req.raw)
@@ -153,14 +121,6 @@ export const registerRestRoutes = (app: Hono): void => {
       await createPlanTime(
         c.req.raw,
         params({ planId: c.req.param("planId") ?? "" })
-      )
-  );
-  app.get(
-    "/api/schedule-history/:id",
-    async (c) =>
-      await getScheduleHistory(
-        c.req.raw,
-        params({ id: c.req.param("id") ?? "" })
       )
   );
   app.patch(

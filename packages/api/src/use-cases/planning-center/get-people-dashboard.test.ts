@@ -112,7 +112,7 @@ describe(getPeopleDashboard, () => {
 
   it("reuses a reader's cached result until the TTL expires", async () => {
     vi.useFakeTimers({ now: new Date("2026-05-23T12:00:00.000Z") });
-    const reader = createReader("shared-scope", [
+    const reader = createReader("ttl-scope", [
       person("person-1", "Alex", "Adams"),
     ]);
     const resolveTimeZone = vi
@@ -131,7 +131,7 @@ describe(getPeopleDashboard, () => {
     expect(reader.getAllPeopleFromTeams).toHaveBeenCalledTimes(2);
   });
 
-  it("isolates caches for distinct readers sharing a credential scope", async () => {
+  it("reuses cached results across request readers for one credential scope", async () => {
     vi.useFakeTimers({ now: new Date("2026-05-23T12:00:00.000Z") });
     const firstReader = createReader("shared-scope", [
       person("person-1", "Alex", "Adams"),
@@ -155,9 +155,37 @@ describe(getPeopleDashboard, () => {
     expect(
       first.people.map((dashboardPerson) => dashboardPerson.id)
     ).toStrictEqual(["person-1"]);
+    expect(second).toBe(first);
     expect(
       second.people.map((dashboardPerson) => dashboardPerson.id)
-    ).toStrictEqual(["person-2"]);
+    ).toStrictEqual(["person-1"]);
+    expect(firstReader.getAllPeopleFromTeams).toHaveBeenCalledOnce();
+    expect(secondReader.getAllPeopleFromTeams).not.toHaveBeenCalled();
+  });
+
+  it("isolates cached results for different credential scopes", async () => {
+    vi.useFakeTimers({ now: new Date("2026-05-23T12:00:00.000Z") });
+    const firstReader = createReader("account:first", [
+      person("person-1", "Alex", "Adams"),
+    ]);
+    const secondReader = createReader("account:second", [
+      person("person-2", "Blair", "Baker"),
+    ]);
+    const resolveTimeZone = vi
+      .fn<typeof resolveOrganizationTimeZone>()
+      .mockResolvedValue("UTC");
+
+    const first = await getPeopleDashboard({
+      peopleService: firstReader,
+      resolveTimeZone,
+    });
+    const second = await getPeopleDashboard({
+      peopleService: secondReader,
+      resolveTimeZone,
+    });
+
+    expect(first.people.map(({ id }) => id)).toStrictEqual(["person-1"]);
+    expect(second.people.map(({ id }) => id)).toStrictEqual(["person-2"]);
     expect(firstReader.getAllPeopleFromTeams).toHaveBeenCalledOnce();
     expect(secondReader.getAllPeopleFromTeams).toHaveBeenCalledOnce();
   });
