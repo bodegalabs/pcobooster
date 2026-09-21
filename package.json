@@ -31,7 +31,7 @@
     "db:backfill:planning-center-identities": "infisical run --env=dev --path=/ -- bun run scripts/backfill-planning-center-identities.ts",
     "check": "ultracite check --max-warnings 0",
     "fix": "ultracite fix",
-    "prepare": "lefthook install",
+    "prepare": "bun run scripts/install-git-hooks.ts",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "verify": "bun run check && bun run typecheck && bun run test",
