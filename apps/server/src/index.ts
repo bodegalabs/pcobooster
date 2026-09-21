@@ -12,7 +12,6 @@ import { cors } from "hono/cors";
 import { logger as requestLogger } from "hono/logger";
 
 import { createContext } from "./context";
-import { registerRestRoutes } from "./router";
 
 const corsOrigin = process.env.CORS_ORIGIN ?? "http://localhost:3001";
 
@@ -92,8 +91,6 @@ app.all("/api/rpc", async (c) => await handleRpcRequest(c.req.raw));
 app.all("/api/rpc/*", async (c) => await handleRpcRequest(c.req.raw));
 app.all("/api/reference", async (c) => await handleOpenApiRequest(c.req.raw));
 app.all("/api/reference/*", async (c) => await handleOpenApiRequest(c.req.raw));
-
-registerRestRoutes(app);
 
 app.get("/", (c) => c.text("OK"));
 app.get("/health", (c) => c.json({ status: "ok" }));

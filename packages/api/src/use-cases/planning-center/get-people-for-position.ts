@@ -598,17 +598,19 @@ export const warmPeopleHistoryForPlan = async (
   );
 };
 
-export const invalidateCandidateHistoryForPerson = (personId: string) => {
-  const scope = planningCenterPeopleService.getCacheScope();
+export const invalidateCandidateHistoryForPerson = (
+  personId: string,
+  cacheScope: string
+) => {
   const prefix = [
-    scope,
+    cacheScope,
     "candidate-history",
     encodeURIComponent(personId),
     "",
   ].join(":");
 
   candidateHistoryCache.deleteWhere((key) => key.startsWith(prefix));
-  const planWindowPrefix = [scope, "plan-window-history"].join(":");
+  const planWindowPrefix = [cacheScope, "plan-window-history"].join(":");
   planWindowHistoryCache.deleteWhere((key) => key.startsWith(planWindowPrefix));
 };
 

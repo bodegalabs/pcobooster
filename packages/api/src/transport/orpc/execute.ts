@@ -7,10 +7,32 @@ import type { RpcContext } from "@worship-admin/api/transport/orpc/context";
 import { Cause, Exit } from "effect";
 import type { Effect } from "effect";
 
+export interface ExecuteApplicationEffectOptions {
+  /**
+   * Reads should stop as soon as their caller disconnects. Scheduling writes
+   * deliberately opt out: their application program observes the request
+   * signal before a write begins, then waits for an in-flight provider write
+   * so its audit record reports the real outcome.
+   */
+  readonly interruptOnAbort?: boolean;
+}
+
 export const toORPCError = (
   fault: ApplicationFault
 ): ORPCError<string, unknown> => {
   switch (fault._tag) {
+    case "AlreadyScheduled": {
+      return new ORPCError("ALREADY_SCHEDULED", {
+        status: 409,
+        data: { message: fault.message, details: fault.details },
+      });
+    }
+    case "PositionMismatch": {
+      return new ORPCError("POSITION_MISMATCH", {
+        status: 409,
+        data: { message: fault.message, details: fault.details },
+      });
+    }
     case "Unauthenticated": {
       return new ORPCError("UNAUTHORIZED", {
         data: { message: fault.message },
@@ -68,14 +90,24 @@ export const executeApplicationEffect = async <Value>(
   runtime: ApplicationRuntime<never>,
   program: Effect.Effect<Value, ApplicationFault, RequestContext>,
   rpcContext: RpcContext,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  options: ExecuteApplicationEffectOptions = {}
 ): Promise<Value> => {
   const baseContext = createRequestContext(rpcContext.request);
-  const result = await runtime.execute(program, {
-    ...baseContext,
-    requestId: rpcContext.requestId,
-    signal: signal ?? baseContext.signal,
-  });
+  const requestSignal = signal ?? baseContext.signal;
+  const executionSignal =
+    options.interruptOnAbort === false
+      ? new AbortController().signal
+      : requestSignal;
+  const result = await runtime.execute(
+    program,
+    {
+      ...baseContext,
+      requestId: rpcContext.requestId,
+      signal: requestSignal,
+    },
+    executionSignal
+  );
 
   if (Exit.isSuccess(result)) {
     return result.value;

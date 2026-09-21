@@ -1,4 +1,5 @@
 "use client";
+import { ORPCError } from "@orpc/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
@@ -11,9 +12,8 @@ import {
   settleScheduleMutationQueries,
 } from "@/hooks/use-schedule-cache-optimism";
 import type { OptimisticSchedulePerson } from "@/hooks/use-schedule-cache-optimism";
-import { scheduleResponseSchema } from "@/lib/api-schemas";
-import { HttpClientError, postJson } from "@/lib/http/client";
 import { isNonEmptyString, isString } from "@/lib/json";
+import { orpc } from "@/orpc-client";
 
 const mismatchDetailsSchema = z.object({
   selected: z
@@ -25,19 +25,34 @@ const mismatchDetailsSchema = z.object({
   created: z.object({ teamPositionName: z.string().optional() }).optional(),
 });
 
-const formatScheduleClientError = (error: HttpClientError): string => {
+const scheduleErrorDataSchema = z.object({
+  message: z.string().optional(),
+  details: z.unknown().optional(),
+});
+
+const formatScheduleClientError = (error: Error): string => {
+  if (!(error instanceof ORPCError)) {
+    return error.message;
+  }
+
+  const errorData = scheduleErrorDataSchema.safeParse(error.data);
+  const data = errorData.success ? errorData.data : undefined;
+
   if (error.code === "ALREADY_SCHEDULED") {
     return "ALREADY_SCHEDULED";
   }
   if (error.code === "POSITION_MISMATCH") {
-    const parsed = mismatchDetailsSchema.safeParse(error.details);
+    const parsed = mismatchDetailsSchema.safeParse(data?.details);
     if (parsed.success) {
       const { selected, created } = parsed.data;
       return `Created in "${created?.teamPositionName ?? "Unknown position"}" instead of "${selected?.teamName ?? "Unknown team"} - ${selected?.positionName ?? "Unknown position"}".`;
     }
   }
-  if (isString(error.details) && error.details.length > 0) {
-    return error.details;
+  if (isString(data?.details) && data.details.length > 0) {
+    return data.details;
+  }
+  if (isNonEmptyString(data?.message)) {
+    return data.message;
   }
   return error.message || "Failed to schedule";
 };
@@ -94,8 +109,17 @@ export const useSchedulePlanPerson = ({
   };
 
   const scheduleMutation = useMutation({
-    mutationFn: async ({ person }: { person: OptimisticSchedulePerson }) =>
-      await postJson("/api/schedule", scheduleResponseSchema, {
+    mutationFn: async ({ person }: { person: OptimisticSchedulePerson }) => {
+      if (
+        !isNonEmptyString(serviceTypeId) ||
+        !isNonEmptyString(planId) ||
+        !isNonEmptyString(teamId) ||
+        !isNonEmptyString(positionId)
+      ) {
+        throw new Error("Missing schedule assignment details");
+      }
+
+      return await orpc.schedule.assign({
         serviceTypeId,
         personId: person.id,
         planId,
@@ -104,7 +128,8 @@ export const useSchedulePlanPerson = ({
         teamName: teamName ?? undefined,
         positionName: positionName ?? undefined,
         oneOff,
-      }),
+      });
+    },
     onMutate: async ({ person }) => {
       if (
         !isNonEmptyString(serviceTypeId) ||
@@ -135,7 +160,7 @@ export const useSchedulePlanPerson = ({
       return { optimisticPlanPersonId, snapshot };
     },
     onSuccess: (result, _variables, context) => {
-      const planPersonId = result.data?.id;
+      const planPersonId = result.data.id;
       if (
         isNonEmptyString(planPersonId) &&
         context.optimisticPlanPersonId !== undefined &&
@@ -156,7 +181,7 @@ export const useSchedulePlanPerson = ({
       onScheduleSuccess?.();
     },
     onError: (err, _variables, context) => {
-      if (err instanceof HttpClientError && err.code === "ALREADY_SCHEDULED") {
+      if (err instanceof ORPCError && err.code === "ALREADY_SCHEDULED") {
         setScheduleSuccess(true);
         settleScheduleMutationQueries(queryClient, {
           serviceTypeId,
@@ -170,10 +195,7 @@ export const useSchedulePlanPerson = ({
 
       restoreScheduleCaches(queryClient, context?.snapshot);
       setScheduleSuccess(false);
-      const message =
-        err instanceof HttpClientError
-          ? formatScheduleClientError(err)
-          : err.message;
+      const message = formatScheduleClientError(err);
       setScheduleError(message);
       onScheduleError?.(message);
     },

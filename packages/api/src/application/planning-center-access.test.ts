@@ -23,6 +23,7 @@ const dependenciesFor = (
   authorize: vi
     .fn<PlanningCenterAccessDependencies["authorize"]>()
     .mockResolvedValue({
+      userId: `user-${accountId}`,
       accessToken: `access-token-${accountId}`,
       scopes: ["services"],
       accountId,
