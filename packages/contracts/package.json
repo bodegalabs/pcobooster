@@ -1,0 +1,22 @@
+{
+  "name": "@worship-admin/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/router.ts",
+    "./errors": "./src/errors.ts",
+    "./router": "./src/router.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@orpc/contract": "^1.15.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@worship-admin/config": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}
