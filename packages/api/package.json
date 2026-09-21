@@ -20,6 +20,7 @@
     "@orpc/server": "^1.15.0",
     "@worship-admin/contracts": "workspace:*",
     "@worship-admin/planning-center-models": "workspace:*",
+    "@worship-admin/presentation-mode": "workspace:*",
     "better-auth": "1.7.5",
     "drizzle-orm": "^0.45.2",
     "effect": "3.22.2",

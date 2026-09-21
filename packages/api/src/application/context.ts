@@ -1,9 +1,9 @@
-import { Context } from "effect";
+import { Context, Effect } from "effect";
 
 export interface RequestContextValue {
   /**
    * The unmodified transport request. Application adapters use this only at
-   * request-scoped seams such as Better Auth account resolution; use cases
+   * request-scoped seams such as Better Auth account resolution; feature modules
    * should prefer the normalized fields below.
    */
   readonly request: Request;
@@ -38,3 +38,12 @@ export const createRequestContext = (request: Request): RequestContextValue => {
     },
   };
 };
+
+/** Prevents a delayed preflight from starting a write after disconnect. */
+export const ensureRequestIsOpen: Effect.Effect<void, never, RequestContext> =
+  Effect.gen(function* ensureOpenRequest() {
+    const { signal } = yield* RequestContext;
+    if (signal.aborted) {
+      yield* Effect.interrupt;
+    }
+  });

@@ -1,10 +1,12 @@
 import { withPlanningCenterAccess } from "@worship-admin/api/application/planning-center-access";
 import {
-  createRunSheetItem,
+  commitRunSheetItemCreate,
+  commitRunSheetItemUpdate,
   deleteRunSheetItem,
   listPlanItems,
+  prepareRunSheetItemCreate,
+  prepareRunSheetItemUpdate,
   reorderRunSheetItems,
-  updateRunSheetItem,
 } from "@worship-admin/api/application/run-sheet";
 import { executeApplicationEffect } from "@worship-admin/api/transport/orpc/execute";
 import {
@@ -23,23 +25,39 @@ const list = rpc.planItems.list.handler(
 );
 
 const create = rpc.planItems.create.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
+  async ({ input, context, signal }) => {
+    const prepared = await executeApplicationEffect(
       applicationRuntime,
-      withPlanningCenterAccess(createRunSheetItem(input)),
+      withPlanningCenterAccess(prepareRunSheetItemCreate(input)),
       context,
       signal
-    )
+    );
+    return await executeApplicationEffect(
+      applicationRuntime,
+      withPlanningCenterAccess(commitRunSheetItemCreate(prepared)),
+      context,
+      signal,
+      { interruptOnAbort: false }
+    );
+  }
 );
 
 const update = rpc.planItems.update.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
+  async ({ input, context, signal }) => {
+    const prepared = await executeApplicationEffect(
       applicationRuntime,
-      withPlanningCenterAccess(updateRunSheetItem(input)),
+      withPlanningCenterAccess(prepareRunSheetItemUpdate(input)),
       context,
       signal
-    )
+    );
+    return await executeApplicationEffect(
+      applicationRuntime,
+      withPlanningCenterAccess(commitRunSheetItemUpdate(prepared)),
+      context,
+      signal,
+      { interruptOnAbort: false }
+    );
+  }
 );
 
 const deleteItem = rpc.planItems.delete.handler(
@@ -48,7 +66,8 @@ const deleteItem = rpc.planItems.delete.handler(
       applicationRuntime,
       withPlanningCenterAccess(deleteRunSheetItem(input)),
       context,
-      signal
+      signal,
+      { interruptOnAbort: false }
     )
 );
 
@@ -58,7 +77,8 @@ const reorder = rpc.planItems.reorder.handler(
       applicationRuntime,
       withPlanningCenterAccess(reorderRunSheetItems(input)),
       context,
-      signal
+      signal,
+      { interruptOnAbort: false }
     )
 );
 

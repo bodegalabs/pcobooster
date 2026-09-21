@@ -1,10 +1,10 @@
-import { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
 import {
   planPersonResourceSchema,
   planTimeResourceSchema,
   rosterPersonSchema,
   scheduleResourceSchema,
-} from "@worship-admin/api/use-cases/planning-center/people/resource-schemas";
+} from "@worship-admin/api/modules/planning-center/people/resource-schemas";
+import { createBasicPlanningCenterClient } from "@worship-admin/api/planning-center/core-client";
 import {
   isNonEmptyString,
   isString,
@@ -68,7 +68,7 @@ const relationshipId = (
   return data?.id;
 };
 
-const client = new PlanningCenterCoreClient();
+const client = createBasicPlanningCenterClient();
 const serviceTypes = await client.fetchAll("/services/v2/service_types", {
   per_page: "100",
 });

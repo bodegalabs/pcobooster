@@ -2,14 +2,15 @@ import {
   createRequestContext,
   RequestContext,
 } from "@worship-admin/api/application/context";
+import { Forbidden } from "@worship-admin/api/application/errors/forbidden";
+import { InvalidInput } from "@worship-admin/api/application/errors/invalid-input";
+import { Unauthenticated } from "@worship-admin/api/application/errors/unauthenticated";
 import {
   resolvePlanningCenterAccess,
   toApplicationFault,
 } from "@worship-admin/api/application/planning-center-access";
 import type { PlanningCenterAccessDependencies } from "@worship-admin/api/application/planning-center-access";
-import { ApiError } from "@worship-admin/api/http/api-error";
 import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
-import { getPlanningCenterRequestAccessToken } from "@worship-admin/api/planning-center/request-auth-context";
 import { createPlanningCenterServices } from "@worship-admin/api/planning-center/services/factory";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
@@ -45,8 +46,6 @@ const resolveFor = async (accountId: string) => {
 
 describe("PlanningCenterAccess", () => {
   it("creates isolated request-owned services for concurrent credentials", async () => {
-    expect(getPlanningCenterRequestAccessToken()).toBeNull();
-
     const [first, second] = await Promise.all([
       resolveFor("first"),
       resolveFor("second"),
@@ -70,15 +69,14 @@ describe("PlanningCenterAccess", () => {
       expect.stringMatching(/^bearer:/u),
     ]);
     expect(first.cacheScope).not.toBe(second.cacheScope);
-    expect(getPlanningCenterRequestAccessToken()).toBeNull();
   });
 
   it("maps provider rate limits and opaque provider failures to tagged faults", () => {
     const unauthenticated = toApplicationFault(
-      new ApiError(401, "UNAUTHORIZED", "Sign in required")
+      new Unauthenticated({ message: "Sign in required" })
     );
     const forbidden = toApplicationFault(
-      new ApiError(403, "FORBIDDEN", "Account access denied")
+      new Forbidden({ message: "Account access denied" })
     );
     const rateLimited = toApplicationFault(
       new PlanningCenterApiError({
@@ -114,5 +112,12 @@ describe("PlanningCenterAccess", () => {
       service: "planning-center",
     });
     expect(unavailable.message).not.toContain("diagnostic");
+  });
+
+  it("preserves typed validation failures through Promise adapters", () => {
+    const invalid = new InvalidInput({
+      message: "Selected position does not belong to selected team",
+    });
+    expect(toApplicationFault(invalid)).toBe(invalid);
   });
 });

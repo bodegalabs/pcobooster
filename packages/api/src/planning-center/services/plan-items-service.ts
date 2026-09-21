@@ -1,5 +1,5 @@
 import { logger } from "@worship-admin/api/logger";
-import { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
+import type { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
 import { PlanningCenterReadCache } from "@worship-admin/api/planning-center/services/read-cache";
 import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import type { JsonObject } from "@worship-admin/planning-center-models/json";
@@ -52,17 +52,20 @@ export class PlanningCenterPlanItemsService {
 
   async getPlanItems(
     serviceTypeId: string,
-    planId: string
+    planId: string,
+    signal?: AbortSignal
   ): Promise<PlanItemsResponse> {
     const response = await this.caches.items.get(
       this.buildPlanItemsCacheKey(serviceTypeId, planId),
       PLAN_ITEMS_CACHE_TTL_MS,
-      async () => {
+      async (loadSignal) => {
         const result = await this.core.fetchAllWithIncluded(
           `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items`,
           {
             include: "song,arrangement,key,item_notes,item_times",
-          }
+          },
+          5,
+          loadSignal
         );
 
         log.info(
@@ -71,7 +74,8 @@ export class PlanningCenterPlanItemsService {
         );
 
         return result;
-      }
+      },
+      signal
     );
 
     return clonePlanItemsResponse(response);
@@ -80,10 +84,12 @@ export class PlanningCenterPlanItemsService {
   async getPlanItem(
     serviceTypeId: string,
     planId: string,
-    itemId: string
+    itemId: string,
+    signal?: AbortSignal
   ): Promise<{ data: PCResource; included: PCResource[] }> {
     const response = await this.core.fetch(
-      `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items/${itemId}?include=song,arrangement,key,item_notes,item_times`
+      `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items/${itemId}?include=song,arrangement,key,item_notes,item_times`,
+      { signal }
     );
 
     return {
@@ -195,9 +201,3 @@ export class PlanningCenterPlanItemsService {
     this.caches.items.deleteWhere((key) => key === cacheKey);
   }
 }
-
-export const planningCenterPlanItemsService =
-  new PlanningCenterPlanItemsService(
-    new PlanningCenterCoreClient(),
-    planningCenterPlanItemsServiceCaches
-  );

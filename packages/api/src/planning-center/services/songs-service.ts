@@ -1,6 +1,6 @@
 import { logger } from "@worship-admin/api/logger";
 import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
-import { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
+import type { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
 import { PlanningCenterReadCache } from "@worship-admin/api/planning-center/services/read-cache";
 import type { PCResource } from "@worship-admin/planning-center-models/types";
 
@@ -43,9 +43,10 @@ export class PlanningCenterSongsService {
   }
 
   async getSongsPage(
-    params: Record<string, string> = {}
+    params: Record<string, string> = {},
+    signal?: AbortSignal
   ): Promise<PCResource[]> {
-    return await this.core.fetchAll("/services/v2/songs", params, 1);
+    return await this.core.fetchAll("/services/v2/songs", params, 1, signal);
   }
 
   async getSongsCatalogCached(
@@ -53,7 +54,8 @@ export class PlanningCenterSongsService {
     options?: {
       ttlMs?: number;
       maxPages?: number;
-    }
+    },
+    signal?: AbortSignal
   ): Promise<PCResource[]> {
     const ttlMs = options?.ttlMs ?? DEFAULT_CATALOG_TTL_MS;
     const maxPages = options?.maxPages ?? DEFAULT_CATALOG_MAX_PAGES;
@@ -65,46 +67,55 @@ export class PlanningCenterSongsService {
     const data = await this.caches.catalogs.get(
       scopedCacheKey,
       ttlMs,
-      async () => {
+      async (loadSignal) => {
         const songs = await this.core.fetchAll(
           "/services/v2/songs",
           { order: "title" },
-          maxPages
+          maxPages,
+          loadSignal
         );
         log.info(
           { cacheKey: scopedCacheKey, songCount: songs.length },
           "Songs catalog cached"
         );
         return songs;
-      }
+      },
+      signal
     );
     return structuredClone(data);
   }
 
-  async getSong(songId: string): Promise<PCResource> {
+  async getSong(songId: string, signal?: AbortSignal): Promise<PCResource> {
     const resource = await this.caches.songs.get(
       this.buildSongCacheKey("song", songId),
       SONG_DETAILS_CACHE_TTL_MS,
-      async () => {
-        const response = await this.core.fetch(`/services/v2/songs/${songId}`);
+      async (loadSignal) => {
+        const response = await this.core.fetch(`/services/v2/songs/${songId}`, {
+          signal: loadSignal,
+        });
         return response.data;
-      }
+      },
+      signal
     );
 
     return structuredClone(resource);
   }
 
   async getSongArrangementsWithKeys(
-    songId: string
+    songId: string,
+    signal?: AbortSignal
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
     const response = await this.caches.arrangements.get(
       this.buildSongCacheKey("arrangements", songId),
       SONG_DETAILS_CACHE_TTL_MS,
-      async () =>
+      async (loadSignal) =>
         await this.core.fetchAllWithIncluded(
           `/services/v2/songs/${songId}/arrangements`,
-          { include: "keys" }
-        )
+          { include: "keys" },
+          5,
+          loadSignal
+        ),
+      signal
     );
 
     return {
@@ -115,11 +126,13 @@ export class PlanningCenterSongsService {
 
   async getSongLastScheduledItem(
     songId: string,
-    serviceTypeId: string
+    serviceTypeId: string,
+    signal?: AbortSignal
   ): Promise<{ data: PCResource | null; included: PCResource[] }> {
     try {
       const response = await this.core.fetch(
-        `/services/v2/songs/${songId}/last_scheduled_item?service_type=${serviceTypeId}&include=arrangement,key`
+        `/services/v2/songs/${songId}/last_scheduled_item?service_type=${serviceTypeId}&include=arrangement,key`,
+        { signal }
       );
 
       return {
@@ -149,8 +162,3 @@ export class PlanningCenterSongsService {
     ].join(":");
   }
 }
-
-export const planningCenterSongsService = new PlanningCenterSongsService(
-  new PlanningCenterCoreClient(),
-  planningCenterSongsServiceCaches
-);

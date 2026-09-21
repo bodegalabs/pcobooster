@@ -10,7 +10,6 @@ import {
 import { logger } from "@worship-admin/api/logger";
 import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
 import type { PlanningCenterRateLimitInfo } from "@worship-admin/api/planning-center/api-error";
-import { getPlanningCenterRequestAccessToken } from "@worship-admin/api/planning-center/request-auth-context";
 import {
   pcCollectionResponseSchema,
   pcResourceResponseSchema,
@@ -246,26 +245,31 @@ const logPlanningCenterTiming = ({
   );
 };
 
-export class PlanningCenterCoreClient {
-  private readonly auth?: { accessToken: string };
+export type PlanningCenterAuthentication =
+  | { readonly kind: "basic" }
+  | { readonly kind: "bearer"; readonly accessToken: string };
 
-  constructor(auth?: { accessToken: string }) {
-    this.auth = auth;
+export class PlanningCenterCoreClient {
+  private readonly auth: PlanningCenterAuthentication;
+
+  constructor(auth: PlanningCenterAuthentication) {
+    if (auth.kind === "bearer" && !isNonEmptyString(auth.accessToken.trim())) {
+      throw new Error(
+        "Planning Center bearer authentication requires a non-empty access token"
+      );
+    }
+    this.auth = { ...auth };
   }
 
   private getAuthHeader(): string {
-    const accessToken =
-      getPlanningCenterRequestAccessToken() ?? this.auth?.accessToken;
-    return isNonEmptyString(accessToken)
-      ? `Bearer ${accessToken}`
+    return this.auth.kind === "bearer"
+      ? `Bearer ${this.auth.accessToken}`
       : `Basic ${getBasicCredentials()}`;
   }
 
   getCacheScope(): string {
-    const accessToken =
-      getPlanningCenterRequestAccessToken() ?? this.auth?.accessToken;
-    if (isNonEmptyString(accessToken)) {
-      return `bearer:${createHash("sha256").update(accessToken).digest("hex")}`;
+    if (this.auth.kind === "bearer") {
+      return `bearer:${createHash("sha256").update(this.auth.accessToken).digest("hex")}`;
     }
     return "basic";
   }
@@ -282,13 +286,15 @@ export class PlanningCenterCoreClient {
       : timeoutSignal;
     const startedAt = nowMs();
     try {
+      const headers = mergeHeaders(
+        { Accept: "application/json" },
+        options.headers
+      );
+      headers.set("Authorization", this.getAuthHeader());
       const response = await fetch(url, {
         ...options,
         signal,
-        headers: mergeHeaders(
-          { Authorization: this.getAuthHeader(), Accept: "application/json" },
-          options.headers
-        ),
+        headers,
       });
       logPlanningCenterTiming({
         url,
@@ -409,12 +415,14 @@ export class PlanningCenterCoreClient {
   async fetchAll(
     endpoint: string,
     params: Record<string, string> = {},
-    maxPages = 10
+    maxPages = 10,
+    signal?: AbortSignal
   ): Promise<PCResource[]> {
     const response = await this.fetchAllWithIncluded(
       endpoint,
       params,
-      maxPages
+      maxPages,
+      signal
     );
     return response.data;
   }
@@ -422,7 +430,8 @@ export class PlanningCenterCoreClient {
   async fetchAllWithIncluded(
     endpoint: string,
     params: Record<string, string> = {},
-    maxPages = 5
+    maxPages = 5,
+    signal?: AbortSignal
   ): Promise<{ data: PCResource[]; included: PCResource[] }> {
     const data: PCResource[] = [];
     const included: PCResource[] = [];
@@ -436,7 +445,7 @@ export class PlanningCenterCoreClient {
         return;
       }
       seenUrls.add(url);
-      const response = await this.fetchCollection(url);
+      const response = await this.fetchCollection(url, { signal });
       data.push(...response.data);
       for (const resource of response.included ?? []) {
         const key = `${resource.type}:${resource.id}`;
@@ -457,3 +466,7 @@ export class PlanningCenterCoreClient {
     return { data, included };
   }
 }
+
+/** Explicit application credentials for scripts and the development auth bypass. */
+export const createBasicPlanningCenterClient = (): PlanningCenterCoreClient =>
+  new PlanningCenterCoreClient({ kind: "basic" });

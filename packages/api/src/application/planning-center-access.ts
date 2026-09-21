@@ -5,11 +5,14 @@ import { Forbidden } from "@worship-admin/api/application/errors/forbidden";
 import { InvalidInput } from "@worship-admin/api/application/errors/invalid-input";
 import { RateLimited } from "@worship-admin/api/application/errors/rate-limited";
 import { Unauthenticated } from "@worship-admin/api/application/errors/unauthenticated";
+import { isDevAuthBypassEnabled } from "@worship-admin/api/auth/dev-bypass";
 import { requirePlanningCenterAccessToken } from "@worship-admin/api/auth/planning-center-session";
-import { ApiError } from "@worship-admin/api/http/api-error";
 import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
-import { createPlanningCenterServices } from "@worship-admin/api/planning-center/services/factory";
-import { Context, Effect } from "effect";
+import {
+  createPlanningCenterServices,
+  createBasicPlanningCenterServices,
+} from "@worship-admin/api/planning-center/services/factory";
+import { Context, Effect, Option } from "effect";
 
 export interface RequestAuthentication {
   readonly userId: string;
@@ -53,20 +56,19 @@ const defaultDependencies: PlanningCenterAccessDependencies = {
       account: authenticated.account,
     };
   },
-  createServices: createPlanningCenterServices,
+  createServices: (accessToken) =>
+    isDevAuthBypassEnabled()
+      ? createBasicPlanningCenterServices()
+      : createPlanningCenterServices(accessToken),
 };
 
 export const toApplicationFault = (error: Error): ApplicationFault => {
-  if (error instanceof ApiError) {
-    if (error.status === 401) {
-      return new Unauthenticated({ message: error.message });
-    }
-    if (error.status === 403) {
-      return new Forbidden({ message: error.message });
-    }
-    if (error.status >= 400 && error.status < 500) {
-      return new InvalidInput({ message: error.message });
-    }
+  if (
+    error instanceof Unauthenticated ||
+    error instanceof Forbidden ||
+    error instanceof InvalidInput
+  ) {
+    return error;
   }
 
   if (error instanceof PlanningCenterApiError) {
@@ -94,7 +96,7 @@ export const toApplicationFault = (error: Error): ApplicationFault => {
 
 /**
  * Resolves the Better Auth account and creates clients for this Effect only.
- * Converted procedures never consult AsyncLocalStorage for their credential.
+ * Each client retains the selected account credential for its entire lifetime.
  */
 export const resolvePlanningCenterAccess = (
   dependencies: PlanningCenterAccessDependencies = defaultDependencies
@@ -144,14 +146,18 @@ export const withPlanningCenterAccess = <Value, Failure, Requirements>(
   );
 
 export const tryPlanningCenter = <Value>(
-  operation: () => Promise<Value>
+  operation: (signal?: AbortSignal) => Promise<Value>
 ): Effect.Effect<Value, ApplicationFault> =>
-  Effect.tryPromise({
-    try: operation,
-    catch: (error) =>
-      toApplicationFault(
-        error instanceof Error
-          ? error
-          : new Error("Planning Center request failed")
-      ),
+  Effect.gen(function* tryOperation() {
+    const requestContext = yield* Effect.serviceOption(RequestContext);
+    const signal = Option.getOrUndefined(requestContext)?.signal;
+    return yield* Effect.tryPromise({
+      try: async () => await operation(signal),
+      catch: (error) =>
+        toApplicationFault(
+          error instanceof Error
+            ? error
+            : new Error("Planning Center request failed")
+        ),
+    });
   });

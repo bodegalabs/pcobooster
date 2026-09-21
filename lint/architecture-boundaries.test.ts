@@ -169,6 +169,33 @@ const isForbiddenBrowserPackageImport = (specifier: string): boolean => {
 };
 
 describe("monorepo architecture boundaries", () => {
+  it("uses explicit package and feature-module names", () => {
+    const violations: string[] = [];
+    const obsoletePaths = ["packages/api/src/use-cases", "packages/domain"];
+
+    for (const obsoletePath of obsoletePaths) {
+      if (existsSync(join(repositoryRoot, obsoletePath))) {
+        violations.push(`${obsoletePath} still exists`);
+      }
+    }
+
+    for (const file of sourceFiles(repositoryRoot)) {
+      for (const specifier of importSpecifiers(file.contents)) {
+        if (
+          specifier.includes("/use-cases/") ||
+          specifier === "@worship-admin/domain" ||
+          specifier.startsWith("@worship-admin/domain/")
+        ) {
+          violations.push(
+            `${file.relativePath} imports obsolete vague module ${specifier}`
+          );
+        }
+      }
+    }
+
+    expectNoViolations("package and feature-module naming", violations);
+  });
+
   it("keeps the web app independent from API implementation modules", () => {
     const violations = sourceFiles(
       join(repositoryRoot, "apps/web", "src")

@@ -1,4 +1,7 @@
-import { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
+import {
+  PlanningCenterCoreClient,
+  createBasicPlanningCenterClient,
+} from "@worship-admin/api/planning-center/core-client";
 import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
 import {
   planningCenterCatalogServiceCaches,
@@ -21,10 +24,7 @@ import {
   PlanningCenterSongsService,
 } from "@worship-admin/api/planning-center/services/songs-service";
 
-export const createPlanningCenterServices = (accessToken: string) => {
-  const core = new PlanningCenterCoreClient({
-    accessToken,
-  });
+const createServicesForClient = (core: PlanningCenterCoreClient) => {
   const catalog = new PlanningCenterCatalogService(
     core,
     planningCenterCatalogServiceCaches
@@ -43,10 +43,11 @@ export const createPlanningCenterServices = (accessToken: string) => {
     ),
     plans: new PlanningCenterPlansService(
       core,
-      async () =>
+      async (signal) =>
         await resolveOrganizationTimeZone({
           cacheScope: core.getCacheScope(),
           catalogService: catalog,
+          signal,
         }),
       planningCenterPlansServiceCaches
     ),
@@ -56,3 +57,11 @@ export const createPlanningCenterServices = (accessToken: string) => {
     ),
   };
 };
+
+export const createPlanningCenterServices = (accessToken: string) =>
+  createServicesForClient(
+    new PlanningCenterCoreClient({ kind: "bearer", accessToken })
+  );
+
+export const createBasicPlanningCenterServices = () =>
+  createServicesForClient(createBasicPlanningCenterClient());

@@ -1,9 +1,9 @@
 import { Analytics } from "@vercel/analytics/next";
+import { getPresentationCacheScope } from "@worship-admin/presentation-mode";
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 
 import { Providers } from "@/components/providers";
-import { getPresentationCacheScope } from "@/server/presentation-cache-scope";
 
 import "./globals.css";
 

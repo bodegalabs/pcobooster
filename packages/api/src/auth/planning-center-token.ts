@@ -1,5 +1,5 @@
+import { Unauthenticated } from "@worship-admin/api/application/errors/unauthenticated";
 import { auth } from "@worship-admin/api/auth";
-import { ApiError } from "@worship-admin/api/http/api-error";
 import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 
 interface PlanningCenterAccountSelector {
@@ -40,15 +40,18 @@ export const getPlanningCenterToken = async (
   const localAccountId = account.id;
   try {
     const token = await tokenApi.getAccessToken(headers, localAccountId);
+    if (!isNonEmptyString(token.accessToken)) {
+      throw new Unauthenticated({
+        message: "Planning Center access token is missing.",
+      });
+    }
     return { accessToken: token.accessToken, scopes: token.scopes };
   } catch {
     const refreshed = await tokenApi.refreshToken(headers, localAccountId);
     if (!isNonEmptyString(refreshed.accessToken)) {
-      throw new ApiError(
-        401,
-        "PLANNING_CENTER_REAUTH_REQUIRED",
-        "Planning Center connection expired. Please sign in again."
-      );
+      throw new Unauthenticated({
+        message: "Planning Center connection expired. Please sign in again.",
+      });
     }
     return {
       accessToken: refreshed.accessToken,

@@ -1,6 +1,7 @@
-import { runWithPlanningCenterRequestAuth } from "@worship-admin/api/planning-center/request-auth-context";
-import { createPlanningCenterServices } from "@worship-admin/api/planning-center/services/factory";
-import { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
+import {
+  createPlanningCenterServices,
+  createBasicPlanningCenterServices,
+} from "@worship-admin/api/planning-center/services/factory";
 import type { PCResource } from "@worship-admin/planning-center-models/types";
 import { describe, expect, it, vi } from "vitest";
 
@@ -11,6 +12,15 @@ const resource = (id: string, type: string): PCResource => ({
 });
 
 describe("createPlanningCenterServices shared caches", () => {
+  it("rejects empty request credentials and requires explicit Basic services", () => {
+    expect(() => createPlanningCenterServices("")).toThrow(
+      "requires a non-empty access token"
+    );
+    expect(createBasicPlanningCenterServices().core.getCacheScope()).toBe(
+      "basic"
+    );
+  });
+
   it("reuses cached reads for the same credential without leaking mutations", async () => {
     const first = createPlanningCenterServices("shared-cache-token");
     const second = createPlanningCenterServices("shared-cache-token");
@@ -79,9 +89,10 @@ describe("createPlanningCenterServices shared caches", () => {
     expect(load).toHaveBeenCalledTimes(2);
   });
 
-  it("shares invalidation with the transitional singleton service", async () => {
-    const accessToken = "singleton-bridge-token";
+  it("shares schedule invalidation across request-owned services", async () => {
+    const accessToken = "schedule-invalidation-token";
     const services = createPlanningCenterServices(accessToken);
+    const mutationServices = createPlanningCenterServices(accessToken);
     const load = vi
       .spyOn(services.core, "fetchAllWithIncluded")
       .mockResolvedValue({
@@ -90,11 +101,9 @@ describe("createPlanningCenterServices shared caches", () => {
       });
 
     await services.people.getPlanTeamMembers("service-type", "plan");
-    runWithPlanningCenterRequestAuth({ accessToken }, () => {
-      planningCenterPeopleService.invalidateScheduleReadCaches({
-        serviceTypeId: "service-type",
-        planId: "plan",
-      });
+    mutationServices.people.invalidateScheduleReadCaches({
+      serviceTypeId: "service-type",
+      planId: "plan",
     });
     await services.people.getPlanTeamMembers("service-type", "plan");
 

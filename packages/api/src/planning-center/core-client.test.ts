@@ -1,4 +1,9 @@
-import { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
+import { createHash } from "node:crypto";
+
+import {
+  PlanningCenterCoreClient,
+  createBasicPlanningCenterClient,
+} from "@worship-admin/api/planning-center/core-client";
 import type { JsonValue } from "@worship-admin/planning-center-models/json";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
@@ -18,12 +23,49 @@ describe(PlanningCenterCoreClient, () => {
     vi.unstubAllEnvs();
   });
 
+  it("keeps bearer requests and cache scope bound to the constructor credential", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(jsonResponse({ data: person }));
+    const client = new PlanningCenterCoreClient({
+      kind: "bearer",
+      accessToken: "selected-account-token",
+    });
+    await client.fetch("/services/v2/people/1", {
+      headers: { authorization: "Bearer different-account-token" },
+    });
+    const headers = new Headers(fetchMock.mock.calls[0]?.[1]?.headers);
+    expect(headers.get("Authorization")).toBe("Bearer selected-account-token");
+    expect(client.getCacheScope()).toBe(
+      `bearer:${createHash("sha256").update("selected-account-token").digest("hex")}`
+    );
+  });
+
+  it.each(["", "   "])("rejects empty bearer credential %j", (accessToken) => {
+    expect(
+      () => new PlanningCenterCoreClient({ kind: "bearer", accessToken })
+    ).toThrow("requires a non-empty access token");
+  });
+
+  it("uses application credentials only with the explicit Basic factory", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(jsonResponse({ data: person }));
+    const client = createBasicPlanningCenterClient();
+    await client.fetch("/services/v2/people/1");
+    const headers = new Headers(fetchMock.mock.calls[0]?.[1]?.headers);
+    expect(headers.get("Authorization")).toBe(
+      `Basic ${Buffer.from("client:pat").toString("base64")}`
+    );
+    expect(client.getCacheScope()).toBe("basic");
+  });
+
   it("dedupes concurrent identical GETs and isolates the returned objects", async () => {
     const deferred = Promise.withResolvers<Response>();
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockReturnValue(deferred.promise);
-    const client = new PlanningCenterCoreClient();
+    const client = createBasicPlanningCenterClient();
     const first = client.fetch("/services/v2/people/1");
     const second = client.fetch("/services/v2/people/1");
     expect(fetchMock).toHaveBeenCalledOnce();
@@ -41,12 +83,14 @@ describe(PlanningCenterCoreClient, () => {
       .mockResolvedValueOnce(jsonResponse({ data: person }))
       .mockResolvedValueOnce(jsonResponse({ data: person }));
     await Promise.all([
-      new PlanningCenterCoreClient({ accessToken: "first-token" }).fetch(
-        "/services/v2/people/1"
-      ),
-      new PlanningCenterCoreClient({ accessToken: "second-token" }).fetch(
-        "/services/v2/people/1"
-      ),
+      new PlanningCenterCoreClient({
+        kind: "bearer",
+        accessToken: "first-token",
+      }).fetch("/services/v2/people/1"),
+      new PlanningCenterCoreClient({
+        kind: "bearer",
+        accessToken: "second-token",
+      }).fetch("/services/v2/people/1"),
     ]);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
@@ -56,7 +100,7 @@ describe(PlanningCenterCoreClient, () => {
       .spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(jsonResponse({ data: person }))
       .mockResolvedValueOnce(jsonResponse({ data: person }));
-    const client = new PlanningCenterCoreClient();
+    const client = createBasicPlanningCenterClient();
     await Promise.all([
       client.fetch("/services/v2/people", { method: "POST", body: "{}" }),
       client.fetch("/services/v2/people", { method: "POST", body: "{}" }),
@@ -68,7 +112,7 @@ describe(PlanningCenterCoreClient, () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(null, { status: 204 })
     );
-    const response = await new PlanningCenterCoreClient().request(
+    const response = await createBasicPlanningCenterClient().request(
       "/services/v2/plan_times/1",
       { method: "DELETE" }
     );
@@ -80,7 +124,7 @@ describe(PlanningCenterCoreClient, () => {
       new Response(null, { status: 204 })
     );
     await expect(
-      new PlanningCenterCoreClient().fetch("/services/v2/people/1")
+      createBasicPlanningCenterClient().fetch("/services/v2/people/1")
     ).rejects.toMatchObject({ code: "INVALID_RESPONSE" });
   });
 
@@ -89,7 +133,7 @@ describe(PlanningCenterCoreClient, () => {
       jsonResponse({ data: { id: 1, type: "Person" } })
     );
     await expect(
-      new PlanningCenterCoreClient().fetch("/services/v2/people/1")
+      createBasicPlanningCenterClient().fetch("/services/v2/people/1")
     ).rejects.toBeInstanceOf(z.ZodError);
   });
 
@@ -100,7 +144,7 @@ describe(PlanningCenterCoreClient, () => {
         links: { next: null },
       })
     );
-    const response = await new PlanningCenterCoreClient().fetchCollection(
+    const response = await createBasicPlanningCenterClient().fetchCollection(
       "/services/v2/people"
     );
     expect(response.data).toStrictEqual([
@@ -121,7 +165,7 @@ describe(PlanningCenterCoreClient, () => {
         ],
       })
     );
-    const response = await new PlanningCenterCoreClient().fetchCollection(
+    const response = await createBasicPlanningCenterClient().fetchCollection(
       "/services/v2/people/me/schedules"
     );
     expect(response.data).toStrictEqual([
@@ -156,11 +200,43 @@ describe(PlanningCenterCoreClient, () => {
           links: { next: firstUrl },
         })
       );
-    const response = await new PlanningCenterCoreClient().fetchAllWithIncluded(
-      "/services/v2/people"
-    );
+    const response =
+      await createBasicPlanningCenterClient().fetchAllWithIncluded(
+        "/services/v2/people"
+      );
     expect(response.data.map((item) => item.id)).toStrictEqual(["1", "2"]);
     expect(response.included).toStrictEqual([team]);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("propagates caller cancellation across pagination", async () => {
+    const controller = new AbortController();
+    const nextUrl =
+      "https://api.planningcenteronline.com/services/v2/people?offset=100";
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementationOnce(async () => {
+        await Promise.resolve();
+        controller.abort();
+        return jsonResponse({
+          data: [person],
+          links: { next: nextUrl },
+        });
+      })
+      .mockImplementationOnce(async (_input, init) => {
+        await Promise.resolve();
+        expect(init?.signal?.aborted).toBeTruthy();
+        throw new DOMException("Canceled", "AbortError");
+      });
+
+    await expect(
+      createBasicPlanningCenterClient().fetchAllWithIncluded(
+        "/services/v2/people",
+        {},
+        5,
+        controller.signal
+      )
+    ).rejects.toMatchObject({ name: "AbortError" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
@@ -171,7 +247,7 @@ describe(PlanningCenterCoreClient, () => {
         jsonResponse({ error: "Temporarily unavailable" }, { status: 503 })
       )
       .mockResolvedValueOnce(jsonResponse({ data: person }));
-    const response = await new PlanningCenterCoreClient().fetch(
+    const response = await createBasicPlanningCenterClient().fetch(
       "/services/v2/people/1"
     );
     expect(response.data.id).toBe("1");
@@ -185,7 +261,7 @@ describe(PlanningCenterCoreClient, () => {
         jsonResponse({ error: "Temporarily unavailable" }, { status: 503 })
       );
     await expect(
-      new PlanningCenterCoreClient().fetch("/services/v2/people", {
+      createBasicPlanningCenterClient().fetch("/services/v2/people", {
         method: "POST",
         body: "{}",
       })
@@ -200,7 +276,7 @@ describe(PlanningCenterCoreClient, () => {
       .spyOn(globalThis, "fetch")
       .mockRejectedValue(new DOMException("Canceled", "AbortError"));
     await expect(
-      new PlanningCenterCoreClient().fetch("/services/v2/people/1", {
+      createBasicPlanningCenterClient().fetch("/services/v2/people/1", {
         signal: controller.signal,
       })
     ).rejects.toMatchObject({ name: "AbortError" });

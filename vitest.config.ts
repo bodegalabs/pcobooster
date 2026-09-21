@@ -6,6 +6,7 @@ export default defineConfig({
   test: {
     include: [
       "packages/**/*.test.ts",
+      "apps/server/src/**/*.test.ts",
       "apps/web/src/**/*.test.ts",
       "lint/**/*.test.ts",
     ],

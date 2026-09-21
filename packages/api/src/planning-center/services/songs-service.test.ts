@@ -1,10 +1,10 @@
 import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
-import { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
+import { createBasicPlanningCenterClient } from "@worship-admin/api/planning-center/core-client";
 import { PlanningCenterSongsService } from "@worship-admin/api/planning-center/services/songs-service";
 import { describe, expect, it, vi } from "vitest";
 
 const createCoreClientMock = () => {
-  const core = new PlanningCenterCoreClient();
+  const core = createBasicPlanningCenterClient();
   const fetchMock = vi.spyOn(core, "fetch");
   const fetchAllMock = vi.spyOn(core, "fetchAll");
   const fetchAllWithIncludedMock = vi.spyOn(core, "fetchAllWithIncluded");
@@ -28,11 +28,13 @@ describe(PlanningCenterSongsService, () => {
       service.getSongsCatalogCached("account-1:service-1"),
     ]);
 
-    expect(fetchAllMock).toHaveBeenCalledExactlyOnceWith(
+    expect(fetchAllMock).toHaveBeenCalledOnce();
+    expect(fetchAllMock.mock.calls[0]?.slice(0, 3)).toStrictEqual([
       "/services/v2/songs",
       { order: "title" },
-      15
-    );
+      15,
+    ]);
+    expect(fetchAllMock.mock.calls[0]?.[3]).toBeInstanceOf(AbortSignal);
     expect({
       sameContent: first,
       separateArrays: first !== second,
