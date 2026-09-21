@@ -1,6 +1,6 @@
-import { isString } from "@worship-admin/api/json";
-import type { JsonValue } from "@worship-admin/api/json";
 import { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
+import { isString } from "@worship-admin/planning-center-models/json";
+import type { JsonValue } from "@worship-admin/planning-center-models/json";
 
 import { getPresentationIdentityMapper } from "./presentation";
 

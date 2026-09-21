@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import type { ServiceType } from "@worship-admin/planning-center-models/types";
 import { useCallback, useEffect } from "react";
 
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
@@ -7,7 +8,6 @@ import {
   readCachedServiceTypesEntry,
   writeCachedServiceTypes,
 } from "@/lib/schedule-catalog-cache";
-import type { ServiceType } from "@/lib/types";
 import { orpc } from "@/orpc-client";
 
 export const useServiceTypes = () => {

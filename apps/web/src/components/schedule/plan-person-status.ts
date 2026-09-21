@@ -1,6 +1,7 @@
+import type { FilledPositionPerson } from "@worship-admin/planning-center-models/types";
+
 import type { ScheduleStatusDotStatus } from "@/components/schedule/status-dot";
 import type { PlanPersonStatusCode } from "@/hooks/use-update-plan-person-status";
-import type { FilledPositionPerson } from "@/lib/types";
 
 export type PlanPersonStatusValue = "confirmed" | "scheduled" | "declined";
 

@@ -13,10 +13,6 @@ import {
 import { getPlanningCenterIdentityForAccount } from "@worship-admin/api/auth/planning-center-account-identity";
 import { peoplePageFlag } from "@worship-admin/api/people-page-flag";
 import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
-import type {
-  Blockout,
-  PersonWithAvailability,
-} from "@worship-admin/api/types";
 import { getCurrentUserScheduledPlanIds } from "@worship-admin/api/use-cases/planning-center/get-current-user-scheduled-plans";
 import { getPeopleDashboard as getPeopleDashboardData } from "@worship-admin/api/use-cases/planning-center/get-people-dashboard";
 import { getPeopleDashboardPerson as getPeopleDashboardPersonDetail } from "@worship-admin/api/use-cases/planning-center/get-people-dashboard-person";
@@ -42,6 +38,10 @@ import {
 } from "@worship-admin/api/use-cases/planning-center/presentation";
 import { searchPeople } from "@worship-admin/api/use-cases/planning-center/search-people";
 import type { PeopleSearchResult } from "@worship-admin/api/use-cases/planning-center/search-people";
+import type {
+  Blockout,
+  PersonWithAvailability,
+} from "@worship-admin/planning-center-models/types";
 import { Effect } from "effect";
 
 const resolveRequestTimeZone = async (

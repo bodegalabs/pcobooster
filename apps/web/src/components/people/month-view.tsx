@@ -1,5 +1,9 @@
 "use client";
 
+import type {
+  PeopleDashboardDay,
+  PeopleDashboardPerson,
+} from "@worship-admin/contracts/people-schemas";
 import { CalendarDays } from "lucide-react";
 import { useState } from "react";
 
@@ -29,10 +33,6 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import type {
-  PeopleDashboardDay,
-  PeopleDashboardPerson,
-} from "@/lib/use-cases/planning-center/people-dashboard-types";
 import { cn } from "@/lib/utils";
 
 interface Month {

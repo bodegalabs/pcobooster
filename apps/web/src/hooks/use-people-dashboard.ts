@@ -1,4 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import type {
+  PeopleDashboardData,
+  PeopleDashboardRange,
+} from "@worship-admin/contracts/people-schemas";
 import { useCallback, useEffect } from "react";
 
 import {
@@ -7,10 +11,6 @@ import {
 } from "@/lib/people-dashboard-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import type {
-  PeopleDashboardData,
-  PeopleDashboardRange,
-} from "@/lib/use-cases/planning-center/people-dashboard-types";
 import { orpc } from "@/orpc-client";
 
 export const usePeopleDashboard = (range: PeopleDashboardRange) => {

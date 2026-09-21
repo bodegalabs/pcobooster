@@ -1,8 +1,3 @@
-import { isNonEmptyString } from "@worship-admin/api/json";
-import type {
-  PersonWithAvailability,
-  RawPerson,
-} from "@worship-admin/api/types";
 import type { SelectedPlanMatchContext } from "@worship-admin/api/use-cases/planning-center/people/types";
 import {
   getRosterEntriesForPerson,
@@ -14,6 +9,11 @@ import type {
   PlanRosterEntry,
   PlanSchedulingContext,
 } from "@worship-admin/api/use-cases/planning-center/plan-scheduling-context";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type {
+  PersonWithAvailability,
+  RawPerson,
+} from "@worship-admin/planning-center-models/types";
 
 export interface SelectedPlanRosterOverlay {
   selectedSlotEntry?: PlanRosterEntry;

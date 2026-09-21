@@ -2,6 +2,7 @@
 
 import { UnfoldMoreIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { ServiceType } from "@worship-admin/planning-center-models/types";
 import { useId, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,6 @@ import {
   SelectionPickerShell,
 } from "@/components/ui/selection-picker";
 import { selectionPickerSectionTitleClass } from "@/components/ui/selection-picker-styles";
-import type { ServiceType } from "@/lib/types";
 
 interface ServiceTypeMultiSelectProps {
   options: ServiceType[];

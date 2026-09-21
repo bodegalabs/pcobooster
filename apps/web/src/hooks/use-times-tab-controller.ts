@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import type { PlanTime } from "@worship-admin/planning-center-models/types";
 import { startTransition, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -18,7 +19,6 @@ import {
   planTimeEditHasChanges,
 } from "@/lib/schedule/plan-time-edits";
 import type { EditablePlanTime } from "@/lib/schedule/plan-time-edits";
-import type { PlanTime } from "@/lib/types";
 import { orpc } from "@/orpc-client";
 
 interface UseTimesTabControllerProps {

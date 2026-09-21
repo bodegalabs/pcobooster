@@ -1,5 +1,6 @@
 "use client";
 
+import type { TeamPositionGroup } from "@worship-admin/planning-center-models/types";
 import { CalendarDays } from "lucide-react";
 import { Fragment } from "react";
 import type { ReactNode } from "react";
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarMenuSkeleton, SidebarSeparator } from "@/components/ui/sidebar";
-import type { TeamPositionGroup } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const skeletonWidths = ["78%", "66%", "84%", "58%", "72%", "62%", "88%", "70%"];

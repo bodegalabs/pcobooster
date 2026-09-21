@@ -1,11 +1,11 @@
 import { ApiError } from "@worship-admin/api/http/api-error";
-import { isString } from "@worship-admin/api/json";
 import { planningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
 import { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import { findIncluded } from "@worship-admin/api/planning-center/utils";
-import type { PCResource } from "@worship-admin/api/types";
 import { invalidateCandidateHistoryForPerson } from "@worship-admin/api/use-cases/planning-center/get-people-for-position";
 import type { scheduleAssignInputSchema } from "@worship-admin/contracts/schedule";
+import { isString } from "@worship-admin/planning-center-models/json";
+import type { PCResource } from "@worship-admin/planning-center-models/types";
 import type { z } from "zod";
 
 export type SchedulePersonInput = z.output<typeof scheduleAssignInputSchema>;

@@ -1,6 +1,5 @@
 import { createHmac } from "node:crypto";
 
-import { isNonEmptyString } from "@worship-admin/api/json";
 import { planningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
 import { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import { PlanningCenterReadCache } from "@worship-admin/api/planning-center/services/read-cache";
@@ -8,13 +7,14 @@ import {
   getPresentationSeed,
   isPresentationMode,
 } from "@worship-admin/api/presentation-mode";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import type {
   Blockout,
   FilledPositionPerson,
   PersonWithAvailability,
   TeamPosition,
   TeamPositionGroup,
-} from "@worship-admin/api/types";
+} from "@worship-admin/planning-center-models/types";
 
 import type {
   PeopleDashboardData,

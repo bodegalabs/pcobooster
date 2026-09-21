@@ -5,9 +5,9 @@ import {
   recordActivityEvent,
 } from "@worship-admin/api/db/activity-events";
 import * as schema from "@worship-admin/api/db/schema";
-import type { JsonObject } from "@worship-admin/api/json";
 import { logger } from "@worship-admin/api/logger";
 import { upsertPlanningCenterAccountIdentity } from "@worship-admin/api/use-cases/admin/planning-center-account-identities";
+import type { JsonObject } from "@worship-admin/planning-center-models/json";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { genericOAuth } from "better-auth/plugins/generic-oauth";

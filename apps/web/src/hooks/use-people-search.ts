@@ -1,5 +1,6 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
+import type { PeopleSearchResult } from "@worship-admin/contracts/people-schemas";
 import { useCallback } from "react";
 
 import {
@@ -9,10 +10,9 @@ import {
 } from "@/lib/people-search-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import type { PeopleSearchResult } from "@/lib/use-cases/planning-center/search-people";
 import { orpc } from "@/orpc-client";
 
-export type { PeopleSearchResult } from "@/lib/use-cases/planning-center/search-people";
+export type { PeopleSearchResult } from "@worship-admin/contracts/people-schemas";
 
 export const usePeopleSearch = (query: string) => {
   const normalizedQuery = normalizePeopleSearchQuery(query);

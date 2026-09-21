@@ -6,7 +6,6 @@ import {
   toApplicationFault,
   tryPlanningCenter,
 } from "@worship-admin/api/application/planning-center-access";
-import { isString } from "@worship-admin/api/json";
 import { isPresentationMode } from "@worship-admin/api/presentation-mode";
 import { invalidateCandidateHistoryForPerson } from "@worship-admin/api/use-cases/planning-center/get-people-for-position";
 import {
@@ -18,6 +17,7 @@ import type {
   ScheduleRemoveInput,
   ScheduleUpdateStatusInput,
 } from "@worship-admin/contracts/schedule";
+import { isString } from "@worship-admin/planning-center-models/json";
 import { Effect } from "effect";
 
 import { RequestContext } from "./context";

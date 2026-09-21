@@ -1,8 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type {
+  PlanPerson,
+  ScheduleFrequency,
+} from "@worship-admin/planning-center-models/types";
 
-import { isNonEmptyString } from "@/lib/json";
 import { queryKeys } from "@/lib/query-keys";
-import type { PlanPerson, ScheduleFrequency } from "@/lib/types";
 import { orpc } from "@/orpc-client";
 
 interface ScheduleHistoryResponse {

@@ -7,12 +7,6 @@ import {
   formatDurationMs,
   nowMs,
 } from "@worship-admin/api/http/timing";
-import {
-  isNonEmptyString,
-  isString,
-  jsonValueSchema,
-} from "@worship-admin/api/json";
-import type { JsonValue } from "@worship-admin/api/json";
 import { logger } from "@worship-admin/api/logger";
 import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
 import type { PlanningCenterRateLimitInfo } from "@worship-admin/api/planning-center/api-error";
@@ -21,7 +15,16 @@ import {
   pcCollectionResponseSchema,
   pcResourceResponseSchema,
 } from "@worship-admin/api/planning-center/resource-schemas";
-import type { PCApiResponse, PCResource } from "@worship-admin/api/types";
+import {
+  isNonEmptyString,
+  isString,
+  jsonValueSchema,
+} from "@worship-admin/planning-center-models/json";
+import type { JsonValue } from "@worship-admin/planning-center-models/json";
+import type {
+  PCApiResponse,
+  PCResource,
+} from "@worship-admin/planning-center-models/types";
 import { z } from "zod";
 
 const log = logger.for("planning-center/core");

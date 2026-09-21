@@ -1,6 +1,10 @@
+import { blockoutCoversPlanSortInstant } from "@worship-admin/planning-center-models/calendar-day";
+import type {
+  AvailabilityStatus,
+  Blockout,
+} from "@worship-admin/planning-center-models/types";
+
 import { Badge } from "@/components/ui/badge";
-import type { AvailabilityStatus, Blockout } from "@/lib/types";
-import { blockoutCoversPlanSortInstant } from "@/lib/use-cases/planning-center/people/calendar-day";
 
 interface AvailabilityBadgeProps {
   blockouts: Blockout[];

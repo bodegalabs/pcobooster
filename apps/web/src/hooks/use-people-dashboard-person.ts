@@ -1,5 +1,9 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
+import type {
+  PeopleDashboardData,
+  PeopleDashboardPersonDetail,
+} from "@worship-admin/contracts/people-schemas";
 import { useCallback } from "react";
 
 import {
@@ -9,10 +13,6 @@ import {
 import { getCachedPeopleDashboardPersonDetail } from "@/lib/people-dashboard-person-placeholder";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
-import type {
-  PeopleDashboardData,
-  PeopleDashboardPersonDetail,
-} from "@/lib/use-cases/planning-center/people-dashboard-types";
 import { orpc } from "@/orpc-client";
 
 export const createPeopleDashboardPersonQueryOptions = (

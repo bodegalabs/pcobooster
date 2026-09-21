@@ -2,6 +2,7 @@
 
 import { Delete02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type { TeamPositionGroup } from "@worship-admin/planning-center-models/types";
 import { useState } from "react";
 
 import {
@@ -11,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import type { EditablePlanTime } from "@/lib/schedule/plan-time-edits";
-import type { TeamPositionGroup } from "@/lib/types";
 
 interface PlanTimeCardProps {
   planTimeId: string;

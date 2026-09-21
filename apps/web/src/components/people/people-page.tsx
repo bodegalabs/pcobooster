@@ -1,6 +1,11 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import type {
+  PeopleDashboardData,
+  PeopleDashboardPerson,
+  PeopleDashboardRange,
+} from "@worship-admin/contracts/people-schemas";
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
@@ -23,11 +28,6 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePeopleDashboard } from "@/hooks/use-people-dashboard";
 import { createPeopleDashboardPersonQueryOptions } from "@/hooks/use-people-dashboard-person";
-import type {
-  PeopleDashboardData,
-  PeopleDashboardPerson,
-  PeopleDashboardRange,
-} from "@/lib/use-cases/planning-center/people-dashboard-types";
 
 const EMPTY_PEOPLE: PeopleDashboardPerson[] = [];
 

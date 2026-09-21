@@ -1,7 +1,7 @@
 import type {
   PeopleDashboardDayKind,
   PeopleDashboardPerson,
-} from "@/lib/use-cases/planning-center/people-dashboard-types";
+} from "@worship-admin/contracts/people-schemas";
 
 export type CalendarCell =
   | { day: number; key: string }

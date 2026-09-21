@@ -1,14 +1,8 @@
-import { isNonEmptyString, isString } from "@worship-admin/api/json";
-import {
-  formatCalendarDayInTimeZone,
-  orgCalendarDaysRefMinusItem,
-} from "@worship-admin/api/planning-center/org-calendar";
 import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
 import { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import { PlanningCenterReadCache } from "@worship-admin/api/planning-center/services/read-cache";
 import { findIncluded } from "@worship-admin/api/planning-center/utils";
-import type { PCResource } from "@worship-admin/api/types";
 import type {
   PeopleDashboardData,
   PeopleDashboardDay,
@@ -19,6 +13,15 @@ import type {
 } from "@worship-admin/api/use-cases/planning-center/people-dashboard-types";
 import { buildFrequencyFromServiceHistory } from "@worship-admin/api/use-cases/planning-center/people/history";
 import { mapWithConcurrency } from "@worship-admin/api/use-cases/planning-center/shared";
+import {
+  formatCalendarDayInTimeZone,
+  orgCalendarDaysRefMinusItem,
+} from "@worship-admin/planning-center-models/calendar";
+import {
+  isNonEmptyString,
+  isString,
+} from "@worship-admin/planning-center-models/json";
+import type { PCResource } from "@worship-admin/planning-center-models/types";
 
 const SCHEDULE_CONCURRENCY = 4;
 const SCHEDULE_MAX_PAGES = 6;

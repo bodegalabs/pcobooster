@@ -1,8 +1,8 @@
-import { isNonEmptyString } from "@worship-admin/api/json";
 import { logger } from "@worship-admin/api/logger";
 import { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
 import { PlanningCenterReadCache } from "@worship-admin/api/planning-center/services/read-cache";
-import type { PCResource } from "@worship-admin/api/types";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type { PCResource } from "@worship-admin/planning-center-models/types";
 
 const log = logger.for("planning-center/catalog");
 const TEAM_POSITIONS_CACHE_TTL_MS = 5 * 60 * 1000;

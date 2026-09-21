@@ -4,12 +4,6 @@ import {
   tryPlanningCenter,
 } from "@worship-admin/api/application/planning-center-access";
 import type { PlanningCenterRequestAccess } from "@worship-admin/api/application/planning-center-access";
-import type {
-  PlanItem,
-  PlanTime,
-  SongCatalogEntry,
-  SongOptionSet,
-} from "@worship-admin/api/types";
 import { createPlanItem } from "@worship-admin/api/use-cases/planning-center/create-plan-item";
 import { deletePlanItem } from "@worship-admin/api/use-cases/planning-center/delete-plan-item";
 import { invalidatePlanWindowHistory } from "@worship-admin/api/use-cases/planning-center/get-people-for-position";
@@ -44,6 +38,12 @@ import type {
   SongsOptionsInput,
   SongsSearchInput,
 } from "@worship-admin/contracts/songs";
+import type {
+  PlanItem,
+  PlanTime,
+  SongCatalogEntry,
+  SongOptionSet,
+} from "@worship-admin/planning-center-models/types";
 import { Effect } from "effect";
 
 const planTimeDependenciesFor = (

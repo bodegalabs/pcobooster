@@ -1,13 +1,14 @@
 "use client";
 
+import type {
+  PeopleDashboardData,
+  PeopleDashboardPerson,
+} from "@worship-admin/contracts/people-schemas";
+
 import type { buildCalendarCells } from "@/components/people/calendar";
 import { HealthQueues } from "@/components/people/health-queues";
 import { HealthRoster } from "@/components/people/health-roster";
 import { HealthSidebar } from "@/components/people/health-sidebar";
-import type {
-  PeopleDashboardData,
-  PeopleDashboardPerson,
-} from "@/lib/use-cases/planning-center/people-dashboard-types";
 
 interface PeopleHealthViewProps {
   dashboard: PeopleDashboardData | undefined;

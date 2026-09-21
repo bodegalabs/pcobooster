@@ -1,9 +1,9 @@
-import { orgCalendarDaysBetween } from "@worship-admin/api/planning-center/org-calendar";
-import { formatPlanHistoryHalfRangeWeeksLabel } from "@worship-admin/api/planning-center/schedule-load-constants";
+import { orgCalendarDaysBetween } from "@worship-admin/planning-center-models/calendar";
+import { formatPlanHistoryHalfRangeWeeksLabel } from "@worship-admin/planning-center-models/schedule-constants";
 import type {
   PersonWithAvailability,
   ScheduleFrequency,
-} from "@worship-admin/api/types";
+} from "@worship-admin/planning-center-models/types";
 
 const recommendationDateFormatter = new Intl.DateTimeFormat("en-US", {
   weekday: "short",

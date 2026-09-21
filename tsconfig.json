@@ -4,7 +4,6 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "strictNullChecks": true,
     "paths": {
-      "@/lib/*": ["./packages/api/src/*"],
       "@/*": ["./apps/web/src/*"]
     }
   },

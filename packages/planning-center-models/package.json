@@ -1,0 +1,25 @@
+{
+  "name": "@worship-admin/planning-center-models",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./calendar": "./src/calendar.ts",
+    "./calendar-day": "./src/calendar-day.ts",
+    "./json": "./src/json.ts",
+    "./schedule-constants": "./src/schedule-constants.ts",
+    "./types": "./src/types.ts"
+  },
+  "scripts": {
+    "test": "vitest run --root ../.. packages/planning-center-models/src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@worship-admin/config": "workspace:*",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

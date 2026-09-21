@@ -3,10 +3,13 @@ import {
   loadDevBypassIdentity,
 } from "@worship-admin/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@worship-admin/api/auth/planning-center-account-identity";
-import { isNonEmptyString, isString } from "@worship-admin/api/json";
 import { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import type { PCResource } from "@worship-admin/api/types";
+import {
+  isNonEmptyString,
+  isString,
+} from "@worship-admin/planning-center-models/json";
+import type { PCResource } from "@worship-admin/planning-center-models/types";
 
 const extractPersonIdFromIdentitySub = (sub: string | null): string | null => {
   if (!isNonEmptyString(sub)) {

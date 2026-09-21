@@ -1,6 +1,11 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type {
+  TeamPosition,
+  TeamPositionGroup,
+} from "@worship-admin/planning-center-models/types";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   startTransition,
@@ -18,7 +23,6 @@ import { usePlanTimes } from "@/hooks/use-plan-times";
 import { usePlans } from "@/hooks/use-plans";
 import { useServiceTypes } from "@/hooks/use-service-types";
 import { useTeamPositions } from "@/hooks/use-team-positions";
-import { isNonEmptyString } from "@/lib/json";
 import { queryKeys } from "@/lib/query-keys";
 import type {
   DashboardView,
@@ -29,7 +33,6 @@ import {
   buildScheduleUrl,
   parseSearchSelection,
 } from "@/lib/schedule-navigation";
-import type { TeamPosition, TeamPositionGroup } from "@/lib/types";
 
 const SLOT_PEOPLE_PREFETCH_DELAY_MS = 180;
 

@@ -1,5 +1,9 @@
-import { PLAN_HISTORY_HALF_RANGE_WEEKS } from "@/lib/planning-center/schedule-load-constants";
-import type { ScheduleFrequency, FrequencyLevel } from "@/lib/types";
+import { PLAN_HISTORY_HALF_RANGE_WEEKS } from "@worship-admin/planning-center-models/schedule-constants";
+import type {
+  ScheduleFrequency,
+  FrequencyLevel,
+} from "@worship-admin/planning-center-models/types";
+
 import { cn } from "@/lib/utils";
 
 interface FrequencyIndicatorProps {

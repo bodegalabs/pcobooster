@@ -1,21 +1,8 @@
 import { QueryClient } from "@tanstack/react-query";
-import {
-  readCachedMyScheduledPlans,
-  writeCachedMyScheduledPlans,
-} from "@worship-admin/api/my-scheduled-plans-cache";
-import {
-  readCachedPeople,
-  writeCachedPeople,
-} from "@worship-admin/api/people-cache";
-import { queryKeys } from "@worship-admin/api/query-keys";
-import {
-  readCachedTeamPositions,
-  writeCachedTeamPositions,
-} from "@worship-admin/api/team-positions-cache";
 import type {
   PersonWithAvailability,
   TeamPositionGroup,
-} from "@worship-admin/api/types";
+} from "@worship-admin/planning-center-models/types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -28,6 +15,16 @@ import {
   SCHEDULE_MUTATION_RECONCILE_DELAY_MS,
   settleScheduleMutationQueries,
 } from "@/hooks/use-schedule-cache-optimism";
+import {
+  readCachedMyScheduledPlans,
+  writeCachedMyScheduledPlans,
+} from "@/lib/my-scheduled-plans-cache";
+import { readCachedPeople, writeCachedPeople } from "@/lib/people-cache";
+import { queryKeys } from "@/lib/query-keys";
+import {
+  readCachedTeamPositions,
+  writeCachedTeamPositions,
+} from "@/lib/team-positions-cache";
 
 const createQueryClient = () =>
   new QueryClient({

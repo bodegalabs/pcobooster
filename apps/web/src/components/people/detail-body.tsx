@@ -1,5 +1,6 @@
 "use client";
 
+import type { PeopleDashboardPersonDetail } from "@worship-admin/contracts/people-schemas";
 import { CalendarDays, Clock3, Sparkles } from "lucide-react";
 
 import type { CalendarCell } from "@/components/people/calendar";
@@ -15,7 +16,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { PeopleDashboardPersonDetail } from "@/lib/use-cases/planning-center/people-dashboard-types";
 
 export const PersonDetailBody = ({
   data,

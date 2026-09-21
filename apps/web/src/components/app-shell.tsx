@@ -21,6 +21,7 @@ import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
 import type { PlanningCenterAccountsResponse } from "@worship-admin/contracts/accounts";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import { Check, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -85,7 +86,6 @@ import {
 import { APP_SHORTCUTS, SHORTCUTS_PALETTE_HOTKEY } from "@/lib/app-hotkeys";
 import { authClient } from "@/lib/auth-client";
 import { writeBrowserStorage } from "@/lib/browser-storage";
-import { isNonEmptyString } from "@/lib/json";
 import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
 import { clearCachedOrganizationTimeZone } from "@/lib/organization-time-zone-cache";
 import { clearCachedPeople } from "@/lib/people-cache";

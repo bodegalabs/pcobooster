@@ -2,7 +2,6 @@ import { ORPCError } from "@orpc/server";
 import type { RequestAuthentication } from "@worship-admin/api/application/planning-center-access";
 import { getActivityRequestContext } from "@worship-admin/api/db/activity-events";
 import type { ActivityEventInput } from "@worship-admin/api/db/activity-events";
-import type { JsonObject } from "@worship-admin/api/json";
 import type { RpcContext } from "@worship-admin/api/transport/orpc/context";
 import {
   scheduleAssignInputSchema,
@@ -11,6 +10,7 @@ import {
   scheduleRemoveInputSchema,
   scheduleUpdateStatusInputSchema,
 } from "@worship-admin/contracts/schedule";
+import type { JsonObject } from "@worship-admin/planning-center-models/json";
 
 export type ScheduleOperation = "assign" | "remove" | "updateStatus";
 

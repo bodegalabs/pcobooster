@@ -1,14 +1,14 @@
 import { planningCenterSongsService } from "@worship-admin/api/planning-center/services/songs-service";
 import type { PlanningCenterSongsService } from "@worship-admin/api/planning-center/services/songs-service";
-import type {
-  ArrangementOption,
-  SongOptionSet,
-} from "@worship-admin/api/types";
 import {
   normalizeArrangementOption,
   normalizePlanItem,
   normalizeSongCatalogEntry,
 } from "@worship-admin/api/use-cases/planning-center/plan-items-shared";
+import type {
+  ArrangementOption,
+  SongOptionSet,
+} from "@worship-admin/planning-center-models/types";
 
 const chooseSuggestedArrangement = (
   arrangements: ArrangementOption[]

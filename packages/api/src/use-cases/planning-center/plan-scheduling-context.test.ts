@@ -1,5 +1,8 @@
-import type { PCResource, RawPlanPerson } from "@worship-admin/api/types";
 import { buildPlanSchedulingContext } from "@worship-admin/api/use-cases/planning-center/plan-scheduling-context";
+import type {
+  PCResource,
+  RawPlanPerson,
+} from "@worship-admin/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 const team = (id: string, name: string): PCResource => ({

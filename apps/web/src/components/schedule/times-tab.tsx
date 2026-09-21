@@ -1,5 +1,6 @@
 "use client";
 
+import type { PlanTime } from "@worship-admin/planning-center-models/types";
 import { Clock3, Plus } from "lucide-react";
 
 import { PlanTimeCard } from "@/components/schedule/plan-time-card";
@@ -18,7 +19,6 @@ import {
   buildEditablePlanTime,
   isValidPlanTimeEdit,
 } from "@/lib/schedule/plan-time-edits";
-import type { PlanTime } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface TimesTabProps {

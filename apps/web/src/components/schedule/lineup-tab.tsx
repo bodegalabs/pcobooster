@@ -16,6 +16,12 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import type {
+  FilledPositionPerson,
+  PlanTime,
+  TeamPosition,
+  TeamPositionGroup,
+} from "@worship-admin/planning-center-models/types";
 import { CalendarDays, ChevronDown, Clock3, GripVertical } from "lucide-react";
 import { startTransition, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
@@ -54,12 +60,6 @@ import {
   applyLineupColumnOrder,
   reorderLineupColumnIds,
 } from "@/lib/lineup-column-order";
-import type {
-  FilledPositionPerson,
-  PlanTime,
-  TeamPosition,
-  TeamPositionGroup,
-} from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface LineupTabProps {

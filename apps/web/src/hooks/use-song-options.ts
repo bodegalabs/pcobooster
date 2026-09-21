@@ -1,15 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type { SongOptionSet } from "@worship-admin/planning-center-models/types";
 import { useCallback } from "react";
 
-import { isNonEmptyString } from "@/lib/json";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
 import {
   readCachedSongOptions,
   writeCachedSongOptions,
 } from "@/lib/song-options-cache";
-import type { SongOptionSet } from "@/lib/types";
 import { orpc } from "@/orpc-client";
 
 export const createSongOptionsQueryOptions = (

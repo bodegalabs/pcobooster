@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import type { SongCatalogEntry } from "@worship-admin/planning-center-models/types";
 import { Search } from "lucide-react";
 import {
   startTransition,
@@ -28,7 +29,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { createSongOptionsQueryOptions } from "@/hooks/use-song-options";
 import { useSongSearch } from "@/hooks/use-song-search";
 import { parseOptionalDate } from "@/lib/song-catalog-client";
-import type { SongCatalogEntry } from "@/lib/types";
 
 interface SongPickerDialogProps {
   open: boolean;

@@ -1,5 +1,6 @@
 "use client";
 
+import type { TeamPosition } from "@worship-admin/planning-center-models/types";
 import { ChevronsUpDown, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,6 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import type { TeamPosition } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export const SelectedPositionHeader = ({

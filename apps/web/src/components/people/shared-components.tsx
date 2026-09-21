@@ -1,7 +1,7 @@
+import type { PeopleDashboardPerson } from "@worship-admin/contracts/people-schemas";
 import Link from "next/link";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { PeopleDashboardPerson } from "@/lib/use-cases/planning-center/people-dashboard-types";
 import { cn } from "@/lib/utils";
 
 export const CommitmentEntryText = ({

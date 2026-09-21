@@ -21,7 +21,6 @@ const marketingRewrites =
       ];
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@worship-admin/api"],
   turbopack: { root: workspaceRoot },
   rewrites: async () =>
     await Promise.resolve([

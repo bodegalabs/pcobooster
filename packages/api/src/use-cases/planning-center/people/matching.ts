@@ -1,10 +1,13 @@
-import { isNonEmptyString, isString } from "@worship-admin/api/json";
+import type { SelectedPlanMatchContext } from "@worship-admin/api/use-cases/planning-center/people/types";
+import {
+  isNonEmptyString,
+  isString,
+} from "@worship-admin/planning-center-models/json";
 import type {
   PersonWithAvailability,
   RawPlanPerson,
   RawSchedule,
-} from "@worship-admin/api/types";
-import type { SelectedPlanMatchContext } from "@worship-admin/api/use-cases/planning-center/people/types";
+} from "@worship-admin/planning-center-models/types";
 
 type SchedulableRecord = RawSchedule | RawPlanPerson;
 

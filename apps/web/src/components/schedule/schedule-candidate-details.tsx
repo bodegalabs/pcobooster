@@ -1,5 +1,6 @@
 "use client";
 
+import type { PersonWithAvailability } from "@worship-admin/planning-center-models/types";
 import type { CSSProperties, ReactNode } from "react";
 
 import { RecommendationPopover } from "@/components/schedule/popovers/recommendation-popover";
@@ -9,7 +10,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import type { PersonWithAvailability } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export type CandidateStatus =

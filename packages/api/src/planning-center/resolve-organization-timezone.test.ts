@@ -1,5 +1,5 @@
 import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
-import type { PCResource } from "@worship-admin/api/types";
+import type { PCResource } from "@worship-admin/planning-center-models/types";
 import { describe, expect, it, vi } from "vitest";
 
 const organization = (timeZone: string): PCResource => ({

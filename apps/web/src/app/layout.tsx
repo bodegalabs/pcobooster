@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 
 import { Providers } from "@/components/providers";
+import { getPresentationCacheScope } from "@/server/presentation-cache-scope";
 
 import "./globals.css";
-import { getPresentationCacheScope } from "@/lib/presentation-mode";
 
 const inter = Inter({
   variable: "--font-inter",

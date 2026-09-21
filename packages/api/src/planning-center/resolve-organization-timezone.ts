@@ -1,8 +1,11 @@
-import { isNonEmptyString, isString } from "@worship-admin/api/json";
 import { getPlanningCenterRequestAccessToken } from "@worship-admin/api/planning-center/request-auth-context";
 import { planningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
 import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
-import type { PCResource } from "@worship-admin/api/types";
+import {
+  isNonEmptyString,
+  isString,
+} from "@worship-admin/planning-center-models/json";
+import type { PCResource } from "@worship-admin/planning-center-models/types";
 
 const HIT_TTL_MS = 60 * 60 * 1000;
 const MISS_TTL_MS = 2 * 60 * 1000;

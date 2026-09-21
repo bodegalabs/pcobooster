@@ -1,6 +1,9 @@
+import type {
+  ArrangementOption,
+  PlanItem,
+  SongOptionSet,
+} from "@worship-admin/planning-center-models/types";
 import type { ReactNode } from "react";
-
-import type { ArrangementOption, PlanItem, SongOptionSet } from "@/lib/types";
 
 export interface DraftState {
   title: string;

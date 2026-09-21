@@ -1,8 +1,8 @@
 import type { planningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
 import type { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import type { PCResource } from "@worship-admin/api/types";
 import { schedulePerson } from "@worship-admin/api/use-cases/planning-center/schedule-person";
 import { scheduleAssignInputSchema as schedulePersonSchema } from "@worship-admin/contracts/schedule";
+import type { PCResource } from "@worship-admin/planning-center-models/types";
 import { describe, expect, it, vi } from "vitest";
 
 type ScheduleDependencies = NonNullable<Parameters<typeof schedulePerson>[1]>;

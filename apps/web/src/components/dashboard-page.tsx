@@ -1,5 +1,6 @@
 "use client";
 
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -12,7 +13,6 @@ import { buttonVariants } from "@/components/ui/button-variants";
 import { HoverLabel } from "@/components/ui/hover-card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useDashboardController } from "@/hooks/use-dashboard-controller";
-import { isNonEmptyString } from "@/lib/json";
 import type { DashboardView } from "@/lib/schedule-navigation";
 import { cn } from "@/lib/utils";
 

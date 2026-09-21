@@ -1,14 +1,16 @@
-import type { z } from "zod";
-
-import { isNonEmptyString, isString } from "@/lib/json";
-import { PlanningCenterCoreClient } from "@/lib/planning-center/core-client";
-import type { PCResource } from "@/lib/types";
+import { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
 import {
   planPersonResourceSchema,
   planTimeResourceSchema,
   rosterPersonSchema,
   scheduleResourceSchema,
-} from "@/lib/use-cases/planning-center/people/resource-schemas";
+} from "@worship-admin/api/use-cases/planning-center/people/resource-schemas";
+import {
+  isNonEmptyString,
+  isString,
+} from "@worship-admin/planning-center-models/json";
+import type { PCResource } from "@worship-admin/planning-center-models/types";
+import type { z } from "zod";
 
 const summarizeIssues = (
   issues: { path: PropertyKey[]; message: string }[]

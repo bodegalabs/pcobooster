@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type { PlanTime } from "@worship-admin/planning-center-models/types";
 
-import { isNonEmptyString } from "@/lib/json";
 import { queryKeys } from "@/lib/query-keys";
-import type { PlanTime } from "@/lib/types";
 import { orpc } from "@/orpc-client";
 
 const PLAN_TIMES_STALE_TIME_MS = 60 * 1000;

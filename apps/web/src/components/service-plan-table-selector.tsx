@@ -1,5 +1,6 @@
 "use client";
 
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import { Search } from "lucide-react";
 
 import { ServiceTypeMultiSelect } from "@/components/service-type-multi-select";
@@ -31,7 +32,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useServicePlanSelection } from "@/hooks/use-service-plan-selection";
-import { isNonEmptyString } from "@/lib/json";
 import type {
   ServicePlanRow,
   ServicePlanTableSelectorProps,

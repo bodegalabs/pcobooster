@@ -2,10 +2,7 @@ import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { logger } from "@/lib/logger";
 import { isPublicPath } from "@/lib/public-paths";
-
-const log = logger.for("middleware");
 
 const isDevAuthBypassEnabled = (): boolean => {
   if (process.env.NODE_ENV === "production") {
@@ -46,10 +43,6 @@ export const proxy = (request: NextRequest) => {
     return NextResponse.next();
   }
 
-  log.info(
-    { path: request.nextUrl.pathname },
-    "Redirecting unauthenticated request to /auth"
-  );
   const url = request.nextUrl.clone();
   url.pathname = "/auth";
   return NextResponse.redirect(url);

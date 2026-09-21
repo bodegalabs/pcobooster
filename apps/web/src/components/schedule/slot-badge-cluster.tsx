@@ -1,5 +1,7 @@
 "use client";
 
+import type { TeamPosition } from "@worship-admin/planning-center-models/types";
+
 import { SlotStatusPopoverContent } from "@/components/schedule/popovers/slot-status-popover";
 import { ScheduleStatusDot } from "@/components/schedule/status-dot";
 import {
@@ -8,7 +10,6 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { ItemSeparator } from "@/components/ui/item";
-import type { TeamPosition } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export const SlotBadgeCluster = ({

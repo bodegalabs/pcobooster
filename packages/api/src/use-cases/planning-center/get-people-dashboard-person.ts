@@ -1,6 +1,3 @@
-import { isNonEmptyString, isString } from "@worship-admin/api/json";
-import type { JsonValue } from "@worship-admin/api/json";
-import { formatCalendarDayInTimeZone } from "@worship-admin/api/planning-center/org-calendar";
 import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
 import { planningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
 import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
@@ -9,7 +6,6 @@ import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-ce
 import { planningCenterPlansService } from "@worship-admin/api/planning-center/services/plans-service";
 import type { PlanningCenterPlansService } from "@worship-admin/api/planning-center/services/plans-service";
 import { PlanningCenterReadCache } from "@worship-admin/api/planning-center/services/read-cache";
-import type { PCResource } from "@worship-admin/api/types";
 import {
   buildPersonMonthDays,
   countServiceDaysInWindow,
@@ -30,6 +26,13 @@ import {
   buildPlanSchedulingContext,
   isDeclinedRosterStatus,
 } from "@worship-admin/api/use-cases/planning-center/plan-scheduling-context";
+import { formatCalendarDayInTimeZone } from "@worship-admin/planning-center-models/calendar";
+import {
+  isNonEmptyString,
+  isString,
+} from "@worship-admin/planning-center-models/json";
+import type { JsonValue } from "@worship-admin/planning-center-models/json";
+import type { PCResource } from "@worship-admin/planning-center-models/types";
 
 const PERSON_SCHEDULE_MAX_PAGES = 10;
 const PEOPLE_DASHBOARD_PERSON_CACHE_TTL_MS = 2 * 60 * 1000;

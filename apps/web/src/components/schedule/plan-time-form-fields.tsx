@@ -2,6 +2,10 @@
 
 import { Clock01Icon, UnfoldMoreIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import type {
+  PlanTimeType,
+  TeamPositionGroup,
+} from "@worship-admin/planning-center-models/types";
 import { format } from "date-fns";
 import { useState } from "react";
 
@@ -28,7 +32,6 @@ import {
 import { selectionPickerSectionTitleClass } from "@/components/ui/selection-picker-styles";
 import { usePersistOnClosePopover } from "@/hooks/use-persist-on-close-popover";
 import type { EditablePlanTime } from "@/lib/schedule/plan-time-edits";
-import type { PlanTimeType, TeamPositionGroup } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const timeTypeOptions: { value: PlanTimeType; label: string }[] = [

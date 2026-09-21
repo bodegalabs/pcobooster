@@ -1,4 +1,3 @@
-import { isNonEmptyString } from "@worship-admin/api/json";
 import {
   createPlanTime,
   deletePlanTime,
@@ -6,6 +5,7 @@ import {
   updatePlanTime,
 } from "@worship-admin/api/use-cases/planning-center/plan-times";
 import type { PlanTimeDependencies } from "@worship-admin/api/use-cases/planning-center/plan-times";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const createFixture = () => {

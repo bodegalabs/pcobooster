@@ -1,11 +1,11 @@
 import { getPlanningCenterIdentityFromAccessToken } from "@worship-admin/api/auth/planning-center-identity";
 import { db } from "@worship-admin/api/db";
-import { isNonEmptyString } from "@worship-admin/api/json";
 import { getPlanningCenterAccountIdentity } from "@worship-admin/api/use-cases/admin/planning-center-account-identities";
 import type {
   AdminAccountActivity,
   AdminUserAccountDetail,
 } from "@worship-admin/contracts/admin";
+import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 

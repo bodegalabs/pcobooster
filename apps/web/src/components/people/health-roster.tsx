@@ -1,5 +1,10 @@
 "use client";
 
+import type {
+  PeopleDashboardData,
+  PeopleDashboardPerson,
+} from "@worship-admin/contracts/people-schemas";
+
 import { loadBadge } from "@/components/people/calendar";
 import { RosterTableBody } from "@/components/people/roster-table-body";
 import { PersonAvatar } from "@/components/people/shared-components";
@@ -12,10 +17,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type {
-  PeopleDashboardData,
-  PeopleDashboardPerson,
-} from "@/lib/use-cases/planning-center/people-dashboard-types";
 import { cn } from "@/lib/utils";
 
 interface HealthRosterProps {

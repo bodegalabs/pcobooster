@@ -77,6 +77,8 @@
     "@types/pg": "^8.23.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@worship-admin/api": "workspace:*",
+    "@worship-admin/planning-center-models": "workspace:*",
     "drizzle-kit": "^0.31.10",
     "lefthook": "^2.1.14",
     "oxfmt": "^0.68.0",
