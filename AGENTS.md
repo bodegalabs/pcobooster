@@ -7,22 +7,21 @@
 
 ## Project Structure & Module Organization
 
-- `app/`: Next.js App Router pages and API routes (`app/api/*`). Keep routes thin and delegate business logic.
-- `components/`: UI components (including `components/ui/*` primitives).
-- `hooks/`: React Query hooks for client data fetching (`use-*.ts`).
-- `lib/use-cases/planning-center/`: business logic and data transforms (preferred home for app behavior).
-- `lib/planning-center/services/`: Planning Center API service wrappers (raw API access only).
-- `lib/http/`: shared route/error handling and client fetch helpers.
-- `lib/db/`: Drizzle schema, shared database client, and PostgreSQL pool setup.
-- `db/migrations/`: Drizzle-generated database migrations.
-- `lib/**/*.test.ts` and `components/**/*.test.ts`: colocated Vitest tests.
-- `public/`: static assets. `docs/`: local Planning Center API docs reference.
+- `apps/web/`: Next.js product UI. App Router pages, components, hooks, proxy, and public assets live under `apps/web/src` and `apps/web/public`.
+- `apps/server/`: Bun/Hono transport. `src/router.ts` maps the existing REST contracts and the entrypoint mounts Better Auth and oRPC.
+- `apps/marketing/`: independent static-export Next.js marketing site.
+- `packages/api/src/http-routes/`: framework-neutral REST handlers. Keep them thin and delegate business logic. `packages/api/src/orpc.ts` owns the typed oRPC router.
+- `packages/api/src/use-cases/planning-center/`: business logic and data transforms (preferred home for app behavior).
+- `packages/api/src/planning-center/services/`: Planning Center API service wrappers (raw API access only).
+- `packages/api/src/db/` and `packages/api/migrations/`: Drizzle client, schema, and migrations.
+- `packages/config/`: shared TypeScript configuration.
+- Tests stay colocated under `packages/api/src/**/*.test.ts` and `apps/web/src/**/*.test.ts`.
 
 ## Build, Test, and Development Commands
 
 - Use Bun for dependency management and scripts. `bun.lock` is the only committed lockfile; do not add `package-lock.json` or run npm-based install workflows for this repo.
-- `bun run dev`: start local Next.js dev server.
-- `bun run build`: production build.
+- `bun run dev`: start API, product, and marketing through Turborepo (ports 3000, 3001, and 3002).
+- `bun run build`: build the Hono service and both Next.js apps through Turborepo.
 - `bun run start`: run built app.
 - `bun run check` (also `lint`): run Ultracite formatting and type-aware lint checks; warnings fail the check. All selected presets in `oxlint.config.ts` remain strict.
 - `bun run lint:ci`: same as `lint` with `--format github` for Action annotations (used by CI).
@@ -32,7 +31,7 @@
 - `bun run test`: run Vitest test suite once.
 - `bun run test:watch`: run Vitest in watch mode.
 - `bun run auth:generate`: generate Better Auth artifacts.
-- `bun run db:generate`: generate Drizzle migrations from `lib/db/schema.ts`.
+- `bun run db:generate`: generate Drizzle migrations from `packages/api/src/db/schema.ts`.
 - `bun run db:migrate`: apply Drizzle migrations.
 - `bun run db:push`: push schema changes directly for local experiments.
 - `bun run db:seed`: run the idempotent seed entrypoint.
@@ -48,7 +47,7 @@
 
 ## Testing Guidelines
 
-- Framework: Vitest, with tests colocated under `lib/` and `components/`.
+- Framework: Vitest, with tests colocated beside API and web source.
 - Prioritize tests for transforms/matching/sorting logic and Planning Center edge cases.
 - Inject narrow typed service dependencies into use-cases and pass fresh test implementations explicitly. Keep imported module exports and service singletons intact; spies may observe local test instances or runtime I/O. Preserve exact assertions on optional flags so missing values cannot pass as `false`.
 - Prefer test-driven fixes for regressions: reproduce the bug or edge case with a focused failing test, then implement the smallest code change that makes it pass.
@@ -63,10 +62,12 @@
 
 ## Architecture Notes
 
-- Preferred flow: `app/api` route -> `lib/use-cases/*` -> `lib/planning-center/services/*`.
-- Database access uses Drizzle through `lib/db`; migrations are owned by Drizzle, including Better Auth tables.
-- React Query keys are centralized in `lib/query-keys.ts`; use them for hooks/invalidation.
-- Use `lib/http/client.ts` for client-side API calls, passing a response schema from `lib/api-schemas.ts`. Validate untrusted HTTP and persisted-cache data with Zod before using domain types.
+- Preferred flow: `apps/web` -> `/api` -> `apps/server` Hono transport -> `packages/api/src/http-routes/*` -> `packages/api/src/use-cases/*` -> `packages/api/src/planning-center/services/*`.
+- Better Auth is mounted directly by Hono at `/api/auth/*`. Vercel and the local Next.js rewrite keep browser requests on the web origin.
+- Preserve existing REST contracts while migrating deliberately chosen endpoints to oRPC; put reusable procedure/domain logic in `packages/api`, not in the Hono entrypoint.
+- Database access uses Drizzle through `packages/api/src/db`; migrations include Better Auth tables.
+- React Query keys are centralized in `packages/api/src/query-keys.ts`; use them for hooks/invalidation.
+- Use `packages/api/src/http/client.ts` for client-side API calls, passing a response schema from `packages/api/src/api-schemas.ts`. Validate untrusted HTTP and persisted-cache data with Zod before using domain types.
 - Backward compatibility is not a priority during the current dev phase; prefer cleaner APIs/URLs/UX over temporary compatibility shims unless explicitly requested.
 
 ## Learned User Preferences
@@ -74,13 +75,13 @@
 - When replacing behavior, remove legacy or unused code paths instead of keeping parallel implementations.
 - Prefer shadcn HoverCard for hover-revealed UI labels/help. Use the default tight `HoverCardContent` (`variant="label"`) or `HoverLabel` for short text; use `variant="panel"` for richer previews. Do not introduce Tooltip-based hover UI; replace existing tooltips with HoverCard when touching nearby code.
 - For People detail pages, prefer app-shell breadcrumb navigation over in-page back buttons.
-- Prefer lightweight inline and popover edits that persist on close (click outside, Escape, Enter, or field blur where appropriate) instead of explicit Done/Save/Cancel footers. Skip success toasts for these autosaves; keep error toasts. Reuse `hooks/use-persist-on-close-popover.ts` (`usePersistOnClosePopover`, `useDraftPopover`). Opt into Enter-to-close via `enterToClose` (TanStack Hotkeys, scoped to `contentRef`); do not use Enter-to-close for Command/list popovers where Enter selects rows.
+- Prefer lightweight inline and popover edits that persist on close (click outside, Escape, Enter, or field blur where appropriate) instead of explicit Done/Save/Cancel footers. Skip success toasts for these autosaves; keep error toasts. Reuse `apps/web/src/hooks/use-persist-on-close-popover.ts` (`usePersistOnClosePopover`, `useDraftPopover`). Opt into Enter-to-close via `enterToClose` (TanStack Hotkeys, scoped to `contentRef`); do not use Enter-to-close for Command/list popovers where Enter selects rows.
 - Keep hover, active, and selection color changes instant. Do not use `transition-colors` or `transition-plan-item`; `local/no-transition-colors` enforces this.
 
 ## Learned Workspace Facts
 
 - People availability and blockouts: compare the plan `sort_date` instant to blockouts using each blockout’s Planning Center `time_zone` (calendar-day logic); pass full ISO `date` from the client to `/api/people`. Naive UTC-midnight or date-only string overlap checks can mislabel people near timezone boundaries.
-- Congregation-local business dates (plan windows, schedule history frequency, calendar-day deltas) use the org IANA zone from `NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE` / `PLANNING_CENTER_TIME_ZONE` with shared helpers in `lib/planning-center/org-calendar.ts`.
+- Congregation-local business dates (plan windows, schedule history frequency, calendar-day deltas) use the org IANA zone from `NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE` / `PLANNING_CENTER_TIME_ZONE` with shared helpers in `packages/api/src/planning-center/org-calendar.ts`.
 - Person card frequency labels should align with recommendation scoring: distinct calendar service/rehearsal days in org TZ, not raw plan-time row counts or grouped-card counts.
 
 # Ultracite Code Standards

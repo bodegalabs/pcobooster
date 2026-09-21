@@ -1,0 +1,63 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "out/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "auth:generate": {
+      "cache": false
+    },
+    "db:generate": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false
+    },
+    "db:push": {
+      "cache": false
+    },
+    "db:studio": {
+      "cache": false,
+      "persistent": true
+    }
+  },
+  "globalEnv": [
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "CI",
+    "CORS_ORIGIN",
+    "DATABASE_URL",
+    "DEV_AUTH_BYPASS",
+    "FLAGS",
+    "LOG_LEVEL",
+    "NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE",
+    "NEXT_PUBLIC_SERVER_URL",
+    "NODE_ENV",
+    "PLANNING_CENTER_CLIENT",
+    "PLANNING_CENTER_OAUTH_CLIENT_ID",
+    "PLANNING_CENTER_OAUTH_CLIENT_SECRET",
+    "PLANNING_CENTER_PAT",
+    "PLANNING_CENTER_TIME_ZONE",
+    "PRESENTATION_MODE",
+    "VERCEL",
+    "VERCEL_ENV",
+    "VERCEL_PROJECT_PRODUCTION_URL",
+    "VERCEL_URL"
+  ],
+  "globalDependencies": [".env*", "apps/*/.env*", "packages/*/.env*"]
+}

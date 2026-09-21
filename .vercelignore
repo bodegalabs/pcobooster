@@ -1,0 +1,11 @@
+# Secrets are injected by Vercel/Infisical and must never ship with a build.
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+
+.turbo/
+coverage/
+local.db
+local.db-*

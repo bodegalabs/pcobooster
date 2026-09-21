@@ -3,7 +3,7 @@ import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "..");
 const exportedSite = path.resolve(root, "apps/marketing/out");
-const destination = path.resolve(root, "public/marketing");
+const destination = path.resolve(root, "apps/web/public/marketing");
 
 // Only the generated marketing directory is replaced; product assets stay intact.
 await rm(destination, { recursive: true, force: true });

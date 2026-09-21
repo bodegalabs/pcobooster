@@ -5,8 +5,8 @@ const rootDir = import.meta.dirname;
 export default defineConfig({
   test: {
     include: [
-      "lib/**/*.test.ts",
-      "components/**/*.test.ts",
+      "packages/**/*.test.ts",
+      "apps/web/src/**/*.test.ts",
       "lint/**/*.test.ts",
     ],
     environment: "node",
@@ -27,10 +27,20 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      "@": rootDir,
+    alias: [
+      {
+        find: /^@\/lib\/(?<module>.*)$/u,
+        replacement: `${rootDir}/packages/api/src/$<module>`,
+      },
+      {
+        find: "@",
+        replacement: `${rootDir}/apps/web/src`,
+      },
       // Use the marker's published server entry without selecting React's RSC runtime.
-      "server-only": `${rootDir}/node_modules/server-only/empty.js`,
-    },
+      {
+        find: "server-only",
+        replacement: `${rootDir}/node_modules/server-only/empty.js`,
+      },
+    ],
   },
 });

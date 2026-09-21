@@ -1,0 +1,2 @@
+# Keep environment loading explicit through Infisical in local scripts.
+env = false
