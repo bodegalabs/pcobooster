@@ -8,6 +8,5 @@ export default defineConfig({
   deps: {
     alwaysBundle: () => true,
     onlyBundle: false,
-    onlyImport: ["@opentelemetry/api"],
   },
 });
