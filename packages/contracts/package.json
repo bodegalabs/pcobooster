@@ -5,14 +5,19 @@
   "type": "module",
   "exports": {
     ".": "./src/router.ts",
+    "./accounts": "./src/accounts.ts",
+    "./admin": "./src/admin.ts",
     "./catalog": "./src/catalog.ts",
     "./errors": "./src/errors.ts",
+    "./features": "./src/features.ts",
+    "./identity": "./src/identity.ts",
     "./people": "./src/people.ts",
     "./people-schemas": "./src/people-schemas.ts",
-    "./router": "./src/router.ts"
+    "./router": "./src/router.ts",
+    "./session": "./src/session.ts"
   },
   "scripts": {
-    "test": "vitest run src",
+    "test": "vitest run --root ../.. packages/contracts/src",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

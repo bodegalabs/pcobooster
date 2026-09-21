@@ -1,18 +1,18 @@
-import {
-  adminAccountsResponseSchema,
-  adminUserResponseSchema,
-  sessionStatusSchema,
-} from "@worship-admin/api/admin-contracts";
+import { createORPCClient } from "@orpc/client";
+import { RPCLink } from "@orpc/client/fetch";
+import type { ContractRouterClient } from "@orpc/contract";
+import type { appContract } from "@worship-admin/contracts";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import type { z } from "zod";
+
+type AppClient = ContractRouterClient<typeof appContract>;
 
 const firstForwardedValue = (value: string | null): string | null => {
   const first = value?.split(",", 1)[0]?.trim() ?? null;
   return first !== null && first !== "" ? first : null;
 };
 
-const apiRequest = async (path: string): Promise<Response> => {
+const createServerRpcClient = async (): Promise<AppClient> => {
   const incomingHeaders = await headers();
   const host =
     firstForwardedValue(incomingHeaders.get("x-forwarded-host")) ??
@@ -30,38 +30,37 @@ const apiRequest = async (path: string): Promise<Response> => {
     forwardedHeaders.set("cookie", cookie);
   }
 
-  const response = await fetch(`${protocol}://${host}${path}`, {
-    cache: "no-store",
+  const rpcLink = new RPCLink({
     headers: forwardedHeaders,
+    url: `${protocol}://${host}/api/rpc`,
+    fetch: async (request) => {
+      const response = await fetch(new Request(request, { cache: "no-store" }));
+      if (response.status === 401) {
+        redirect("/auth");
+      }
+      if (response.status === 403 || response.status === 404) {
+        notFound();
+      }
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      return response;
+    },
   });
-  if (response.status === 401) {
-    redirect("/auth");
-  }
-  if (response.status === 403 || response.status === 404) {
-    notFound();
-  }
-  if (!response.ok) {
-    throw new Error(`API request failed with status ${response.status}`);
-  }
-  return response;
+  return createORPCClient<AppClient>(rpcLink);
 };
 
-const parseResponse = async <T>(
-  response: Response,
-  schema: z.ZodType<T>
-): Promise<T> => schema.parse(await response.json());
+export const getSessionStatus = async () => {
+  const client = await createServerRpcClient();
+  return await client.session.status({});
+};
 
-export const getSessionStatus = async () =>
-  await parseResponse(await apiRequest("/api/session"), sessionStatusSchema);
+export const getAdminAccounts = async () => {
+  const client = await createServerRpcClient();
+  return await client.admin.accounts({});
+};
 
-export const getAdminAccounts = async () =>
-  await parseResponse(
-    await apiRequest("/api/admin/accounts"),
-    adminAccountsResponseSchema
-  );
-
-export const getAdminUser = async (userId: string) =>
-  await parseResponse(
-    await apiRequest(`/api/admin/users/${encodeURIComponent(userId)}`),
-    adminUserResponseSchema
-  );
+export const getAdminUser = async (userId: string) => {
+  const client = await createServerRpcClient();
+  return await client.admin.user({ userId });
+};

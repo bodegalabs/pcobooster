@@ -1,8 +1,3 @@
-import { GET as getAdminAccounts } from "@worship-admin/api/http-routes/admin/accounts/route";
-import { GET as getAdminFeature } from "@worship-admin/api/http-routes/admin/feature/route";
-import { GET as getAdminUser } from "@worship-admin/api/http-routes/admin/users/[userId]/route";
-import { GET as getPlanningCenterContext } from "@worship-admin/api/http-routes/debug/planning-center-context/route";
-import { GET as getPeopleFeature } from "@worship-admin/api/http-routes/people/feature/route";
 import {
   DELETE as deletePlanItem,
   PATCH as updatePlanItem,
@@ -18,17 +13,12 @@ import {
   PATCH as updatePlanTime,
 } from "@worship-admin/api/http-routes/plan-times/[planTimeId]/route";
 import {
-  GET as getPlanningCenterAccounts,
-  POST as selectPlanningCenterAccount,
-} from "@worship-admin/api/http-routes/planning-center/accounts/route";
-import {
   GET as getPlanTimes,
   POST as createPlanTime,
 } from "@worship-admin/api/http-routes/plans/[planId]/times/route";
 import { DELETE as removeScheduledPerson } from "@worship-admin/api/http-routes/schedule/[planPersonId]/route";
 import { PATCH as updateScheduleStatus } from "@worship-admin/api/http-routes/schedule/[planPersonId]/status/route";
 import { POST as schedulePerson } from "@worship-admin/api/http-routes/schedule/route";
-import { GET as getSessionStatus } from "@worship-admin/api/http-routes/session/route";
 import { GET as getSongOptions } from "@worship-admin/api/http-routes/songs/[songId]/options/route";
 import { GET as searchSongs } from "@worship-admin/api/http-routes/songs/search/route";
 import type { Hono } from "hono";
@@ -38,27 +28,6 @@ const params = <T extends Record<string, string>>(value: T) => ({
 });
 
 export const registerRestRoutes = (app: Hono): void => {
-  app.get(
-    "/api/admin/accounts",
-    async (c) => await getAdminAccounts(c.req.raw)
-  );
-  app.get("/api/admin/feature", async (c) => await getAdminFeature(c.req.raw));
-  app.get(
-    "/api/admin/users/:userId",
-    async (c) =>
-      await getAdminUser(
-        c.req.raw,
-        params({ userId: c.req.param("userId") ?? "" })
-      )
-  );
-  app.get(
-    "/api/debug/planning-center-context",
-    async (c) => await getPlanningCenterContext(c.req.raw)
-  );
-  app.get(
-    "/api/people/feature",
-    async (c) => await getPeopleFeature(c.req.raw)
-  );
   app.post(
     "/api/plan-items/reorder",
     async (c) => await reorderPlanItems(c.req.raw)
@@ -100,14 +69,6 @@ export const registerRestRoutes = (app: Hono): void => {
       )
   );
   app.get(
-    "/api/planning-center/accounts",
-    async (c) => await getPlanningCenterAccounts(c.req.raw)
-  );
-  app.post(
-    "/api/planning-center/accounts",
-    async (c) => await selectPlanningCenterAccount(c.req.raw)
-  );
-  app.get(
     "/api/plans/:planId/times",
     async (c) =>
       await getPlanTimes(
@@ -140,7 +101,6 @@ export const registerRestRoutes = (app: Hono): void => {
       )
   );
   app.post("/api/schedule", async (c) => await schedulePerson(c.req.raw));
-  app.get("/api/session", async (c) => await getSessionStatus(c.req.raw));
   app.get(
     "/api/songs/:songId/options",
     async (c) =>

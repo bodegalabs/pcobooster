@@ -1,0 +1,168 @@
+import {
+  createRequestContext,
+  RequestContext,
+} from "@worship-admin/api/application/context";
+import {
+  getAdminFeature,
+  getPlanningCenterAccounts,
+  getSessionStatus,
+  selectPlanningCenterAccount,
+} from "@worship-admin/api/application/identity";
+import type { IdentityDependencies } from "@worship-admin/api/application/identity";
+import {
+  getDevBypassPlanningCenterAccount,
+  getDevBypassSession,
+  loadDevBypassIdentity,
+} from "@worship-admin/api/auth/dev-bypass";
+import { getPlanningCenterIdentityForAccount } from "@worship-admin/api/auth/planning-center-account-identity";
+import { Cause, Effect, Exit, Option } from "effect";
+import { describe, expect, it, vi } from "vitest";
+
+const request = new Request("https://worshipadmin.com/api/rpc/accounts");
+
+const run = async <Value>(
+  program: Effect.Effect<Value, unknown, RequestContext>
+) =>
+  await Effect.runPromise(
+    Effect.provideService(
+      program,
+      RequestContext,
+      createRequestContext(request)
+    )
+  );
+
+const runExit = async <Value, Failure extends { readonly _tag: string }>(
+  program: Effect.Effect<Value, Failure, RequestContext>
+) =>
+  await Effect.runPromiseExit(
+    Effect.provideService(
+      program,
+      RequestContext,
+      createRequestContext(request)
+    )
+  );
+
+const failureTag = (exit: Exit.Exit<unknown, { readonly _tag: string }>) => {
+  const cause = Option.getOrThrow(Exit.causeOption(exit));
+  return Option.getOrThrow(Cause.failureOption(cause))._tag;
+};
+
+const unauthenticatedDependencies = (): IdentityDependencies => ({
+  isDevAuthBypassEnabled: () => false,
+  loadDevBypassIdentity,
+  getDevBypassSession,
+  getDevBypassPlanningCenterAccount,
+  getSession: vi
+    .fn<IdentityDependencies["getSession"]>()
+    .mockResolvedValue(null),
+  listUserAccounts: vi
+    .fn<IdentityDependencies["listUserAccounts"]>()
+    .mockResolvedValue([]),
+  getIdentityForAccount: getPlanningCenterIdentityForAccount,
+  getSelectedAccountId: () => null,
+});
+
+const nonPlanningCenterAccount = {
+  id: "github-account",
+  accountId: "github-user",
+  providerId: "github",
+  userId: "user-1",
+  createdAt: new Date("2026-01-01T00:00:00.000Z"),
+  updatedAt: new Date("2026-01-02T00:00:00.000Z"),
+  scopes: [],
+} satisfies Awaited<
+  ReturnType<IdentityDependencies["listUserAccounts"]>
+>[number];
+
+const planningCenterAccount = (
+  id: string,
+  updatedAt: string
+): Awaited<ReturnType<IdentityDependencies["listUserAccounts"]>>[number] => ({
+  id,
+  accountId: `provider-${id}`,
+  providerId: "planning-center",
+  userId: "user-1",
+  createdAt: new Date("2026-01-01T00:00:00.000Z"),
+  updatedAt: new Date(updatedAt),
+  scopes: [],
+});
+
+const authenticatedDependencies = (): IdentityDependencies => ({
+  ...unauthenticatedDependencies(),
+  getSession: vi
+    .fn<IdentityDependencies["getSession"]>()
+    .mockResolvedValue(getDevBypassSession()),
+  listUserAccounts: vi
+    .fn<IdentityDependencies["listUserAccounts"]>()
+    .mockResolvedValue([nonPlanningCenterAccount]),
+});
+
+describe("identity application programs", () => {
+  it("reports a guest session as unauthenticated", async () => {
+    await expect(
+      run(getSessionStatus(unauthenticatedDependencies()))
+    ).resolves.toStrictEqual({
+      authenticated: false,
+    });
+  });
+
+  it("rejects account listing for a guest session", async () => {
+    expect(
+      failureTag(
+        await runExit(getPlanningCenterAccounts(unauthenticatedDependencies()))
+      )
+    ).toBe("Unauthenticated");
+  });
+
+  it("rejects selection when the account is not owned through Planning Center", async () => {
+    expect(
+      failureTag(
+        await runExit(
+          selectPlanningCenterAccount(
+            { accountId: nonPlanningCenterAccount.id },
+            authenticatedDependencies()
+          )
+        )
+      )
+    ).toBe("NotFound");
+  });
+
+  it("falls back from a stale selected cookie and degrades provider identities to null", async () => {
+    const newest = planningCenterAccount("newest", "2026-02-01T00:00:00.000Z");
+    const oldest = planningCenterAccount("oldest", "2026-01-01T00:00:00.000Z");
+    const dependencies: IdentityDependencies = {
+      ...authenticatedDependencies(),
+      listUserAccounts: vi
+        .fn<IdentityDependencies["listUserAccounts"]>()
+        .mockResolvedValue([oldest, newest]),
+      getIdentityForAccount: vi
+        .fn<IdentityDependencies["getIdentityForAccount"]>()
+        .mockRejectedValue(new Error("userinfo unavailable")),
+      getSelectedAccountId: () => "stale-account",
+    };
+
+    const result = await run(getPlanningCenterAccounts(dependencies));
+
+    expect(result).toMatchObject({
+      selectedAccountId: "newest",
+      accounts: [
+        { id: "newest", identity: null },
+        { id: "oldest", identity: null },
+      ],
+    });
+    expect(Object.keys(result.accounts[0]).toSorted()).toStrictEqual([
+      "id",
+      "identity",
+      "providerId",
+      "updatedAt",
+    ]);
+  });
+
+  it("keeps the admin feature probe public for guests", async () => {
+    await expect(
+      run(getAdminFeature(unauthenticatedDependencies()))
+    ).resolves.toStrictEqual({
+      enabled: false,
+    });
+  });
+});

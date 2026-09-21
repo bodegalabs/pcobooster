@@ -31,7 +31,10 @@ export const proxy = (request: NextRequest) => {
     return NextResponse.next();
   }
 
-  if (request.nextUrl.pathname === "/api/session") {
+  if (
+    request.nextUrl.pathname === "/api/rpc" ||
+    request.nextUrl.pathname.startsWith("/api/rpc/")
+  ) {
     return NextResponse.next();
   }
 
