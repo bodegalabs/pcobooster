@@ -83,6 +83,7 @@ export const proofCommandSchema = z.object({
 });
 
 export const independentVerificationSchema = z.object({
+  source: z.string().min(1),
   summary: z.string().min(1),
   verdict: z.enum(["PASS", "PASS_WITH_NOTES"]),
 });
@@ -184,6 +185,11 @@ export const validateReceiptSemantics = (
     violations.push("recorded gates do not match the risk tier and CI result");
   }
   for (const command of receipt.commands) {
+    const expectedCommand =
+      command.name === "ci" ? "bun run ci" : "bun run build";
+    if (command.command !== expectedCommand) {
+      violations.push(`${command.name} command is not the canonical gate`);
+    }
     if ((command.exitCode === 0) !== (command.status === "pass")) {
       violations.push(`${command.name} status contradicts its exit code`);
     }
@@ -209,6 +215,12 @@ export const artifactKindForPath = (
   }
   throw new Error(`Proof artifact must be an image or video: ${artifactPath}`);
 };
+
+export const githubAttachmentArgument = (
+  artifactPath: string,
+  artifact: Pick<ProofArtifact, "alt" | "kind">
+): string =>
+  artifact.kind === "image" ? `${artifactPath}#${artifact.alt}` : artifactPath;
 
 const escapeCell = (value: string): string => value.replaceAll("|", "\\|");
 
@@ -237,7 +249,7 @@ export const renderProofReport = (receipt: ProofReceipt): string => {
       ? "- None."
       : receipt.notes.map((note) => `- ${note}`).join("\n");
   const independentVerification = receipt.independentVerification
-    ? `- ${receipt.independentVerification.verdict}: ${receipt.independentVerification.summary}`
+    ? `- ${receipt.independentVerification.verdict} by ${receipt.independentVerification.source}: ${receipt.independentVerification.summary}`
     : "- Not recorded.";
   const rollback = receipt.rollback ?? "Not required or not recorded.";
 

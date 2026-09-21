@@ -4,6 +4,7 @@ import {
   artifactKindForPath,
   classifyChangedFiles,
   deriveVerdict,
+  githubAttachmentArgument,
   maxRiskTier,
   renderProofReport,
   requiresVisualEvidence,
@@ -52,6 +53,21 @@ describe("proof classification", () => {
       "must be an image or video"
     );
   });
+
+  it("adds alt text to image uploads but not video uploads", () => {
+    expect(
+      githubAttachmentArgument("/tmp/proof.png", {
+        alt: "Proof state",
+        kind: "image",
+      })
+    ).toBe("/tmp/proof.png#Proof state");
+    expect(
+      githubAttachmentArgument("/tmp/proof.mp4", {
+        alt: "Walkthrough",
+        kind: "video",
+      })
+    ).toBe("/tmp/proof.mp4");
+  });
 });
 
 describe("proof report", () => {
@@ -97,7 +113,7 @@ describe("proof report", () => {
       changedFiles: ["docs/ci-cd.md"],
       commands: [
         {
-          command: "bun run ci",
+          command: "true",
           durationMs: 42,
           exitCode: 1,
           logPath: "logs/ci.log",
@@ -129,6 +145,7 @@ describe("proof report", () => {
       expect.arrayContaining([
         "changed files do not match the proved revision",
         "risk tier is lower than the changed paths require",
+        "ci command is not the canonical gate",
         "ci status contradicts its exit code",
       ])
     );

@@ -15,6 +15,7 @@ import {
   artifactKindForPath,
   classifyChangedFiles,
   deriveVerdict,
+  githubAttachmentArgument,
   independentVerificationSchema,
   maxRiskTier,
   proofReceiptSchema,
@@ -65,6 +66,31 @@ const optionalFlagValue = (
   args: readonly string[],
   name: string
 ): string | undefined => flagValues(args, name).at(-1);
+
+const readIndependentVerification = (
+  args: readonly string[]
+): ProofReceipt["independentVerification"] => {
+  const verdict = optionalFlagValue(args, "--verifier-verdict");
+  const summary = optionalFlagValue(args, "--verifier-summary");
+  const source = optionalFlagValue(args, "--verifier-source");
+  const suppliedFields = [verdict, summary, source].filter(
+    (value) => value !== undefined
+  ).length;
+  if (suppliedFields === 0) {
+    return null;
+  }
+  if (
+    suppliedFields !== 3 ||
+    verdict === undefined ||
+    summary === undefined ||
+    source === undefined
+  ) {
+    fail(
+      "--verifier-verdict, --verifier-summary, and --verifier-source must be provided together"
+    );
+  }
+  return independentVerificationSchema.parse({ source, summary, verdict });
+};
 
 const runCapturedCommand = async (
   name: string,
@@ -275,18 +301,7 @@ const runProof = async (args: readonly string[]): Promise<void> => {
   );
   const visualEvidenceRequired = requiresVisualEvidence(changedFiles);
   const notes = flagValues(args, "--note");
-  const verifierVerdict = optionalFlagValue(args, "--verifier-verdict");
-  const verifierSummary = optionalFlagValue(args, "--verifier-summary");
-  if ((verifierVerdict === undefined) !== (verifierSummary === undefined)) {
-    fail("--verifier-verdict and --verifier-summary must be provided together");
-  }
-  const independentVerification =
-    verifierVerdict === undefined || verifierSummary === undefined
-      ? null
-      : independentVerificationSchema.parse({
-          summary: verifierSummary,
-          verdict: verifierVerdict,
-        });
+  const independentVerification = readIndependentVerification(args);
   const rollback = optionalFlagValue(args, "--rollback") ?? null;
   if (visualEvidenceRequired && artifacts.length === 0) {
     notes.push("Visible surface changed without an attached image or video.");
@@ -408,17 +423,15 @@ const publish = (args: readonly string[]): void => {
   writeFileSync(reportPath, renderProofReport(receipt));
   const command = ["pr", "comment", pr, "--body-file", reportPath];
   for (const artifact of receipt.artifacts) {
-    command.push(
-      "--attach",
-      `${path.join(directory, artifact.path)}#${artifact.alt}`
-    );
+    const artifactPath = path.join(directory, artifact.path);
+    command.push("--attach", githubAttachmentArgument(artifactPath, artifact));
   }
   execFileSync("gh", command, { cwd: repositoryRoot, stdio: "inherit" });
 };
 
 const usage = `Usage:
   bun run proof -- doctor
-  bun run proof -- run [--base origin/main] [--risk auto] [--flow text] [--artifact path#alt] [--note text] [--verifier-verdict PASS] [--verifier-summary text] [--rollback text]
+  bun run proof -- run [--base origin/main] [--risk auto] [--flow text] [--artifact path#alt] [--note text] [--verifier-verdict PASS] [--verifier-summary text] [--verifier-source id-or-url] [--rollback text]
   bun run proof -- verify --receipt path/to/receipt.json
   bun run proof -- publish --pr NUMBER_OR_URL --receipt path/to/receipt.json
 `;

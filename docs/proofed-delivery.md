@@ -38,7 +38,7 @@ bun run proof -- publish --pr <number-or-url> --receipt .artifacts/proofs/<revis
 
 Proof output lives under ignored `.artifacts/`. The publisher posts the Markdown report and uses GitHub CLI media attachments for images and videos.
 
-For high or critical risk, add `--verifier-verdict PASS|PASS_WITH_NOTES` and `--verifier-summary "..."`. For critical risk, also add `--rollback "..."`. An explicit `--risk` can raise the automatically classified tier but cannot lower it.
+For high or critical risk, add `--verifier-verdict PASS|PASS_WITH_NOTES`, `--verifier-summary "..."`, and `--verifier-source <task-id-or-url>`. For critical risk, also add `--rollback "..."`. An explicit `--risk` can raise the automatically classified tier but cannot lower it. The verifier fields are an auditable attestation, not cryptographic identity proof; GitHub's `ci` check remains the authoritative execution record.
 
 Fetch the base branch immediately before proving. A bottom PR uses `origin/main`; an upper stack layer uses its preceding remote branch. Publication rejects both stale head proof and proof against an outdated PR base.
 
