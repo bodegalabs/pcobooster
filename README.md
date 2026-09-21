@@ -124,7 +124,7 @@ bun run build
 
 Tests are colocated under `packages/*/src`, `apps/server/src`, and `apps/web/src`. Feature modules accept narrow typed dependencies so tests can exercise behavior without replacing modules. oRPC inputs and outputs, provider responses, and persisted browser caches are validated with Zod at their respective boundaries.
 
-Pull requests must pass both the GitHub `verify` check and the Vercel deployment check. See [CI/CD](docs/ci-cd.md) for the merge gates, deployment flow, dependency update policy, and rollback procedure.
+Pull requests must pass both the GitHub `verify` check and the Vercel deployment check. See [CI/CD](docs/ci-cd.md) for the merge gates, Turborepo remote-cache setup, deployment flow, dependency update policy, and rollback procedure.
 
 ## Code Quality
 
