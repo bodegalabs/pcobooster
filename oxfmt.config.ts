@@ -5,6 +5,7 @@ export default defineConfig({
   ...ultracite,
   ignorePatterns: [
     ...(ultracite.ignorePatterns ?? []),
+    ".artifacts/**",
     "docs/planning-center-api/**",
     "packages/api/migrations/**",
   ],

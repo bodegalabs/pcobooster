@@ -44,8 +44,8 @@
     "//#lint:ci": {
       "outputs": []
     },
-    "//#test:lint": {
-      "inputs": ["lint/**/*.ts", "vitest.config.ts"],
+    "//#test:root": {
+      "inputs": ["lint/**/*.ts", "scripts/**/*.ts", "vitest.config.ts"],
       "outputs": []
     },
     "//#typecheck:root": {
