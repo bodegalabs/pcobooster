@@ -95,7 +95,9 @@ const readIndependentVerification = (
 const runCapturedCommand = async (
   name: string,
   command: readonly string[],
-  proofDirectory: string
+  proofDirectory: string,
+  logName = name,
+  recordedCommand = command.join(" ")
 ): Promise<ProofCommand> => {
   const startedAt = performance.now();
   const child = spawn(
@@ -116,11 +118,11 @@ const runCapturedCommand = async (
   });
   await once(child, "close");
   const exitCode = child.exitCode ?? 1;
-  const logPath = path.join("logs", `${name}.log`);
+  const logPath = path.join("logs", `${logName}.log`);
   const logContents = Buffer.concat(chunks);
   writeFileSync(path.join(proofDirectory, logPath), logContents);
   return {
-    command: command.join(" "),
+    command: recordedCommand,
     durationMs: Math.round(performance.now() - startedAt),
     exitCode,
     logPath,
@@ -128,6 +130,24 @@ const runCapturedCommand = async (
     sha256: sha256(logContents),
     status: exitCode === 0 ? "pass" : "fail",
   };
+};
+
+interface FocusedCheck {
+  command: string;
+  name: string;
+}
+
+const parseFocusedCheck = (value: string): FocusedCheck => {
+  const separator = value.indexOf("::");
+  if (separator === -1) {
+    return fail("--focused-check must use the format name::command");
+  }
+  const name = value.slice(0, separator).trim();
+  const command = value.slice(separator + 2).trim();
+  if (name === "" || command === "") {
+    return fail("--focused-check requires both a name and command");
+  }
+  return { command, name };
 };
 
 const calculatePatchId = (baseSha: string, headSha: string): string => {
@@ -224,7 +244,7 @@ const verifyReceipt = (receiptPath: string): ProofReceipt => {
   if (semanticViolations.length > 0) {
     return fail(`Receipt is inconsistent: ${semanticViolations.join("; ")}`);
   }
-  for (const command of receipt.commands) {
+  for (const command of [...receipt.commands, ...receipt.focusedChecks]) {
     const logPath = path.join(directory, command.logPath);
     if (!existsSync(logPath)) {
       return fail(`Receipt command log is missing: ${command.logPath}`);
@@ -296,6 +316,23 @@ const runProof = async (args: readonly string[]): Promise<void> => {
       await runCapturedCommand("build", ["bun", "run", "build"], proofDirectory)
     );
   }
+  const requestedFocusedChecks = flagValues(args, "--focused-check").map(
+    parseFocusedCheck
+  );
+  const focusedChecks = commands.every((command) => command.status === "pass")
+    ? await Promise.all(
+        requestedFocusedChecks.map(
+          async (focusedCheck, index) =>
+            await runCapturedCommand(
+              focusedCheck.name,
+              ["/bin/sh", "-lc", focusedCheck.command],
+              proofDirectory,
+              `focused-${index + 1}`,
+              focusedCheck.command
+            )
+        )
+      )
+    : [];
   const artifacts = flagValues(args, "--artifact").map((value) =>
     parseArtifact(value, proofDirectory)
   );
@@ -315,6 +352,9 @@ const runProof = async (args: readonly string[]): Promise<void> => {
   if (riskTier === "critical" && rollback === null) {
     notes.push("Critical change has no rollback plan.");
   }
+  if (riskTier === "critical" && focusedChecks.length === 0) {
+    notes.push("Critical change has no captured focused boundary check.");
+  }
 
   let receipt: ProofReceipt = {
     artifacts,
@@ -323,6 +363,7 @@ const runProof = async (args: readonly string[]): Promise<void> => {
     commands,
     createdAt: new Date().toISOString(),
     flows: flagValues(args, "--flow"),
+    focusedChecks,
     headSha,
     independentVerification,
     notes,
@@ -431,7 +472,7 @@ const publish = (args: readonly string[]): void => {
 
 const usage = `Usage:
   bun run proof -- doctor
-  bun run proof -- run [--base origin/main] [--risk auto] [--flow text] [--artifact path#alt] [--note text] [--verifier-verdict PASS] [--verifier-summary text] [--verifier-source id-or-url] [--rollback text]
+  bun run proof -- run [--base origin/main] [--risk auto] [--flow text] [--artifact path#alt] [--focused-check name::command] [--note text] [--verifier-verdict PASS] [--verifier-summary text] [--verifier-source id-or-url] [--rollback text]
   bun run proof -- verify --receipt path/to/receipt.json
   bun run proof -- publish --pr NUMBER_OR_URL --receipt path/to/receipt.json
 `;

@@ -95,6 +95,7 @@ export const proofReceiptSchema = z.object({
   commands: z.array(proofCommandSchema).min(1),
   createdAt: z.iso.datetime(),
   flows: z.array(z.string().min(1)),
+  focusedChecks: z.array(proofCommandSchema),
   headSha: z.string().min(1),
   independentVerification: independentVerificationSchema.nullable(),
   notes: z.array(z.string().min(1)),
@@ -120,6 +121,7 @@ export const deriveVerdict = (
     ProofReceipt,
     | "artifacts"
     | "commands"
+    | "focusedChecks"
     | "independentVerification"
     | "notes"
     | "requiresVisualEvidence"
@@ -127,7 +129,11 @@ export const deriveVerdict = (
     | "rollback"
   >
 ): Verdict => {
-  if (receipt.commands.some((command) => command.status === "fail")) {
+  if (
+    [...receipt.commands, ...receipt.focusedChecks].some(
+      (command) => command.status === "fail"
+    )
+  ) {
     return "FAIL";
   }
   if (receipt.requiresVisualEvidence && receipt.artifacts.length === 0) {
@@ -140,6 +146,9 @@ export const deriveVerdict = (
     return "BLOCKED";
   }
   if (receipt.riskTier === "critical" && receipt.rollback === null) {
+    return "BLOCKED";
+  }
+  if (receipt.riskTier === "critical" && receipt.focusedChecks.length === 0) {
     return "BLOCKED";
   }
   if (
@@ -194,6 +203,11 @@ export const validateReceiptSemantics = (
       violations.push(`${command.name} status contradicts its exit code`);
     }
   }
+  for (const command of receipt.focusedChecks) {
+    if ((command.exitCode === 0) !== (command.status === "pass")) {
+      violations.push(`${command.name} status contradicts its exit code`);
+    }
+  }
   if (receipt.verdict !== deriveVerdict(receipt)) {
     violations.push("verdict contradicts the recorded evidence");
   }
@@ -225,7 +239,7 @@ export const githubAttachmentArgument = (
 const escapeCell = (value: string): string => value.replaceAll("|", "\\|");
 
 export const renderProofReport = (receipt: ProofReceipt): string => {
-  const commands = receipt.commands
+  const commands = [...receipt.commands, ...receipt.focusedChecks]
     .map(
       (command) =>
         `| ${escapeCell(command.name)} | ${command.status} | \`${escapeCell(command.command)}\` | ${command.durationMs} ms |`

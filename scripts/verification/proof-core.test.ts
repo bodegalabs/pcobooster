@@ -89,6 +89,7 @@ describe("proof report", () => {
       ],
       createdAt: "2026-09-21T20:00:00.000Z",
       flows: [],
+      focusedChecks: [],
       headSha: "head",
       independentVerification: null,
       notes: [],
@@ -124,6 +125,7 @@ describe("proof report", () => {
       ],
       createdAt: "2026-09-21T20:00:00.000Z",
       flows: [],
+      focusedChecks: [],
       headSha: "head",
       independentVerification: null,
       notes: [],
@@ -166,6 +168,7 @@ describe("proof report", () => {
             status: "pass",
           },
         ],
+        focusedChecks: [],
         independentVerification: null,
         notes: [],
         requiresVisualEvidence: false,
@@ -173,5 +176,50 @@ describe("proof report", () => {
         rollback: null,
       })
     ).toBe("BLOCKED");
+  });
+
+  it("blocks critical proof without a captured focused boundary check", () => {
+    const criticalProof: Parameters<typeof deriveVerdict>[0] = {
+      artifacts: [],
+      commands: [
+        {
+          command: "bun run ci",
+          durationMs: 42,
+          exitCode: 0,
+          logPath: "logs/ci.log",
+          name: "ci",
+          sha256: "a".repeat(64),
+          status: "pass",
+        },
+      ],
+      focusedChecks: [],
+      independentVerification: {
+        source: "task:verifier",
+        summary: "Auth boundary reviewed",
+        verdict: "PASS",
+      },
+      notes: [],
+      requiresVisualEvidence: false,
+      riskTier: "critical",
+      rollback: "Revert the commit",
+    };
+
+    expect(deriveVerdict(criticalProof)).toBe("BLOCKED");
+    expect(
+      deriveVerdict({
+        ...criticalProof,
+        focusedChecks: [
+          {
+            command: "bun vitest run auth.test.ts",
+            durationMs: 10,
+            exitCode: 0,
+            logPath: "logs/focused-1.log",
+            name: "Auth boundary",
+            sha256: "b".repeat(64),
+            status: "pass",
+          },
+        ],
+      })
+    ).toBe("PASS");
   });
 });
