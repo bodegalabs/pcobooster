@@ -29,13 +29,25 @@ codex_cloud_ensure_base_tools() {
 }
 
 codex_cloud_ensure_node() {
-  command -v node >/dev/null 2>&1 || codex_cloud_fail \
-    "Node.js is missing. Set Node.js ${CODEX_CLOUD_NODE_MAJOR} in the Codex environment package versions."
-
   local node_major
-  node_major="$(node --version | sed -E 's/^v([0-9]+).*/\1/')"
+  node_major="$(node --version 2>/dev/null | sed -E 's/^v([0-9]+).*/\1/' || true)"
+
+  if [[ "$node_major" != "$CODEX_CLOUD_NODE_MAJOR" ]]; then
+    local nvm_script="${NVM_DIR:-${HOME}/.nvm}/nvm.sh"
+    [[ -s "$nvm_script" ]] || codex_cloud_fail \
+      "expected Node.js ${CODEX_CLOUD_NODE_MAJOR}.x and could not find the Codex image's NVM installation."
+
+    # The universal Codex image includes Node 24 even when the settings UI only
+    # exposes Node 22 as the newest selectable default.
+    # shellcheck disable=SC1090
+    source "$nvm_script"
+    nvm use --silent "$CODEX_CLOUD_NODE_MAJOR" >/dev/null
+    nvm alias default "$CODEX_CLOUD_NODE_MAJOR" >/dev/null
+    node_major="$(node --version | sed -E 's/^v([0-9]+).*/\1/')"
+  fi
+
   [[ "$node_major" == "$CODEX_CLOUD_NODE_MAJOR" ]] || codex_cloud_fail \
-    "expected Node.js ${CODEX_CLOUD_NODE_MAJOR}.x, found $(node --version). Set the package version in Codex environment settings."
+    "expected Node.js ${CODEX_CLOUD_NODE_MAJOR}.x, found $(node --version)."
 }
 
 codex_cloud_ensure_bun() {

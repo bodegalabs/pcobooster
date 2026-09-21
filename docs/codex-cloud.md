@@ -37,7 +37,7 @@ The Codex environment uses the Infisical credential named `Codex Cloud worship-a
 
 In Codex cloud environment settings:
 
-1. Pin Node.js 24.
+1. Select Node.js 22, the newest version currently exposed by the Codex settings UI. The setup script activates the universal image's preinstalled Node.js 24 through NVM before installing dependencies.
 2. Set the setup script to:
 
    ```bash
