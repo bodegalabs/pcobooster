@@ -7,10 +7,10 @@ interface PlanningCenterRequestAuthContext {
 const planningCenterAuthStorage =
   new AsyncLocalStorage<PlanningCenterRequestAuthContext>();
 
-export const runWithPlanningCenterRequestAuth = async <T>(
+export const runWithPlanningCenterRequestAuth = <T>(
   context: PlanningCenterRequestAuthContext,
-  fn: () => Promise<T>
-): Promise<T> => await planningCenterAuthStorage.run(context, fn);
+  fn: () => T
+): T => planningCenterAuthStorage.run(context, fn);
 
 export const getPlanningCenterRequestAccessToken = (): string | null =>
   planningCenterAuthStorage.getStore()?.accessToken ?? null;

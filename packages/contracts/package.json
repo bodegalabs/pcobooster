@@ -13,8 +13,15 @@
     "./identity": "./src/identity.ts",
     "./people": "./src/people.ts",
     "./people-schemas": "./src/people-schemas.ts",
+    "./plan-item-schemas": "./src/plan-item-schemas.ts",
+    "./plan-items": "./src/plan-items.ts",
+    "./plan-people": "./src/plan-people.ts",
+    "./plan-time-schemas": "./src/plan-time-schemas.ts",
+    "./plan-times": "./src/plan-times.ts",
     "./router": "./src/router.ts",
-    "./session": "./src/session.ts"
+    "./session": "./src/session.ts",
+    "./song-schemas": "./src/song-schemas.ts",
+    "./songs": "./src/songs.ts"
   },
   "scripts": {
     "test": "vitest run --root ../.. packages/contracts/src",

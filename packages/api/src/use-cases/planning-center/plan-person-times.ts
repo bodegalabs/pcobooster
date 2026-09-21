@@ -1,4 +1,5 @@
 import { planningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
+import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
 import { invalidatePlanWindowHistory } from "@worship-admin/api/use-cases/planning-center/get-people-for-position";
 
 export interface UpdatePlanPersonTimesInput {
@@ -9,21 +10,39 @@ export interface UpdatePlanPersonTimesInput {
   planTimeIds: string[];
 }
 
-export const updatePlanPersonTimes = async ({
-  serviceTypeId,
-  planId,
-  personId,
-  planPersonId,
-  planTimeIds,
-}: UpdatePlanPersonTimesInput) => {
-  const result = await planningCenterPeopleService.updatePlanPersonTimes({
+export interface UpdatePlanPersonTimesDependencies {
+  peopleService: Pick<
+    PlanningCenterPeopleService,
+    | "updatePlanPersonTimes"
+    | "invalidatePlanTimeSensitiveReadCaches"
+    | "getCacheScope"
+  >;
+  invalidateHistory: (cacheScope: string) => void;
+}
+
+const defaultDependencies: UpdatePlanPersonTimesDependencies = {
+  peopleService: planningCenterPeopleService,
+  invalidateHistory: invalidatePlanWindowHistory,
+};
+
+export const updatePlanPersonTimes = async (
+  {
+    serviceTypeId,
+    planId,
+    personId,
+    planPersonId,
+    planTimeIds,
+  }: UpdatePlanPersonTimesInput,
+  dependencies: UpdatePlanPersonTimesDependencies = defaultDependencies
+) => {
+  const result = await dependencies.peopleService.updatePlanPersonTimes({
     serviceTypeId,
     planId,
     personId,
     planPersonId,
     planTimeIds,
   });
-  planningCenterPeopleService.invalidatePlanTimeSensitiveReadCaches(planId);
-  invalidatePlanWindowHistory();
+  dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(planId);
+  dependencies.invalidateHistory(dependencies.peopleService.getCacheScope());
   return result;
 };

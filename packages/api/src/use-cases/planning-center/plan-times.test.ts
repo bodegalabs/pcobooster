@@ -1,5 +1,4 @@
 import { isNonEmptyString } from "@worship-admin/api/json";
-import type { invalidatePlanWindowHistory } from "@worship-admin/api/use-cases/planning-center/get-people-for-position";
 import {
   createPlanTime,
   deletePlanTime,
@@ -37,8 +36,7 @@ const createFixture = () => {
     vi.fn<
       PlanTimeDependencies["peopleService"]["invalidatePlanTimeSensitiveReadCaches"]
     >();
-  const invalidatePlanWindowHistoryMock =
-    vi.fn<typeof invalidatePlanWindowHistory>();
+  const invalidatePlanWindowHistoryMock = vi.fn<() => void>();
   const dependencies = {
     plansService: {
       getPlanTimes: getPlanTimesMock,
@@ -365,6 +363,57 @@ describe("plan times use case", () => {
       "needed-2",
       null
     );
+  });
+
+  it("waits for sibling writes before invalidating after a partial failure", async () => {
+    updatePlanTimeMock.mockResolvedValue({
+      id: "time-1",
+      type: "PlanTime",
+      attributes: {
+        name: "Updated",
+        starts_at: "2026-05-24T16:30:00.000Z",
+        time_type: "rehearsal",
+      },
+    });
+    const lateWrite = Promise.withResolvers<{
+      id: string;
+      type: string;
+      attributes: Record<string, never>;
+    }>();
+    updateServiceTypePlanNeededPositionTimeMock
+      .mockRejectedValueOnce(new Error("assignment failed"))
+      .mockImplementationOnce(async () => await lateWrite.promise);
+
+    const update = updatePlanTime(
+      {
+        serviceTypeId: "st-1",
+        planId: "plan-1",
+        planTimeId: "time-1",
+        assignedNeededPositionIds: ["needed-1", "needed-2"],
+      },
+      invalidatePlanWindowHistoryMock,
+      dependencies
+    );
+    await vi.waitFor(() => {
+      expect(updateServiceTypePlanNeededPositionTimeMock).toHaveBeenCalledTimes(
+        2
+      );
+    });
+    expect(invalidatePlanTimeSensitiveReadCachesMock).not.toHaveBeenCalled();
+    expect(invalidatePlanWindowHistoryMock).not.toHaveBeenCalled();
+
+    lateWrite.resolve({
+      id: "needed-2",
+      type: "NeededPosition",
+      attributes: {},
+    });
+
+    await expect(update).rejects.toThrow("assignment failed");
+
+    expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith(
+      "plan-1"
+    );
+    expect(invalidatePlanWindowHistoryMock).toHaveBeenCalledOnce();
   });
 
   it("patches individual plan person time overrides from roster relationships", async () => {
