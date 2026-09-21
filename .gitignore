@@ -35,8 +35,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files 
-.env
+# Environment values are injected by Infisical. Do not create local env files.
+.env*
 
 # vercel
 .vercel
@@ -44,7 +44,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-.env*.local
 
 # Generated marketing export staged into the product app
 /apps/web/public/marketing/

@@ -13,13 +13,13 @@ import {
 } from "@worship-admin/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@worship-admin/api/auth/planning-center-account-identity";
 import { getSelectedPlanningCenterAccountId } from "@worship-admin/api/auth/planning-center-session";
+import { isPeoplePageEnabled } from "@worship-admin/api/config/people-page-availability";
 import { authorizeAdminRequest } from "@worship-admin/api/modules/admin/authorize-admin";
 import {
   getAccountActivity,
   getUserAccountDetail,
   isAdminEmail,
 } from "@worship-admin/api/modules/admin/get-account-activity";
-import { peoplePageFlag } from "@worship-admin/api/people-page-flag";
 import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import { Effect } from "effect";
 
@@ -266,15 +266,9 @@ export const selectPlanningCenterAccount = (
     return { success: true, selectedAccountId: account.id };
   });
 
-export const getPeopleFeature = Effect.gen(function* readPeopleFeature() {
-  const { request } = yield* RequestContext;
-  return {
-    enabled: yield* tryIdentity(
-      async () => await peoplePageFlag(request),
-      "people-feature"
-    ),
-  };
-});
+export const getPeopleFeature = Effect.sync(() => ({
+  enabled: isPeoplePageEnabled(),
+}));
 
 export const getAdminFeature = (
   dependencies: Pick<

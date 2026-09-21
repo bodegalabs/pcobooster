@@ -30,7 +30,7 @@ bun install --frozen-lockfile
 
 ### 2. Configure local secrets with Infisical
 
-Install the [Infisical CLI](https://infisical.com/docs/cli/usage) and run `infisical login`. This repository's `.infisical.json` links to the dedicated `worshipadmin.com` project. Add local values to its **Development** environment at the root path (`/`); `.env.example` lists the expected keys. Do not paste secret values into issues, chat, or committed files.
+Install the [Infisical CLI](https://infisical.com/docs/cli/usage) and run `infisical login`. This repository's `.infisical.json` links to the dedicated `worshipadmin.com` project. Add local values to its **Development** environment at the root path (`/`); [application configuration](docs/environment.md) lists the expected keys. Do not paste secret values into issues, chat, or committed files.
 
 Required local keys:
 
@@ -44,16 +44,16 @@ For the local Planning Center PAT shortcut, set `DEV_AUTH_BYPASS=1`, `PLANNING_C
 
 The normal Bun commands load Infisical automatically. The CLI injects variables into the command process and does not write an env file. For one-off local commands that need the bypass, use `infisical run --env=dev --path=/ --path=/local -- <command>`. Use only `--path=/` for deployable Development secrets.
 
-For deployments, the one-way flow is Infisical Development/Staging/Production `/` to Vercel Development/Preview/Production respectively. Infisical is the source of truth for application secrets through the [three active Vercel syncs](https://infisical.com/docs/integrations/secret-syncs/vercel); Vercel still stores the synchronized copies for builds and runtime. This does **not** make Vercel secret-free. Existing deployments need redeployment to pick up changes. `FLAGS` and `FLAGS_SECRET` stay Vercel-managed. See [environment and secret ownership](docs/neon-infisical-preview.md) for Neon branches, preview limitations, and token rotation.
+For deployments, the one-way flow is Infisical Development/Staging/Production `/` to Vercel Development/Preview/Production respectively. Infisical is the source of truth for every application setting through the [three active Vercel syncs](https://infisical.com/docs/integrations/secret-syncs/vercel). Vercel receives generated copies for builds and runtime; never edit those copies directly. Existing deployments need redeployment to pick up changes. See [environment and secret ownership](docs/neon-infisical-preview.md) for Neon branches, preview limitations, and token rotation.
 
 ### 3. Configure Planning Center OAuth callback URL
 
 In your Planning Center OAuth app settings, add:
 
 - Local: `http://localhost:3000/api/auth/callback/planning-center`
-- Production: `https://worshipadmin.com/api/auth/callback/planning-center`
+- Production: `https://pcobooster.com/api/auth/callback/planning-center`
 
-Production `BETTER_AUTH_URL` is `https://worshipadmin.com`, managed in Infisical Production `/` and synced to Vercel. The older domain migration record remains in `docs/` as historical context.
+Production `BETTER_AUTH_URL` is `https://pcobooster.com`, managed in Infisical Production `/` and synced to Vercel. The older domain migration record remains in `docs/` as historical context.
 
 ### 4. Run database migrations and seeds
 

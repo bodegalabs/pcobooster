@@ -3,14 +3,14 @@ import { Suspense } from "react";
 
 import { PersonDetailPage } from "@/components/people/person-detail-page";
 import { Skeleton } from "@/components/ui/skeleton";
-import { peoplePageFlag } from "@/flags";
+import { isPeoplePageEnabled } from "@/people-page-availability";
 
 const PersonRoute = async ({
   params,
 }: {
   params: Promise<{ personId: string }>;
 }) => {
-  if (!(await peoplePageFlag())) {
+  if (!isPeoplePageEnabled()) {
     notFound();
   }
 

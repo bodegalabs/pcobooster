@@ -6,6 +6,8 @@ export default defineConfig({
   outDir: "./dist",
   clean: true,
   deps: {
-    alwaysBundle: [/@worship-admin\/.*/u],
+    alwaysBundle: () => true,
+    onlyBundle: false,
+    onlyImport: ["@opentelemetry/api"],
   },
 });

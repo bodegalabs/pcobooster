@@ -33,7 +33,7 @@
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "verify": "bun run check && bun run typecheck && bun run test",
-    "dev:web": "turbo run dev --filter=@worship-admin/web",
+    "dev:web": "infisical run --env=dev --path=/ --path=/local -- turbo run dev --filter=@worship-admin/web",
     "dev:server": "infisical run --env=dev --path=/ --path=/local -- turbo run dev --filter=@worship-admin/server",
     "dev:marketing": "turbo run dev --filter=@worship-admin/marketing",
     "build:marketing": "turbo run build --filter=@worship-admin/marketing && bun run scripts/stage-marketing.ts"
@@ -43,7 +43,6 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@flags-sdk/vercel": "^1.4.8",
     "@hugeicons/core-free-icons": "^4.3.3",
     "@hugeicons/react": "^1.1.10",
     "@tanstack/react-hotkeys": "^0.10.0",
@@ -55,7 +54,6 @@
     "cn": "^0.3.0",
     "date-fns": "^4.4.0",
     "drizzle-orm": "^0.45.2",
-    "flags": "^4.3.1",
     "lucide-react": "^1.46.0",
     "next": "^16.3.5",
     "next-themes": "^0.4.6",
@@ -91,7 +89,6 @@
     "tw-animate-css": "^1.4.0",
     "typescript": "^5.9.3",
     "ultracite": "7.12.0",
-    "vercel": "^59.11.7",
     "vitest": "^4.1.11"
   },
   "engines": {

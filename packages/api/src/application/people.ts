@@ -11,6 +11,7 @@ import {
   loadDevBypassIdentity,
 } from "@worship-admin/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@worship-admin/api/auth/planning-center-account-identity";
+import { isPeoplePageEnabled } from "@worship-admin/api/config/people-page-availability";
 import { getCurrentUserScheduledPlanIds } from "@worship-admin/api/modules/planning-center/get-current-user-scheduled-plans";
 import { getPeopleDashboard as getPeopleDashboardData } from "@worship-admin/api/modules/planning-center/get-people-dashboard";
 import { getPeopleDashboardPerson as getPeopleDashboardPersonDetail } from "@worship-admin/api/modules/planning-center/get-people-dashboard-person";
@@ -36,7 +37,6 @@ import {
 } from "@worship-admin/api/modules/planning-center/presentation";
 import { searchPeople } from "@worship-admin/api/modules/planning-center/search-people";
 import type { PeopleSearchResult } from "@worship-admin/api/modules/planning-center/search-people";
-import { peoplePageFlag } from "@worship-admin/api/people-page-flag";
 import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
 import type {
   Blockout,
@@ -80,11 +80,7 @@ const requestPeopleForPositionDependencies = (
 });
 
 const requirePeopleDashboard = Effect.gen(function* requirePeopleDashboard() {
-  const { request } = yield* RequestContext;
-  const enabled = yield* tryPlanningCenter(
-    async () => await peoplePageFlag(request)
-  );
-  if (!enabled) {
+  if (!isPeoplePageEnabled()) {
     yield* Effect.fail(
       new NotFound({
         message: "People dashboard is not enabled.",

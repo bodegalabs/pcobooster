@@ -5,14 +5,15 @@
     "web": {
       "root": "apps/web",
       "framework": "nextjs",
-      "installCommand": "cd ../.. && bun install",
+      "installCommand": "cd ../.. && bun install --frozen-lockfile",
       "buildCommand": "cd ../.. && bun run build:web"
     },
     "server": {
       "root": "apps/server",
       "framework": "hono",
       "entrypoint": "src/index.ts",
-      "installCommand": "cd ../.. && bun install"
+      "outputDirectory": "dist",
+      "installCommand": "cd ../.. && bun install --frozen-lockfile"
     }
   },
   "rewrites": [
