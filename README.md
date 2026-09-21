@@ -16,6 +16,8 @@ The public marketing site lives at `/`, with the origin story at `/about`. The a
 
 This is a Bun/Turborepo monorepo. The product UI lives in `apps/web`, the Bun/Hono API service lives in `apps/server`, server implementation lives in `packages/api`, browser-safe oRPC contracts live in `packages/contracts`, Planning Center models and calendar rules live in `packages/planning-center-models`, and the static marketing site lives in `apps/marketing`. See [marketing development and deployment](docs/marketing.md).
 
+For parallel remote development, see [Codex cloud development](docs/codex-cloud.md).
+
 ## Setup
 
 This repo uses Bun for dependency management and scripts. Use `bun.lock` as the only lockfile; do not use npm or commit `package-lock.json`.

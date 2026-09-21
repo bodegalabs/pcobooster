@@ -40,6 +40,14 @@
 - `bun run db:push`: push schema changes directly for local experiments.
 - `bun run db:seed`: run the idempotent seed entrypoint.
 
+### Codex cloud sessions
+
+- The cache-safe Codex environment setup and maintenance scripts live under `scripts/codex-cloud/`; see `docs/codex-cloud.md` for environment configuration.
+- `bun run verify` is secretless and does not need a cloud database session.
+- Before running the app, a production-shaped build, or database commands in Codex cloud, run `bun run cloud:session:setup` and use the `cloud:*` wrappers so the per-session Neon branch is injected.
+- If a cloud session was created, run `bun run cloud:session:teardown` before the final response unless the user explicitly asks to keep it alive. Stale-branch pruning and optional Neon expiry are only failure-recovery backstops.
+- Never load Infisical Development `/local`, Staging, or Production in Codex cloud.
+
 ## Coding Style & Naming Conventions
 
 - TypeScript throughout; prefer explicit types at module boundaries.

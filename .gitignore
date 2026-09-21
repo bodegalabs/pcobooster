@@ -38,6 +38,9 @@ yarn-error.log*
 # Environment values are injected by Infisical. Do not create local env files.
 .env*
 
+# Per-session Codex cloud state (contains an ephemeral database URL)
+/.codex-cloud/
+
 # vercel
 .vercel
 
