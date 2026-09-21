@@ -53,7 +53,7 @@ In Codex cloud environment settings:
 4. Add `INFISICAL_TOKEN` as an environment variable. Codex removes values entered in its Secrets section before the agent phase, so a runtime Infisical lookup cannot use that section. The token is therefore read-only, path-scoped, and independently revocable. `INFISICAL_CLIENT_ID` plus `INFISICAL_CLIENT_SECRET` remain supported if this project later gains machine-identity path privileges.
 5. Optionally set `CODEX_CLOUD_BRANCH_TTL_HOURS`; the default is 48 and the accepted range is 1 through 168. This controls stale-branch pruning and the optional Neon expiry.
 6. If Neon branch expiration is enabled for the dedicated project, set `CODEX_CLOUD_NEON_EXPIRY_ENABLED=1`. The default is `0` because Neon's current API schema marks expiration as Early Access.
-7. Allow agent-phase network access to `app.infisical.com` and `console.neon.tech`. Setup already has internet access for package installs.
+7. Allow agent-phase network access to `app.infisical.com`, `console.neon.tech`, `**.aws.neon.tech`, `**.googleapis.com`, and `**.gstatic.com`. Keep all HTTP methods enabled because branch creation and deletion use the Neon API. The recursive Neon wildcard covers region-qualified database hosts; the Google entries let Next.js fetch the configured fonts during a production build. Setup already has internet access for package installs.
 
 The repository's committed `.infisical.json` supplies the Infisical project ID. Set `INFISICAL_PROJECT_ID` only if the cloud identity should use another project. For non-US Infisical, also set `INFISICAL_DOMAIN` as required by the CLI.
 
@@ -62,7 +62,7 @@ The repository's committed `.infisical.json` supplies the Infisical project ID. 
 Checks that do not need live configuration remain secretless:
 
 ```bash
-bun run verify
+bun run ci
 ```
 
 Before running the app, a production-shaped build, or a database command:
@@ -81,6 +81,8 @@ bun run cloud:build
 bun run cloud:db:migrate
 bun run cloud:run -- <other command>
 ```
+
+Cloud migrations use Drizzle's Neon HTTP driver because the agent network proxy allows HTTP(S), not direct PostgreSQL TCP connections. Local and deployment migrations continue to use `drizzle-kit migrate` through the existing `db:migrate` command.
 
 When finished:
 

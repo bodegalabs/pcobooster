@@ -40,7 +40,7 @@ if [[ -f "$STATE_PATH" ]]; then
     printf 'Reusing Codex cloud database branch %s (%s).\n' \
       "$existing_branch_name" "$existing_branch_id"
     printf 'Applying migrations to the isolated branch...\n'
-    DATABASE_URL="$existing_database_url" bun run --cwd packages/api db:migrate
+    DATABASE_URL="$existing_database_url" bun run "${SCRIPT_DIR}/migrate.ts"
     printf 'Codex cloud session is ready.\n'
     exit 0
   fi
@@ -138,7 +138,7 @@ else
 fi
 printf 'Applying migrations to the isolated branch...\n'
 
-if ! DATABASE_URL="$database_url" bun run --cwd packages/api db:migrate; then
+if ! DATABASE_URL="$database_url" bun run "${SCRIPT_DIR}/migrate.ts"; then
   printf 'Migration failed. The branch remains available for diagnosis; run cloud:session:teardown afterward.\n' >&2
   exit 1
 fi

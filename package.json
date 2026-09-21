@@ -48,7 +48,7 @@
     "cloud:run": "bash scripts/codex-cloud/with-infisical.sh",
     "cloud:dev": "bash scripts/codex-cloud/with-infisical.sh turbo run dev",
     "cloud:build": "bash scripts/codex-cloud/with-infisical.sh turbo run build",
-    "cloud:db:migrate": "bash scripts/codex-cloud/with-infisical.sh bun run --cwd packages/api db:migrate"
+    "cloud:db:migrate": "bash scripts/codex-cloud/with-infisical.sh bun run scripts/codex-cloud/migrate.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -80,6 +80,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "@shadcn/lint": "^0.1.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@tanstack/react-query-devtools": "^5.103.1",
