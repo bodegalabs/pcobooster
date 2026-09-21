@@ -23,7 +23,7 @@ Completion: the verifier returns `PASS`, `PASS_WITH_NOTES`, `FAIL`, or `BLOCKED`
 
 ## Bind and publish
 
-Fetch the PR base, then run `bun run proof -- run --base <pr-base-branch>` with the verified flows, media, and limitations. Use `origin/main` only for a bottom PR; each upper stack layer uses its preceding remote branch. Validate the receipt after the final push. A material push or base-branch update invalidates earlier proof even when the prose still sounds correct.
+Fetch the PR base, then run `bun run proof -- run --base <pr-base-branch>` with the verified flows, media, limitations, and the independent result via `--verifier-verdict` and `--verifier-summary`. Critical changes also require `--rollback`. `--risk` may raise the path-derived tier but cannot lower it. Use `origin/main` only for a bottom PR; each upper stack layer uses its preceding remote branch. Validate the receipt after the final push. A material push or base-branch update invalidates earlier proof even when the prose still sounds correct.
 
 When PR publication is in scope, publish with:
 

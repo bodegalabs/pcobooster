@@ -10,9 +10,11 @@ A proof receipt contains:
 - a path-derived risk tier;
 - the commands, exit codes, durations, and captured logs;
 - verified user flows and media hashes;
+- an independent verifier result for high and critical risk;
+- a rollback plan for critical risk;
 - limitations and one of `PASS`, `PASS_WITH_NOTES`, `FAIL`, or `BLOCKED`.
 
-`bun run proof -- verify` rejects a receipt when the checkout, patch, or media no longer matches. Any material push therefore invalidates the previous verdict.
+`bun run proof -- verify` rejects a receipt when the checkout, patch, command logs, generated report, or media no longer matches. It also recomputes changed files, minimum risk, visual-evidence requirements, required gates, and the verdict. Any material push or evidence edit therefore invalidates the previous verdict.
 
 ## Risk and evidence
 
@@ -36,11 +38,13 @@ bun run proof -- publish --pr <number-or-url> --receipt .artifacts/proofs/<revis
 
 Proof output lives under ignored `.artifacts/`. The publisher posts the Markdown report and uses GitHub CLI media attachments for images and videos.
 
+For high or critical risk, add `--verifier-verdict PASS|PASS_WITH_NOTES` and `--verifier-summary "..."`. For critical risk, also add `--rollback "..."`. An explicit `--risk` can raise the automatically classified tier but cannot lower it.
+
 Fetch the base branch immediately before proving. A bottom PR uses `origin/main`; an upper stack layer uses its preceding remote branch. Publication rejects both stale head proof and proof against an outdated PR base.
 
 ## Merge gates
 
-The protected branch requires `ci` and `Vercel`. Those checks establish deterministic correctness and a deployable preview; they do not replace product-flow evidence or independent verification. Humans remain the merge authority until the proof workflow has a track record strong enough to justify a separately reviewed policy change.
+The target protected branch requires `ci` and `Vercel`. While pre-migration PRs remain open, a required `verify` compatibility job mirrors `ci`; it can be removed and the ruleset switched after those PRs merge or rebase. These checks establish deterministic correctness and a deployable preview; they do not replace product-flow evidence or independent verification. Humans remain the merge authority until the proof workflow has a track record strong enough to justify a separately reviewed policy change.
 
 ## Current boundary
 

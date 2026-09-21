@@ -14,18 +14,17 @@ import { z } from "zod";
 import {
   artifactKindForPath,
   classifyChangedFiles,
+  deriveVerdict,
+  independentVerificationSchema,
+  maxRiskTier,
   proofReceiptSchema,
   renderProofReport,
   requiresVisualEvidence,
   riskTierSchema,
   sha256,
+  validateReceiptSemantics,
 } from "./proof-core";
-import type {
-  ProofArtifact,
-  ProofCommand,
-  ProofReceipt,
-  Verdict,
-} from "./proof-core";
+import type { ProofArtifact, ProofCommand, ProofReceipt } from "./proof-core";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../..");
 const isMain = process.argv[1] === import.meta.filename;
@@ -62,6 +61,11 @@ const flagValue = (
 ): string =>
   flagValues(args, name).at(-1) ?? fallback ?? fail(`${name} is required`);
 
+const optionalFlagValue = (
+  args: readonly string[],
+  name: string
+): string | undefined => flagValues(args, name).at(-1);
+
 const runCapturedCommand = async (
   name: string,
   command: readonly string[],
@@ -87,13 +91,15 @@ const runCapturedCommand = async (
   await once(child, "close");
   const exitCode = child.exitCode ?? 1;
   const logPath = path.join("logs", `${name}.log`);
-  writeFileSync(path.join(proofDirectory, logPath), Buffer.concat(chunks));
+  const logContents = Buffer.concat(chunks);
+  writeFileSync(path.join(proofDirectory, logPath), logContents);
   return {
     command: command.join(" "),
     durationMs: Math.round(performance.now() - startedAt),
     exitCode,
     logPath,
     name,
+    sha256: sha256(logContents),
     status: exitCode === 0 ? "pass" : "fail",
   };
 };
@@ -177,6 +183,32 @@ const verifyReceipt = (receiptPath: string): ProofReceipt => {
   if (receipt.patchId !== currentPatchId) {
     return fail("Receipt patch ID no longer matches the checked-out change");
   }
+  const changedFiles = git([
+    "diff",
+    "--name-only",
+    `${receipt.base.sha}...${currentHead}`,
+  ])
+    .split("\n")
+    .filter(Boolean);
+  const semanticViolations = validateReceiptSemantics(receipt, {
+    changedFiles,
+    minimumRiskTier: classifyChangedFiles(changedFiles),
+    requiresVisualEvidence: requiresVisualEvidence(changedFiles),
+  });
+  if (semanticViolations.length > 0) {
+    return fail(`Receipt is inconsistent: ${semanticViolations.join("; ")}`);
+  }
+  for (const command of receipt.commands) {
+    const logPath = path.join(directory, command.logPath);
+    if (!existsSync(logPath)) {
+      return fail(`Receipt command log is missing: ${command.logPath}`);
+    }
+    if (sha256(readFileSync(logPath)) !== command.sha256) {
+      return fail(
+        `Receipt command log changed after capture: ${command.logPath}`
+      );
+    }
+  }
   for (const artifact of receipt.artifacts) {
     const artifactPath = path.join(directory, artifact.path);
     if (!existsSync(artifactPath)) {
@@ -185,6 +217,13 @@ const verifyReceipt = (receiptPath: string): ProofReceipt => {
     if (sha256(readFileSync(artifactPath)) !== artifact.sha256) {
       return fail(`Receipt artifact changed after capture: ${artifact.path}`);
     }
+  }
+  const reportPath = path.join(directory, "report.md");
+  if (!existsSync(reportPath)) {
+    return fail("Proof report is missing");
+  }
+  if (readFileSync(reportPath, "utf-8") !== renderProofReport(receipt)) {
+    return fail("Proof report does not match the verified receipt");
   }
   return receipt;
 };
@@ -205,10 +244,11 @@ const runProof = async (args: readonly string[]): Promise<void> => {
     fail(`No changed files between ${baseRef} and HEAD`);
   }
   const requestedRisk = flagValue(args, "--risk", "auto");
+  const automaticRiskTier = classifyChangedFiles(changedFiles);
   const riskTier =
     requestedRisk === "auto"
-      ? classifyChangedFiles(changedFiles)
-      : riskTierSchema.parse(requestedRisk);
+      ? automaticRiskTier
+      : maxRiskTier(automaticRiskTier, riskTierSchema.parse(requestedRisk));
   const timestamp = new Date().toISOString().replaceAll(/[:.]/gu, "-");
   const proofDirectory = path.join(
     repositoryRoot,
@@ -235,17 +275,33 @@ const runProof = async (args: readonly string[]): Promise<void> => {
   );
   const visualEvidenceRequired = requiresVisualEvidence(changedFiles);
   const notes = flagValues(args, "--note");
-  let verdict: Verdict = "PASS";
-  if (commands.some((command) => command.status === "fail")) {
-    verdict = "FAIL";
-  } else if (visualEvidenceRequired && artifacts.length === 0) {
-    verdict = "BLOCKED";
+  const verifierVerdict = optionalFlagValue(args, "--verifier-verdict");
+  const verifierSummary = optionalFlagValue(args, "--verifier-summary");
+  if ((verifierVerdict === undefined) !== (verifierSummary === undefined)) {
+    fail("--verifier-verdict and --verifier-summary must be provided together");
+  }
+  const independentVerification =
+    verifierVerdict === undefined || verifierSummary === undefined
+      ? null
+      : independentVerificationSchema.parse({
+          summary: verifierSummary,
+          verdict: verifierVerdict,
+        });
+  const rollback = optionalFlagValue(args, "--rollback") ?? null;
+  if (visualEvidenceRequired && artifacts.length === 0) {
     notes.push("Visible surface changed without an attached image or video.");
-  } else if (notes.length > 0) {
-    verdict = "PASS_WITH_NOTES";
+  }
+  if (
+    (riskTier === "high" || riskTier === "critical") &&
+    independentVerification === null
+  ) {
+    notes.push("High-risk change has no independent verifier result.");
+  }
+  if (riskTier === "critical" && rollback === null) {
+    notes.push("Critical change has no rollback plan.");
   }
 
-  const receipt: ProofReceipt = {
+  let receipt: ProofReceipt = {
     artifacts,
     base: { ref: baseRef, sha: baseSha },
     changedFiles,
@@ -253,13 +309,16 @@ const runProof = async (args: readonly string[]): Promise<void> => {
     createdAt: new Date().toISOString(),
     flows: flagValues(args, "--flow"),
     headSha,
+    independentVerification,
     notes,
     patchId: calculatePatchId(baseSha, headSha),
     requiresVisualEvidence: visualEvidenceRequired,
     riskTier,
+    rollback,
     schemaVersion: 1,
-    verdict,
+    verdict: "BLOCKED",
   };
+  receipt = { ...receipt, verdict: deriveVerdict(receipt) };
   const receiptPath = path.join(proofDirectory, "receipt.json");
   writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`);
   writeFileSync(
@@ -346,6 +405,7 @@ const publish = (args: readonly string[]): void => {
     fail("Proof for this PR revision is already published");
   }
   const reportPath = path.join(directory, "report.md");
+  writeFileSync(reportPath, renderProofReport(receipt));
   const command = ["pr", "comment", pr, "--body-file", reportPath];
   for (const artifact of receipt.artifacts) {
     command.push(
@@ -358,7 +418,7 @@ const publish = (args: readonly string[]): void => {
 
 const usage = `Usage:
   bun run proof -- doctor
-  bun run proof -- run [--base origin/main] [--risk auto] [--flow text] [--artifact path#alt] [--note text]
+  bun run proof -- run [--base origin/main] [--risk auto] [--flow text] [--artifact path#alt] [--note text] [--verifier-verdict PASS] [--verifier-summary text] [--rollback text]
   bun run proof -- verify --receipt path/to/receipt.json
   bun run proof -- publish --pr NUMBER_OR_URL --receipt path/to/receipt.json
 `;

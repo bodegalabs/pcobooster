@@ -23,7 +23,9 @@ const highPath =
   /^(?:apps\/server\/|packages\/(?:api|contracts)\/|package\.json$|bun\.lock$|vercel\.json$)/u;
 const mediumPath =
   /^(?:apps\/(?:web|marketing)\/|packages\/(?:planning-center-models|presentation-mode)\/|scripts\/|turbo\.json$|tsconfig\.json$)/u;
-const visibleSurfacePath = /^apps\/(?:web|marketing)\/src\/.*\.(?:css|tsx)$/u;
+const visibleSourcePath =
+  /^apps\/(?:web|marketing)\/src\/.*\.(?:css|gif|ico|jpeg|jpg|png|svg|tsx|webmanifest|webp)$/u;
+const publicAssetPath = /^apps\/(?:web|marketing)\/public\//u;
 const testPath = /(?:^|\/)\S+\.test\.[cm]?[jt]sx?$/u;
 
 export const classifyPath = (changedPath: string): RiskTier => {
@@ -50,10 +52,15 @@ export const classifyChangedFiles = (paths: readonly string[]): RiskTier => {
   return highest;
 };
 
+export const maxRiskTier = (first: RiskTier, second: RiskTier): RiskTier =>
+  riskRank[first] >= riskRank[second] ? first : second;
+
 export const requiresVisualEvidence = (paths: readonly string[]): boolean =>
   paths.some(
     (changedPath) =>
-      visibleSurfacePath.test(changedPath) && !testPath.test(changedPath)
+      (visibleSourcePath.test(changedPath) ||
+        publicAssetPath.test(changedPath)) &&
+      !testPath.test(changedPath)
   );
 
 const artifactKindSchema = z.enum(["image", "video"]);
@@ -71,7 +78,13 @@ export const proofCommandSchema = z.object({
   exitCode: z.number().int(),
   logPath: z.string().min(1),
   name: z.string().min(1),
+  sha256: z.string().regex(/^[a-f\d]{64}$/u),
   status: z.enum(["pass", "fail"]),
+});
+
+export const independentVerificationSchema = z.object({
+  summary: z.string().min(1),
+  verdict: z.enum(["PASS", "PASS_WITH_NOTES"]),
 });
 
 export const proofReceiptSchema = z.object({
@@ -82,10 +95,12 @@ export const proofReceiptSchema = z.object({
   createdAt: z.iso.datetime(),
   flows: z.array(z.string().min(1)),
   headSha: z.string().min(1),
+  independentVerification: independentVerificationSchema.nullable(),
   notes: z.array(z.string().min(1)),
   patchId: z.string().min(1),
   requiresVisualEvidence: z.boolean(),
   riskTier: riskTierSchema,
+  rollback: z.string().min(1).nullable(),
   schemaVersion: z.literal(1),
   verdict: z.enum(verdicts),
 });
@@ -93,6 +108,91 @@ export const proofReceiptSchema = z.object({
 export type ProofArtifact = z.infer<typeof proofArtifactSchema>;
 export type ProofCommand = z.infer<typeof proofCommandSchema>;
 export type ProofReceipt = z.infer<typeof proofReceiptSchema>;
+
+export const expectedCommandNames = (
+  riskTier: RiskTier,
+  ciPassed: boolean
+): string[] => (riskTier === "low" || !ciPassed ? ["ci"] : ["ci", "build"]);
+
+export const deriveVerdict = (
+  receipt: Pick<
+    ProofReceipt,
+    | "artifacts"
+    | "commands"
+    | "independentVerification"
+    | "notes"
+    | "requiresVisualEvidence"
+    | "riskTier"
+    | "rollback"
+  >
+): Verdict => {
+  if (receipt.commands.some((command) => command.status === "fail")) {
+    return "FAIL";
+  }
+  if (receipt.requiresVisualEvidence && receipt.artifacts.length === 0) {
+    return "BLOCKED";
+  }
+  if (
+    (receipt.riskTier === "high" || receipt.riskTier === "critical") &&
+    receipt.independentVerification === null
+  ) {
+    return "BLOCKED";
+  }
+  if (receipt.riskTier === "critical" && receipt.rollback === null) {
+    return "BLOCKED";
+  }
+  if (
+    receipt.notes.length > 0 ||
+    receipt.independentVerification?.verdict === "PASS_WITH_NOTES"
+  ) {
+    return "PASS_WITH_NOTES";
+  }
+  return "PASS";
+};
+
+const arraysEqual = (first: readonly string[], second: readonly string[]) =>
+  first.length === second.length &&
+  first.every((value, index) => value === second[index]);
+
+export interface ReceiptFacts {
+  changedFiles: string[];
+  minimumRiskTier: RiskTier;
+  requiresVisualEvidence: boolean;
+}
+
+export const validateReceiptSemantics = (
+  receipt: ProofReceipt,
+  facts: ReceiptFacts
+): string[] => {
+  const violations: string[] = [];
+  if (!arraysEqual(receipt.changedFiles, facts.changedFiles)) {
+    violations.push("changed files do not match the proved revision");
+  }
+  if (
+    maxRiskTier(receipt.riskTier, facts.minimumRiskTier) !== receipt.riskTier
+  ) {
+    violations.push("risk tier is lower than the changed paths require");
+  }
+  if (receipt.requiresVisualEvidence !== facts.requiresVisualEvidence) {
+    violations.push("visual-evidence requirement does not match changed paths");
+  }
+  const ciPassed = receipt.commands[0]?.status === "pass";
+  const commandNames = receipt.commands.map((command) => command.name);
+  if (
+    !arraysEqual(commandNames, expectedCommandNames(receipt.riskTier, ciPassed))
+  ) {
+    violations.push("recorded gates do not match the risk tier and CI result");
+  }
+  for (const command of receipt.commands) {
+    if ((command.exitCode === 0) !== (command.status === "pass")) {
+      violations.push(`${command.name} status contradicts its exit code`);
+    }
+  }
+  if (receipt.verdict !== deriveVerdict(receipt)) {
+    violations.push("verdict contradicts the recorded evidence");
+  }
+  return violations;
+};
 
 export const sha256 = (contents: Uint8Array): string =>
   createHash("sha256").update(contents).digest("hex");
@@ -136,6 +236,10 @@ export const renderProofReport = (receipt: ProofReceipt): string => {
     receipt.notes.length === 0
       ? "- None."
       : receipt.notes.map((note) => `- ${note}`).join("\n");
+  const independentVerification = receipt.independentVerification
+    ? `- ${receipt.independentVerification.verdict}: ${receipt.independentVerification.summary}`
+    : "- Not recorded.";
+  const rollback = receipt.rollback ?? "Not required or not recorded.";
 
   return `<!-- proofed-delivery:${receipt.headSha} -->
 ## Verification proof: ${receipt.verdict}
@@ -155,6 +259,14 @@ ${flows}
 ### Evidence
 
 ${artifacts}
+
+### Independent verification
+
+${independentVerification}
+
+### Rollback
+
+${rollback}
 
 ### Limitations and notes
 
