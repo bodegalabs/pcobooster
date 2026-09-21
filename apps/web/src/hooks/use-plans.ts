@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 
-import { planSchema } from "@/lib/api-schemas";
-import { getJson } from "@/lib/http/client";
 import { isNonEmptyString } from "@/lib/json";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
@@ -11,6 +9,7 @@ import {
   writeCachedPlans,
 } from "@/lib/schedule-catalog-cache";
 import type { Plan } from "@/lib/types";
+import { orpc } from "@/orpc-client";
 
 export const usePlans = (serviceTypeId: string | null) => {
   const queryKey = queryKeys.plans(serviceTypeId);
@@ -22,14 +21,11 @@ export const usePlans = (serviceTypeId: string | null) => {
 
   const query = useQuery<Plan[]>({
     queryKey,
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!isNonEmptyString(serviceTypeId)) {
         return [];
       }
-      return await getJson(
-        `/api/plans?service_type_id=${serviceTypeId}`,
-        planSchema.array()
-      );
+      return await orpc.catalog.plans({ serviceTypeId }, { signal });
     },
     enabled: isNonEmptyString(serviceTypeId),
     // 5 minutes
