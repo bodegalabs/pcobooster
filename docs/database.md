@@ -24,7 +24,7 @@ Database commands that connect to PostgreSQL load Infisical Development secrets 
 ## Conventions
 
 - New database access should use `db` from `@worship-admin/api/db`.
-- Keep route handlers thin. Put business behavior under `packages/api/src/use-cases/*`.
+- Keep oRPC handlers thin. Put business behavior under explicit feature modules in `packages/api/src/modules/*`.
 - Use Drizzle query builders for normal CRUD and `db.execute(sql\`...\`)` for reporting queries where SQL is clearer.
 - Schema changes start in `packages/api/src/db/schema.ts`, then get captured with `bun run db:generate`.
 - Seeds must be idempotent and safe to rerun.

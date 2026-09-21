@@ -14,7 +14,7 @@ This app helps teams schedule people into open positions for specific plans by c
 
 The public marketing site lives at `/`, with the origin story at `/about`. The authenticated product starts at `/services`.
 
-This is a Bun/Turborepo monorepo. The product UI lives in `apps/web`, the Bun/Hono API service lives in `apps/server`, shared API/domain code lives in `packages/api`, and the static marketing site lives in `apps/marketing`. See [marketing development and deployment](docs/marketing.md).
+This is a Bun/Turborepo monorepo. The product UI lives in `apps/web`, the Bun/Hono API service lives in `apps/server`, server implementation lives in `packages/api`, browser-safe oRPC contracts live in `packages/contracts`, Planning Center models and calendar rules live in `packages/planning-center-models`, and the static marketing site lives in `apps/marketing`. See [marketing development and deployment](docs/marketing.md).
 
 ## Setup
 
@@ -86,22 +86,7 @@ This masks person fields for app presentations, not the underlying dataset: IDs,
 
 ## API Routes
 
-Typed catalog, people, identity, feature, and admin reads are served through oRPC at `/api/rpc`; its OpenAPI reference is available at `/api/reference`.
-
-The remaining REST routes cover run-sheet editing, scheduling mutations, and song lookup:
-
-- `POST /api/schedule`
-- `PATCH /api/schedule/[planPersonId]/status`
-- `DELETE /api/schedule/[planPersonId]`
-- `GET/POST /api/plan-items`
-- `PATCH/DELETE /api/plan-items/[itemId]`
-- `POST /api/plan-items/reorder`
-- `GET/POST /api/plans/[planId]/times`
-- `PATCH/DELETE /api/plan-times/[planTimeId]`
-- `PATCH /api/plan-people/[planPersonId]/times`
-- `GET /api/songs/search`
-- `GET /api/songs/[songId]/options`
-- `ALL /api/auth/*` (Better Auth handler)
+Product operations are served through the typed oRPC transport at `/api/rpc`; its OpenAPI reference is available at `/api/reference`. Better Auth keeps its protocol-owned `GET/POST /api/auth/*` handler. `/health` is the service liveness endpoint.
 
 ## Project Structure
 
@@ -111,7 +96,10 @@ apps/
   server/                    # Bun/Hono transport and oRPC entrypoint
   marketing/                 # Static-export Next.js marketing site
 packages/
-  api/                       # REST handlers, auth, DB, domain logic, clients
+  api/                       # Server-only application, auth, DB, adapters, oRPC
+  contracts/                 # Browser-safe oRPC contracts and DTO schemas
+  planning-center-models/    # Shared Planning Center shapes and calendar rules
+  presentation-mode/         # Shared server-side presentation configuration
   config/                    # Shared TypeScript configuration
 ```
 
@@ -134,7 +122,7 @@ bun run verify
 bun run build
 ```
 
-Tests are colocated under `packages/api/src` and `apps/web/src`. Use-cases accept narrow typed dependencies so tests can exercise behavior without replacing modules. HTTP responses and persisted caches are validated with shared Zod schemas before entering the app.
+Tests are colocated under `packages/*/src`, `apps/server/src`, and `apps/web/src`. Feature modules accept narrow typed dependencies so tests can exercise behavior without replacing modules. oRPC inputs and outputs, provider responses, and persisted browser caches are validated with Zod at their respective boundaries.
 
 ## Code Quality
 
