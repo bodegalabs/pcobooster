@@ -9,6 +9,7 @@
   },
   "scripts": {
     "auth:generate": "bunx auth@1.7.5 generate --config src/auth.ts",
+    "test": "vitest run --root ../.. packages/api/src",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

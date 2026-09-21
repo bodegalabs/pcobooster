@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "build": "tsdown",
+    "test": "vitest run --root ../.. apps/server/src",
     "typecheck": "tsc --noEmit",
     "dev": "bun run --hot src/index.ts",
     "start": "bun run src/index.ts"
