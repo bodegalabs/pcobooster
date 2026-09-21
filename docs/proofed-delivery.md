@@ -44,7 +44,7 @@ Fetch the base branch immediately before proving. A bottom PR uses `origin/main`
 
 ## Merge gates
 
-The target protected branch requires `ci` and `Vercel`. While pre-migration PRs remain open, a required `verify` compatibility job mirrors `ci`; it can be removed and the ruleset switched after those PRs merge or rebase. These checks establish deterministic correctness and a deployable preview; they do not replace product-flow evidence or independent verification. Humans remain the merge authority until the proof workflow has a track record strong enough to justify a separately reviewed policy change.
+The target protected branch requires `ci` and `Vercel`. These checks establish deterministic correctness and a deployable preview; they do not replace product-flow evidence or independent verification. Humans remain the merge authority until the proof workflow has a track record strong enough to justify a separately reviewed policy change.
 
 ## Current boundary
 

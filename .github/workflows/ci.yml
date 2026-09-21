@@ -51,17 +51,3 @@ jobs:
 
       - name: Test
         run: bun run test
-
-  # Remove after every pre-migration PR has either merged or rebased onto a
-  # main branch that emits the `ci` context, then require `ci` in the ruleset.
-  verify:
-    name: verify
-    needs: ci
-    if: always()
-    runs-on: ubuntu-latest
-    timeout-minutes: 1
-    steps:
-      - name: Mirror the CI result for existing pull requests
-        env:
-          CI_RESULT: ${{ needs.ci.result }}
-        run: test "$CI_RESULT" = success

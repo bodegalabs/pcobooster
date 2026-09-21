@@ -102,8 +102,8 @@ What is not established as a native Codex guarantee is a Cursor-style Cloud Agen
 
 The foundation is stronger than a typical repository:
 
-- `main` has an active ruleset with no bypass actors, squash-only linear history, strict latest-base checks, and required `verify` plus `Vercel` checks. It currently requires zero approving reviews and does not require thread resolution. [Live ruleset](https://api.github.com/repos/jakebodea/worship-admin/rulesets/13589390)
-- `verify` runs strict lint, typecheck, tests, and dependency review. Vercel supplies a production-shaped preview from the same commit. [CI documentation](../ci-cd.md), [workflow](../../.github/workflows/ci.yml)
+- `main` has an active ruleset with no bypass actors, squash-only linear history, strict latest-base checks, and required `ci` plus `Vercel` checks. It currently requires zero approving reviews and does not require thread resolution. [Live ruleset](https://api.github.com/repos/jakebodea/worship-admin/rulesets/13589390)
+- `ci` runs strict lint, typecheck, tests, and dependency review. Vercel supplies a production-shaped preview from the same commit. [CI documentation](../ci-cd.md), [workflow](../../.github/workflows/ci.yml)
 - The standard local gates are `bun run ci` and `bun run build`. [Package scripts](../../package.json)
 - The repo has one project skill, [`check-pc`](../../.agents/skills/check-pc/SKILL.md), but no general change-owner, PR verifier, or product UI verification skill.
 
@@ -236,7 +236,7 @@ Do not demand screenshots from nonvisual changes. Match proof cost to risk.
 | Tier | Examples | Required proof | Merge policy at rollout start |
 | --- | --- | --- | --- |
 | 0 | Docs, comments, inert copy | Diff review, formatting/checks | Human click |
-| 1 | Pure rules, transforms, refactors | Focused tests, full `verify`, independent diff review | Human click |
+| 1 | Pure rules, transforms, refactors | Focused tests, full `ci`, independent diff review | Human click |
 | 2 | API/read behavior, cache behavior | Tier 1 plus real request/response or state receipt | Human click |
 | 3 | UI and interaction | Tier 1 plus same-surface browser flow, console/network check, screenshot or short video | Human click |
 | 4 | Auth, permissions, migrations, external writes, secrets, production | Independent verifier, explicit rollback/cleanup, security review, human approval | Never automatic initially |
@@ -268,7 +268,7 @@ Begin with three to five mapped flows, not broad visual coverage:
 4. Exercise one schedule mutation entirely against the synthetic adapter.
 5. Confirm public marketing routes and protected product/API routes retain the intended access policy.
 
-Once these are stable locally, add them as a separate CI check. Do not put a flaky browser suite into the existing fail-fast `verify` job until it has a measured reliability record.
+Once these are stable locally, add them as a separate CI check. Do not put a flaky browser suite into the existing fail-fast `ci` job until it has a measured reliability record.
 
 ## Rollout
 

@@ -127,7 +127,7 @@ bun run build
 
 Tests are colocated under `packages/*/src`, `apps/server/src`, and `apps/web/src`. Feature modules accept narrow typed dependencies so tests can exercise behavior without replacing modules. oRPC inputs and outputs, provider responses, and persisted browser caches are validated with Zod at their respective boundaries.
 
-Pull requests must pass both the GitHub `ci` check and the Vercel deployment check. A temporary `verify` compatibility status preserves the existing protected-branch context during migration. See [CI/CD](docs/ci-cd.md) for the merge gates, Turborepo remote-cache setup, deployment flow, dependency update policy, and rollback procedure.
+Pull requests must pass both the GitHub `ci` check and the Vercel deployment check. See [CI/CD](docs/ci-cd.md) for the merge gates, Turborepo remote-cache setup, deployment flow, dependency update policy, and rollback procedure.
 
 For visible or high-risk changes, follow [Proofed delivery](docs/proofed-delivery.md). The repo-local skills under `.agents/skills/` cover setup, app-specific browser verification, verification-skill generation, and independent PR proof.
 
