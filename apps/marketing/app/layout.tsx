@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import type { ReactNode } from "react";
 
 import { SiteLink, SiteFooter, SiteHeader } from "../components/site";
@@ -7,7 +7,10 @@ import { SiteLink, SiteFooter, SiteHeader } from "../components/site";
 import styles from "./site.module.css";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const inter = localFont({
+  src: "../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://pcobooster.com"),
