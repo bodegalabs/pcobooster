@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 
 import { PeoplePage } from "@/components/people/people-page";
-import { peoplePageFlag } from "@/flags";
+import { isPeoplePageEnabled } from "@/people-page-availability";
 
-const PeopleRoute = async () => {
-  if (!(await peoplePageFlag())) {
+const PeopleRoute = () => {
+  if (!isPeoplePageEnabled()) {
     notFound();
   }
 

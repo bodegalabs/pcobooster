@@ -4,7 +4,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "inputs": ["$TURBO_DEFAULT$"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "out/**"]
     },
     "typecheck": {
@@ -43,21 +43,22 @@
     "CORS_ORIGIN",
     "DATABASE_URL",
     "DEV_AUTH_BYPASS",
-    "FLAGS",
     "LOG_LEVEL",
+    "LOG_PLANNING_CENTER_TIMINGS",
     "NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE",
-    "NEXT_PUBLIC_SERVER_URL",
     "NODE_ENV",
+    "PEOPLE_PAGE_ENABLED",
     "PLANNING_CENTER_CLIENT",
     "PLANNING_CENTER_OAUTH_CLIENT_ID",
     "PLANNING_CENTER_OAUTH_CLIENT_SECRET",
     "PLANNING_CENTER_PAT",
     "PLANNING_CENTER_TIME_ZONE",
     "PRESENTATION_MODE",
+    "PRESENTATION_SEED",
     "VERCEL",
     "VERCEL_ENV",
     "VERCEL_PROJECT_PRODUCTION_URL",
-    "VERCEL_URL"
-  ],
-  "globalDependencies": [".env*", "apps/*/.env*", "packages/*/.env*"]
+    "VERCEL_URL",
+    "WORSHIP_ADMIN_ADMIN_EMAILS"
+  ]
 }
