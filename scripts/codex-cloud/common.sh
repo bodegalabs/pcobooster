@@ -55,9 +55,15 @@ codex_cloud_ensure_bun() {
   bun_install_dir="${BUN_INSTALL:-${HOME}/.bun}"
 
   if ! command -v bun >/dev/null 2>&1 || [[ "$(bun --version)" != "$CODEX_CLOUD_BUN_VERSION" ]]; then
-    curl --fail --silent --show-error --location https://bun.sh/install |
-      bash -s "bun-v${CODEX_CLOUD_BUN_VERSION}"
-    export PATH="${bun_install_dir}/bin:${PATH}"
+    if command -v mise >/dev/null 2>&1; then
+      mise use --global "bun@${CODEX_CLOUD_BUN_VERSION}"
+      export PATH="${HOME}/.local/share/mise/shims:${PATH}"
+      hash -r
+    else
+      curl --fail --silent --show-error --location https://bun.sh/install |
+        bash -s "bun-v${CODEX_CLOUD_BUN_VERSION}"
+      export PATH="${bun_install_dir}/bin:${PATH}"
+    fi
   fi
 
   if ! grep --fixed-strings --quiet "${bun_install_dir}/bin" "${HOME}/.bashrc" 2>/dev/null; then
