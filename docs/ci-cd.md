@@ -2,7 +2,7 @@
 
 Pull requests have two complementary merge gates:
 
-- `verify` runs strict linting, TypeScript checks, tests, and dependency review in one fail-fast GitHub Actions job.
+- `ci` runs strict linting, TypeScript checks, tests, and dependency review in one fail-fast GitHub Actions job.
 - `Vercel` builds the deployable web and Hono services and publishes a preview from the same commit.
 
 The `main` ruleset requires both checks against the latest base branch. It has no bypass actors, so failed or missing checks cannot be overridden. GitHub Actions does not run again after merge: Vercel's production deployment is the post-merge build, avoiding a duplicate Actions build and a duplicate `main` CI run.
@@ -10,7 +10,7 @@ The `main` ruleset requires both checks against the latest base branch. It has n
 Run the equivalent local checks before opening a pull request:
 
 ```bash
-bun run verify
+bun run ci
 bun run build
 ```
 
