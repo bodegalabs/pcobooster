@@ -30,7 +30,7 @@
 - `bun run check` (also `lint`): run Ultracite formatting and type-aware lint checks; warnings fail the check. All selected presets in `oxlint.config.ts` remain strict.
 - `bun run lint:ci`: same as `lint` with `--format github` for Action annotations (used by CI).
 - `bun run fix` (also `lint:fix`): apply Ultracite fixes and formatting. Review fixes and run validation afterward.
-- `bun run verify`: run the strict check, typecheck, and complete test suite.
+- `bun run ci`: run the strict local CI gate: check, typecheck, and the complete test suite.
 - `bun run typecheck`: run TypeScript checks (`tsc --noEmit`).
 - `bun run test`: run Vitest test suite once.
 - `bun run test:watch`: run Vitest in watch mode.
@@ -62,7 +62,7 @@
 - Prioritize tests for transforms/matching/sorting logic and Planning Center edge cases.
 - Inject narrow typed service dependencies into feature modules and pass fresh test implementations explicitly. Request paths must not rely on process-global credentials or implicit async context. Preserve exact assertions on optional flags so missing values cannot pass as `false`.
 - Prefer test-driven fixes for regressions: reproduce the bug or edge case with a focused failing test, then implement the smallest code change that makes it pass.
-- Run `bun run verify` and `bun run build` before opening a PR.
+- Run `bun run ci` and `bun run build` before opening a PR.
 
 ## Commit & Pull Request Guidelines
 

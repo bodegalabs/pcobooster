@@ -25,7 +25,7 @@ Run `bun run build` from the repository root. It:
 
 Production rewrites `/` and `/about` to the exported HTML. Marketing assets use `/marketing`, avoiding collisions with the product's `/_next` chunks. Those exact public routes bypass the product auth proxy; `/services`, `/people`, `/admin`, and product APIs retain their existing authentication behavior.
 
-`bun run verify` checks both apps' types, shared lint/formatting, and the complete test suite. The public-path tests cover the marketing allowlist and near-miss routes.
+`bun run ci` checks both apps' types, shared lint/formatting, and the complete test suite. The public-path tests cover the marketing allowlist and near-miss routes.
 
 ## Content and screenshots
 

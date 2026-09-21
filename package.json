@@ -34,7 +34,7 @@
     "prepare": "bun run scripts/install-git-hooks.ts",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
-    "verify": "bun run check && bun run typecheck && bun run test",
+    "ci": "bun run check && bun run typecheck && bun run test",
     "dev:web": "infisical run --env=dev --path=/ --path=/local -- turbo run dev --filter=@worship-admin/web",
     "dev:server": "infisical run --env=dev --path=/ --path=/local -- turbo run dev --filter=@worship-admin/server",
     "dev:marketing": "turbo run dev --filter=@worship-admin/marketing",
