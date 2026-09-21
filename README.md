@@ -124,9 +124,11 @@ bun run build
 
 Tests are colocated under `packages/*/src`, `apps/server/src`, and `apps/web/src`. Feature modules accept narrow typed dependencies so tests can exercise behavior without replacing modules. oRPC inputs and outputs, provider responses, and persisted browser caches are validated with Zod at their respective boundaries.
 
+Pull requests must pass both the GitHub `verify` check and the Vercel deployment check. See [CI/CD](docs/ci-cd.md) for the merge gates, deployment flow, dependency update policy, and rollback procedure.
+
 ## Code Quality
 
-Ultracite uses Oxlint and Oxfmt with the strict core, React, Next.js, TanStack, Vitest, shadcn, anti-slop, and React Doctor presets. `oxlint.config.ts` and `oxfmt.config.ts` are the configuration sources. CI rejects warnings as well as errors, then runs TypeScript, tests, and a production build. Tests use explicit dummy credentials from `vitest.config.ts`; the build step uses compile-only placeholders and requires no production secrets. Generated Next.js declarations, database migrations, and scraped API documentation are excluded from formatting.
+Ultracite uses Oxlint and Oxfmt with the strict core, React, Next.js, TanStack, Vitest, shadcn, anti-slop, and React Doctor presets. `oxlint.config.ts` and `oxfmt.config.ts` are the configuration sources. GitHub CI rejects warnings as well as errors, then runs TypeScript and tests. Vercel separately performs the production-shaped build and publishes the preview required for merge. Tests use explicit dummy credentials from `vitest.config.ts`; neither gate receives production secrets. Generated Next.js declarations, database migrations, and scraped API documentation are excluded from formatting.
 
 The OXC VS Code extension is recommended in `.vscode/extensions.json`; workspace settings enable formatting and explicit fixes on save. `bun install` installs the Lefthook pre-commit hook, which fixes and re-stages supported staged files. Run `bun run verify` before submitting changes and `bun x ultracite doctor` when diagnosing the toolchain.
 
