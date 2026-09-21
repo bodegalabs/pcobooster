@@ -38,7 +38,15 @@
     "dev:web": "infisical run --env=dev --path=/ --path=/local -- turbo run dev --filter=@worship-admin/web",
     "dev:server": "infisical run --env=dev --path=/ --path=/local -- turbo run dev --filter=@worship-admin/server",
     "dev:marketing": "turbo run dev --filter=@worship-admin/marketing",
-    "build:marketing": "turbo run build --filter=@worship-admin/marketing && bun run scripts/stage-marketing.ts"
+    "build:marketing": "turbo run build --filter=@worship-admin/marketing && bun run scripts/stage-marketing.ts",
+    "cloud:session:setup": "bash scripts/codex-cloud/with-infisical.sh bash scripts/codex-cloud/session-setup.sh",
+    "cloud:session:status": "bash scripts/codex-cloud/with-infisical.sh bash scripts/codex-cloud/session-status.sh",
+    "cloud:session:teardown": "bash scripts/codex-cloud/with-infisical.sh bash scripts/codex-cloud/session-teardown.sh",
+    "cloud:session:prune": "bash scripts/codex-cloud/with-infisical.sh bash scripts/codex-cloud/session-prune.sh",
+    "cloud:run": "bash scripts/codex-cloud/with-infisical.sh",
+    "cloud:dev": "bash scripts/codex-cloud/with-infisical.sh turbo run dev",
+    "cloud:build": "bash scripts/codex-cloud/with-infisical.sh turbo run build",
+    "cloud:db:migrate": "bash scripts/codex-cloud/with-infisical.sh bun run --cwd packages/api db:migrate"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
