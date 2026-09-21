@@ -9,6 +9,7 @@ export default defineConfig({
       "apps/server/src/**/*.test.ts",
       "apps/web/src/**/*.test.ts",
       "lint/**/*.test.ts",
+      "scripts/**/*.test.ts",
     ],
     environment: "node",
     globals: true,

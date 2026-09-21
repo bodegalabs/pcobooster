@@ -70,6 +70,7 @@
 - Commit messages: short, imperative, scoped to a change (e.g., `Refactor data flow and harden scheduling foundations`).
 - Prefer small commits for follow-up cleanup instead of amend-heavy history.
 - PRs should include: summary, behavior changes, test coverage notes, and screenshots for UI changes.
+- For visible or high-risk changes, use the repo-local `proofed-pr` workflow in `docs/proofed-delivery.md`; proof must match the current PR head and base.
 
 ## Architecture Notes
 

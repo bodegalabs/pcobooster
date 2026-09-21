@@ -1,6 +1,7 @@
-## name: check-pc
-
-description: Quick Planning Center Services API checks from the repo using Bun, local docs, and PAT env vars (no UI).
+---
+name: check-pc
+description: Check a Planning Center Services API endpoint against real read-only data, local endpoint docs, and PAT credentials. Use for contract or provider-response investigation, not product UI verification.
+---
 
 # Check Planning Center API (`check-pc`)
 

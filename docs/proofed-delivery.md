@@ -1,0 +1,47 @@
+# Proofed delivery
+
+This repository treats a pull request as a claim about one exact revision. Deterministic CI is the floor; a revision-bound proof receipt records what was checked, what was observed on the user surface, and what remains unverified.
+
+## Contract
+
+A proof receipt contains:
+
+- the merge-base SHA, head SHA, and stable patch ID;
+- a path-derived risk tier;
+- the commands, exit codes, durations, and captured logs;
+- verified user flows and media hashes;
+- limitations and one of `PASS`, `PASS_WITH_NOTES`, `FAIL`, or `BLOCKED`.
+
+`bun run proof -- verify` rejects a receipt when the checkout, patch, or media no longer matches. Any material push therefore invalidates the previous verdict.
+
+## Risk and evidence
+
+| Tier | Typical change | Required proof |
+| --- | --- | --- |
+| low | docs and agent instructions | local CI |
+| medium | web, marketing, shared models, scripts | local CI, build, and visual evidence for a visible surface |
+| high | API behavior, contracts, server composition, dependency graph | medium proof plus an independent verifier |
+| critical | auth, database, migrations, proxy policy, CI workflows | high proof plus explicit rollback and focused boundary tests |
+
+Path classification is conservative. Raise the tier when behavior is riskier than its location suggests.
+
+## Commands
+
+```bash
+bun run proof -- doctor
+bun run proof -- run --base <pr-base-branch> --flow "Public auth boundary" --artifact "./proof.png#Unauthenticated services redirect"
+bun run proof -- verify --receipt .artifacts/proofs/<revision>/receipt.json
+bun run proof -- publish --pr <number-or-url> --receipt .artifacts/proofs/<revision>/receipt.json
+```
+
+Proof output lives under ignored `.artifacts/`. The publisher posts the Markdown report and uses GitHub CLI media attachments for images and videos.
+
+Fetch the base branch immediately before proving. A bottom PR uses `origin/main`; an upper stack layer uses its preceding remote branch. Publication rejects both stale head proof and proof against an outdated PR base.
+
+## Merge gates
+
+The protected branch requires `ci` and `Vercel`. Those checks establish deterministic correctness and a deployable preview; they do not replace product-flow evidence or independent verification. Humans remain the merge authority until the proof workflow has a track record strong enough to justify a separately reviewed policy change.
+
+## Current boundary
+
+Public routes, authentication boundaries, and read-only product views can be verified in a browser. Planning Center mutations remain test-only until an isolated synthetic adapter exists. Presentation mode masks live data but still uses live provider services, so it must not be treated as a mutation sandbox.
