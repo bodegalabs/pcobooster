@@ -27,7 +27,7 @@ export const ActionLink = ({
     href={href}
   >
     {children}
-    <ArrowRight aria-hidden="true" size={16} />
+    <ArrowRight aria-hidden="true" size={15} />
   </SiteLink>
 );
 
@@ -36,21 +36,23 @@ export const Brand = () => (
     <span>
       <strong>PCO</strong>Booster
     </span>
-    <Image src="/marketing/logo.svg" alt="" width={36} height={36} />
+    <Image src="/marketing/logo.svg" alt="" width={30} height={30} />
   </SiteLink>
 );
 
 export const SiteHeader = () => (
-  <header className={`${styles["site-header"]} ${styles.wrap}`}>
-    <Brand />
-    <nav aria-label="Main navigation">
-      <SiteLink href="/#features">The product</SiteLink>
-      <SiteLink href="/#pricing">Pricing</SiteLink>
-      <SiteLink href="/about">Our story</SiteLink>
-    </nav>
-    <SiteLink className={styles["header-login"]} href="/services">
-      Open app <ArrowUpRight aria-hidden="true" size={15} />
-    </SiteLink>
+  <header className={styles["site-header"]}>
+    <div className={`${styles["header-inner"]} ${styles.wrap}`}>
+      <Brand />
+      <nav aria-label="Main navigation">
+        <SiteLink href="/#features">The product</SiteLink>
+        <SiteLink href="/#pricing">Pricing</SiteLink>
+        <SiteLink href="/about">Our story</SiteLink>
+      </nav>
+      <SiteLink className={styles["header-login"]} href="/services">
+        Open app <ArrowUpRight aria-hidden="true" size={14} />
+      </SiteLink>
+    </div>
   </header>
 );
 
