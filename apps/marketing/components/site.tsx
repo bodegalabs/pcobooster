@@ -11,7 +11,7 @@ export const SiteLink = ({ children, ...props }: ComponentProps<"a">) => (
 
 export const ActionLink = ({
   children,
-  href = "/auth",
+  href = "/services",
   secondary = false,
 }: {
   children: ReactNode;
@@ -48,7 +48,7 @@ export const SiteHeader = () => (
       <SiteLink href="/#pricing">Pricing</SiteLink>
       <SiteLink href="/about">Our story</SiteLink>
     </nav>
-    <SiteLink className={styles["header-login"]} href="/auth">
+    <SiteLink className={styles["header-login"]} href="/services">
       Open app <ArrowUpRight aria-hidden="true" size={15} />
     </SiteLink>
   </header>

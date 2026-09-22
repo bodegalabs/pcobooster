@@ -7,7 +7,7 @@ import { AuthSignInCard } from "./auth-sign-in-card";
 const AuthPage = async () => {
   const { authenticated } = await getSessionStatus();
   if (authenticated) {
-    redirect("/");
+    redirect("/services");
   }
   return <AuthSignInCard />;
 };
