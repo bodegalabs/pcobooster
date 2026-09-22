@@ -24,7 +24,7 @@
     "@orpc/contract": "^1.15.0",
     "@tanstack/react-hotkeys": "^0.10.0",
     "@tanstack/react-query": "^5.103.1",
-    "@vercel/analytics": "^1.6.1",
+    "@vercel/analytics": "^2.0.1",
     "@worship-admin/contracts": "workspace:*",
     "@worship-admin/marketing": "workspace:*",
     "@worship-admin/planning-center-models": "workspace:*",
