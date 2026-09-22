@@ -2,6 +2,11 @@ import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+import {
+  DEFAULT_SIGN_IN_RETURN_PATH,
+  SIGN_IN_RETURN_PARAM,
+  sanitizeReturnPath,
+} from "@/lib/auth-redirect";
 import { isPublicPath } from "@/lib/public-paths";
 
 const isDevAuthBypassEnabled = (): boolean => {
@@ -43,8 +48,15 @@ export const proxy = (request: NextRequest) => {
     return NextResponse.next();
   }
 
+  const returnPath = sanitizeReturnPath(
+    `${request.nextUrl.pathname}${request.nextUrl.search}`
+  );
   const url = request.nextUrl.clone();
   url.pathname = "/auth";
+  url.search = "";
+  if (returnPath !== DEFAULT_SIGN_IN_RETURN_PATH) {
+    url.searchParams.set(SIGN_IN_RETURN_PARAM, returnPath);
+  }
   return NextResponse.redirect(url);
 };
 
