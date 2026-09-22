@@ -24,7 +24,7 @@ export const AuthSignInCard = () => {
     try {
       const result = await authClient.signIn.social({
         provider: "planning-center",
-        callbackURL: "/",
+        callbackURL: "/services",
         errorCallbackURL: "/auth",
       });
       if (result.error) {
