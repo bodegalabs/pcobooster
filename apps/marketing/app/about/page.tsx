@@ -55,13 +55,13 @@ const AboutPage = () => (
         help you, too. If you’re the person who puts your team’s schedule
         together, I’d love to hear what you wish you could see more clearly.
       </p>
+      <p className={styles.signature}>— Jake</p>
       <SiteLink
         className={styles["text-link"]}
         href="https://jakebodea.com/contact"
       >
-        Get in touch <ArrowUpRight aria-hidden="true" size={16} />
+        Get in touch <ArrowUpRight aria-hidden="true" size={15} />
       </SiteLink>
-      <div className={styles.signature}>Jake</div>
     </article>
     <aside
       className={styles["about-independence"]}
