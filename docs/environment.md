@@ -24,7 +24,7 @@ Each Infisical environment's `/` path owns these settings:
 | `PEOPLE_PAGE_ENABLED` | Yes | Strict `true` or `false` switch for the People dashboard. |
 | `PLANNING_CENTER_OAUTH_CLIENT_ID` | Yes | Planning Center OAuth client identifier. |
 | `PLANNING_CENTER_OAUTH_CLIENT_SECRET` | Yes | Planning Center OAuth client secret. |
-| `WORSHIP_ADMIN_ADMIN_EMAILS` | Yes | Comma-separated admin allowlist. |
+| `PCOBOOSTER_ADMIN_EMAILS` | Yes | Comma-separated admin allowlist. |
 | `CORS_ORIGIN` | No | Explicit browser origin when the API is called cross-origin. |
 | `LOG_LEVEL` | No | Server log threshold. |
 | `LOG_PLANNING_CENTER_TIMINGS` | No | Set to `1` only while measuring Planning Center requests. |

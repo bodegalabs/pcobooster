@@ -1,9 +1,9 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { QueryFunctionContext } from "@tanstack/react-query";
 import type {
   PeopleDashboardData,
   PeopleDashboardPersonDetail,
-} from "@worship-admin/contracts/people-schemas";
+} from "@pcobooster/contracts/people-schemas";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { QueryFunctionContext } from "@tanstack/react-query";
 import { useCallback } from "react";
 
 import {

@@ -1,4 +1,4 @@
-import type { AdminAccountActivity } from "@worship-admin/contracts/admin";
+import type { AdminAccountActivity } from "@pcobooster/contracts/admin";
 import {
   Activity,
   CalendarClock,
@@ -82,8 +82,8 @@ const AdminPage = async () => {
           <div>
             <h1 className="text-2xl font-semibold tracking-normal">Admin</h1>
             <p className="text-muted-foreground mt-1 text-sm">
-              Accounts, active sessions, and login frequency from
-              worshipadmin.com auth activity.
+              Accounts, active sessions, and login frequency from pcobooster.com
+              auth activity.
             </p>
           </div>
           <Badge variant="outline">Only visible to {email}</Badge>

@@ -1,11 +1,11 @@
-import { peopleSearchResultSchema } from "@worship-admin/contracts/people-schemas";
-import type { PeopleSearchResult } from "@worship-admin/contracts/people-schemas";
+import { peopleSearchResultSchema } from "@pcobooster/contracts/people-schemas";
+import type { PeopleSearchResult } from "@pcobooster/contracts/people-schemas";
 import { z } from "zod";
 
 import { presentationCacheKey } from "@/lib/presentation-cache";
 
 const CACHE_VERSION = "v1";
-const CACHE_KEY_PREFIX = `worshipadmin:people-search:${CACHE_VERSION}:`;
+const CACHE_KEY_PREFIX = `pcobooster:people-search:${CACHE_VERSION}:`;
 
 interface CachedPayload {
   savedAt: number;

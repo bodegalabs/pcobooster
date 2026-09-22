@@ -1,29 +1,29 @@
 import { createHash } from "node:crypto";
 import { setTimeout as sleep } from "node:timers/promises";
 
-import { mergeHeaders } from "@worship-admin/api/http/merge-headers";
+import { mergeHeaders } from "@pcobooster/api/http/merge-headers";
 import {
   elapsedMs,
   formatDurationMs,
   nowMs,
-} from "@worship-admin/api/http/timing";
-import { logger } from "@worship-admin/api/logger";
-import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
-import type { PlanningCenterRateLimitInfo } from "@worship-admin/api/planning-center/api-error";
+} from "@pcobooster/api/http/timing";
+import { logger } from "@pcobooster/api/logger";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import type { PlanningCenterRateLimitInfo } from "@pcobooster/api/planning-center/api-error";
 import {
   pcCollectionResponseSchema,
   pcResourceResponseSchema,
-} from "@worship-admin/api/planning-center/resource-schemas";
+} from "@pcobooster/api/planning-center/resource-schemas";
 import {
   isNonEmptyString,
   isString,
   jsonValueSchema,
-} from "@worship-admin/planning-center-models/json";
-import type { JsonValue } from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/planning-center-models/json";
+import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import type {
   PCApiResponse,
   PCResource,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { z } from "zod";
 
 const log = logger.for("planning-center/core");

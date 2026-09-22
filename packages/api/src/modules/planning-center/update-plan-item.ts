@@ -1,15 +1,15 @@
 import {
   buildPlanItemAttributes,
   resolvePlanItemSongDefaults,
-} from "@worship-admin/api/modules/planning-center/plan-item-payload";
-import type { LoadSongOptions } from "@worship-admin/api/modules/planning-center/plan-item-payload";
-import { normalizePlanItem } from "@worship-admin/api/modules/planning-center/plan-items-shared";
-import type { PlanningCenterPlanItemsService } from "@worship-admin/api/planning-center/services/plan-items-service";
-import type { JsonObject } from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/api/modules/planning-center/plan-item-payload";
+import type { LoadSongOptions } from "@pcobooster/api/modules/planning-center/plan-item-payload";
+import { normalizePlanItem } from "@pcobooster/api/modules/planning-center/plan-items-shared";
+import type { PlanningCenterPlanItemsService } from "@pcobooster/api/planning-center/services/plan-items-service";
+import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type {
   PlanItem,
   PlanItemServicePosition,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 export interface UpdatePlanItemInput {
   serviceTypeId: string;

@@ -1,28 +1,28 @@
-import { logger } from "@worship-admin/api/logger";
+import { logger } from "@pcobooster/api/logger";
 import {
   buildPlanSchedulingContext,
   buildSlotKey,
   isDeclinedRosterStatus,
-} from "@worship-admin/api/modules/planning-center/plan-scheduling-context";
-import type { PlanRosterEntry } from "@worship-admin/api/modules/planning-center/plan-scheduling-context";
-import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import type { PlanningCenterPlansService } from "@worship-admin/api/planning-center/services/plans-service";
+} from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
+import type { PlanRosterEntry } from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
+import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import {
   findAllIncluded,
   findIncluded,
-} from "@worship-admin/api/planning-center/utils";
+} from "@pcobooster/api/planning-center/utils";
 import {
   isNonEmptyString,
   isNumber,
   isString,
-} from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/planning-center-models/json";
 import type {
   FilledPositionPerson,
   PCResource,
   TeamPosition,
   TeamPositionGroup,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 const log = logger.for("module/get-team-positions");
 

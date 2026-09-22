@@ -1,4 +1,4 @@
-import type { PlanItem } from "@worship-admin/planning-center-models/types";
+import type { PlanItem } from "@pcobooster/planning-center-models/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -111,7 +111,7 @@ describe("plan items cache", () => {
 
   it("ignores invalid cache payloads", () => {
     window.localStorage.setItem(
-      "worshipadmin:plan-items:v1:st-1:plan-1",
+      "pcobooster:plan-items:v1:st-1:plan-1",
       JSON.stringify({ savedAt: Date.now(), data: [{ id: "broken" }] })
     );
 

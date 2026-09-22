@@ -2,21 +2,21 @@ import { call } from "@orpc/server";
 import {
   createRequestContext,
   RequestContext,
-} from "@worship-admin/api/application/context";
-import type { PlanningCenterAccessDependencies } from "@worship-admin/api/application/planning-center-access";
-import { PlanningCenterAccess } from "@worship-admin/api/application/planning-center-access";
+} from "@pcobooster/api/application/context";
+import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
+import { PlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
 import {
   commitScheduledPerson,
   prepareScheduledPerson,
   removeScheduledPerson,
   updateScheduledPersonStatus,
-} from "@worship-admin/api/application/schedule";
-import type { ScheduleApplicationDependencies } from "@worship-admin/api/application/schedule";
-import type { ActivityEventInput } from "@worship-admin/api/db/activity-events";
-import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
-import { createPlanningCenterServices } from "@worship-admin/api/planning-center/services/factory";
-import { createScheduleRouter } from "@worship-admin/api/transport/orpc/schedule";
-import type { ScheduleAssignInput } from "@worship-admin/contracts/schedule";
+} from "@pcobooster/api/application/schedule";
+import type { ScheduleApplicationDependencies } from "@pcobooster/api/application/schedule";
+import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import { createScheduleRouter } from "@pcobooster/api/transport/orpc/schedule";
+import type { ScheduleAssignInput } from "@pcobooster/contracts/schedule";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
@@ -94,7 +94,7 @@ const setup = () => {
     recordActivity,
   });
   const context = {
-    request: new Request("https://worshipadmin.com/api/rpc/schedule/assign", {
+    request: new Request("https://pcobooster.com/api/rpc/schedule/assign", {
       method: "POST",
       headers: { "x-forwarded-for": "192.0.2.5", "user-agent": "test-agent" },
     }),

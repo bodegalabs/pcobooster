@@ -2,14 +2,14 @@ import {
   peopleListInputSchema,
   peopleMyScheduledPlansInputSchema,
   peopleWarmupOutputSchema,
-} from "@worship-admin/contracts/people";
+} from "@pcobooster/contracts/people";
 import {
   blockoutSchema,
   peopleDashboardDataSchema,
   peopleDashboardPersonDetailSchema,
   personWithAvailabilitySchema,
   scheduleHistoryResponseSchema,
-} from "@worship-admin/contracts/people-schemas";
+} from "@pcobooster/contracts/people-schemas";
 import { describe, expect, it } from "vitest";
 
 const dashboardPerson = {

@@ -1,18 +1,18 @@
-import type { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
-import { buildPlanningCenterUrl } from "@worship-admin/api/planning-center/core-client";
+import type { PlanningCenterCoreClient } from "@pcobooster/api/planning-center/core-client";
+import { buildPlanningCenterUrl } from "@pcobooster/api/planning-center/core-client";
 import {
   PlanningCenterReadCache,
   stableParams,
-} from "@worship-admin/api/planning-center/services/read-cache";
+} from "@pcobooster/api/planning-center/services/read-cache";
 import {
   isNonEmptyString,
   isString,
-} from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/planning-center-models/json";
 import type {
   PCRelationship,
   PCResource,
   PCResourceIdentifier,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 const ASSIGNMENTS_CACHE_TTL_MS = 5 * 60 * 1000;
 const PERSON_READ_CACHE_TTL_MS = 60 * 1000;

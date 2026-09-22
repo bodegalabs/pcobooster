@@ -1,24 +1,24 @@
 import {
   createRequestContext,
   RequestContext,
-} from "@worship-admin/api/application/context";
+} from "@pcobooster/api/application/context";
 import {
   getAdminFeature,
   getPlanningCenterAccounts,
   getSessionStatus,
   selectPlanningCenterAccount,
-} from "@worship-admin/api/application/identity";
-import type { IdentityDependencies } from "@worship-admin/api/application/identity";
+} from "@pcobooster/api/application/identity";
+import type { IdentityDependencies } from "@pcobooster/api/application/identity";
 import {
   getDevBypassPlanningCenterAccount,
   getDevBypassSession,
   loadDevBypassIdentity,
-} from "@worship-admin/api/auth/dev-bypass";
-import { getPlanningCenterIdentityForAccount } from "@worship-admin/api/auth/planning-center-account-identity";
+} from "@pcobooster/api/auth/dev-bypass";
+import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
 import { Cause, Effect, Exit, Option } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
-const request = new Request("https://worshipadmin.com/api/rpc/accounts");
+const request = new Request("https://pcobooster.com/api/rpc/accounts");
 
 const run = async <Value>(
   program: Effect.Effect<Value, unknown, RequestContext>

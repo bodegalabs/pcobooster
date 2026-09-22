@@ -2,7 +2,7 @@
 import type {
   JsonObject,
   JsonValue,
-} from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/planning-center-models/json";
 
 export interface PCApiResponse<T> {
   data: T;

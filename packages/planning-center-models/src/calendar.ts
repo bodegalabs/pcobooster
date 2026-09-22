@@ -1,6 +1,6 @@
-import { formatCalendarDayInTimeZone } from "@worship-admin/planning-center-models/calendar-day";
+import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar-day";
 
-export { formatCalendarDayInTimeZone } from "@worship-admin/planning-center-models/calendar-day";
+export { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar-day";
 
 /** Pure calendar helpers — supply IANA `timeZone` from Planning Center org resolution (server/client). */
 

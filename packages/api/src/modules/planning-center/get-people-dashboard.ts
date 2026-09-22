@@ -5,21 +5,21 @@ import type {
   PeopleDashboardLoad,
   PeopleDashboardPerson,
   PeopleDashboardRange,
-} from "@worship-admin/api/modules/planning-center/people-dashboard-types";
-import { buildFrequencyFromServiceHistory } from "@worship-admin/api/modules/planning-center/people/history";
-import { mapWithConcurrency } from "@worship-admin/api/modules/planning-center/shared";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import { PlanningCenterReadCache } from "@worship-admin/api/planning-center/services/read-cache";
-import { findIncluded } from "@worship-admin/api/planning-center/utils";
+} from "@pcobooster/api/modules/planning-center/people-dashboard-types";
+import { buildFrequencyFromServiceHistory } from "@pcobooster/api/modules/planning-center/people/history";
+import { mapWithConcurrency } from "@pcobooster/api/modules/planning-center/shared";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
+import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import {
   formatCalendarDayInTimeZone,
   orgCalendarDaysRefMinusItem,
-} from "@worship-admin/planning-center-models/calendar";
+} from "@pcobooster/planning-center-models/calendar";
 import {
   isNonEmptyString,
   isString,
-} from "@worship-admin/planning-center-models/json";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/json";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 
 const SCHEDULE_CONCURRENCY = 4;
 const SCHEDULE_MAX_PAGES = 6;

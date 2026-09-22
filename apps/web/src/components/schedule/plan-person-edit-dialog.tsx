@@ -1,11 +1,11 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { formatWallTimeInTimeZone } from "@worship-admin/planning-center-models/calendar";
+import { formatWallTimeInTimeZone } from "@pcobooster/planning-center-models/calendar";
 import type {
   FilledPositionPerson,
   PlanTime,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
+import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, Trash2 } from "lucide-react";
 import { startTransition, useState } from "react";
 import { toast } from "sonner";

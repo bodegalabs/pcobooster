@@ -1,24 +1,24 @@
-import { ensureRequestIsOpen } from "@worship-admin/api/application/context";
-import type { ApplicationFault } from "@worship-admin/api/application/errors";
-import { AlreadyScheduled } from "@worship-admin/api/application/errors/already-scheduled";
-import { PositionMismatch } from "@worship-admin/api/application/errors/position-mismatch";
+import { ensureRequestIsOpen } from "@pcobooster/api/application/context";
+import type { ApplicationFault } from "@pcobooster/api/application/errors";
+import { AlreadyScheduled } from "@pcobooster/api/application/errors/already-scheduled";
+import { PositionMismatch } from "@pcobooster/api/application/errors/position-mismatch";
 import {
   PlanningCenterAccess,
   toApplicationFault,
   tryPlanningCenter,
-} from "@worship-admin/api/application/planning-center-access";
-import { invalidateCandidateHistoryForPerson } from "@worship-admin/api/modules/planning-center/get-people-for-position";
+} from "@pcobooster/api/application/planning-center-access";
+import { invalidateCandidateHistoryForPerson } from "@pcobooster/api/modules/planning-center/get-people-for-position";
 import {
   matchesScheduleTarget,
   resolveScheduleTarget,
-} from "@worship-admin/api/modules/planning-center/schedule-person";
+} from "@pcobooster/api/modules/planning-center/schedule-person";
 import type {
   ScheduleAssignInput,
   ScheduleRemoveInput,
   ScheduleUpdateStatusInput,
-} from "@worship-admin/contracts/schedule";
-import { isString } from "@worship-admin/planning-center-models/json";
-import { isPresentationMode } from "@worship-admin/presentation-mode";
+} from "@pcobooster/contracts/schedule";
+import { isString } from "@pcobooster/planning-center-models/json";
+import { isPresentationMode } from "@pcobooster/presentation-mode";
 import { Effect } from "effect";
 
 import type { RequestContext } from "./context";

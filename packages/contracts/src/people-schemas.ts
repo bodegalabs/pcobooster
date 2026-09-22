@@ -1,4 +1,4 @@
-import { teamPositionSchema } from "@worship-admin/contracts/catalog";
+import { teamPositionSchema } from "@pcobooster/contracts/catalog";
 import { z } from "zod";
 
 export const blockoutSchema = z.object({

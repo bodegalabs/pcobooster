@@ -1,22 +1,22 @@
 import {
   createRequestContext,
   RequestContext,
-} from "@worship-admin/api/application/context";
-import { Forbidden } from "@worship-admin/api/application/errors/forbidden";
-import { InvalidInput } from "@worship-admin/api/application/errors/invalid-input";
-import { Unauthenticated } from "@worship-admin/api/application/errors/unauthenticated";
+} from "@pcobooster/api/application/context";
+import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
+import { InvalidInput } from "@pcobooster/api/application/errors/invalid-input";
+import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
 import {
   resolvePlanningCenterAccess,
   toApplicationFault,
-} from "@worship-admin/api/application/planning-center-access";
-import type { PlanningCenterAccessDependencies } from "@worship-admin/api/application/planning-center-access";
-import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
-import { createPlanningCenterServices } from "@worship-admin/api/planning-center/services/factory";
+} from "@pcobooster/api/application/planning-center-access";
+import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 const requestFor = (accountId: string): Request =>
-  new Request(`https://worshipadmin.com/api/rpc/catalog/${accountId}`);
+  new Request(`https://pcobooster.com/api/rpc/catalog/${accountId}`);
 
 const dependenciesFor = (
   accountId: string

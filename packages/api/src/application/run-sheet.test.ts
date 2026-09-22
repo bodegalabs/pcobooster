@@ -1,17 +1,17 @@
-import { PlanningCenterAccess } from "@worship-admin/api/application/planning-center-access";
+import { PlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
 import {
   commitRunSheetItemCreate,
   prepareRunSheetItemCreate,
   updateRunSheetTime,
-} from "@worship-admin/api/application/run-sheet";
-import { createPlanningCenterServices } from "@worship-admin/api/planning-center/services/factory";
-import { executeApplicationEffect } from "@worship-admin/api/transport/orpc/execute";
-import { applicationRuntime } from "@worship-admin/api/transport/orpc/implementation";
+} from "@pcobooster/api/application/run-sheet";
+import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
+import { applicationRuntime } from "@pcobooster/api/transport/orpc/implementation";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 const context = {
-  request: new Request("https://worshipadmin.com/api/rpc/planItems/create", {
+  request: new Request("https://pcobooster.com/api/rpc/planItems/create", {
     method: "POST",
   }),
   requestId: "run-sheet-request",

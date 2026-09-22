@@ -1,8 +1,8 @@
-import { blockoutCoversPlanSortInstant } from "@worship-admin/planning-center-models/calendar-day";
+import { blockoutCoversPlanSortInstant } from "@pcobooster/planning-center-models/calendar-day";
 import type {
   AvailabilityStatus,
   Blockout,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 import { Badge } from "@/components/ui/badge";
 

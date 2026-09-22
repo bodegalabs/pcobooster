@@ -1,8 +1,8 @@
-import { logger } from "@worship-admin/api/logger";
-import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
-import type { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
-import { PlanningCenterReadCache } from "@worship-admin/api/planning-center/services/read-cache";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+import { logger } from "@pcobooster/api/logger";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import type { PlanningCenterCoreClient } from "@pcobooster/api/planning-center/core-client";
+import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 
 const log = logger.for("planning-center/songs");
 const DEFAULT_CATALOG_TTL_MS = 15 * 60 * 1000;

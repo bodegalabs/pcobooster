@@ -1,6 +1,6 @@
 "use client";
 
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import Link from "next/link";
 import { toast } from "sonner";
 

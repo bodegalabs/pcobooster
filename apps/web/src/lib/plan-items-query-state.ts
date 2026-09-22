@@ -1,11 +1,11 @@
-import type { QueryClient } from "@tanstack/react-query";
 import type {
   PlanItem,
   PlanItemArrangement,
   PlanItemKey,
   PlanItemServicePosition,
   SongCatalogEntry,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
+import type { QueryClient } from "@tanstack/react-query";
 
 import { clearCachedPlanItems } from "@/lib/plan-items-cache";
 import type { queryKeys } from "@/lib/query-keys";

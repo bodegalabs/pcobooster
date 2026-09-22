@@ -5,7 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type {
   PlanTimeType,
   TeamPositionGroup,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { format } from "date-fns";
 import { useState } from "react";
 

@@ -1,5 +1,5 @@
 import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@worship-admin/contracts/errors";
+import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import { z } from "zod";
 
 export const serviceTypeSchema = z.object({

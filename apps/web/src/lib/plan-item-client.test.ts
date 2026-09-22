@@ -1,4 +1,4 @@
-import type { PlanItem } from "@worship-admin/planning-center-models/types";
+import type { PlanItem } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 import { hydratePlanItem, serializePlanItem } from "@/lib/plan-item-client";

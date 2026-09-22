@@ -1,13 +1,13 @@
-import type { PlanningCenterPlansService } from "@worship-admin/api/planning-center/services/plans-service";
+import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import {
   addCalendarDaysToDayKey,
   formatCalendarDayInTimeZone,
-} from "@worship-admin/planning-center-models/calendar";
+} from "@pcobooster/planning-center-models/calendar";
 import {
   isNonEmptyString,
   isString,
-} from "@worship-admin/planning-center-models/json";
-import type { Plan } from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/json";
+import type { Plan } from "@pcobooster/planning-center-models/types";
 
 export interface GetPlansDependencies {
   plansService: Pick<PlanningCenterPlansService, "getPlansInDateRange">;

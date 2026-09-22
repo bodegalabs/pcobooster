@@ -1,4 +1,4 @@
-import { db } from "@worship-admin/api/db";
+import { db } from "@pcobooster/api/db";
 
 const main = async () => {
   await db.execute("select 1");

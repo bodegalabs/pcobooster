@@ -29,7 +29,7 @@ const replacedRouteNames = new Set([
 ]);
 const forbiddenBrowserPackageDependencies = new Set([
   "@orpc/server",
-  "@worship-admin/api",
+  "@pcobooster/api",
   "@types/node",
   "better-auth",
   "drizzle-orm",
@@ -183,8 +183,8 @@ describe("monorepo architecture boundaries", () => {
       for (const specifier of importSpecifiers(file.contents)) {
         if (
           specifier.includes("/use-cases/") ||
-          specifier === "@worship-admin/domain" ||
-          specifier.startsWith("@worship-admin/domain/")
+          specifier === "@pcobooster/domain" ||
+          specifier.startsWith("@pcobooster/domain/")
         ) {
           violations.push(
             `${file.relativePath} imports obsolete vague module ${specifier}`
@@ -203,11 +203,11 @@ describe("monorepo architecture boundaries", () => {
       importSpecifiers(file.contents)
         .filter(
           (specifier) =>
-            specifier === "@worship-admin/api" ||
-            specifier.startsWith("@worship-admin/api/") ||
+            specifier === "@pcobooster/api" ||
+            specifier.startsWith("@pcobooster/api/") ||
             specifier.includes("packages/api") ||
             specifier.includes("apps/server") ||
-            specifier.startsWith("@worship-admin/server")
+            specifier.startsWith("@pcobooster/server")
         )
         .map(
           (specifier) =>
@@ -224,18 +224,18 @@ describe("monorepo architecture boundaries", () => {
       if (
         dependencies !== null &&
         typeof dependencies === "object" &&
-        "@worship-admin/api" in dependencies
+        "@pcobooster/api" in dependencies
       ) {
         violations.push(
-          `apps/web/package.json declares @worship-admin/api in ${field}`
+          `apps/web/package.json declares @pcobooster/api in ${field}`
         );
       }
     }
 
     const nextConfigPath = join(repositoryRoot, "apps/web/next.config.ts");
-    if (readFileSync(nextConfigPath, "utf8").includes("@worship-admin/api")) {
+    if (readFileSync(nextConfigPath, "utf8").includes("@pcobooster/api")) {
       violations.push(
-        "apps/web/next.config.ts transpiles or otherwise references @worship-admin/api"
+        "apps/web/next.config.ts transpiles or otherwise references @pcobooster/api"
       );
     }
 

@@ -1,8 +1,8 @@
-import { buildPlanSchedulingContext } from "@worship-admin/api/modules/planning-center/plan-scheduling-context";
+import { buildPlanSchedulingContext } from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
 import type {
   PCResource,
   RawPlanPerson,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 const team = (id: string, name: string): PCResource => ({

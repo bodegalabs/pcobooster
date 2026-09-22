@@ -1,6 +1,6 @@
 import { setTimeout as sleep } from "node:timers/promises";
 
-import { PlanningCenterReadCache } from "@worship-admin/api/planning-center/services/read-cache";
+import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import { describe, expect, it, vi } from "vitest";
 
 describe("planning center read cache", () => {

@@ -3,8 +3,8 @@
 import {
   getScheduleContextHalfRangeWeekOptions,
   SCHEDULE_CONTEXT_DEFAULT_HALF_RANGE_WEEKS,
-} from "@worship-admin/planning-center-models/schedule-constants";
-import type { ServiceHistoryItem } from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/schedule-constants";
+import type { ServiceHistoryItem } from "@pcobooster/planning-center-models/types";
 import { useMemo, useState } from "react";
 import type { ReactElement } from "react";
 

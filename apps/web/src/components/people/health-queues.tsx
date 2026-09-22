@@ -1,6 +1,6 @@
 "use client";
 
-import type { PeopleDashboardPerson } from "@worship-admin/contracts/people-schemas";
+import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 import { Clock3, ListChecks } from "lucide-react";
 
 import { PersonAvatar } from "@/components/people/shared-components";

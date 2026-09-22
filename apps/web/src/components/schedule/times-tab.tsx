@@ -1,6 +1,6 @@
 "use client";
 
-import type { PlanTime } from "@worship-admin/planning-center-models/types";
+import type { PlanTime } from "@pcobooster/planning-center-models/types";
 import { Clock3, Plus } from "lucide-react";
 
 import { PlanTimeCard } from "@/components/schedule/plan-time-card";

@@ -1,5 +1,5 @@
 import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@worship-admin/contracts/errors";
+import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import {
   blockoutSchema,
   myScheduledPlansDataSchema,
@@ -9,7 +9,7 @@ import {
   peopleSearchResultSchema,
   personWithAvailabilitySchema,
   scheduleHistoryResponseSchema,
-} from "@worship-admin/contracts/people-schemas";
+} from "@pcobooster/contracts/people-schemas";
 import { z } from "zod";
 
 export const peopleListInputSchema = z.object({

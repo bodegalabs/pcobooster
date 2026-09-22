@@ -1,28 +1,28 @@
 import {
   PlanningCenterCoreClient,
   createBasicPlanningCenterClient,
-} from "@worship-admin/api/planning-center/core-client";
-import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
+} from "@pcobooster/api/planning-center/core-client";
+import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
 import {
   planningCenterCatalogServiceCaches,
   PlanningCenterCatalogService,
-} from "@worship-admin/api/planning-center/services/catalog-service";
+} from "@pcobooster/api/planning-center/services/catalog-service";
 import {
   planningCenterPeopleServiceCaches,
   PlanningCenterPeopleService,
-} from "@worship-admin/api/planning-center/services/people-service";
+} from "@pcobooster/api/planning-center/services/people-service";
 import {
   planningCenterPlanItemsServiceCaches,
   PlanningCenterPlanItemsService,
-} from "@worship-admin/api/planning-center/services/plan-items-service";
+} from "@pcobooster/api/planning-center/services/plan-items-service";
 import {
   planningCenterPlansServiceCaches,
   PlanningCenterPlansService,
-} from "@worship-admin/api/planning-center/services/plans-service";
+} from "@pcobooster/api/planning-center/services/plans-service";
 import {
   planningCenterSongsServiceCaches,
   PlanningCenterSongsService,
-} from "@worship-admin/api/planning-center/services/songs-service";
+} from "@pcobooster/api/planning-center/services/songs-service";
 
 const createServicesForClient = (core: PlanningCenterCoreClient) => {
   const catalog = new PlanningCenterCatalogService(

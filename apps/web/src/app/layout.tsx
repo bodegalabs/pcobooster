@@ -1,5 +1,5 @@
+import { getPresentationCacheScope } from "@pcobooster/presentation-mode";
 import { Analytics } from "@vercel/analytics/next";
-import { getPresentationCacheScope } from "@worship-admin/presentation-mode";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 

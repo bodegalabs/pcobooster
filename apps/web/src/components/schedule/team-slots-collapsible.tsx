@@ -3,7 +3,7 @@
 import type {
   TeamPosition,
   TeamPositionGroup,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { ChevronDown, Plus } from "lucide-react";
 import type { SubmitEvent as ReactSubmitEvent } from "react";
 import { useEffect, useRef, useState } from "react";

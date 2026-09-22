@@ -1,4 +1,4 @@
-import type { TeamPositionGroup } from "@worship-admin/planning-center-models/types";
+import type { TeamPositionGroup } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 import {

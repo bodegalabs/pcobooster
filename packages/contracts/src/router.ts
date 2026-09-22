@@ -1,15 +1,15 @@
 import { oc } from "@orpc/contract";
-import { accountsContract } from "@worship-admin/contracts/accounts";
-import { adminContract } from "@worship-admin/contracts/admin";
-import { catalogContract } from "@worship-admin/contracts/catalog";
-import { featuresContract } from "@worship-admin/contracts/features";
-import { peopleContract } from "@worship-admin/contracts/people";
-import { planItemsContract } from "@worship-admin/contracts/plan-items";
-import { planPeopleContract } from "@worship-admin/contracts/plan-people";
-import { planTimesContract } from "@worship-admin/contracts/plan-times";
-import { scheduleContract } from "@worship-admin/contracts/schedule";
-import { sessionContract } from "@worship-admin/contracts/session";
-import { songsContract } from "@worship-admin/contracts/songs";
+import { accountsContract } from "@pcobooster/contracts/accounts";
+import { adminContract } from "@pcobooster/contracts/admin";
+import { catalogContract } from "@pcobooster/contracts/catalog";
+import { featuresContract } from "@pcobooster/contracts/features";
+import { peopleContract } from "@pcobooster/contracts/people";
+import { planItemsContract } from "@pcobooster/contracts/plan-items";
+import { planPeopleContract } from "@pcobooster/contracts/plan-people";
+import { planTimesContract } from "@pcobooster/contracts/plan-times";
+import { scheduleContract } from "@pcobooster/contracts/schedule";
+import { sessionContract } from "@pcobooster/contracts/session";
+import { songsContract } from "@pcobooster/contracts/songs";
 import { z } from "zod";
 
 const healthInputSchema = z.object({});

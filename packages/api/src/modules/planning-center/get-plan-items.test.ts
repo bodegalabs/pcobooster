@@ -1,5 +1,5 @@
-import { getPlanItems } from "@worship-admin/api/modules/planning-center/get-plan-items";
-import type { PlanItemsReader } from "@worship-admin/api/modules/planning-center/get-plan-items";
+import { getPlanItems } from "@pcobooster/api/modules/planning-center/get-plan-items";
+import type { PlanItemsReader } from "@pcobooster/api/modules/planning-center/get-plan-items";
 import { describe, expect, it, vi } from "vitest";
 
 const createFixture = () => {

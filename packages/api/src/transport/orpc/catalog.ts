@@ -3,13 +3,13 @@ import {
   getCatalogPlans,
   getCatalogServiceTypes,
   getCatalogTeamPositions,
-} from "@worship-admin/api/application/catalog";
-import { withPlanningCenterAccess } from "@worship-admin/api/application/planning-center-access";
-import { executeApplicationEffect } from "@worship-admin/api/transport/orpc/execute";
+} from "@pcobooster/api/application/catalog";
+import { withPlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
+import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
 import {
   applicationRuntime,
   rpc,
-} from "@worship-admin/api/transport/orpc/implementation";
+} from "@pcobooster/api/transport/orpc/implementation";
 
 const serviceTypes = rpc.catalog.serviceTypes.handler(
   async ({ context, signal }) =>

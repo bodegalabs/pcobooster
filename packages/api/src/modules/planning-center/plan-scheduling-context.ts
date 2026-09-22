@@ -1,16 +1,16 @@
-import { rosterPersonSchema } from "@worship-admin/api/modules/planning-center/people/resource-schemas";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import { findIncluded } from "@worship-admin/api/planning-center/utils";
+import { rosterPersonSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import {
   isNonEmptyString,
   isString,
-} from "@worship-admin/planning-center-models/json";
-import type { JsonValue } from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/planning-center-models/json";
+import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import type {
   PCResource,
   RawPerson,
   RawPlanPerson,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 export type PlanRosterStatus = "confirmed" | "pending" | "declined";
 

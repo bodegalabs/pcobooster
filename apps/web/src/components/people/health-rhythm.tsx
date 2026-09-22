@@ -1,6 +1,6 @@
 "use client";
 
-import type { PeopleDashboardData } from "@worship-admin/contracts/people-schemas";
+import type { PeopleDashboardData } from "@pcobooster/contracts/people-schemas";
 import { CalendarDays } from "lucide-react";
 
 import {

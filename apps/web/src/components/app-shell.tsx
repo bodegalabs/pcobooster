@@ -17,11 +17,11 @@ import {
   UserAdd01Icon,
   UsersIcon,
 } from "@hugeicons/core-free-icons";
+import type { PlanningCenterAccountsResponse } from "@pcobooster/contracts/accounts";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
-import type { PlanningCenterAccountsResponse } from "@worship-admin/contracts/accounts";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import { Check, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -105,7 +105,7 @@ import { clearCachedTeamPositions } from "@/lib/team-positions-cache";
 import { cn } from "@/lib/utils";
 import { orpc } from "@/orpc-client";
 
-const SIDEBAR_OPEN_STORAGE_KEY = "worshipadmin:sidebar-open";
+const SIDEBAR_OPEN_STORAGE_KEY = "pcobooster:sidebar-open";
 const APP_CHROME_ROW = "flex h-12 shrink-0 items-center gap-2";
 const APP_CHROME_HEADER_CLASS = cn(APP_CHROME_ROW, "px-2");
 
@@ -819,7 +819,7 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
           <DialogHeader>
             <DialogTitle>Shortcuts</DialogTitle>
             <DialogDescription>
-              Keyboard shortcuts available in worshipadmin.com.
+              Keyboard shortcuts available in pcobooster.com.
             </DialogDescription>
           </DialogHeader>
           <dl className="grid gap-3 text-sm">

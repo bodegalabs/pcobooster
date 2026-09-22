@@ -2,7 +2,7 @@ import type {
   ArrangementOption,
   PlanItem,
   SongOptionSet,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import type { ReactNode } from "react";
 
 export interface DraftState {

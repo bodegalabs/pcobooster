@@ -1,7 +1,7 @@
-import { createBasicPlanningCenterClient } from "@worship-admin/api/planning-center/core-client";
-import { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import type { JsonObject } from "@worship-admin/planning-center-models/json";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
+import { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import type { JsonObject } from "@pcobooster/planning-center-models/json";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it, vi } from "vitest";
 
 const resource = (

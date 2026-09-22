@@ -1,17 +1,17 @@
-import { RequestContext } from "@worship-admin/api/application/context";
-import type { ApplicationFault } from "@worship-admin/api/application/errors";
-import { ExternalServiceFailure } from "@worship-admin/api/application/errors/external-service-failure";
-import { Forbidden } from "@worship-admin/api/application/errors/forbidden";
-import { InvalidInput } from "@worship-admin/api/application/errors/invalid-input";
-import { RateLimited } from "@worship-admin/api/application/errors/rate-limited";
-import { Unauthenticated } from "@worship-admin/api/application/errors/unauthenticated";
-import { isDevAuthBypassEnabled } from "@worship-admin/api/auth/dev-bypass";
-import { requirePlanningCenterAccessToken } from "@worship-admin/api/auth/planning-center-session";
-import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
+import { RequestContext } from "@pcobooster/api/application/context";
+import type { ApplicationFault } from "@pcobooster/api/application/errors";
+import { ExternalServiceFailure } from "@pcobooster/api/application/errors/external-service-failure";
+import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
+import { InvalidInput } from "@pcobooster/api/application/errors/invalid-input";
+import { RateLimited } from "@pcobooster/api/application/errors/rate-limited";
+import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
+import { isDevAuthBypassEnabled } from "@pcobooster/api/auth/dev-bypass";
+import { requirePlanningCenterAccessToken } from "@pcobooster/api/auth/planning-center-session";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import {
   createPlanningCenterServices,
   createBasicPlanningCenterServices,
-} from "@worship-admin/api/planning-center/services/factory";
+} from "@pcobooster/api/planning-center/services/factory";
 import { Context, Effect, Option } from "effect";
 
 export interface RequestAuthentication {
@@ -35,7 +35,7 @@ export interface PlanningCenterRequestAccess {
 }
 
 export class PlanningCenterAccess extends Context.Tag(
-  "@worship-admin/api/PlanningCenterAccess"
+  "@pcobooster/api/PlanningCenterAccess"
 )<PlanningCenterAccess, PlanningCenterRequestAccess>() {}
 
 export interface PlanningCenterAccessDependencies {

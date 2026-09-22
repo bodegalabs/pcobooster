@@ -1,7 +1,7 @@
 import {
   planPersonResourceSchema,
   scheduleResourceSchema,
-} from "@worship-admin/api/modules/planning-center/people/resource-schemas";
+} from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import { describe, expect, it } from "vitest";
 
 describe("people resource schemas", () => {

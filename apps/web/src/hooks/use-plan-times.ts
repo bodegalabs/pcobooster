@@ -1,7 +1,7 @@
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import type { PlanTime } from "@pcobooster/planning-center-models/types";
 import { useQuery } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
-import type { PlanTime } from "@worship-admin/planning-center-models/types";
 
 import { queryKeys } from "@/lib/query-keys";
 import { orpc } from "@/orpc-client";

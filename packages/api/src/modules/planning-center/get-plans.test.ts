@@ -1,5 +1,5 @@
-import { getPlansForServiceType } from "@worship-admin/api/modules/planning-center/get-plans";
-import type { PlanningCenterPlansService } from "@worship-admin/api/planning-center/services/plans-service";
+import { getPlansForServiceType } from "@pcobooster/api/modules/planning-center/get-plans";
+import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 describe(getPlansForServiceType, () => {

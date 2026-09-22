@@ -2,7 +2,7 @@ import {
   appendSelectedPlanningCenterAccountCookie,
   applyPrivateNoStore,
   serializeSelectedPlanningCenterAccountCookie,
-} from "@worship-admin/api/transport/orpc/response-headers";
+} from "@pcobooster/api/transport/orpc/response-headers";
 import { describe, expect, it } from "vitest";
 
 describe("identity oRPC response headers", () => {

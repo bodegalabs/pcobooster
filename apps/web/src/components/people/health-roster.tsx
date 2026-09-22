@@ -3,7 +3,7 @@
 import type {
   PeopleDashboardData,
   PeopleDashboardPerson,
-} from "@worship-admin/contracts/people-schemas";
+} from "@pcobooster/contracts/people-schemas";
 
 import { loadBadge } from "@/components/people/calendar";
 import { RosterTableBody } from "@/components/people/roster-table-body";

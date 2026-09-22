@@ -1,7 +1,7 @@
 import type {
   PeopleDashboardData,
   PeopleDashboardPersonDetail,
-} from "@worship-admin/contracts/people-schemas";
+} from "@pcobooster/contracts/people-schemas";
 
 const formatDashboardMonthKey = (month: PeopleDashboardData["month"]): string =>
   `${month.year}-${String(month.monthIndex + 1).padStart(2, "0")}`;

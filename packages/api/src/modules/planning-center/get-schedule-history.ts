@@ -1,18 +1,18 @@
 import {
   buildFrequencyFromServiceHistory,
   buildHistoryAndFrequencyForPerson,
-} from "@worship-admin/api/modules/planning-center/people/history";
-import { scheduleResourceSchema } from "@worship-admin/api/modules/planning-center/people/resource-schemas";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
+} from "@pcobooster/api/modules/planning-center/people/history";
+import { scheduleResourceSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import {
   addCalendarDaysToDayKey,
   formatCalendarDayInTimeZone,
-} from "@worship-admin/planning-center-models/calendar";
+} from "@pcobooster/planning-center-models/calendar";
 import type {
   PlanPerson,
   RawSchedule,
   ScheduleFrequency,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 export interface ScheduleHistoryResult {
   planPeople: PlanPerson[];

@@ -1,5 +1,5 @@
-import { RequestContext } from "@worship-admin/api/application/context";
-import type { RequestContextValue } from "@worship-admin/api/application/context";
+import { RequestContext } from "@pcobooster/api/application/context";
+import type { RequestContextValue } from "@pcobooster/api/application/context";
 import { Effect, ManagedRuntime } from "effect";
 import type { Exit, Layer } from "effect";
 

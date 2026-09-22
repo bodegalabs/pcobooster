@@ -1,7 +1,7 @@
-import { getNeededTeamPositionsForPlan } from "@worship-admin/api/modules/planning-center/get-team-positions";
-import type { TeamPositionDependencies } from "@worship-admin/api/modules/planning-center/get-team-positions";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+import { getNeededTeamPositionsForPlan } from "@pcobooster/api/modules/planning-center/get-team-positions";
+import type { TeamPositionDependencies } from "@pcobooster/api/modules/planning-center/get-team-positions";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const createFixture = () => {

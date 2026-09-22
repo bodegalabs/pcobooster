@@ -6,17 +6,17 @@ import {
   getPlanningCenterAccounts,
   getSessionStatus,
   selectPlanningCenterAccount,
-} from "@worship-admin/api/application/identity";
-import { isDevAuthBypassEnabled } from "@worship-admin/api/auth/dev-bypass";
-import { executeApplicationEffect } from "@worship-admin/api/transport/orpc/execute";
+} from "@pcobooster/api/application/identity";
+import { isDevAuthBypassEnabled } from "@pcobooster/api/auth/dev-bypass";
+import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
 import {
   applicationRuntime,
   rpc,
-} from "@worship-admin/api/transport/orpc/implementation";
+} from "@pcobooster/api/transport/orpc/implementation";
 import {
   appendSelectedPlanningCenterAccountCookie,
   applyPrivateNoStore,
-} from "@worship-admin/api/transport/orpc/response-headers";
+} from "@pcobooster/api/transport/orpc/response-headers";
 
 const sessionStatus = rpc.session.status.handler(
   async ({ context, signal }) => {

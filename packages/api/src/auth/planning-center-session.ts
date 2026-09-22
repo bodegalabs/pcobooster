@@ -1,11 +1,11 @@
-import { Unauthenticated } from "@worship-admin/api/application/errors/unauthenticated";
-import { auth } from "@worship-admin/api/auth";
+import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
+import { auth } from "@pcobooster/api/auth";
 import {
   getDevBypassSession,
   isDevAuthBypassEnabled,
-} from "@worship-admin/api/auth/dev-bypass";
-import { getPlanningCenterToken } from "@worship-admin/api/auth/planning-center-token";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/api/auth/dev-bypass";
+import { getPlanningCenterToken } from "@pcobooster/api/auth/planning-center-token";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
 export const PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE =

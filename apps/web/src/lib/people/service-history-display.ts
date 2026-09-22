@@ -1,10 +1,10 @@
-import { orgCalendarDaysRefMinusItem } from "@worship-admin/planning-center-models/calendar";
-import { formatCalendarDayInTimeZone } from "@worship-admin/planning-center-models/calendar-day";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import { orgCalendarDaysRefMinusItem } from "@pcobooster/planning-center-models/calendar";
+import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar-day";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   ScheduleFrequency,
   ServiceHistoryItem,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 const displayDateFormatter = new Intl.DateTimeFormat("en-US", {
   weekday: "short",

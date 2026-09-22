@@ -5,7 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type {
   FilledPositionPerson,
   TeamPositionGroup,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { useId, useMemo, useState } from "react";
 
 import {

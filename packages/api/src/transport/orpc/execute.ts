@@ -1,9 +1,9 @@
 import { ORPCError } from "@orpc/server";
-import { createRequestContext } from "@worship-admin/api/application/context";
-import type { RequestContext } from "@worship-admin/api/application/context";
-import type { ApplicationFault } from "@worship-admin/api/application/errors";
-import type { ApplicationRuntime } from "@worship-admin/api/application/runtime";
-import type { RpcContext } from "@worship-admin/api/transport/orpc/context";
+import { createRequestContext } from "@pcobooster/api/application/context";
+import type { RequestContext } from "@pcobooster/api/application/context";
+import type { ApplicationFault } from "@pcobooster/api/application/errors";
+import type { ApplicationRuntime } from "@pcobooster/api/application/runtime";
+import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
 import { Cause, Exit } from "effect";
 import type { Effect } from "effect";
 

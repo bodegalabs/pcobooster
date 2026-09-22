@@ -1,6 +1,6 @@
-# worshipadmin.com
+# pcobooster.com
 
-Planning Center scheduling tools for worship admins.
+Planning Center tools for worship teams.
 
 ## Overview
 
@@ -32,7 +32,7 @@ bun install --frozen-lockfile
 
 ### 2. Configure local secrets with Infisical
 
-Install the [Infisical CLI](https://infisical.com/docs/cli/usage) and run `infisical login`. This repository's `.infisical.json` links to the dedicated `worshipadmin.com` project. Add local values to its **Development** environment at the root path (`/`); [application configuration](docs/environment.md) lists the expected keys. Do not paste secret values into issues, chat, or committed files.
+Install the [Infisical CLI](https://infisical.com/docs/cli/usage) and run `infisical login`. This repository's `.infisical.json` links to the PCOBooster Infisical project. Add local values to its **Development** environment at the root path (`/`); [application configuration](docs/environment.md) lists the expected keys. Do not paste secret values into issues, chat, or committed files.
 
 Required local keys:
 

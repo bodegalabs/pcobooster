@@ -5,7 +5,7 @@ export interface MyScheduledPlansData {
 }
 
 const CACHE_VERSION = "v1";
-const CACHE_KEY_PREFIX = `worshipadmin:my-scheduled-plans:${CACHE_VERSION}:`;
+const CACHE_KEY_PREFIX = `pcobooster:my-scheduled-plans:${CACHE_VERSION}:`;
 
 interface CachedPayload {
   savedAt: number;

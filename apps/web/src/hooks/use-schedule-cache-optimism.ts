@@ -1,12 +1,12 @@
 "use client";
-import type { QueryClient, QueryKey } from "@tanstack/react-query";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   FilledPositionPerson,
   PersonWithAvailability,
   TeamPosition,
   TeamPositionGroup,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
+import type { QueryClient, QueryKey } from "@tanstack/react-query";
 
 import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
 import { clearCachedPeople } from "@/lib/people-cache";

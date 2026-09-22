@@ -1,12 +1,12 @@
 import {
   formatWallTimeInTimeZone,
   zonedWallTimeToUtcIso,
-} from "@worship-admin/planning-center-models/calendar";
+} from "@pcobooster/planning-center-models/calendar";
 import type {
   PlanTime,
   PlanTimeType,
   TeamPositionGroup,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 export interface EditablePlanTime {
   name: string;

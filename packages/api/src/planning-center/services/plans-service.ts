@@ -1,16 +1,16 @@
-import { logger } from "@worship-admin/api/logger";
-import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
-import type { PlanningCenterCoreClient } from "@worship-admin/api/planning-center/core-client";
-import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
-import { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
+import { logger } from "@pcobooster/api/logger";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import type { PlanningCenterCoreClient } from "@pcobooster/api/planning-center/core-client";
+import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
+import { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import {
   PlanningCenterReadCache,
   stableParams,
-} from "@worship-admin/api/planning-center/services/read-cache";
-import { formatCalendarDayInTimeZone } from "@worship-admin/planning-center-models/calendar";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
-import type { JsonObject } from "@worship-admin/planning-center-models/json";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/api/planning-center/services/read-cache";
+import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import type { JsonObject } from "@pcobooster/planning-center-models/json";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 
 const log = logger.for("planning-center/plans");
 const PLANS_RANGE_CACHE_TTL_MS = 5 * 60 * 1000;

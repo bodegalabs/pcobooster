@@ -1,11 +1,11 @@
-import { getPlanningCenterIdentityFromAccessToken } from "@worship-admin/api/auth/planning-center-identity";
-import { db } from "@worship-admin/api/db";
-import { getPlanningCenterAccountIdentity } from "@worship-admin/api/modules/admin/planning-center-account-identities";
+import { getPlanningCenterIdentityFromAccessToken } from "@pcobooster/api/auth/planning-center-identity";
+import { db } from "@pcobooster/api/db";
+import { getPlanningCenterAccountIdentity } from "@pcobooster/api/modules/admin/planning-center-account-identities";
 import type {
   AdminAccountActivity,
   AdminUserAccountDetail,
-} from "@worship-admin/contracts/admin";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/contracts/admin";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 
@@ -58,7 +58,7 @@ const toIsoString = (value: Date | string | null): string | null => {
 };
 
 export const getAdminEmailAllowlist = (): string[] => {
-  const configured = process.env.WORSHIP_ADMIN_ADMIN_EMAILS;
+  const configured = process.env.PCOBOOSTER_ADMIN_EMAILS;
   if (!isNonEmptyString(configured)) {
     return ["jakebodea@gmail.com"];
   }

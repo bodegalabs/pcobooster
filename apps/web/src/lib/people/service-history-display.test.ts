@@ -1,4 +1,4 @@
-import type { ServiceHistoryItem } from "@worship-admin/planning-center-models/types";
+import type { ServiceHistoryItem } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 import {

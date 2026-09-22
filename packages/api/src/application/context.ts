@@ -18,7 +18,7 @@ export interface RequestContextValue {
 }
 
 export class RequestContext extends Context.Tag(
-  "@worship-admin/api/RequestContext"
+  "@pcobooster/api/RequestContext"
 )<RequestContext, RequestContextValue>() {}
 
 export const createRequestContext = (request: Request): RequestContextValue => {

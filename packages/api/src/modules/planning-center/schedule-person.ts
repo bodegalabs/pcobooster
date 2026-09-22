@@ -1,10 +1,10 @@
-import { InvalidInput } from "@worship-admin/api/application/errors/invalid-input";
-import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import { findIncluded } from "@worship-admin/api/planning-center/utils";
-import type { scheduleAssignInputSchema } from "@worship-admin/contracts/schedule";
-import { isString } from "@worship-admin/planning-center-models/json";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+import { InvalidInput } from "@pcobooster/api/application/errors/invalid-input";
+import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import { findIncluded } from "@pcobooster/api/planning-center/utils";
+import type { scheduleAssignInputSchema } from "@pcobooster/contracts/schedule";
+import { isString } from "@pcobooster/planning-center-models/json";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 import type { z } from "zod";
 
 export type SchedulePersonInput = z.output<typeof scheduleAssignInputSchema>;

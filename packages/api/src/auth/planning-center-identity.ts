@@ -1,4 +1,4 @@
-import { isString } from "@worship-admin/planning-center-models/json";
+import { isString } from "@pcobooster/planning-center-models/json";
 import { z } from "zod";
 
 const PLANNING_CENTER_USERINFO_URL =

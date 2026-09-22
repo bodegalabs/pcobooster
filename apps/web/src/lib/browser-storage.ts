@@ -1,4 +1,4 @@
-const STORAGE_CHANGE_EVENT = "worshipadmin:storage-change";
+const STORAGE_CHANGE_EVENT = "pcobooster:storage-change";
 const memoryFallback = new Map<string, string | null>();
 
 export const readBrowserStorage = (key: string): string | null => {

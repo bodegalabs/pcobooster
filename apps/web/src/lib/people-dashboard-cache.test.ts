@@ -1,7 +1,7 @@
 import type {
   PeopleDashboardData,
   PeopleDashboardPersonDetail,
-} from "@worship-admin/contracts/people-schemas";
+} from "@pcobooster/contracts/people-schemas";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -189,7 +189,7 @@ describe("people dashboard cache", () => {
 
   it("ignores invalid person detail snapshots", () => {
     window.localStorage.setItem(
-      "worshipadmin:people-dashboard:v1:person:person-1:2026-05",
+      "pcobooster:people-dashboard:v1:person:person-1:2026-05",
       JSON.stringify({
         savedAt: Date.now(),
         data: { person: { id: "person-1" } },

@@ -1,9 +1,9 @@
 import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@worship-admin/contracts/errors";
+import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import {
   songCatalogEntrySchema,
   songOptionSetSchema,
-} from "@worship-admin/contracts/song-schemas";
+} from "@pcobooster/contracts/song-schemas";
 import { z } from "zod";
 
 const requiredId = z.string().trim().min(1);

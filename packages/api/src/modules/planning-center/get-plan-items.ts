@@ -1,6 +1,6 @@
-import { normalizePlanItem } from "@worship-admin/api/modules/planning-center/plan-items-shared";
-import type { PlanningCenterPlanItemsService } from "@worship-admin/api/planning-center/services/plan-items-service";
-import type { PlanItem } from "@worship-admin/planning-center-models/types";
+import { normalizePlanItem } from "@pcobooster/api/modules/planning-center/plan-items-shared";
+import type { PlanningCenterPlanItemsService } from "@pcobooster/api/planning-center/services/plan-items-service";
+import type { PlanItem } from "@pcobooster/planning-center-models/types";
 
 export interface PlanItemsReader {
   getPlanItems: PlanningCenterPlanItemsService["getPlanItems"];

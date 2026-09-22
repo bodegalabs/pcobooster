@@ -1,7 +1,7 @@
 import type {
   PeopleDashboardDayKind,
   PeopleDashboardPerson,
-} from "@worship-admin/contracts/people-schemas";
+} from "@pcobooster/contracts/people-schemas";
 
 export type CalendarCell =
   | { day: number; key: string }

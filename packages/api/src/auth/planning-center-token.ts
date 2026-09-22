@@ -1,6 +1,6 @@
-import { Unauthenticated } from "@worship-admin/api/application/errors/unauthenticated";
-import { auth } from "@worship-admin/api/auth";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
+import { auth } from "@pcobooster/api/auth";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 
 interface PlanningCenterAccountSelector {
   id: string;

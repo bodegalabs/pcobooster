@@ -1,25 +1,25 @@
 import {
   PlanningCenterAccess,
   resolvePlanningCenterAccess,
-} from "@worship-admin/api/application/planning-center-access";
-import type { PlanningCenterAccessDependencies } from "@worship-admin/api/application/planning-center-access";
+} from "@pcobooster/api/application/planning-center-access";
+import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
 import {
   commitScheduledPerson,
   prepareScheduledPerson,
   removeScheduledPerson,
   updateScheduledPersonStatus,
-} from "@worship-admin/api/application/schedule";
-import { recordActivityEvent } from "@worship-admin/api/db/activity-events";
-import type { ActivityEventInput } from "@worship-admin/api/db/activity-events";
-import { logger } from "@worship-admin/api/logger";
-import { executeApplicationEffect } from "@worship-admin/api/transport/orpc/execute";
+} from "@pcobooster/api/application/schedule";
+import { recordActivityEvent } from "@pcobooster/api/db/activity-events";
+import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
+import { logger } from "@pcobooster/api/logger";
+import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
 import {
   applicationRuntime,
   rpc,
-} from "@worship-admin/api/transport/orpc/implementation";
-import { applyPrivateNoStore } from "@worship-admin/api/transport/orpc/response-headers";
-import { scheduleActivityEvent } from "@worship-admin/api/transport/orpc/schedule-activity";
-import type { ScheduleOperation } from "@worship-admin/api/transport/orpc/schedule-activity";
+} from "@pcobooster/api/transport/orpc/implementation";
+import { applyPrivateNoStore } from "@pcobooster/api/transport/orpc/response-headers";
+import { scheduleActivityEvent } from "@pcobooster/api/transport/orpc/schedule-activity";
+import type { ScheduleOperation } from "@pcobooster/api/transport/orpc/schedule-activity";
 import { Effect } from "effect";
 
 export interface ScheduleRouterDependencies {

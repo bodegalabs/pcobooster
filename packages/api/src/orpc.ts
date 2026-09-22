@@ -1,19 +1,19 @@
-import { RequestContext } from "@worship-admin/api/application/context";
-import { catalogRouter } from "@worship-admin/api/transport/orpc/catalog";
-import { executeApplicationEffect } from "@worship-admin/api/transport/orpc/execute";
-import { identityRouter } from "@worship-admin/api/transport/orpc/identity";
+import { RequestContext } from "@pcobooster/api/application/context";
+import { catalogRouter } from "@pcobooster/api/transport/orpc/catalog";
+import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
+import { identityRouter } from "@pcobooster/api/transport/orpc/identity";
 import {
   applicationRuntime,
   rpc,
-} from "@worship-admin/api/transport/orpc/implementation";
-import { peopleRouter } from "@worship-admin/api/transport/orpc/people";
-import { planItemsRouter } from "@worship-admin/api/transport/orpc/plan-items";
+} from "@pcobooster/api/transport/orpc/implementation";
+import { peopleRouter } from "@pcobooster/api/transport/orpc/people";
+import { planItemsRouter } from "@pcobooster/api/transport/orpc/plan-items";
 import {
   planPeopleRouter,
   planTimesRouter,
-} from "@worship-admin/api/transport/orpc/plan-times";
-import { scheduleRouter } from "@worship-admin/api/transport/orpc/schedule";
-import { songsRouter } from "@worship-admin/api/transport/orpc/songs";
+} from "@pcobooster/api/transport/orpc/plan-times";
+import { scheduleRouter } from "@pcobooster/api/transport/orpc/schedule";
+import { songsRouter } from "@pcobooster/api/transport/orpc/songs";
 import { Effect } from "effect";
 
 const health = rpc.health.handler(

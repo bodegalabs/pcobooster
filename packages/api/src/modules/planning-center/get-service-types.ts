@@ -1,10 +1,10 @@
-import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
+import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import {
   isNonEmptyString,
   isNumber,
   isString,
-} from "@worship-admin/planning-center-models/json";
-import type { ServiceType } from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/json";
+import type { ServiceType } from "@pcobooster/planning-center-models/types";
 
 export const getServiceTypes = async (
   catalogService: Pick<PlanningCenterCatalogService, "getServiceTypesCached">,

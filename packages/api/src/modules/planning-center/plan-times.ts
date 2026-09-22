@@ -1,24 +1,24 @@
 import {
   buildPlanSchedulingContext,
   isDeclinedRosterStatus,
-} from "@worship-admin/api/modules/planning-center/plan-scheduling-context";
-import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import type { PlanningCenterPlansService } from "@worship-admin/api/planning-center/services/plans-service";
+} from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
+import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import {
   isNonEmptyString,
   isString,
-} from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/planning-center-models/json";
 import type {
   JsonObject,
   JsonValue,
-} from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/planning-center-models/json";
 import type {
   PCRelationship,
   PCResource,
   PlanTime,
   PlanTimeType,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 interface UpdatePlanTimeInput {
   serviceTypeId: string;

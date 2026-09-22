@@ -1,4 +1,4 @@
-import type { PersonWithAvailability } from "@worship-admin/planning-center-models/types";
+import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -146,7 +146,7 @@ describe("people cache", () => {
 
   it("ignores invalid cache payloads", () => {
     window.localStorage.setItem(
-      "worshipadmin:people:v1:st-1:team-1:position-1:plan-1:2026-05-31",
+      "pcobooster:people:v1:st-1:team-1:position-1:plan-1:2026-05-31",
       JSON.stringify({ savedAt: Date.now(), data: [{ id: "person-1" }] })
     );
 

@@ -19,5 +19,5 @@ export const setRouteTimingHeaders = (
 ): void => {
   const formatted = formatDurationMs(durationMs);
   headers.set("Server-Timing", `app;dur=${formatted}`);
-  headers.set("x-worshipadmin-route-ms", formatted);
+  headers.set("x-pcobooster-route-ms", formatted);
 };

@@ -1,7 +1,7 @@
 "use client";
 import { ORPCError } from "@orpc/client";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import { z } from "zod";
 
 import {

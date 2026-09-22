@@ -2,7 +2,7 @@ import {
   planSchema,
   teamPositionsInputSchema,
   teamPositionsOutputSchema,
-} from "@worship-admin/contracts/catalog";
+} from "@pcobooster/contracts/catalog";
 import { describe, expect, it } from "vitest";
 
 describe("catalog contracts", () => {

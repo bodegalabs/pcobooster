@@ -1,4 +1,4 @@
-# worshipadmin.com feature map
+# pcobooster.com feature map
 
 Use the smallest set of flows that covers the changed behavior. Record unsupported branches as limitations in the proof receipt.
 

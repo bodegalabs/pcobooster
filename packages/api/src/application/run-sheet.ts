@@ -1,59 +1,59 @@
-import { ensureRequestIsOpen } from "@worship-admin/api/application/context";
-import type { RequestContext } from "@worship-admin/api/application/context";
-import type { ApplicationFault } from "@worship-admin/api/application/errors";
+import { ensureRequestIsOpen } from "@pcobooster/api/application/context";
+import type { RequestContext } from "@pcobooster/api/application/context";
+import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import {
   PlanningCenterAccess,
   tryPlanningCenter,
-} from "@worship-admin/api/application/planning-center-access";
-import type { PlanningCenterRequestAccess } from "@worship-admin/api/application/planning-center-access";
+} from "@pcobooster/api/application/planning-center-access";
+import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/planning-center-access";
 import {
   commitCreatePlanItem,
   prepareCreatePlanItem,
-} from "@worship-admin/api/modules/planning-center/create-plan-item";
-import type { PreparedCreatePlanItem } from "@worship-admin/api/modules/planning-center/create-plan-item";
-import { deletePlanItem } from "@worship-admin/api/modules/planning-center/delete-plan-item";
-import { invalidatePlanWindowHistory } from "@worship-admin/api/modules/planning-center/get-people-for-position";
-import { getPlanItems } from "@worship-admin/api/modules/planning-center/get-plan-items";
-import { getSongOptions } from "@worship-admin/api/modules/planning-center/get-song-options";
-import { updatePlanPersonTimes } from "@worship-admin/api/modules/planning-center/plan-person-times";
+} from "@pcobooster/api/modules/planning-center/create-plan-item";
+import type { PreparedCreatePlanItem } from "@pcobooster/api/modules/planning-center/create-plan-item";
+import { deletePlanItem } from "@pcobooster/api/modules/planning-center/delete-plan-item";
+import { invalidatePlanWindowHistory } from "@pcobooster/api/modules/planning-center/get-people-for-position";
+import { getPlanItems } from "@pcobooster/api/modules/planning-center/get-plan-items";
+import { getSongOptions } from "@pcobooster/api/modules/planning-center/get-song-options";
+import { updatePlanPersonTimes } from "@pcobooster/api/modules/planning-center/plan-person-times";
 import {
   createPlanTime,
   deletePlanTime,
   getPlanTimes,
   updatePlanTime,
-} from "@worship-admin/api/modules/planning-center/plan-times";
-import type { PlanTimeDependencies } from "@worship-admin/api/modules/planning-center/plan-times";
-import { reorderPlanItems } from "@worship-admin/api/modules/planning-center/reorder-plan-items";
-import { searchSongs } from "@worship-admin/api/modules/planning-center/search-songs";
+} from "@pcobooster/api/modules/planning-center/plan-times";
+import type { PlanTimeDependencies } from "@pcobooster/api/modules/planning-center/plan-times";
+import { reorderPlanItems } from "@pcobooster/api/modules/planning-center/reorder-plan-items";
+import { searchSongs } from "@pcobooster/api/modules/planning-center/search-songs";
 import {
   commitUpdatePlanItem,
   prepareUpdatePlanItem,
-} from "@worship-admin/api/modules/planning-center/update-plan-item";
-import type { PreparedUpdatePlanItem } from "@worship-admin/api/modules/planning-center/update-plan-item";
+} from "@pcobooster/api/modules/planning-center/update-plan-item";
+import type { PreparedUpdatePlanItem } from "@pcobooster/api/modules/planning-center/update-plan-item";
 import type {
   PlanItemsCreateInput,
   PlanItemsDeleteInput,
   PlanItemsListInput,
   PlanItemsReorderInput,
   PlanItemsUpdateInput,
-} from "@worship-admin/contracts/plan-items";
-import type { PlanPeopleUpdateTimesInput } from "@worship-admin/contracts/plan-people";
+} from "@pcobooster/contracts/plan-items";
+import type { PlanPeopleUpdateTimesInput } from "@pcobooster/contracts/plan-people";
 import type {
   PlanTimesCreateInput,
   PlanTimesDeleteInput,
   PlanTimesListInput,
   PlanTimesUpdateInput,
-} from "@worship-admin/contracts/plan-times";
+} from "@pcobooster/contracts/plan-times";
 import type {
   SongsOptionsInput,
   SongsSearchInput,
-} from "@worship-admin/contracts/songs";
+} from "@pcobooster/contracts/songs";
 import type {
   PlanItem,
   PlanTime,
   SongCatalogEntry,
   SongOptionSet,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
 const planTimeDependenciesFor = (

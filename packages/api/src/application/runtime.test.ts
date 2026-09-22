@@ -1,15 +1,15 @@
 import {
   createRequestContext,
   RequestContext,
-} from "@worship-admin/api/application/context";
-import { Forbidden } from "@worship-admin/api/application/errors/forbidden";
-import { createApplicationRuntime } from "@worship-admin/api/application/runtime";
+} from "@pcobooster/api/application/context";
+import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
+import { createApplicationRuntime } from "@pcobooster/api/application/runtime";
 import { Cause, Context, Deferred, Effect, Exit, Layer, Option } from "effect";
 import { describe, expect, it } from "vitest";
 
 const requestContext = (requestId: string, signal?: AbortSignal) =>
   createRequestContext(
-    new Request("https://worshipadmin.com/api/rpc", {
+    new Request("https://pcobooster.com/api/rpc", {
       headers: {
         "x-request-id": requestId,
         authorization: `Bearer ${requestId}`,

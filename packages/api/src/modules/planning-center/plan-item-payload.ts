@@ -1,12 +1,12 @@
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   JsonObject,
   JsonValue,
-} from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/planning-center-models/json";
 import type {
   PlanItemServicePosition,
   SongOptionSet,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 export interface PlanItemPayloadInput {
   serviceTypeId: string;

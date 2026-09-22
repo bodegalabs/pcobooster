@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const CACHE_VERSION = "v1";
-const CACHE_KEY = `worshipadmin:organization-time-zone:${CACHE_VERSION}`;
+const CACHE_KEY = `pcobooster:organization-time-zone:${CACHE_VERSION}`;
 
 interface CachedPayload {
   savedAt: number;

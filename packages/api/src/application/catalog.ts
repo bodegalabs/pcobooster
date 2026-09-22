@@ -1,24 +1,24 @@
-import type { ApplicationFault } from "@worship-admin/api/application/errors";
+import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import {
   PlanningCenterAccess,
   tryPlanningCenter,
-} from "@worship-admin/api/application/planning-center-access";
-import type { PlanningCenterRequestAccess } from "@worship-admin/api/application/planning-center-access";
-import { getPlansForServiceType } from "@worship-admin/api/modules/planning-center/get-plans";
-import { getServiceTypes } from "@worship-admin/api/modules/planning-center/get-service-types";
-import { getNeededTeamPositionsForPlan } from "@worship-admin/api/modules/planning-center/get-team-positions";
-import type { TeamPositionDependencies } from "@worship-admin/api/modules/planning-center/get-team-positions";
-import { presentTeamPositions } from "@worship-admin/api/modules/planning-center/presentation";
-import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
+} from "@pcobooster/api/application/planning-center-access";
+import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/planning-center-access";
+import { getPlansForServiceType } from "@pcobooster/api/modules/planning-center/get-plans";
+import { getServiceTypes } from "@pcobooster/api/modules/planning-center/get-service-types";
+import { getNeededTeamPositionsForPlan } from "@pcobooster/api/modules/planning-center/get-team-positions";
+import type { TeamPositionDependencies } from "@pcobooster/api/modules/planning-center/get-team-positions";
+import { presentTeamPositions } from "@pcobooster/api/modules/planning-center/presentation";
+import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
 import type {
   Plan,
   ServiceType,
   TeamPositionGroup,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import {
   getPresentationSeed,
   isPresentationMode,
-} from "@worship-admin/presentation-mode";
+} from "@pcobooster/presentation-mode";
 import { Effect } from "effect";
 
 const resolveRequestTimeZone = async (

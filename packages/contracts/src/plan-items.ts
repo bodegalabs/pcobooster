@@ -1,9 +1,9 @@
 import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@worship-admin/contracts/errors";
+import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import {
   planItemSchema,
   planItemServicePositionSchema,
-} from "@worship-admin/contracts/plan-item-schemas";
+} from "@pcobooster/contracts/plan-item-schemas";
 import { z } from "zod";
 
 const requiredId = z.string().trim().min(1);

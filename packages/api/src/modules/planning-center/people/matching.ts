@@ -1,13 +1,13 @@
-import type { SelectedPlanMatchContext } from "@worship-admin/api/modules/planning-center/people/types";
+import type { SelectedPlanMatchContext } from "@pcobooster/api/modules/planning-center/people/types";
 import {
   isNonEmptyString,
   isString,
-} from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/planning-center-models/json";
 import type {
   PersonWithAvailability,
   RawPlanPerson,
   RawSchedule,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 type SchedulableRecord = RawSchedule | RawPlanPerson;
 

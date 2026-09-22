@@ -1,7 +1,7 @@
-import { addCalendarDaysToDayKey } from "@worship-admin/planning-center-models/calendar";
-import { formatCalendarDayInTimeZone } from "@worship-admin/planning-center-models/calendar-day";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
-import { getScheduleContextHalfRangeWeekOptions } from "@worship-admin/planning-center-models/schedule-constants";
+import { addCalendarDaysToDayKey } from "@pcobooster/planning-center-models/calendar";
+import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar-day";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import { getScheduleContextHalfRangeWeekOptions } from "@pcobooster/planning-center-models/schedule-constants";
 import { describe, expect, it } from "vitest";
 
 describe("browser-safe Planning Center model exports", () => {

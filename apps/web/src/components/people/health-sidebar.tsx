@@ -3,7 +3,7 @@
 import type {
   PeopleDashboardData,
   PeopleDashboardPerson,
-} from "@worship-admin/contracts/people-schemas";
+} from "@pcobooster/contracts/people-schemas";
 import { Medal, ShieldAlert } from "lucide-react";
 
 import type { CalendarCell } from "@/components/people/calendar";

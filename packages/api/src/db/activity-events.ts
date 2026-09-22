@@ -1,6 +1,6 @@
-import { db } from "@worship-admin/api/db";
-import { activityEvents } from "@worship-admin/api/db/schema";
-import type { JsonObject } from "@worship-admin/planning-center-models/json";
+import { db } from "@pcobooster/api/db";
+import { activityEvents } from "@pcobooster/api/db/schema";
+import type { JsonObject } from "@pcobooster/planning-center-models/json";
 
 export type ActivityEventType =
   | "schedule_attempt"

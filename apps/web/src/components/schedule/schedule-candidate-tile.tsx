@@ -1,7 +1,7 @@
 "use client";
 
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
-import type { PersonWithAvailability } from "@worship-admin/planning-center-models/types";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
 import { CalendarPlus, Info, Loader2 } from "lucide-react";
 
 import { PlanPersonStatusMenu } from "@/components/schedule/plan-person-status-menu";

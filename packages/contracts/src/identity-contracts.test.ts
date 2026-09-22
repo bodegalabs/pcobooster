@@ -2,13 +2,13 @@ import {
   accountsSelectInputSchema,
   accountSwitchSchema,
   planningCenterAccountsSchema,
-} from "@worship-admin/contracts/accounts";
+} from "@pcobooster/contracts/accounts";
 import {
   adminAccountsResponseSchema,
   adminUserResponseSchema,
-} from "@worship-admin/contracts/admin";
-import { featureSchema } from "@worship-admin/contracts/features";
-import { sessionStatusSchema } from "@worship-admin/contracts/session";
+} from "@pcobooster/contracts/admin";
+import { featureSchema } from "@pcobooster/contracts/features";
+import { sessionStatusSchema } from "@pcobooster/contracts/session";
 import { describe, expect, it } from "vitest";
 
 const identity = {

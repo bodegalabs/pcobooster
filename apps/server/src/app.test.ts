@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { createServerApp } from "./app";
 
-const allowedOrigin = "https://worshipadmin.com";
+const allowedOrigin = "https://pcobooster.com";
 const recordedAt = new Date("2026-09-19T12:34:56.000Z");
 const privateNoStore = "private, no-store";
 type TestAuthHandler = (request: Request) => Promise<Response> | Response;

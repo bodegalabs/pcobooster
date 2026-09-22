@@ -1,6 +1,6 @@
 "use client";
 
-import type { PeopleDashboardPerson } from "@worship-admin/contracts/people-schemas";
+import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 import { ChevronRight } from "lucide-react";
 
 import { loadBadge } from "@/components/people/calendar";

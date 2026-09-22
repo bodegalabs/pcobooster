@@ -1,26 +1,26 @@
-import { RequestContext } from "@worship-admin/api/application/context";
-import type { ApplicationFault } from "@worship-admin/api/application/errors";
-import { Forbidden } from "@worship-admin/api/application/errors/forbidden";
-import { NotFound } from "@worship-admin/api/application/errors/not-found";
-import { PersistenceFailure } from "@worship-admin/api/application/errors/persistence-failure";
-import { Unauthenticated } from "@worship-admin/api/application/errors/unauthenticated";
-import { auth } from "@worship-admin/api/auth";
+import { RequestContext } from "@pcobooster/api/application/context";
+import type { ApplicationFault } from "@pcobooster/api/application/errors";
+import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
+import { NotFound } from "@pcobooster/api/application/errors/not-found";
+import { PersistenceFailure } from "@pcobooster/api/application/errors/persistence-failure";
+import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
+import { auth } from "@pcobooster/api/auth";
 import {
   getDevBypassPlanningCenterAccount,
   getDevBypassSession,
   isDevAuthBypassEnabled,
   loadDevBypassIdentity,
-} from "@worship-admin/api/auth/dev-bypass";
-import { getPlanningCenterIdentityForAccount } from "@worship-admin/api/auth/planning-center-account-identity";
-import { getSelectedPlanningCenterAccountId } from "@worship-admin/api/auth/planning-center-session";
-import { isPeoplePageEnabled } from "@worship-admin/api/config/people-page-availability";
-import { authorizeAdminRequest } from "@worship-admin/api/modules/admin/authorize-admin";
+} from "@pcobooster/api/auth/dev-bypass";
+import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
+import { getSelectedPlanningCenterAccountId } from "@pcobooster/api/auth/planning-center-session";
+import { isPeoplePageEnabled } from "@pcobooster/api/config/people-page-availability";
+import { authorizeAdminRequest } from "@pcobooster/api/modules/admin/authorize-admin";
 import {
   getAccountActivity,
   getUserAccountDetail,
   isAdminEmail,
-} from "@worship-admin/api/modules/admin/get-account-activity";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/api/modules/admin/get-account-activity";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { Effect } from "effect";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";

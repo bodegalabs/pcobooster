@@ -2,7 +2,7 @@ import {
   elapsedMs,
   formatDurationMs,
   setRouteTimingHeaders,
-} from "@worship-admin/api/http/timing";
+} from "@pcobooster/api/http/timing";
 import { describe, expect, it } from "vitest";
 
 describe("http timing helpers", () => {
@@ -23,6 +23,6 @@ describe("http timing helpers", () => {
     setRouteTimingHeaders(headers, 42.24);
 
     expect(headers.get("Server-Timing")).toBe("app;dur=42.2");
-    expect(headers.get("x-worshipadmin-route-ms")).toBe("42.2");
+    expect(headers.get("x-pcobooster-route-ms")).toBe("42.2");
   });
 });

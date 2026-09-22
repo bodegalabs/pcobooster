@@ -1,12 +1,12 @@
-import { Forbidden } from "@worship-admin/api/application/errors/forbidden";
-import { Unauthenticated } from "@worship-admin/api/application/errors/unauthenticated";
-import { auth } from "@worship-admin/api/auth";
+import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
+import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
+import { auth } from "@pcobooster/api/auth";
 import {
   getDevBypassSession,
   isDevAuthBypassEnabled,
   loadDevBypassIdentity,
-} from "@worship-admin/api/auth/dev-bypass";
-import { isAdminEmail } from "@worship-admin/api/modules/admin/get-account-activity";
+} from "@pcobooster/api/auth/dev-bypass";
+import { isAdminEmail } from "@pcobooster/api/modules/admin/get-account-activity";
 
 export const authorizeAdminRequest = async (request: Request) => {
   const session = isDevAuthBypassEnabled()

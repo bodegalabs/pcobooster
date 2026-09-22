@@ -1,4 +1,4 @@
-import type { SongCatalogEntry } from "@worship-admin/planning-center-models/types";
+import type { SongCatalogEntry } from "@pcobooster/planning-center-models/types";
 import { z } from "zod";
 
 import { serializedSongCatalogEntrySchema } from "@/lib/persistence-schemas";
@@ -6,7 +6,7 @@ import { hydrateSongCatalogEntry } from "@/lib/song-catalog-client";
 import type { SerializedSongCatalogEntry } from "@/lib/song-catalog-client";
 
 const CACHE_VERSION = "v1";
-const CACHE_KEY_PREFIX = `worshipadmin:song-search:${CACHE_VERSION}:`;
+const CACHE_KEY_PREFIX = `pcobooster:song-search:${CACHE_VERSION}:`;
 
 interface CachedPayload {
   savedAt: number;

@@ -1,4 +1,4 @@
-import { getPlanningCenterToken } from "@worship-admin/api/auth/planning-center-token";
+import { getPlanningCenterToken } from "@pcobooster/api/auth/planning-center-token";
 import { describe, expect, it, vi } from "vitest";
 
 describe("Planning Center token account selection", () => {

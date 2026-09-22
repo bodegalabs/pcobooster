@@ -1,21 +1,21 @@
 import {
   findMatchingScheduleForSelectedPosition,
   isDeclinedAssignmentStatus,
-} from "@worship-admin/api/modules/planning-center/people/matching";
+} from "@pcobooster/api/modules/planning-center/people/matching";
 import type {
   HistoryBuildResult,
   SelectedPlanMatchContext,
-} from "@worship-admin/api/modules/planning-center/people/types";
-import { findIncluded } from "@worship-admin/api/planning-center/utils";
+} from "@pcobooster/api/modules/planning-center/people/types";
+import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import {
   formatCalendarDayInTimeZone,
   orgCalendarDaysRefMinusItem,
-} from "@worship-admin/planning-center-models/calendar";
+} from "@pcobooster/planning-center-models/calendar";
 import {
   isNonEmptyString,
   isString,
-} from "@worship-admin/planning-center-models/json";
-import { PLAN_HISTORY_HALF_RANGE_DAYS } from "@worship-admin/planning-center-models/schedule-constants";
+} from "@pcobooster/planning-center-models/json";
+import { PLAN_HISTORY_HALF_RANGE_DAYS } from "@pcobooster/planning-center-models/schedule-constants";
 import type {
   PCResource,
   RawPlanPerson,
@@ -23,7 +23,7 @@ import type {
   RawSchedule,
   ScheduleFrequency,
   ServiceHistoryItem,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 type HistoryTimeType = "service" | "rehearsal" | "other";
 

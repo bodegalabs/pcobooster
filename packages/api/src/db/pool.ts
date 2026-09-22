@@ -1,4 +1,4 @@
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { Pool } from "pg";
 
 const databaseUrl = process.env.DATABASE_URL;

@@ -1,27 +1,27 @@
 import {
   buildHistoryAndFrequencyForPlanPeople,
   buildHistoryAndFrequencyForPerson,
-} from "@worship-admin/api/modules/planning-center/people/history";
+} from "@pcobooster/api/modules/planning-center/people/history";
 import {
   applySelectedPlanStatus,
   findMatchingScheduleForSelectedPosition,
   getSelectedPlanAssignmentLabels,
-} from "@worship-admin/api/modules/planning-center/people/matching";
+} from "@pcobooster/api/modules/planning-center/people/matching";
 import {
   planPersonResourceSchema,
   planTimeResourceSchema,
   scheduleResourceSchema,
-} from "@worship-admin/api/modules/planning-center/people/resource-schemas";
+} from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import {
   applySelectedPlanRosterStatus,
   getSelectedPlanRosterOverlay,
   mergeAssignedAndSelectedPlanSlotPeople,
   mergeAssignmentLabels,
-} from "@worship-admin/api/modules/planning-center/people/roster-overlay";
+} from "@pcobooster/api/modules/planning-center/people/roster-overlay";
 import {
   scoreAndNormalizePeople,
   sortPeopleForSelection,
-} from "@worship-admin/api/modules/planning-center/people/scoring";
+} from "@pcobooster/api/modules/planning-center/people/scoring";
 import {
   applyAvailability,
   buildBlockoutsPromise,
@@ -29,27 +29,27 @@ import {
   createBasePerson,
   getAssignedPeopleFromAssignments,
   getDefaultFrequency,
-} from "@worship-admin/api/modules/planning-center/people/transforms";
+} from "@pcobooster/api/modules/planning-center/people/transforms";
 import {
   buildPlanSchedulingContext,
   emptyPlanSchedulingContext,
   getPlanSchedulingContext,
-} from "@worship-admin/api/modules/planning-center/plan-scheduling-context";
-import type { PlanSchedulingContext } from "@worship-admin/api/modules/planning-center/plan-scheduling-context";
-import { mapWithConcurrency } from "@worship-admin/api/modules/planning-center/shared";
-import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import type { PlanningCenterPlansService } from "@worship-admin/api/planning-center/services/plans-service";
-import { PlanningCenterReadCache } from "@worship-admin/api/planning-center/services/read-cache";
+} from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
+import type { PlanSchedulingContext } from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
+import { mapWithConcurrency } from "@pcobooster/api/modules/planning-center/shared";
+import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
+import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import {
   addCalendarDaysToDayKey,
   formatCalendarDayInTimeZone,
-} from "@worship-admin/planning-center-models/calendar";
+} from "@pcobooster/planning-center-models/calendar";
 import {
   isNonEmptyString,
   isNumber,
-} from "@worship-admin/planning-center-models/json";
-import { PLAN_HISTORY_HALF_RANGE_DAYS } from "@worship-admin/planning-center-models/schedule-constants";
+} from "@pcobooster/planning-center-models/json";
+import { PLAN_HISTORY_HALF_RANGE_DAYS } from "@pcobooster/planning-center-models/schedule-constants";
 import type {
   PCResource,
   PersonWithAvailability,
@@ -58,7 +58,7 @@ import type {
   RawSchedule,
   ScheduleFrequency,
   ServiceHistoryItem,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 /**
  * These are outbound Planning Center read requests. Keep them well below the 100 rps API window,

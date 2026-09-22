@@ -1,9 +1,9 @@
 ---
-name: verify-worship-admin
-description: Verify worshipadmin.com changes on the rendered marketing or product surface and capture visual proof. Use after deterministic checks when a change affects routes, UI, auth boundaries, or user-visible behavior.
+name: verify-pcobooster
+description: Verify pcobooster.com changes on the rendered marketing or product surface and capture visual proof. Use after deterministic checks when a change affects routes, UI, auth boundaries, or user-visible behavior.
 ---
 
-# Verify worshipadmin.com
+# Verify pcobooster.com
 
 Read [references/feature-map.md](references/feature-map.md) and select every flow touched by the diff.
 
