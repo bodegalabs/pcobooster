@@ -13,7 +13,7 @@ import { getSessionStatus } from "@/server/api";
 import { AuthSignInCard } from "./auth-sign-in-card";
 
 export const metadata: Metadata = {
-  title: "Sign in · worshipadmin.com",
+  title: "Sign in · PCOBooster",
 };
 
 type SearchParamValue = string | string[] | undefined;

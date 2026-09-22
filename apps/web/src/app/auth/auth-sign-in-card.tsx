@@ -11,6 +11,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 import { SIGN_IN_RETURN_PARAM } from "@/lib/auth-redirect";
+import {
+  ROCKET_ANIMATION,
+  canPlayRocketHoverAnimation,
+  playRocketAnimation,
+} from "@/lib/brand-rocket-animation";
 
 const PLANNING_CENTER_ORIGINS = [
   "https://api.planningcenteronline.com",
@@ -60,6 +65,26 @@ export const AuthSignInCard = ({
   const [redirecting, setRedirecting] = useState(false);
   const preparedRef = useRef<PreparedAuthorization | null>(null);
   const maskId = useId().replaceAll(":", "");
+  const rocketRef = useRef<HTMLDivElement>(null);
+  const replayCleanupRef = useRef<(() => void) | null>(null);
+
+  // Same hover flourish as the sidebar brand mark; the page-load takeoff is
+  // server-rendered so it plays with the first paint.
+  const replayRocket = useCallback(() => {
+    const rocket = rocketRef.current;
+    if (rocket === null || !canPlayRocketHoverAnimation()) {
+      return;
+    }
+    replayCleanupRef.current?.();
+    replayCleanupRef.current = playRocketAnimation(rocket, "replay");
+  }, []);
+
+  useEffect(
+    () => () => {
+      replayCleanupRef.current?.();
+    },
+    []
+  );
 
   for (const origin of PLANNING_CENTER_ORIGINS) {
     preconnect(origin);
@@ -131,12 +156,18 @@ export const AuthSignInCard = ({
   return (
     <main className="auth-backdrop flex min-h-svh items-center justify-center px-4 py-12">
       <div className="auth-stagger flex w-full max-w-sm flex-col items-center gap-6">
-        <div
-          aria-hidden
-          data-launching={redirecting ? "" : undefined}
-          className="auth-rocket size-14"
-        >
-          <BrandRocketLogo maskId={maskId} />
+        <div className="flex items-center gap-2.5" onMouseEnter={replayRocket}>
+          <span className="text-2xl tracking-tight">
+            <strong className="font-bold">PCO</strong>Booster
+          </span>
+          <div
+            ref={rocketRef}
+            aria-hidden
+            data-launching={redirecting ? "" : undefined}
+            className={`auth-rocket size-10 ${ROCKET_ANIMATION.takeoff.className}`}
+          >
+            <BrandRocketLogo maskId={maskId} />
+          </div>
         </div>
 
         <Card className="w-full">
@@ -144,7 +175,7 @@ export const AuthSignInCard = ({
             <div className="flex flex-col gap-6">
               <div className="flex flex-col gap-1.5 text-center">
                 <h1 className="font-heading text-xl font-semibold tracking-tight">
-                  Sign in to worshipadmin.com
+                  Sign in
                 </h1>
                 <p className="text-muted-foreground text-pretty">
                   Plan services and schedule your team with your Planning Center
@@ -165,6 +196,7 @@ export const AuthSignInCard = ({
                 aria-busy={redirecting}
                 disabled={redirecting}
                 onPointerEnter={() => {
+                  replayRocket();
                   void warmAuthorization();
                 }}
                 onFocus={() => {
@@ -192,7 +224,7 @@ export const AuthSignInCard = ({
 
         <p className="text-muted-foreground max-w-xs text-center text-xs text-pretty">
           You’ll sign in on Planning Center, then come right back here.
-          worshipadmin.com only uses your Services and People access.
+          PCOBooster only uses your Services and People access.
         </p>
       </div>
     </main>
