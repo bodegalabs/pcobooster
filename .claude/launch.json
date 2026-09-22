@@ -6,6 +6,12 @@
       "runtimeExecutable": "bun",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "marketing",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "--cwd", "apps/marketing", "dev"],
+      "port": 3002
     }
   ]
 }
