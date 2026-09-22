@@ -6,7 +6,7 @@ import {
   Clock01Icon,
   KeyboardIcon,
   LaptopIcon,
-  LayoutThreeColumnIcon,
+  Layout3ColumnIcon,
   ListMusicIcon,
   Logout01Icon,
   Moon02Icon,
@@ -679,7 +679,7 @@ const ServicesSidebarMenuItem = () => {
       key: "lineup",
       label: "Lineup",
       href: buildScheduleViewUrl(pathname, searchParams, "lineup"),
-      icon: LayoutThreeColumnIcon,
+      icon: Layout3ColumnIcon,
     },
     {
       key: "plan",
