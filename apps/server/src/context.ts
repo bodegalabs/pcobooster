@@ -1,4 +1,4 @@
-import type { RpcContext } from "@worship-admin/api/transport/orpc/context";
+import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
 
 export const createContext = ({
   request,

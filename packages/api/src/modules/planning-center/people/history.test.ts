@@ -2,14 +2,14 @@ import {
   buildFrequencyFromServiceHistory,
   buildHistoryAndFrequencyForPerson,
   buildHistoryAndFrequencyForPlanPeople,
-} from "@worship-admin/api/modules/planning-center/people/history";
-import { scheduleResourceSchema } from "@worship-admin/api/modules/planning-center/people/resource-schemas";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/api/modules/planning-center/people/history";
+import { scheduleResourceSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   PCResource,
   RawPlanPerson,
   ServiceHistoryItem,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 const schedule = (params: {

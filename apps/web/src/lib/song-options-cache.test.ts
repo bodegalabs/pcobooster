@@ -1,4 +1,4 @@
-import type { SongOptionSet } from "@worship-admin/planning-center-models/types";
+import type { SongOptionSet } from "@pcobooster/planning-center-models/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -93,7 +93,7 @@ describe("song options cache", () => {
 
   it("ignores invalid cache payloads", () => {
     window.localStorage.setItem(
-      "worshipadmin:song-options:v1:st-1:song-1",
+      "pcobooster:song-options:v1:st-1:song-1",
       JSON.stringify({ savedAt: Date.now(), data: { song: { id: "song-1" } } })
     );
 

@@ -1,7 +1,7 @@
 import type {
   Plan,
   ServiceType,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {

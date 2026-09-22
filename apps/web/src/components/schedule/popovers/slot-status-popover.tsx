@@ -1,6 +1,6 @@
 "use client";
 
-import type { FilledPositionPerson } from "@worship-admin/planning-center-models/types";
+import type { FilledPositionPerson } from "@pcobooster/planning-center-models/types";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

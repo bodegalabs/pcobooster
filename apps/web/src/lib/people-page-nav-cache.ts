@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const PEOPLE_PAGE_NAV_CACHE_KEY = "worshipadmin:people-page-nav";
+export const PEOPLE_PAGE_NAV_CACHE_KEY = "pcobooster:people-page-nav";
 
 export interface PeoplePageNavState {
   enabled: boolean;

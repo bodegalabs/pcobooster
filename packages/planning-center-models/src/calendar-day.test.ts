@@ -1,8 +1,8 @@
 import {
   formatWallTimeInTimeZone,
   zonedWallTimeToUtcIso,
-} from "@worship-admin/planning-center-models/calendar";
-import { blockoutCoversPlanSortInstant } from "@worship-admin/planning-center-models/calendar-day";
+} from "@pcobooster/planning-center-models/calendar";
+import { blockoutCoversPlanSortInstant } from "@pcobooster/planning-center-models/calendar-day";
 import { describe, expect, it } from "vitest";
 
 describe(blockoutCoversPlanSortInstant, () => {

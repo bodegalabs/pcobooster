@@ -1,22 +1,22 @@
-import { planItemSchema } from "@worship-admin/contracts/plan-item-schemas";
+import { planItemSchema } from "@pcobooster/contracts/plan-item-schemas";
 import {
   planItemsCreateInputSchema,
   planItemsReorderInputSchema,
   planItemsSuccessSchema,
   planItemsUpdateInputSchema,
-} from "@worship-admin/contracts/plan-items";
+} from "@pcobooster/contracts/plan-items";
 import {
   planPeopleUpdateTimesInputSchema,
   planPeopleUpdateTimesOutputSchema,
-} from "@worship-admin/contracts/plan-people";
-import { planTimeSchema } from "@worship-admin/contracts/plan-time-schemas";
+} from "@pcobooster/contracts/plan-people";
+import { planTimeSchema } from "@pcobooster/contracts/plan-time-schemas";
 import {
   planTimesCreateInputSchema,
   planTimesDeleteOutputSchema,
   planTimesUpdateInputSchema,
-} from "@worship-admin/contracts/plan-times";
-import { songOptionSetSchema } from "@worship-admin/contracts/song-schemas";
-import { songsSearchInputSchema } from "@worship-admin/contracts/songs";
+} from "@pcobooster/contracts/plan-times";
+import { songOptionSetSchema } from "@pcobooster/contracts/song-schemas";
+import { songsSearchInputSchema } from "@pcobooster/contracts/songs";
 import { describe, expect, it } from "vitest";
 
 const scope = { serviceTypeId: "service-1", planId: "plan-1" };

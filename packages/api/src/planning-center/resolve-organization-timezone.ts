@@ -1,9 +1,9 @@
-import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
+import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import {
   isNonEmptyString,
   isString,
-} from "@worship-admin/planning-center-models/json";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/json";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 
 const HIT_TTL_MS = 60 * 60 * 1000;
 const MISS_TTL_MS = 2 * 60 * 1000;

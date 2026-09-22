@@ -3,7 +3,7 @@ import type {
   PCRelationship,
   PCResource,
   PCResourceIdentifier,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { z } from "zod";
 
 const optionalLinkSchema = z

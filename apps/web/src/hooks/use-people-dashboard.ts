@@ -1,8 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
 import type {
   PeopleDashboardData,
   PeopleDashboardRange,
-} from "@worship-admin/contracts/people-schemas";
+} from "@pcobooster/contracts/people-schemas";
+import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 
 import {

@@ -1,12 +1,12 @@
 import {
   matchesScheduleTarget,
   resolveScheduleTarget,
-} from "@worship-admin/api/modules/planning-center/schedule-person";
-import type { ScheduleDependencies } from "@worship-admin/api/modules/planning-center/schedule-person";
-import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import { scheduleAssignInputSchema as schedulePersonSchema } from "@worship-admin/contracts/schedule";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/api/modules/planning-center/schedule-person";
+import type { ScheduleDependencies } from "@pcobooster/api/modules/planning-center/schedule-person";
+import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import { scheduleAssignInputSchema as schedulePersonSchema } from "@pcobooster/contracts/schedule";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it, vi } from "vitest";
 
 const team = (id: string, name: string): PCResource => ({

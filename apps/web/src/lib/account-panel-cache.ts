@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const ACCOUNT_PANEL_CACHE_KEY = "worshipadmin:account-panel";
+export const ACCOUNT_PANEL_CACHE_KEY = "pcobooster:account-panel";
 
 export interface AccountPanelSummary {
   organizationName: string;
@@ -25,7 +25,7 @@ export interface AccountPanelSource {
 }
 
 const DEFAULT_SUMMARY: AccountPanelSummary = {
-  organizationName: "worshipadmin.com",
+  organizationName: "pcobooster.com",
   avatarName: null,
   image: null,
 };

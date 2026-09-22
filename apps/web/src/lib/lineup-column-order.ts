@@ -1,4 +1,4 @@
-import type { TeamPositionGroup } from "@worship-admin/planning-center-models/types";
+import type { TeamPositionGroup } from "@pcobooster/planning-center-models/types";
 
 export const reorderLineupColumnIds = (
   columnIds: string[],

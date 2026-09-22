@@ -6,7 +6,7 @@ import {
   schedulePositionMismatchErrorDataSchema,
   scheduleRemoveInputSchema,
   scheduleUpdateStatusInputSchema,
-} from "@worship-admin/contracts/schedule";
+} from "@pcobooster/contracts/schedule";
 import { describe, expect, it } from "vitest";
 
 const assignment = {

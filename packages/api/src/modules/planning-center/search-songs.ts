@@ -1,9 +1,9 @@
 import {
   normalizeSongCatalogEntry,
   scoreSongSearch,
-} from "@worship-admin/api/modules/planning-center/plan-items-shared";
-import type { PlanningCenterSongsService } from "@worship-admin/api/planning-center/services/songs-service";
-import type { SongCatalogEntry } from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/api/modules/planning-center/plan-items-shared";
+import type { PlanningCenterSongsService } from "@pcobooster/api/planning-center/services/songs-service";
+import type { SongCatalogEntry } from "@pcobooster/planning-center-models/types";
 
 const MAX_RESULTS = 24;
 const SONG_SEARCH_RESULT_CACHE_TTL_MS = 5 * 60 * 1000;

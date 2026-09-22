@@ -1,4 +1,4 @@
-# worshipadmin.com marketing site
+# pcobooster.com marketing site
 
 The public site is a separate Next.js app at `apps/marketing`. It is a sibling of the product in `apps/web` and the Hono API in `apps/server`; Bun workspaces and Turborepo provide one lockfile and an ordered build graph.
 
@@ -29,8 +29,8 @@ Production rewrites `/` and `/about` to the exported HTML. Marketing assets use 
 
 ## Content and screenshots
 
-The working product strategy informed the positioning, but its proposed prices, seats, future features, and older naming are not commitments. Public copy uses worshipadmin.com. Solo and Team prices are TBD, with no checkout or fabricated waitlist submission.
+The working product strategy informed the positioning, but its proposed prices, seats, future features, and older naming are not commitments. Public copy uses pcobooster.com. Solo and Team prices are TBD, with no checkout or fabricated waitlist submission.
 
 The screenshots in `apps/marketing/public/marketing/screenshots` are captures of the actual Assign, Lineup, and nearby-schedule interfaces. People were anonymized with local presentation mode. Organization labels were replaced in the browser, fictional-name disambiguation suffixes were removed for readability, and account/developer controls were hidden before capture. No assignments were changed. The page identifies the screenshots as anonymized. Review all visible text and avatars when replacing them; presentation mode alone does not mask every organization or plan label.
 
-The site reuses the product’s rocket logo and Inter typography, without decorative eyebrow labels. It states that worshipadmin.com is not affiliated with, sponsored by, or endorsed by Planning Center. References: [Planning Center developers](https://www.planningcenter.com/developers) and [branding guidelines](https://www.planningcenter.com/logos). This is compatibility wording, not a claim of directory listing or official partner status.
+The site reuses the product’s rocket logo and Inter typography, without decorative eyebrow labels. It states that pcobooster.com is not affiliated with, sponsored by, or endorsed by Planning Center. References: [Planning Center developers](https://www.planningcenter.com/developers) and [branding guidelines](https://www.planningcenter.com/logos). This is compatibility wording, not a claim of directory listing or official partner status.

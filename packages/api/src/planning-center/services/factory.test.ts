@@ -1,8 +1,8 @@
 import {
   createPlanningCenterServices,
   createBasicPlanningCenterServices,
-} from "@worship-admin/api/planning-center/services/factory";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/api/planning-center/services/factory";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it, vi } from "vitest";
 
 const resource = (id: string, type: string): PCResource => ({

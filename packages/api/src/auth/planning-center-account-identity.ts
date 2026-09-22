@@ -1,6 +1,6 @@
-import { getPlanningCenterIdentityFromAccessToken } from "@worship-admin/api/auth/planning-center-identity";
-import type { PlanningCenterIdentity } from "@worship-admin/api/auth/planning-center-identity";
-import { getPlanningCenterToken } from "@worship-admin/api/auth/planning-center-token";
+import { getPlanningCenterIdentityFromAccessToken } from "@pcobooster/api/auth/planning-center-identity";
+import type { PlanningCenterIdentity } from "@pcobooster/api/auth/planning-center-identity";
+import { getPlanningCenterToken } from "@pcobooster/api/auth/planning-center-token";
 
 export const getPlanningCenterIdentityForAccount = async (
   request: Request,

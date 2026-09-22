@@ -1,11 +1,11 @@
-import type { PersonWithAvailability } from "@worship-admin/planning-center-models/types";
+import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
 import { z } from "zod";
 
 import { persistedPersonWithAvailabilitySchema } from "@/lib/persistence-schemas";
 import { presentationCacheKey } from "@/lib/presentation-cache";
 
 const CACHE_VERSION = "v1";
-const CACHE_KEY_PREFIX = `worshipadmin:people:${CACHE_VERSION}:`;
+const CACHE_KEY_PREFIX = `pcobooster:people:${CACHE_VERSION}:`;
 
 interface CachedPayload {
   savedAt: number;

@@ -8,8 +8,8 @@
  *
  * This file MUST stay server-only — never import from client components.
  */
-import { logger } from "@worship-admin/api/logger";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import { logger } from "@pcobooster/api/logger";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { z } from "zod";
 
 const DEV_BYPASS_USER_ID = "dev-bypass-user";
@@ -159,7 +159,7 @@ const getPersonIdentity = (me: z.infer<typeof meResponseSchema> | null) => {
     name: getPersonDisplayName(attributes),
     email:
       me?.included?.find((entry) => entry.type === "Email")?.attributes
-        .address ?? "dev@worshipadmin.local",
+        .address ?? "dev@pcobooster.local",
     image:
       attributes?.avatar ??
       attributes?.demographic_avatar_url ??
@@ -213,7 +213,7 @@ export const getDevBypassSession = (
     user: {
       id: DEV_BYPASS_USER_ID,
       name: id?.name ?? "Dev User",
-      email: id?.email ?? "dev@worshipadmin.local",
+      email: id?.email ?? "dev@pcobooster.local",
       image: id?.image ?? null,
       emailVerified: true,
       createdAt: now,
@@ -244,7 +244,7 @@ export const getDevBypassPlanningCenterAccount = (
     identity: {
       sub: null,
       name: id?.name ?? "Dev User",
-      email: id?.email ?? "dev@worshipadmin.local",
+      email: id?.email ?? "dev@pcobooster.local",
       organizationId: id?.organizationId ?? null,
       organizationName: id?.organizationName ?? "Dev Organization",
     },

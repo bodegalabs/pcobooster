@@ -2,7 +2,7 @@
 
 ## Product Naming
 
-- Public/product naming should use `worshipadmin.com`.
+- Public/product naming should use `pcobooster.com`.
 - Avoid introducing old product names in new docs, UI copy, or PR descriptions unless referring to historical context.
 
 ## Project Structure & Module Organization

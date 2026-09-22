@@ -1,9 +1,9 @@
-import { scoreAndNormalizePeople } from "@worship-admin/api/modules/planning-center/people/scoring";
-import { formatPlanHistoryHalfRangeWeeksLabel } from "@worship-admin/planning-center-models/schedule-constants";
+import { scoreAndNormalizePeople } from "@pcobooster/api/modules/planning-center/people/scoring";
+import { formatPlanHistoryHalfRangeWeeksLabel } from "@pcobooster/planning-center-models/schedule-constants";
 import type {
   PersonWithAvailability,
   ScheduleFrequency,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 const baseFrequency = (

@@ -1,12 +1,12 @@
-import { RequestContext } from "@worship-admin/api/application/context";
-import { Forbidden } from "@worship-admin/api/application/errors/forbidden";
-import { createApplicationRuntime } from "@worship-admin/api/application/runtime";
-import { executeApplicationEffect } from "@worship-admin/api/transport/orpc/execute";
+import { RequestContext } from "@pcobooster/api/application/context";
+import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
+import { createApplicationRuntime } from "@pcobooster/api/application/runtime";
+import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
 import { Effect, Layer } from "effect";
 import { describe, expect, it } from "vitest";
 
 const createRpcContext = () => ({
-  request: new Request("https://worshipadmin.com/api/rpc/health"),
+  request: new Request("https://pcobooster.com/api/rpc/health"),
   requestId: "request-1",
 });
 

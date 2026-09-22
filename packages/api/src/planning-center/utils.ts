@@ -1,4 +1,4 @@
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 
 export const findIncluded = (
   included: PCResource[] | undefined,

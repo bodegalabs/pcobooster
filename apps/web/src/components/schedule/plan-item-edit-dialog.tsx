@@ -1,11 +1,11 @@
 "use client";
 
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   PlanItem,
   PlanItemArrangement,
   PlanItemKey,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { LoaderCircle } from "lucide-react";
 import { startTransition, useState } from "react";
 

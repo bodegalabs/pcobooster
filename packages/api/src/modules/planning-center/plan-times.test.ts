@@ -3,9 +3,9 @@ import {
   deletePlanTime,
   getPlanTimes,
   updatePlanTime,
-} from "@worship-admin/api/modules/planning-center/plan-times";
-import type { PlanTimeDependencies } from "@worship-admin/api/modules/planning-center/plan-times";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/api/modules/planning-center/plan-times";
+import type { PlanTimeDependencies } from "@pcobooster/api/modules/planning-center/plan-times";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const createFixture = () => {

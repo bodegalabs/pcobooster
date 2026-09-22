@@ -3,7 +3,7 @@
 import type {
   PeopleDashboardDay,
   PeopleDashboardPerson,
-} from "@worship-admin/contracts/people-schemas";
+} from "@pcobooster/contracts/people-schemas";
 import { CalendarDays } from "lucide-react";
 import { useState } from "react";
 

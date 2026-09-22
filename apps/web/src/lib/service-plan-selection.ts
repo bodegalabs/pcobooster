@@ -1,7 +1,7 @@
 import {
   addCalendarDaysToDayKey,
   formatCalendarDayInTimeZone,
-} from "@worship-admin/planning-center-models/calendar";
+} from "@pcobooster/planning-center-models/calendar";
 import { z } from "zod";
 
 export interface ServicePlanTableSelectorProps {

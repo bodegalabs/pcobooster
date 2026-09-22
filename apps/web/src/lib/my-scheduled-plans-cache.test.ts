@@ -52,7 +52,7 @@ describe("my scheduled plans cache", () => {
 
   it("ignores invalid cache payloads", () => {
     window.localStorage.setItem(
-      "worshipadmin:my-scheduled-plans:v1:plan-1%2Cplan-2",
+      "pcobooster:my-scheduled-plans:v1:plan-1%2Cplan-2",
       JSON.stringify({ savedAt: Date.now(), data: { planIds: [2] } })
     );
 

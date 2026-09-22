@@ -1,14 +1,14 @@
 import type {
   isDevAuthBypassEnabled,
   loadDevBypassIdentity,
-} from "@worship-admin/api/auth/dev-bypass";
-import type { getPlanningCenterIdentityForAccount } from "@worship-admin/api/auth/planning-center-account-identity";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
+} from "@pcobooster/api/auth/dev-bypass";
+import type { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import {
   isNonEmptyString,
   isString,
-} from "@worship-admin/planning-center-models/json";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/json";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 
 const extractPersonIdFromIdentitySub = (sub: string | null): string | null => {
   if (!isNonEmptyString(sub)) {

@@ -1,6 +1,6 @@
-import { auth } from "@worship-admin/api/auth";
-import { logger } from "@worship-admin/api/logger";
-import { appRouter } from "@worship-admin/api/orpc";
+import { auth } from "@pcobooster/api/auth";
+import { logger } from "@pcobooster/api/logger";
+import { appRouter } from "@pcobooster/api/orpc";
 
 import { createServerApp } from "./app";
 

@@ -1,8 +1,8 @@
 import {
   buildPlanItemAttributes,
   resolvePlanItemSongDefaults,
-} from "@worship-admin/api/modules/planning-center/plan-item-payload";
-import type { LoadSongOptions } from "@worship-admin/api/modules/planning-center/plan-item-payload";
+} from "@pcobooster/api/modules/planning-center/plan-item-payload";
+import type { LoadSongOptions } from "@pcobooster/api/modules/planning-center/plan-item-payload";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getSongOptionsMock = vi.fn<LoadSongOptions>();

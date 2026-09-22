@@ -21,7 +21,7 @@ import type {
   PlanTime,
   TeamPosition,
   TeamPositionGroup,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { CalendarDays, ChevronDown, Clock3, GripVertical } from "lucide-react";
 import { startTransition, useMemo, useState } from "react";
 import type { CSSProperties } from "react";

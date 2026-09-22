@@ -1,11 +1,11 @@
-import { teamPositionGroupSchema } from "@worship-admin/contracts/catalog";
-import type { TeamPositionGroup } from "@worship-admin/planning-center-models/types";
+import { teamPositionGroupSchema } from "@pcobooster/contracts/catalog";
+import type { TeamPositionGroup } from "@pcobooster/planning-center-models/types";
 import { z } from "zod";
 
 import { presentationCacheKey } from "@/lib/presentation-cache";
 
 const CACHE_VERSION = "v1";
-const CACHE_KEY_PREFIX = `worshipadmin:team-positions:${CACHE_VERSION}:`;
+const CACHE_KEY_PREFIX = `pcobooster:team-positions:${CACHE_VERSION}:`;
 
 interface CachedPayload {
   savedAt: number;

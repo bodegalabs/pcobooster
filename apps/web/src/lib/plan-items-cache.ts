@@ -1,4 +1,4 @@
-import type { PlanItem } from "@worship-admin/planning-center-models/types";
+import type { PlanItem } from "@pcobooster/planning-center-models/types";
 import { z } from "zod";
 
 import { serializedPlanItemSchema } from "@/lib/persistence-schemas";
@@ -6,7 +6,7 @@ import { hydratePlanItems, serializePlanItems } from "@/lib/plan-item-client";
 import type { SerializedPlanItem } from "@/lib/plan-item-client";
 
 const CACHE_VERSION = "v1";
-const CACHE_KEY_PREFIX = `worshipadmin:plan-items:${CACHE_VERSION}:`;
+const CACHE_KEY_PREFIX = `pcobooster:plan-items:${CACHE_VERSION}:`;
 
 interface CachedPayload {
   savedAt: number;

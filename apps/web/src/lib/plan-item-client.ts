@@ -2,7 +2,7 @@ import type {
   PlanItem,
   PlanItemArrangement,
   PlanItemSong,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 import { parseOptionalDate } from "@/lib/song-catalog-client";
 

@@ -16,7 +16,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { PlanItem } from "@worship-admin/planning-center-models/types";
+import type { PlanItem } from "@pcobooster/planning-center-models/types";
 import { FileMusic, GripVertical, Music4, Trash2 } from "lucide-react";
 import { startTransition, useState } from "react";
 import type { CSSProperties } from "react";

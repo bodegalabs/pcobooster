@@ -1,6 +1,6 @@
 "use client";
 
-import type { AdminAccountActivity } from "@worship-admin/contracts/admin";
+import type { AdminAccountActivity } from "@pcobooster/contracts/admin";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";

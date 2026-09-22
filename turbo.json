@@ -7,18 +7,18 @@
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**", "out/**"]
     },
-    "@worship-admin/marketing#build": {
+    "@pcobooster/marketing#build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": [".next/**", "!.next/cache/**", "out/**"]
     },
-    "@worship-admin/server#build": {
+    "@pcobooster/server#build": {
       "dependsOn": ["^build"],
       "env": ["NODE_ENV"],
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": ["dist/**"]
     },
-    "@worship-admin/web#build": {
+    "@pcobooster/web#build": {
       "dependsOn": ["^build"],
       "env": [
         "DEV_AUTH_BYPASS",
@@ -82,7 +82,7 @@
         "VERCEL_ENV",
         "VERCEL_PROJECT_PRODUCTION_URL",
         "VERCEL_URL",
-        "WORSHIP_ADMIN_ADMIN_EMAILS"
+        "PCOBOOSTER_ADMIN_EMAILS"
       ],
       "persistent": true
     },

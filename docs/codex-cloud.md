@@ -12,7 +12,7 @@ Codex currently documents setup and cached-environment maintenance scripts, but 
 
 ## Provisioned infrastructure
 
-Codex cloud uses the dedicated Neon project `worship-admin-codex-cloud` (`fancy-tree-14996576`). Its `baseline` branch (`br-lingering-hill-aulkhkmr`) contains only the committed schema migrations and no production or developer data. The agent's Neon API key is project-scoped, so it cannot see or change the `worship-admin` application project.
+Codex cloud uses the dedicated Neon project `pcobooster-codex-cloud` (`fancy-tree-14996576`). Its `baseline` branch (`br-lingering-hill-aulkhkmr`) contains only the committed schema migrations and no production or developer data. The agent's Neon API key is project-scoped, so it cannot see or change the `pcobooster` application project.
 
 Infisical Development `/cloud` contains:
 
@@ -27,7 +27,7 @@ Infisical Development `/cloud` contains:
 | `PLANNING_CENTER_OAUTH_CLIENT_ID` | Cloud-only or nonfunctional test credential. |
 | `PLANNING_CENTER_OAUTH_CLIENT_SECRET` | Cloud-only or nonfunctional test credential. |
 | `PEOPLE_PAGE_ENABLED` | Cloud feature setting. |
-| `WORSHIP_ADMIN_ADMIN_EMAILS` | Cloud-only admin allowlist. |
+| `PCOBOOSTER_ADMIN_EMAILS` | Cloud-only admin allowlist. |
 
 Add any optional application configuration from `docs/environment.md` only when a cloud task needs it. Do not import Development `/local`; it contains the human developer PAT and bypass. Do not grant the cloud identity access to Staging or Production.
 

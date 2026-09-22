@@ -1,6 +1,6 @@
-import { toBlockout } from "@worship-admin/api/modules/planning-center/people/transforms";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import type { Blockout } from "@worship-admin/planning-center-models/types";
+import { toBlockout } from "@pcobooster/api/modules/planning-center/people/transforms";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import type { Blockout } from "@pcobooster/planning-center-models/types";
 
 export interface FutureBlockoutsDependencies {
   readonly peopleService: Pick<

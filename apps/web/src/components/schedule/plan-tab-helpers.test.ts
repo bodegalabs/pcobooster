@@ -1,4 +1,4 @@
-import type { SongOptionSet } from "@worship-admin/planning-center-models/types";
+import type { SongOptionSet } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 import { synchronizeDraftWithSongOptions } from "@/components/schedule/plan-tab-helpers";

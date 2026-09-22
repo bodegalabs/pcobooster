@@ -1,8 +1,8 @@
 "use client";
 
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
 import {
   useCallback,
   useDeferredValue,

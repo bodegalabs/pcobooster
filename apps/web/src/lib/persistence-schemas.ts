@@ -1,7 +1,7 @@
 import type {
   PersonWithAvailability,
   Plan,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { z } from "zod";
 
 import type {

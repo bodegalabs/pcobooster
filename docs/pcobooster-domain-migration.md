@@ -1,6 +1,6 @@
 # Production domain migration
 
-September 18, 2026: move production from `worshipadmin.com` to `pcobooster.com` on the existing Vercel project `worship-admin`.
+September 18, 2026: move production from `worshipadmin.com` to `pcobooster.com` on the Vercel project now named `pcobooster`.
 
 ## Configuration
 
@@ -23,7 +23,7 @@ The inspected repository has no implemented webhook receiver or email/payment in
 
 ## Preview limitation
 
-Preview `BETTER_AUTH_URL` still points to `https://worshipadmin.com`, a pre-existing limitation documented in [environment ownership](neon-infisical-preview.md). Production migration does not fix Preview authentication. A dedicated preview origin and matching OAuth callback or a deliberately configured OAuth proxy remain separate work. Local Development continues using `http://localhost:3000`.
+Preview `BETTER_AUTH_URL` now points to `https://pcobooster.com`, a pre-existing limitation documented in [environment ownership](neon-infisical-preview.md). This does not fix Preview authentication. A dedicated preview origin and matching OAuth callback or a deliberately configured OAuth proxy remain separate work. Local Development continues using `http://localhost:3000`.
 
 ## Rollback
 

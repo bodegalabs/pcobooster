@@ -1,4 +1,4 @@
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 
 interface RouteSelectionIds {
   teamId: string | null;

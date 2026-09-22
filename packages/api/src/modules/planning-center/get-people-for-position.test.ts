@@ -1,9 +1,9 @@
-import { getPeopleForPosition } from "@worship-admin/api/modules/planning-center/get-people-for-position";
-import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import type { PlanningCenterPlansService } from "@worship-admin/api/planning-center/services/plans-service";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+import { getPeopleForPosition } from "@pcobooster/api/modules/planning-center/get-people-for-position";
+import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const createFixture = () => {

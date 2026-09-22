@@ -1,6 +1,6 @@
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import { isString } from "@worship-admin/planning-center-models/json";
-import type { JsonValue } from "@worship-admin/planning-center-models/json";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import { isString } from "@pcobooster/planning-center-models/json";
+import type { JsonValue } from "@pcobooster/planning-center-models/json";
 
 import type { PresentationIdentity } from "./presentation";
 

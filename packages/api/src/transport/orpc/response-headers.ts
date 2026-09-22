@@ -1,4 +1,4 @@
-import { PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE } from "@worship-admin/api/auth/planning-center-session";
+import { PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE } from "@pcobooster/api/auth/planning-center-session";
 
 const THIRTY_DAYS_IN_SECONDS = 60 * 60 * 24 * 30;
 

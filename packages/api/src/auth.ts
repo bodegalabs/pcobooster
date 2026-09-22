@@ -1,13 +1,13 @@
-import { getPlanningCenterIdentityFromAccessToken } from "@worship-admin/api/auth/planning-center-identity";
-import { db } from "@worship-admin/api/db";
+import { getPlanningCenterIdentityFromAccessToken } from "@pcobooster/api/auth/planning-center-identity";
+import { db } from "@pcobooster/api/db";
 import {
   getActivityRequestContext,
   recordActivityEvent,
-} from "@worship-admin/api/db/activity-events";
-import * as schema from "@worship-admin/api/db/schema";
-import { logger } from "@worship-admin/api/logger";
-import { upsertPlanningCenterAccountIdentity } from "@worship-admin/api/modules/admin/planning-center-account-identities";
-import type { JsonObject } from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/api/db/activity-events";
+import * as schema from "@pcobooster/api/db/schema";
+import { logger } from "@pcobooster/api/logger";
+import { upsertPlanningCenterAccountIdentity } from "@pcobooster/api/modules/admin/planning-center-account-identities";
+import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { genericOAuth } from "better-auth/plugins/generic-oauth";

@@ -1,6 +1,6 @@
-import { PlanningCenterApiError } from "@worship-admin/api/planning-center/api-error";
-import { createBasicPlanningCenterClient } from "@worship-admin/api/planning-center/core-client";
-import { PlanningCenterSongsService } from "@worship-admin/api/planning-center/services/songs-service";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
+import { PlanningCenterSongsService } from "@pcobooster/api/planning-center/services/songs-service";
 import { describe, expect, it, vi } from "vitest";
 
 const createCoreClientMock = () => {

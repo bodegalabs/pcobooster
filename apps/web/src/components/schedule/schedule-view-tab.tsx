@@ -4,7 +4,7 @@ import type {
   FilledPositionPerson,
   PersonWithAvailability,
   TeamPositionGroup,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { CalendarDays, X } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 

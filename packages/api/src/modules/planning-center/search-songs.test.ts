@@ -1,5 +1,5 @@
-import { searchSongs } from "@worship-admin/api/modules/planning-center/search-songs";
-import type { SongCatalogReader } from "@worship-admin/api/modules/planning-center/search-songs";
+import { searchSongs } from "@pcobooster/api/modules/planning-center/search-songs";
+import type { SongCatalogReader } from "@pcobooster/api/modules/planning-center/search-songs";
 import { describe, expect, it, vi } from "vitest";
 
 const createFixture = () => {

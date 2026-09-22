@@ -1,4 +1,4 @@
-import type { PeopleDashboardPerson } from "@worship-admin/contracts/people-schemas";
+import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 import Link from "next/link";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

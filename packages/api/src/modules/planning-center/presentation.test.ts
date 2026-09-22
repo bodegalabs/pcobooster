@@ -1,15 +1,15 @@
-import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
+import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import type {
   Blockout,
   PersonWithAvailability,
   TeamPositionGroup,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import {
   getPresentationSeed,
   getPresentationCacheScope,
   isPresentationMode,
-} from "@worship-admin/presentation-mode";
+} from "@pcobooster/presentation-mode";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {

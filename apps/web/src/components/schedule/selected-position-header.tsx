@@ -1,6 +1,6 @@
 "use client";
 
-import type { TeamPosition } from "@worship-admin/planning-center-models/types";
+import type { TeamPosition } from "@pcobooster/planning-center-models/types";
 import { ChevronsUpDown, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

@@ -1,5 +1,5 @@
+import type { ServiceType } from "@pcobooster/planning-center-models/types";
 import { useQuery } from "@tanstack/react-query";
-import type { ServiceType } from "@worship-admin/planning-center-models/types";
 import { useCallback, useEffect } from "react";
 
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";

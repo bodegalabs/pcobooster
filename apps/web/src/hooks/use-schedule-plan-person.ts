@@ -1,10 +1,10 @@
 "use client";
 import { ORPCError } from "@orpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   isNonEmptyString,
   isString,
-} from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/planning-center-models/json";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
 

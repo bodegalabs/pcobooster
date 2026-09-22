@@ -1,16 +1,16 @@
 import { ORPCError } from "@orpc/server";
-import type { RequestAuthentication } from "@worship-admin/api/application/planning-center-access";
-import { getActivityRequestContext } from "@worship-admin/api/db/activity-events";
-import type { ActivityEventInput } from "@worship-admin/api/db/activity-events";
-import type { RpcContext } from "@worship-admin/api/transport/orpc/context";
+import type { RequestAuthentication } from "@pcobooster/api/application/planning-center-access";
+import { getActivityRequestContext } from "@pcobooster/api/db/activity-events";
+import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
+import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
 import {
   scheduleAssignInputSchema,
   scheduleAssignOutputSchema,
   schedulePositionMismatchErrorDataSchema,
   scheduleRemoveInputSchema,
   scheduleUpdateStatusInputSchema,
-} from "@worship-admin/contracts/schedule";
-import type { JsonObject } from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/contracts/schedule";
+import type { JsonObject } from "@pcobooster/planning-center-models/json";
 
 export type ScheduleOperation = "assign" | "remove" | "updateStatus";
 

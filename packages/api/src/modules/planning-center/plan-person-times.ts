@@ -1,4 +1,4 @@
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 
 export interface UpdatePlanPersonTimesInput {
   serviceTypeId: string;

@@ -1,5 +1,5 @@
-import { getServiceTypes } from "@worship-admin/api/modules/planning-center/get-service-types";
-import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
+import { getServiceTypes } from "@pcobooster/api/modules/planning-center/get-service-types";
+import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import { describe, expect, it, vi } from "vitest";
 
 describe(getServiceTypes, () => {

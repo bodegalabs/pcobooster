@@ -1,7 +1,7 @@
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import type { ContractRouterClient } from "@orpc/contract";
-import type { appContract } from "@worship-admin/contracts";
+import type { appContract } from "@pcobooster/contracts";
 
 type AppClient = ContractRouterClient<typeof appContract>;
 

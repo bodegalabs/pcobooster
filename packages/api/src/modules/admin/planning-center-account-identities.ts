@@ -1,6 +1,6 @@
-import type { PlanningCenterIdentity } from "@worship-admin/api/auth/planning-center-identity";
-import { db } from "@worship-admin/api/db";
-import { planningCenterAccountIdentities } from "@worship-admin/api/db/schema";
+import type { PlanningCenterIdentity } from "@pcobooster/api/auth/planning-center-identity";
+import { db } from "@pcobooster/api/db";
+import { planningCenterAccountIdentities } from "@pcobooster/api/db/schema";
 import { eq } from "drizzle-orm";
 
 export type StoredPlanningCenterAccountIdentity = PlanningCenterIdentity & {

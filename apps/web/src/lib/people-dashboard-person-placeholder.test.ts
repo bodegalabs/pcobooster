@@ -1,7 +1,7 @@
 import type {
   PeopleDashboardData,
   PeopleDashboardPerson,
-} from "@worship-admin/contracts/people-schemas";
+} from "@pcobooster/contracts/people-schemas";
 import { describe, expect, it } from "vitest";
 
 import { getCachedPeopleDashboardPersonDetail } from "@/lib/people-dashboard-person-placeholder";

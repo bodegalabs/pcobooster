@@ -1,6 +1,6 @@
 "use client";
 
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { Search } from "lucide-react";
 
 import { ServiceTypeMultiSelect } from "@/components/service-type-multi-select";

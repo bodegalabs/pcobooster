@@ -1,4 +1,4 @@
-import type { PeopleSearchResult } from "@worship-admin/contracts/people-schemas";
+import type { PeopleSearchResult } from "@pcobooster/contracts/people-schemas";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -81,7 +81,7 @@ describe("people search cache", () => {
 
   it("ignores invalid cache payloads", () => {
     window.localStorage.setItem(
-      "worshipadmin:people-search:v1:andrew",
+      "pcobooster:people-search:v1:andrew",
       JSON.stringify({ savedAt: Date.now(), data: [{ id: "person-1" }] })
     );
 

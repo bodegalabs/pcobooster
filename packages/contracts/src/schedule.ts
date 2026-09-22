@@ -2,7 +2,7 @@ import { oc } from "@orpc/contract";
 import {
   applicationErrorMap,
   conflictErrorDataSchema,
-} from "@worship-admin/contracts/errors";
+} from "@pcobooster/contracts/errors";
 import { z } from "zod";
 
 const requiredId = z.string().trim().min(1);

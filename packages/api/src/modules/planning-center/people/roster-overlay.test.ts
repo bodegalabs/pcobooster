@@ -3,16 +3,16 @@ import {
   getSelectedPlanRosterOverlay,
   mergeAssignedAndSelectedPlanSlotPeople,
   mergeAssignmentLabels,
-} from "@worship-admin/api/modules/planning-center/people/roster-overlay";
+} from "@pcobooster/api/modules/planning-center/people/roster-overlay";
 import type {
   PlanRosterEntry,
   PlanSchedulingContext,
-} from "@worship-admin/api/modules/planning-center/plan-scheduling-context";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   PersonWithAvailability,
   RawPerson,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 const rawPerson = (id: string, firstName = id): RawPerson => ({

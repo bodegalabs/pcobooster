@@ -3,13 +3,13 @@ import {
   planTimeResourceSchema,
   rosterPersonSchema,
   scheduleResourceSchema,
-} from "@worship-admin/api/modules/planning-center/people/resource-schemas";
-import { createBasicPlanningCenterClient } from "@worship-admin/api/planning-center/core-client";
+} from "@pcobooster/api/modules/planning-center/people/resource-schemas";
+import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
 import {
   isNonEmptyString,
   isString,
-} from "@worship-admin/planning-center-models/json";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/json";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 import type { z } from "zod";
 
 const summarizeIssues = (

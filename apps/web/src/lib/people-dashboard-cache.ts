@@ -2,13 +2,13 @@ import type {
   PeopleDashboardData,
   PeopleDashboardPersonDetail,
   PeopleDashboardRange,
-} from "@worship-admin/contracts/people-schemas";
+} from "@pcobooster/contracts/people-schemas";
 import { z } from "zod";
 
 import { presentationCacheKey } from "@/lib/presentation-cache";
 
 const CACHE_VERSION = "v1";
-const KEY_PREFIX = `worshipadmin:people-dashboard:${CACHE_VERSION}:`;
+const KEY_PREFIX = `pcobooster:people-dashboard:${CACHE_VERSION}:`;
 const PERSON_DETAIL_KEY_PREFIX = `${KEY_PREFIX}person:`;
 
 interface CachedPayload<T> {

@@ -4,7 +4,7 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { SidebarLeftIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { isString } from "@worship-admin/planning-center-models/json";
+import { isString } from "@pcobooster/planning-center-models/json";
 import { cva } from "class-variance-authority";
 import type { VariantProps } from "class-variance-authority";
 import { cn } from "cn";

@@ -1,4 +1,4 @@
-import type { PersonWithAvailability } from "@worship-admin/planning-center-models/types";
+import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
 
 const isStripTail = (person: PersonWithAvailability): boolean =>
   person.isBlockedForDate === true ||

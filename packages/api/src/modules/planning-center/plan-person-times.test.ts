@@ -1,5 +1,5 @@
-import { updatePlanPersonTimes } from "@worship-admin/api/modules/planning-center/plan-person-times";
-import type { UpdatePlanPersonTimesDependencies } from "@worship-admin/api/modules/planning-center/plan-person-times";
+import { updatePlanPersonTimes } from "@pcobooster/api/modules/planning-center/plan-person-times";
+import type { UpdatePlanPersonTimesDependencies } from "@pcobooster/api/modules/planning-center/plan-person-times";
 import { describe, expect, it, vi } from "vitest";
 
 describe(updatePlanPersonTimes, () => {

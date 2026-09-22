@@ -1,6 +1,6 @@
-import { createBasicPlanningCenterClient } from "@worship-admin/api/planning-center/core-client";
-import { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
+import { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it, vi } from "vitest";
 
 const createCoreClientMock = () => {

@@ -1,4 +1,4 @@
-import type { TeamPositionGroup } from "@worship-admin/planning-center-models/types";
+import type { TeamPositionGroup } from "@pcobooster/planning-center-models/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -107,7 +107,7 @@ describe("team positions cache", () => {
 
   it("ignores invalid cache payloads", () => {
     window.localStorage.setItem(
-      "worshipadmin:team-positions:v1:st-1:plan-1:series-1",
+      "pcobooster:team-positions:v1:st-1:plan-1:series-1",
       JSON.stringify({ savedAt: Date.now(), data: [{ teamId: "team-1" }] })
     );
 

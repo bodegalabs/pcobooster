@@ -2,7 +2,7 @@
 
 import { UnfoldMoreIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { ServiceType } from "@worship-admin/planning-center-models/types";
+import type { ServiceType } from "@pcobooster/planning-center-models/types";
 import { useId, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";

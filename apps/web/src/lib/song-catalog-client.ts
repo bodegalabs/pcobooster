@@ -1,7 +1,7 @@
 import type {
   SongCatalogEntry,
   SongOptionSet,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 export interface SerializedSongCatalogEntry extends Omit<
   SongCatalogEntry,

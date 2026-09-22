@@ -1,20 +1,20 @@
 import { createHmac } from "node:crypto";
 
-import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import { PlanningCenterReadCache } from "@worship-admin/api/planning-center/services/read-cache";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   Blockout,
   FilledPositionPerson,
   PersonWithAvailability,
   TeamPosition,
   TeamPositionGroup,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import type {
   getPresentationSeed,
   isPresentationMode,
-} from "@worship-admin/presentation-mode";
+} from "@pcobooster/presentation-mode";
 
 import type {
   PeopleDashboardData,

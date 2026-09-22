@@ -3,8 +3,8 @@ import { createHash } from "node:crypto";
 import {
   PlanningCenterCoreClient,
   createBasicPlanningCenterClient,
-} from "@worship-admin/api/planning-center/core-client";
-import type { JsonValue } from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/api/planning-center/core-client";
+import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 

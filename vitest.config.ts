@@ -16,10 +16,10 @@ export default defineConfig({
     clearMocks: true,
     // Unit tests must not inherit database or OAuth credentials from .env.local.
     env: {
-      DATABASE_URL: "postgresql://test:test@127.0.0.1:5432/worshipadmin_test",
+      DATABASE_URL: "postgresql://test:test@127.0.0.1:5432/pcobooster_test",
       BETTER_AUTH_URL: "http://localhost:3000",
       BETTER_AUTH_SECRET:
-        "worshipadmin-unit-test-secret-with-no-production-access",
+        "pcobooster-unit-test-secret-with-no-production-access",
       PLANNING_CENTER_OAUTH_CLIENT_ID: "test-client",
       PLANNING_CENTER_OAUTH_CLIENT_SECRET: "test-client-secret",
       PLANNING_CENTER_CLIENT: "test-client",

@@ -1,4 +1,4 @@
-import { layoutOptionSchema } from "@worship-admin/contracts/plan-item-schemas";
+import { layoutOptionSchema } from "@pcobooster/contracts/plan-item-schemas";
 import { z } from "zod";
 
 export const songCatalogEntrySchema = z.object({

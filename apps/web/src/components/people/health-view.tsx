@@ -3,7 +3,7 @@
 import type {
   PeopleDashboardData,
   PeopleDashboardPerson,
-} from "@worship-admin/contracts/people-schemas";
+} from "@pcobooster/contracts/people-schemas";
 
 import type { buildCalendarCells } from "@/components/people/calendar";
 import { HealthQueues } from "@/components/people/health-queues";

@@ -30,7 +30,7 @@ Do not upload `node_modules`, Bun's global package cache, `.next`, or a local `.
 Production deploys are created by the Vercel Git integration after merge. If a production deployment is unhealthy, inspect it before changing aliases:
 
 ```bash
-vercel ls worship-admin
+vercel ls pcobooster
 vercel inspect <deployment-url>
 vercel logs <deployment-url>
 ```

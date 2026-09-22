@@ -6,29 +6,29 @@ import {
   getMostCommonRoles,
   initialsFromName,
   mapScheduleToDashboardItems,
-} from "@worship-admin/api/modules/planning-center/get-people-dashboard";
-import type { ScheduleItem } from "@worship-admin/api/modules/planning-center/get-people-dashboard";
+} from "@pcobooster/api/modules/planning-center/get-people-dashboard";
+import type { ScheduleItem } from "@pcobooster/api/modules/planning-center/get-people-dashboard";
 import type {
   PeopleDashboardLoad,
   PeopleDashboardPerson,
   PeopleDashboardPersonDetail,
-} from "@worship-admin/api/modules/planning-center/people-dashboard-types";
-import { buildFrequencyFromServiceHistory } from "@worship-admin/api/modules/planning-center/people/history";
+} from "@pcobooster/api/modules/planning-center/people-dashboard-types";
+import { buildFrequencyFromServiceHistory } from "@pcobooster/api/modules/planning-center/people/history";
 import {
   buildPlanSchedulingContext,
   isDeclinedRosterStatus,
-} from "@worship-admin/api/modules/planning-center/plan-scheduling-context";
-import type { PlanningCenterCatalogService } from "@worship-admin/api/planning-center/services/catalog-service";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import type { PlanningCenterPlansService } from "@worship-admin/api/planning-center/services/plans-service";
-import { PlanningCenterReadCache } from "@worship-admin/api/planning-center/services/read-cache";
-import { formatCalendarDayInTimeZone } from "@worship-admin/planning-center-models/calendar";
+} from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
+import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
+import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
+import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
 import {
   isNonEmptyString,
   isString,
-} from "@worship-admin/planning-center-models/json";
-import type { JsonValue } from "@worship-admin/planning-center-models/json";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/json";
+import type { JsonValue } from "@pcobooster/planning-center-models/json";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 
 const PERSON_SCHEDULE_MAX_PAGES = 10;
 const PEOPLE_DASHBOARD_PERSON_CACHE_TTL_MS = 2 * 60 * 1000;

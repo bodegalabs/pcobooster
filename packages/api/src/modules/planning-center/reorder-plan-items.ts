@@ -1,4 +1,4 @@
-import type { PlanningCenterPlanItemsService } from "@worship-admin/api/planning-center/services/plan-items-service";
+import type { PlanningCenterPlanItemsService } from "@pcobooster/api/planning-center/services/plan-items-service";
 
 export interface ReorderPlanItemsDependencies {
   planItemsService: Pick<PlanningCenterPlanItemsService, "reorderPlanItems">;

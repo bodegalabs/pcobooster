@@ -1,8 +1,8 @@
-import { QueryClient } from "@tanstack/react-query";
 import type {
   PersonWithAvailability,
   TeamPositionGroup,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
+import { QueryClient } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {

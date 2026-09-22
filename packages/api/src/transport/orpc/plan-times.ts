@@ -1,16 +1,16 @@
-import { withPlanningCenterAccess } from "@worship-admin/api/application/planning-center-access";
+import { withPlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
 import {
   createRunSheetTime,
   deleteRunSheetTime,
   listPlanTimes,
   updateRunSheetPersonTimes,
   updateRunSheetTime,
-} from "@worship-admin/api/application/run-sheet";
-import { executeApplicationEffect } from "@worship-admin/api/transport/orpc/execute";
+} from "@pcobooster/api/application/run-sheet";
+import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
 import {
   applicationRuntime,
   rpc,
-} from "@worship-admin/api/transport/orpc/implementation";
+} from "@pcobooster/api/transport/orpc/implementation";
 
 const list = rpc.planTimes.list.handler(
   async ({ input, context, signal }) =>

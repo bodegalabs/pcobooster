@@ -48,7 +48,7 @@ describe("organization time zone cache", () => {
 
   it("ignores invalid cache payloads", () => {
     window.localStorage.setItem(
-      "worshipadmin:organization-time-zone:v1",
+      "pcobooster:organization-time-zone:v1",
       JSON.stringify({ savedAt: Date.now(), timeZone: "not-a-zone" })
     );
 

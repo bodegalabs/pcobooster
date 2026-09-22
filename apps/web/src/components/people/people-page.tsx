@@ -1,11 +1,11 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import type {
   PeopleDashboardData,
   PeopleDashboardPerson,
   PeopleDashboardRange,
-} from "@worship-admin/contracts/people-schemas";
+} from "@pcobooster/contracts/people-schemas";
+import { useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useDeferredValue, useMemo, useState } from "react";

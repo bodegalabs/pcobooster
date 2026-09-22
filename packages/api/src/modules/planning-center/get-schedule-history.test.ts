@@ -1,5 +1,5 @@
-import { getScheduleHistory } from "@worship-admin/api/modules/planning-center/get-schedule-history";
-import type { ScheduleHistoryDependencies } from "@worship-admin/api/modules/planning-center/get-schedule-history";
+import { getScheduleHistory } from "@pcobooster/api/modules/planning-center/get-schedule-history";
+import type { ScheduleHistoryDependencies } from "@pcobooster/api/modules/planning-center/get-schedule-history";
 import { describe, expect, it, vi } from "vitest";
 
 const createFixture = () => {

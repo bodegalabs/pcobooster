@@ -1,4 +1,4 @@
-import type { PersonWithAvailability } from "@worship-admin/planning-center-models/types";
+import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 import { partitionPeopleForRecommendationStrip } from "@/lib/people/recommendation-strip-order";

@@ -1,6 +1,6 @@
 import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@worship-admin/contracts/errors";
-import { planningCenterIdentitySchema } from "@worship-admin/contracts/identity";
+import { applicationErrorMap } from "@pcobooster/contracts/errors";
+import { planningCenterIdentitySchema } from "@pcobooster/contracts/identity";
 import { z } from "zod";
 
 export const adminAccountActivitySchema = z.object({

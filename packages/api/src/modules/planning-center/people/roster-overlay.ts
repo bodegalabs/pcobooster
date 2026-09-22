@@ -1,19 +1,19 @@
-import type { SelectedPlanMatchContext } from "@worship-admin/api/modules/planning-center/people/types";
+import type { SelectedPlanMatchContext } from "@pcobooster/api/modules/planning-center/people/types";
 import {
   getRosterEntriesForPerson,
   getRosterEntriesForSlot,
   getRosterPerson,
   isDeclinedRosterStatus,
-} from "@worship-admin/api/modules/planning-center/plan-scheduling-context";
+} from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
 import type {
   PlanRosterEntry,
   PlanSchedulingContext,
-} from "@worship-admin/api/modules/planning-center/plan-scheduling-context";
-import { isNonEmptyString } from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   PersonWithAvailability,
   RawPerson,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 export interface SelectedPlanRosterOverlay {
   selectedSlotEntry?: PlanRosterEntry;

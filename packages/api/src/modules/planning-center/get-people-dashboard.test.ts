@@ -1,6 +1,6 @@
-import { getPeopleDashboard } from "@worship-admin/api/modules/planning-center/get-people-dashboard";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import type { PCResource } from "@worship-admin/planning-center-models/types";
+import { getPeopleDashboard } from "@pcobooster/api/modules/planning-center/get-people-dashboard";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const person = (

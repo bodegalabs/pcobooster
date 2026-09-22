@@ -1,51 +1,51 @@
-import { RequestContext } from "@worship-admin/api/application/context";
-import type { ApplicationFault } from "@worship-admin/api/application/errors";
-import { NotFound } from "@worship-admin/api/application/errors/not-found";
+import { RequestContext } from "@pcobooster/api/application/context";
+import type { ApplicationFault } from "@pcobooster/api/application/errors";
+import { NotFound } from "@pcobooster/api/application/errors/not-found";
 import {
   PlanningCenterAccess,
   tryPlanningCenter,
-} from "@worship-admin/api/application/planning-center-access";
-import type { PlanningCenterRequestAccess } from "@worship-admin/api/application/planning-center-access";
+} from "@pcobooster/api/application/planning-center-access";
+import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/planning-center-access";
 import {
   isDevAuthBypassEnabled,
   loadDevBypassIdentity,
-} from "@worship-admin/api/auth/dev-bypass";
-import { getPlanningCenterIdentityForAccount } from "@worship-admin/api/auth/planning-center-account-identity";
-import { isPeoplePageEnabled } from "@worship-admin/api/config/people-page-availability";
-import { getCurrentUserScheduledPlanIds } from "@worship-admin/api/modules/planning-center/get-current-user-scheduled-plans";
-import { getPeopleDashboard as getPeopleDashboardData } from "@worship-admin/api/modules/planning-center/get-people-dashboard";
-import { getPeopleDashboardPerson as getPeopleDashboardPersonDetail } from "@worship-admin/api/modules/planning-center/get-people-dashboard-person";
+} from "@pcobooster/api/auth/dev-bypass";
+import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
+import { isPeoplePageEnabled } from "@pcobooster/api/config/people-page-availability";
+import { getCurrentUserScheduledPlanIds } from "@pcobooster/api/modules/planning-center/get-current-user-scheduled-plans";
+import { getPeopleDashboard as getPeopleDashboardData } from "@pcobooster/api/modules/planning-center/get-people-dashboard";
+import { getPeopleDashboardPerson as getPeopleDashboardPersonDetail } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
 import {
   getPeopleForPosition,
   warmPeopleHistoryForPlan,
-} from "@worship-admin/api/modules/planning-center/get-people-for-position";
-import type { PeopleForPositionDependencies } from "@worship-admin/api/modules/planning-center/get-people-for-position";
-import { getFutureBlockoutsForPerson } from "@worship-admin/api/modules/planning-center/get-person-blockouts";
-import { getScheduleHistory } from "@worship-admin/api/modules/planning-center/get-schedule-history";
-import type { ScheduleHistoryResult } from "@worship-admin/api/modules/planning-center/get-schedule-history";
+} from "@pcobooster/api/modules/planning-center/get-people-for-position";
+import type { PeopleForPositionDependencies } from "@pcobooster/api/modules/planning-center/get-people-for-position";
+import { getFutureBlockoutsForPerson } from "@pcobooster/api/modules/planning-center/get-person-blockouts";
+import { getScheduleHistory } from "@pcobooster/api/modules/planning-center/get-schedule-history";
+import type { ScheduleHistoryResult } from "@pcobooster/api/modules/planning-center/get-schedule-history";
 import type {
   PeopleDashboardData,
   PeopleDashboardPersonDetail,
   PeopleDashboardRange,
-} from "@worship-admin/api/modules/planning-center/people-dashboard-types";
+} from "@pcobooster/api/modules/planning-center/people-dashboard-types";
 import {
   presentBlockouts,
   presentDashboard,
   presentDashboardPerson,
   presentPeople,
   getPresentationIdentityMapper,
-} from "@worship-admin/api/modules/planning-center/presentation";
-import { searchPeople } from "@worship-admin/api/modules/planning-center/search-people";
-import type { PeopleSearchResult } from "@worship-admin/api/modules/planning-center/search-people";
-import { resolveOrganizationTimeZone } from "@worship-admin/api/planning-center/resolve-organization-timezone";
+} from "@pcobooster/api/modules/planning-center/presentation";
+import { searchPeople } from "@pcobooster/api/modules/planning-center/search-people";
+import type { PeopleSearchResult } from "@pcobooster/api/modules/planning-center/search-people";
+import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
 import type {
   Blockout,
   PersonWithAvailability,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import {
   getPresentationSeed,
   isPresentationMode,
-} from "@worship-admin/presentation-mode";
+} from "@pcobooster/presentation-mode";
 import { Effect } from "effect";
 
 const resolveRequestTimeZone = async (

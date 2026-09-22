@@ -1,8 +1,8 @@
-import { PLAN_HISTORY_HALF_RANGE_WEEKS } from "@worship-admin/planning-center-models/schedule-constants";
+import { PLAN_HISTORY_HALF_RANGE_WEEKS } from "@pcobooster/planning-center-models/schedule-constants";
 import type {
   ScheduleFrequency,
   FrequencyLevel,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 import { cn } from "@/lib/utils";
 

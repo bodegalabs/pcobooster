@@ -1,11 +1,11 @@
 {
-  "extends": "@worship-admin/config/tsconfig.base.json",
+  "extends": "@pcobooster/config/tsconfig.base.json",
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "jsx": "react-jsx",
     "paths": {
-      "@worship-admin/api/db": ["./src/db/index.ts"],
-      "@worship-admin/api/*": ["./src/*"]
+      "@pcobooster/api/db": ["./src/db/index.ts"],
+      "@pcobooster/api/*": ["./src/*"]
     }
   },
   "include": ["src/**/*.ts", "drizzle.config.ts"],

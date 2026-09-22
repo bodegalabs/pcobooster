@@ -1,14 +1,14 @@
-import { serviceTypeSchema } from "@worship-admin/contracts/catalog";
+import { serviceTypeSchema } from "@pcobooster/contracts/catalog";
 import type {
   Plan,
   ServiceType,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 import { z } from "zod";
 
 import { persistedPlanSchema } from "@/lib/persistence-schemas";
 
 const CACHE_VERSION = "v1";
-const CACHE_KEY_PREFIX = `worshipadmin:schedule-catalog:${CACHE_VERSION}:`;
+const CACHE_KEY_PREFIX = `pcobooster:schedule-catalog:${CACHE_VERSION}:`;
 const SERVICE_TYPES_KEY = `${CACHE_KEY_PREFIX}service-types`;
 const PLANS_KEY_PREFIX = `${CACHE_KEY_PREFIX}plans:`;
 

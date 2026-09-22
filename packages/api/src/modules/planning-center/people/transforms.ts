@@ -1,19 +1,19 @@
-import { rosterPersonSchema } from "@worship-admin/api/modules/planning-center/people/resource-schemas";
-import type { SelectedPlanMatchContext } from "@worship-admin/api/modules/planning-center/people/types";
-import type { PlanningCenterPeopleService } from "@worship-admin/api/planning-center/services/people-service";
-import { findIncluded } from "@worship-admin/api/planning-center/utils";
-import { blockoutCoversPlanSortInstant } from "@worship-admin/planning-center-models/calendar-day";
+import { rosterPersonSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
+import type { SelectedPlanMatchContext } from "@pcobooster/api/modules/planning-center/people/types";
+import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import { findIncluded } from "@pcobooster/api/planning-center/utils";
+import { blockoutCoversPlanSortInstant } from "@pcobooster/planning-center-models/calendar-day";
 import {
   isNonEmptyString,
   isString,
-} from "@worship-admin/planning-center-models/json";
+} from "@pcobooster/planning-center-models/json";
 import type {
   Blockout,
   PCResource,
   PersonWithAvailability,
   RawPerson,
   ScheduleFrequency,
-} from "@worship-admin/planning-center-models/types";
+} from "@pcobooster/planning-center-models/types";
 
 export const getDefaultFrequency = (): ScheduleFrequency => ({
   recentServedDays: 0,
