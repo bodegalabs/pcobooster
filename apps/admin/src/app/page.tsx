@@ -17,27 +17,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatDate, formatDateTime } from "@/lib/format-date";
 import { getAdminAccounts } from "@/server/api";
 
 export const dynamic = "force-dynamic";
-
-const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
-
-const formatDateTime = (value: string | null): string => {
-  if (!(value !== null && value !== "")) {
-    return "Never";
-  }
-
-  return dateTimeFormatter.format(new Date(value));
-};
-
-const dateFormatter = new Intl.DateTimeFormat("en-US", { dateStyle: "medium" });
-
-const formatDate = (value: string): string =>
-  dateFormatter.format(new Date(value));
 
 const StatCard = ({
   label,
@@ -114,7 +97,8 @@ const AdminPage = async () => {
             <div>
               <h2 className="text-sm font-medium">Accounts</h2>
               <p className="text-muted-foreground mt-1 text-xs">
-                Login counts start when auth activity logging was added.
+                Login counts start when auth activity logging was added. Times
+                are Pacific.
               </p>
             </div>
             <Activity className="text-muted-foreground size-4" />

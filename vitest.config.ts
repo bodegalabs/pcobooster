@@ -8,6 +8,7 @@ export default defineConfig({
       "packages/**/*.test.ts",
       "apps/server/src/**/*.test.ts",
       "apps/web/src/**/*.test.ts",
+      "apps/admin/src/**/*.test.ts",
       "lint/**/*.test.ts",
       "scripts/**/*.test.ts",
     ],
