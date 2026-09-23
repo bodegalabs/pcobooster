@@ -172,16 +172,23 @@ describe("presentation mode", () => {
   beforeEach(setupPresentationEnvironment);
   afterEach(() => vi.unstubAllEnvs());
 
-  it.each(["production", "test"])(
-    "ignores the flag in %s",
-    async (environment) => {
+  it("ignores the flag in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    expect(isPresentationMode()).toBeFalsy();
+    expect(getPresentationCacheScope()).toBe("live");
+    await expect(
+      presentPeople(people, dependencies.presentation)
+    ).resolves.toBe(people);
+    expect(dependencies.catalog.getOrganization).not.toHaveBeenCalled();
+  });
+
+  // The Bun API dev server runs without NODE_ENV, unlike Next.js.
+  it.each(["development", "test", undefined])(
+    "enables the flag outside production (NODE_ENV=%s)",
+    (environment) => {
       vi.stubEnv("NODE_ENV", environment);
-      expect(isPresentationMode()).toBeFalsy();
-      expect(getPresentationCacheScope()).toBe("live");
-      await expect(
-        presentPeople(people, dependencies.presentation)
-      ).resolves.toBe(people);
-      expect(dependencies.catalog.getOrganization).not.toHaveBeenCalled();
+      expect(isPresentationMode()).toBeTruthy();
+      expect(getPresentationCacheScope()).toMatch(/^present-v1-/u);
     }
   );
 

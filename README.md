@@ -78,7 +78,7 @@ Open `http://localhost:3001`. Turborepo starts the Hono API on port 3000, the pr
 bun run dev:present
 ```
 
-This enables `PRESENTATION_MODE=1` for the local dev server. The app shows a "Presentation mode" badge. Your signed-in account and organization stay visible. Planning Center people get consistent fictional names, fictional initials, and no photos across candidates, filled positions, search, and People pages. Blockout reasons/descriptions and selected-plan decline notes are masked on the server. Names include a short stable suffix to distinguish people with the same alias.
+This enables `PRESENTATION_MODE=1` for the local dev servers. It is ignored when `NODE_ENV=production` or on Vercel. The app shows a "Presentation mode" badge. Your signed-in account and organization stay visible. Planning Center people get consistent fictional names, fictional initials, and no photos across candidates, filled positions, search, and People pages. Blockout reasons/descriptions and selected-plan decline notes are masked on the server. Names include a short stable suffix to distinguish people with the same alias.
 
 Search matches the fictional names. Its first request loads the People directory; subsequent requests reuse the account-scoped directory cache for five minutes. Browser people caches and React Query caches are isolated from normal mode. `PRESENTATION_SEED` optionally changes the aliases and browser cache namespace.
 
