@@ -89,7 +89,7 @@ export default Alchemy.Stack(
           zoneId: zone.zoneId,
           name: "pcobooster.com",
           type: "CAA",
-          content: `0 issue "${issuer}"`,
+          content: { flags: 0, tag: "issue", value: issuer },
         });
       }
     }

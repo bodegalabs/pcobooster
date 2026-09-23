@@ -1,0 +1,2 @@
+# Unified diff context prefixes legitimately precede the dependency's tab indentation.
+patches/*.patch whitespace=-space-before-tab
