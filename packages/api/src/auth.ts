@@ -7,6 +7,8 @@ import {
 import * as schema from "@pcobooster/api/db/schema";
 import { logger } from "@pcobooster/api/logger";
 import { upsertPlanningCenterAccountIdentity } from "@pcobooster/api/modules/admin/planning-center-account-identities";
+import type { PostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-activity";
+import { getPostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-person";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -86,30 +88,46 @@ const recordAuthEventSafely = async (
     userId?: string | null;
     accountId?: string | null;
     metadata?: JsonObject;
+    person?: PostHogPersonProperties | null;
     context: Parameters<typeof getActivityRequestContext>[0];
   }
 ) => {
   try {
     const requestContext = getActivityRequestContext(payload.context);
-    await recordActivityEvent({
-      eventType,
-      actorUserId: payload.userId ?? null,
-      actorAccountId: payload.accountId ?? null,
-      requestId: requestContext.requestId,
-      path: requestContext.path,
-      method: requestContext.method,
-      ipAddress: requestContext.ipAddress,
-      userAgent: requestContext.userAgent,
-      success: true,
-      statusCode: 200,
-      metadata: payload.metadata ?? null,
-    });
+    await recordActivityEvent(
+      {
+        eventType,
+        actorUserId: payload.userId ?? null,
+        actorAccountId: payload.accountId ?? null,
+        requestId: requestContext.requestId,
+        path: requestContext.path,
+        method: requestContext.method,
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+        success: true,
+        statusCode: 200,
+        metadata: payload.metadata ?? null,
+      },
+      payload.person ?? null
+    );
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
     authEventLog.warn(
       { err, eventType },
       "Failed to record auth activity event"
     );
+  }
+};
+
+const getPostHogPersonSafely = async (
+  userId: string
+): Promise<PostHogPersonProperties | null> => {
+  try {
+    return await getPostHogPersonProperties(userId);
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    authEventLog.warn({ err }, "Failed to load PostHog person properties");
+    return null;
   }
 };
 
@@ -169,6 +187,7 @@ export const auth = betterAuth({
         after: async (session, context) => {
           await recordAuthEventSafely("auth_session_created", {
             userId: session.userId,
+            person: await getPostHogPersonSafely(session.userId),
             context,
           });
         },

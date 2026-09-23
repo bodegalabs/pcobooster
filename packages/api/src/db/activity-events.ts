@@ -1,6 +1,11 @@
 import { db } from "@pcobooster/api/db";
 import { activityEvents } from "@pcobooster/api/db/schema";
+import { logger } from "@pcobooster/api/logger";
+import { forwardActivityEventToPostHog } from "@pcobooster/api/modules/analytics/posthog-activity";
+import type { PostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-activity";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
+
+const analyticsLog = logger.for("analytics/posthog");
 
 export type ActivityEventType =
   | "schedule_attempt"
@@ -93,8 +98,10 @@ export const getActivityRequestContext = (
   };
 };
 
+/** The database row is the audit record; PostHog delivery is best effort. */
 export const recordActivityEvent = async (
-  input: ActivityEventInput
+  input: ActivityEventInput,
+  person: PostHogPersonProperties | null = null
 ): Promise<void> => {
   await db.insert(activityEvents).values({
     eventType: input.eventType,
@@ -115,4 +122,12 @@ export const recordActivityEvent = async (
     positionId: toNullableString(input.positionId),
     metadata: input.metadata ?? {},
   });
+  try {
+    await forwardActivityEventToPostHog(input, person);
+  } catch (error) {
+    analyticsLog.warn(
+      { err: error, eventType: input.eventType },
+      "Failed to forward activity event to PostHog"
+    );
+  }
 };

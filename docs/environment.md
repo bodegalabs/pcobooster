@@ -32,7 +32,7 @@ Each Infisical environment's `/` path owns these settings:
 | `DEMO_PLANNING_CENTER_PAT` | No | Secret of that personal access token. Demo sessions spoof people's personal details and cannot write. |
 | `LOG_LEVEL` | No | Server log threshold. |
 | `LOG_PLANNING_CENTER_TIMINGS` | No | Set to `1` only while measuring Planning Center requests. |
-| `NEXT_PUBLIC_POSTHOG_KEY` | No | Public PostHog ingestion token, Production `/` only; see [analytics](analytics.md). |
+| `NEXT_PUBLIC_POSTHOG_KEY` | No | Public PostHog ingestion token, Production `/` only. Used by both browser apps and by the API to forward activity events; see [analytics](analytics.md). |
 | `NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE` | No | Browser fallback while organization timezone data loads. |
 | `PLANNING_CENTER_TIME_ZONE` | No | Server fallback when Planning Center has no organization timezone. |
 
