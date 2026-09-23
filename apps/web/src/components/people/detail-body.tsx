@@ -17,6 +17,85 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const metricKeys = ["month", "thirty", "ninety"];
+const sideCardLines = [
+  [
+    { key: "signal-a", width: "10rem" },
+    { key: "signal-b", width: "8rem" },
+  ],
+  [
+    { key: "notes-a", width: "11rem" },
+    { key: "notes-b", width: "9rem" },
+    { key: "notes-c", width: "10rem" },
+    { key: "notes-d", width: "7rem" },
+  ],
+  [
+    { key: "legend-a", width: "6rem" },
+    { key: "legend-b", width: "6rem" },
+    { key: "legend-c", width: "6rem" },
+  ],
+];
+
+export const PersonDetailBodySkeleton = () => (
+  <div
+    className="grid gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_20rem]"
+    aria-busy
+    aria-label="Loading person"
+  >
+    <section className="flex flex-col gap-3">
+      <div className="grid gap-2 sm:grid-cols-3">
+        {metricKeys.map((key) => (
+          <div
+            key={key}
+            className="border-border/40 rounded-lg border px-3 py-2"
+          >
+            <Skeleton variant="text" className="h-3 w-14" />
+            <Skeleton variant="text" className="mt-2 h-4 w-6" />
+          </div>
+        ))}
+      </div>
+      <Card>
+        <CardHeader>
+          <Skeleton variant="text" className="h-4 w-40" />
+          <Skeleton variant="text" className="mt-1 h-3.5 w-72 max-w-full" />
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-7 gap-1.5">
+            {Array.from({ length: 35 }, (_, index) => (
+              <Skeleton
+                key={index}
+                variant="control"
+                className="aspect-square"
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </section>
+    <aside className="flex flex-col gap-2">
+      {sideCardLines.map((lines) => (
+        <Card key={lines[0].key}>
+          <CardHeader>
+            <Skeleton variant="text" className="h-4 w-32" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-2">
+              {lines.map((line) => (
+                <Skeleton
+                  key={line.key}
+                  variant="text"
+                  className="h-3.5"
+                  width={line.width}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </aside>
+  </div>
+);
+
 export const PersonDetailBody = ({
   data,
   monthLabel,
@@ -31,15 +110,10 @@ export const PersonDetailBody = ({
   const { person } = data;
   return (
     <div
-      className="grid gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_20rem]"
+      className="stale-while-busy grid gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_20rem]"
       aria-busy={isPlaceholderData}
     >
       <section className="flex flex-col gap-3">
-        {isPlaceholderData ? (
-          <div className="border-border/60 bg-background/95 text-muted-foreground w-fit rounded-md border px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur">
-            Refreshing detail...
-          </div>
-        ) : null}
         <div className="grid gap-2 sm:grid-cols-3">
           <Metric label="Month" value={String(person.monthCount)} />
           <Metric label="30 days" value={String(person.thirtyDayCount)} />
@@ -148,12 +222,7 @@ export const PersonDetailState = ({
   isPlaceholderData: boolean;
 }) => {
   if (isLoading || !data) {
-    return (
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <Skeleton className="h-[34rem]" />
-        <Skeleton className="h-64" />
-      </div>
-    );
+    return <PersonDetailBodySkeleton />;
   }
   return (
     <PersonDetailBody

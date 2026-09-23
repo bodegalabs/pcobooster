@@ -3,10 +3,7 @@ import { Suspense } from "react";
 
 import { DashboardPage } from "@/components/dashboard-page";
 import { SchedulePlanWorkspaceFallback } from "@/components/schedule/schedule-page-fallbacks";
-import type { DashboardView } from "@/lib/schedule-navigation";
-
-const isDashboardView = (view: string): view is DashboardView =>
-  view === "assign" || view === "lineup" || view === "plan" || view === "times";
+import { isDashboardView } from "@/lib/schedule-navigation";
 
 interface ServicesPlanViewPageProps {
   params: Promise<{

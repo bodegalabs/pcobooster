@@ -60,11 +60,7 @@ export const usePlanTabController = ({
 }: UsePlanTabControllerArgs) => {
   const queryClient = useQueryClient();
   const queryKey = queryKeys.planItems(serviceTypeId, planId);
-  const {
-    data: itemsData,
-    isLoading,
-    isPlaceholderData,
-  } = usePlanItems(serviceTypeId, planId);
+  const { data: itemsData, isLoading } = usePlanItems(serviceTypeId, planId);
   const items = itemsData ?? EMPTY_PLAN_ITEMS;
 
   const planScope = JSON.stringify([serviceTypeId, planId]);
@@ -109,10 +105,9 @@ export const usePlanTabController = ({
   );
 
   useEffect(() => {
-    const songIds =
-      isNonEmptyString(serviceTypeId) && !isPlaceholderData
-        ? collectPlanSongOptionPrefetchIds(items)
-        : [];
+    const songIds = isNonEmptyString(serviceTypeId)
+      ? collectPlanSongOptionPrefetchIds(items)
+      : [];
 
     const timers = songIds.map((songId, index) =>
       window.setTimeout(
@@ -128,7 +123,7 @@ export const usePlanTabController = ({
         window.clearTimeout(timer);
       }
     };
-  }, [isPlaceholderData, items, prefetchSongOptions, serviceTypeId]);
+  }, [items, prefetchSongOptions, serviceTypeId]);
 
   const settlePlanItems = () => {
     settlePlanItemsQuery(queryClient, queryKey);
@@ -466,7 +461,6 @@ export const usePlanTabController = ({
   return {
     items,
     isLoading,
-    isPlaceholderData,
     editingItemId,
     editingItem: isNonEmptyString(editingItemId)
       ? (items.find((item) => item.id === editingItemId) ?? null)

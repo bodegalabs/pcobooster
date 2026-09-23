@@ -14,6 +14,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { useTimesTabController } from "@/hooks/use-times-tab-controller";
 import {
   buildEditablePlanTime,
@@ -45,6 +46,21 @@ interface TimesTabCardsProps {
   onPersist: ReturnType<typeof useTimesTabController>["persistIfChanged"];
   onDelete: ReturnType<typeof useTimesTabController>["removePlanTime"];
 }
+
+const PlanTimeCardSkeleton = () => (
+  <div className="border-border bg-background flex flex-col gap-4 rounded-xl border p-4 shadow-xs">
+    <div className="flex items-center gap-2">
+      <Skeleton variant="text" className="h-4 w-32" />
+      <Skeleton variant="control" className="ml-auto size-8" />
+    </div>
+    <div className="flex gap-3">
+      <Skeleton variant="control" className="h-9 flex-1" />
+      <Skeleton variant="control" className="h-9 flex-1" />
+    </div>
+    <Skeleton variant="control" className="h-9 w-full" />
+    <Skeleton variant="control" className="h-10 w-full" />
+  </div>
+);
 
 const TimesTabCards = ({
   planTimes,
@@ -118,7 +134,6 @@ const TimesTabContent = ({
     teamPositionGroups,
     assignmentsLoading,
     isLoading,
-    isPlaceholderData,
     savingId,
     deletingId,
     creating,
@@ -133,6 +148,7 @@ const TimesTabContent = ({
     createPlanTimeFromEdit,
     openAddTime,
   } = useTimesTabController({ serviceTypeId, planId, seriesId });
+  const revealClassName = useRevealOnLoad(isLoading);
 
   const cardProps = {
     planTimes,
@@ -167,8 +183,8 @@ const TimesTabContent = ({
     return (
       <>
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5 pb-6">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={`times-loading-${index}`} className="h-56 w-full" />
+          {["a", "b", "c"].map((key) => (
+            <PlanTimeCardSkeleton key={key} />
           ))}
         </div>
         {addTimeDialog}
@@ -207,12 +223,7 @@ const TimesTabContent = ({
 
   return (
     <>
-      <div
-        className={cn(
-          "min-h-0 flex-1 overflow-auto",
-          isPlaceholderData && "opacity-70"
-        )}
-      >
+      <div className={cn("min-h-0 flex-1 overflow-auto", revealClassName)}>
         <TimesTabCards {...cardProps} />
       </div>
       {addTimeDialog}

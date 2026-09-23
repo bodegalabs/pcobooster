@@ -3,6 +3,7 @@
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import {
   useCallback,
   useDeferredValue,
@@ -24,6 +25,7 @@ import {
   readCachedPlansEntry,
   writeCachedPlans,
 } from "@/lib/schedule-catalog-cache";
+import { buildPlanWorkspaceUrl } from "@/lib/schedule-navigation";
 import type {
   DateRangeFilter,
   ServicePlanRow,
@@ -45,6 +47,7 @@ export const useServicePlanSelection = ({
   onSelect,
 }: ServicePlanTableSelectorProps) => {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const prefetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cachedPlanWritesRef = useRef(new Map<string, number>());
   const orgTimeZone = useOrganizationTimeZone();
@@ -319,11 +322,13 @@ export const useServicePlanSelection = ({
   );
   const prefetchPlanData = useCallback(
     (row: ServicePlanRow) => {
+      // Warm the route too, so its loading shell is ready before the click.
+      router.prefetch(buildPlanWorkspaceUrl(row.serviceTypeId, row.planId));
       void prefetchTeamPositions(row);
       void prefetchPlanItems(row);
       void warmPeopleHistory(row);
     },
-    [prefetchPlanItems, prefetchTeamPositions, warmPeopleHistory]
+    [prefetchPlanItems, prefetchTeamPositions, router, warmPeopleHistory]
   );
   const cancelDelayedPrefetch = useCallback(() => {
     if (!prefetchTimeoutRef.current) {

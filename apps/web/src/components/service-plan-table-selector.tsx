@@ -16,6 +16,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { LoadingBar } from "@/components/ui/loading-bar";
 import {
   NativeSelect,
   NativeSelectOption,
@@ -341,6 +342,7 @@ const MyScheduledServiceCards = ({
 export const ServicePlanTableSelector = ({
   selectedServiceTypeId,
   selectedPlanId,
+  isNavigating = false,
   onSelect,
 }: ServicePlanTableSelectorProps) => {
   const {
@@ -422,6 +424,8 @@ export const ServicePlanTableSelector = ({
           <NativeSelectOption value="60">Next 60 days</NativeSelectOption>
         </NativeSelect>
       </div>
+
+      <LoadingBar active={isNavigating} className="-my-1.5 shrink-0" />
 
       <div className="border-border/40 min-h-0 flex-1 overflow-y-auto rounded-lg border">
         <Table className="hidden md:table">

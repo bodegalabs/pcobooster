@@ -32,6 +32,7 @@ import {
   buildPlanMemberPositionId,
   buildScheduleUrl,
   parseSearchSelection,
+  updatePlanWorkspaceUrl,
 } from "@/lib/schedule-navigation";
 
 const SLOT_PEOPLE_PREFETCH_DELAY_MS = 180;
@@ -73,15 +74,12 @@ const usePlanWorkspaceData = (
   const { data: plans, isLoading: plansLoading } = usePlans(routeServiceTypeId);
   const selectedPlan = plans?.find((plan) => plan.id === routePlanId) ?? null;
 
-  const {
-    data: teamPositionGroups,
-    isLoading: teamPositionsLoading,
-    isPlaceholderData: teamPositionsPlaceholder,
-  } = useTeamPositions(
-    routeServiceTypeId,
-    routePlanId,
-    selectedPlan?.seriesId ?? null
-  );
+  const { data: teamPositionGroups, isLoading: teamPositionsLoading } =
+    useTeamPositions(
+      routeServiceTypeId,
+      routePlanId,
+      selectedPlan?.seriesId ?? null
+    );
   const { data: planTimes } = usePlanTimes(routeServiceTypeId, routePlanId);
 
   const { selectedTeam, selectedPosition, selectedPositionUsesRoster } =
@@ -90,11 +88,7 @@ const usePlanWorkspaceData = (
     selectedPlan?.sortDate !== undefined &&
     isNonEmptyString(selectedPosition) &&
     selectedPositionUsesRoster;
-  const {
-    data: people,
-    isLoading: peopleLoading,
-    isPlaceholderData: peoplePlaceholder,
-  } = usePeople(
+  const { data: people, isLoading: peopleLoading } = usePeople(
     routeServiceTypeId,
     canLoadSelectedSlotPeople ? selectedTeam : null,
     canLoadSelectedSlotPeople ? selectedPosition : null,
@@ -111,14 +105,12 @@ const usePlanWorkspaceData = (
     selectedPlan,
     teamPositionGroups,
     teamPositionsLoading,
-    teamPositionsPlaceholder,
     planTimes,
     selectedTeam,
     selectedPosition,
     selectedPositionUsesRoster,
     people,
     peopleLoading,
-    peoplePlaceholder,
     workspaceUnavailable,
   };
 };
@@ -158,6 +150,10 @@ export const useDashboardController = ({
         return;
       }
 
+      if (updatePlanWorkspaceUrl(pathname, nextUrl, method)) {
+        return;
+      }
+
       startTransition(() => {
         if (method === "replace") {
           router.replace(nextUrl);
@@ -166,7 +162,7 @@ export const useDashboardController = ({
         router.push(nextUrl);
       });
     },
-    [currentUrl, router]
+    [currentUrl, pathname, router]
   );
 
   const {
@@ -174,14 +170,12 @@ export const useDashboardController = ({
     selectedPlan,
     teamPositionGroups,
     teamPositionsLoading,
-    teamPositionsPlaceholder,
     planTimes,
     selectedTeam,
     selectedPosition,
     selectedPositionUsesRoster,
     people,
     peopleLoading,
-    peoplePlaceholder,
     workspaceUnavailable,
   } = usePlanWorkspaceData(serviceTypeId, planId, routeIds);
   const routeServiceTypeId = serviceTypeId;
@@ -193,11 +187,7 @@ export const useDashboardController = ({
   const activeView = view;
 
   useEffect(() => {
-    if (
-      !teamPositionGroups ||
-      teamPositionsLoading ||
-      teamPositionsPlaceholder
-    ) {
+    if (!teamPositionGroups || teamPositionsLoading) {
       return;
     }
     if (
@@ -225,7 +215,6 @@ export const useDashboardController = ({
     serviceTypeId,
     teamPositionGroups,
     teamPositionsLoading,
-    teamPositionsPlaceholder,
     view,
   ]);
 
@@ -434,7 +423,6 @@ export const useDashboardController = ({
     selectedPlan,
     activeView,
     teamPositionsLoading,
-    teamPositionsPlaceholder,
     teamPositionGroups,
     collapsedTeams,
     selectedTeam,
@@ -442,7 +430,6 @@ export const useDashboardController = ({
     selectedPositionUsesRoster,
     people,
     peopleLoading,
-    peoplePlaceholder,
     routeServiceTypeId,
     routePlanId,
     toggleTeamCollapsed,

@@ -57,3 +57,64 @@ export const buildScheduleUrl = ({
   const path = `/services/${encodeURIComponent(serviceTypeId)}/plans/${encodeURIComponent(planId)}/${view}`;
   return query ? `${path}?${query}` : path;
 };
+
+export const buildPlanWorkspaceUrl = (
+  serviceTypeId: string,
+  planId: string
+): string =>
+  buildScheduleUrl({
+    serviceTypeId,
+    planId,
+    view: "assign",
+    teamId: null,
+    positionId: null,
+  });
+
+export const isDashboardView = (view: string): view is DashboardView =>
+  view === "assign" || view === "lineup" || view === "plan" || view === "times";
+
+const PLAN_WORKSPACE_PATH =
+  /^\/services\/(?<serviceTypeId>[^/]+)\/plans\/(?<planId>[^/]+)\/(?<view>[^/]+)$/u;
+
+export const parsePlanWorkspacePath = (
+  pathname: string
+): { serviceTypeId: string; planId: string; view: DashboardView } | null => {
+  const groups = PLAN_WORKSPACE_PATH.exec(pathname)?.groups;
+  if (!groups || !isDashboardView(groups.view)) {
+    return null;
+  }
+  return {
+    serviceTypeId: groups.serviceTypeId,
+    planId: groups.planId,
+    view: groups.view,
+  };
+};
+
+/**
+ * Moves between views and slots of the plan already on screen without a server
+ * round trip. Every view renders from the client query cache, and History API
+ * updates keep usePathname and useSearchParams in sync. Returns false when the
+ * destination is another page, which the Next.js router must render.
+ */
+export const updatePlanWorkspaceUrl = (
+  currentPathname: string,
+  nextUrl: string,
+  method: "push" | "replace"
+): boolean => {
+  const current = parsePlanWorkspacePath(currentPathname);
+  const next = parsePlanWorkspacePath(nextUrl.split("?")[0] ?? "");
+  if (
+    !current ||
+    !next ||
+    current.serviceTypeId !== next.serviceTypeId ||
+    current.planId !== next.planId
+  ) {
+    return false;
+  }
+  if (method === "replace") {
+    window.history.replaceState(null, "", nextUrl);
+  } else {
+    window.history.pushState(null, "", nextUrl);
+  }
+  return true;
+};

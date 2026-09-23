@@ -17,6 +17,8 @@ export interface SidebarTabGroupItem<Key extends string = string> {
   label: string;
   href: string;
   icon: IconSvgElement;
+  /** Lets a tab handle client-side navigation itself, e.g. in place. */
+  handleNavigate?: (event: { preventDefault: () => void }) => void;
 }
 
 interface SidebarTabGroupProps<Key extends string = string> {
@@ -53,7 +55,7 @@ export const SidebarTabGroup = <Key extends string>({
     groupedItems.push(
       <SidebarMenuSubItem key={item.key}>
         <SidebarMenuSubButton
-          render={<Link href={item.href} />}
+          render={<Link href={item.href} onNavigate={item.handleNavigate} />}
           isActive={activeKey === item.key}
         >
           <SidebarNavIcon icon={item.icon} />

@@ -1,36 +1,71 @@
+import {
+  CandidateListSkeleton,
+  PlanHeaderSkeleton,
+  PositionPickerSkeleton,
+} from "@/components/schedule/schedule-skeletons";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const planRowWidths = [
+  ["11rem", "7rem", "1.5rem", "6rem"],
+  ["9rem", "7rem", "1.5rem", "5rem"],
+  ["7rem", "7rem", "1.5rem", "10rem"],
+  ["10rem", "7rem", "1.5rem", "8rem"],
+  ["6rem", "7rem", "1.5rem", "7rem"],
+];
+
+/** Mirrors the services selector: filters, then the plan table with real headers. */
 export const SchedulePlansFallback = () => (
-  <main className="bg-background flex h-full min-h-0 flex-col overflow-hidden">
+  <main
+    className="bg-background flex h-full min-h-0 flex-col overflow-hidden"
+    aria-busy
+    aria-label="Loading services"
+  >
     <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-3 px-3 py-3 sm:px-4 sm:py-4">
-      <div className="flex shrink-0 flex-wrap items-center gap-2">
-        <Skeleton className="h-8 w-28" />
-        <Skeleton className="h-8 w-24" />
-      </div>
+      <section className="flex shrink-0 flex-col gap-2.5">
+        <Skeleton variant="text" className="h-3 w-24" />
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="hidden h-24 w-full sm:block" />
+          <Skeleton className="hidden h-24 w-full lg:block" />
+        </div>
+        <Separator className="mt-1" />
+      </section>
       <div className="grid shrink-0 gap-2 sm:grid-cols-[minmax(0,1fr)_180px_160px]">
-        <Skeleton className="h-9" />
-        <Skeleton className="h-9" />
-        <Skeleton className="h-9" />
+        <Skeleton variant="round" className="h-9" />
+        <Skeleton variant="round" className="h-9" />
+        <Skeleton variant="round" className="h-9" />
       </div>
       <div className="border-border/40 min-h-0 flex-1 overflow-hidden rounded-lg border">
-        <div className="border-border/40 grid grid-cols-[1.2fr_0.8fr_1fr_1fr] border-b px-5 py-2">
-          <Skeleton className="h-3.5 w-24" />
-          <Skeleton className="h-3.5 w-16" />
-          <Skeleton className="h-3.5 w-20" />
-          <Skeleton className="h-3.5 w-16" />
+        <div className="text-foreground border-border/40 hidden h-9 grid-cols-[30%_20%_25%_minmax(0,1fr)] items-center border-b px-3 text-sm font-medium md:grid">
+          <span>Service type</span>
+          <span>Date</span>
+          <span>Series</span>
+          <span>Plan</span>
         </div>
         <div className="divide-border/35 divide-y">
-          {Array.from({ length: 10 }).map((_, index) => (
-            <div
-              key={index}
-              className="grid grid-cols-[1.2fr_0.8fr_1fr_1fr] px-5 py-3"
-            >
-              <Skeleton className="h-3.5 w-36" />
-              <Skeleton className="h-3.5 w-28" />
-              <Skeleton className="h-3.5 w-44" />
-              <Skeleton className="h-3.5 w-40" />
-            </div>
-          ))}
+          {Array.from({ length: 12 }, (_, index) => {
+            const widths = planRowWidths[index % planRowWidths.length];
+            return (
+              <div
+                key={index}
+                className="grid h-10 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 md:grid-cols-[30%_20%_25%_minmax(0,1fr)] md:gap-0"
+              >
+                <Skeleton variant="text" className="h-3" width={widths[0]} />
+                <Skeleton
+                  variant="text"
+                  className="hidden h-3 md:block"
+                  width={widths[1]}
+                />
+                <Skeleton variant="text" className="h-3" width={widths[2]} />
+                <Skeleton
+                  variant="text"
+                  className="hidden h-3 md:block"
+                  width={widths[3]}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -38,46 +73,24 @@ export const SchedulePlansFallback = () => (
 );
 
 export const SchedulePlanWorkspaceFallback = () => (
-  <main className="bg-background flex h-full min-h-0 flex-col overflow-hidden">
+  <main
+    className="bg-background flex h-full min-h-0 flex-col overflow-hidden"
+    aria-busy
+    aria-label="Loading plan"
+  >
     <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-3 py-2 sm:px-4 sm:py-3">
-      <header className="mb-3 shrink-0 sm:mb-5">
-        <div className="flex min-w-0 items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <Skeleton className="h-6 w-80 max-w-full" />
-            <Skeleton className="mt-2 h-4 w-44" />
-          </div>
-          <Skeleton className="size-8" />
-        </div>
-      </header>
+      <PlanHeaderSkeleton />
 
-      <div className="grid min-h-0 flex-1 grid-cols-[18rem_minmax(0,1fr)] gap-4">
-        <aside className="border-sidebar-border/40 bg-sidebar/60 hidden min-h-0 overflow-hidden rounded-xl border p-3 lg:block">
-          <div className="grid gap-3">
-            {Array.from({ length: 7 }).map((_, index) => (
-              <div key={index} className="grid gap-2">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-3 w-44" />
-              </div>
-            ))}
-          </div>
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-3 sm:gap-4 lg:flex-row">
+        <aside className="border-sidebar-border/40 bg-sidebar/60 hidden min-h-0 w-[min(18rem,28vw)] shrink-0 overflow-hidden rounded-xl border lg:block">
+          <PositionPickerSkeleton />
         </aside>
-        <section className="border-border/40 bg-card/30 min-h-0 overflow-hidden rounded-xl border">
-          <div className="border-border/40 border-b px-4 py-3">
-            <Skeleton className="h-5 w-56" />
-            <Skeleton className="mt-2 h-4 w-72" />
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 sm:gap-4">
+          <div className="flex flex-col gap-2 px-1 sm:gap-3">
+            <Skeleton variant="control" className="h-6 w-40 sm:h-7" />
+            <Skeleton variant="round" className="h-8 w-full sm:max-w-sm" />
           </div>
-          <div className="divide-border/25 divide-y">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <div key={index} className="flex items-center gap-3 px-4 py-3">
-                <Skeleton className="size-10 shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <Skeleton className="h-3.5 w-36" />
-                  <Skeleton className="mt-2 h-3 w-56" />
-                </div>
-                <Skeleton className="h-8 w-24" />
-              </div>
-            ))}
-          </div>
+          <CandidateListSkeleton />
         </section>
       </div>
     </div>

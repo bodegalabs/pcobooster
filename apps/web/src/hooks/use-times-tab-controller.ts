@@ -283,7 +283,6 @@ export const useTimesTabController = ({
     teamPositionGroups: teamPositionsQuery.data,
     assignmentsLoading: teamPositionsQuery.isLoading,
     isLoading: planTimesQuery.isLoading,
-    isPlaceholderData: planTimesQuery.isPlaceholderData,
     savingId,
     deletingId,
     creating,

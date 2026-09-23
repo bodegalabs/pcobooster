@@ -21,10 +21,12 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { LoadingBar } from "@/components/ui/loading-bar";
 import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePeopleDashboard } from "@/hooks/use-people-dashboard";
 import { createPeopleDashboardPersonQueryOptions } from "@/hooks/use-people-dashboard-person";
@@ -36,7 +38,6 @@ interface PeoplePageContentProps {
   dashboard: PeopleDashboardData | undefined;
   isError: boolean;
   isLoading: boolean;
-  isPlaceholderData: boolean;
   visiblePeople: PeopleDashboardPerson[];
   mvp: PeopleDashboardPerson | null;
   needsRest: PeopleDashboardPerson[];
@@ -51,7 +52,6 @@ const PeoplePageContent = ({
   dashboard,
   isError,
   isLoading,
-  isPlaceholderData,
   visiblePeople,
   mvp,
   needsRest,
@@ -73,7 +73,6 @@ const PeoplePageContent = ({
         dashboard={dashboard}
         visiblePeople={visiblePeople}
         isLoading={isLoading}
-        isPlaceholderData={isPlaceholderData}
         mvp={mvp}
         needsRest={needsRest}
         underused={underused}
@@ -96,8 +95,22 @@ const PeoplePageContent = ({
     );
   }
   return (
-    <div className="border-border/40 text-muted-foreground rounded-lg border px-4 py-8 text-sm">
-      Loading month view…
+    <div
+      className="grid shrink-0 items-start gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]"
+      aria-busy
+      aria-label="Loading month view"
+    >
+      <div className="border-border/40 flex flex-col gap-2 rounded-xl border p-4">
+        <Skeleton variant="text" className="h-4 w-36" />
+        {Array.from({ length: 8 }, (_, index) => (
+          <div key={index} className="flex items-center gap-3 py-1">
+            <Skeleton variant="round" className="size-7 shrink-0" />
+            <Skeleton variant="text" className="h-3 w-28" />
+            <Skeleton variant="text" className="ml-auto h-5 w-2/3" />
+          </div>
+        ))}
+      </div>
+      <Skeleton variant="control" className="h-72" />
     </div>
   );
 };
@@ -249,26 +262,29 @@ export const PeoplePage = () => {
           </div>
         </header>
 
-        {isPlaceholderData && !isError ? (
-          <div className="border-border/60 bg-background/95 text-muted-foreground -mb-1 w-fit rounded-md border px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur">
-            Loading selected range...
-          </div>
-        ) : null}
-
-        <PeoplePageContent
-          activeView={activeView}
-          dashboard={dashboard}
-          isError={isError}
-          isLoading={isLoading}
-          isPlaceholderData={isPlaceholderData}
-          visiblePeople={visiblePeople}
-          mvp={mvp}
-          needsRest={needsRest}
-          underused={underused}
-          rhythmCalendarCells={rhythmCalendarCells}
-          onPreviewPerson={prefetchPersonDetail}
-          onOpenPerson={openPerson}
+        <LoadingBar
+          active={isPlaceholderData && !isError}
+          className="-my-1.5 shrink-0"
         />
+
+        <div
+          className="stale-while-busy shrink-0"
+          aria-busy={isPlaceholderData && !isError}
+        >
+          <PeoplePageContent
+            activeView={activeView}
+            dashboard={dashboard}
+            isError={isError}
+            isLoading={isLoading}
+            visiblePeople={visiblePeople}
+            mvp={mvp}
+            needsRest={needsRest}
+            underused={underused}
+            rhythmCalendarCells={rhythmCalendarCells}
+            onPreviewPerson={prefetchPersonDetail}
+            onOpenPerson={openPerson}
+          />
+        </div>
       </div>
     </main>
   );

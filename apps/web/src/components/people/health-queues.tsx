@@ -3,6 +3,7 @@
 import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 import { Clock3, ListChecks } from "lucide-react";
 
+import { PersonLineSkeletonList } from "@/components/people/people-skeletons";
 import { PersonAvatar } from "@/components/people/shared-components";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -38,6 +39,7 @@ export const HealthQueues = ({
         <CardDescription>Good candidates to consider next.</CardDescription>
       </CardHeader>
       <CardContent>
+        {isLoading ? <PersonLineSkeletonList rows={4} /> : null}
         {underused.length === 0 && !isLoading ? (
           <p className="text-muted-foreground px-2 py-1.5 text-sm">
             No underused people in this sample.
@@ -87,6 +89,9 @@ export const HealthQueues = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {isLoading ? (
+          <PersonLineSkeletonList rows={3} showAvatar={false} />
+        ) : null}
         {needsRest.length === 0 && !isLoading ? (
           <p className="text-muted-foreground px-2 py-1.5 text-sm">
             No high-load people in this sample.

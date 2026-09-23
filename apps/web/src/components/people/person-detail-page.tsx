@@ -5,11 +5,56 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 import { buildCalendarCells } from "@/components/people/calendar";
-import { PersonDetailState } from "@/components/people/detail-body";
+import {
+  PersonDetailBodySkeleton,
+  PersonDetailState,
+} from "@/components/people/detail-body";
 import { PersonAvatar } from "@/components/people/shared-components";
 import { Button } from "@/components/ui/button";
+import { LoadingBar } from "@/components/ui/loading-bar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePeopleDashboardPerson } from "@/hooks/use-people-dashboard-person";
+
+const PersonHeaderSkeleton = () => (
+  <div className="flex min-w-0 items-center gap-3">
+    <Skeleton variant="round" className="size-6 shrink-0" />
+    <div className="flex min-w-0 flex-col gap-2">
+      <Skeleton variant="control" className="h-6 w-44 md:h-7" />
+      <Skeleton variant="text" className="h-3.5 w-64 max-w-full" />
+    </div>
+  </div>
+);
+
+const MonthNavSkeleton = () => (
+  <div className="flex items-center gap-1">
+    <Skeleton variant="control" className="size-8" />
+    <Skeleton variant="text" className="h-8 w-36" />
+    <Skeleton variant="control" className="size-8" />
+  </div>
+);
+
+/**
+ * Month paging only changes a search param and renders from the client cache,
+ * so skip the server round trip and let the query keep the page populated.
+ */
+const navigateInPlace =
+  (href: string) =>
+  (event: { preventDefault: () => void }): void => {
+    event.preventDefault();
+    window.history.pushState(null, "", href);
+  };
+
+export const PersonDetailPageSkeleton = () => (
+  <main className="bg-background flex h-full min-h-0 flex-col overflow-hidden">
+    <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-3 overflow-y-auto px-3 py-3 sm:px-4 sm:py-4">
+      <header className="flex shrink-0 flex-wrap items-center justify-between gap-3">
+        <PersonHeaderSkeleton />
+        <MonthNavSkeleton />
+      </header>
+      <PersonDetailBodySkeleton />
+    </div>
+  </main>
+);
 
 export const PersonDetailPage = ({ personId }: { personId: string }) => {
   const searchParams = useSearchParams();
@@ -18,6 +63,8 @@ export const PersonDetailPage = ({ personId }: { personId: string }) => {
     usePeopleDashboardPerson(personId, month);
   const person = data?.person ?? null;
   const monthLabel = data?.month.label ?? "Month";
+  const previousMonthHref = `/people/${personId}?month=${data?.previousMonth ?? ""}`;
+  const nextMonthHref = `/people/${personId}?month=${data?.nextMonth ?? ""}`;
   const calendarCells = data
     ? buildCalendarCells(data.month.startsOnWeekday, data.month.daysInMonth)
     : [];
@@ -41,10 +88,7 @@ export const PersonDetailPage = ({ personId }: { personId: string }) => {
                   </div>
                 </>
               ) : (
-                <div className="min-w-0">
-                  <Skeleton className="h-7 w-44" />
-                  <Skeleton className="mt-2 h-4 w-72" />
-                </div>
+                <PersonHeaderSkeleton />
               )}
             </div>
 
@@ -54,8 +98,9 @@ export const PersonDetailPage = ({ personId }: { personId: string }) => {
                   nativeButton={false}
                   render={
                     <Link
-                      href={`/people/${personId}?month=${data.previousMonth}`}
+                      href={previousMonthHref}
                       aria-label="Previous month"
+                      onNavigate={navigateInPlace(previousMonthHref)}
                     />
                   }
                   variant="outline"
@@ -71,8 +116,9 @@ export const PersonDetailPage = ({ personId }: { personId: string }) => {
                   nativeButton={false}
                   render={
                     <Link
-                      href={`/people/${personId}?month=${data.nextMonth}`}
+                      href={nextMonthHref}
                       aria-label="Next month"
+                      onNavigate={navigateInPlace(nextMonthHref)}
                     />
                   }
                   variant="outline"
@@ -82,8 +128,14 @@ export const PersonDetailPage = ({ personId }: { personId: string }) => {
                   <ChevronRight className="size-4" />
                 </Button>
               </div>
-            ) : null}
+            ) : (
+              <MonthNavSkeleton />
+            )}
           </div>
+          <LoadingBar
+            active={isPlaceholderData && !isError}
+            className="-mt-1.5 -mb-1"
+          />
         </header>
 
         {isError ? (

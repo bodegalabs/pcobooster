@@ -95,6 +95,11 @@ import {
   serializePeoplePageNavState,
 } from "@/lib/people-page-nav-cache";
 import { queryKeys } from "@/lib/query-keys";
+import type { DashboardView } from "@/lib/schedule-navigation";
+import {
+  parsePlanWorkspacePath,
+  updatePlanWorkspaceUrl,
+} from "@/lib/schedule-navigation";
 import { cn } from "@/lib/utils";
 import { orpc } from "@/orpc-client";
 
@@ -143,21 +148,8 @@ const themeOptions = [
   { value: "system", label: "System", icon: LaptopIcon },
 ] as const;
 
-type TopBarView = "assign" | "lineup" | "plan" | "times";
+type TopBarView = DashboardView;
 type ServicesSidebarKey = "services" | TopBarView;
-
-const parseTopBarView = (value: string | undefined): TopBarView => {
-  if (value === "lineup") {
-    return "lineup";
-  }
-  if (value === "plan") {
-    return "plan";
-  }
-  if (value === "times") {
-    return "times";
-  }
-  return "assign";
-};
 
 const getTopBarViewLabel = (view: TopBarView): string => {
   if (view === "lineup") {
@@ -174,39 +166,12 @@ const getTopBarViewLabel = (view: TopBarView): string => {
 
 const planViewOptions: TopBarView[] = ["assign", "lineup", "plan", "times"];
 
-const getServicesPlanPath = (
-  pathname: string
-): {
-  serviceTypeId: string;
-  planId: string;
-  view: TopBarView;
-} | null => {
-  const match =
-    /^\/services\/(?<serviceTypeId>[^/]+)\/plans\/(?<planId>[^/]+)\/(?<view>[^/]+)$/u.exec(
-      pathname
-    );
-  if (!match) {
-    return null;
-  }
-
-  const view = parseTopBarView(match[3]);
-  if (match[3] !== view) {
-    return null;
-  }
-
-  return {
-    serviceTypeId: match[1],
-    planId: match[2],
-    view,
-  };
-};
-
 const buildScheduleViewUrl = (
   pathname: string,
   searchParams: Pick<URLSearchParams, "toString">,
   view: TopBarView
 ): string => {
-  const planPath = getServicesPlanPath(pathname);
+  const planPath = parsePlanWorkspacePath(pathname);
   if (!planPath) {
     return "/services";
   }
@@ -247,7 +212,7 @@ const AppInsetChromeHeader = ({ children }: { children: ReactNode }) => {
 const AppTopBar = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const planPath = getServicesPlanPath(pathname);
+  const planPath = parsePlanWorkspacePath(pathname);
   const hasPlan = Boolean(planPath);
   const planView = planPath?.view ?? "assign";
   const planViewLabel = getTopBarViewLabel(planView);
@@ -315,14 +280,22 @@ const AppTopBar = () => {
                           <DropdownMenuItem
                             key={view}
                             onSelect={() => {
+                              const nextUrl = buildScheduleViewUrl(
+                                pathname,
+                                new URLSearchParams(window.location.search),
+                                view
+                              );
+                              if (
+                                updatePlanWorkspaceUrl(
+                                  pathname,
+                                  nextUrl,
+                                  "replace"
+                                )
+                              ) {
+                                return;
+                              }
                               startTransition(() => {
-                                router.replace(
-                                  buildScheduleViewUrl(
-                                    pathname,
-                                    new URLSearchParams(window.location.search),
-                                    view
-                                  )
-                                );
+                                router.replace(nextUrl);
                               });
                             }}
                           >
@@ -665,35 +638,32 @@ const servicesRootItem: SidebarTabGroupItem<ServicesSidebarKey> = {
 const ServicesSidebarMenuItem = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const planPath = getServicesPlanPath(pathname);
+  const planPath = parsePlanWorkspacePath(pathname);
   const isPlanWorkspace = Boolean(planPath);
   const activeScheduleView = planPath?.view ?? "assign";
+  const viewItem = (
+    key: TopBarView,
+    icon: SidebarTabGroupItem["icon"]
+  ): SidebarTabGroupItem<ServicesSidebarKey> => {
+    const href = buildScheduleViewUrl(pathname, searchParams, key);
+    return {
+      key,
+      label: getTopBarViewLabel(key),
+      href,
+      icon,
+      handleNavigate: (event) => {
+        if (updatePlanWorkspaceUrl(pathname, href, "push")) {
+          event.preventDefault();
+        }
+      },
+    };
+  };
   const servicesViewItems: SidebarTabGroupItem<ServicesSidebarKey>[] = [
     servicesRootItem,
-    {
-      key: "assign",
-      label: "Assign",
-      href: buildScheduleViewUrl(pathname, searchParams, "assign"),
-      icon: UserAdd01Icon,
-    },
-    {
-      key: "lineup",
-      label: "Lineup",
-      href: buildScheduleViewUrl(pathname, searchParams, "lineup"),
-      icon: Layout3ColumnIcon,
-    },
-    {
-      key: "plan",
-      label: "Plan",
-      href: buildScheduleViewUrl(pathname, searchParams, "plan"),
-      icon: ListMusicIcon,
-    },
-    {
-      key: "times",
-      label: "Times",
-      href: buildScheduleViewUrl(pathname, searchParams, "times"),
-      icon: Clock01Icon,
-    },
+    viewItem("assign", UserAdd01Icon),
+    viewItem("lineup", Layout3ColumnIcon),
+    viewItem("plan", ListMusicIcon),
+    viewItem("times", Clock01Icon),
   ];
   let servicesActiveKey: ServicesSidebarKey | null = null;
   if (pathname === "/services") {

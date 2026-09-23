@@ -17,7 +17,6 @@ export const PlanTab = ({ serviceTypeId, planId }: PlanTabProps) => {
   const {
     items,
     isLoading,
-    isPlaceholderData,
     editingItemId,
     editingItem,
     songPickerOpen,
@@ -67,7 +66,7 @@ export const PlanTab = ({ serviceTypeId, planId }: PlanTabProps) => {
         <PlanTabToolbar
           pendingItemId={pendingItemId}
           isCreatingBasicItem={isCreatingBasicItem}
-          disabled={isPlaceholderData}
+          disabled={isLoading}
           onAddSong={() => {
             setSongPickerOpen(true);
           }}
@@ -86,7 +85,6 @@ export const PlanTab = ({ serviceTypeId, planId }: PlanTabProps) => {
         <PlanItemList
           items={items}
           isLoading={isLoading}
-          isPlaceholderData={isPlaceholderData}
           pendingItemId={pendingItemId}
           onAddSong={() => {
             setSongPickerOpen(true);

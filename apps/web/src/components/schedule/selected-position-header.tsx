@@ -10,6 +10,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export const SelectedPositionHeader = ({
@@ -38,14 +39,18 @@ export const SelectedPositionHeader = ({
     <div className="flex shrink-0 flex-col gap-2 px-1 sm:gap-3">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <p
-            className={cn(
-              "min-w-0 truncate text-xl leading-tight font-semibold tracking-tight sm:text-2xl",
-              isTemporaryPosition && "italic"
-            )}
-          >
-            {info?.positionName ?? "Position"}
-          </p>
+          {info === null && teamPositionsLoading ? (
+            <Skeleton variant="control" className="h-6 w-40 sm:h-7" />
+          ) : (
+            <p
+              className={cn(
+                "min-w-0 truncate text-xl leading-tight font-semibold tracking-tight sm:text-2xl",
+                isTemporaryPosition && "italic"
+              )}
+            >
+              {info?.positionName ?? "Position"}
+            </p>
+          )}
         </div>
         <Button
           type="button"

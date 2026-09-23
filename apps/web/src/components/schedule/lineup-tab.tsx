@@ -52,9 +52,9 @@ import {
 } from "@/components/ui/hover-card";
 import { Item, ItemContent, ItemGroup, ItemTitle } from "@/components/ui/item";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SidebarMenuSkeleton } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLineupColumnOrder } from "@/hooks/use-lineup-column-order";
+import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { getInitials } from "@/lib/format/initials";
 import {
   applyLineupColumnOrder,
@@ -65,7 +65,6 @@ import { cn } from "@/lib/utils";
 interface LineupTabProps {
   groups: TeamPositionGroup[];
   isLoading: boolean;
-  isPlaceholderData: boolean;
   serviceTypeId: string | null;
   planId: string | null;
   seriesId: string | null;
@@ -74,7 +73,7 @@ interface LineupTabProps {
   onPreviewPosition?: (slot: SlotRef) => void;
 }
 
-const lineupSkeletonWidths = ["78%", "66%", "84%", "58%"];
+const lineupSkeletonWidths = ["8rem", "6rem", "9rem", "7rem"];
 const lineupColumnWidthClass = "w-[min(22rem,78vw)]";
 const teamColumnClass =
   "bg-background text-foreground shadow-xs ring-foreground/5 dark:ring-foreground/10 flex shrink-0 flex-col rounded-xl ring-1";
@@ -477,17 +476,62 @@ const TeamColumnOverlay = ({ group }: { group: TeamPositionGroup }) => (
   </section>
 );
 
+const lineupSkeletonColumns = [
+  { key: "a", title: "7rem", positions: [2, 1, 1] },
+  { key: "b", title: "5rem", positions: [1, 2] },
+  { key: "c", title: "8rem", positions: [1, 1, 2] },
+  { key: "d", title: "6rem", positions: [2, 1] },
+];
+
 const LineupLoadingState = () => (
   <ScrollArea className="min-h-0 flex-1">
     <div className={lineupColumnsRowClassName}>
-      {["a", "b", "c", "d"].map((columnKey) => (
+      {lineupSkeletonColumns.map((column) => (
         <div
-          key={`lineup-skeleton-column-${columnKey}`}
-          className={cn(teamColumnClass, "gap-2 p-3", lineupColumnWidthClass)}
+          key={column.key}
+          className={cn(teamColumnClass, "gap-1 p-1.5", lineupColumnWidthClass)}
         >
-          <Skeleton className="h-5 w-28" />
-          {lineupSkeletonWidths.map((width) => (
-            <SidebarMenuSkeleton key={width} width={width} showIcon />
+          <div className="flex h-9 items-center gap-2 px-2">
+            <Skeleton variant="text" className="size-3.5" />
+            <Skeleton variant="text" className="h-3.5" width={column.title} />
+          </div>
+          {column.positions.map((people, positionIndex) => (
+            <div
+              key={`${column.key}-${positionIndex}`}
+              className="flex flex-col"
+            >
+              <div className="flex min-h-10 items-center gap-2 px-2">
+                <Skeleton variant="text" className="size-4" />
+                <Skeleton
+                  variant="text"
+                  className="h-3"
+                  width={
+                    lineupSkeletonWidths[
+                      (positionIndex + column.key.length) %
+                        lineupSkeletonWidths.length
+                    ]
+                  }
+                />
+              </div>
+              {Array.from({ length: people }, (_, personIndex) => (
+                <div
+                  key={personIndex}
+                  className="flex min-h-10 items-center gap-2 pr-2 pl-4"
+                >
+                  <Skeleton variant="round" className="size-6" />
+                  <Skeleton
+                    variant="text"
+                    className="h-3"
+                    width={
+                      lineupSkeletonWidths[
+                        (positionIndex + personIndex + 1) %
+                          lineupSkeletonWidths.length
+                      ]
+                    }
+                  />
+                </div>
+              ))}
+            </div>
           ))}
         </div>
       ))}
@@ -498,7 +542,6 @@ const LineupLoadingState = () => (
 export const LineupTab = ({
   groups,
   isLoading,
-  isPlaceholderData,
   serviceTypeId,
   planId,
   seriesId,
@@ -508,7 +551,8 @@ export const LineupTab = ({
 }: LineupTabProps) => {
   const [columnOrderByServiceType, updateColumnOrder] = useLineupColumnOrder();
   const [activeTeamId, setActiveTeamId] = useState<string | null>(null);
-  const reorderDisabled = isPlaceholderData || serviceTypeId === null;
+  const reorderDisabled = serviceTypeId === null;
+  const revealClassName = useRevealOnLoad(isLoading);
   const orderedGroups = useMemo(() => {
     if (serviceTypeId === null) {
       return groups;
@@ -583,12 +627,7 @@ export const LineupTab = ({
 
   return (
     <ScrollArea className="min-h-0 flex-1">
-      <div className="relative" aria-busy={isPlaceholderData}>
-        {isPlaceholderData ? (
-          <div className="bg-background/95 text-muted-foreground sticky top-0 z-10 mb-2 w-fit rounded-md border px-3 py-1.5 text-xs font-medium backdrop-blur">
-            Loading selected plan...
-          </div>
-        ) : null}
+      <div className={cn("relative", revealClassName)}>
         <DndContext
           collisionDetection={closestCenter}
           sensors={sensors}
@@ -606,12 +645,7 @@ export const LineupTab = ({
             items={orderedGroups.map((group) => group.teamId)}
             strategy={horizontalListSortingStrategy}
           >
-            <div
-              className={cn(
-                lineupColumnsRowClassName,
-                isPlaceholderData && "pointer-events-none opacity-60"
-              )}
-            >
+            <div className={lineupColumnsRowClassName}>
               {orderedGroups.map((group) => (
                 <SortableTeamColumn
                   key={group.teamId}
