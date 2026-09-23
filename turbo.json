@@ -62,7 +62,8 @@
         "tsconfig.json",
         "vitest.config.ts",
         "packages/config/tsconfig.base.json",
-        "alchemy.run.ts"
+        "alchemy.run.ts",
+        "alchemy.cleanup.ts"
       ],
       "outputs": []
     },

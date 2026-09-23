@@ -14,7 +14,10 @@ import { songsContract } from "@pcobooster/contracts/songs";
 import { z } from "zod";
 
 const healthInputSchema = z.object({});
-const healthOutputSchema = z.object({ status: z.literal("ok") });
+const healthOutputSchema = z.object({
+  status: z.literal("ok"),
+  version: z.string(),
+});
 
 export const healthContract = oc
   .route({

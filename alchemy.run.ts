@@ -118,6 +118,10 @@ export default Alchemy.Stack(
         DB: database,
         NODE_ENV: local ? "development" : "production",
         APP_ENV: production ? "production" : "preview",
+        // CI deploys the checked-out commit; post-deploy verification expects it from health.
+        PCOBOOSTER_VERSION: Config.String("GITHUB_SHA").pipe(
+          Config.withDefault("")
+        ),
         BETTER_AUTH_URL: publicOrigin,
         CORS_ORIGIN: publicOrigin,
         AUTH_COOKIE_DOMAIN: production ? "pcobooster.com" : "",

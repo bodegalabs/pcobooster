@@ -88,10 +88,11 @@ describe(createServerApp, () => {
       200, 200,
     ]);
     await expect(rpcResponse.json()).resolves.toStrictEqual({
-      json: { status: "ok" },
+      json: { status: "ok", version: "development" },
     });
     await expect(referenceResponse.json()).resolves.toStrictEqual({
       status: "ok",
+      version: "development",
     });
     expect(
       [rpcResponse, referenceResponse].map((response) =>

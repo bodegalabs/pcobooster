@@ -6,6 +6,16 @@ The app uses Drizzle with Cloudflare D1 (SQLite). `alchemy.run.ts` owns one data
 
 Edit `packages/api/src/db/schema.ts`, run `bun run db:generate`, and review the generated SQL. Alchemy applies migrations on local startup and deployment. Canonical SQL and Drizzle metadata live in `packages/api/migrations`; `scripts/cloudflare/prepare.ts` stages SQL alone for Alchemy because its migration loader does not accept the Drizzle 0.x journal format. Never edit an already-applied migration.
 
+### Migrations must keep the running app online
+
+Alchemy applies migrations while updating the `Database` resource. The API Worker binds that database, so it updates afterward. During that gap, the previous Worker version is still serving requests against the new schema. A failed deploy after that point does not roll back SQL that was already committed. Every migration must therefore work with the code that is currently deployed:
+
+- Expand, then contract. Add new tables and nullable or defaulted columns first. Ship the code that uses them. Remove the old columns in a later PR, once no deployed code reads them.
+- Never rename a column or table in place, and never drop one that the deployed code still reads.
+- Backfills must be safe to repeat, and small enough for D1's per-query limits.
+
+If a change can't be made online, stop and explain the blocker before deploying. Don't reach for downtime.
+
 Dates are integer milliseconds, booleans are integers, and JSON is text. Use Drizzle query builders or `db.all(sql`...`)` for reports. Integration tests run the real SQLite/D1 implementation under workerd.
 
 ## PostgreSQL preservation and cutover

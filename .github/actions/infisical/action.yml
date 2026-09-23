@@ -1,0 +1,30 @@
+name: Read deployment secrets
+description: Exchange the job's GitHub OIDC token for one Infisical environment's secrets.
+
+inputs:
+  identity-id:
+    description: Infisical machine identity bound to this job's GitHub environment subject.
+    required: true
+  project-id:
+    description: Infisical project holding the environment's secrets.
+    required: true
+  env-slug:
+    description: Infisical environment slug.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Read secrets through GitHub OIDC
+      uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
+      with:
+        method: oidc
+        identity-id: ${{ inputs.identity-id }}
+        project-id: ${{ inputs.project-id }}
+        env-slug: ${{ inputs.env-slug }}
+        domain: https://app.infisical.com
+        oidc-audience: https://github.com/bodegalabs/pcobooster
+        secret-path: /
+        include-imports: "false"
+        recursive: "false"
+        export-type: env
