@@ -86,6 +86,10 @@ Stop the server, run `bun run dev`, and reload open tabs to return to normal mod
 
 This masks person fields for app presentations, not the underlying dataset: IDs, schedules, team/position names, plan titles, and free-form plan-item text remain real. Review those custom labels before a public recording. Actions still write to the real Planning Center account; server logs and external Planning Center pages are outside the masking scope.
 
+### Share a read-only demo
+
+`https://pcobooster.com/demo/<key>` opens the app for someone without a Planning Center login. It reads a separate demo organization and cannot write. See [the demo link guide](docs/demo.md) for setup and revocation.
+
 ## API Routes
 
 Product operations are served through the typed oRPC transport at `/api/rpc`; its OpenAPI reference is available at `/api/reference`. Better Auth keeps its protocol-owned `GET/POST /api/auth/*` handler. `/health` is the service liveness endpoint.

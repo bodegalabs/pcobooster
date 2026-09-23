@@ -6,6 +6,11 @@ import { PersistenceFailure } from "@pcobooster/api/application/errors/persisten
 import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
 import { auth } from "@pcobooster/api/auth";
 import {
+  readDemoConfiguration,
+  resolveDemoSession,
+} from "@pcobooster/api/auth/demo-access";
+import type { DemoConfiguration } from "@pcobooster/api/auth/demo-access";
+import {
   getDevBypassPlanningCenterAccount,
   getDevBypassSession,
   isDevAuthBypassEnabled,
@@ -20,10 +25,14 @@ import {
   getUserAccountDetail,
   isAdminEmail,
 } from "@pcobooster/api/modules/admin/get-account-activity";
+import { getDemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
+import type { DemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
+import { createReadOnlyPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { Effect } from "effect";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
+const DEMO_ACCOUNT_ID = "demo";
 
 type AuthSession = Awaited<ReturnType<typeof auth.api.getSession>>;
 type AuthAccount = Awaited<
@@ -50,9 +59,15 @@ export interface PlanningCenterAccountsSummary {
   readonly session: SessionSummary;
   readonly selectedAccountId: string | null;
   readonly accounts: PlanningCenterAccountSummary[];
+  readonly demo: boolean;
 }
 
 export interface IdentityDependencies {
+  readonly resolveDemoSession: (request: Request) => DemoConfiguration | null;
+  readonly loadDemoOrganization: (
+    configuration: DemoConfiguration,
+    signal: AbortSignal
+  ) => Promise<DemoOrganization>;
   readonly isDevAuthBypassEnabled: typeof isDevAuthBypassEnabled;
   readonly loadDevBypassIdentity: typeof loadDevBypassIdentity;
   readonly getDevBypassSession: typeof getDevBypassSession;
@@ -64,6 +79,13 @@ export interface IdentityDependencies {
 }
 
 const defaultIdentityDependencies: IdentityDependencies = {
+  resolveDemoSession: (request) =>
+    resolveDemoSession(request, readDemoConfiguration()),
+  loadDemoOrganization: async (configuration, signal) =>
+    await getDemoOrganization(
+      createReadOnlyPlanningCenterServices(configuration.planningCenter),
+      signal
+    ),
   isDevAuthBypassEnabled,
   loadDevBypassIdentity,
   getDevBypassSession,
@@ -138,6 +160,28 @@ const planningCenterAccounts = (accounts: AuthAccount[]): AuthAccount[] =>
         new Date(first.updatedAt).getTime()
     );
 
+const demoAccountsSummary = (
+  organization: DemoOrganization
+): PlanningCenterAccountsSummary => ({
+  session: { userId: DEMO_ACCOUNT_ID, name: "Guest", email: "", image: null },
+  selectedAccountId: DEMO_ACCOUNT_ID,
+  accounts: [
+    {
+      id: DEMO_ACCOUNT_ID,
+      providerId: PLANNING_CENTER_PROVIDER_ID,
+      updatedAt: new Date(0).toISOString(),
+      identity: {
+        sub: null,
+        name: null,
+        email: null,
+        organizationId: organization.id,
+        organizationName: organization.name,
+      },
+    },
+  ],
+  demo: true,
+});
+
 export const getSessionStatus = (
   dependencies: IdentityDependencies = defaultIdentityDependencies
 ): Effect.Effect<
@@ -146,10 +190,13 @@ export const getSessionStatus = (
   RequestContext
 > =>
   Effect.gen(function* readSessionStatus() {
-    if (dependencies.isDevAuthBypassEnabled()) {
+    const { request, headers } = yield* RequestContext;
+    if (
+      dependencies.resolveDemoSession(request) !== null ||
+      dependencies.isDevAuthBypassEnabled()
+    ) {
       return { authenticated: true };
     }
-    const { headers } = yield* RequestContext;
     const session = yield* tryIdentity(
       async () => await dependencies.getSession(headers),
       "session-status"
@@ -165,7 +212,15 @@ export const getPlanningCenterAccounts = (
   RequestContext
 > =>
   Effect.gen(function* listPlanningCenterAccounts() {
-    const { request, headers } = yield* RequestContext;
+    const { request, headers, signal } = yield* RequestContext;
+    const demo = dependencies.resolveDemoSession(request);
+    if (demo) {
+      const organization = yield* tryIdentity(
+        async () => await dependencies.loadDemoOrganization(demo, signal),
+        "demo-organization"
+      );
+      return demoAccountsSummary(organization);
+    }
     if (dependencies.isDevAuthBypassEnabled()) {
       const identity = yield* tryIdentity(
         async () => await dependencies.loadDevBypassIdentity(),
@@ -184,6 +239,7 @@ export const getPlanningCenterAccounts = (
             identity: account.identity,
           },
         ],
+        demo: false,
       };
     }
 
@@ -220,6 +276,7 @@ export const getPlanningCenterAccounts = (
       session: toSessionSummary(session),
       selectedAccountId: selectedAccount?.id ?? null,
       accounts: summaries,
+      demo: false,
     };
   });
 
@@ -232,7 +289,18 @@ export const selectPlanningCenterAccount = (
   RequestContext
 > =>
   Effect.gen(function* selectAccount() {
-    const { headers } = yield* RequestContext;
+    const { request, headers } = yield* RequestContext;
+    if (dependencies.resolveDemoSession(request) !== null) {
+      if (input.accountId !== DEMO_ACCOUNT_ID) {
+        return yield* Effect.fail(
+          new NotFound({
+            message: "Planning Center account not found.",
+            resource: "planning-center-account",
+          })
+        );
+      }
+      return { success: true, selectedAccountId: DEMO_ACCOUNT_ID };
+    }
     if (dependencies.isDevAuthBypassEnabled()) {
       const account = dependencies.getDevBypassPlanningCenterAccount();
       return { success: true, selectedAccountId: account.id };
@@ -277,6 +345,7 @@ export const getAdminFeature = (
     | "getDevBypassSession"
     | "isDevAuthBypassEnabled"
     | "loadDevBypassIdentity"
+    | "resolveDemoSession"
   > = defaultIdentityDependencies
 ): Effect.Effect<
   { readonly enabled: boolean },
@@ -284,7 +353,10 @@ export const getAdminFeature = (
   RequestContext
 > =>
   Effect.gen(function* readAdminFeature() {
-    const { headers } = yield* RequestContext;
+    const { request, headers } = yield* RequestContext;
+    if (dependencies.resolveDemoSession(request) !== null) {
+      return { enabled: false };
+    }
     const session = dependencies.isDevAuthBypassEnabled()
       ? dependencies.getDevBypassSession(
           yield* tryIdentity(

@@ -39,7 +39,10 @@ export const toORPCError = (
       });
     }
     case "Forbidden": {
+      // Forbidden messages are written for people, such as the read-only
+      // demo notice, so clients that toast `error.message` show them as is.
       return new ORPCError("FORBIDDEN", {
+        message: fault.message,
         data: { message: fault.message },
       });
     }

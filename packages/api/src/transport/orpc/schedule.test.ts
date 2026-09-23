@@ -80,6 +80,7 @@ const setup = () => {
   const authorize = vi
     .fn<PlanningCenterAccessDependencies["authorize"]>()
     .mockResolvedValue({
+      kind: "account",
       userId: "user-1",
       accessToken: "schedule-test-token",
       accountId: "account-1",

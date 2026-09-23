@@ -10,6 +10,7 @@ import {
 import { logger } from "@pcobooster/api/logger";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterRateLimitInfo } from "@pcobooster/api/planning-center/api-error";
+import { PlanningCenterReadOnlyError } from "@pcobooster/api/planning-center/read-only-error";
 import {
   pcCollectionResponseSchema,
   pcResourceResponseSchema,
@@ -50,18 +51,6 @@ export const buildPlanningCenterUrl = (
   return url.toString();
 };
 
-const getBasicCredentials = (): string => {
-  const id = process.env.PLANNING_CENTER_CLIENT;
-  const pat = process.env.PLANNING_CENTER_PAT;
-  if (!isNonEmptyString(id)) {
-    throw new Error("Missing PLANNING_CENTER_CLIENT environment variable");
-  }
-  if (!isNonEmptyString(pat)) {
-    throw new Error("Missing PLANNING_CENTER_PAT environment variable");
-  }
-  return Buffer.from(`${id}:${pat}`).toString("base64");
-};
-
 const parseJsonResponse = async (response: Response): Promise<JsonValue> => {
   const text = await response.text();
   if (response.status === 204 || text.trim() === "") {
@@ -100,7 +89,7 @@ const buildJsonFetchDedupeKey = ({
     url: endpointUrl(endpoint),
   });
 
-const isSafeToRetry = (method: string): boolean =>
+const isReadMethod = (method: string): boolean =>
   method === "GET" || method === "HEAD";
 
 const isRetryableError = (error: Error): boolean => {
@@ -185,7 +174,7 @@ const maybePauseNearRateLimit = async (
   headers: Headers,
   method: string
 ): Promise<void> => {
-  if (!isSafeToRetry(method)) {
+  if (!isReadMethod(method)) {
     return;
   }
   const rateLimit = readRateLimitInfo(headers);
@@ -245,33 +234,61 @@ const logPlanningCenterTiming = ({
   );
 };
 
+/** A Planning Center personal access token: application ID plus secret. */
+export interface PlanningCenterPersonalAccessToken {
+  readonly applicationId: string;
+  readonly secret: string;
+}
+
 export type PlanningCenterAuthentication =
-  | { readonly kind: "basic" }
+  | ({ readonly kind: "basic" } & PlanningCenterPersonalAccessToken)
   | { readonly kind: "bearer"; readonly accessToken: string };
+
+export interface PlanningCenterCoreClientOptions {
+  /** Rejects every non-read request before it reaches Planning Center. */
+  readonly readOnly: boolean;
+}
 
 export class PlanningCenterCoreClient {
   private readonly auth: PlanningCenterAuthentication;
+  private readonly options: PlanningCenterCoreClientOptions;
 
-  constructor(auth: PlanningCenterAuthentication) {
+  constructor(
+    auth: PlanningCenterAuthentication,
+    options?: PlanningCenterCoreClientOptions
+  ) {
     if (auth.kind === "bearer" && !isNonEmptyString(auth.accessToken.trim())) {
       throw new Error(
         "Planning Center bearer authentication requires a non-empty access token"
       );
     }
+    if (
+      auth.kind === "basic" &&
+      !(
+        isNonEmptyString(auth.applicationId.trim()) &&
+        isNonEmptyString(auth.secret.trim())
+      )
+    ) {
+      throw new Error(
+        "Planning Center basic authentication requires an application ID and secret"
+      );
+    }
     this.auth = { ...auth };
+    this.options = { readOnly: options?.readOnly ?? false };
   }
 
   private getAuthHeader(): string {
     return this.auth.kind === "bearer"
       ? `Bearer ${this.auth.accessToken}`
-      : `Basic ${getBasicCredentials()}`;
+      : `Basic ${Buffer.from(`${this.auth.applicationId}:${this.auth.secret}`).toString("base64")}`;
   }
 
   getCacheScope(): string {
-    if (this.auth.kind === "bearer") {
-      return `bearer:${createHash("sha256").update(this.auth.accessToken).digest("hex")}`;
-    }
-    return "basic";
+    const credential =
+      this.auth.kind === "bearer"
+        ? this.auth.accessToken
+        : `${this.auth.applicationId}:${this.auth.secret}`;
+    return `${this.auth.kind}:${createHash("sha256").update(credential).digest("hex")}`;
   }
 
   private async requestAttempt(
@@ -325,7 +342,7 @@ export class PlanningCenterCoreClient {
       });
       if (
         options.signal?.aborted === true ||
-        !isSafeToRetry(method) ||
+        !isReadMethod(method) ||
         !isRetryableError(requestError) ||
         attempt >= MAX_RETRIES
       ) {
@@ -350,6 +367,13 @@ export class PlanningCenterCoreClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<Response> {
+    const method = (options.method ?? "GET").toUpperCase();
+    if (this.options.readOnly && !isReadMethod(method)) {
+      throw new PlanningCenterReadOnlyError({
+        method,
+        path: describePlanningCenterEndpoint(endpointUrl(endpoint)).path,
+      });
+    }
     return await this.requestAttempt(endpointUrl(endpoint), options, 0);
   }
 
@@ -467,6 +491,23 @@ export class PlanningCenterCoreClient {
   }
 }
 
+/** The local personal access token used by scripts and the development auth bypass. */
+export const readLocalPlanningCenterPersonalAccessToken =
+  (): PlanningCenterPersonalAccessToken => {
+    const applicationId = process.env.PLANNING_CENTER_CLIENT;
+    const secret = process.env.PLANNING_CENTER_PAT;
+    if (!isNonEmptyString(applicationId)) {
+      throw new Error("Missing PLANNING_CENTER_CLIENT environment variable");
+    }
+    if (!isNonEmptyString(secret)) {
+      throw new Error("Missing PLANNING_CENTER_PAT environment variable");
+    }
+    return { applicationId, secret };
+  };
+
 /** Explicit application credentials for scripts and the development auth bypass. */
 export const createBasicPlanningCenterClient = (): PlanningCenterCoreClient =>
-  new PlanningCenterCoreClient({ kind: "basic" });
+  new PlanningCenterCoreClient({
+    kind: "basic",
+    ...readLocalPlanningCenterPersonalAccessToken(),
+  });

@@ -5,16 +5,25 @@ import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
 import { InvalidInput } from "@pcobooster/api/application/errors/invalid-input";
 import { RateLimited } from "@pcobooster/api/application/errors/rate-limited";
 import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
+import {
+  readDemoConfiguration,
+  resolveDemoSession,
+} from "@pcobooster/api/auth/demo-access";
 import { isDevAuthBypassEnabled } from "@pcobooster/api/auth/dev-bypass";
 import { requirePlanningCenterAccessToken } from "@pcobooster/api/auth/planning-center-session";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import type { PlanningCenterPersonalAccessToken } from "@pcobooster/api/planning-center/core-client";
+import { PlanningCenterReadOnlyError } from "@pcobooster/api/planning-center/read-only-error";
 import {
   createPlanningCenterServices,
   createBasicPlanningCenterServices,
+  createReadOnlyPlanningCenterServices,
 } from "@pcobooster/api/planning-center/services/factory";
 import { Context, Effect, Option } from "effect";
 
-export interface RequestAuthentication {
+/** A signed-in user acting through their linked Planning Center account. */
+export interface AccountAuthentication {
+  readonly kind: "account";
   readonly userId: string;
   readonly accessToken: string;
   readonly scopes: readonly string[];
@@ -24,6 +33,15 @@ export interface RequestAuthentication {
     readonly accountId: string;
   };
 }
+
+/** An anonymous visitor reading the demo organization. */
+export interface DemoAuthentication {
+  readonly kind: "demo";
+  readonly planningCenter: PlanningCenterPersonalAccessToken;
+}
+
+export type RequestAuthentication = AccountAuthentication | DemoAuthentication;
+
 export type RequestPlanningCenterServices = ReturnType<
   typeof createPlanningCenterServices
 >;
@@ -41,14 +59,19 @@ export class PlanningCenterAccess extends Context.Tag(
 export interface PlanningCenterAccessDependencies {
   readonly authorize: (request: Request) => Promise<RequestAuthentication>;
   readonly createServices: (
-    accessToken: string
+    authentication: RequestAuthentication
   ) => RequestPlanningCenterServices;
 }
 
 const defaultDependencies: PlanningCenterAccessDependencies = {
   authorize: async (request) => {
+    const demo = resolveDemoSession(request, readDemoConfiguration());
+    if (demo) {
+      return { kind: "demo", planningCenter: demo.planningCenter };
+    }
     const authenticated = await requirePlanningCenterAccessToken(request);
     return {
+      kind: "account",
       userId: authenticated.session.user.id,
       accessToken: authenticated.accessToken,
       scopes: authenticated.scopes,
@@ -56,10 +79,16 @@ const defaultDependencies: PlanningCenterAccessDependencies = {
       account: authenticated.account,
     };
   },
-  createServices: (accessToken) =>
-    isDevAuthBypassEnabled()
+  createServices: (authentication) => {
+    if (authentication.kind === "demo") {
+      return createReadOnlyPlanningCenterServices(
+        authentication.planningCenter
+      );
+    }
+    return isDevAuthBypassEnabled()
       ? createBasicPlanningCenterServices()
-      : createPlanningCenterServices(accessToken),
+      : createPlanningCenterServices(authentication.accessToken);
+  },
 };
 
 export const toApplicationFault = (error: Error): ApplicationFault => {
@@ -69,6 +98,12 @@ export const toApplicationFault = (error: Error): ApplicationFault => {
     error instanceof InvalidInput
   ) {
     return error;
+  }
+
+  if (error instanceof PlanningCenterReadOnlyError) {
+    return new Forbidden({
+      message: "This demo is read-only, so changes aren't saved.",
+    });
   }
 
   if (error instanceof PlanningCenterApiError) {
@@ -95,8 +130,8 @@ export const toApplicationFault = (error: Error): ApplicationFault => {
 };
 
 /**
- * Resolves the Better Auth account and creates clients for this Effect only.
- * Each client retains the selected account credential for its entire lifetime.
+ * Resolves the demo session or Better Auth account and creates clients for
+ * this Effect only. Each client retains its credential for its entire lifetime.
  */
 export const resolvePlanningCenterAccess = (
   dependencies: PlanningCenterAccessDependencies = defaultDependencies
@@ -117,7 +152,7 @@ export const resolvePlanningCenterAccess = (
         ),
     });
     const services = yield* Effect.try({
-      try: () => dependencies.createServices(authentication.accessToken),
+      try: () => dependencies.createServices(authentication),
       catch: (error) =>
         toApplicationFault(
           error instanceof Error

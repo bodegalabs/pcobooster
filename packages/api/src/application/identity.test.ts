@@ -9,6 +9,7 @@ import {
   selectPlanningCenterAccount,
 } from "@pcobooster/api/application/identity";
 import type { IdentityDependencies } from "@pcobooster/api/application/identity";
+import type { DemoConfiguration } from "@pcobooster/api/auth/demo-access";
 import {
   getDevBypassPlanningCenterAccount,
   getDevBypassSession,
@@ -48,6 +49,10 @@ const failureTag = (exit: Exit.Exit<unknown, { readonly _tag: string }>) => {
 };
 
 const unauthenticatedDependencies = (): IdentityDependencies => ({
+  resolveDemoSession: () => null,
+  loadDemoOrganization: vi
+    .fn<IdentityDependencies["loadDemoOrganization"]>()
+    .mockRejectedValue(new Error("Demo is not configured")),
   isDevAuthBypassEnabled: () => false,
   loadDevBypassIdentity,
   getDevBypassSession,
@@ -97,6 +102,23 @@ const authenticatedDependencies = (): IdentityDependencies => ({
     .mockResolvedValue([nonPlanningCenterAccount]),
 });
 
+const demoConfiguration: DemoConfiguration = {
+  accessKey: "demo-access-key-for-identity-tests",
+  planningCenter: { applicationId: "demo-app", secret: "demo-secret" },
+};
+
+const demoDependencies = () => {
+  const loadDemoOrganization = vi
+    .fn<IdentityDependencies["loadDemoOrganization"]>()
+    .mockResolvedValue({ id: "org-1", name: "Grace Demo Church" });
+  const dependencies: IdentityDependencies = {
+    ...authenticatedDependencies(),
+    resolveDemoSession: () => demoConfiguration,
+    loadDemoOrganization,
+  };
+  return { dependencies, loadDemoOrganization };
+};
+
 describe("identity application programs", () => {
   it("reports a guest session as unauthenticated", async () => {
     await expect(
@@ -144,6 +166,7 @@ describe("identity application programs", () => {
     const result = await run(getPlanningCenterAccounts(dependencies));
 
     expect(result).toMatchObject({
+      demo: false,
       selectedAccountId: "newest",
       accounts: [
         { id: "newest", identity: null },
@@ -164,5 +187,52 @@ describe("identity application programs", () => {
     ).resolves.toStrictEqual({
       enabled: false,
     });
+  });
+
+  it("presents a demo session as the demo organization, ahead of any signed-in account", async () => {
+    const { dependencies, loadDemoOrganization } = demoDependencies();
+
+    await expect(run(getSessionStatus(dependencies))).resolves.toStrictEqual({
+      authenticated: true,
+    });
+    await expect(run(getAdminFeature(dependencies))).resolves.toStrictEqual({
+      enabled: false,
+    });
+    await expect(
+      run(getPlanningCenterAccounts(dependencies))
+    ).resolves.toMatchObject({
+      demo: true,
+      selectedAccountId: "demo",
+      session: { name: "Guest", email: "", image: null },
+      accounts: [
+        {
+          id: "demo",
+          identity: {
+            organizationId: "org-1",
+            organizationName: "Grace Demo Church",
+          },
+        },
+      ],
+    });
+    expect(loadDemoOrganization).toHaveBeenCalledWith(
+      demoConfiguration,
+      expect.any(AbortSignal)
+    );
+    expect(dependencies.getSession).not.toHaveBeenCalled();
+  });
+
+  it("only selects the demo account during a demo session", async () => {
+    const { dependencies } = demoDependencies();
+
+    await expect(
+      run(selectPlanningCenterAccount({ accountId: "demo" }, dependencies))
+    ).resolves.toStrictEqual({ success: true, selectedAccountId: "demo" });
+    expect(
+      failureTag(
+        await runExit(
+          selectPlanningCenterAccount({ accountId: "newest" }, dependencies)
+        )
+      )
+    ).toBe("NotFound");
   });
 });

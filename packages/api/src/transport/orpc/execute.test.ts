@@ -41,6 +41,7 @@ describe(executeApplicationEffect, () => {
       );
       await expect(result).rejects.toMatchObject({
         code: "FORBIDDEN",
+        message: "Admin access required",
         data: { message: "Admin access required" },
         status: 403,
       });

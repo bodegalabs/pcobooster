@@ -10,10 +10,16 @@ import {
   toApplicationFault,
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
+import {
+  demoSessionToken,
+  readDemoConfiguration,
+} from "@pcobooster/api/auth/demo-access";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import { PlanningCenterReadOnlyError } from "@pcobooster/api/planning-center/read-only-error";
 import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import { DEMO_SESSION_COOKIE } from "@pcobooster/contracts/demo";
 import { Effect } from "effect";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const requestFor = (accountId: string): Request =>
   new Request(`https://pcobooster.com/api/rpc/catalog/${accountId}`);
@@ -24,13 +30,17 @@ const dependenciesFor = (
   authorize: vi
     .fn<PlanningCenterAccessDependencies["authorize"]>()
     .mockResolvedValue({
+      kind: "account",
       userId: `user-${accountId}`,
       accessToken: `access-token-${accountId}`,
       scopes: ["services"],
       accountId,
       account: { id: accountId, accountId: `provider-${accountId}` },
     }),
-  createServices: createPlanningCenterServices,
+  createServices: (authentication) =>
+    createPlanningCenterServices(
+      authentication.kind === "account" ? authentication.accessToken : ""
+    ),
 });
 
 const resolveFor = async (accountId: string) => {
@@ -45,6 +55,11 @@ const resolveFor = async (accountId: string) => {
 };
 
 describe("PlanningCenterAccess", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllEnvs();
+  });
+
   it("creates isolated request-owned services for concurrent credentials", async () => {
     const [first, second] = await Promise.all([
       resolveFor("first"),
@@ -53,22 +68,67 @@ describe("PlanningCenterAccess", () => {
 
     expect({
       first: {
-        accountId: first.authentication.accountId,
+        authentication: first.authentication,
         serviceScope: first.services.core.getCacheScope(),
       },
       second: {
-        accountId: second.authentication.accountId,
+        authentication: second.authentication,
         serviceScope: second.services.core.getCacheScope(),
       },
     }).toMatchObject({
-      first: { accountId: "first", serviceScope: first.cacheScope },
-      second: { accountId: "second", serviceScope: second.cacheScope },
+      first: {
+        authentication: { accountId: "first" },
+        serviceScope: first.cacheScope,
+      },
+      second: {
+        authentication: { accountId: "second" },
+        serviceScope: second.cacheScope,
+      },
     });
     expect([first.cacheScope, second.cacheScope]).toStrictEqual([
       expect.stringMatching(/^bearer:/u),
       expect.stringMatching(/^bearer:/u),
     ]);
     expect(first.cacheScope).not.toBe(second.cacheScope);
+  });
+
+  it("serves a demo session through read-only demo credentials", async () => {
+    const environment = {
+      DEMO_ACCESS_KEY: "demo-access-key-for-access-tests",
+      DEMO_PLANNING_CENTER_CLIENT: "demo-app",
+      DEMO_PLANNING_CENTER_PAT: "demo-secret",
+    };
+    for (const [name, value] of Object.entries(environment)) {
+      vi.stubEnv(name, value);
+    }
+    const configuration = readDemoConfiguration(environment);
+    if (configuration === null) {
+      throw new Error("Expected a demo configuration");
+    }
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+    const request = new Request("https://pcobooster.com/api/rpc/schedule", {
+      headers: {
+        cookie: `${DEMO_SESSION_COOKIE}=${demoSessionToken(configuration)}`,
+      },
+    });
+
+    const access = await Effect.runPromise(
+      Effect.provideService(
+        resolvePlanningCenterAccess(),
+        RequestContext,
+        createRequestContext(request)
+      )
+    );
+
+    expect(access.authentication).toStrictEqual({
+      kind: "demo",
+      planningCenter: { applicationId: "demo-app", secret: "demo-secret" },
+    });
+    expect(access.cacheScope).toMatch(/^basic:/u);
+    await expect(
+      access.services.people.deletePlanPerson("plan-person-1")
+    ).rejects.toMatchObject({ name: "PlanningCenterReadOnlyError" });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("maps provider rate limits and opaque provider failures to tagged faults", () => {
@@ -112,6 +172,20 @@ describe("PlanningCenterAccess", () => {
       service: "planning-center",
     });
     expect(unavailable.message).not.toContain("diagnostic");
+  });
+
+  it("explains a blocked demo write as forbidden", () => {
+    expect(
+      toApplicationFault(
+        new PlanningCenterReadOnlyError({
+          method: "POST",
+          path: "/services/v2/plans/1/team_members",
+        })
+      )
+    ).toMatchObject({
+      _tag: "Forbidden",
+      message: "This demo is read-only, so changes aren't saved.",
+    });
   });
 
   it("preserves typed validation failures through Promise adapters", () => {

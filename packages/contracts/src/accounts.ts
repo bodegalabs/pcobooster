@@ -19,6 +19,8 @@ export const planningCenterAccountsSchema = z.object({
   }),
   selectedAccountId: z.string().nullable(),
   accounts: z.array(planningCenterAccountSchema),
+  /** A read-only demo session backed by the demo organization. */
+  demo: z.boolean(),
 });
 
 export const accountsListInputSchema = z.object({});

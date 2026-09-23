@@ -1,5 +1,6 @@
 import { RequestContext } from "@pcobooster/api/application/context";
 import { catalogRouter } from "@pcobooster/api/transport/orpc/catalog";
+import { demoRouter } from "@pcobooster/api/transport/orpc/demo";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
 import { identityRouter } from "@pcobooster/api/transport/orpc/identity";
 import {
@@ -30,6 +31,7 @@ export const appRouter = rpc.router({
   accounts: identityRouter.accounts,
   admin: identityRouter.admin,
   catalog: catalogRouter,
+  demo: demoRouter,
   features: identityRouter.features,
   health,
   people: peopleRouter,

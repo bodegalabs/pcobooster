@@ -289,12 +289,17 @@ export const getMyScheduledPlans = (input: {
   Effect.gen(function* readMyScheduledPlans() {
     const access = yield* PlanningCenterAccess;
     const { request } = yield* RequestContext;
+    // A demo visitor is not a person in the demo organization.
+    if (access.authentication.kind === "demo") {
+      return { planIds: [] };
+    }
+    const { account } = access.authentication;
     const uniquePlanIds = [...new Set(input.planIds)];
     const planIds = yield* tryPlanningCenter(
       async (signal) =>
         await getCurrentUserScheduledPlanIds(
           request,
-          access.authentication.account,
+          account,
           uniquePlanIds,
           {
             peopleService: access.services.people,

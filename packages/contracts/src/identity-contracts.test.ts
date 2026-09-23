@@ -57,6 +57,7 @@ describe("identity contracts", () => {
           identity,
         },
       ],
+      demo: false,
     };
     const withCredentials = {
       ...panel,
