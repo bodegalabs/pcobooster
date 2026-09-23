@@ -17,9 +17,10 @@ export interface RequestContextValue {
   };
 }
 
-export class RequestContext extends Context.Tag(
-  "@pcobooster/api/RequestContext"
-)<RequestContext, RequestContextValue>() {}
+export class RequestContext extends Context.Service<
+  RequestContext,
+  RequestContextValue
+>()("@pcobooster/api/RequestContext") {}
 
 export const createRequestContext = (request: Request): RequestContextValue => {
   const requestedId = request.headers.get("x-request-id")?.trim();

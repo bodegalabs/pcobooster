@@ -7,7 +7,6 @@ The public site is a separate Next.js app at `apps/marketing`. It is a sibling o
 - `bun run dev`: API on port 3000, product on port 3001, and marketing on port 3002.
 - `bun run dev:present`: both apps, with anonymized Planning Center people in the product.
 - `bun run dev:marketing`: marketing only, with no database, Infisical, OAuth, or session requirement.
-- `bun run dev:web`: product only. Start the API and marketing separately for the complete flow.
 
 Use port 3001 to test the whole journey, including Open app. In development, the product rewrites `/api/*` to port 3000 and `/`, `/about`, and `/marketing/*` to port 3002. Marketing uses full document navigation so it never asks the product router to load a marketing page (or vice versa).
 
@@ -21,9 +20,9 @@ Run `bun run build` from the repository root. It:
 2. Stages the export into the ignored, generated `apps/web/public/marketing` directory.
 3. Builds the product and Hono service.
 
-`vercel.json` defines the web and Hono services and routes `/api/*` to the backend before the product catch-all. The web service builds through the repository root so Turborepo builds and stages marketing first. Keep the root install/build commands; a direct `next build` would omit the staged marketing export.
+Alchemy's native Next.js resource builds OpenNext and uploads the marketing export as Worker assets. The OpenNext build command builds and stages marketing before the product. Public `/` and `/about` route handlers fetch exported HTML from the `ASSETS` binding.
 
-Production rewrites `/` and `/about` to the exported HTML. Marketing assets use `/marketing`, avoiding collisions with the product's `/_next` chunks. Those exact public routes bypass the product auth proxy; `/services`, `/people`, `/admin`, and product APIs retain their existing authentication behavior.
+Marketing assets use `/marketing`, avoiding collisions with the product's `/_next` chunks. Those exact public routes bypass the product auth proxy; `/services`, `/people`, `/admin`, and product APIs retain their existing authentication behavior.
 
 `bun run ci` checks both apps' types, shared lint/formatting, and the complete test suite. The public-path tests cover the marketing allowlist and near-miss routes.
 

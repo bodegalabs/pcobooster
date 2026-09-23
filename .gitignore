@@ -24,7 +24,7 @@ package-lock.json
 
 # production
 /build
-/apps/server/dist/
+**/dist/
 
 # misc
 .DS_Store
@@ -39,7 +39,7 @@ yarn-error.log*
 # Environment values are injected by Infisical. Do not create local env files.
 .env*
 
-# Per-session Codex cloud state (contains an ephemeral database URL)
+# Historical Codex cloud state
 /.codex-cloud/
 
 # vercel
@@ -51,3 +51,9 @@ next-env.d.ts
 
 # Generated marketing export staged into the product app
 /apps/web/public/marketing/
+
+# Cloudflare and Alchemy generated state
+.alchemy/
+**/cloudflare-build-inputs.json
+.wrangler/
+**/.open-next/

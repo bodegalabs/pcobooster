@@ -95,7 +95,7 @@ export const commitScheduledPerson = (
           ? error
           : new Error("Scheduling request failed", { cause: error }),
     }).pipe(
-      Effect.catchAll((error) => {
+      Effect.catch((error) => {
         const cause = error instanceof Error ? error : new Error(String(error));
         if (
           cause.message.includes("has already been scheduled for this position")

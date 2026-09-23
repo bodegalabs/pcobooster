@@ -15,7 +15,7 @@
     },
     "@pcobooster/admin#build": {
       "dependsOn": ["^build"],
-      "env": ["NODE_ENV", "VERCEL"],
+      "env": ["NODE_ENV", "ADMIN_BASE_PATH"],
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": [".next/**", "!.next/cache/**"]
     },
@@ -34,7 +34,6 @@
         "PEOPLE_PAGE_ENABLED",
         "PRESENTATION_MODE",
         "PRESENTATION_SEED",
-        "VERCEL",
         "NEXT_PUBLIC_POSTHOG_KEY"
       ],
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/scripts/stage-marketing.ts"],
@@ -62,7 +61,8 @@
         "scripts/**/*.ts",
         "tsconfig.json",
         "vitest.config.ts",
-        "packages/config/tsconfig.base.json"
+        "packages/config/tsconfig.base.json",
+        "alchemy.run.ts"
       ],
       "outputs": []
     },
@@ -73,7 +73,6 @@
         "BETTER_AUTH_SECRET",
         "BETTER_AUTH_URL",
         "CORS_ORIGIN",
-        "DATABASE_URL",
         "DEMO_ACCESS_KEY",
         "DEMO_PLANNING_CENTER_CLIENT",
         "DEMO_PLANNING_CENTER_PAT",
@@ -90,42 +89,13 @@
         "PLANNING_CENTER_TIME_ZONE",
         "PRESENTATION_MODE",
         "PRESENTATION_SEED",
-        "VERCEL",
-        "VERCEL_ENV",
-        "VERCEL_PROJECT_PRODUCTION_URL",
-        "VERCEL_URL",
         "PCOBOOSTER_ADMIN_EMAILS",
         "NEXT_PUBLIC_POSTHOG_KEY"
       ],
       "persistent": true
     },
-    "auth:generate": {
-      "cache": false,
-      "passThroughEnv": [
-        "BETTER_AUTH_SECRET",
-        "BETTER_AUTH_URL",
-        "CORS_ORIGIN",
-        "DATABASE_URL",
-        "PLANNING_CENTER_OAUTH_CLIENT_ID",
-        "PLANNING_CENTER_OAUTH_CLIENT_SECRET"
-      ]
-    },
     "db:generate": {
-      "cache": false,
-      "passThroughEnv": ["DATABASE_URL"]
-    },
-    "db:migrate": {
-      "cache": false,
-      "passThroughEnv": ["DATABASE_URL"]
-    },
-    "db:push": {
-      "cache": false,
-      "passThroughEnv": ["DATABASE_URL"]
-    },
-    "db:studio": {
-      "cache": false,
-      "passThroughEnv": ["DATABASE_URL"],
-      "persistent": true
+      "cache": false
     }
   }
 }

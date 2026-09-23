@@ -144,7 +144,7 @@ export const createPostHogActivityForwarder = ({
 /** Only production deployments share the product's PostHog project. */
 export const forwardActivityEventToPostHog = createPostHogActivityForwarder({
   apiKey:
-    process.env.VERCEL_ENV === "production"
+    process.env.APP_ENV === "production"
       ? process.env.NEXT_PUBLIC_POSTHOG_KEY
       : undefined,
   fetch: globalThis.fetch,

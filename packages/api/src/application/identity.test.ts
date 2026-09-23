@@ -43,8 +43,8 @@ const runExit = async <Value, Failure extends { readonly _tag: string }>(
   );
 
 const failureTag = (exit: Exit.Exit<unknown, { readonly _tag: string }>) => {
-  const cause = Option.getOrThrow(Exit.causeOption(exit));
-  return Option.getOrThrow(Cause.failureOption(cause))._tag;
+  const cause = Option.getOrThrow(Exit.getCause(exit));
+  return Option.getOrThrow(Cause.findErrorOption(cause))._tag;
 };
 
 const unauthenticatedDependencies = (): IdentityDependencies => ({

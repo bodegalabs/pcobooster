@@ -1,0 +1,99 @@
+diff --git a/node_modules/better-auth/.bun-tag-a640e7574d13e386 b/.bun-tag-a640e7574d13e386
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/dist/plugins/oauth-proxy/index.mjs b/dist/plugins/oauth-proxy/index.mjs
+index 57def56d2d766dd576db927cc29ee7bf880b68cc..3049697b17545399d7381d2d392ae5478e36096b 100644
+--- a/dist/plugins/oauth-proxy/index.mjs
++++ b/dist/plugins/oauth-proxy/index.mjs
+@@ -46,7 +46,7 @@ const passthroughPayloadSchema = z.looseObject({
+ });
+ const restoreOAuthProxyState = async (ctx, state) => {
+ 	try {
+-		const stateData = await parseGenericState(ctx, state, { skipStateCookieCheck: true });
++		const stateData = await parseGenericState(ctx, state);
+ 		await setOAuthState(stateData);
+ 		return stateData;
+ 	} catch (e) {
+@@ -58,7 +58,16 @@ const oauthProxyQuerySchema = z.object({
+ 	callbackURL: z.string().meta({ description: "The URL to redirect to after the proxy" }),
+ 	profile: z.string().optional().meta({ description: "Encrypted OAuth profile data" })
+ });
++const isSameOriginCallback = (value, origin) => {
++	try {
++		const target = new URL(value, origin);
++		return target.origin === origin && !target.username && !target.password;
++	} catch {
++		return false;
++	}
++};
+ const oauthCallbackQuerySchema = z.object({
++	iss: z.string().optional(),
+ 	code: z.string().optional(),
+ 	error: z.string().optional(),
+ 	user: z.string().optional()
+@@ -97,6 +106,10 @@ const oAuthProxy = (opts) => {
+ 			ctx.context.logger.error("Failed to parse OAuth proxy payload", e);
+ 			throw redirectOnError(ctx, defaultErrorURL, "invalid_payload");
+ 		}
++		const completionOrigin = new URL(ctx.context.baseURL).origin;
++		if ([payload.callbackURL, payload.errorURL, payload.newUserURL].some((value) => value !== undefined && !isSameOriginCallback(value, completionOrigin))) {
++			throw redirectOnError(ctx, defaultErrorURL, "invalid_callback_url");
++		}
+ 		const errorURL = payload.errorURL || defaultErrorURL;
+ 		if (ctx.path?.startsWith("/callback/") && ctx.params.id !== payload.account.providerId) {
+ 			ctx.context.logger.warn("OAuth proxy callback provider mismatch");
+@@ -228,7 +241,7 @@ const oAuthProxy = (opts) => {
+ 						ctx.context.logger.warn("Invalid OAuth callback query", query.error);
+ 						return;
+ 					}
+-					const { code, error, user: userData } = query.data;
++					const { code, error, user: userData, iss } = query.data;
+ 					let stateData;
+ 					try {
+ 						stateData = parseJSON(await symmetricDecrypt({
+@@ -239,7 +252,15 @@ const oAuthProxy = (opts) => {
+ 						ctx.context.logger.error("Failed to decrypt OAuth proxy state cookie:", e);
+ 						return;
+ 					}
+-					const errorURL = stateData.errorURL || ctx.context.options.onAPIError?.errorURL || `${ctx.context.baseURL}/error`;
++					let proxyCallbackURL;
++					try { proxyCallbackURL = new URL(stateData.callbackURL); } catch {
++						throw redirectOnError(ctx, `${ctx.context.baseURL}/error`, "invalid_callback_url");
++					}
++					const completionPath = `${ctx.context.options.basePath || "/api/auth"}/callback/${ctx.params.id}/oauth-proxy`;
++					if (proxyCallbackURL.username || proxyCallbackURL.password || !ctx.context.isTrustedOrigin(proxyCallbackURL.origin) || proxyCallbackURL.pathname !== completionPath || (stateData.errorURL && !isSameOriginCallback(stateData.errorURL, proxyCallbackURL.origin))) {
++						throw redirectOnError(ctx, `${ctx.context.baseURL}/error`, "invalid_callback_url");
++					}
++					const errorURL = new URL(stateData.errorURL || "/auth", proxyCallbackURL.origin).toString();
+ 					if (stateData.oauthState !== void 0 && stateData.oauthState !== statePackage.state) {
+ 						ctx.context.logger.error("OAuth proxy state binding mismatch");
+ 						throw redirectOnError(ctx, errorURL, "state_mismatch");
+@@ -255,6 +276,12 @@ const oAuthProxy = (opts) => {
+ 						ctx.context.logger.warn("OAuth provider not found", { providerId });
+ 						throw redirectOnError(ctx, errorURL, "oauth_provider_not_found");
+ 					}
++					if (iss && provider.issuer && iss !== provider.issuer) {
++						throw redirectOnError(ctx, errorURL, "issuer_mismatch");
++					}
++					if (provider.requiresIdTokenNonce && !stateData.idTokenNonce) {
++						throw redirectOnError(ctx, errorURL, "nonce_binding_missing");
++					}
+ 					let tokens;
+ 					try {
+ 						tokens = await provider.validateAuthorizationCode({
+@@ -270,6 +297,7 @@ const oAuthProxy = (opts) => {
+ 					const parsedUserData = userData ? safeJSONParse(userData) : null;
+ 					const userInfoResult = await provider.getUserInfo({
+ 						...tokens,
++						...(stateData.idTokenNonce ? { expectedIdTokenNonce: stateData.idTokenNonce } : {}),
+ 						/**
+ 						* The user object from the provider
+ 						* This is only available for some providers like Apple
+@@ -296,7 +324,6 @@ const oAuthProxy = (opts) => {
+ 						throw redirectOnError(ctx, errorURL, "unable_to_get_user_info");
+ 					}
+ 					const providerProfile = toOAuthProfileRecord(userInfoResult.data);
+-					const proxyCallbackURL = new URL(stateData.callbackURL);
+ 					const finalCallbackURL = proxyCallbackURL.searchParams.get("callbackURL") || stateData.callbackURL;
+ 					const payload = {
+ 						userInfo: {

@@ -4,16 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --hostname 127.0.0.1 --port 3003",
-    "build": "if [ -n \"$VERCEL\" ]; then next build; else next build --webpack; fi",
-    "start": "next start --port 3003",
+    "build": "next build --webpack",
     "check-types": "next typegen && tsc --noEmit",
     "test": "vitest run --root ../.. apps/admin/src",
-    "typecheck": "bun run check-types"
+    "typecheck": "bun run check-types",
+    "build:cloudflare": "opennextjs-cloudflare build --skipWranglerConfigCheck"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
     "@fontsource-variable/inter": "^5.3.0",
+    "@opennextjs/cloudflare": "1.20.6",
     "@orpc/client": "^1.15.0",
     "@orpc/contract": "^1.15.0",
     "@pcobooster/contracts": "workspace:*",
@@ -26,6 +26,7 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "5.20260923.1",
     "@pcobooster/config": "workspace:*",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^24.13.5",

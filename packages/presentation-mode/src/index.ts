@@ -2,7 +2,6 @@ import { createHash } from "node:crypto";
 
 export const isPresentationMode = (): boolean =>
   process.env.NODE_ENV !== "production" &&
-  !(process.env.VERCEL !== undefined && process.env.VERCEL !== "") &&
   process.env.PRESENTATION_MODE === "1";
 
 export const getPresentationSeed = (): string =>

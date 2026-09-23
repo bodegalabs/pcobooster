@@ -4,12 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --hostname 127.0.0.1 --port 3001",
-    "build": "bun run ../../scripts/stage-marketing.ts && if [ -n \"$VERCEL\" ]; then next build; else next build --webpack; fi",
-    "start": "next start --port 3001",
+    "build": "bun run ../../scripts/stage-marketing.ts && next build --webpack",
     "test": "vitest run --root ../.. apps/web/src",
     "check-types": "next typegen && tsc --noEmit",
-    "typecheck": "bun run check-types"
+    "typecheck": "bun run check-types",
+    "build:cloudflare": "opennextjs-cloudflare build --skipWranglerConfigCheck"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -19,8 +18,9 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@fontsource-variable/geist-mono": "^5.3.0",
     "@fontsource-variable/inter": "^5.3.0",
-    "@hugeicons/core-free-icons": "^4.3.4",
+    "@hugeicons/core-free-icons": "^4.3.5",
     "@hugeicons/react": "^1.1.10",
+    "@opennextjs/cloudflare": "1.20.6",
     "@orpc/client": "^1.15.0",
     "@orpc/contract": "^1.15.0",
     "@pcobooster/analytics": "workspace:*",
@@ -47,6 +47,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "5.20260923.1",
     "@pcobooster/config": "workspace:*",
     "@tailwindcss/postcss": "^4.3.3",
     "@tanstack/react-query-devtools": "^5.103.1",

@@ -22,7 +22,9 @@ command -v jq >/dev/null 2>&1 || {
 
 project_id="${INFISICAL_PROJECT_ID:-$(jq --raw-output '.workspaceId' "$PROJECT_CONFIG_PATH")}"
 environment="${INFISICAL_ENVIRONMENT:-dev}"
-secret_path="${INFISICAL_CLOUD_PATH:-/cloud}"
+secret_path="/cloud"
+
+[[ "$environment" == "dev" ]] || { printf 'Codex cloud uses Development /cloud only.\n' >&2; exit 1; }
 
 if [[ -z "$project_id" || "$project_id" == "null" ]]; then
   printf 'Unable to resolve the Infisical project ID.\n' >&2
@@ -60,4 +62,4 @@ exec infisical run \
   --projectId="$project_id" \
   --env="$environment" \
   --path="$secret_path" \
-  -- bash scripts/codex-cloud/exec.sh "$@"
+  -- "$@"

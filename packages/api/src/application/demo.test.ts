@@ -4,7 +4,7 @@ import {
   demoSessionToken,
   readDemoConfiguration,
 } from "@pcobooster/api/auth/demo-access";
-import { Effect, Either } from "effect";
+import { Effect, Result } from "effect";
 import { describe, expect, it } from "vitest";
 
 const accessKey = "a-private-demo-link-key-for-tests";
@@ -19,7 +19,7 @@ const configuredDependencies: DemoDependencies = {
 
 const start = async (key: string, dependencies: DemoDependencies) =>
   await Effect.runPromise(
-    Effect.either(startDemoSession({ key }, dependencies))
+    Effect.result(startDemoSession({ key }, dependencies))
   );
 
 describe(startDemoSession, () => {
@@ -30,7 +30,7 @@ describe(startDemoSession, () => {
     await expect(
       start(accessKey, configuredDependencies)
     ).resolves.toStrictEqual(
-      Either.right({ sessionToken: demoSessionToken(configuration) })
+      Result.succeed({ sessionToken: demoSessionToken(configuration) })
     );
   });
 
@@ -38,7 +38,7 @@ describe(startDemoSession, () => {
     const unknown = await start("guess", configuredDependencies);
     const disabled = await start(accessKey, { readConfiguration: () => null });
     expect(unknown).toStrictEqual(disabled);
-    expect(Either.getLeft(unknown)).toMatchObject({
+    expect(Result.getFailure(unknown)).toMatchObject({
       _tag: "Some",
       value: { _tag: "NotFound", resource: "demo" },
     });

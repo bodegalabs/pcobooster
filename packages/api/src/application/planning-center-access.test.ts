@@ -227,7 +227,15 @@ describe("PlanningCenterAccess", () => {
     if (Exit.isSuccess(result)) {
       throw new Error("Expected the adapter error to fail");
     }
-    expect([...Cause.defects(result.cause)]).toContain(unexpected);
-    expect([...Cause.failures(result.cause)]).toStrictEqual([]);
+    expect(
+      result.cause.reasons
+        .filter(Cause.isDieReason)
+        .map((reason) => reason.defect)
+    ).toContain(unexpected);
+    expect(
+      result.cause.reasons
+        .filter(Cause.isFailReason)
+        .map((reason) => reason.error)
+    ).toStrictEqual([]);
   });
 });

@@ -20,7 +20,7 @@ const riskRank: Record<RiskTier, number> = {
 const criticalPath =
   /^(?:\.github\/workflows\/|apps\/web\/src\/proxy\.ts$|packages\/api\/(?:migrations\/|src\/(?:auth\/|db\/)))/u;
 const highPath =
-  /^(?:apps\/server\/|packages\/(?:api|contracts)\/|package\.json$|bun\.lock$|vercel\.json$)/u;
+  /^(?:apps\/server\/|packages\/(?:api|contracts)\/|package\.json$|bun\.lock$|alchemy\.run\.ts$|patches\/|scripts\/(?:cloudflare|database)\/)/u;
 const mediumPath =
   /^(?:apps\/(?:web|marketing)\/|packages\/(?:planning-center-models|presentation-mode)\/|scripts\/|turbo\.json$|tsconfig\.json$)/u;
 const visibleSourcePath =

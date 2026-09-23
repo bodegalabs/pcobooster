@@ -1,5 +1,7 @@
 # Production domain migration
 
+This is the historical September 18 domain rename. The current hosting, DNS, data preservation, and registrar status are in the [September 23 Cloudflare cutover record](cloudflare-cutover.md).
+
 September 18, 2026: move production from `worshipadmin.com` to `pcobooster.com` on the Vercel project now named `pcobooster`.
 
 ## Configuration
