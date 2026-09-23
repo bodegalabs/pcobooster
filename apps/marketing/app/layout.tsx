@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { SiteLink, SiteFooter, SiteHeader } from "../components/site";
 
 import styles from "./site.module.css";
+import "@pcobooster/design-tokens/tokens.css";
 import "./globals.css";
 
 const inter = localFont({

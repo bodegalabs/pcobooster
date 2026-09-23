@@ -1,6 +1,11 @@
 import { ArrowDown, ArrowUpRight, Check, Plus } from "lucide-react";
 
-import { ProductShot } from "../components/product-shot";
+import { DemoFrame } from "../components/demo-frame";
+import {
+  HistoryShowcase,
+  LineupShowcase,
+  ProductDemo,
+} from "../components/product-demo/product-demo";
 import { SiteLink, ActionLink } from "../components/site";
 
 import styles from "./site.module.css";
@@ -78,14 +83,12 @@ const HomePage = () => (
       id="product"
       aria-label="Inside PCOBooster"
     >
-      <ProductShot
-        name="assign"
-        priority
-        chrome
-        alt="PCOBooster Assign view showing team positions, available people, fit scores, and recent serving activity using anonymized names."
-      />
+      <DemoFrame chrome label="Interactive PCOBooster replica">
+        <ProductDemo />
+      </DemoFrame>
       <p className={styles["stage-note"]}>
-        Actual product views, with people’s names anonymized.
+        Go ahead, click around. A working replica with sample people. Nothing
+        you do here reaches Planning Center.
       </p>
     </section>
 
@@ -97,16 +100,15 @@ const HomePage = () => (
           <em>The missing pieces, too.</em>
         </h2>
         <p>
-          See filled roles and open positions by team. Choose a person in
-          Assign, then send the assignment back to Planning Center Services.
+          See filled roles and open positions by team. Pick an open spot to find
+          someone in Assign, then send the assignment back to Planning Center
+          Services.
         </p>
       </header>
-      <div className={`${styles.stage} ${styles["stage-bleed"]}`}>
-        <ProductShot
-          name="lineup"
-          crop="bleed"
-          alt="PCOBooster Lineup view organizing scheduled people and open positions by team."
-        />
+      <div className={styles.stage}>
+        <DemoFrame label="Lineup of scheduled people and open positions by team">
+          <LineupShowcase demoAnchorId="product" />
+        </DemoFrame>
       </div>
     </section>
 
@@ -131,12 +133,10 @@ const HomePage = () => (
           ))}
         </ul>
       </div>
-      <div className={styles.stage}>
-        <ProductShot
-          name="history"
-          crop="history"
-          alt="A person's recent scheduling history displayed alongside candidate availability in the PCOBooster Assign view."
-        />
+      <div className={`${styles.stage} ${styles["stage-history"]}`}>
+        <DemoFrame label="Candidates for Acoustic Guitar with one person's recent serving history open">
+          <HistoryShowcase />
+        </DemoFrame>
       </div>
     </section>
 

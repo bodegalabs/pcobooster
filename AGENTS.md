@@ -9,8 +9,9 @@
 
 - `apps/web/`: Next.js product UI. App Router pages, components, hooks, proxy, and public assets live under `apps/web/src` and `apps/web/public`.
 - `apps/server/`: Bun/Hono composition root. It mounts Better Auth, oRPC, the OpenAPI reference, CORS, and cache policy.
-- `apps/marketing/`: independent static-export Next.js marketing site.
+- `apps/marketing/`: independent static-export Next.js marketing site. Its interactive product replica lives in `apps/marketing/components/product-demo/` with fictional fixtures; it shares only design tokens with the product, not components.
 - `apps/admin/`: private Next.js admin app for `admin.pcobooster.com`, deployed as its own Vercel project. See `docs/admin.md`.
+- `packages/design-tokens/`: product color and radius tokens (`tokens.css`, light on `:root`, dark under `.dark`) shared by `apps/web` and the marketing replica.
 - `packages/contracts/`: browser-safe oRPC contracts, transport schemas, and safe error payloads.
 - `packages/planning-center-models/`: browser-safe Planning Center shapes and pure calendar/scheduling rules.
 - `packages/presentation-mode/`: server-side presentation-mode guard, seed, and cache namespace.
