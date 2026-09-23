@@ -63,8 +63,29 @@ export const buildPlanningCenterUrl = (
   return url.toString();
 };
 
-const parseJsonResponse = async (response: Response): Promise<JsonValue> => {
-  const text = await response.text();
+const readResponseText = async (
+  response: Response,
+  signal?: AbortSignal | null
+): Promise<string> => {
+  try {
+    return await response.text();
+  } catch (error) {
+    if (signal?.aborted === true) {
+      throw error;
+    }
+    throw new PlanningCenterNetworkError(
+      error instanceof Error
+        ? error
+        : new Error("Planning Center response body failed", { cause: error })
+    );
+  }
+};
+
+const parseJsonResponse = async (
+  response: Response,
+  signal?: AbortSignal | null
+): Promise<JsonValue> => {
+  const text = await readResponseText(response, signal);
   if (response.status === 204 || text.trim() === "") {
     throw new PlanningCenterApiError({
       message:
@@ -359,7 +380,7 @@ export class PlanningCenterCoreClient {
       if (!response.ok) {
         throw buildApiError(
           response.status,
-          await response.text(),
+          await readResponseText(response, options.signal),
           response.headers
         );
       }
@@ -416,7 +437,10 @@ export class PlanningCenterCoreClient {
     endpoint: string,
     options: RequestInit
   ): Promise<JsonValue> {
-    return await parseJsonResponse(await this.request(endpoint, options));
+    return await parseJsonResponse(
+      await this.request(endpoint, options),
+      options.signal
+    );
   }
 
   private async fetchJson(

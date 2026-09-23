@@ -169,6 +169,29 @@ describe(PlanningCenterCoreClient, () => {
     ).rejects.toMatchObject({ code: "INVALID_RESPONSE" });
   });
 
+  it.each([200, 503])(
+    "classifies a failed %i response body stream as a provider network failure",
+    async (status) => {
+      const failedBody = (): Response =>
+        new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.error(new TypeError("body stream failed"));
+            },
+          }),
+          { status }
+        );
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(failedBody());
+
+      await expect(
+        createBasicPlanningCenterClient().fetch("/services/v2/people/1")
+      ).rejects.toMatchObject({
+        name: "PlanningCenterNetworkError",
+        cause: { message: "body stream failed" },
+      });
+    }
+  );
+
   it("rejects malformed resource identifiers before they enter service code", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       jsonResponse({ data: { id: 1, type: "Person" } })
