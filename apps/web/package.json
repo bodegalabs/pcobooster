@@ -24,6 +24,7 @@
     "@orpc/client": "^1.15.0",
     "@orpc/contract": "^1.15.0",
     "@pcobooster/contracts": "workspace:*",
+    "@pcobooster/design-tokens": "workspace:*",
     "@pcobooster/marketing": "workspace:*",
     "@pcobooster/planning-center-models": "workspace:*",
     "@pcobooster/presentation-mode": "workspace:*",

@@ -3,12 +3,12 @@
   --surface: #f2f1ec;
   --stage: #ecebe4;
   --ink: #242823;
-  --muted: #676b63;
+  --ink-soft: #676b63;
   --faint: #8b8f86;
   --line: #e2e2d9;
   --line-strong: #d4d5ca;
-  --accent: #354e43;
-  --accent-hover: #283f35;
+  --brand: #354e43;
+  --brand-hover: #283f35;
   --sage: #dfe5d8;
   --sage-soft: #eaeee5;
   --white: #fff;
@@ -18,9 +18,9 @@
   --text-base: 15px;
   --text-lg: 17px;
 
-  --radius-sm: 8px;
-  --radius: 12px;
-  --radius-lg: 18px;
+  --corner-sm: 8px;
+  --corner: 12px;
+  --corner-lg: 18px;
 
   --section-space: clamp(96px, 11vw, 152px);
   --header-height: 68px;
@@ -59,7 +59,7 @@ summary {
 }
 a:focus-visible,
 summary:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--brand);
   outline-offset: 4px;
   border-radius: 4px;
 }
@@ -95,7 +95,7 @@ h2 {
 }
 em {
   font-style: normal;
-  color: var(--accent);
+  color: var(--brand);
 }
 
 @media (prefers-reduced-motion: reduce) {
