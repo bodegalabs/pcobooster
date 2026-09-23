@@ -43,6 +43,6 @@ The production token has the same account-level deployment permissions, plus DNS
 
 ## Merge gates and migration status
 
-The existing live `main` ruleset still requires `ci` and `Vercel – pcobooster`. Replace the Vercel requirement with the successful `cloudflare-build` GitHub Actions check after this workflow has run on the migration PR. Preserve the merge queue, squash-only merging, and absence of bypass actors. Never remove the old gate merely to bypass a red or missing replacement.
+The target `main` ruleset requires `ci` and `cloudflare-build`. The pre-migration ruleset required `ci` and `Vercel – pcobooster`; switch the latter requirement only after `cloudflare-build` succeeds on the migration PR. Inspect the live ruleset to establish whether that transition has completed. Preserve the merge queue, squash-only merging, and absence of bypass actors. Never remove the old gate merely to bypass a red or missing replacement.
 
 Cloudflare/D1 became the live production system on September 23, 2026; see the [cutover record](cloudflare-cutover.md). Vercel temporarily forwards cached DNS traffic to Cloudflare, and Neon is retained as the source snapshot. Follow [database migration and rollback](database.md): after D1 accepts new writes, routing back to the old PostgreSQL snapshot alone is not a safe rollback.
