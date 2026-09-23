@@ -1,7 +1,8 @@
 "use client";
 
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
-import { Search } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { ServiceTypeMultiSelect } from "@/components/service-type-multi-select";
 import {
@@ -36,14 +37,8 @@ import type {
   ServicePlanRow,
   ServicePlanTableSelectorProps,
 } from "@/lib/service-plan-selection";
-import {
-  dateRangeSchema,
-  formatDate,
-  formatMobileDate,
-} from "@/lib/service-plan-selection";
+import { dateRangeSchema, formatDate } from "@/lib/service-plan-selection";
 import { cn } from "@/lib/utils";
-
-const myScheduledMobileRowClass = "bg-status-confirmed/5";
 
 interface PlanListProps {
   isInitialLoading: boolean;
@@ -170,6 +165,99 @@ const DesktopPlanRows = ({
   });
 };
 
+const monthHeadingFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  year: "numeric",
+});
+const formatMonthHeading = (date: Date): string =>
+  monthHeadingFormatter.format(date);
+const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+});
+const monthShortFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+});
+
+const PlanDateTile = ({
+  date,
+  highlighted,
+}: {
+  date: Date;
+  highlighted: boolean;
+}) => (
+  <span
+    aria-hidden
+    className={cn(
+      "flex w-12 shrink-0 flex-col items-center justify-center rounded-xl py-1.5 leading-none tabular-nums",
+      highlighted
+        ? "bg-status-confirmed/12 text-status-confirmed"
+        : "bg-muted text-foreground"
+    )}
+  >
+    <span className="text-xs font-semibold tracking-wide uppercase opacity-70">
+      {monthShortFormatter.format(date)}
+    </span>
+    <span className="mt-0.5 text-lg font-semibold">{date.getDate()}</span>
+    <span className="mt-0.5 text-xs font-medium opacity-60">
+      {weekdayFormatter.format(date)}
+    </span>
+  </span>
+);
+
+const MobilePlanRow = ({
+  row,
+  isActive,
+  isScheduledForCurrentUser,
+  onSelect,
+  onPrefetch,
+}: {
+  row: ServicePlanRow;
+  isActive: boolean;
+  isScheduledForCurrentUser: boolean;
+  onSelect: (row: ServicePlanRow) => void;
+  onPrefetch: (row: ServicePlanRow) => void;
+}) => (
+  <button
+    type="button"
+    data-state={isActive ? "selected" : undefined}
+    className={cn(
+      "active:bg-muted/70 focus-visible:ring-ring flex w-full items-center gap-3 rounded-2xl px-1 py-2 text-left focus-visible:ring-2 focus-visible:outline-none",
+      isActive && "bg-muted/60"
+    )}
+    aria-current={isActive ? "page" : undefined}
+    aria-label={
+      isScheduledForCurrentUser
+        ? `${row.serviceTypeName}, ${formatDate(row.sortDate)} — you are scheduled`
+        : `${row.serviceTypeName}, ${formatDate(row.sortDate)}`
+    }
+    onClick={() => {
+      onSelect(row);
+    }}
+    onTouchStart={() => {
+      onPrefetch(row);
+    }}
+  >
+    <PlanDateTile date={row.sortDate} highlighted={isScheduledForCurrentUser} />
+    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <span className="text-muted-foreground truncate text-xs font-medium">
+        {row.serviceTypeName}
+      </span>
+      <span className="truncate text-base leading-snug font-semibold">
+        {row.planTitle || "Untitled plan"}
+      </span>
+      {isNonEmptyString(row.seriesTitle) ? (
+        <span className="text-muted-foreground truncate text-xs">
+          {row.seriesTitle}
+        </span>
+      ) : null}
+    </span>
+    <ChevronRight
+      className="text-muted-foreground/60 size-4 shrink-0"
+      aria-hidden
+    />
+  </button>
+);
+
 const MobilePlanRows = ({
   isInitialLoading,
   errorMessage,
@@ -183,14 +271,12 @@ const MobilePlanRows = ({
     return Array.from({ length: 8 }).map((_, index) => (
       <div
         key={`mobile-loading-${index}`}
-        className="border-border/35 border-b px-4 py-3 last:border-b-0"
+        className="flex items-center gap-3 px-1 py-2"
       >
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1 space-y-2">
-            <Skeleton className="h-4 w-36" />
-            <Skeleton className="h-3.5 w-52 max-w-full" />
-          </div>
-          <Skeleton className="h-3.5 w-20 shrink-0" />
+        <Skeleton className="h-16 w-12 shrink-0" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <Skeleton className="h-3 w-28" />
+          <Skeleton className="h-4 w-48 max-w-full" />
         </div>
       </div>
     ));
@@ -227,54 +313,33 @@ const MobilePlanRows = ({
       </div>
     );
   }
-  return visibleRows.map((row) => {
-    const isActive = row.planId === selectedPlanId;
-    const isScheduledForCurrentUser = myScheduledPlanIdSet.has(row.planId);
-
-    return (
-      <button
+  const rows: ReactNode[] = [];
+  let previousMonth = "";
+  for (const row of visibleRows) {
+    const month = formatMonthHeading(row.sortDate);
+    if (month !== previousMonth) {
+      previousMonth = month;
+      rows.push(
+        <h3
+          key={`month-${month}`}
+          className="bg-background/90 text-muted-foreground supports-backdrop-filter:bg-background/75 sticky top-[var(--plan-list-sticky-offset,0px)] z-[5] -mx-4 px-5 pt-4 pb-1.5 text-xs font-semibold tracking-wide uppercase backdrop-blur-md first:pt-1"
+        >
+          {month}
+        </h3>
+      );
+    }
+    rows.push(
+      <MobilePlanRow
         key={`mobile-${row.serviceTypeId}:${row.planId}`}
-        type="button"
-        data-state={isActive ? "selected" : undefined}
-        className={cn(
-          "border-border/35 hover:bg-muted/50 focus-visible:ring-ring relative flex w-full cursor-pointer flex-col gap-1.5 border-b px-4 py-3 text-left last:border-b-0 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset",
-          isActive && "bg-muted/60",
-          isScheduledForCurrentUser && myScheduledMobileRowClass
-        )}
-        aria-current={isActive ? "page" : undefined}
-        aria-label={
-          isScheduledForCurrentUser
-            ? `${row.serviceTypeName} — you are scheduled`
-            : undefined
-        }
-        onClick={() => {
-          handleSelectRow(row);
-        }}
-        onTouchStart={() => {
-          prefetchPlanData(row);
-        }}
-      >
-        <div className="flex min-w-0 items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="truncate text-sm leading-tight font-semibold">
-              {row.serviceTypeName}
-            </p>
-            <p className="mt-1 truncate text-base leading-tight font-medium">
-              {row.planTitle || "Untitled plan"}
-            </p>
-          </div>
-          <span className="text-muted-foreground shrink-0 pt-0.5 text-xs tabular-nums">
-            {formatMobileDate(row.sortDate)}
-          </span>
-        </div>
-        <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-xs">
-          <span className="min-w-0 truncate">
-            {row.seriesTitle ?? "No series"}
-          </span>
-        </div>
-      </button>
+        row={row}
+        isActive={row.planId === selectedPlanId}
+        isScheduledForCurrentUser={myScheduledPlanIdSet.has(row.planId)}
+        onSelect={handleSelectRow}
+        onPrefetch={prefetchPlanData}
+      />
     );
-  });
+  }
+  return rows;
 };
 
 interface MyScheduledServiceCardsProps {
@@ -286,7 +351,7 @@ interface MyScheduledServiceCardsProps {
 }
 
 const myScheduledServiceCardClass =
-  "border-border bg-background hover:bg-accent text-foreground flex w-full min-h-24 flex-col items-start justify-center gap-1.5 rounded-xl border px-4 py-4 text-left";
+  "border-border bg-background hover:bg-accent active:bg-accent text-foreground flex min-h-20 w-[min(17rem,78vw)] shrink-0 snap-start flex-col items-start justify-center gap-1 rounded-2xl border px-4 py-3 text-left md:min-h-24 md:w-full md:gap-1.5 md:rounded-xl md:py-4";
 
 const MyScheduledServiceCards = ({
   rows,
@@ -302,12 +367,12 @@ const MyScheduledServiceCards = ({
   return (
     <section className="flex shrink-0 flex-col gap-2.5">
       <h2 className={selectionPickerSectionTitleClass}>Your services</h2>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-2 overflow-x-auto px-4 md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 lg:grid-cols-3">
         {isLoading
           ? Array.from({ length: 3 }).map((_, index) => (
               <Skeleton
                 key={`my-service-card-skeleton-${index}`}
-                className="h-24 w-full"
+                className="h-20 w-[min(17rem,78vw)] shrink-0 md:h-24 md:w-full"
               />
             ))
           : rows.map((row) => (
@@ -333,7 +398,7 @@ const MyScheduledServiceCards = ({
               </button>
             ))}
       </div>
-      <Separator className="mt-1" />
+      <Separator className="mt-1 max-md:hidden" />
     </section>
   );
 };
@@ -378,7 +443,7 @@ export const ServicePlanTableSelector = ({
     prefetchPlanData,
   };
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3">
+    <div className="flex flex-col gap-3 md:h-full md:min-h-0">
       <MyScheduledServiceCards
         rows={myScheduledRows}
         isLoading={isInitialLoading || myScheduledPlansLoading}
@@ -387,8 +452,8 @@ export const ServicePlanTableSelector = ({
         onCancelPrefetch={cancelDelayedPrefetch}
       />
 
-      <div className="grid shrink-0 gap-2 sm:grid-cols-[minmax(0,1fr)_180px_160px]">
-        <InputGroup>
+      <div className="bg-background/90 supports-backdrop-filter:bg-background/75 sticky top-0 z-10 -mx-4 grid shrink-0 grid-cols-2 gap-2 px-4 py-2 backdrop-blur-md md:static md:mx-0 md:grid-cols-[minmax(0,1fr)_180px_160px] md:bg-transparent md:p-0 md:backdrop-blur-none">
+        <InputGroup className="col-span-2 md:col-span-1">
           <InputGroupAddon>
             <Search />
           </InputGroupAddon>
@@ -397,7 +462,7 @@ export const ServicePlanTableSelector = ({
             onChange={(event) => {
               setSearchValue(event.target.value);
             }}
-            placeholder="Search service type, plan, series, or date"
+            placeholder="Search plans, series, or dates"
             aria-label="Search services and plans"
           />
         </InputGroup>
@@ -416,14 +481,14 @@ export const ServicePlanTableSelector = ({
           }}
           aria-label="Filter date range"
         >
-          <NativeSelectOption value="all">All loaded dates</NativeSelectOption>
+          <NativeSelectOption value="all">All dates</NativeSelectOption>
           <NativeSelectOption value="14">Next 14 days</NativeSelectOption>
           <NativeSelectOption value="30">Next 30 days</NativeSelectOption>
           <NativeSelectOption value="60">Next 60 days</NativeSelectOption>
         </NativeSelect>
       </div>
 
-      <div className="border-border/40 min-h-0 flex-1 overflow-y-auto rounded-lg border">
+      <div className="md:border-border/40 [--plan-list-sticky-offset:6.25rem] md:min-h-0 md:flex-1 md:overflow-y-auto md:rounded-lg md:border">
         <Table className="hidden md:table">
           <TableHeader className="sticky top-0 z-10">
             <TableRow className="[&>th]:h-9">

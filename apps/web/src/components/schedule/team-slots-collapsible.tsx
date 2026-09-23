@@ -21,10 +21,10 @@ import {
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  ResponsivePopover,
+  ResponsivePopoverContent,
+  ResponsivePopoverTrigger,
+} from "@/components/ui/responsive-popover";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -183,15 +183,18 @@ export const TeamSlotsCollapsible = ({
               {group.positions.map(renderPositionRow)}
               {onAddPosition ? (
                 <SidebarMenuItem>
-                  <Popover open={addOpen} onOpenChange={setAddOpen}>
-                    <PopoverTrigger render={<PositionPickerRow tone="muted" />}>
+                  <ResponsivePopover open={addOpen} onOpenChange={setAddOpen}>
+                    <ResponsivePopoverTrigger
+                      render={<PositionPickerRow tone="muted" />}
+                    >
                       <Plus
                         className="size-3.5 shrink-0 opacity-70"
                         aria-hidden
                       />
                       <span className="truncate font-normal">Add position</span>
-                    </PopoverTrigger>
-                    <PopoverContent
+                    </ResponsivePopoverTrigger>
+                    <ResponsivePopoverContent
+                      title="Add position"
                       align="start"
                       side="right"
                       sideOffset={8}
@@ -218,8 +221,8 @@ export const TeamSlotsCollapsible = ({
                           Add
                         </Button>
                       </form>
-                    </PopoverContent>
-                  </Popover>
+                    </ResponsivePopoverContent>
+                  </ResponsivePopover>
                 </SidebarMenuItem>
               ) : null}
             </SidebarMenu>

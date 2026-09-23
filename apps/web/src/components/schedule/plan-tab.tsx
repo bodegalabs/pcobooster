@@ -1,11 +1,12 @@
 "use client";
 
-import { startTransition } from "react";
+import { startTransition, useState } from "react";
 
 import { PlanItemEditDialog } from "@/components/schedule/plan-item-edit-dialog";
 import { PlanItemList } from "@/components/schedule/plan-item-list";
 import { PlanTabToolbar } from "@/components/schedule/plan-tab-toolbar";
 import { SongPickerDialog } from "@/components/schedule/song-picker-dialog";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import { usePlanTabController } from "@/hooks/use-plan-tab-controller";
 
 interface PlanTabProps {
@@ -36,6 +37,25 @@ export const PlanTab = ({ serviceTypeId, planId }: PlanTabProps) => {
     serviceTypeId,
     planId,
   });
+  const [itemIdPendingDelete, setItemIdPendingDelete] = useState<string | null>(
+    null
+  );
+  const itemPendingDelete =
+    items.find((item) => item.id === itemIdPendingDelete) ?? null;
+  const itemPendingDeleteTitle = itemPendingDelete?.title ?? "Untitled item";
+
+  const handleConfirmDelete = async () => {
+    if (itemIdPendingDelete === null) {
+      return;
+    }
+    const itemId = itemIdPendingDelete;
+    setItemIdPendingDelete(null);
+    try {
+      await deleteItem(itemId);
+    } catch {
+      // Errors are handled by the mutation toast; the optimistic cache restores the row.
+    }
+  };
 
   return (
     <>
@@ -49,6 +69,19 @@ export const PlanTab = ({ serviceTypeId, planId }: PlanTabProps) => {
         pendingSongId={pendingSongId}
       />
 
+      <DeleteConfirmationDialog
+        open={itemPendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setItemIdPendingDelete(null);
+          }
+        }}
+        onConfirm={handleConfirmDelete}
+        isPending={pendingItemId === itemIdPendingDelete}
+        itemLabel={itemPendingDeleteTitle}
+        description={`Remove "${itemPendingDeleteTitle}" from this plan? This action cannot be undone.`}
+      />
+
       <PlanItemEditDialog
         item={editingItem}
         open={Boolean(editingItemId)}
@@ -60,6 +93,10 @@ export const PlanTab = ({ serviceTypeId, planId }: PlanTabProps) => {
         }}
         onSave={async (input) => {
           await saveItem(input);
+        }}
+        onDelete={(itemId) => {
+          setEditingItemId(null);
+          setItemIdPendingDelete(itemId);
         }}
       />
 
@@ -103,7 +140,7 @@ export const PlanTab = ({ serviceTypeId, planId }: PlanTabProps) => {
           }}
           onEditItem={setEditingItemId}
           onPreviewItem={prefetchItemSongOptions}
-          onDeleteItem={deleteItem}
+          onRequestDelete={setItemIdPendingDelete}
           onReorderItems={reorderItems}
         />
       </div>

@@ -55,6 +55,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarMenuSkeleton } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLineupColumnOrder } from "@/hooks/use-lineup-column-order";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { getInitials } from "@/lib/format/initials";
 import {
   applyLineupColumnOrder,
@@ -76,6 +77,7 @@ interface LineupTabProps {
 
 const lineupSkeletonWidths = ["78%", "66%", "84%", "58%"];
 const lineupColumnWidthClass = "w-[min(22rem,78vw)]";
+const lineupStackClassName = "flex flex-col gap-3 pb-4";
 const teamColumnClass =
   "bg-background text-foreground shadow-xs ring-foreground/5 dark:ring-foreground/10 flex shrink-0 flex-col rounded-xl ring-1";
 const lineupColumnsRowClassName =
@@ -314,7 +316,9 @@ const TeamColumn = ({
   onPreviewPosition,
   dragHandleAttributes,
   dragHandleListeners,
+  stacked = false,
 }: {
+  stacked?: boolean;
   group: TeamPositionGroup;
   serviceTypeId: string | null;
   planId: string | null;
@@ -332,7 +336,12 @@ const TeamColumn = ({
   const [open, setOpen] = useState(() => openNeededCount > 0);
 
   return (
-    <section className={cn(teamColumnClass, lineupColumnWidthClass)}>
+    <section
+      className={cn(
+        teamColumnClass,
+        stacked ? "w-full rounded-2xl" : lineupColumnWidthClass
+      )}
+    >
       <Collapsible
         open={open}
         onOpenChange={setOpen}
@@ -477,13 +486,17 @@ const TeamColumnOverlay = ({ group }: { group: TeamPositionGroup }) => (
   </section>
 );
 
-const LineupLoadingState = () => (
+const LineupLoadingState = ({ stacked }: { stacked: boolean }) => (
   <ScrollArea className="min-h-0 flex-1">
-    <div className={lineupColumnsRowClassName}>
+    <div className={stacked ? lineupStackClassName : lineupColumnsRowClassName}>
       {["a", "b", "c", "d"].map((columnKey) => (
         <div
           key={`lineup-skeleton-column-${columnKey}`}
-          className={cn(teamColumnClass, "gap-2 p-3", lineupColumnWidthClass)}
+          className={cn(
+            teamColumnClass,
+            "gap-2 p-3",
+            stacked ? "w-full" : lineupColumnWidthClass
+          )}
         >
           <Skeleton className="h-5 w-28" />
           {lineupSkeletonWidths.map((width) => (
@@ -508,6 +521,7 @@ export const LineupTab = ({
 }: LineupTabProps) => {
   const [columnOrderByServiceType, updateColumnOrder] = useLineupColumnOrder();
   const [activeTeamId, setActiveTeamId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
   const reorderDisabled = isPlaceholderData || serviceTypeId === null;
   const orderedGroups = useMemo(() => {
     if (serviceTypeId === null) {
@@ -562,7 +576,7 @@ export const LineupTab = ({
   };
 
   if (isLoading) {
-    return <LineupLoadingState />;
+    return <LineupLoadingState stacked={isMobile} />;
   }
 
   if (groups.length === 0) {
@@ -578,6 +592,35 @@ export const LineupTab = ({
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
+    );
+  }
+
+  if (isMobile) {
+    return (
+      <ScrollArea className="-mx-4 min-h-0 flex-1">
+        <div
+          className={cn(
+            lineupStackClassName,
+            "px-4",
+            isPlaceholderData && "pointer-events-none opacity-60"
+          )}
+          aria-busy={isPlaceholderData}
+        >
+          {orderedGroups.map((group) => (
+            <TeamColumn
+              key={group.teamId}
+              group={group}
+              serviceTypeId={serviceTypeId}
+              planId={planId}
+              seriesId={seriesId}
+              planTimes={planTimes}
+              onSelectPosition={onSelectPosition}
+              onPreviewPosition={onPreviewPosition}
+              stacked
+            />
+          ))}
+        </div>
+      </ScrollArea>
     );
   }
 

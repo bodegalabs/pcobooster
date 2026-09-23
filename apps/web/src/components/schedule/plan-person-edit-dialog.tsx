@@ -21,12 +21,12 @@ import { ScheduleStatusDot } from "@/components/schedule/status-dot";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/ui/responsive-dialog";
 import {
   SelectionPickerCheckbox,
   SelectionPickerOption,
@@ -300,26 +300,25 @@ const PlanPersonEditDialogBody = ({
   };
 
   return (
-    <DialogContent className="sm:max-w-md">
-      <div className="flex flex-col gap-3">
-        <DialogHeader>
-          <div className="flex items-center gap-2.5 pr-8">
-            <Avatar size="sm">
-              <AvatarImage
-                src={person.photoThumbnailUrl ?? undefined}
-                alt={person.name}
-              />
-              <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0">
-              <DialogTitle>{person.name}</DialogTitle>
-              <DialogDescription>
-                {teamName} · {positionName}
-              </DialogDescription>
-            </div>
+    <ResponsiveDialogContent className="sm:max-w-md">
+      <ResponsiveDialogHeader className="max-md:text-left">
+        <div className="flex items-center gap-2.5 md:pr-8">
+          <Avatar className="max-md:size-10" size="sm">
+            <AvatarImage
+              src={person.photoThumbnailUrl ?? undefined}
+              alt={person.name}
+            />
+            <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <ResponsiveDialogTitle>{person.name}</ResponsiveDialogTitle>
+            <ResponsiveDialogDescription>
+              {teamName} · {positionName}
+            </ResponsiveDialogDescription>
           </div>
-        </DialogHeader>
-
+        </div>
+      </ResponsiveDialogHeader>
+      <div className="flex min-h-0 flex-col gap-3 max-md:overflow-y-auto max-md:px-4 max-md:pt-4">
         <div className="flex flex-col gap-4">
           <PlanPersonStatusPicker
             value={draftStatus}
@@ -351,6 +350,7 @@ const PlanPersonEditDialogBody = ({
             type="button"
             variant="destructive"
             size="sm"
+            className="max-md:h-11"
             disabled={isBusy}
             onClick={() => {
               handleUnschedule(person.planPersonId, mutationContext);
@@ -368,6 +368,7 @@ const PlanPersonEditDialogBody = ({
               type="button"
               variant="outline"
               size="sm"
+              className="max-md:h-11"
               disabled={isBusy}
               onClick={() => {
                 onOpenChange(false);
@@ -378,6 +379,7 @@ const PlanPersonEditDialogBody = ({
             <Button
               type="button"
               size="sm"
+              className="max-md:h-11"
               disabled={isBusy || !hasChanges}
               onClick={() => {
                 startTransition(handleSave);
@@ -391,7 +393,7 @@ const PlanPersonEditDialogBody = ({
           </div>
         </div>
       </div>
-    </DialogContent>
+    </ResponsiveDialogContent>
   );
 };
 
@@ -401,7 +403,7 @@ export const PlanPersonEditDialog = ({
   person,
   ...rest
 }: PlanPersonEditDialogProps) => (
-  <Dialog open={open} onOpenChange={onOpenChange}>
+  <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
     {open ? (
       <PlanPersonEditDialogBody
         key={person.planPersonId}
@@ -410,5 +412,5 @@ export const PlanPersonEditDialog = ({
         {...rest}
       />
     ) : null}
-  </Dialog>
+  </ResponsiveDialog>
 );

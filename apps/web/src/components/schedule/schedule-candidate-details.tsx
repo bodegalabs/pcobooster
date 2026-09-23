@@ -6,10 +6,10 @@ import type { CSSProperties, ReactNode } from "react";
 import { RecommendationPopover } from "@/components/schedule/popovers/recommendation-popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  ResponsivePopover,
+  ResponsivePopoverContent,
+  ResponsivePopoverTrigger,
+} from "@/components/ui/responsive-popover";
 import { cn } from "@/lib/utils";
 
 export type CandidateStatus =
@@ -111,8 +111,8 @@ export const ScheduleCandidateAvatar = ({
         ? trimmedReason
         : "No note was saved with this decline in Planning Center.";
     return (
-      <Popover>
-        <PopoverTrigger
+      <ResponsivePopover>
+        <ResponsivePopoverTrigger
           render={
             <button
               type="button"
@@ -128,8 +128,9 @@ export const ScheduleCandidateAvatar = ({
           <AvatarStatusRing slotStatus={slotStatus}>
             <Avatar aria-hidden>{avatarInner}</Avatar>
           </AvatarStatusRing>
-        </PopoverTrigger>
-        <PopoverContent
+        </ResponsivePopoverTrigger>
+        <ResponsivePopoverContent
+          title="Decline reason"
           align="start"
           side="right"
           sideOffset={8}
@@ -143,16 +144,16 @@ export const ScheduleCandidateAvatar = ({
               {declineReason}
             </p>
           </div>
-        </PopoverContent>
-      </Popover>
+        </ResponsivePopoverContent>
+      </ResponsivePopover>
     );
   }
 
   if (isScheduledElsewhereOnPlan) {
     const assignmentsLabel = `Also scheduled for: ${selectedPlanAssignments.join(", ")}`;
     return (
-      <Popover>
-        <PopoverTrigger
+      <ResponsivePopover>
+        <ResponsivePopoverTrigger
           render={
             <button
               type="button"
@@ -169,8 +170,9 @@ export const ScheduleCandidateAvatar = ({
         >
           <Avatar aria-hidden>{avatarInner}</Avatar>
           {blockedAvatarTint}
-        </PopoverTrigger>
-        <PopoverContent
+        </ResponsivePopoverTrigger>
+        <ResponsivePopoverContent
+          title="Also scheduled"
           align="start"
           side="right"
           sideOffset={8}
@@ -186,8 +188,8 @@ export const ScheduleCandidateAvatar = ({
               </span>
             </p>
           </div>
-        </PopoverContent>
-      </Popover>
+        </ResponsivePopoverContent>
+      </ResponsivePopover>
     );
   }
 

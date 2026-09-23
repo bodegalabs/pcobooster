@@ -121,7 +121,7 @@ const ScheduleCandidateAction = ({
   onScheduleSuccess?: () => void;
   onScheduleError?: (message: string) => void;
 }) => (
-  <div className="col-start-3 row-span-2 row-start-1 flex w-9 shrink-0 justify-end sm:row-auto sm:w-20">
+  <div className="col-start-3 row-span-2 row-start-1 flex w-10 shrink-0 justify-end sm:row-auto sm:w-20">
     {isScheduled ? (
       <PlanPersonStatusMenu
         planPersonId={person.scheduledPlanPersonId}
@@ -138,7 +138,7 @@ const ScheduleCandidateAction = ({
       <Button
         variant="outline"
         size="sm"
-        className="w-full"
+        className="w-full max-sm:size-10"
         aria-label={
           isScheduling
             ? `Adding ${person.fullName}`
@@ -220,7 +220,7 @@ const ScheduleCandidateIdentityRow = ({
     >
       <button
         type="button"
-        className="text-muted-foreground/70 hover:bg-muted/60 hover:text-foreground inline-flex size-6 shrink-0 cursor-pointer appearance-none items-center justify-center rounded-md border-0 bg-transparent p-0 sm:size-8"
+        className="text-muted-foreground/70 hover:bg-muted/60 hover:text-foreground active:bg-muted/60 -my-1 inline-flex size-8 shrink-0 cursor-pointer appearance-none items-center justify-center rounded-full border-0 bg-transparent p-0 sm:my-0 sm:rounded-md"
         aria-label="Schedule context"
       >
         <Info className="size-4" />

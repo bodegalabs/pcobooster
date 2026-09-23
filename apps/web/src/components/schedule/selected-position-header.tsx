@@ -1,7 +1,7 @@
 "use client";
 
 import type { TeamPosition } from "@pcobooster/planning-center-models/types";
-import { ChevronsUpDown, Search, X } from "lucide-react";
+import { ChevronLeft, ChevronsUpDown, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 export const SelectedPositionHeader = ({
   info,
   onOpenPicker,
+  onBack,
   hasSlots,
   teamPositionsLoading,
   filter,
@@ -26,6 +27,7 @@ export const SelectedPositionHeader = ({
     position: TeamPosition;
   } | null;
   onOpenPicker: () => void;
+  onBack: () => void;
   hasSlots: boolean;
   teamPositionsLoading: boolean;
   filter: string;
@@ -36,31 +38,54 @@ export const SelectedPositionHeader = ({
 
   return (
     <div className="flex shrink-0 flex-col gap-2 px-1 sm:gap-3">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <p
-            className={cn(
-              "min-w-0 truncate text-xl leading-tight font-semibold tracking-tight sm:text-2xl",
-              isTemporaryPosition && "italic"
-            )}
-          >
-            {info?.positionName ?? "Position"}
-          </p>
-        </div>
+      <div className="flex items-center gap-1 lg:hidden">
         <Button
           type="button"
-          variant="outline"
-          size="sm"
-          className="shrink-0 lg:hidden"
+          variant="ghost"
+          size="icon-lg"
+          className="-ml-2 shrink-0 max-md:hidden"
+          onClick={onBack}
+          aria-label="Back to positions"
+        >
+          <ChevronLeft className="size-6" aria-hidden />
+        </Button>
+        <button
+          type="button"
+          className="active:bg-muted -mx-1.5 flex min-w-0 flex-1 items-center gap-1.5 rounded-xl px-1.5 py-1 text-left disabled:opacity-60 md:mx-0"
           onClick={onOpenPicker}
           disabled={!hasSlots || teamPositionsLoading}
-          title="Change position"
           aria-label="Change position"
         >
-          <span>Positions</span>
-          <ChevronsUpDown className="size-3.5 opacity-60" aria-hidden />
-        </Button>
+          <span className="flex min-w-0 flex-col">
+            <span
+              className={cn(
+                "truncate text-lg leading-tight font-semibold tracking-tight",
+                isTemporaryPosition && "italic"
+              )}
+            >
+              {info?.positionName ?? "Position"}
+            </span>
+            {info ? (
+              <span className="text-muted-foreground truncate text-xs">
+                {info.teamName}
+              </span>
+            ) : null}
+          </span>
+          <ChevronsUpDown
+            className="text-muted-foreground size-4 shrink-0"
+            aria-hidden
+          />
+        </button>
       </div>
+
+      <p
+        className={cn(
+          "min-w-0 truncate text-2xl leading-tight font-semibold tracking-tight max-lg:hidden",
+          isTemporaryPosition && "italic"
+        )}
+      >
+        {info?.positionName ?? "Position"}
+      </p>
 
       <div className="flex items-center gap-3">
         <InputGroup className="w-full flex-1 sm:max-w-sm">
@@ -72,7 +97,7 @@ export const SelectedPositionHeader = ({
             onChange={(event) => {
               onFilterChange(event.target.value);
             }}
-            placeholder="Filter"
+            placeholder="Filter people"
             aria-label="Filter people"
           />
           {filter ? (

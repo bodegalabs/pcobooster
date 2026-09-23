@@ -403,10 +403,10 @@ const MatrixPersonRow = ({
   onSelectPerson: (person: PeopleDashboardPerson) => void;
   onPreviewPerson: (person: PeopleDashboardPerson) => void;
 }) => (
-  <div className="hover:bg-muted/50 grid w-full grid-cols-[1.2fr_repeat(5,minmax(4.5rem,1fr))] items-center text-left">
+  <div className="group/matrix-row hover:bg-muted/50 grid w-full grid-cols-[minmax(10.5rem,1.2fr)_repeat(5,minmax(4rem,1fr))] items-center text-left">
     <button
       type="button"
-      className="flex min-w-0 items-center gap-3 px-4 py-2.5 text-left"
+      className="bg-background group-hover/matrix-row:bg-muted/50 border-border/40 sticky left-0 z-[1] flex min-w-0 items-center gap-3 px-4 py-2.5 text-left max-md:border-r md:static md:bg-transparent"
       onFocus={() => {
         onPreviewPerson(person);
       }}
@@ -453,9 +453,11 @@ const PeopleMonthMatrix = ({
   onPreviewPerson: (person: PeopleDashboardPerson) => void;
 }) => (
   <div className="border-border/40 overflow-x-auto rounded-lg border">
-    <div className="min-w-lg">
-      <div className="border-border/40 bg-background text-muted-foreground grid grid-cols-[1.2fr_repeat(5,minmax(4.5rem,1fr))] border-b text-xs font-medium">
-        <div className="px-4 py-2">Person</div>
+    <div className="min-w-[31rem]">
+      <div className="border-border/40 bg-background text-muted-foreground grid grid-cols-[minmax(10.5rem,1.2fr)_repeat(5,minmax(4rem,1fr))] border-b text-xs font-medium">
+        <div className="bg-background border-border/40 sticky left-0 z-[1] px-4 py-2 max-md:border-r md:static">
+          Person
+        </div>
         {matrixDays.map((day) => (
           <div key={day} className="px-3 py-2 text-center tabular-nums">
             {month.label.split(" ")[0]} {day}

@@ -7,13 +7,13 @@ import { useState } from "react";
 import { PlanTimeFormFields } from "@/components/schedule/plan-time-form-fields";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/ui/responsive-dialog";
 import {
   getInvalidPlanTimeEditMessage,
   isValidPlanTimeEdit,
@@ -70,32 +70,35 @@ const PlanTimeCreateDialogForm = ({
 
   return (
     <>
-      <DialogHeader>
-        <DialogTitle>Add time</DialogTitle>
-        <DialogDescription>
+      <ResponsiveDialogHeader className="max-md:text-left">
+        <ResponsiveDialogTitle>Add time</ResponsiveDialogTitle>
+        <ResponsiveDialogDescription>
           Set the schedule and assignments for this plan time.
-        </DialogDescription>
-      </DialogHeader>
+        </ResponsiveDialogDescription>
+      </ResponsiveDialogHeader>
 
-      <PlanTimeFormFields
-        idPrefix="plan-time-create"
-        edit={draft}
-        valid={valid}
-        assignmentGroups={assignmentGroups}
-        assignmentsLoading={assignmentsLoading}
-        rangeVariant="inline"
-        onEditChange={updateDraft}
-        onCommitEdit={updateDraft}
-      />
+      <div className="flex min-h-0 flex-col gap-4 max-md:overflow-y-auto max-md:px-4 max-md:py-4">
+        <PlanTimeFormFields
+          idPrefix="plan-time-create"
+          edit={draft}
+          valid={valid}
+          assignmentGroups={assignmentGroups}
+          assignmentsLoading={assignmentsLoading}
+          rangeVariant="inline"
+          onEditChange={updateDraft}
+          onCommitEdit={updateDraft}
+        />
 
-      {saveError !== null && saveError !== "" ? (
-        <p className="text-destructive text-sm">{saveError}</p>
-      ) : null}
+        {saveError !== null && saveError !== "" ? (
+          <p className="text-destructive text-sm">{saveError}</p>
+        ) : null}
+      </div>
 
-      <DialogFooter>
+      <ResponsiveDialogFooter>
         <Button
           type="button"
           variant="outline"
+          className="max-md:h-11"
           disabled={creating}
           onClick={onCancel}
         >
@@ -103,6 +106,7 @@ const PlanTimeCreateDialogForm = ({
         </Button>
         <Button
           type="button"
+          className="max-md:order-first max-md:h-11"
           disabled={creating || !valid}
           onClick={() => {
             void handleSave();
@@ -111,7 +115,7 @@ const PlanTimeCreateDialogForm = ({
           {creating ? <Loader2 className="size-4 animate-spin" /> : null}
           Save
         </Button>
-      </DialogFooter>
+      </ResponsiveDialogFooter>
     </>
   );
 };
@@ -125,8 +129,8 @@ export const PlanTimeCreateDialog = ({
   assignmentsLoading,
   onSave,
 }: PlanTimeCreateDialogProps) => (
-  <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="sm:max-w-md">
+  <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+    <ResponsiveDialogContent className="sm:max-w-md">
       {open ? (
         <PlanTimeCreateDialogForm
           key={JSON.stringify(defaultEdit)}
@@ -140,6 +144,6 @@ export const PlanTimeCreateDialog = ({
           onSave={onSave}
         />
       ) : null}
-    </DialogContent>
-  </Dialog>
+    </ResponsiveDialogContent>
+  </ResponsiveDialog>
 );

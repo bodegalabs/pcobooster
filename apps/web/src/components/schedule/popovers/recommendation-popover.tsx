@@ -3,10 +3,10 @@
 import type { ReactElement } from "react";
 
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  ResponsivePopover,
+  ResponsivePopoverContent,
+  ResponsivePopoverTrigger,
+} from "@/components/ui/responsive-popover";
 
 interface RecommendationPopoverProps {
   reasoning: string[] | undefined;
@@ -19,9 +19,14 @@ export const RecommendationPopover = ({
   personId,
   children,
 }: RecommendationPopoverProps) => (
-  <Popover>
-    <PopoverTrigger render={children} />
-    <PopoverContent align="end" sideOffset={6} className="w-80">
+  <ResponsivePopover>
+    <ResponsivePopoverTrigger render={children} />
+    <ResponsivePopoverContent
+      title="Why this ranking"
+      align="end"
+      sideOffset={6}
+      className="w-80"
+    >
       <div className="p-3">
         <p className="text-foreground text-sm font-semibold tracking-tight">
           Why this ranking
@@ -45,6 +50,6 @@ export const RecommendationPopover = ({
           </p>
         )}
       </div>
-    </PopoverContent>
-  </Popover>
+    </ResponsivePopoverContent>
+  </ResponsivePopover>
 );

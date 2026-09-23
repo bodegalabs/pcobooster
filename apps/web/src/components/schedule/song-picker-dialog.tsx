@@ -98,105 +98,107 @@ export const SongPickerDialog = ({
           <ResponsiveDialogTitle>Add Song</ResponsiveDialogTitle>
         </ResponsiveDialogHeader>
 
-        <Command shouldFilter={false}>
-          <CommandInput
-            placeholder="Search songs, writers, or themes..."
-            value={query}
-            onValueChange={setQuery}
-          />
-          <CommandList className="max-h-[420px]">
-            {showInitialLoading ? (
-              <div className="space-y-2 p-3">
-                {Array.from({ length: 6 }).map((_, index) => (
-                  <Skeleton key={index} className="h-20 w-full" />
-                ))}
-              </div>
-            ) : null}
-            {showResults && !showInitialLoading ? (
-              <>
-                <CommandEmpty>No songs matched that search.</CommandEmpty>
-                {showRefreshing ? (
-                  <>
-                    <ItemSeparator className="my-0" />
-                    <div
-                      className="text-muted-foreground px-3 py-2 text-xs"
-                      aria-live="polite"
-                    >
-                      Searching…
-                    </div>
-                  </>
-                ) : null}
+        <div className="flex min-h-0 flex-1 flex-col max-md:px-3 max-md:pt-3">
+          <Command shouldFilter={false}>
+            <CommandInput
+              placeholder="Search songs, writers, or themes..."
+              value={query}
+              onValueChange={setQuery}
+            />
+            <CommandList className="max-h-[420px]">
+              {showInitialLoading ? (
                 <div className="space-y-2 p-3">
-                  {songs.map((song) => {
-                    const lastScheduledLabel = formatLastScheduled(
-                      song.lastScheduledAt
-                    );
-
-                    return (
-                      <CommandItem
-                        key={song.id}
-                        value={[song.title, song.author, song.themes]
-                          .filter(Boolean)
-                          .join(" ")}
-                        disabled={pendingSongId === song.id}
-                        className="items-start"
-                        onMouseEnter={() => {
-                          prefetchSongOptions(song.id);
-                        }}
-                        onFocus={() => {
-                          prefetchSongOptions(song.id);
-                        }}
-                        onTouchStart={() => {
-                          prefetchSongOptions(song.id);
-                        }}
-                        onSelect={() => {
-                          startTransition(async () => {
-                            await onSelectSong(song);
-                          });
-                        }}
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold">
-                            {song.title}
-                          </p>
-                          {song.author ? (
-                            <p className="text-muted-foreground truncate text-xs">
-                              {song.author}
-                            </p>
-                          ) : null}
-                          {lastScheduledLabel !== null &&
-                          lastScheduledLabel !== "" ? (
-                            <p className="text-muted-foreground mt-2 text-xs">
-                              Last scheduled {lastScheduledLabel}
-                            </p>
-                          ) : null}
-                          <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                            {song.themes
-                              .split(",")
-                              .map((theme) => theme.trim())
-                              .filter(Boolean)
-                              .slice(0, 3)
-                              .map((theme) => (
-                                <Badge key={theme} variant="outline">
-                                  {theme}
-                                </Badge>
-                              ))}
-                          </div>
-                        </div>
-                      </CommandItem>
-                    );
-                  })}
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <Skeleton key={index} className="h-20 w-full" />
+                  ))}
                 </div>
-              </>
-            ) : null}
-            {showResults ? null : (
-              <div className="text-muted-foreground flex min-h-[240px] flex-col items-center justify-center gap-2 px-6 py-10 text-center text-sm">
-                <Search className="size-8 opacity-50" />
-                <p>Start typing to search the song catalog.</p>
-              </div>
-            )}
-          </CommandList>
-        </Command>
+              ) : null}
+              {showResults && !showInitialLoading ? (
+                <>
+                  <CommandEmpty>No songs matched that search.</CommandEmpty>
+                  {showRefreshing ? (
+                    <>
+                      <ItemSeparator className="my-0" />
+                      <div
+                        className="text-muted-foreground px-3 py-2 text-xs"
+                        aria-live="polite"
+                      >
+                        Searching…
+                      </div>
+                    </>
+                  ) : null}
+                  <div className="space-y-2 p-3">
+                    {songs.map((song) => {
+                      const lastScheduledLabel = formatLastScheduled(
+                        song.lastScheduledAt
+                      );
+
+                      return (
+                        <CommandItem
+                          key={song.id}
+                          value={[song.title, song.author, song.themes]
+                            .filter(Boolean)
+                            .join(" ")}
+                          disabled={pendingSongId === song.id}
+                          className="items-start"
+                          onMouseEnter={() => {
+                            prefetchSongOptions(song.id);
+                          }}
+                          onFocus={() => {
+                            prefetchSongOptions(song.id);
+                          }}
+                          onTouchStart={() => {
+                            prefetchSongOptions(song.id);
+                          }}
+                          onSelect={() => {
+                            startTransition(async () => {
+                              await onSelectSong(song);
+                            });
+                          }}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold">
+                              {song.title}
+                            </p>
+                            {song.author ? (
+                              <p className="text-muted-foreground truncate text-xs">
+                                {song.author}
+                              </p>
+                            ) : null}
+                            {lastScheduledLabel !== null &&
+                            lastScheduledLabel !== "" ? (
+                              <p className="text-muted-foreground mt-2 text-xs">
+                                Last scheduled {lastScheduledLabel}
+                              </p>
+                            ) : null}
+                            <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                              {song.themes
+                                .split(",")
+                                .map((theme) => theme.trim())
+                                .filter(Boolean)
+                                .slice(0, 3)
+                                .map((theme) => (
+                                  <Badge key={theme} variant="outline">
+                                    {theme}
+                                  </Badge>
+                                ))}
+                            </div>
+                          </div>
+                        </CommandItem>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : null}
+              {showResults ? null : (
+                <div className="text-muted-foreground flex min-h-[240px] flex-col items-center justify-center gap-2 px-6 py-10 text-center text-sm">
+                  <Search className="size-8 opacity-50" />
+                  <p>Start typing to search the song catalog.</p>
+                </div>
+              )}
+            </CommandList>
+          </Command>
+        </div>
       </ResponsiveDialogContent>
     </ResponsiveDialog>
   );

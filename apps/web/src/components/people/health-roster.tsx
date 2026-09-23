@@ -35,7 +35,7 @@ export const HealthRoster = ({
   onOpenPerson,
 }: HealthRosterProps) => (
   <>
-    <div className="grid shrink-0 gap-2 sm:grid-cols-3">
+    <div className="grid shrink-0 grid-cols-3 gap-2">
       <Card>
         <CardHeader>
           <CardDescription>Scheduled people</CardDescription>
@@ -74,7 +74,7 @@ export const HealthRoster = ({
       </Card>
     </div>
 
-    <div className="border-border/40 shrink-0 overflow-hidden rounded-lg border md:h-96">
+    <div className="border-border/40 shrink-0 overflow-hidden rounded-2xl border md:h-96 md:rounded-lg">
       <ScrollArea className="hidden h-full md:block">
         <Table className="table-fixed">
           <TableHeader className="sticky top-0 z-10">
@@ -117,7 +117,7 @@ export const HealthRoster = ({
                 <button
                   key={`mobile-${person.id}`}
                   type="button"
-                  className="border-border/35 hover:bg-muted/50 flex w-full flex-col gap-2 border-b px-4 py-3 text-left last:border-b-0"
+                  className="border-border/35 hover:bg-muted/50 active:bg-muted/60 flex w-full flex-col gap-2 border-b px-4 py-3 text-left last:border-b-0"
                   onFocus={() => {
                     onPreviewPerson(person);
                   }}

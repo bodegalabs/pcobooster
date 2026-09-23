@@ -4,13 +4,13 @@ import { startTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/ui/responsive-dialog";
 
 interface DeleteConfirmationDialogProps {
   open: boolean;
@@ -42,16 +42,19 @@ export const DeleteConfirmationDialog = ({
       : "Remove this item? This action cannot be undone.");
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" showCloseButton={false}>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{resolvedDescription}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent className="sm:max-w-md" showCloseButton={false}>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>{title}</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            {resolvedDescription}
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+        <ResponsiveDialogFooter className="max-md:pt-5">
           <Button
             type="button"
             variant="outline"
+            className="max-md:h-11"
             onClick={() => {
               onOpenChange(false);
             }}
@@ -62,6 +65,7 @@ export const DeleteConfirmationDialog = ({
           <Button
             type="button"
             variant="destructive"
+            className="max-md:order-first max-md:h-11"
             onClick={() => {
               startTransition(onConfirm);
             }}
@@ -69,8 +73,8 @@ export const DeleteConfirmationDialog = ({
           >
             {confirmLabel}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 };

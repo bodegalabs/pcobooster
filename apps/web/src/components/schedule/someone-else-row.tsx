@@ -13,10 +13,10 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  ResponsivePopover,
+  ResponsivePopoverContent,
+  ResponsivePopoverTrigger,
+} from "@/components/ui/responsive-popover";
 import { usePeopleSearch } from "@/hooks/use-people-search";
 import type { PeopleSearchResult } from "@/hooks/use-people-search";
 import { useSchedulePlanPerson } from "@/hooks/use-schedule-plan-person";
@@ -276,8 +276,8 @@ export const SomeoneElseRow = ({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
+    <ResponsivePopover open={open} onOpenChange={setOpen}>
+      <ResponsivePopoverTrigger
         render={
           <button
             type="button"
@@ -292,8 +292,9 @@ export const SomeoneElseRow = ({
         <span className="text-foreground min-w-0 flex-1 truncate text-sm font-medium sm:text-base">
           Someone else...
         </span>
-      </PopoverTrigger>
-      <PopoverContent
+      </ResponsivePopoverTrigger>
+      <ResponsivePopoverContent
+        title="Schedule someone else"
         align="start"
         side="bottom"
         sideOffset={8}
@@ -319,7 +320,7 @@ export const SomeoneElseRow = ({
           onOptimisticSchedule={closeSearch}
           onScheduleError={onScheduleError}
         />
-      </PopoverContent>
-    </Popover>
+      </ResponsivePopoverContent>
+    </ResponsivePopover>
   );
 };

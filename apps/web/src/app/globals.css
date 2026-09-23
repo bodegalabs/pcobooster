@@ -583,6 +583,24 @@
   }
 }
 
+/* Safe-area insets for notched phones (viewport-fit=cover). */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+@utility px-safe {
+  padding-right: env(safe-area-inset-right);
+  padding-left: env(safe-area-inset-left);
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility pb-safe-4 {
+  padding-bottom: max(--spacing(4), env(safe-area-inset-bottom));
+}
+
 @utility no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -625,6 +643,25 @@
 
   body {
     @apply bg-background text-foreground;
+    overscroll-behavior-y: none;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  a,
+  button,
+  input,
+  label,
+  select,
+  summary,
+  textarea,
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="option"] {
+    touch-action: manipulation;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),

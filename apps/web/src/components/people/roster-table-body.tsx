@@ -117,7 +117,7 @@ export const RosterTableBody = ({
                 <span className="text-muted-foreground truncate text-sm">
                   {person.status}
                 </span>
-                <ChevronRight className="text-muted-foreground size-4 shrink-0 opacity-0 transition-opacity group-hover/row:opacity-100" />
+                <ChevronRight className="text-muted-foreground size-4 shrink-0 opacity-0 transition-opacity group-hover/row:opacity-100 pointer-coarse:opacity-100" />
               </div>
             </TableCell>
           </TableRow>
