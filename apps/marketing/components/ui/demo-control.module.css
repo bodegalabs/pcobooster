@@ -1,0 +1,205 @@
+/* Product replica controls, styled with @pcobooster/design-tokens. */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Sidebar item and list row share the product's selected-row treatment. */
+.button[data-variant="nav"],
+.button[data-variant="row"] {
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: calc(var(--radius) - 2px);
+}
+.button[data-variant="row"] {
+  padding: 7px 8px;
+}
+.button[data-variant="nav"][aria-current="page"] {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+  font-weight: 500;
+}
+.button[data-variant="row"][aria-current="true"] {
+  background: var(--accent);
+  font-weight: 500;
+}
+
+.button[data-variant="tab"] {
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: var(--muted-foreground);
+}
+.button[data-variant="tab"][aria-current="page"] {
+  color: var(--foreground);
+  font-weight: 500;
+  background: var(--accent);
+}
+
+.button[data-variant="team"] {
+  gap: 6px;
+  width: 100%;
+  padding: 12px 8px 8px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.button[data-variant="icon"] {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: calc(var(--radius) - 4px);
+  color: var(--muted-foreground);
+}
+
+.button[data-variant="outline"],
+.button[data-variant="status"] {
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.button[data-variant="outline"] {
+  width: 84px;
+  border: 1px solid var(--border);
+  background: var(--background);
+}
+.button[data-variant="outline"] svg {
+  opacity: 0.7;
+}
+.button[data-variant="status"] {
+  padding-right: 10px;
+  color: var(--muted-foreground);
+}
+
+.button[data-variant="menu-item"],
+.button[data-variant="destructive-menu-item"] {
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: calc(var(--radius) - 4px);
+}
+.button[data-variant="destructive-menu-item"] {
+  color: var(--destructive);
+}
+
+.button[data-variant="open-slot"] {
+  gap: 6px;
+  margin: 0 -6px -4px;
+  padding: 5px 6px;
+  border-radius: calc(var(--radius) - 4px);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--destructive);
+}
+.button[data-variant="open-slot"] > span {
+  margin-left: auto;
+  font-weight: 400;
+  color: var(--muted-foreground);
+  opacity: 0;
+}
+.button[data-variant="open-slot"]:focus-visible > span {
+  opacity: 1;
+}
+
+.button[data-variant="hover-trigger"] {
+  display: block;
+  width: 100%;
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .button[data-variant="nav"]:hover {
+    background: var(--sidebar-accent);
+    color: var(--sidebar-accent-foreground);
+  }
+  .button[data-variant="row"]:hover,
+  .button[data-variant="menu-item"]:hover,
+  .button[data-variant="destructive-menu-item"]:hover {
+    background: var(--accent);
+  }
+  .button[data-variant="icon"]:hover,
+  .button[data-variant="outline"]:not(:disabled):hover,
+  .button[data-variant="status"]:hover {
+    background: var(--muted);
+  }
+  .button[data-variant="open-slot"]:hover {
+    background: var(--background);
+  }
+  .button[data-variant="open-slot"]:hover > span {
+    opacity: 1;
+  }
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 360px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  background: var(--muted);
+}
+.search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: none;
+  font: inherit;
+  color: var(--foreground);
+}
+.search input::placeholder {
+  color: var(--muted-foreground);
+}
+.search:focus-within {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+/* Narrow replica: position rows become pills. */
+@container (max-width: 760px) {
+  .button[data-variant="team"] {
+    display: none;
+  }
+  .button[data-variant="row"] {
+    width: max-content;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--card);
+  }
+}
+
+/* Narrow lists: row actions go icon-only, as they do on phones in the product. */
+@container (max-width: 420px) {
+  .button[data-variant="outline"],
+  .button[data-variant="status"] {
+    width: 36px;
+    padding: 0;
+  }
+  .button[data-variant="outline"] > span,
+  .button[data-variant="status"] > span:last-child {
+    display: none;
+  }
+}
