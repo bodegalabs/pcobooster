@@ -5,7 +5,7 @@ Pull requests have two complementary merge gates:
 - `ci` runs strict linting, TypeScript checks, tests, and dependency review in one fail-fast GitHub Actions job.
 - `Vercel` builds the deployable web and Hono services and publishes a preview from the same commit.
 
-The target `main` ruleset requires both checks against the latest base branch. The ruleset has no bypass actors, so failed or missing checks cannot be overridden. GitHub Actions does not run again after merge: Vercel's production deployment is the post-merge build, avoiding a duplicate Actions build and a duplicate `main` CI run.
+The target `main` ruleset requires both checks and a merge queue. Once a pull request passes its checks, add it to the queue; GitHub tests the queued commit against the current `main` and merges it with squash only if the required checks pass again. The queue builds and merges one pull request at a time. The ruleset has no bypass actors, so failed or missing checks cannot be overridden. The CI workflow runs on `pull_request` and `merge_group`, but not on a post-merge push to `main`. Vercel builds and deploys the resulting production commit.
 
 Run the equivalent local checks before opening a pull request:
 
