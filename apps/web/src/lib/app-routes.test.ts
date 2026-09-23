@@ -43,7 +43,6 @@ describe(buildPlanViewUrl, () => {
 
 describe("app sections", () => {
   it("maps paths to their top-level section", () => {
-    expect(getAppSection("/admin/users/1")).toBe("admin");
     expect(getAppSection("/people")).toBe("people");
     expect(getAppSection("/services/1/plans/2/assign")).toBe("services");
   });
@@ -54,7 +53,6 @@ describe("app sections", () => {
       parentLabel: "People",
       label: "Person",
     });
-    expect(parseDetailRoute("/admin/users/5")?.parentHref).toBe("/admin");
     expect(parseDetailRoute("/people")).toBeNull();
   });
 });

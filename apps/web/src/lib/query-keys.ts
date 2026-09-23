@@ -1,7 +1,6 @@
 export const queryKeys = {
   accounts: () => ["planning-center-accounts"] as const,
   peopleFeature: () => ["people-feature"] as const,
-  adminFeature: () => ["admin-feature"] as const,
   organizationTimeZone: () =>
     ["planning-center-organization-time-zone"] as const,
   serviceTypes: () => ["service-types"] as const,

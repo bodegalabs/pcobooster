@@ -56,12 +56,9 @@ export const buildPlanViewUrl = (
   return query ? `${path}?${query}` : path;
 };
 
-export type AppSection = "services" | "people" | "admin";
+export type AppSection = "services" | "people";
 
 export const getAppSection = (pathname: string): AppSection => {
-  if (pathname.startsWith("/admin")) {
-    return "admin";
-  }
   if (pathname.startsWith("/people")) {
     return "people";
   }
@@ -71,7 +68,6 @@ export const getAppSection = (pathname: string): AppSection => {
 const appSectionLabels: Record<AppSection, string> = {
   services: "Services",
   people: "People",
-  admin: "Admin",
 };
 
 export const getAppSectionLabel = (section: AppSection): string =>
@@ -87,9 +83,6 @@ export interface DetailRoute {
 export const parseDetailRoute = (pathname: string): DetailRoute | null => {
   if (/^\/people\/[^/]+/u.test(pathname)) {
     return { parentHref: "/people", parentLabel: "People", label: "Person" };
-  }
-  if (/^\/admin\/users\/[^/]+/u.test(pathname)) {
-    return { parentHref: "/admin", parentLabel: "Admin", label: "User" };
   }
   return null;
 };

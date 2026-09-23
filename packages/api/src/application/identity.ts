@@ -23,7 +23,6 @@ import { authorizeAdminRequest } from "@pcobooster/api/modules/admin/authorize-a
 import {
   getAccountActivity,
   getUserAccountDetail,
-  isAdminEmail,
 } from "@pcobooster/api/modules/admin/get-account-activity";
 import { getDemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
 import type { DemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
@@ -337,39 +336,6 @@ export const selectPlanningCenterAccount = (
 export const getPeopleFeature = Effect.sync(() => ({
   enabled: isPeoplePageEnabled(),
 }));
-
-export const getAdminFeature = (
-  dependencies: Pick<
-    IdentityDependencies,
-    | "getSession"
-    | "getDevBypassSession"
-    | "isDevAuthBypassEnabled"
-    | "loadDevBypassIdentity"
-    | "resolveDemoSession"
-  > = defaultIdentityDependencies
-): Effect.Effect<
-  { readonly enabled: boolean },
-  ApplicationFault,
-  RequestContext
-> =>
-  Effect.gen(function* readAdminFeature() {
-    const { request, headers } = yield* RequestContext;
-    if (dependencies.resolveDemoSession(request) !== null) {
-      return { enabled: false };
-    }
-    const session = dependencies.isDevAuthBypassEnabled()
-      ? dependencies.getDevBypassSession(
-          yield* tryIdentity(
-            async () => await dependencies.loadDevBypassIdentity(),
-            "dev-bypass-identity"
-          )
-        )
-      : yield* tryIdentity(
-          async () => await dependencies.getSession(headers),
-          "session"
-        );
-    return { enabled: isAdminEmail(session?.user.email) };
-  });
 
 export const getAdminAccounts = Effect.gen(function* readAdminAccounts() {
   const { request } = yield* RequestContext;

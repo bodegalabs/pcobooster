@@ -24,7 +24,8 @@ Each Infisical environment's `/` path owns these settings:
 | `PEOPLE_PAGE_ENABLED` | Yes | Strict `true` or `false` switch for the People dashboard. |
 | `PLANNING_CENTER_OAUTH_CLIENT_ID` | Yes | Planning Center OAuth client identifier. |
 | `PLANNING_CENTER_OAUTH_CLIENT_SECRET` | Yes | Planning Center OAuth client secret. |
-| `PCOBOOSTER_ADMIN_EMAILS` | Yes | Comma-separated admin allowlist. |
+| `PCOBOOSTER_ADMIN_EMAILS` | Yes | Comma-separated allowlist for the [admin app](admin.md). |
+| `AUTH_COOKIE_DOMAIN` | Production | Parent domain for the session cookie (`pcobooster.com`) so the [admin app](admin.md) on `admin.pcobooster.com` shares the product sign-in. Leave unset locally. |
 | `CORS_ORIGIN` | No | Explicit browser origin when the API is called cross-origin. |
 | `DEMO_ACCESS_KEY` | No | Private key in the read-only [demo link](demo.md). The demo stays off unless all three demo keys are set. |
 | `DEMO_PLANNING_CENTER_CLIENT` | No | Application ID of the personal access token the demo reads with. |
