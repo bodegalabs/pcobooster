@@ -39,10 +39,10 @@ The issuer/discovery URL is `https://token.actions.githubusercontent.com`; audie
 
 Access tokens have a one-hour TTL and maximum TTL. The preview identity is Viewer only in `pcobooster-preview`. Its Cloudflare token permits Workers Scripts Write, D1 Write, and Secrets Store Write in the current account and expires September 23, 2027. It has no DNS, registrar, R2, or token-administration permission. These account-level permissions can affect other resources in that account; project separation does not create resource-level Cloudflare isolation. Only trusted, explicitly approved revisions may deploy.
 
-Production also needs zone/DNS permissions scoped to `pcobooster.com`. `Cloudflare.state()` shares the bootstrapped Alchemy state Worker and Secrets Store across stages. Keep their credentials out of application bindings, artifacts, and logs.
+The production token has the same account-level deployment permissions, plus DNS Write and Zone Read scoped to `pcobooster.com`; it also expires September 23, 2027. It is stored only in the production Infisical project. `Cloudflare.state()` shares the bootstrapped Alchemy state Worker and Secrets Store across stages. Keep their credentials out of application bindings, artifacts, and logs.
 
 ## Merge gates and migration status
 
 The existing live `main` ruleset still requires `ci` and `Vercel – pcobooster`. Replace the Vercel requirement with the successful `cloudflare-build` GitHub Actions check after this workflow has run on the migration PR. Preserve the merge queue, squash-only merging, and absence of bypass actors. Never remove the old gate merely to bypass a red or missing replacement.
 
-Vercel/Neon remain the live source until the explicit cutover. Follow [database migration and rollback](database.md): freeze all source writers, reconcile exact row hashes and foreign keys, then move traffic. After D1 accepts new writes, routing back to the old PostgreSQL snapshot alone is not a safe rollback.
+Cloudflare/D1 became the live production system on September 23, 2026; see the [cutover record](cloudflare-cutover.md). Vercel temporarily forwards cached DNS traffic to Cloudflare, and Neon is retained as the source snapshot. Follow [database migration and rollback](database.md): after D1 accepts new writes, routing back to the old PostgreSQL snapshot alone is not a safe rollback.

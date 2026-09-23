@@ -13,7 +13,7 @@ Infisical is the source of truth for application secrets. Alchemy reads them at 
 
 The preview project ID is `586fd830-7861-4b84-a8a6-d05c9bf7a14a`. Its Viewer identity has no membership in the original project. Infisical Free cannot limit Viewer to an environment; separate projects therefore contain only credentials suitable for that deployment tier. Never copy development PATs, production session secrets, demo credentials, or the source PostgreSQL connection into the preview project.
 
-The production deployment project is `pcobooster-production` (`2eca20e1-20ac-4f06-a086-99ea5c590483`). Its app secrets and main-bound Viewer OIDC identity are configured. Its Cloudflare token still needs the production zone to exist before zone-scoped permissions can be granted. Do not approve a production Actions job until that token is verified. The original project remains the source for the read-only PostgreSQL export; keep its legacy secrets until cutover verification and explicit cleanup approval.
+The production deployment project is `pcobooster-production` (`2eca20e1-20ac-4f06-a086-99ea5c590483`). Its app secrets and main-bound Viewer OIDC identity are configured. Its Cloudflare token is verified and expires September 23, 2027. It permits account-level Workers Scripts, D1, and Secrets Store writes, plus DNS Write and Zone Read scoped to `pcobooster.com`. The initial import and live cutover completed September 23; see the [cutover record](cloudflare-cutover.md). The original project retains the legacy PostgreSQL connection and secrets for recovery; cleanup requires explicit approval.
 
 ## Application bindings
 
