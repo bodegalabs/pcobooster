@@ -11,9 +11,9 @@ interface FrequencyIndicatorProps {
   className?: string;
 }
 const colors = {
-  low: "bg-green-500",
-  medium: "bg-yellow-500",
-  high: "bg-red-500",
+  low: "bg-status-confirmed-bright",
+  medium: "bg-status-scheduled-bright",
+  high: "bg-status-declined-bright",
 };
 const labels = {
   low: "Good to schedule",
@@ -21,9 +21,9 @@ const labels = {
   high: "Served frequently",
 };
 const textColors = {
-  low: "text-green-700",
-  medium: "text-yellow-700",
-  high: "text-red-700",
+  low: "text-status-confirmed dark:text-status-confirmed",
+  medium: "text-status-scheduled dark:text-status-scheduled",
+  high: "text-status-declined dark:text-status-declined",
 };
 
 const getFrequencyLevel = (frequency: ScheduleFrequency): FrequencyLevel => {

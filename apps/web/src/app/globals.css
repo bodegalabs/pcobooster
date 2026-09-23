@@ -70,8 +70,10 @@
   --color-status-declined: var(--status-declined);
   --color-status-confirmed-bright: var(--status-confirmed-bright);
   --color-status-scheduled-bright: var(--status-scheduled-bright);
+  --color-status-declined-bright: var(--status-declined-bright);
   --color-status-confirmed-deep: var(--status-confirmed-deep);
   --color-status-scheduled-deep: var(--status-scheduled-deep);
+  --color-status-declined-deep: var(--status-declined-deep);
   --color-status-info: var(--status-info);
   --color-info-surface: var(--info-surface);
   --color-info-border: var(--info-border);
@@ -120,13 +122,15 @@
   --sidebar-accent-foreground: oklch(0.32 0.022 142);
   --sidebar-border: oklch(0.84 0.012 142);
   --sidebar-ring: oklch(0.52 0.024 142);
-  --status-confirmed: oklch(0.51 0.12 166);
+  --status-confirmed: oklch(0.5 0.11 152);
   --status-scheduled: oklch(0.66 0.15 78);
-  --status-declined: oklch(0.58 0.17 30);
-  --status-confirmed-bright: oklch(0.75 0.16 164);
+  --status-declined: oklch(0.47 0.19 19);
+  --status-confirmed-bright: oklch(0.7 0.14 148);
   --status-scheduled-bright: oklch(0.78 0.15 80);
-  --status-confirmed-deep: oklch(0.29 0.08 164);
+  --status-declined-bright: oklch(0.62 0.18 17);
+  --status-confirmed-deep: oklch(0.28 0.07 148);
   --status-scheduled-deep: oklch(0.31 0.08 80);
+  --status-declined-deep: oklch(0.24 0.09 17);
   --status-info: oklch(0.58 0.13 250);
   --info-surface: oklch(0.97 0.02 250);
   --info-border: oklch(0.88 0.06 250);
@@ -829,13 +833,14 @@
 }
 
 .dark {
-  --status-confirmed-deep: oklch(0.34 0.07 160);
+  --status-confirmed-deep: oklch(0.32 0.06 148);
   --status-scheduled-deep: oklch(0.36 0.07 82);
+  --status-declined-deep: oklch(0.32 0.08 17);
   --info-surface: oklch(0.3 0.03 210);
   --info-border: oklch(0.48 0.06 210);
-  --status-confirmed: oklch(0.78 0.12 160);
+  --status-confirmed: oklch(0.7 0.1 148);
   --status-scheduled: oklch(0.8 0.12 82);
-  --status-declined: oklch(0.72 0.14 28);
+  --status-declined: oklch(0.6 0.17 17);
   --status-info: oklch(0.76 0.08 210);
   /* Soft gray-green dark palette. Lifted surfaces with sage neutrals. */
   --sidebar: oklch(0.205 0.011 132);
