@@ -19,7 +19,9 @@ describe(canonicalUrl, () => {
 
 describe(pageTitle, () => {
   it("uses the site default without a page title", () => {
-    expect(pageTitle()).toBe("PCOBooster | A clearer picture of your team");
+    expect(pageTitle()).toBe(
+      "Planning Center Services Scheduling | PCOBooster"
+    );
   });
 
   it("suffixes page titles with the site name", () => {
@@ -28,35 +30,34 @@ describe(pageTitle, () => {
 });
 
 describe(pageHead, () => {
-  it("emits the title, description, and canonical link", () => {
-    expect(
-      pageHead({
-        title: "Our story",
-        description: "Why Jake built it.",
-        pathname: "/about",
-      })
-    ).toStrictEqual({
-      meta: [
-        { title: "Our story · PCOBooster" },
-        { name: "description", content: "Why Jake built it." },
-      ],
-      links: [{ rel: "canonical", href: "https://pcobooster.com/about" }],
+  it.each([
+    ["/", "https://pcobooster.com", "og-home.png"],
+    ["/about", "https://pcobooster.com/about", "og-about.png"],
+  ] as const)("gives %s a distinct canonical and sharing image", (pathname, url, image) => {
+    const head = pageHead({
+      title: pathname === "/about" ? "Our story" : undefined,
+      description: "Page description",
+      pathname,
+    });
+    expect(head.links).toContainEqual({ rel: "canonical", href: url });
+    expect(head.meta).toContainEqual({ property: "og:url", content: url });
+    expect(head.meta).toContainEqual({
+      property: "og:image",
+      content: `https://pcobooster.com/marketing/${image}`,
+    });
+    expect(head.meta).toContainEqual({
+      name: "twitter:card",
+      content: "summary_large_image",
+    });
+    expect(head.meta).toContainEqual({
+      name: "description",
+      content: "Page description",
     });
   });
 });
 
 describe(siteHead, () => {
   const { meta, links } = siteHead();
-
-  it("points social images at the absolute production asset URL", () => {
-    const image = "https://pcobooster.com/marketing/screenshots/assign.png";
-    expect(meta).toContainEqual({ property: "og:image", content: image });
-    expect(meta).toContainEqual({ name: "twitter:image", content: image });
-    expect(meta).toContainEqual({
-      name: "twitter:card",
-      content: "summary_large_image",
-    });
-  });
 
   it("serves the icon from the marketing asset prefix", () => {
     expect(links).toStrictEqual([
