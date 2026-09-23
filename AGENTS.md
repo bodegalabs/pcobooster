@@ -10,6 +10,7 @@
 - `apps/web/`: Next.js product UI. App Router pages, components, hooks, proxy, and public assets live under `apps/web/src` and `apps/web/public`.
 - `apps/server/`: Bun/Hono composition root. It mounts Better Auth, oRPC, the OpenAPI reference, CORS, and cache policy.
 - `apps/marketing/`: independent static-export Next.js marketing site.
+- `apps/admin/`: private Next.js admin app for `admin.pcobooster.com`, deployed as its own Vercel project. See `docs/admin.md`.
 - `packages/contracts/`: browser-safe oRPC contracts, transport schemas, and safe error payloads.
 - `packages/planning-center-models/`: browser-safe Planning Center shapes and pure calendar/scheduling rules.
 - `packages/presentation-mode/`: server-side presentation-mode guard, seed, and cache namespace.
@@ -24,7 +25,7 @@
 ## Build, Test, and Development Commands
 
 - Use Bun for dependency management and scripts. `bun.lock` is the only committed lockfile; do not add `package-lock.json` or run npm-based install workflows for this repo.
-- `bun run dev`: start API, product, and marketing through Turborepo (ports 3000, 3001, and 3002).
+- `bun run dev`: start API, product, marketing, and admin through Turborepo (ports 3000, 3001, 3002, and 3003).
 - `bun run build`: build the Hono service and both Next.js apps through Turborepo.
 - `bun run start`: run built app.
 - `bun run check` (also `lint`): run Ultracite formatting and type-aware lint checks; warnings fail the check. All selected presets in `oxlint.config.ts` remain strict.

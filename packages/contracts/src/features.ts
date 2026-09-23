@@ -18,14 +18,6 @@ export const featuresContract = {
     })
     .input(featureInputSchema)
     .output(featureSchema),
-  admin: featureProcedure
-    .route({
-      method: "GET",
-      path: "/features/admin",
-      summary: "Check whether the current user has admin access",
-    })
-    .input(featureInputSchema)
-    .output(featureSchema),
 };
 
 export type FeatureStatus = z.output<typeof featureSchema>;

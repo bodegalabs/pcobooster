@@ -12,6 +12,12 @@
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": [".next/**", "!.next/cache/**", "out/**"]
     },
+    "@pcobooster/admin#build": {
+      "dependsOn": ["^build"],
+      "env": ["NODE_ENV", "VERCEL"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
     "@pcobooster/server#build": {
       "dependsOn": ["^build"],
       "env": ["NODE_ENV"],
@@ -61,6 +67,7 @@
     "dev": {
       "cache": false,
       "passThroughEnv": [
+        "AUTH_COOKIE_DOMAIN",
         "BETTER_AUTH_SECRET",
         "BETTER_AUTH_URL",
         "CORS_ORIGIN",

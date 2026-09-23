@@ -11,7 +11,6 @@ import {
   Logout01Icon,
   Moon02Icon,
   Settings02Icon,
-  Shield01Icon,
   Sun01Icon,
   Tick02Icon,
   UserAdd01Icon,
@@ -136,9 +135,6 @@ const fetchPeopleNavFeature = async ({ signal }: QueryFunctionContext) => {
   return response;
 };
 
-const fetchAdminNavFeature = async ({ signal }: QueryFunctionContext) =>
-  await orpc.features.admin({}, { signal });
-
 const themeOptions = [
   { value: "light", label: "Light", icon: Sun01Icon },
   { value: "dark", label: "Dark", icon: Moon02Icon },
@@ -172,31 +168,22 @@ const AppTopBar = () => {
   const planView = planPath?.view ?? "assign";
   const planViewLabel = getPlanViewLabel(planView);
   const isPersonDetail = /^\/people\/[^/]+/u.test(pathname);
-  const isAdminUserDetail = /^\/admin\/users\/[^/]+/u.test(pathname);
   const pageLabel = getAppSectionLabel(getAppSection(pathname));
 
   return (
     <div className="flex w-full min-w-0 items-center gap-2 sm:gap-3">
       <Breadcrumb className="shrink-0">
         <BreadcrumbList>
-          {isPersonDetail || isAdminUserDetail ? (
+          {isPersonDetail ? (
             <>
               <BreadcrumbItem>
-                {isPersonDetail ? (
-                  <BreadcrumbLink render={<Link href="/people" />}>
-                    People
-                  </BreadcrumbLink>
-                ) : (
-                  <BreadcrumbLink render={<Link href="/admin" />}>
-                    Admin
-                  </BreadcrumbLink>
-                )}
+                <BreadcrumbLink render={<Link href="/people" />}>
+                  People
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>
-                  {isPersonDetail ? "Person" : "User"}
-                </BreadcrumbPage>
+                <BreadcrumbPage>Person</BreadcrumbPage>
               </BreadcrumbItem>
             </>
           ) : (
@@ -275,25 +262,20 @@ const AppTopBar = () => {
 
 const AppTopBarFallback = ({ pathname }: { pathname: string }) => {
   const isPersonDetail = /^\/people\/[^/]+/u.test(pathname);
-  const isAdminUserDetail = /^\/admin\/users\/[^/]+/u.test(pathname);
   const pageLabel = getAppSectionLabel(getAppSection(pathname));
 
   return (
     <div className="flex w-full min-w-0 items-center gap-2 sm:gap-3">
       <Breadcrumb className="shrink-0">
         <BreadcrumbList>
-          {isPersonDetail || isAdminUserDetail ? (
+          {isPersonDetail ? (
             <>
               <BreadcrumbItem>
-                <BreadcrumbPage>
-                  {isPersonDetail ? "People" : "Admin"}
-                </BreadcrumbPage>
+                <BreadcrumbPage>People</BreadcrumbPage>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>
-                  {isPersonDetail ? "Person" : "User"}
-                </BreadcrumbPage>
+                <BreadcrumbPage>Person</BreadcrumbPage>
               </BreadcrumbItem>
             </>
           ) : (
@@ -578,26 +560,15 @@ const useNavFeatures = (peoplePageEnabled: boolean) => {
     queryKey: queryKeys.peopleFeature(),
     queryFn: fetchPeopleNavFeature,
   });
-  const adminFeatureQuery = useQuery({
-    queryKey: queryKeys.adminFeature(),
-    queryFn: fetchAdminNavFeature,
-  });
   return {
     peopleNavEnabled:
       peopleFeatureQuery.data?.enabled ??
       parsePeoplePageNavState(cachedPeopleFeature)?.enabled ??
       peoplePageEnabled,
-    adminNavEnabled: adminFeatureQuery.data?.enabled ?? false,
   };
 };
 
-const AppSidebar = ({
-  peopleNavEnabled,
-  adminNavEnabled,
-}: {
-  peopleNavEnabled: boolean;
-  adminNavEnabled: boolean;
-}) => {
+const AppSidebar = ({ peopleNavEnabled }: { peopleNavEnabled: boolean }) => {
   const pathname = usePathname();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
@@ -636,18 +607,6 @@ const AppSidebar = ({
                     >
                       <SidebarNavIcon icon={UsersIcon} />
                       <span>People</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ) : null}
-                {adminNavEnabled ? (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      render={<Link href="/admin" />}
-                      isActive={pathname.startsWith("/admin")}
-                      tooltip="Admin"
-                    >
-                      <SidebarNavIcon icon={Shield01Icon} />
-                      <span>Admin</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ) : null}
@@ -788,8 +747,7 @@ export const AppShell = ({
     SIDEBAR_OPEN_STORAGE_KEY
   );
   const sidebarOpen = storedOpen !== "false";
-  const { peopleNavEnabled, adminNavEnabled } =
-    useNavFeatures(peoplePageEnabled);
+  const { peopleNavEnabled } = useNavFeatures(peoplePageEnabled);
 
   const handleSidebarOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -809,10 +767,7 @@ export const AppShell = ({
       className="h-dvh min-h-0 overflow-hidden"
     >
       <SidebarToggleHotkey />
-      <AppSidebar
-        peopleNavEnabled={peopleNavEnabled}
-        adminNavEnabled={adminNavEnabled}
-      />
+      <AppSidebar peopleNavEnabled={peopleNavEnabled} />
       <SidebarInset className="min-h-0 overflow-hidden">
         <AppInsetChromeHeader>
           <SidebarChromeTrigger when="inset" />
@@ -825,10 +780,7 @@ export const AppShell = ({
         <MobileChromeHeader presentationMode={presentationMode} />
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
         <Suspense fallback={null}>
-          <MobileTabBar
-            peopleEnabled={peopleNavEnabled}
-            adminEnabled={adminNavEnabled}
-          />
+          <MobileTabBar peopleEnabled={peopleNavEnabled} />
         </Suspense>
       </SidebarInset>
     </SidebarProvider>

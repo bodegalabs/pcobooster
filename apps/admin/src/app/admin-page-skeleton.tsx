@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const statKeys = ["a", "b", "c", "d"];
 const rowNameWidths = ["10rem", "8rem", "12rem", "9rem", "7rem", "11rem"];
 
-/** Shared by the admin index and user detail while their server data loads. */
+/** Shared by the account index and user detail while their server data loads. */
 export const AdminPageSkeleton = ({ label }: { label: string }) => (
   <main
     className="bg-background min-h-0 flex-1 overflow-auto"

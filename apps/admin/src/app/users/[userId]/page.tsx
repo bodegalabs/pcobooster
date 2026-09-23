@@ -1,8 +1,10 @@
 import type { AdminLinkedAccount } from "@pcobooster/contracts/admin";
 import { CalendarClock, KeyRound, LinkIcon, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -74,7 +76,16 @@ const AdminUserPage = async ({
 
   return (
     <main className="bg-background min-h-0 flex-1 overflow-auto">
-      <div className="pb-tab-bar mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 pt-1 md:gap-6 md:px-6 md:py-6">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 pt-1 md:gap-6 md:px-6 md:py-6">
+        <nav aria-label="Breadcrumb" className="text-muted-foreground text-sm">
+          <Link href="/" className="hover:text-foreground">
+            Accounts
+          </Link>
+          <span aria-hidden="true"> / </span>
+          <span className="text-foreground" aria-current="page">
+            User
+          </span>
+        </nav>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-normal">
@@ -127,7 +138,7 @@ const AdminUserPage = async ({
         </section>
 
         <section className="border-border/70 bg-card rounded-md border">
-          <div className="border-border/70 border-b px-4 py-3">
+          <div className="px-4 py-3">
             <h2 className="text-sm font-medium">
               Linked Planning Center Accounts
             </h2>
@@ -136,6 +147,7 @@ const AdminUserPage = async ({
               expiry metadata only.
             </p>
           </div>
+          <Separator />
           <Table>
             <TableHeader>
               <TableRow>
