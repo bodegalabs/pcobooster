@@ -8,6 +8,7 @@
     "build": "if [ -n \"$VERCEL\" ]; then next build; else next build --webpack; fi",
     "start": "next start --port 3003",
     "check-types": "next typegen && tsc --noEmit",
+    "test": "vitest run --root ../.. apps/admin/src",
     "typecheck": "bun run check-types"
   },
   "dependencies": {
