@@ -20,6 +20,7 @@ import { formatPlanTimeRangeLabel } from "@/components/schedule/plan-time-displa
 import { ScheduleStatusDot } from "@/components/schedule/status-dot";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -152,8 +153,8 @@ const PlanPersonTimesPicker = ({
             >
               <SelectionPickerCheckbox selected={selected} />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium">
-                  {planTime.name}
+                <span className="block min-w-0 text-sm font-medium">
+                  <MiddleTruncate text={planTime.name} />
                 </span>
                 <span className="text-muted-foreground block truncate text-xs">
                   {formatPlanTimeScheduleLabel(planTime, timeZone)}

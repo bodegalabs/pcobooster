@@ -13,6 +13,7 @@ import { TimesTab } from "@/components/schedule/times-tab";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { HoverLabel } from "@/components/ui/hover-card";
+import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useDashboardController } from "@/hooks/use-dashboard-controller";
@@ -177,8 +178,12 @@ const DashboardPlanHeader = ({
     <header className="flex shrink-0 items-center gap-1 pt-1.5 pb-2 md:hidden">
       <MobilePlanBack onBack={onBack} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <h1 className="truncate text-base leading-tight font-semibold tracking-tight">
-          {isNonEmptyString(planSubtitle) ? planSubtitle : serviceTypeName}
+        <h1 className="min-w-0 text-base leading-tight font-semibold tracking-tight">
+          <MiddleTruncate
+            text={
+              isNonEmptyString(planSubtitle) ? planSubtitle : serviceTypeName
+            }
+          />
         </h1>
         <p className="text-muted-foreground truncate text-xs tabular-nums">
           {formatPlanDate(sortDate)}

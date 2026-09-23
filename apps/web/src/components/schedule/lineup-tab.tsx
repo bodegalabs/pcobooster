@@ -52,6 +52,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Item, ItemContent, ItemGroup, ItemTitle } from "@/components/ui/item";
+import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarMenuSkeleton } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -253,12 +254,17 @@ const LineupPositionCard = ({
                   teamName={teamName}
                 />
               </div>
-              <ItemTitle className="min-w-0">
-                <span className={cn(isTemporaryPosition && "italic")}>
-                  {position.name}
+              {/* Titles also use the time-count column, which only person rows fill. */}
+              <ItemTitle className="col-span-2 min-w-0">
+                <span
+                  className={cn(
+                    "block min-w-0",
+                    isTemporaryPosition && "italic"
+                  )}
+                >
+                  <MiddleTruncate text={position.name} />
                 </span>
               </ItemTitle>
-              <span aria-hidden />
               <SlotBadgeCluster
                 className="justify-self-center"
                 position={position}

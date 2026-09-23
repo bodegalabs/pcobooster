@@ -18,6 +18,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Item } from "@/components/ui/item";
+import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import {
   NativeSelect,
   NativeSelectOption,
@@ -159,7 +160,7 @@ const DesktopPlanRows = ({
           )}
         </TableCell>
         <TableCell>
-          <span className="truncate">{row.planTitle || "Untitled plan"}</span>
+          <MiddleTruncate text={row.planTitle || "Untitled plan"} />
         </TableCell>
       </TableRow>
     );
@@ -244,8 +245,8 @@ const MobilePlanRow = ({
       <span className="text-muted-foreground truncate text-xs font-medium">
         {row.serviceTypeName}
       </span>
-      <span className="truncate text-base leading-snug font-semibold">
-        {row.planTitle || "Untitled plan"}
+      <span className="block min-w-0 text-base leading-snug font-semibold">
+        <MiddleTruncate text={row.planTitle || "Untitled plan"} />
       </span>
       {isNonEmptyString(row.seriesTitle) ? (
         <span className="text-muted-foreground truncate text-xs">
@@ -399,9 +400,14 @@ const MyScheduledServiceCards = ({
                 <span className="w-full truncate text-base font-medium">
                   {formatDate(row.sortDate)}
                 </span>
-                <span className="text-muted-foreground w-full truncate text-sm">
-                  {row.serviceTypeName}
-                  {row.planTitle ? ` · ${row.planTitle}` : null}
+                <span className="text-muted-foreground block w-full min-w-0 text-sm">
+                  <MiddleTruncate
+                    text={
+                      row.planTitle
+                        ? `${row.serviceTypeName} · ${row.planTitle}`
+                        : row.serviceTypeName
+                    }
+                  />
                 </span>
               </Item>
             ))}
