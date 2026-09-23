@@ -5,42 +5,17 @@ import {
   isDevAuthBypassEnabled,
 } from "@pcobooster/api/auth/dev-bypass";
 import { getPlanningCenterToken } from "@pcobooster/api/auth/planning-center-token";
+import { readCookie } from "@pcobooster/api/http/cookies";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
 export const PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE =
   "pco-selected-account-id";
 
-const getCookieValue = (request: Request, name: string): string | null => {
-  const header = request.headers.get("cookie");
-  if (!isNonEmptyString(header)) {
-    return null;
-  }
-
-  const segments = header.split(";").map((segment) => segment.trim());
-  for (const segment of segments) {
-    const [key, ...valueParts] = segment.split("=");
-    if (key !== name) {
-      continue;
-    }
-    const value = valueParts.join("=");
-    if (!value) {
-      return null;
-    }
-    try {
-      return decodeURIComponent(value);
-    } catch {
-      return value;
-    }
-  }
-
-  return null;
-};
-
 export const getSelectedPlanningCenterAccountId = (
   request: Request
 ): string | null =>
-  getCookieValue(request, PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE);
+  readCookie(request, PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE);
 
 export interface PlanningCenterUserAuthContext {
   session: NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;

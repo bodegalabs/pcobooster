@@ -3,7 +3,7 @@ import {
   createBasicPlanningCenterServices,
 } from "@pcobooster/api/planning-center/services/factory";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const resource = (id: string, type: string): PCResource => ({
   id,
@@ -12,12 +12,22 @@ const resource = (id: string, type: string): PCResource => ({
 });
 
 describe("createPlanningCenterServices shared caches", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("rejects empty request credentials and requires explicit Basic services", () => {
     expect(() => createPlanningCenterServices("")).toThrow(
       "requires a non-empty access token"
     );
-    expect(createBasicPlanningCenterServices().core.getCacheScope()).toBe(
-      "basic"
+    vi.stubEnv("PLANNING_CENTER_CLIENT", "");
+    expect(() => createBasicPlanningCenterServices()).toThrow(
+      "Missing PLANNING_CENTER_CLIENT"
+    );
+    vi.stubEnv("PLANNING_CENTER_CLIENT", "client");
+    vi.stubEnv("PLANNING_CENTER_PAT", "pat");
+    expect(createBasicPlanningCenterServices().core.getCacheScope()).toMatch(
+      /^basic:/u
     );
   });
 

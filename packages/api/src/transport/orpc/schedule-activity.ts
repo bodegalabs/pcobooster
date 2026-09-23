@@ -1,5 +1,5 @@
 import { ORPCError } from "@orpc/server";
-import type { RequestAuthentication } from "@pcobooster/api/application/planning-center-access";
+import type { AccountAuthentication } from "@pcobooster/api/application/planning-center-access";
 import { getActivityRequestContext } from "@pcobooster/api/db/activity-events";
 import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
 import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
@@ -89,7 +89,7 @@ export const scheduleActivityEvent = ({
 }: {
   operation: ScheduleOperation;
   input: unknown;
-  authentication: RequestAuthentication;
+  authentication: AccountAuthentication;
   context: RpcContext;
   result: ActivityResult;
 }): ActivityEventInput => {

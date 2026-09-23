@@ -18,14 +18,12 @@ import type {
   ScheduleUpdateStatusInput,
 } from "@pcobooster/contracts/schedule";
 import { isString } from "@pcobooster/planning-center-models/json";
-import { isPresentationMode } from "@pcobooster/presentation-mode";
 import { Effect } from "effect";
 
 import type { RequestContext } from "./context";
 
 export interface ScheduleApplicationDependencies {
   readonly invalidateHistory: typeof invalidateCandidateHistoryForPerson;
-  readonly presentationMode: () => boolean;
 }
 
 export interface ScheduleAssignmentPreparation {
@@ -37,7 +35,6 @@ export interface ScheduleAssignmentPreparation {
 
 const defaultDependencies: ScheduleApplicationDependencies = {
   invalidateHistory: invalidateCandidateHistoryForPerson,
-  presentationMode: isPresentationMode,
 };
 
 /** Read-only validation remains in the request's interruptible phase. */
@@ -103,9 +100,7 @@ export const commitScheduledPerson = (
           return new AlreadyScheduled({
             message:
               "Person is already scheduled for this selected plan/team/position",
-            details: dependencies.presentationMode()
-              ? undefined
-              : cause.message,
+            details: access.presentation ? undefined : cause.message,
           });
         }
         return toApplicationFault(cause);

@@ -43,17 +43,22 @@ export const createScheduleRouter = (
         context,
         signal
       );
+      const { authentication } = access;
       const record = async (
         result:
           | { success: true; output: unknown }
           | { success: false; error: unknown }
       ) => {
+        // Demo visitors are anonymous and cannot write, so there is nothing to audit.
+        if (authentication.kind === "demo") {
+          return;
+        }
         try {
           await dependencies.recordActivity(
             scheduleActivityEvent({
               operation,
               input,
-              authentication: access.authentication,
+              authentication,
               context,
               result,
             })

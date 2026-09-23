@@ -15,10 +15,7 @@ import type {
   ServiceType,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
-import {
-  getPresentationSeed,
-  isPresentationMode,
-} from "@pcobooster/presentation-mode";
+import { getPresentationSeed } from "@pcobooster/presentation-mode";
 import { Effect } from "effect";
 
 const resolveRequestTimeZone = async (
@@ -109,7 +106,7 @@ export const getCatalogTeamPositions = (input: {
             catalog: access.services.catalog,
             people: access.services.people,
             getPresentationSeed,
-            isPresentationMode,
+            isPresentationMode: () => access.presentation,
           },
           signal
         )

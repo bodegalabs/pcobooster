@@ -21,75 +21,11 @@ import type {
   PeopleDashboardPerson,
   PeopleDashboardPersonDetail,
 } from "./people-dashboard-types";
+import {
+  PRESENTATION_FIRST_NAMES,
+  PRESENTATION_LAST_NAMES,
+} from "./presentation-names";
 
-const FIRST_NAMES = [
-  "Alex",
-  "Avery",
-  "Blake",
-  "Cameron",
-  "Casey",
-  "Charlie",
-  "Dakota",
-  "Drew",
-  "Eden",
-  "Ellis",
-  "Emery",
-  "Finley",
-  "Frankie",
-  "Harper",
-  "Hayden",
-  "Jamie",
-  "Jordan",
-  "Jules",
-  "Kendall",
-  "Lane",
-  "Logan",
-  "Morgan",
-  "Parker",
-  "Peyton",
-  "Quinn",
-  "Reese",
-  "Riley",
-  "Robin",
-  "Rowan",
-  "Sage",
-  "Skyler",
-  "Taylor",
-];
-const LAST_NAMES = [
-  "Archer",
-  "Bennett",
-  "Brooks",
-  "Campbell",
-  "Carter",
-  "Clark",
-  "Cole",
-  "Collins",
-  "Davis",
-  "Ellis",
-  "Evans",
-  "Foster",
-  "Gray",
-  "Green",
-  "Hayes",
-  "Hill",
-  "James",
-  "Lane",
-  "Lee",
-  "Lewis",
-  "Miller",
-  "Morgan",
-  "Parker",
-  "Reed",
-  "Rivera",
-  "Scott",
-  "Shaw",
-  "Stone",
-  "Turner",
-  "Walker",
-  "West",
-  "Woods",
-];
 export interface PresentationDependencies {
   catalog: Pick<PlanningCenterCatalogService, "getOrganization">;
   people: Pick<PlanningCenterPeopleService, "getCacheScope">;
@@ -119,15 +55,19 @@ export const presentationIdentity = (
   const digest = createHmac("sha256", seed)
     .update(JSON.stringify([organizationId, personId]))
     .digest();
-  const firstName = FIRST_NAMES[digest[0] % FIRST_NAMES.length];
-  // A short suffix keeps the small fictional-name vocabulary distinguishable in large rosters.
-  const surname = LAST_NAMES[digest[1] % LAST_NAMES.length];
-  const lastName = `${surname} ${digest.subarray(2, 5).toString("hex").toUpperCase()}`;
+  const firstName =
+    PRESENTATION_FIRST_NAMES[
+      digest.readUInt16BE(0) % PRESENTATION_FIRST_NAMES.length
+    ];
+  const lastName =
+    PRESENTATION_LAST_NAMES[
+      digest.readUInt16BE(2) % PRESENTATION_LAST_NAMES.length
+    ];
   return {
     firstName,
     lastName,
     fullName: `${firstName} ${lastName}`,
-    initials: `${firstName[0]}${surname[0]}`,
+    initials: `${firstName[0]}${lastName[0]}`,
     photoUrl: null,
     photoThumbnailUrl: null,
   };

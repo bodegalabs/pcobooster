@@ -11,6 +11,12 @@ import { z } from "zod";
 const jsonResponse = (body: JsonValue, init?: ResponseInit): Response =>
   Response.json(body, init);
 const person = { id: "1", type: "Person", attributes: { name: "Alex" } };
+const basicCacheScope = (secret: string): string =>
+  new PlanningCenterCoreClient({
+    kind: "basic",
+    applicationId: "client",
+    secret,
+  }).getCacheScope();
 
 describe(PlanningCenterCoreClient, () => {
   beforeEach(() => {
@@ -57,7 +63,43 @@ describe(PlanningCenterCoreClient, () => {
     expect(headers.get("Authorization")).toBe(
       `Basic ${Buffer.from("client:pat").toString("base64")}`
     );
-    expect(client.getCacheScope()).toBe("basic");
+    expect(client.getCacheScope()).toBe(
+      `basic:${createHash("sha256").update("client:pat").digest("hex")}`
+    );
+  });
+
+  it("isolates cache scopes between personal access tokens", () => {
+    expect(basicCacheScope("demo-pat")).not.toBe(basicCacheScope("pat"));
+  });
+
+  it("rejects writes from a read-only client before they reach Planning Center", async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(jsonResponse({ data: person }));
+    const client = new PlanningCenterCoreClient(
+      { kind: "basic", applicationId: "demo", secret: "demo-pat" },
+      { readOnly: true }
+    );
+
+    await expect(
+      client.fetch("/services/v2/people/1", {
+        method: "PATCH",
+        body: "{}",
+      })
+    ).rejects.toMatchObject({
+      name: "PlanningCenterReadOnlyError",
+      method: "PATCH",
+      path: "/services/v2/people/1",
+    });
+    await expect(
+      client.request("/services/v2/plan_times/1", { method: "delete" })
+    ).rejects.toMatchObject({ name: "PlanningCenterReadOnlyError" });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    await expect(client.fetch("/services/v2/people/1")).resolves.toMatchObject({
+      data: person,
+    });
+    expect(fetchMock).toHaveBeenCalledOnce();
   });
 
   it("dedupes concurrent identical GETs and isolates the returned objects", async () => {

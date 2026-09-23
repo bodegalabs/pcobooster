@@ -22,6 +22,7 @@ const setup = () => {
   const services = createPlanningCenterServices("run-sheet-test-token");
   const access = {
     authentication: {
+      kind: "account" as const,
       userId: "user-1",
       accessToken: "run-sheet-test-token",
       scopes: ["services"],
@@ -30,6 +31,7 @@ const setup = () => {
     },
     cacheScope: services.core.getCacheScope(),
     services,
+    presentation: false,
   };
   return { access, services };
 };

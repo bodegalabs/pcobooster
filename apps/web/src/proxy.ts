@@ -1,3 +1,4 @@
+import { DEMO_SESSION_COOKIE } from "@pcobooster/contracts/demo";
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -19,9 +20,22 @@ const isDevAuthBypassEnabled = (): boolean => {
   );
 };
 
+const DEMO_ENTRY_PREFIX = "/demo/";
+
+/** Presence only; the API verifies the demo token on every request. */
+const hasDemoSessionCookie = (request: NextRequest): boolean =>
+  (request.cookies.get(DEMO_SESSION_COOKIE)?.value ?? "") !== "";
+
 export const proxy = (request: NextRequest) => {
   if (isPublicPath(request.nextUrl.pathname)) {
     return NextResponse.next();
+  }
+  if (request.nextUrl.pathname.startsWith(DEMO_ENTRY_PREFIX)) {
+    // A private link: keep it out of search indexes and referrer headers.
+    const response = NextResponse.next();
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+    response.headers.set("Referrer-Policy", "no-referrer");
+    return response;
   }
   if (isDevAuthBypassEnabled()) {
     return NextResponse.next();
@@ -44,7 +58,10 @@ export const proxy = (request: NextRequest) => {
     return NextResponse.next();
   }
 
-  if (sessionCookie !== null && sessionCookie !== "") {
+  if (
+    (sessionCookie !== null && sessionCookie !== "") ||
+    hasDemoSessionCookie(request)
+  ) {
     return NextResponse.next();
   }
 

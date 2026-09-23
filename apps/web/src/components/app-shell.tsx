@@ -37,6 +37,7 @@ import type { SidebarTabGroupItem } from "@/components/sidebar-tab-group";
 import { SidebarTabGroup } from "@/components/sidebar-tab-group";
 import { SidebarToggleHotkey } from "@/components/sidebar-toggle-hotkey";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -61,6 +62,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { HoverLabel } from "@/components/ui/hover-card";
 import {
   Sidebar,
   SidebarContent,
@@ -83,25 +85,16 @@ import {
   serializeAccountPanel,
   summarizeAccountPanel,
 } from "@/lib/account-panel-cache";
+import { clearAccountScopedCaches } from "@/lib/account-scoped-caches";
 import { APP_SHORTCUTS, SHORTCUTS_PALETTE_HOTKEY } from "@/lib/app-hotkeys";
 import { authClient } from "@/lib/auth-client";
 import { writeBrowserStorage } from "@/lib/browser-storage";
-import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
-import { clearCachedOrganizationTimeZone } from "@/lib/organization-time-zone-cache";
-import { clearCachedPeople } from "@/lib/people-cache";
-import { clearCachedPeopleDashboards } from "@/lib/people-dashboard-cache";
 import {
   PEOPLE_PAGE_NAV_CACHE_KEY,
   parsePeoplePageNavState,
   serializePeoplePageNavState,
 } from "@/lib/people-page-nav-cache";
-import { clearCachedPeopleSearch } from "@/lib/people-search-cache";
-import { clearCachedPlanItems } from "@/lib/plan-items-cache";
 import { queryKeys } from "@/lib/query-keys";
-import { clearCachedScheduleCatalog } from "@/lib/schedule-catalog-cache";
-import { clearCachedSongOptions } from "@/lib/song-options-cache";
-import { clearCachedSongSearch } from "@/lib/song-search-cache";
-import { clearCachedTeamPositions } from "@/lib/team-positions-cache";
 import { cn } from "@/lib/utils";
 import { orpc } from "@/orpc-client";
 
@@ -441,6 +434,17 @@ const signOutSession = async () => {
   }
 };
 
+const exitDemoSession = async () => {
+  await orpc.demo.exit({});
+};
+
+const signOutLabel = (demo: boolean, pending: boolean): string => {
+  if (demo) {
+    return pending ? "Leaving demo…" : "Exit demo";
+  }
+  return pending ? "Signing out…" : "Sign out";
+};
+
 const SidebarAccountPanel = ({
   onOpenShortcuts,
 }: {
@@ -464,6 +468,7 @@ const SidebarAccountPanel = ({
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [actionError, setActionError] = useState("");
   const panelError = actionError || (accountsQuery.error?.message ?? "");
+  const demo = data?.demo === true;
   const liveSummary = summarizeAccountPanel(data);
   const triggerSummary = data ? liveSummary : (cachedSummary ?? liveSummary);
 
@@ -475,16 +480,7 @@ const SidebarAccountPanel = ({
     setSwitchingAccountId(accountId);
     try {
       await orpc.accounts.select({ accountId });
-      clearCachedPeople();
-      clearCachedPeopleDashboards();
-      clearCachedPeopleSearch();
-      clearCachedMyScheduledPlans();
-      clearCachedOrganizationTimeZone();
-      clearCachedPlanItems();
-      clearCachedScheduleCatalog();
-      clearCachedSongOptions();
-      clearCachedSongSearch();
-      clearCachedTeamPositions();
+      clearAccountScopedCaches();
       await accountsQuery.refetch();
       await queryClient.invalidateQueries();
       router.refresh();
@@ -506,9 +502,14 @@ const SidebarAccountPanel = ({
     setActionError("");
     setIsSigningOut(true);
     try {
-      await signOutSession();
+      await (demo ? exitDemoSession() : signOutSession());
       queryClient.clear();
-      writeBrowserStorage(ACCOUNT_PANEL_CACHE_KEY, null);
+      clearAccountScopedCaches();
+      if (demo) {
+        // The home page is the marketing site, outside this app's router.
+        window.location.assign("/");
+        return;
+      }
       startTransition(() => {
         router.replace("/auth");
         router.refresh();
@@ -564,7 +565,7 @@ const SidebarAccountPanel = ({
                   {data?.session.name ?? "Account"}
                 </span>
                 <span className="text-muted-foreground mt-1 block truncate text-xs">
-                  {data?.session.email ?? ""}
+                  {demo ? "Read-only demo" : (data?.session.email ?? "")}
                 </span>
               </DropdownMenuLabel>
 
@@ -645,7 +646,7 @@ const SidebarAccountPanel = ({
               ) : (
                 <SidebarNavIcon icon={Logout01Icon} />
               )}
-              {isSigningOut ? "Signing out…" : "Sign out"}
+              {signOutLabel(demo, isSigningOut)}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -841,6 +842,28 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
   );
 };
 
+/** Visitors on a demo link need to know why nothing they change sticks. */
+const DemoBadge = () => {
+  const { data } = useQuery({
+    queryKey: queryKeys.accounts(),
+    queryFn: fetchAccounts,
+  });
+  if (data?.demo !== true) {
+    return null;
+  }
+  return (
+    <HoverLabel
+      label="Explore freely. Changes aren’t saved."
+      side="bottom"
+      align="end"
+      sideOffset={8}
+      render={<Badge variant="secondary" className="ml-auto" />}
+    >
+      Read-only demo
+    </HoverLabel>
+  );
+};
+
 export const AppShell = ({
   children,
   peoplePageEnabled,
@@ -851,7 +874,8 @@ export const AppShell = ({
   presentationMode: boolean;
 }): ReactNode => {
   const pathname = usePathname();
-  const isAuthRoute = pathname.startsWith("/auth");
+  const isStandaloneRoute =
+    pathname.startsWith("/auth") || pathname.startsWith("/demo/");
   const [storedOpen, setStoredOpen] = useBrowserStorage(
     SIDEBAR_OPEN_STORAGE_KEY
   );
@@ -864,7 +888,7 @@ export const AppShell = ({
     [setStoredOpen]
   );
 
-  if (isAuthRoute) {
+  if (isStandaloneRoute) {
     return children;
   }
 
@@ -882,6 +906,7 @@ export const AppShell = ({
           <Suspense fallback={<AppTopBarFallback pathname={pathname} />}>
             <AppTopBar />
           </Suspense>
+          <DemoBadge />
           {presentationMode ? (
             <span className="bg-status-scheduled/10 text-status-scheduled ml-auto shrink-0 rounded-md px-2 py-1 text-xs font-medium">
               Presentation mode

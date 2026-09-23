@@ -26,6 +26,9 @@ export default defineConfig({
       PLANNING_CENTER_PAT: "test-token",
       DEV_AUTH_BYPASS: "0",
       PRESENTATION_MODE: "0",
+      DEMO_ACCESS_KEY: "",
+      DEMO_PLANNING_CENTER_CLIENT: "",
+      DEMO_PLANNING_CENTER_PAT: "",
     },
   },
   resolve: {

@@ -42,10 +42,7 @@ import type {
   Blockout,
   PersonWithAvailability,
 } from "@pcobooster/planning-center-models/types";
-import {
-  getPresentationSeed,
-  isPresentationMode,
-} from "@pcobooster/presentation-mode";
+import { getPresentationSeed } from "@pcobooster/presentation-mode";
 import { Effect } from "effect";
 
 const resolveRequestTimeZone = async (
@@ -63,7 +60,7 @@ const requestPresentationDependencies = (
 ) => ({
   catalog: access.services.catalog,
   people: access.services.people,
-  isPresentationMode,
+  isPresentationMode: () => access.presentation,
   getPresentationSeed,
 });
 
@@ -181,7 +178,7 @@ export const getPeopleBlockouts = (input: {
           signal
         )
     );
-    return presentBlockouts(blockouts, isPresentationMode());
+    return presentBlockouts(blockouts, access.presentation);
   });
 
 export const getPeopleDashboard = (input: {
@@ -289,12 +286,17 @@ export const getMyScheduledPlans = (input: {
   Effect.gen(function* readMyScheduledPlans() {
     const access = yield* PlanningCenterAccess;
     const { request } = yield* RequestContext;
+    // A demo visitor is not a person in the demo organization.
+    if (access.authentication.kind === "demo") {
+      return { planIds: [] };
+    }
+    const { account } = access.authentication;
     const uniquePlanIds = [...new Set(input.planIds)];
     const planIds = yield* tryPlanningCenter(
       async (signal) =>
         await getCurrentUserScheduledPlanIds(
           request,
-          access.authentication.account,
+          account,
           uniquePlanIds,
           {
             peopleService: access.services.people,

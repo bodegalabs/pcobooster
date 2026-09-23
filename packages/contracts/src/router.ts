@@ -2,6 +2,7 @@ import { oc } from "@orpc/contract";
 import { accountsContract } from "@pcobooster/contracts/accounts";
 import { adminContract } from "@pcobooster/contracts/admin";
 import { catalogContract } from "@pcobooster/contracts/catalog";
+import { demoContract } from "@pcobooster/contracts/demo";
 import { featuresContract } from "@pcobooster/contracts/features";
 import { peopleContract } from "@pcobooster/contracts/people";
 import { planItemsContract } from "@pcobooster/contracts/plan-items";
@@ -28,6 +29,7 @@ export const appContract = oc.router({
   accounts: accountsContract,
   admin: adminContract,
   catalog: catalogContract,
+  demo: demoContract,
   features: featuresContract,
   health: healthContract,
   people: peopleContract,

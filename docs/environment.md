@@ -26,6 +26,9 @@ Each Infisical environment's `/` path owns these settings:
 | `PLANNING_CENTER_OAUTH_CLIENT_SECRET` | Yes | Planning Center OAuth client secret. |
 | `PCOBOOSTER_ADMIN_EMAILS` | Yes | Comma-separated admin allowlist. |
 | `CORS_ORIGIN` | No | Explicit browser origin when the API is called cross-origin. |
+| `DEMO_ACCESS_KEY` | No | Private key in the read-only [demo link](demo.md). The demo stays off unless all three demo keys are set. |
+| `DEMO_PLANNING_CENTER_CLIENT` | No | Application ID of the personal access token the demo reads with. |
+| `DEMO_PLANNING_CENTER_PAT` | No | Secret of that personal access token. Demo sessions spoof people's personal details and cannot write. |
 | `LOG_LEVEL` | No | Server log threshold. |
 | `LOG_PLANNING_CENTER_TIMINGS` | No | Set to `1` only while measuring Planning Center requests. |
 | `NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE` | No | Browser fallback while organization timezone data loads. |

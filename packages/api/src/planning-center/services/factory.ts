@@ -2,6 +2,7 @@ import {
   PlanningCenterCoreClient,
   createBasicPlanningCenterClient,
 } from "@pcobooster/api/planning-center/core-client";
+import type { PlanningCenterPersonalAccessToken } from "@pcobooster/api/planning-center/core-client";
 import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
 import {
   planningCenterCatalogServiceCaches,
@@ -65,3 +66,14 @@ export const createPlanningCenterServices = (accessToken: string) =>
 
 export const createBasicPlanningCenterServices = () =>
   createServicesForClient(createBasicPlanningCenterClient());
+
+/** Demo services can read the demo organization but never write to it. */
+export const createReadOnlyPlanningCenterServices = (
+  token: PlanningCenterPersonalAccessToken
+) =>
+  createServicesForClient(
+    new PlanningCenterCoreClient(
+      { kind: "basic", ...token },
+      { readOnly: true }
+    )
+  );
