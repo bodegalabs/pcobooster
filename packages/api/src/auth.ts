@@ -47,6 +47,12 @@ if (
 
 const authEventLog = logger.for("auth/events");
 
+/**
+ * Parent domain for the session cookie (for example `pcobooster.com`) so the
+ * private admin app on its own subdomain receives the same session.
+ */
+const sessionCookieDomain = process.env.AUTH_COOKIE_DOMAIN;
+
 const trustedOrigins = [
   ...(configuredWebOrigin !== undefined && configuredWebOrigin !== ""
     ? [configuredWebOrigin]
@@ -138,6 +144,12 @@ export const auth = betterAuth({
   baseURL: baseUrl,
   secret,
   trustedOrigins,
+  advanced: {
+    crossSubDomainCookies: {
+      enabled: sessionCookieDomain !== undefined && sessionCookieDomain !== "",
+      domain: sessionCookieDomain,
+    },
+  },
   database: drizzleAdapter(db, {
     provider: "pg",
     schema,

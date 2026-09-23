@@ -21,7 +21,7 @@ export const AdminAccountRow = ({
   lastLoginLabel,
 }: AdminAccountRowProps) => {
   const router = useRouter();
-  const href = `/admin/users/${account.userId}`;
+  const href = `/users/${account.userId}`;
 
   const openAccount = useCallback(() => {
     router.push(href);

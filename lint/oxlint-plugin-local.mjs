@@ -20,8 +20,6 @@ const OVERLAY_SECTION_BORDER_IGNORED_FILES = [
   "components/service-plan-table-selector.tsx",
   "components/schedule/plan-item-list.tsx",
   "components/app-shell.tsx",
-  "app/admin/page.tsx",
-  "app/admin/users/",
   "components/people/month-view.tsx",
 ];
 const BARE_INPUT_NAMES = new Set(["Input", "Textarea", "input", "textarea"]);

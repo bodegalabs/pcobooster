@@ -3,7 +3,6 @@ import {
   RequestContext,
 } from "@pcobooster/api/application/context";
 import {
-  getAdminFeature,
   getPlanningCenterAccounts,
   getSessionStatus,
   selectPlanningCenterAccount,
@@ -181,22 +180,11 @@ describe("identity application programs", () => {
     ]);
   });
 
-  it("keeps the admin feature probe public for guests", async () => {
-    await expect(
-      run(getAdminFeature(unauthenticatedDependencies()))
-    ).resolves.toStrictEqual({
-      enabled: false,
-    });
-  });
-
   it("presents a demo session as the demo organization, ahead of any signed-in account", async () => {
     const { dependencies, loadDemoOrganization } = demoDependencies();
 
     await expect(run(getSessionStatus(dependencies))).resolves.toStrictEqual({
       authenticated: true,
-    });
-    await expect(run(getAdminFeature(dependencies))).resolves.toStrictEqual({
-      enabled: false,
     });
     await expect(
       run(getPlanningCenterAccounts(dependencies))

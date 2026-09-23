@@ -28,7 +28,7 @@ Aliases come from about 9,500 name combinations and are derived from each person
 1. `/demo/<key>` calls `demo.start`. The API compares the key with `DEMO_ACCESS_KEY` and sets an HttpOnly `pcobooster-demo` cookie. The cookie holds a token derived from the key, not the key itself.
 2. `resolvePlanningCenterAccess` checks for a valid demo cookie before any Better Auth session. A demo request authenticates as `{ kind: "demo" }`, sets `presentation: true` on its access, and gets services built from the demo personal access token.
 3. Those services use a read-only `PlanningCenterCoreClient`. Every Planning Center write goes through `request()`, which rejects anything other than `GET` or `HEAD` before it reaches the network. The rejection becomes a `Forbidden` fault that the app shows as "This demo is read-only, so changes aren't saved."
-4. Identity reads report a guest. The admin link is hidden, "My plans" is empty, and scheduling audits are skipped because there is no user to attribute them to.
+4. Identity reads report a guest. "My plans" is empty, and scheduling audits are skipped because there is no user to attribute them to.
 
 Every screen runs the same code and live Planning Center reads as a signed-in session, so there is nothing to keep in sync.
 

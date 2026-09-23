@@ -8,7 +8,6 @@ import {
   ListMusicIcon,
   Logout01Icon,
   Moon02Icon,
-  Shield01Icon,
   Sun01Icon,
   Tick02Icon,
   UserAdd01Icon,
@@ -310,13 +309,7 @@ interface SectionTab {
   label: string;
 }
 
-const SectionTabBar = ({
-  peopleEnabled,
-  adminEnabled,
-}: {
-  peopleEnabled: boolean;
-  adminEnabled: boolean;
-}) => {
+const SectionTabBar = ({ peopleEnabled }: { peopleEnabled: boolean }) => {
   const pathname = usePathname();
   const section = getAppSection(pathname);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -335,14 +328,6 @@ const SectionTabBar = ({
       href: "/people",
       icon: UsersIcon,
       label: "People",
-    });
-  }
-  if (adminEnabled) {
-    tabs.push({
-      section: "admin",
-      href: "/admin",
-      icon: Shield01Icon,
-      label: "Admin",
     });
   }
   const activeIndex = tabs.findIndex((tab) => tab.section === section);
@@ -384,20 +369,12 @@ const SectionTabBar = ({
 };
 
 /** Thumb-reach navigation for phones: plan views inside a plan, sections elsewhere. */
-export const MobileTabBar = ({
-  peopleEnabled,
-  adminEnabled,
-}: {
-  peopleEnabled: boolean;
-  adminEnabled: boolean;
-}) => {
+export const MobileTabBar = ({ peopleEnabled }: { peopleEnabled: boolean }) => {
   const pathname = usePathname();
   const planRoute = parsePlanRoute(pathname);
 
   if (planRoute) {
     return <PlanTabBar view={planRoute.view} />;
   }
-  return (
-    <SectionTabBar peopleEnabled={peopleEnabled} adminEnabled={adminEnabled} />
-  );
+  return <SectionTabBar peopleEnabled={peopleEnabled} />;
 };

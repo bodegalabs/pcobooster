@@ -7,8 +7,9 @@ import {
   Users,
 } from "lucide-react";
 
-import { AdminAccountRow } from "@/app/admin/admin-account-row";
+import { AdminAccountRow } from "@/app/account-row";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -77,12 +78,10 @@ const AdminPage = async () => {
 
   return (
     <main className="bg-background min-h-0 flex-1 overflow-auto">
-      <div className="pb-tab-bar mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 pt-1 md:gap-6 md:px-6 md:py-6">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 pt-1 md:gap-6 md:px-6 md:py-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-normal max-md:sr-only">
-              Admin
-            </h1>
+            <h1 className="text-2xl font-semibold tracking-normal">Accounts</h1>
             <p className="text-muted-foreground text-sm md:mt-1">
               Accounts, active sessions, and login frequency from pcobooster.com
               auth activity.
@@ -111,7 +110,7 @@ const AdminPage = async () => {
         </section>
 
         <section className="border-border/70 bg-card rounded-md border">
-          <div className="border-border/70 flex items-center justify-between gap-3 border-b px-4 py-3">
+          <div className="flex items-center justify-between gap-3 px-4 py-3">
             <div>
               <h2 className="text-sm font-medium">Accounts</h2>
               <p className="text-muted-foreground mt-1 text-xs">
@@ -120,6 +119,7 @@ const AdminPage = async () => {
             </div>
             <Activity className="text-muted-foreground size-4" />
           </div>
+          <Separator />
           <Table>
             <TableHeader>
               <TableRow>

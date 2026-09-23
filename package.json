@@ -40,6 +40,8 @@
     "dev:web": "infisical run --env=dev --path=/ --path=/local -- turbo run dev --filter=@pcobooster/web",
     "dev:server": "infisical run --env=dev --path=/ --path=/local -- turbo run dev --filter=@pcobooster/server",
     "dev:marketing": "turbo run dev --filter=@pcobooster/marketing",
+    "dev:admin": "turbo run dev --filter=@pcobooster/admin",
+    "build:admin": "turbo run build --filter=@pcobooster/admin...",
     "build:marketing": "turbo run build --filter=@pcobooster/marketing && bun run scripts/stage-marketing.ts",
     "cloud:session:setup": "bash scripts/codex-cloud/with-infisical.sh bash scripts/codex-cloud/session-setup.sh",
     "cloud:session:status": "bash scripts/codex-cloud/with-infisical.sh bash scripts/codex-cloud/session-status.sh",

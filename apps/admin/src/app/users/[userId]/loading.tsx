@@ -1,4 +1,4 @@
-import { AdminPageSkeleton } from "@/app/admin/admin-page-skeleton";
+import { AdminPageSkeleton } from "@/app/admin-page-skeleton";
 
 const AdminUserLoading = () => <AdminPageSkeleton label="Loading user" />;
 
