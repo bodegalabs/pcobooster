@@ -723,6 +723,25 @@
   .plan-length {
     display: none;
   }
+  /* Stacked team columns run very tall on phones; swipe between them instead. */
+  .embedded .lineup {
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-auto-columns: minmax(240px, 84%);
+    margin-inline: -16px;
+    padding: 0 16px 2px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: 16px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .embedded .lineup::-webkit-scrollbar {
+    display: none;
+  }
+  .embedded .lineup-column {
+    scroll-snap-align: start;
+  }
 }
 
 @container candidates (max-width: 520px) {
@@ -745,6 +764,13 @@
   .candidate-action {
     grid-column: 3;
     grid-row: 1 / span 2;
+  }
+}
+
+/* Leave page above and below the replica so a swipe can still scroll the page. */
+@media (max-width: 760px) {
+  .demo:not(.embedded) {
+    height: min(640px, 72svh);
   }
 }
 
