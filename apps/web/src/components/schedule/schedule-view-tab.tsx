@@ -5,7 +5,7 @@ import type {
   PersonWithAvailability,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
-import { CalendarDays, X } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 
 import { PlanPersonStatusMenu } from "@/components/schedule/plan-person-status-menu";
@@ -18,14 +18,13 @@ import { SomeoneElseRow } from "@/components/schedule/someone-else-row";
 import type { SlotRef } from "@/components/schedule/types";
 import { UnselectedPositionEmpty } from "@/components/schedule/unselected-position-empty";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Empty,
   EmptyHeader,
@@ -52,7 +51,8 @@ interface ScheduleViewTabProps {
   selectedPlanId: string | null;
   planReferenceDate?: Date | null;
   onToggleTeam: (teamId: string) => void;
-  onSelectSlot: (slot: SlotRef) => void;
+  onSelectSlot: (slot: SlotRef, options?: { replace?: boolean }) => void;
+  onClearSlot: () => void;
   onPreviewSlot?: (slot: SlotRef) => void;
   onAddPosition?: (
     team: { teamId: string; teamName: string },
@@ -344,6 +344,7 @@ const ScheduleViewContent = ({
   planReferenceDate = null,
   onToggleTeam,
   onSelectSlot,
+  onClearSlot,
   onPreviewSlot,
   onAddPosition,
   onScheduleSuccess,
@@ -367,8 +368,14 @@ const ScheduleViewContent = ({
     selectedSlotInfo?.position.source === "custom";
   const selectedFilledPeople = selectedSlotInfo?.position.filledPeople ?? [];
 
+  const hasSelectedPosition =
+    selectedPosition !== null && selectedPosition !== "";
+
   const handleSelectSlot = (slot: SlotRef) => {
-    onSelectSlot(slot);
+    // Switching from the phone sheet replaces the slot so Back still returns to the list.
+    onSelectSlot(slot, {
+      replace: !isWidePickerLayout && hasSelectedPosition,
+    });
     if (!isWidePickerLayout) {
       setPickerOpen(false);
     }
@@ -424,81 +431,87 @@ const ScheduleViewContent = ({
       </aside>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 sm:gap-4 lg:h-full">
-        {selectedPosition !== null && selectedPosition !== "" ? (
+        {hasSelectedPosition ? (
           <>
             <SelectedPositionHeader
               info={selectedSlotInfo}
               onOpenPicker={() => {
                 setPickerOpen(true);
               }}
+              onBack={onClearSlot}
               hasSlots={hasSlots}
               teamPositionsLoading={teamPositionsLoading}
               filter={filter}
               onFilterChange={setFilter}
             />
 
-            <ScrollArea className="min-h-0 w-full flex-1 lg:h-full">
-              <SchedulePeopleList
-                people={people}
-                peopleLoading={peopleLoading}
-                peoplePlaceholder={peoplePlaceholder}
-                selectedSlotUsesCustomPosition={selectedSlotUsesCustomPosition}
-                selectedFilledPeople={selectedFilledPeople}
-                filteredActionable={filteredActionable}
-                filteredExceptions={filteredExceptions}
-                selectedServiceTypeId={selectedServiceTypeId}
-                selectedPlanId={selectedPlanId}
-                planReferenceDate={planReferenceDate}
-                selectedTeam={selectedTeam}
-                selectedPosition={selectedPosition}
-                teamName={selectedSlotInfo?.teamName}
-                positionName={selectedSlotInfo?.positionName}
-                onScheduleSuccess={onScheduleSuccess}
-                onScheduleError={onScheduleError}
-              />
+            <ScrollArea className="-mx-4 min-h-0 w-auto flex-1 lg:mx-0 lg:h-full lg:w-full">
+              <div className="pb-tab-bar px-4 md:pb-0 lg:px-0">
+                <SchedulePeopleList
+                  people={people}
+                  peopleLoading={peopleLoading}
+                  peoplePlaceholder={peoplePlaceholder}
+                  selectedSlotUsesCustomPosition={
+                    selectedSlotUsesCustomPosition
+                  }
+                  selectedFilledPeople={selectedFilledPeople}
+                  filteredActionable={filteredActionable}
+                  filteredExceptions={filteredExceptions}
+                  selectedServiceTypeId={selectedServiceTypeId}
+                  selectedPlanId={selectedPlanId}
+                  planReferenceDate={planReferenceDate}
+                  selectedTeam={selectedTeam}
+                  selectedPosition={selectedPosition}
+                  teamName={selectedSlotInfo?.teamName}
+                  positionName={selectedSlotInfo?.positionName}
+                  onScheduleSuccess={onScheduleSuccess}
+                  onScheduleError={onScheduleError}
+                />
+              </div>
             </ScrollArea>
           </>
         ) : (
-          <UnselectedPositionEmpty
-            hasSlots={hasSlots}
-            teamPositionsLoading={teamPositionsLoading}
-            onOpenPicker={() => {
-              setPickerOpen(true);
-            }}
-          />
+          <>
+            <section
+              aria-label="Positions"
+              className="border-sidebar-border/40 bg-sidebar/60 text-sidebar-foreground flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border max-md:-mx-4 max-md:rounded-b-none max-md:border-x-0 max-md:border-b-0 lg:hidden"
+            >
+              <PositionPickerList
+                teamPositionsLoading={teamPositionsLoading}
+                teamPositionsPlaceholder={teamPositionsPlaceholder}
+                teamPositionGroups={teamPositionGroups}
+                collapsedTeams={collapsedTeams}
+                selectedTeam={selectedTeam}
+                selectedPosition={selectedPosition}
+                onToggleTeam={onToggleTeam}
+                onSelect={handleSelectSlot}
+                onPreviewSlot={onPreviewSlot}
+                onAddPosition={onAddPosition}
+                clearTabBar
+              />
+            </section>
+            <UnselectedPositionEmpty />
+          </>
         )}
       </div>
 
-      <div className="lg:hidden">
-        <Dialog
-          open={pickerOpen && !isWidePickerLayout}
-          onOpenChange={setPickerOpen}
-        >
-          <DialogContent showCloseButton={false}>
-            <DialogHeader className="flex h-12 shrink-0 flex-row items-center justify-between text-left">
-              <div className="min-w-0">
-                <DialogTitle>Positions</DialogTitle>
-                <DialogDescription className="sr-only">
-                  Choose a team position for this plan.
-                </DialogDescription>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-9 shrink-0"
-                onClick={() => {
-                  setPickerOpen(false);
-                }}
-                aria-label="Close positions"
-              >
-                <X className="size-4" aria-hidden />
-              </Button>
-            </DialogHeader>
+      <Drawer
+        open={pickerOpen && !isWidePickerLayout && hasSelectedPosition}
+        onOpenChange={setPickerOpen}
+        showSwipeHandle
+      >
+        <DrawerContent className="h-[min(40rem,calc(100dvh-5rem))] lg:hidden">
+          <DrawerHeader className="text-left">
+            <DrawerTitle className="text-left">Positions</DrawerTitle>
+            <DrawerDescription className="sr-only">
+              Choose a team position for this plan.
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="flex min-h-0 flex-1 flex-col">
             {positionPickerList}
-          </DialogContent>
-        </Dialog>
-      </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };

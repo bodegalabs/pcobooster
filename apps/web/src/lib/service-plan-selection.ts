@@ -37,13 +37,6 @@ const desktopDateFormatter = new Intl.DateTimeFormat("en-US", {
 export const formatDate = (date: Date): string =>
   desktopDateFormatter.format(date);
 
-const mobileDateFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-});
-export const formatMobileDate = (date: Date): string =>
-  mobileDateFormatter.format(date);
-
 export const parsePlanDate = (
   value: Date | string | undefined
 ): Date | null => {

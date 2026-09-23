@@ -23,11 +23,11 @@ import {
   NativeSelectOption,
 } from "@/components/ui/native-select";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTitle,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  ResponsivePopover,
+  ResponsivePopoverContent,
+  ResponsivePopoverTitle,
+  ResponsivePopoverTrigger,
+} from "@/components/ui/responsive-popover";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import {
   buildServiceHistoryGroups,
@@ -190,9 +190,9 @@ export const ScheduleContextPopover = ({
   );
 
   return (
-    <Popover>
-      <PopoverTrigger render={children} />
-      <PopoverContent
+    <ResponsivePopover>
+      <ResponsivePopoverTrigger render={children} />
+      <ResponsivePopoverContent
         align="start"
         side="right"
         sideOffset={10}
@@ -200,7 +200,7 @@ export const ScheduleContextPopover = ({
         initialFocus={false}
       >
         <div className="flex items-center justify-between gap-3 px-3 py-2.5">
-          <PopoverTitle>Nearby schedule</PopoverTitle>
+          <ResponsivePopoverTitle>Nearby schedule</ResponsivePopoverTitle>
           <NativeSelect
             size="sm"
             value={String(halfRangeWeeks)}
@@ -236,7 +236,7 @@ export const ScheduleContextPopover = ({
             </ItemGroup>
           </div>
         )}
-      </PopoverContent>
-    </Popover>
+      </ResponsivePopoverContent>
+    </ResponsivePopover>
   );
 };

@@ -12,10 +12,10 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  ResponsivePopover,
+  ResponsivePopoverContent,
+  ResponsivePopoverTrigger,
+} from "@/components/ui/responsive-popover";
 
 interface DateTimeEditorProps {
   id: string;
@@ -62,8 +62,8 @@ export const DateTimeEditor = ({
     <Field className={className} data-invalid={invalid || undefined}>
       <FieldLabel htmlFor={`${id}-time`}>{label}</FieldLabel>
       <div className="grid grid-cols-[minmax(0,1fr)_112px] gap-2">
-        <Popover>
-          <PopoverTrigger
+        <ResponsivePopover>
+          <ResponsivePopoverTrigger
             render={
               <Button
                 type="button"
@@ -78,8 +78,12 @@ export const DateTimeEditor = ({
             <span className="truncate">
               {selectedDate ? format(selectedDate, "MMM d, yyyy") : "Pick date"}
             </span>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto" align="start">
+          </ResponsivePopoverTrigger>
+          <ResponsivePopoverContent
+            title="Pick a date"
+            className="w-auto"
+            align="start"
+          >
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -91,8 +95,8 @@ export const DateTimeEditor = ({
               disabled={disabled}
               autoFocus
             />
-          </PopoverContent>
-        </Popover>
+          </ResponsivePopoverContent>
+        </ResponsivePopover>
 
         <InputGroup>
           <InputGroupAddon>

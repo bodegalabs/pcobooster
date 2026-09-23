@@ -6,7 +6,7 @@ import type {
   PlanItemArrangement,
   PlanItemKey,
 } from "@pcobooster/planning-center-models/types";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, Trash2 } from "lucide-react";
 import { startTransition, useState } from "react";
 
 import {
@@ -15,7 +15,6 @@ import {
   parseLengthText,
   pickKeyId,
   synchronizeDraftWithSongOptions,
-  textareaClassName,
 } from "@/components/schedule/plan-tab-helpers";
 import type {
   DraftState,
@@ -35,6 +34,7 @@ import {
   ResponsiveDialogTitle,
 } from "@/components/ui/responsive-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { useSongOptions } from "@/hooks/use-song-options";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +43,8 @@ interface PlanItemEditDialogProps {
   open: boolean;
   serviceTypeId: string | null;
   onOpenChange: (open: boolean) => void;
+  /** Phones delete from this sheet because rows have no room for the button. */
+  onDelete: (itemId: string) => void;
   onSave: (input: {
     item: PlanItem;
     draft: DraftState;
@@ -84,6 +86,7 @@ const PlanItemEditContent = ({
   serviceTypeId,
   onOpenChange,
   onSave,
+  onDelete,
 }: Omit<PlanItemEditDialogProps, "item"> & { item: PlanItem }) => {
   const [draft, setDraft] = useState<DraftState>(() => buildDraft(item));
   const [isSaving, setIsSaving] = useState(false);
@@ -275,8 +278,8 @@ const PlanItemEditContent = ({
           </Field>
 
           <Field label="Description" className="lg:col-span-2">
-            <textarea
-              className={textareaClassName}
+            <Textarea
+              className="min-h-24"
               value={currentDraft.description}
               onChange={(event) => {
                 setDraft((current) => ({
@@ -292,10 +295,11 @@ const PlanItemEditContent = ({
           <p className="text-destructive mt-3 text-sm">{saveError}</p>
         ) : null}
 
-        <ResponsiveDialogFooter>
+        <ResponsiveDialogFooter className="max-md:mt-3">
           <Button
             type="button"
             variant="outline"
+            className="max-md:h-11"
             onClick={() => {
               onOpenChange(false);
             }}
@@ -305,6 +309,7 @@ const PlanItemEditContent = ({
           </Button>
           <Button
             type="button"
+            className="max-md:order-first max-md:h-11"
             onClick={() => {
               startTransition(handleSubmit);
             }}
@@ -312,6 +317,18 @@ const PlanItemEditContent = ({
           >
             {isSaving ? <LoaderCircle className="size-4 animate-spin" /> : null}
             Save Changes
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            className="h-11 md:hidden"
+            onClick={() => {
+              onDelete(item.id);
+            }}
+            disabled={isSaving}
+          >
+            <Trash2 className="size-4" aria-hidden />
+            Delete item
           </Button>
         </ResponsiveDialogFooter>
       </ResponsiveDialogContent>

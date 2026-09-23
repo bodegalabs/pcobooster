@@ -22,10 +22,10 @@ import {
 } from "@/components/ui/command";
 import { ItemSeparator } from "@/components/ui/item";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  ResponsivePopover,
+  ResponsivePopoverContent,
+  ResponsivePopoverTrigger,
+} from "@/components/ui/responsive-popover";
 import {
   SelectionPickerCheckbox,
   SelectionPickerCommandItem,
@@ -190,8 +190,8 @@ export const TimeAssignmentSelector = ({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
+    <ResponsivePopover open={open} onOpenChange={setOpen}>
+      <ResponsivePopoverTrigger
         render={
           <Button
             type="button"
@@ -218,8 +218,9 @@ export const TimeAssignmentSelector = ({
           className="text-muted-foreground pointer-events-none size-4 shrink-0"
           aria-hidden
         />
-      </PopoverTrigger>
-      <PopoverContent
+      </ResponsivePopoverTrigger>
+      <ResponsivePopoverContent
+        title="Assignments"
         className="w-[420px] max-w-[calc(100vw-2rem)]"
         align="start"
       >
@@ -410,7 +411,7 @@ export const TimeAssignmentSelector = ({
             </div>
           </CommandList>
         </Command>
-      </PopoverContent>
-    </Popover>
+      </ResponsivePopoverContent>
+    </ResponsivePopover>
   );
 };
