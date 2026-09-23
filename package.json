@@ -84,7 +84,7 @@
     "@neondatabase/serverless": "^1.1.0",
     "@pcobooster/api": "workspace:*",
     "@pcobooster/planning-center-models": "workspace:*",
-    "@shadcn/lint": "^0.1.1",
+    "@shadcn/lint": "^0.1.2",
     "@tailwindcss/postcss": "^4.3.3",
     "@tanstack/react-query-devtools": "^5.103.1",
     "@types/node": "^24.13.5",
