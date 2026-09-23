@@ -19,7 +19,7 @@ import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useState } from "react";
 
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
@@ -35,7 +35,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { signOutLabel, useAccountPanel } from "@/hooks/use-account-panel";
-import type { PlanView } from "@/lib/app-routes";
+import type { AppSection, PlanView } from "@/lib/app-routes";
 import {
   buildPlanViewUrl,
   getAppSection,
@@ -60,27 +60,7 @@ const themeOptions = [
 ] as const;
 
 const tabClassName =
-  "text-muted-foreground data-[active=true]:text-foreground flex h-full min-w-0 flex-1 flex-col items-center justify-center gap-1 text-xs leading-none font-medium outline-none select-none focus-visible:bg-muted/60";
-const tabIconClassName =
-  "flex h-7 w-14 items-center justify-center rounded-full group-data-[active=true]/tab:bg-accent";
-
-const TabContent = ({
-  icon,
-  label,
-  children,
-}: {
-  icon: IconSvgElement;
-  label: string;
-  children?: ReactNode;
-}) => (
-  <>
-    <span className={cn(tabIconClassName, "relative")}>
-      <SidebarNavIcon icon={icon} className="size-5" />
-      {children}
-    </span>
-    <span className="max-w-full truncate">{label}</span>
-  </>
-);
+  "group/tab text-muted-foreground data-[active=true]:text-foreground relative z-10 flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-full text-xs leading-none font-medium outline-none select-none focus-visible:ring-2 focus-visible:ring-ring/50 active:scale-95 transition-transform duration-150";
 
 const TabLink = ({
   href,
@@ -101,11 +81,55 @@ const TabLink = ({
     scroll={false}
     data-active={active}
     aria-current={active ? "page" : undefined}
-    className={cn("group/tab", tabClassName)}
+    className={tabClassName}
   >
-    <TabContent icon={icon} label={label} />
+    <SidebarNavIcon icon={icon} className="size-6" />
+    <span className="max-w-full truncate">{label}</span>
   </Link>
 );
+
+/**
+ * A floating glass pill above the home indicator. Page scroll containers pad
+ * their ends with `pb-tab-bar` so content can pass underneath it.
+ */
+const FloatingTabBar = ({
+  label,
+  tabCount,
+  activeIndex,
+  children,
+}: {
+  label: string;
+  tabCount: number;
+  activeIndex: number;
+  children: ReactNode;
+}) => {
+  const style: CSSProperties & {
+    "--tab-count": number;
+    "--tab-index": number;
+  } = {
+    "--tab-count": tabCount,
+    "--tab-index": Math.max(activeIndex, 0),
+  };
+
+  return (
+    <div className="pb-safe-2 pointer-events-none absolute inset-x-0 bottom-0 z-40 flex justify-center px-4 md:hidden">
+      <nav
+        aria-label={label}
+        style={style}
+        className="liquid-glass pointer-events-auto relative flex h-16 w-full max-w-md items-stretch rounded-full p-1"
+      >
+        <span
+          aria-hidden
+          className={cn(
+            "tab-bar-indicator absolute inset-y-1 left-1 rounded-full",
+            activeIndex < 0 && "opacity-0"
+          )}
+        />
+        {children}
+      </nav>
+    </div>
+  );
+};
 
 const AccountAvatar = ({
   image,
@@ -275,30 +299,36 @@ const MobileAccountSheet = ({
   );
 };
 
-const barClassName =
-  "border-border/60 bg-background/85 supports-backdrop-filter:bg-background/70 shrink-0 border-t pb-safe backdrop-blur-xl md:hidden";
-
 const PlanTabBar = ({ view }: { view: PlanView }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   return (
-    <nav aria-label="Plan views" className={barClassName}>
-      <div className="flex h-15 items-stretch px-1">
-        {planViews.map((planView) => (
-          <TabLink
-            key={planView}
-            href={buildPlanViewUrl(pathname, searchParams, planView)}
-            icon={planViewIcons[planView]}
-            label={getPlanViewLabel(planView)}
-            active={planView === view}
-            replace
-          />
-        ))}
-      </div>
-    </nav>
+    <FloatingTabBar
+      label="Plan views"
+      tabCount={planViews.length}
+      activeIndex={planViews.indexOf(view)}
+    >
+      {planViews.map((planView) => (
+        <TabLink
+          key={planView}
+          href={buildPlanViewUrl(pathname, searchParams, planView)}
+          icon={planViewIcons[planView]}
+          label={getPlanViewLabel(planView)}
+          active={planView === view}
+          replace
+        />
+      ))}
+    </FloatingTabBar>
   );
 };
+
+interface SectionTab {
+  section: AppSection;
+  href: string;
+  icon: IconSvgElement;
+  label: string;
+}
 
 const SectionTabBar = ({
   peopleEnabled,
@@ -311,53 +341,65 @@ const SectionTabBar = ({
   const section = getAppSection(pathname);
   const [accountOpen, setAccountOpen] = useState(false);
   const { summary } = useAccountPanel();
+  const tabs: SectionTab[] = [
+    {
+      section: "services",
+      href: "/services",
+      icon: Calendar04Icon,
+      label: "Services",
+    },
+  ];
+  if (peopleEnabled) {
+    tabs.push({
+      section: "people",
+      href: "/people",
+      icon: UsersIcon,
+      label: "People",
+    });
+  }
+  if (adminEnabled) {
+    tabs.push({
+      section: "admin",
+      href: "/admin",
+      icon: Shield01Icon,
+      label: "Admin",
+    });
+  }
+  const activeIndex = tabs.findIndex((tab) => tab.section === section);
 
   return (
     <>
-      <nav aria-label="Primary" className={barClassName}>
-        <div className="flex h-15 items-stretch px-1">
+      <FloatingTabBar
+        label="Primary"
+        tabCount={tabs.length + 1}
+        activeIndex={activeIndex}
+      >
+        {tabs.map((tab) => (
           <TabLink
-            href="/services"
-            icon={Calendar04Icon}
-            label="Services"
-            active={section === "services"}
+            key={tab.section}
+            href={tab.href}
+            icon={tab.icon}
+            label={tab.label}
+            active={tab.section === section}
           />
-          {peopleEnabled ? (
-            <TabLink
-              href="/people"
-              icon={UsersIcon}
-              label="People"
-              active={section === "people"}
-            />
-          ) : null}
-          {adminEnabled ? (
-            <TabLink
-              href="/admin"
-              icon={Shield01Icon}
-              label="Admin"
-              active={section === "admin"}
-            />
-          ) : null}
-          <button
-            type="button"
-            data-active={accountOpen}
-            className={cn("group/tab", tabClassName)}
-            aria-haspopup="dialog"
-            onClick={() => {
-              setAccountOpen(true);
-            }}
-          >
-            <span className={tabIconClassName}>
-              <AccountAvatar
-                image={summary.image}
-                name={summary.avatarName}
-                className="size-6"
-              />
-            </span>
-            <span>Account</span>
-          </button>
-        </div>
-      </nav>
+        ))}
+        <button
+          type="button"
+          data-active={accountOpen}
+          className={tabClassName}
+          aria-haspopup="dialog"
+          onClick={() => {
+            setAccountOpen(true);
+          }}
+        >
+          <AccountAvatar
+            image={summary.image}
+            name={summary.avatarName}
+            className="size-6"
+          />
+          <span>Account</span>
+        </button>
+      </FloatingTabBar>
       <MobileAccountSheet open={accountOpen} onOpenChange={setAccountOpen} />
     </>
   );

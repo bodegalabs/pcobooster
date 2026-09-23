@@ -77,7 +77,7 @@ interface LineupTabProps {
 
 const lineupSkeletonWidths = ["78%", "66%", "84%", "58%"];
 const lineupColumnWidthClass = "w-[min(22rem,78vw)]";
-const lineupStackClassName = "flex flex-col gap-3 pb-4";
+const lineupStackClassName = "pb-tab-bar flex flex-col gap-3";
 const teamColumnClass =
   "bg-background text-foreground shadow-xs ring-foreground/5 dark:ring-foreground/10 flex shrink-0 flex-col rounded-xl ring-1";
 const lineupColumnsRowClassName =

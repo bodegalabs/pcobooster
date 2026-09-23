@@ -47,6 +47,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { buttonVariants } from "@/components/ui/button-variants";
 import {
   Dialog,
   DialogContent,
@@ -744,7 +745,11 @@ const MobileChromeHeader = ({
       {detail ? (
         <Link
           href={detail.parentHref}
-          className="active:bg-muted -ml-0.5 inline-flex h-10 items-center gap-0.5 rounded-full pr-3 pl-1 text-base font-medium"
+          className={buttonVariants({
+            variant: "ghost",
+            size: "lg",
+            className: "-ml-2 gap-0.5 pl-1.5 text-base",
+          })}
         >
           <ChevronLeft className="size-5" aria-hidden />
           {detail.parentLabel}

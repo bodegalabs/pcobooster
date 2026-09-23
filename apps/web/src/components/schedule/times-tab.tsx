@@ -62,7 +62,7 @@ const TimesTabCards = ({
   onPersist,
   onDelete,
 }: TimesTabCardsProps) => (
-  <div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5 pb-6">
+  <div className="pb-tab-bar mx-auto flex w-full max-w-3xl flex-col gap-2.5 md:pb-6">
     {planTimes.map((planTime) => {
       const edit =
         edits[planTime.id] ??
@@ -166,7 +166,7 @@ const TimesTabContent = ({
   if (isLoading) {
     return (
       <>
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5 pb-6">
+        <div className="pb-tab-bar mx-auto flex w-full max-w-3xl flex-col gap-2.5 md:pb-6">
           {Array.from({ length: 3 }).map((_, index) => (
             <Skeleton key={`times-loading-${index}`} className="h-56 w-full" />
           ))}

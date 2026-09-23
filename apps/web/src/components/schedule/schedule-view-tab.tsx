@@ -446,7 +446,7 @@ const ScheduleViewContent = ({
             />
 
             <ScrollArea className="-mx-4 min-h-0 w-auto flex-1 lg:mx-0 lg:h-full lg:w-full">
-              <div className="px-4 lg:px-0">
+              <div className="pb-tab-bar px-4 md:pb-0 lg:px-0">
                 <SchedulePeopleList
                   people={people}
                   peopleLoading={peopleLoading}
@@ -474,9 +474,21 @@ const ScheduleViewContent = ({
           <>
             <section
               aria-label="Positions"
-              className="border-sidebar-border/40 bg-sidebar/60 text-sidebar-foreground flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border lg:hidden"
+              className="border-sidebar-border/40 bg-sidebar/60 text-sidebar-foreground flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border max-md:-mx-4 max-md:rounded-b-none max-md:border-x-0 max-md:border-b-0 lg:hidden"
             >
-              {positionPickerList}
+              <PositionPickerList
+                teamPositionsLoading={teamPositionsLoading}
+                teamPositionsPlaceholder={teamPositionsPlaceholder}
+                teamPositionGroups={teamPositionGroups}
+                collapsedTeams={collapsedTeams}
+                selectedTeam={selectedTeam}
+                selectedPosition={selectedPosition}
+                onToggleTeam={onToggleTeam}
+                onSelect={handleSelectSlot}
+                onPreviewSlot={onPreviewSlot}
+                onAddPosition={onAddPosition}
+                clearTabBar
+              />
             </section>
             <UnselectedPositionEmpty />
           </>

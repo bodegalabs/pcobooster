@@ -77,7 +77,7 @@ const AdminPage = async () => {
 
   return (
     <main className="bg-background min-h-0 flex-1 overflow-auto">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 pt-1 pb-6 md:gap-6 md:px-6 md:py-6">
+      <div className="pb-tab-bar mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 pt-1 md:gap-6 md:px-6 md:py-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-normal max-md:sr-only">

@@ -10,6 +10,7 @@ import { LineupTab } from "@/components/schedule/lineup-tab";
 import { PlanTab } from "@/components/schedule/plan-tab";
 import { ScheduleViewTab } from "@/components/schedule/schedule-view-tab";
 import { TimesTab } from "@/components/schedule/times-tab";
+import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { HoverLabel } from "@/components/ui/hover-card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -130,25 +131,30 @@ const PlanningCenterLink = ({ href }: { href: string }) => (
   </HoverLabel>
 );
 
-const mobileBackClassName =
-  "active:bg-muted -ml-2 inline-flex size-10 shrink-0 items-center justify-center rounded-full";
+const servicesBackClassName = buttonVariants({
+  variant: "ghost",
+  size: "icon-lg",
+  className: "-ml-2",
+});
 
 /** Phones go up one level: from a position to the position list, then to Services. */
 const MobilePlanBack = ({ onBack }: { onBack: (() => void) | null }) =>
   onBack ? (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon-lg"
       aria-label="Back to positions"
-      className={mobileBackClassName}
+      className="-ml-2"
       onClick={onBack}
     >
       <ChevronLeft className="size-6" aria-hidden />
-    </button>
+    </Button>
   ) : (
     <Link
       href="/services"
       aria-label="Back to services"
-      className={mobileBackClassName}
+      className={servicesBackClassName}
     >
       <ChevronLeft className="size-6" aria-hidden />
     </Link>
