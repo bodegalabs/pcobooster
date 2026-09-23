@@ -78,7 +78,7 @@ Open `http://localhost:3001`. Turborepo starts the Hono API on port 3000, the pr
 bun run dev:present
 ```
 
-This enables `PRESENTATION_MODE=1` for the local dev server. The app shows a "Presentation mode" badge. Your signed-in account and organization stay visible. Planning Center people get consistent fictional names, fictional initials, and no photos across candidates, filled positions, search, and People pages. Blockout reasons/descriptions and selected-plan decline notes are masked on the server. Names include a short stable suffix to distinguish people with the same alias.
+This enables `PRESENTATION_MODE=1` for the local dev server. The app shows a "Presentation mode" badge. Your signed-in account and organization stay visible. Planning Center people get consistent fictional names, fictional initials, and no photos across candidates, filled positions, search, and People pages. Blockout reasons/descriptions and selected-plan decline notes are masked on the server. Aliases come from about 9,500 name combinations, so two people rarely share one.
 
 Search matches the fictional names. Its first request loads the People directory; subsequent requests reuse the account-scoped directory cache for five minutes. Browser people caches and React Query caches are isolated from normal mode. `PRESENTATION_SEED` optionally changes the aliases and browser cache namespace.
 
@@ -88,7 +88,7 @@ This masks person fields for app presentations, not the underlying dataset: IDs,
 
 ### Share a read-only demo
 
-`https://pcobooster.com/demo/<key>` opens the app for someone without a Planning Center login. It reads a separate demo organization and cannot write. See [the demo link guide](docs/demo.md) for setup and revocation.
+`https://pcobooster.com/demo/<key>` opens the app for someone without a Planning Center login. It reads your Planning Center organization with people's personal details spoofed, and cannot write. See [the demo link guide](docs/demo.md) for setup and revocation.
 
 ## API Routes
 

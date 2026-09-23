@@ -41,6 +41,7 @@ const dependenciesFor = (
     createPlanningCenterServices(
       authentication.kind === "account" ? authentication.accessToken : ""
     ),
+  presentationMode: () => false,
 });
 
 const resolveFor = async (accountId: string) => {
@@ -125,6 +126,7 @@ describe("PlanningCenterAccess", () => {
       planningCenter: { applicationId: "demo-app", secret: "demo-secret" },
     });
     expect(access.cacheScope).toMatch(/^basic:/u);
+    expect(access.presentation).toBeTruthy();
     await expect(
       access.services.people.deletePlanPerson("plan-person-1")
     ).rejects.toMatchObject({ name: "PlanningCenterReadOnlyError" });

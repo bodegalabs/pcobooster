@@ -91,7 +91,11 @@ const setup = () => {
     .fn<(event: ActivityEventInput) => Promise<void>>()
     .mockResolvedValue();
   const router = createScheduleRouter({
-    access: { authorize, createServices: () => services },
+    access: {
+      authorize,
+      createServices: () => services,
+      presentationMode: () => false,
+    },
     recordActivity,
   });
   const context = {
@@ -124,11 +128,11 @@ describe("scheduling oRPC transport", () => {
       authentication,
       services,
       cacheScope: services.core.getCacheScope(),
+      presentation: true,
     };
     const dependencies: ScheduleApplicationDependencies = {
       invalidateHistory:
         vi.fn<ScheduleApplicationDependencies["invalidateHistory"]>(),
-      presentationMode: () => true,
     };
     const withRequestContext = <Value, Failure>(
       program: Effect.Effect<Value, Failure, RequestContext>

@@ -23,7 +23,7 @@ apps/web
   -> Planning Center or database adapter
 ```
 
-One process-scoped `ApplicationRuntime` owns shared Effect layers. Every execution provides a new `RequestContext`, including a request ID, cloned headers, method, URL, user-agent metadata, and abort signal. Credentials and other identity-sensitive values belong in request-scoped services; they must not be captured by a process-scoped layer or implicit async context. Planning Center clients bind one explicit credential to both their Authorization header and cache scope for their entire lifetime. A [demo session](demo.md) resolves to the demo organization's credential through a read-only client that rejects writes before they leave the process.
+One process-scoped `ApplicationRuntime` owns shared Effect layers. Every execution provides a new `RequestContext`, including a request ID, cloned headers, method, URL, user-agent metadata, and abort signal. Credentials and other identity-sensitive values belong in request-scoped services; they must not be captured by a process-scoped layer or implicit async context. Planning Center clients bind one explicit credential to both their Authorization header and cache scope for their entire lifetime. A [demo session](demo.md) resolves to the demo credential through a read-only client that rejects writes before they leave the process, and always presents people with fictional details.
 
 Application programs fail with tagged application faults rather than HTTP statuses. The oRPC adapter maps each expected fault to a declared contract error once. Defects and persistence failures are returned as opaque internal errors, with their original cause retained only for server-side logging.
 

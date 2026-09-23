@@ -19,6 +19,7 @@ import {
   createBasicPlanningCenterServices,
   createReadOnlyPlanningCenterServices,
 } from "@pcobooster/api/planning-center/services/factory";
+import { isPresentationMode } from "@pcobooster/presentation-mode";
 import { Context, Effect, Option } from "effect";
 
 /** A signed-in user acting through their linked Planning Center account. */
@@ -50,6 +51,8 @@ export interface PlanningCenterRequestAccess {
   readonly authentication: RequestAuthentication;
   readonly cacheScope: string;
   readonly services: RequestPlanningCenterServices;
+  /** Replace people's personal details with stable fictional ones. */
+  readonly presentation: boolean;
 }
 
 export class PlanningCenterAccess extends Context.Tag(
@@ -61,6 +64,8 @@ export interface PlanningCenterAccessDependencies {
   readonly createServices: (
     authentication: RequestAuthentication
   ) => RequestPlanningCenterServices;
+  /** Local presentation mode; demo sessions are always presented. */
+  readonly presentationMode: () => boolean;
 }
 
 const defaultDependencies: PlanningCenterAccessDependencies = {
@@ -89,6 +94,7 @@ const defaultDependencies: PlanningCenterAccessDependencies = {
       ? createBasicPlanningCenterServices()
       : createPlanningCenterServices(authentication.accessToken);
   },
+  presentationMode: isPresentationMode,
 };
 
 export const toApplicationFault = (error: Error): ApplicationFault => {
@@ -165,6 +171,8 @@ export const resolvePlanningCenterAccess = (
       authentication,
       cacheScope: services.core.getCacheScope(),
       services,
+      presentation:
+        authentication.kind === "demo" || dependencies.presentationMode(),
     };
   });
 

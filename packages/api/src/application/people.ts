@@ -42,10 +42,7 @@ import type {
   Blockout,
   PersonWithAvailability,
 } from "@pcobooster/planning-center-models/types";
-import {
-  getPresentationSeed,
-  isPresentationMode,
-} from "@pcobooster/presentation-mode";
+import { getPresentationSeed } from "@pcobooster/presentation-mode";
 import { Effect } from "effect";
 
 const resolveRequestTimeZone = async (
@@ -63,7 +60,7 @@ const requestPresentationDependencies = (
 ) => ({
   catalog: access.services.catalog,
   people: access.services.people,
-  isPresentationMode,
+  isPresentationMode: () => access.presentation,
   getPresentationSeed,
 });
 
@@ -181,7 +178,7 @@ export const getPeopleBlockouts = (input: {
           signal
         )
     );
-    return presentBlockouts(blockouts, isPresentationMode());
+    return presentBlockouts(blockouts, access.presentation);
   });
 
 export const getPeopleDashboard = (input: {

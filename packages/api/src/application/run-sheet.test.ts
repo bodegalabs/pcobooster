@@ -31,6 +31,7 @@ const setup = () => {
     },
     cacheScope: services.core.getCacheScope(),
     services,
+    presentation: false,
   };
   return { access, services };
 };
