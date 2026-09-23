@@ -220,6 +220,13 @@ export const auth = betterAuth({
           providerId: "planning-center",
           discoveryUrl:
             "https://api.planningcenteronline.com/.well-known/openid-configuration",
+          // Discovery runs once per server instance. Pinned endpoints keep the
+          // provider registered when that fetch fails, instead of every
+          // sign-in on the instance returning PROVIDER_NOT_FOUND.
+          authorizationUrl:
+            "https://api.planningcenteronline.com/oauth/authorize",
+          tokenUrl: "https://api.planningcenteronline.com/oauth/token",
+          userInfoUrl: "https://api.planningcenteronline.com/oauth/userinfo",
           clientId: planningCenterClientId,
           clientSecret: planningCenterClientSecret,
           scopes: ["openid", "services", "people"],
