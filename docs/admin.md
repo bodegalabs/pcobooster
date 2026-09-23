@@ -9,6 +9,10 @@
 - The API authorizes every `admin.*` procedure against `PCOBOOSTER_ADMIN_EMAILS`. A signed-out request redirects to the product sign-in page, and a signed-in account outside the allowlist gets a 404.
 - Every response carries `X-Robots-Tag: noindex, nofollow`.
 
+## PostHog
+
+Each user page links to the matching PostHog person. The product identifies PostHog persons by the same Better Auth user ID, and the API sets email, name, and church on sign-in, so the admin page and PostHog describe the same people. See [analytics](analytics.md#server-activity-and-person-profiles).
+
 ## Local development
 
 `bun run dev` starts the admin app on `http://127.0.0.1:3003` next to the API and product app. Sign in on `http://127.0.0.1:3001`; browsers share `127.0.0.1` cookies across ports, and `DEV_AUTH_BYPASS` also works. `bun run dev:admin` starts only the admin app, which still needs the product app and API running.

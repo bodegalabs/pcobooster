@@ -1,5 +1,11 @@
 import type { AdminLinkedAccount } from "@pcobooster/contracts/admin";
-import { CalendarClock, KeyRound, LinkIcon, ShieldCheck } from "lucide-react";
+import {
+  CalendarClock,
+  ExternalLink,
+  KeyRound,
+  LinkIcon,
+  ShieldCheck,
+} from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -14,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDateTime } from "@/lib/format-date";
+import { postHogPersonUrl } from "@/lib/posthog";
 import { getAdminUser } from "@/server/api";
 
 export const dynamic = "force-dynamic";
@@ -81,9 +88,25 @@ const AdminUserPage = async ({
             </h1>
             <p className="text-muted-foreground mt-1 text-sm">{user.email}</p>
           </div>
-          <Badge variant="outline">
-            {user.linkedAccounts} linked account(s)
-          </Badge>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="outline">
+              {user.linkedAccounts} linked account(s)
+            </Badge>
+            <Badge
+              variant="outline"
+              render={
+                <a
+                  href={postHogPersonUrl(user.userId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Open ${user.name} in PostHog`}
+                />
+              }
+            >
+              PostHog person
+              <ExternalLink data-icon="inline-end" aria-hidden="true" />
+            </Badge>
+          </div>
         </div>
 
         <section className="grid grid-cols-2 gap-2 md:gap-3 lg:grid-cols-4">
