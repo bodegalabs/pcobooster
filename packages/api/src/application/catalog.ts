@@ -1,3 +1,4 @@
+import type { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import {
   PlanningCenterAccess,
@@ -31,7 +32,7 @@ const resolveRequestTimeZone = async (
 export const getCatalogServiceTypes: Effect.Effect<
   ServiceType[],
   ApplicationFault,
-  PlanningCenterAccess
+  PlanningCenterAccess | RequestContext
 > = Effect.gen(function* listServiceTypes() {
   const access = yield* PlanningCenterAccess;
   return yield* tryPlanningCenter(
@@ -41,7 +42,11 @@ export const getCatalogServiceTypes: Effect.Effect<
 
 export const getCatalogPlans = (input: {
   readonly serviceTypeId: string;
-}): Effect.Effect<Plan[], ApplicationFault, PlanningCenterAccess> =>
+}): Effect.Effect<
+  Plan[],
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
   Effect.gen(function* listPlans() {
     const access = yield* PlanningCenterAccess;
     return yield* tryPlanningCenter(
@@ -61,7 +66,7 @@ export const getCatalogPlans = (input: {
 export const getCatalogOrganization: Effect.Effect<
   { readonly timeZone: string },
   ApplicationFault,
-  PlanningCenterAccess
+  PlanningCenterAccess | RequestContext
 > = Effect.gen(function* getOrganization() {
   const access = yield* PlanningCenterAccess;
   return {
@@ -78,7 +83,7 @@ export const getCatalogTeamPositions = (input: {
 }): Effect.Effect<
   TeamPositionGroup[],
   ApplicationFault,
-  PlanningCenterAccess
+  PlanningCenterAccess | RequestContext
 > =>
   Effect.gen(function* getTeamPositions() {
     const access = yield* PlanningCenterAccess;

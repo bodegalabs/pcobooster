@@ -6,7 +6,6 @@ import {
 } from "@pcobooster/api/planning-center/core-client";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
 
 const jsonResponse = (body: JsonValue, init?: ResponseInit): Response =>
   Response.json(body, init);
@@ -170,13 +169,39 @@ describe(PlanningCenterCoreClient, () => {
     ).rejects.toMatchObject({ code: "INVALID_RESPONSE" });
   });
 
+  it.each([200, 503])(
+    "classifies a failed %i response body stream as a provider network failure",
+    async (status) => {
+      const failedBody = (): Response =>
+        new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.error(new TypeError("body stream failed"));
+            },
+          }),
+          { status }
+        );
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(failedBody());
+
+      await expect(
+        createBasicPlanningCenterClient().fetch("/services/v2/people/1")
+      ).rejects.toMatchObject({
+        name: "PlanningCenterNetworkError",
+        cause: { message: "body stream failed" },
+      });
+    }
+  );
+
   it("rejects malformed resource identifiers before they enter service code", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       jsonResponse({ data: { id: 1, type: "Person" } })
     );
     await expect(
       createBasicPlanningCenterClient().fetch("/services/v2/people/1")
-    ).rejects.toBeInstanceOf(z.ZodError);
+    ).rejects.toMatchObject({
+      name: "PlanningCenterApiError",
+      code: "INVALID_RESPONSE",
+    });
   });
 
   it("normalizes a singleton collection and preserves null relationships", async () => {
@@ -311,12 +336,58 @@ describe(PlanningCenterCoreClient, () => {
     expect(fetchMock).toHaveBeenCalledOnce();
   });
 
+  it("labels fetch failures and malformed provider responses", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+    fetchMock.mockRejectedValueOnce(new TypeError("network unavailable"));
+    await expect(
+      createBasicPlanningCenterClient().fetch("/services/v2/people/1")
+    ).rejects.toMatchObject({ name: "PlanningCenterNetworkError" });
+
+    fetchMock.mockResolvedValueOnce(
+      new Response("not json", {
+        headers: { "content-type": "application/json" },
+      })
+    );
+    await expect(
+      createBasicPlanningCenterClient().fetch("/services/v2/people/2")
+    ).rejects.toMatchObject({
+      name: "PlanningCenterApiError",
+      code: "INVALID_RESPONSE",
+    });
+  });
+
   it("honors caller cancellation without retrying", async () => {
     const controller = new AbortController();
     controller.abort();
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockRejectedValue(new DOMException("Canceled", "AbortError"));
+    await expect(
+      createBasicPlanningCenterClient().fetch("/services/v2/people/1", {
+        signal: controller.signal,
+      })
+    ).rejects.toMatchObject({ name: "AbortError" });
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it("stops a near-rate-limit pause when the caller disconnects", async () => {
+    const controller = new AbortController();
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementationOnce(async () => {
+        controller.abort();
+        await Promise.resolve();
+        return jsonResponse(
+          { data: person },
+          {
+            headers: {
+              "x-pco-api-request-rate-limit": "100",
+              "x-pco-api-request-rate-count": "90",
+            },
+          }
+        );
+      });
+
     await expect(
       createBasicPlanningCenterClient().fetch("/services/v2/people/1", {
         signal: controller.signal,

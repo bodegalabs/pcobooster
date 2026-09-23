@@ -13,6 +13,7 @@ import {
   applicationRuntime,
   rpc,
 } from "@pcobooster/api/transport/orpc/implementation";
+import { executePreparedPlanningCenterWrite } from "@pcobooster/api/transport/orpc/planning-center-write";
 
 const list = rpc.planItems.list.handler(
   async ({ input, context, signal }) =>
@@ -25,39 +26,25 @@ const list = rpc.planItems.list.handler(
 );
 
 const create = rpc.planItems.create.handler(
-  async ({ input, context, signal }) => {
-    const prepared = await executeApplicationEffect(
+  async ({ input, context, signal }) =>
+    await executePreparedPlanningCenterWrite(
       applicationRuntime,
-      withPlanningCenterAccess(prepareRunSheetItemCreate(input)),
-      context,
-      signal
-    );
-    return await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(commitRunSheetItemCreate(prepared)),
       context,
       signal,
-      { interruptOnAbort: false }
-    );
-  }
+      prepareRunSheetItemCreate(input),
+      commitRunSheetItemCreate
+    )
 );
 
 const update = rpc.planItems.update.handler(
-  async ({ input, context, signal }) => {
-    const prepared = await executeApplicationEffect(
+  async ({ input, context, signal }) =>
+    await executePreparedPlanningCenterWrite(
       applicationRuntime,
-      withPlanningCenterAccess(prepareRunSheetItemUpdate(input)),
-      context,
-      signal
-    );
-    return await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(commitRunSheetItemUpdate(prepared)),
       context,
       signal,
-      { interruptOnAbort: false }
-    );
-  }
+      prepareRunSheetItemUpdate(input),
+      commitRunSheetItemUpdate
+    )
 );
 
 const deleteItem = rpc.planItems.delete.handler(

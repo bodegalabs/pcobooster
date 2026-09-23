@@ -96,7 +96,7 @@ export const getPeopleList = (input: {
 }): Effect.Effect<
   PersonWithAvailability[],
   ApplicationFault,
-  PlanningCenterAccess
+  PlanningCenterAccess | RequestContext
 > =>
   Effect.gen(function* listPeople() {
     const access = yield* PlanningCenterAccess;
@@ -122,7 +122,7 @@ export const getPeopleSearch = (input: {
 }): Effect.Effect<
   PeopleSearchResult[],
   ApplicationFault,
-  PlanningCenterAccess
+  PlanningCenterAccess | RequestContext
 > =>
   Effect.gen(function* searchDirectory() {
     const access = yield* PlanningCenterAccess;
@@ -150,7 +150,7 @@ export const warmPeople = (input: {
 }): Effect.Effect<
   { readonly warmed: true },
   ApplicationFault,
-  PlanningCenterAccess
+  PlanningCenterAccess | RequestContext
 > =>
   Effect.gen(function* warmPeopleHistory() {
     const access = yield* PlanningCenterAccess;
@@ -165,7 +165,11 @@ export const warmPeople = (input: {
 
 export const getPeopleBlockouts = (input: {
   readonly personId: string;
-}): Effect.Effect<Blockout[], ApplicationFault, PlanningCenterAccess> =>
+}): Effect.Effect<
+  Blockout[],
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
   Effect.gen(function* listPeopleBlockouts() {
     const access = yield* PlanningCenterAccess;
     const blockouts = yield* tryPlanningCenter(
@@ -257,7 +261,7 @@ export const getPeopleScheduleHistory = (input: {
 }): Effect.Effect<
   ScheduleHistoryResult,
   ApplicationFault,
-  PlanningCenterAccess
+  PlanningCenterAccess | RequestContext
 > =>
   Effect.gen(function* readPeopleScheduleHistory() {
     const access = yield* PlanningCenterAccess;
