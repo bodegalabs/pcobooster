@@ -33,6 +33,9 @@ html {
   scroll-padding-top: calc(var(--header-height) + 24px);
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  color-scheme: light;
+  background: var(--paper);
 }
 body {
   margin: 0;
@@ -96,6 +99,13 @@ h2 {
 em {
   font-style: normal;
   color: var(--brand);
+}
+
+@media (max-width: 760px) {
+  /* The header scrolls away on phones, so anchors only need a little air. */
+  html {
+    scroll-padding-top: 16px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

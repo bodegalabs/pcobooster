@@ -164,10 +164,24 @@
   min-width: 0;
   padding: 0;
   border: 0;
+  border-radius: 0;
   outline: 0;
   background: none;
   font: inherit;
   color: var(--foreground);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.search input::-webkit-search-decoration,
+.search input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+/* iOS Safari zooms the page when a focused field is under 16px. */
+@media (pointer: coarse) {
+  .search input {
+    font-size: 16px;
+  }
 }
 .search input::placeholder {
   color: var(--muted-foreground);
