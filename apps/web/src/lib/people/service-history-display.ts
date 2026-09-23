@@ -80,13 +80,13 @@ export const getHistoryStatusBadgeClass = (
   const raw = (status ?? "").trim();
   const normalized = raw.toLowerCase();
   if (raw === "C" || normalized === "confirmed") {
-    return "border-emerald-400/70 bg-emerald-600/45 text-emerald-50 dark:bg-emerald-600/50";
+    return "border-status-confirmed-bright/55 bg-status-confirmed/25 text-status-confirmed dark:bg-status-confirmed-deep/60 dark:text-status-confirmed";
   }
   if (raw === "U" || normalized === "unconfirmed") {
-    return "border-amber-400/70 bg-amber-600/45 text-amber-50 dark:bg-amber-600/50";
+    return "border-status-scheduled-bright/55 bg-status-scheduled/25 text-status-scheduled dark:bg-status-scheduled-deep/60 dark:text-status-scheduled";
   }
   if (raw === "D" || normalized === "declined") {
-    return "border-red-400/70 bg-red-600/45 text-red-50 dark:bg-red-600/50";
+    return "border-status-declined-bright/55 bg-status-declined/25 text-status-declined dark:bg-status-declined-deep/60 dark:text-status-declined";
   }
   return "border-border bg-muted/80 text-muted-foreground";
 };

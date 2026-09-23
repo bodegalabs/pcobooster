@@ -57,12 +57,12 @@ const AvatarStatusRing = ({
 
 const recTone = (score: number): string => {
   if (score >= 80) {
-    return "text-emerald-600 dark:text-emerald-400";
+    return "text-status-confirmed dark:text-status-confirmed";
   }
   if (score >= 50) {
-    return "text-amber-700 dark:text-status-scheduled";
+    return "text-status-scheduled dark:text-status-scheduled";
   }
-  return "text-orange-700 dark:text-orange-400";
+  return "text-status-declined dark:text-status-declined";
 };
 
 const recBar = (score: number): string => {
@@ -72,7 +72,7 @@ const recBar = (score: number): string => {
   if (score >= 50) {
     return "bg-status-scheduled-bright";
   }
-  return "bg-orange-500";
+  return "bg-status-declined-bright";
 };
 
 export const ScheduleCandidateAvatar = ({
