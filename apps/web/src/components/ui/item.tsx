@@ -36,7 +36,7 @@ const ItemSeparator = ({
 );
 
 const itemVariants = cva(
-  "group/item focus-visible:border-ring focus-visible:ring-ring/50 [a]:hover:bg-muted flex w-full flex-wrap items-center rounded-2xl border text-sm outline-none focus-visible:ring-[3px]",
+  "group/item focus-visible:border-ring focus-visible:ring-ring/50 [a]:hover:bg-muted [button]:hover:bg-muted/60 [button]:active:bg-muted flex w-full flex-wrap items-center rounded-2xl border text-sm outline-none focus-visible:ring-[3px] [button]:flex-nowrap [button]:text-left [button]:disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -49,6 +49,8 @@ const itemVariants = cva(
         default: "gap-3.5 px-4 py-3.5",
         sm: "gap-3.5 px-3.5 py-3",
         xs: "gap-2.5 px-3 py-2.5 in-data-[slot=dropdown-menu-content]:p-0",
+        /** Dense rows inside cards, such as lineup positions and people. */
+        row: "min-h-10 gap-2 rounded-lg px-1.5 py-1",
       },
     },
     defaultVariants: {
