@@ -10,7 +10,8 @@
     "@pcobooster/marketing#build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": [".next/**", "!.next/cache/**", "out/**"]
+      "outputs": [".next/**", "!.next/cache/**", "out/**"],
+      "env": ["NEXT_PUBLIC_POSTHOG_KEY"]
     },
     "@pcobooster/admin#build": {
       "dependsOn": ["^build"],
@@ -33,7 +34,8 @@
         "PEOPLE_PAGE_ENABLED",
         "PRESENTATION_MODE",
         "PRESENTATION_SEED",
-        "VERCEL"
+        "VERCEL",
+        "NEXT_PUBLIC_POSTHOG_KEY"
       ],
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/scripts/stage-marketing.ts"],
       "outputs": [".next/**", "!.next/cache/**", "public/marketing/**"]
@@ -92,7 +94,8 @@
         "VERCEL_ENV",
         "VERCEL_PROJECT_PRODUCTION_URL",
         "VERCEL_URL",
-        "PCOBOOSTER_ADMIN_EMAILS"
+        "PCOBOOSTER_ADMIN_EMAILS",
+        "NEXT_PUBLIC_POSTHOG_KEY"
       ],
       "persistent": true
     },

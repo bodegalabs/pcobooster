@@ -21,6 +21,7 @@ const marketingRewrites =
       ];
 
 const nextConfig: NextConfig = {
+  transpilePackages: ["@pcobooster/analytics"],
   turbopack: { root: workspaceRoot },
   rewrites: async () =>
     await Promise.resolve([

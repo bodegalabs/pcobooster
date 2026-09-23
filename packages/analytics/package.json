@@ -1,0 +1,24 @@
+{
+  "name": "@pcobooster/analytics",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./client": "./src/client.ts",
+    "./privacy": "./src/privacy.ts"
+  },
+  "scripts": {
+    "test": "vitest run --root ../.. packages/analytics/src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "posthog-js": "^1.434.11",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@pcobooster/config": "workspace:*",
+    "@types/node": "^24.13.5",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.1"
+  }
+}
