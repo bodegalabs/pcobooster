@@ -8,7 +8,8 @@ type AppClient = ContractRouterClient<typeof appContract>;
 const rpcLink = new RPCLink({
   fetch: async (request) =>
     await globalThis.fetch(new Request(request, { credentials: "include" })),
-  url: "/api/rpc",
+  // oRPC builds each request with `new URL(url)`, which requires an origin.
+  url: () => new URL("/api/rpc", window.location.origin).href,
 });
 
 export const orpc = createORPCClient<AppClient>(rpcLink);
