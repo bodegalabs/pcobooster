@@ -11,7 +11,7 @@ import {
   buildCalendarCells,
   commitmentMarkerClass,
   engagementLabel,
-  heatLevelClass,
+  heatLevelTone,
   pickCalendarMarker,
 } from "@/components/people/calendar";
 import type { CalendarCell } from "@/components/people/calendar";
@@ -19,8 +19,10 @@ import {
   CommitmentEntryText,
   LegendDot,
   PersonAvatar,
+  PersonRowButton,
 } from "@/components/people/shared-components";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -33,6 +35,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { MonthGridDay } from "@/components/ui/month-grid-day";
 import { cn } from "@/lib/utils";
 
 interface Month {
@@ -82,22 +85,11 @@ const SelectedDayPanel = ({
           </p>
         ) : (
           scheduledPeople.map((person) => (
-            <button
+            <PersonRowButton
               key={`day-${person.id}`}
-              type="button"
-              className="hover:bg-muted/50 flex items-center gap-3 rounded-md px-2 py-1.5 text-left"
-              onFocus={() => {
-                onPreviewPerson(person);
-              }}
-              onPointerEnter={() => {
-                onPreviewPerson(person);
-              }}
-              onTouchStart={() => {
-                onPreviewPerson(person);
-              }}
-              onClick={() => {
-                onSelectPerson(person);
-              }}
+              person={person}
+              onPreviewPerson={onPreviewPerson}
+              onOpenPerson={onSelectPerson}
             >
               <PersonAvatar person={person} />
               <span className="min-w-0 flex-1">
@@ -108,7 +100,7 @@ const SelectedDayPanel = ({
                   {person.roles}
                 </span>
               </span>
-            </button>
+            </PersonRowButton>
           ))
         )}
       </CardContent>
@@ -222,23 +214,16 @@ const HeatmapCell = ({
   const confirmedServiceCount = monthDay?.confirmedServiceCount ?? 0;
   const potentialServiceCount = monthDay?.potentialServiceCount ?? 0;
   const rehearsalCount = monthDay?.rehearsalCount ?? 0;
-  const hasRehearsalOnly = serviceCount === 0 && rehearsalCount > 0;
-  const heatClass = heatLevelClass(serviceCount);
-  const selectedClass = day === selectedDay ? "ring-ring/40 ring-2" : "";
 
   return (
     <HoverCard>
       <HoverCardTrigger
         render={
-          <button
-            type="button"
+          <MonthGridDay
+            size="lg"
+            tone={heatLevelTone(serviceCount, rehearsalCount)}
+            selected={day === selectedDay}
             aria-label={`${month.label.split(" ")[0]} ${day}`}
-            className={cn(
-              "border-border/40 hover:bg-muted/60 flex aspect-square min-h-10 flex-col items-start justify-between rounded-md border p-1 text-left sm:min-h-16 sm:p-2",
-              heatClass,
-              hasRehearsalOnly ? "bg-muted" : "",
-              selectedClass
-            )}
             onClick={() => {
               onSelectDay(day);
             }}
@@ -353,9 +338,9 @@ const MatrixDay = ({
         <HoverCard>
           <HoverCardTrigger
             render={
-              <button
-                type="button"
-                className="hover:bg-muted flex size-6 items-center justify-center rounded-md"
+              <Button
+                variant="ghost"
+                size="icon-xs"
                 aria-label={`${person.name} ${month.label.split(" ")[0]} ${day}`}
               />
             }
@@ -403,31 +388,22 @@ const MatrixPersonRow = ({
   onSelectPerson: (person: PeopleDashboardPerson) => void;
   onPreviewPerson: (person: PeopleDashboardPerson) => void;
 }) => (
-  <div className="hover:bg-muted/50 grid w-full grid-cols-[1.2fr_repeat(5,minmax(4.5rem,1fr))] items-center text-left">
-    <button
-      type="button"
-      className="flex min-w-0 items-center gap-3 px-4 py-2.5 text-left"
-      onFocus={() => {
-        onPreviewPerson(person);
-      }}
-      onPointerEnter={() => {
-        onPreviewPerson(person);
-      }}
-      onTouchStart={() => {
-        onPreviewPerson(person);
-      }}
-      onClick={() => {
-        onSelectPerson(person);
-      }}
-    >
-      <PersonAvatar person={person} />
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium">{person.name}</p>
-        <p className="text-muted-foreground truncate text-xs">
-          {person.teams.join(", ")}
-        </p>
-      </div>
-    </button>
+  <div className="group/matrix-row hover:bg-muted/50 grid w-full grid-cols-[minmax(10.5rem,1.2fr)_repeat(5,minmax(4rem,1fr))] items-center text-left">
+    <div className="bg-background group-hover/matrix-row:bg-muted/50 border-border/40 sticky left-0 z-[1] min-w-0 max-md:border-r md:static md:bg-transparent">
+      <PersonRowButton
+        person={person}
+        onPreviewPerson={onPreviewPerson}
+        onOpenPerson={onSelectPerson}
+      >
+        <PersonAvatar person={person} />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium">{person.name}</p>
+          <p className="text-muted-foreground truncate text-xs">
+            {person.teams.join(", ")}
+          </p>
+        </div>
+      </PersonRowButton>
+    </div>
     {matrixDays.map((day) => (
       <MatrixDay
         key={`${person.id}-${day}`}
@@ -453,9 +429,11 @@ const PeopleMonthMatrix = ({
   onPreviewPerson: (person: PeopleDashboardPerson) => void;
 }) => (
   <div className="border-border/40 overflow-x-auto rounded-lg border">
-    <div className="min-w-lg">
-      <div className="border-border/40 bg-background text-muted-foreground grid grid-cols-[1.2fr_repeat(5,minmax(4.5rem,1fr))] border-b text-xs font-medium">
-        <div className="px-4 py-2">Person</div>
+    <div className="min-w-[31rem]">
+      <div className="border-border/40 bg-background text-muted-foreground grid grid-cols-[minmax(10.5rem,1.2fr)_repeat(5,minmax(4rem,1fr))] border-b text-xs font-medium">
+        <div className="bg-background border-border/40 sticky left-0 z-[1] px-4 py-2 max-md:border-r md:static">
+          Person
+        </div>
         {matrixDays.map((day) => (
           <div key={day} className="px-3 py-2 text-center tabular-nums">
             {month.label.split(" ")[0]} {day}
