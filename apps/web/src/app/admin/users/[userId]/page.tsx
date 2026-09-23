@@ -74,7 +74,7 @@ const AdminUserPage = async ({
 
   return (
     <main className="bg-background min-h-0 flex-1 overflow-auto">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-6">
+      <div className="pb-tab-bar mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 pt-1 md:gap-6 md:px-6 md:py-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-normal">
@@ -87,7 +87,7 @@ const AdminUserPage = async ({
           </Badge>
         </div>
 
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="grid grid-cols-2 gap-2 md:gap-3 lg:grid-cols-4">
           <div className="border-border/70 bg-card rounded-md border px-4 py-3">
             <div className="flex items-center justify-between gap-3">
               <p className="text-muted-foreground text-sm">Active sessions</p>

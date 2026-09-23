@@ -5,7 +5,7 @@ import { CalendarDays } from "lucide-react";
 
 import {
   commitmentMarkerClass,
-  heatLevelClass,
+  heatLevelTone,
 } from "@/components/people/calendar";
 import type { CalendarCell } from "@/components/people/calendar";
 import {
@@ -20,6 +20,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { MonthGridDay } from "@/components/ui/month-grid-day";
 import { cn } from "@/lib/utils";
 
 type MonthDay = PeopleDashboardData["monthDays"][number];
@@ -93,22 +94,14 @@ const RhythmDay = ({ cell, monthDay, monthLabel }: RhythmDayProps) => {
   const potentialServiceCount = monthDay?.potentialServiceCount ?? 0;
   const rehearsalCount = monthDay?.rehearsalCount ?? 0;
   const serviceCount = monthDay?.serviceCount ?? 0;
-  const hasRehearsalOnly = serviceCount === 0 && rehearsalCount > 0;
-  const hasNoCommitments = serviceCount === 0 && rehearsalCount === 0;
 
   return (
     <HoverCard>
       <HoverCardTrigger
         render={
-          <button
-            type="button"
+          <MonthGridDay
             aria-label={`${monthLabel.split(" ")[0]} ${day}`}
-            className={cn(
-              "border-border/35 hover:bg-muted/60 flex aspect-square flex-col items-start justify-between rounded-md border p-1.5 text-left text-xs tabular-nums",
-              heatLevelClass(serviceCount),
-              hasRehearsalOnly ? "bg-muted" : "",
-              hasNoCommitments && "text-muted-foreground"
-            )}
+            tone={heatLevelTone(serviceCount, rehearsalCount)}
           />
         }
       >

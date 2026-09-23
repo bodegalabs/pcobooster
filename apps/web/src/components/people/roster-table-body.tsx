@@ -2,6 +2,7 @@
 
 import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 import { loadBadge } from "@/components/people/calendar";
 import { PersonAvatar } from "@/components/people/shared-components";
@@ -87,19 +88,18 @@ export const RosterTableBody = ({
               <div className="flex min-w-0 items-center gap-3">
                 <PersonAvatar person={person} />
                 <div className="min-w-0">
-                  <button
-                    type="button"
+                  <Link
+                    href={`/people/${person.id}`}
                     className="focus-visible:outline-ring block w-full truncate text-left text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2"
                     onFocus={() => {
                       onPreviewPerson(person);
                     }}
                     onClick={(event) => {
                       event.stopPropagation();
-                      onOpenPerson(person);
                     }}
                   >
                     {person.name}
-                  </button>
+                  </Link>
                   <p className="text-muted-foreground truncate text-xs">
                     {person.teams.join(", ")} · {person.roles}
                   </p>
@@ -117,7 +117,7 @@ export const RosterTableBody = ({
                 <span className="text-muted-foreground truncate text-sm">
                   {person.status}
                 </span>
-                <ChevronRight className="text-muted-foreground size-4 shrink-0 opacity-0 transition-opacity group-hover/row:opacity-100" />
+                <ChevronRight className="text-muted-foreground size-4 shrink-0 opacity-0 transition-opacity group-hover/row:opacity-100 pointer-coarse:opacity-100" />
               </div>
             </TableCell>
           </TableRow>

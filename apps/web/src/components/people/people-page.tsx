@@ -174,14 +174,14 @@ export const PeoplePage = () => {
 
   return (
     <main className="bg-background flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-3 overflow-y-auto px-3 py-3 sm:px-4 sm:py-4">
+      <div className="pb-tab-bar mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pt-1 md:py-4">
         <header className="flex shrink-0 flex-col gap-3">
-          <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="truncate text-xl font-semibold tracking-tight md:text-2xl">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 max-md:contents">
+            <div className="min-w-0 max-md:hidden">
+              <h1 className="truncate text-xl font-semibold tracking-tight max-md:sr-only md:text-2xl">
                 People
               </h1>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-sm max-md:hidden">
                 Serving health, rotation rhythm, and monthly people insights.
               </p>
             </div>
@@ -191,15 +191,15 @@ export const PeoplePage = () => {
                 setActiveView(value === "month" ? "month" : "health");
               }}
             >
-              <TabsList className="h-8">
+              <TabsList className="h-8 max-md:h-10 max-md:w-full">
                 <TabsTrigger value="health">Health</TabsTrigger>
                 <TabsTrigger value="month">Month</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
 
-          <div className="grid shrink-0 items-center gap-2 md:grid-cols-[minmax(0,1fr)_160px_190px]">
-            <InputGroup>
+          <div className="grid shrink-0 grid-cols-2 items-center gap-2 md:grid-cols-[minmax(0,1fr)_160px_190px]">
+            <InputGroup className="col-span-2 md:col-span-1">
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>
