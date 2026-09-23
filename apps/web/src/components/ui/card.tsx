@@ -10,7 +10,7 @@ const Card = ({
     data-slot="card"
     data-size={size}
     className={cn(
-      "group/card bg-card text-card-foreground ring-foreground/5 dark:ring-foreground/10 flex flex-col gap-(--card-spacing) overflow-hidden rounded-4xl py-(--card-spacing) text-sm shadow-md ring-1 [--card-spacing:--spacing(6)] has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(4)] *:[img:first-child]:rounded-t-4xl *:[img:last-child]:rounded-b-4xl",
+      "group/card bg-card text-card-foreground ring-foreground/5 dark:ring-foreground/10 flex flex-col gap-(--card-spacing) overflow-hidden rounded-4xl py-(--card-spacing) text-sm shadow-md ring-1 [--card-spacing:--spacing(6)] has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(4)] max-md:rounded-3xl max-md:shadow-sm max-md:[--card-spacing:--spacing(4)] *:[img:first-child]:rounded-t-4xl *:[img:last-child]:rounded-b-4xl",
       className
     )}
     {...props}

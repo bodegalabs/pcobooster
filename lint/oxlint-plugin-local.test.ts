@@ -6,6 +6,7 @@ import {
   noOverlaySectionBorderRule,
   noPopoverContentPaddingRule,
   noTransitionColorsRule,
+  preferSharedControlsRule,
 } from "./oxlint-plugin-local.mjs";
 
 RuleTester.describe = describe;
@@ -231,6 +232,59 @@ ruleTester.run(
         const rowVariants = cva("hover:bg-muted transition-colors");
       `,
         errors: [{ messageId: "transitionColors" }],
+      },
+    ],
+  }
+);
+
+ruleTester.run(
+  "prefer-shared-controls",
+  preferSharedControlsRule as Parameters<typeof ruleTester.run>[1],
+  {
+    valid: [
+      {
+        name: "shared button primitive",
+        code: `<Button variant="ghost" size="icon-sm" aria-label="Close"><X /></Button>`,
+      },
+      {
+        name: "bare native button rendered through a primitive",
+        code: `<Item size="sm" render={<button type="button" />} onClick={open}>Row</Item>`,
+      },
+      {
+        name: "bare native button rendered through a trigger",
+        code: `<PopoverTrigger render={<button type="button" aria-label="Details" />} />`,
+      },
+      {
+        name: "shared primitives may style native controls",
+        filename: "apps/web/src/components/ui/button.tsx",
+        code: `<button type="button" className="inline-flex h-9" />`,
+      },
+    ],
+    invalid: [
+      {
+        name: "hand-styled button",
+        code: `<button type="button" className="hover:bg-muted rounded-md px-2">Open</button>`,
+        errors: [{ messageId: "raw" }],
+      },
+      {
+        name: "unstyled button outside a render prop",
+        code: `<button type="button" onClick={open}>Open</button>`,
+        errors: [{ messageId: "raw" }],
+      },
+      {
+        name: "styled button passed to a render prop",
+        code: `<PopoverTrigger render={<button type="button" className="rounded-full p-1" />} />`,
+        errors: [{ messageId: "raw" }],
+      },
+      {
+        name: "native textarea",
+        code: `<textarea className={textareaClassName} value={value} />`,
+        errors: [{ messageId: "raw" }],
+      },
+      {
+        name: "native input and select",
+        code: `<><input value={value} /><select value={value} /></>`,
+        errors: [{ messageId: "raw" }, { messageId: "raw" }],
       },
     ],
   }

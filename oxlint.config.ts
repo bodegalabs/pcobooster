@@ -44,6 +44,8 @@ export default defineConfig({
     "local/no-overlay-section-border-b": "error",
     // Hover and selection colors snap instantly; no color fade utilities.
     "local/no-transition-colors": "error",
+    // Controls get their look from components/ui primitives, not call sites.
+    "local/prefer-shared-controls": "error",
   },
   settings: jsPluginSettings,
 });

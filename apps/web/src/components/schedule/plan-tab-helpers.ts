@@ -15,9 +15,6 @@ export interface DraftState {
 }
 
 export const NONE_VALUE = "__none__";
-export const textareaClassName =
-  "border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 min-h-24 w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:ring-[3px]";
-
 export interface FieldProps {
   label: string;
   className?: string;

@@ -114,7 +114,7 @@ export const PersonDetailBody = ({
       aria-busy={isPlaceholderData}
     >
       <section className="flex flex-col gap-3">
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2">
           <Metric label="Month" value={String(person.monthCount)} />
           <Metric label="30 days" value={String(person.thirtyDayCount)} />
           <Metric label="90 days" value={String(person.ninetyDayCount)} />
@@ -127,8 +127,9 @@ export const PersonDetailBody = ({
               {monthLabel} calendar
             </CardTitle>
             <CardDescription>
-              Hover a scheduled date to see service, rehearsal, position, and
-              status.
+              <span className="md:hidden">Tap</span>
+              <span className="max-md:hidden">Hover</span> a scheduled date to
+              see service, rehearsal, position, and status.
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -1,6 +1,6 @@
 import { getPresentationCacheScope } from "@pcobooster/presentation-mode";
 import { Analytics } from "@vercel/analytics/next";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 
 import { Providers } from "@/components/providers";
@@ -17,9 +17,24 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#eff2ee" },
+    { media: "(prefers-color-scheme: dark)", color: "#1e221c" },
+  ],
+};
+
 export const metadata: Metadata = {
   applicationName: "PCOBooster",
-  appleWebApp: { title: "PCOBooster" },
+  appleWebApp: {
+    title: "PCOBooster",
+    capable: true,
+    statusBarStyle: "default",
+  },
   title: "PCOBooster",
   description:
     "Church-agnostic Planning Center scheduling tools for worship admins.",

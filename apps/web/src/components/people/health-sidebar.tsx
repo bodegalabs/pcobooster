@@ -12,7 +12,10 @@ import {
   PersonLineSkeleton,
   PersonLineSkeletonList,
 } from "@/components/people/people-skeletons";
-import { PersonAvatar } from "@/components/people/shared-components";
+import {
+  PersonAvatar,
+  PersonRowButton,
+} from "@/components/people/shared-components";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -61,21 +64,11 @@ export const HealthSidebar = ({
       </CardHeader>
       <CardContent>
         {mvp ? (
-          <button
-            type="button"
-            className="border-border/40 bg-card/40 hover:bg-muted/50 flex w-full items-center gap-3 rounded-md border px-3 py-2 text-left"
-            onFocus={() => {
-              onPreviewPerson(mvp);
-            }}
-            onPointerEnter={() => {
-              onPreviewPerson(mvp);
-            }}
-            onTouchStart={() => {
-              onPreviewPerson(mvp);
-            }}
-            onClick={() => {
-              onOpenPerson(mvp);
-            }}
+          <PersonRowButton
+            person={mvp}
+            onPreviewPerson={onPreviewPerson}
+            onOpenPerson={onOpenPerson}
+            variant="outline"
           >
             <PersonAvatar person={mvp} />
             <span className="min-w-0 flex-1">
@@ -87,7 +80,7 @@ export const HealthSidebar = ({
               </span>
             </span>
             <Badge variant="secondary">{mvp.monthCount}</Badge>
-          </button>
+          </PersonRowButton>
         ) : null}
         {!mvp && isLoading ? (
           <div className="border-border/40 flex items-center gap-3 rounded-md border px-1 py-0.5">
@@ -117,22 +110,11 @@ export const HealthSidebar = ({
           </p>
         ) : (
           [...needsRest, ...underused].slice(0, 4).map((person) => (
-            <button
+            <PersonRowButton
               key={person.id}
-              type="button"
-              className="hover:bg-muted/50 flex items-center gap-2 rounded-md px-2 py-1 text-left"
-              onFocus={() => {
-                onPreviewPerson(person);
-              }}
-              onPointerEnter={() => {
-                onPreviewPerson(person);
-              }}
-              onTouchStart={() => {
-                onPreviewPerson(person);
-              }}
-              onClick={() => {
-                onOpenPerson(person);
-              }}
+              person={person}
+              onPreviewPerson={onPreviewPerson}
+              onOpenPerson={onOpenPerson}
             >
               <span className="bg-muted-foreground size-1.5 shrink-0 rounded-full" />
               <span className="min-w-0 flex-1 truncate text-sm">
@@ -141,7 +123,7 @@ export const HealthSidebar = ({
               <span className="text-muted-foreground shrink-0 text-xs">
                 {person.status}
               </span>
-            </button>
+            </PersonRowButton>
           ))
         )}
       </CardContent>

@@ -86,8 +86,28 @@ const AvatarGroupCount = ({
   />
 );
 
+/** Wraps an avatar that opens details, such as a popover trigger. */
+const AvatarButton = ({
+  className,
+  emphasis = "none",
+  ...props
+}: React.ComponentProps<"button"> & { emphasis?: "none" | "info" }) => (
+  <button
+    data-slot="avatar-button"
+    data-emphasis={emphasis}
+    type="button"
+    className={cn(
+      "focus-visible:ring-ring relative inline-flex shrink-0 cursor-pointer overflow-visible rounded-full border-0 bg-transparent p-0 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+      "data-[emphasis=info]:outline-status-info dark:data-[emphasis=info]:hover:outline-info-border data-[emphasis=info]:outline-2 data-[emphasis=info]:outline-offset-2 data-[emphasis=info]:outline-dashed",
+      className
+    )}
+    {...props}
+  />
+);
+
 export {
   Avatar,
+  AvatarButton,
   AvatarImage,
   AvatarFallback,
   AvatarGroup,

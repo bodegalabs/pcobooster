@@ -21,11 +21,12 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { ItemSeparator } from "@/components/ui/item";
+import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  ResponsivePopover,
+  ResponsivePopoverContent,
+  ResponsivePopoverTrigger,
+} from "@/components/ui/responsive-popover";
 import {
   SelectionPickerCheckbox,
   SelectionPickerCommandItem,
@@ -190,8 +191,8 @@ export const TimeAssignmentSelector = ({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
+    <ResponsivePopover open={open} onOpenChange={setOpen}>
+      <ResponsivePopoverTrigger
         render={
           <Button
             type="button"
@@ -218,8 +219,9 @@ export const TimeAssignmentSelector = ({
           className="text-muted-foreground pointer-events-none size-4 shrink-0"
           aria-hidden
         />
-      </PopoverTrigger>
-      <PopoverContent
+      </ResponsivePopoverTrigger>
+      <ResponsivePopoverContent
+        title="Assignments"
         className="w-[420px] max-w-[calc(100vw-2rem)]"
         align="start"
       >
@@ -346,8 +348,8 @@ export const TimeAssignmentSelector = ({
                             teamName={position.teamName}
                           />
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-medium">
-                              {position.name}
+                            <span className="block min-w-0 text-sm font-medium">
+                              <MiddleTruncate text={position.name} />
                             </span>
                             <span className="text-muted-foreground block truncate text-xs">
                               {position.teamName}
@@ -410,7 +412,7 @@ export const TimeAssignmentSelector = ({
             </div>
           </CommandList>
         </Command>
-      </PopoverContent>
-    </Popover>
+      </ResponsivePopoverContent>
+    </ResponsivePopover>
   );
 };

@@ -3,6 +3,8 @@ import type {
   PeopleDashboardPerson,
 } from "@pcobooster/contracts/people-schemas";
 
+import type { MonthGridDayTone } from "@/components/ui/month-grid-day";
+
 export type CalendarCell =
   | { day: number; key: string }
   | { day: null; key: string };
@@ -33,20 +35,17 @@ export const commitmentMarkerClass = (
   return "bg-border";
 };
 
-export const commitmentCellClass = (
+export const commitmentCellTone = (
   kind: PeopleDashboardPerson["monthDays"][number]["kind"],
   status?: string
-): string => {
+): MonthGridDayTone => {
   if (kind === "service") {
-    const confirmed = isConfirmedStatus(status);
-    return confirmed
-      ? "border-status-confirmed/30 bg-status-confirmed/15 text-status-confirmed"
-      : "border-status-scheduled/35 bg-status-scheduled/15 text-status-scheduled";
+    return isConfirmedStatus(status) ? "confirmed" : "scheduled";
   }
   if (kind === "rehearsal") {
-    return "border-muted-foreground/20 bg-muted text-foreground";
+    return "rehearsal";
   }
-  return "bg-muted text-foreground";
+  return "light";
 };
 
 export const engagementLabel = (
@@ -111,15 +110,19 @@ export const loadBadge = (load: "low" | "normal" | "high" | "rest") => {
   return { label: "Normal", className: "text-foreground" };
 };
 
-export const heatLevelClass = (serviceCount: number): string => {
+/** Heatmap tone for a day; rehearsal-only days read as lightly busy. */
+export const heatLevelTone = (
+  serviceCount: number,
+  rehearsalCount = 0
+): MonthGridDayTone => {
   if (serviceCount >= 8) {
-    return "bg-status-confirmed-bright/20";
+    return "peak";
   }
   if (serviceCount >= 3) {
-    return "bg-status-confirmed-bright/10";
+    return "busy";
   }
-  if (serviceCount > 0) {
-    return "bg-muted";
+  if (serviceCount > 0 || rehearsalCount > 0) {
+    return "light";
   }
-  return "";
+  return "empty";
 };

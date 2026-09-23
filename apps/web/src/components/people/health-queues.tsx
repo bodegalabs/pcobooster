@@ -4,7 +4,10 @@ import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas
 import { Clock3, ListChecks } from "lucide-react";
 
 import { PersonLineSkeletonList } from "@/components/people/people-skeletons";
-import { PersonAvatar } from "@/components/people/shared-components";
+import {
+  PersonAvatar,
+  PersonRowButton,
+} from "@/components/people/shared-components";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -46,22 +49,11 @@ export const HealthQueues = ({
           </p>
         ) : (
           underused.slice(0, 6).map((person) => (
-            <button
+            <PersonRowButton
               key={`queue-${person.id}`}
-              type="button"
-              className="hover:bg-muted/50 flex items-center gap-3 rounded-md px-2 py-1.5 text-left"
-              onFocus={() => {
-                onPreviewPerson(person);
-              }}
-              onPointerEnter={() => {
-                onPreviewPerson(person);
-              }}
-              onTouchStart={() => {
-                onPreviewPerson(person);
-              }}
-              onClick={() => {
-                onOpenPerson(person);
-              }}
+              person={person}
+              onPreviewPerson={onPreviewPerson}
+              onOpenPerson={onOpenPerson}
             >
               <PersonAvatar person={person} />
               <span className="min-w-0 flex-1">
@@ -72,7 +64,7 @@ export const HealthQueues = ({
                   {person.highlight}
                 </span>
               </span>
-            </button>
+            </PersonRowButton>
           ))
         )}
       </CardContent>
@@ -98,22 +90,12 @@ export const HealthQueues = ({
           </p>
         ) : (
           needsRest.slice(0, 3).map((person) => (
-            <button
+            <PersonRowButton
               key={`cadence-${person.id}`}
-              type="button"
-              className="hover:bg-muted/50 flex items-center justify-between gap-3 rounded-md px-2 py-1.5 text-left"
-              onFocus={() => {
-                onPreviewPerson(person);
-              }}
-              onPointerEnter={() => {
-                onPreviewPerson(person);
-              }}
-              onTouchStart={() => {
-                onPreviewPerson(person);
-              }}
-              onClick={() => {
-                onOpenPerson(person);
-              }}
+              person={person}
+              onPreviewPerson={onPreviewPerson}
+              onOpenPerson={onOpenPerson}
+              className="justify-between"
             >
               <span className="min-w-0">
                 <span className="block truncate text-sm font-medium">
@@ -124,7 +106,7 @@ export const HealthQueues = ({
                 </span>
               </span>
               <Badge variant="outline">{person.monthCount}</Badge>
-            </button>
+            </PersonRowButton>
           ))
         )}
       </CardContent>

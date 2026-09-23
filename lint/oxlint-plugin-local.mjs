@@ -25,6 +25,17 @@ const OVERLAY_SECTION_BORDER_IGNORED_FILES = [
   "components/people/month-view.tsx",
 ];
 const BARE_INPUT_NAMES = new Set(["Input", "Textarea", "input", "textarea"]);
+const SHARED_UI_DIRECTORY = "/components/ui/";
+/** Native controls and the shared primitive that owns their look. */
+const SHARED_CONTROL_REPLACEMENTS = new Map([
+  [
+    "button",
+    '`<Button>` (or `<Item render={<button type="button" />}>` for clickable rows)',
+  ],
+  ["input", "`<Input>` or `<InputGroupInput>`"],
+  ["select", "`<NativeSelect>` or `<Select>`"],
+  ["textarea", "`<Textarea>` or `<InputGroupTextarea>`"],
+]);
 
 /**
  * @param {unknown} node
@@ -149,6 +160,78 @@ const collectJsxElements = (node, out) => {
   if (node.type === "LogicalExpression") {
     collectJsxElements(node.right, out);
   }
+};
+
+/**
+ * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ * @param {string} name
+ */
+const hasAttribute = (openingElement, name) =>
+  openingElement.attributes.some(
+    (attribute) =>
+      attribute.type === "JSXAttribute" &&
+      attribute.name.type === "JSXIdentifier" &&
+      attribute.name.name === name
+  );
+
+/**
+ * True when the element is the value of a `render` prop, e.g.
+ * `<Item render={<button type="button" />}>`.
+ * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ */
+const isRenderPropTarget = (openingElement) => {
+  const element = openingElement.parent;
+  const container = element?.parent;
+  const attribute = container?.parent;
+  return (
+    container?.type === "JSXExpressionContainer" &&
+    attribute?.type === "JSXAttribute" &&
+    attribute.name.type === "JSXIdentifier" &&
+    attribute.name.name === "render"
+  );
+};
+
+const preferSharedControlsRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow hand-styled native buttons, inputs, selects, and textareas outside components/ui. Shared primitives own how controls look and feel.",
+    },
+    messages: {
+      raw: "Use {{replacement}} instead of a hand-rolled `<{{tag}}>`. Controls get their look from primitives in components/ui; when you need the native element, pass a bare `<{{tag}} />` (no className or style) through a primitive's `render` prop.",
+    },
+    schema: [],
+  },
+  create(context) {
+    const filename = context.filename.replaceAll("\\", "/");
+    if (filename.includes(SHARED_UI_DIRECTORY)) {
+      return {};
+    }
+
+    return {
+      JSXOpeningElement(node) {
+        if (node.name.type !== "JSXIdentifier") {
+          return;
+        }
+        const tag = node.name.name;
+        const replacement = SHARED_CONTROL_REPLACEMENTS.get(tag);
+        if (replacement === undefined) {
+          return;
+        }
+        const isUnstyled =
+          !hasAttribute(node, "className") && !hasAttribute(node, "style");
+        if (isUnstyled && isRenderPropTarget(node)) {
+          return;
+        }
+        context.report({
+          node,
+          messageId: "raw",
+          data: { tag, replacement },
+        });
+      },
+    };
+  },
 };
 
 const noAbsoluteInputOverlayRule = {
@@ -366,6 +449,7 @@ export default {
     "no-popover-content-padding": noPopoverContentPaddingRule,
     "no-overlay-section-border-b": noOverlaySectionBorderRule,
     "no-transition-colors": noTransitionColorsRule,
+    "prefer-shared-controls": preferSharedControlsRule,
   },
 };
 
@@ -374,4 +458,5 @@ export {
   noOverlaySectionBorderRule,
   noPopoverContentPaddingRule,
   noTransitionColorsRule,
+  preferSharedControlsRule,
 };

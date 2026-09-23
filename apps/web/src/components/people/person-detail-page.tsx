@@ -71,7 +71,7 @@ export const PersonDetailPage = ({ personId }: { personId: string }) => {
 
   return (
     <main className="bg-background flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-3 overflow-y-auto px-3 py-3 sm:px-4 sm:py-4">
+      <div className="pb-tab-bar mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pt-1 md:py-4">
         <header className="flex shrink-0 flex-col gap-3">
           <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">

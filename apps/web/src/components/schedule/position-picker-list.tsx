@@ -18,6 +18,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarSeparator } from "@/components/ui/sidebar";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
+import { cn } from "@/lib/utils";
 
 export const PositionPickerList = ({
   teamPositionsLoading,
@@ -29,7 +30,10 @@ export const PositionPickerList = ({
   onSelect,
   onPreviewSlot,
   onAddPosition,
+  clearTabBar = false,
 }: {
+  /** Pad the end so the last rows scroll clear of the floating phone tab bar. */
+  clearTabBar?: boolean;
   teamPositionsLoading: boolean;
   teamPositionGroups: TeamPositionGroup[] | undefined;
   collapsedTeams: Record<string, boolean>;
@@ -87,7 +91,14 @@ export const PositionPickerList = ({
   }
   return (
     <ScrollArea className="min-h-0 flex-1">
-      <div className="flex flex-col py-1">{body}</div>
+      <div
+        className={cn(
+          "flex flex-col py-1",
+          clearTabBar && "pb-tab-bar md:pb-1"
+        )}
+      >
+        {body}
+      </div>
     </ScrollArea>
   );
 };

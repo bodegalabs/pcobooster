@@ -12,12 +12,13 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Item } from "@/components/ui/item";
 import { LoadingBar } from "@/components/ui/loading-bar";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  ResponsivePopover,
+  ResponsivePopoverContent,
+  ResponsivePopoverTrigger,
+} from "@/components/ui/responsive-popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePeopleSearch } from "@/hooks/use-people-search";
 import type { PeopleSearchResult } from "@/hooks/use-people-search";
@@ -278,13 +279,12 @@ export const SomeoneElseRow = ({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
+    <ResponsivePopover open={open} onOpenChange={setOpen}>
+      <ResponsivePopoverTrigger
         render={
-          <button
-            type="button"
-            aria-label="Schedule someone else"
-            className="hover:bg-muted/30 flex w-full items-center gap-3 px-3 py-3 text-left"
+          <Item
+            size="sm"
+            render={<button type="button" aria-label="Schedule someone else" />}
           />
         }
       >
@@ -294,8 +294,9 @@ export const SomeoneElseRow = ({
         <span className="text-foreground min-w-0 flex-1 truncate text-sm font-medium sm:text-base">
           Someone else...
         </span>
-      </PopoverTrigger>
-      <PopoverContent
+      </ResponsivePopoverTrigger>
+      <ResponsivePopoverContent
+        title="Schedule someone else"
         align="start"
         side="bottom"
         sideOffset={8}
@@ -321,7 +322,7 @@ export const SomeoneElseRow = ({
           onOptimisticSchedule={closeSearch}
           onScheduleError={onScheduleError}
         />
-      </PopoverContent>
-    </Popover>
+      </ResponsivePopoverContent>
+    </ResponsivePopover>
   );
 };

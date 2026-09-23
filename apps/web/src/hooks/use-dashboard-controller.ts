@@ -131,6 +131,8 @@ export const useDashboardController = ({
   const slotPrefetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
+  /** True once a slot was opened from the phone position list, so Back can pop history. */
+  const openedSlotFromListRef = useRef(false);
 
   const [collapsedTeamsByPlan, setCollapsedTeamsByPlan] = useCollapsedTeams();
 
@@ -289,7 +291,13 @@ export const useDashboardController = ({
     []
   );
 
-  const handleSlotSelect = (slot: SlotRef) => {
+  const handleSlotSelect = (
+    slot: SlotRef,
+    { replace = false }: { replace?: boolean } = {}
+  ) => {
+    if (!isNonEmptyString(routeIds.positionId)) {
+      openedSlotFromListRef.current = true;
+    }
     if (slotPrefetchTimeoutRef.current) {
       clearTimeout(slotPrefetchTimeoutRef.current);
       slotPrefetchTimeoutRef.current = null;
@@ -313,13 +321,35 @@ export const useDashboardController = ({
       });
     }
 
-    navigateTo({
-      serviceTypeId: routeServiceTypeId,
-      planId: routePlanId,
-      teamId: slot.teamId,
-      positionId: slot.positionId,
-      view: "assign",
-    });
+    navigateTo(
+      {
+        serviceTypeId: routeServiceTypeId,
+        planId: routePlanId,
+        teamId: slot.teamId,
+        positionId: slot.positionId,
+        view: "assign",
+      },
+      replace ? "replace" : "push"
+    );
+  };
+
+  /** Returns the phone Assign view to its position list. */
+  const handleSlotClear = () => {
+    if (openedSlotFromListRef.current) {
+      openedSlotFromListRef.current = false;
+      router.back();
+      return;
+    }
+    navigateTo(
+      {
+        serviceTypeId: routeServiceTypeId,
+        planId: routePlanId,
+        teamId: null,
+        positionId: null,
+        view: "assign",
+      },
+      "replace"
+    );
   };
 
   const handleAddCustomPosition = (
@@ -434,6 +464,7 @@ export const useDashboardController = ({
     routePlanId,
     toggleTeamCollapsed,
     handleSlotSelect,
+    handleSlotClear,
     handleSlotPreview,
     handleAddCustomPosition,
     planTimes,

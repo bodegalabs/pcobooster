@@ -47,9 +47,9 @@ const StatCard = ({
   value: string | number;
   icon: typeof Users;
 }) => (
-  <div className="border-border/70 bg-card rounded-md border px-4 py-3">
-    <div className="flex items-center justify-between gap-3">
-      <p className="text-muted-foreground text-sm">{label}</p>
+  <div className="border-border/70 bg-card rounded-2xl border px-4 py-3 md:rounded-md">
+    <div className="flex items-start justify-between gap-3">
+      <p className="text-muted-foreground text-sm leading-snug">{label}</p>
       <Icon className="text-muted-foreground size-4" />
     </div>
     <p className="mt-2 text-2xl font-semibold tracking-normal">{value}</p>
@@ -77,11 +77,13 @@ const AdminPage = async () => {
 
   return (
     <main className="bg-background min-h-0 flex-1 overflow-auto">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-6">
+      <div className="pb-tab-bar mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 pt-1 md:gap-6 md:px-6 md:py-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-normal">Admin</h1>
-            <p className="text-muted-foreground mt-1 text-sm">
+            <h1 className="text-2xl font-semibold tracking-normal max-md:sr-only">
+              Admin
+            </h1>
+            <p className="text-muted-foreground text-sm md:mt-1">
               Accounts, active sessions, and login frequency from pcobooster.com
               auth activity.
             </p>
@@ -89,7 +91,7 @@ const AdminPage = async () => {
           <Badge variant="outline">Only visible to {email}</Badge>
         </div>
 
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="grid grid-cols-2 gap-2 md:gap-3 lg:grid-cols-4">
           <StatCard label="Accounts" value={totals.users} icon={Users} />
           <StatCard
             label="Active sessions"

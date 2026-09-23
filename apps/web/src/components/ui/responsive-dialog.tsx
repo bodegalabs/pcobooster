@@ -22,7 +22,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 const ResponsiveDialogContext = React.createContext<{ isMobile: boolean }>({
@@ -89,11 +89,7 @@ const ResponsiveDialogContent = ({
   if (isMobile) {
     return (
       <DrawerContent
-        className={cn(
-          "w-full border-b-0 px-0 pb-[max(1rem,env(safe-area-inset-bottom))]",
-          className,
-          mobileClassName
-        )}
+        className={cn("border-b-0 px-0", className, mobileClassName)}
       >
         {children}
       </DrawerContent>

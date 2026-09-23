@@ -12,7 +12,7 @@ import { useMemo } from "react";
 
 import { AppShell } from "@/components/app-shell";
 import { Toaster } from "@/components/ui/sonner";
-import { useIsMobile } from "@/hooks/use-is-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const QUERY_GC_TIME_MS = 30 * 60 * 1000;
 

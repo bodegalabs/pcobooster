@@ -8,7 +8,10 @@ import type {
 import { loadBadge } from "@/components/people/calendar";
 import { PersonLineSkeleton } from "@/components/people/people-skeletons";
 import { RosterTableBody } from "@/components/people/roster-table-body";
-import { PersonAvatar } from "@/components/people/shared-components";
+import {
+  PersonAvatar,
+  PersonRowButton,
+} from "@/components/people/shared-components";
 import {
   Card,
   CardDescription,
@@ -36,7 +39,7 @@ export const HealthRoster = ({
   onOpenPerson,
 }: HealthRosterProps) => (
   <>
-    <div className="grid shrink-0 gap-2 sm:grid-cols-3">
+    <div className="grid shrink-0 grid-cols-3 gap-2">
       <Card>
         <CardHeader>
           <CardDescription>Scheduled people</CardDescription>
@@ -75,7 +78,7 @@ export const HealthRoster = ({
       </Card>
     </div>
 
-    <div className="border-border/40 shrink-0 overflow-hidden rounded-lg border md:h-96">
+    <div className="border-border/40 shrink-0 overflow-hidden rounded-2xl border md:h-96 md:rounded-lg">
       <ScrollArea className="hidden h-full md:block">
         <Table className="table-fixed">
           <TableHeader className="sticky top-0 z-10">
@@ -96,7 +99,7 @@ export const HealthRoster = ({
           />
         </Table>
       </ScrollArea>
-      <div className="flex flex-col md:hidden">
+      <div className="divide-border/35 flex flex-col divide-y p-1 md:hidden">
         {isLoading
           ? Array.from({ length: 4 }).map((_, index) => (
               <div
@@ -109,22 +112,12 @@ export const HealthRoster = ({
           : visiblePeople.map((person) => {
               const badge = loadBadge(person.load);
               return (
-                <button
+                <PersonRowButton
                   key={`mobile-${person.id}`}
-                  type="button"
-                  className="border-border/35 hover:bg-muted/50 flex w-full flex-col gap-2 border-b px-4 py-3 text-left last:border-b-0"
-                  onFocus={() => {
-                    onPreviewPerson(person);
-                  }}
-                  onPointerEnter={() => {
-                    onPreviewPerson(person);
-                  }}
-                  onTouchStart={() => {
-                    onPreviewPerson(person);
-                  }}
-                  onClick={() => {
-                    onOpenPerson(person);
-                  }}
+                  person={person}
+                  onPreviewPerson={onPreviewPerson}
+                  onOpenPerson={onOpenPerson}
+                  className="flex-col items-stretch"
                 >
                   <div className="flex min-w-0 items-start gap-3">
                     <PersonAvatar person={person} />
@@ -155,7 +148,7 @@ export const HealthRoster = ({
                     />
                     <span className="min-w-0 truncate">{person.status}</span>
                   </div>
-                </button>
+                </PersonRowButton>
               );
             })}
       </div>

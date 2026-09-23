@@ -21,10 +21,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  ResponsivePopover,
+  ResponsivePopoverContent,
+  ResponsivePopoverTrigger,
+} from "@/components/ui/responsive-popover";
 import {
   SelectionPickerOption,
   SelectionPickerShell,
@@ -64,8 +64,8 @@ const DatePickerField = ({
   return (
     <Field>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <Popover open={open} onOpenChange={onOpenChange}>
-        <PopoverTrigger
+      <ResponsivePopover open={open} onOpenChange={onOpenChange}>
+        <ResponsivePopoverTrigger
           render={
             <Button
               type="button"
@@ -85,8 +85,12 @@ const DatePickerField = ({
             className="text-muted-foreground size-4 shrink-0"
             aria-hidden
           />
-        </PopoverTrigger>
-        <PopoverContent className="w-auto overflow-hidden" align="start">
+        </ResponsivePopoverTrigger>
+        <ResponsivePopoverContent
+          title="Pick a date"
+          className="w-auto overflow-hidden"
+          align="start"
+        >
           <Calendar
             mode="single"
             selected={selectedDate}
@@ -100,8 +104,8 @@ const DatePickerField = ({
               onOpenChange(false);
             }}
           />
-        </PopoverContent>
-      </Popover>
+        </ResponsivePopoverContent>
+      </ResponsivePopover>
     </Field>
   );
 };
@@ -333,13 +337,17 @@ export const PlanTimeRangePopoverEditor = ({
   });
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange} modal={false}>
-      <PopoverTrigger
+    <ResponsivePopover
+      open={open}
+      onOpenChange={handleOpenChange}
+      modal={false}
+    >
+      <ResponsivePopoverTrigger
         render={
           <Button
             type="button"
             variant="input"
-            className="h-auto min-h-10 w-full justify-start"
+            className="h-auto min-h-10 w-full justify-start whitespace-normal"
             data-invalid={invalid || undefined}
             aria-label={`Edit time, ${displayLabel}`}
             aria-expanded={open}
@@ -354,7 +362,7 @@ export const PlanTimeRangePopoverEditor = ({
           />
           <span
             className={cn(
-              "min-w-0 flex-1 text-left text-base font-medium",
+              "min-w-0 flex-1 py-2 text-left text-base font-medium",
               invalid && "text-destructive"
             )}
           >
@@ -367,9 +375,15 @@ export const PlanTimeRangePopoverEditor = ({
           className="text-muted-foreground size-4 shrink-0"
           aria-hidden
         />
-      </PopoverTrigger>
+      </ResponsivePopoverTrigger>
 
-      <PopoverContent ref={contentRef} align="start" className="w-80">
+      <ResponsivePopoverContent
+        title="Edit time"
+        showTitle
+        ref={contentRef}
+        align="start"
+        className="w-80"
+      >
         <div className="p-3">
           <FieldGroup data-invalid={invalid || undefined}>
             <DatePickerField
@@ -423,8 +437,8 @@ export const PlanTimeRangePopoverEditor = ({
             )}
           </FieldGroup>
         </div>
-      </PopoverContent>
-    </Popover>
+      </ResponsivePopoverContent>
+    </ResponsivePopover>
   );
 };
 

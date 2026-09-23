@@ -1,7 +1,7 @@
 "use client";
 
 import type { TeamPosition } from "@pcobooster/planning-center-models/types";
-import { ChevronsUpDown, Search, X } from "lucide-react";
+import { ChevronLeft, ChevronsUpDown, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,12 +10,15 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { Item } from "@/components/ui/item";
+import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export const SelectedPositionHeader = ({
   info,
   onOpenPicker,
+  onBack,
   hasSlots,
   teamPositionsLoading,
   filter,
@@ -27,6 +30,7 @@ export const SelectedPositionHeader = ({
     position: TeamPosition;
   } | null;
   onOpenPicker: () => void;
+  onBack: () => void;
   hasSlots: boolean;
   teamPositionsLoading: boolean;
   filter: string;
@@ -34,38 +38,72 @@ export const SelectedPositionHeader = ({
 }) => {
   const isTemporaryPosition =
     !!info?.position.source && info.position.source !== "team_position";
+  const nameLoading = info === null && teamPositionsLoading;
 
   return (
     <div className="flex shrink-0 flex-col gap-2 px-1 sm:gap-3">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-        <div className="flex min-w-0 items-center gap-2">
-          {info === null && teamPositionsLoading ? (
-            <Skeleton variant="control" className="h-6 w-40 sm:h-7" />
-          ) : (
-            <p
+      <div className="flex items-center gap-1 lg:hidden">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-lg"
+          className="-ml-2 shrink-0 max-md:hidden"
+          onClick={onBack}
+          aria-label="Back to positions"
+        >
+          <ChevronLeft className="size-6" aria-hidden />
+        </Button>
+        <Item
+          size="row"
+          className="-mx-1.5 min-w-0 flex-1 md:mx-0"
+          render={
+            <button
+              type="button"
+              disabled={!hasSlots || teamPositionsLoading}
+              aria-label="Change position"
+            />
+          }
+          onClick={onOpenPicker}
+        >
+          <span className="flex min-w-0 flex-col">
+            <span
               className={cn(
-                "min-w-0 truncate text-xl leading-tight font-semibold tracking-tight sm:text-2xl",
+                "block min-w-0",
+                "text-lg leading-tight font-semibold tracking-tight",
                 isTemporaryPosition && "italic"
               )}
             >
-              {info?.positionName ?? "Position"}
-            </p>
-          )}
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="shrink-0 lg:hidden"
-          onClick={onOpenPicker}
-          disabled={!hasSlots || teamPositionsLoading}
-          title="Change position"
-          aria-label="Change position"
-        >
-          <span>Positions</span>
-          <ChevronsUpDown className="size-3.5 opacity-60" aria-hidden />
-        </Button>
+              {nameLoading ? (
+                <Skeleton variant="control" className="my-0.5 h-5 w-36" />
+              ) : (
+                <MiddleTruncate text={info?.positionName ?? "Position"} />
+              )}
+            </span>
+            {info ? (
+              <span className="text-muted-foreground truncate text-xs">
+                {info.teamName}
+              </span>
+            ) : null}
+          </span>
+          <ChevronsUpDown
+            className="text-muted-foreground size-4 shrink-0"
+            aria-hidden
+          />
+        </Item>
       </div>
+
+      {nameLoading ? (
+        <Skeleton variant="control" className="h-7 w-40 max-lg:hidden" />
+      ) : (
+        <p
+          className={cn(
+            "min-w-0 truncate text-2xl leading-tight font-semibold tracking-tight max-lg:hidden",
+            isTemporaryPosition && "italic"
+          )}
+        >
+          {info?.positionName ?? "Position"}
+        </p>
+      )}
 
       <div className="flex items-center gap-3">
         <InputGroup className="w-full flex-1 sm:max-w-sm">
@@ -77,7 +115,7 @@ export const SelectedPositionHeader = ({
             onChange={(event) => {
               onFilterChange(event.target.value);
             }}
-            placeholder="Filter"
+            placeholder="Filter people"
             aria-label="Filter people"
           />
           {filter ? (

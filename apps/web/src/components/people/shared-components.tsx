@@ -1,7 +1,9 @@
 import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Item } from "@/components/ui/item";
 import { cn } from "@/lib/utils";
 
 export const CommitmentEntryText = ({
@@ -71,4 +73,44 @@ export const Metric = ({ label, value }: { label: string; value: string }) => (
     <p className="text-muted-foreground text-xs">{label}</p>
     <p className="mt-1 truncate text-sm font-semibold tabular-nums">{value}</p>
   </div>
+);
+
+/** A tappable person row that prefetches on intent and opens the person. */
+export const PersonRowButton = ({
+  person,
+  onPreviewPerson,
+  onOpenPerson,
+  variant = "default",
+  size = "xs",
+  className,
+  children,
+}: {
+  person: PeopleDashboardPerson;
+  onPreviewPerson: (person: PeopleDashboardPerson) => void;
+  onOpenPerson: (person: PeopleDashboardPerson) => void;
+  variant?: "default" | "outline" | "muted";
+  size?: "default" | "sm" | "xs";
+  className?: string;
+  children: ReactNode;
+}) => (
+  <Item
+    variant={variant}
+    size={size}
+    className={className}
+    render={<button type="button" aria-label={`Open ${person.name}`} />}
+    onFocus={() => {
+      onPreviewPerson(person);
+    }}
+    onPointerEnter={() => {
+      onPreviewPerson(person);
+    }}
+    onTouchStart={() => {
+      onPreviewPerson(person);
+    }}
+    onClick={() => {
+      onOpenPerson(person);
+    }}
+  >
+    {children}
+  </Item>
 );

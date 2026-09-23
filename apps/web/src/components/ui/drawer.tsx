@@ -93,9 +93,13 @@ const DrawerSwipeHandle = ({
   />
 );
 
+/** Touch-opened sheets keep the keyboard down until the person taps a field. */
+const skipFocusOnTouch = (openType: string) => openType !== "touch";
+
 const DrawerContent = ({
   className,
   children,
+  initialFocus = skipFocusOnTouch,
   ...props
 }: DrawerPrimitive.Popup.Props) => {
   const { hasSnapPoints, modal, showSwipeHandle, swipeDirection } = useDrawer();
@@ -143,13 +147,14 @@ const DrawerContent = ({
             "data-[swipe-direction=right]:right-0 data-[swipe-direction=right]:origin-right data-[swipe-direction=right]:[--closed-transform:translate3d(calc(100%+var(--drawer-inset,0px)+2px),0,0)] data-[swipe-direction=right]:[--translate-x:calc(var(--drawer-swipe-movement-x)-var(--stack-peek-offset)-(var(--stack-shrink)*100%))]",
             className
           )}
+          initialFocus={initialFocus}
           {...props}
         >
           {showSwipeHandle && <DrawerSwipeHandle />}
           <DrawerPrimitive.Content
             data-slot="drawer-content"
             className={cn(
-              "flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain rounded-[inherit] transition-opacity duration-300 ease-[cubic-bezier(0.45,1.005,0,1.005)] select-text group-data-nested-drawer-open/drawer-popup:opacity-0 group-data-nested-drawer-swiping/drawer-popup:opacity-100 group-data-swiping/drawer-popup:select-none"
+              "group-data-[swipe-direction=down]/drawer-popup:pb-safe-4 flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain rounded-[inherit] transition-opacity duration-300 ease-[cubic-bezier(0.45,1.005,0,1.005)] select-text group-data-nested-drawer-open/drawer-popup:opacity-0 group-data-nested-drawer-swiping/drawer-popup:opacity-100 group-data-swiping/drawer-popup:select-none"
             )}
           >
             {children}

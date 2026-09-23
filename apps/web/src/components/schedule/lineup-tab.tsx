@@ -38,6 +38,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { DragHandle } from "@/components/ui/drag-handle";
 import {
   Empty,
   EmptyDescription,
@@ -51,9 +52,11 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Item, ItemContent, ItemGroup, ItemTitle } from "@/components/ui/item";
+import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLineupColumnOrder } from "@/hooks/use-lineup-column-order";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { getInitials } from "@/lib/format/initials";
 import {
@@ -75,6 +78,7 @@ interface LineupTabProps {
 
 const lineupSkeletonWidths = ["8rem", "6rem", "9rem", "7rem"];
 const lineupColumnWidthClass = "w-[min(22rem,78vw)]";
+const lineupStackClassName = "pb-tab-bar flex flex-col gap-3";
 const teamColumnClass =
   "bg-background text-foreground shadow-xs ring-foreground/5 dark:ring-foreground/10 flex shrink-0 flex-col rounded-xl ring-1";
 const lineupColumnsRowClassName =
@@ -82,29 +86,13 @@ const lineupColumnsRowClassName =
 const lineupPositionGridClass =
   "grid w-full grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_2rem] items-center gap-x-2 gap-y-0";
 const lineupPositionRowClass = "col-span-4 grid grid-cols-subgrid items-center";
-const lineupPositionRowSizeClass = "min-h-10 py-1";
-const lineupRowHoverClass = "hover:bg-muted dark:hover:bg-muted/80";
-const lineupPositionHeaderClass = cn(
-  "rounded-lg text-left",
-  lineupRowHoverClass,
-  lineupPositionRowSizeClass
-);
-const lineupPositionPersonRowClass = cn(
-  "group/person rounded-lg",
-  lineupRowHoverClass,
-  lineupPositionRowSizeClass
-);
 const lineupPositionPeopleClass = cn(
   "col-span-4 pl-2",
   lineupPositionGridClass,
   "gap-y-0.5"
 );
-const lineupColumnDragHandleClassName =
-  "text-muted-foreground/55 group-hover/team-header:text-foreground inline-flex w-8 shrink-0 touch-manipulation cursor-grab items-center justify-center self-stretch rounded-lg border-0 bg-transparent outline-none focus-visible:ring-ring focus-visible:ring-3 active:cursor-grabbing";
-const lineupTeamHeaderClassName = cn(
-  "group/team-header flex items-stretch rounded-lg px-1.5 pt-1.5",
-  lineupRowHoverClass
-);
+const lineupTeamHeaderClassName =
+  "group/team-header flex items-stretch gap-0.5 px-1.5 pt-1.5";
 
 const getStatusDotStatus = (
   person: FilledPositionPerson
@@ -146,14 +134,15 @@ const PersonRow = ({
   return (
     <>
       <li className="contents">
-        <button
-          type="button"
-          className={cn(
-            lineupPositionRowClass,
-            lineupPositionPersonRowClass,
-            "cursor-pointer text-left"
-          )}
-          aria-label={`Edit ${person.name} assignment`}
+        <Item
+          size="row"
+          className={cn(lineupPositionRowClass, "group/person")}
+          render={
+            <button
+              type="button"
+              aria-label={`Edit ${person.name} assignment`}
+            />
+          }
           onClick={() => {
             setEditOpen(true);
           }}
@@ -179,7 +168,7 @@ const PersonRow = ({
             className="justify-self-center"
             aria-hidden
           />
-        </button>
+        </Item>
       </li>
       <PlanPersonEditDialog
         person={person}
@@ -237,20 +226,24 @@ const LineupPositionCard = ({
           <HoverCard>
             <HoverCardTrigger
               render={
-                <button
-                  type="button"
+                <Item
+                  size="row"
                   className={cn(
                     lineupPositionRowClass,
-                    lineupPositionHeaderClass,
                     people.length === 0 && "min-h-0 py-0.5"
                   )}
-                  aria-label={`Open ${position.name} in scheduler`}
-                  onPointerEnter={() => onPreviewPosition?.(slot)}
-                  onFocus={() => onPreviewPosition?.(slot)}
-                  onTouchStart={() => onPreviewPosition?.(slot)}
-                  onClick={() => {
-                    onSelectPosition(slot);
-                  }}
+                  render={
+                    <button
+                      type="button"
+                      aria-label={`Open ${position.name} in scheduler`}
+                      onPointerEnter={() => onPreviewPosition?.(slot)}
+                      onFocus={() => onPreviewPosition?.(slot)}
+                      onTouchStart={() => onPreviewPosition?.(slot)}
+                      onClick={() => {
+                        onSelectPosition(slot);
+                      }}
+                    />
+                  }
                 />
               }
             >
@@ -260,12 +253,17 @@ const LineupPositionCard = ({
                   teamName={teamName}
                 />
               </div>
-              <ItemTitle className="min-w-0">
-                <span className={cn(isTemporaryPosition && "italic")}>
-                  {position.name}
+              {/* Titles also use the time-count column, which only person rows fill. */}
+              <ItemTitle className="col-span-2 min-w-0">
+                <span
+                  className={cn(
+                    "block min-w-0",
+                    isTemporaryPosition && "italic"
+                  )}
+                >
+                  <MiddleTruncate text={position.name} />
                 </span>
               </ItemTitle>
-              <span aria-hidden />
               <SlotBadgeCluster
                 className="justify-self-center"
                 position={position}
@@ -313,7 +311,9 @@ const TeamColumn = ({
   onPreviewPosition,
   dragHandleAttributes,
   dragHandleListeners,
+  stacked = false,
 }: {
+  stacked?: boolean;
   group: TeamPositionGroup;
   serviceTypeId: string | null;
   planId: string | null;
@@ -331,7 +331,12 @@ const TeamColumn = ({
   const [open, setOpen] = useState(() => openNeededCount > 0);
 
   return (
-    <section className={cn(teamColumnClass, lineupColumnWidthClass)}>
+    <section
+      className={cn(
+        teamColumnClass,
+        stacked ? "w-full rounded-2xl" : lineupColumnWidthClass
+      )}
+    >
       <Collapsible
         open={open}
         onOpenChange={setOpen}
@@ -339,23 +344,25 @@ const TeamColumn = ({
       >
         <div className={lineupTeamHeaderClassName}>
           {dragHandleListeners ? (
-            <button
-              type="button"
+            <DragHandle
+              size="sm"
               {...dragHandleAttributes}
               {...dragHandleListeners}
               aria-label={`Reorder ${group.teamName} column`}
-              className={lineupColumnDragHandleClassName}
-            >
-              <GripVertical className="size-4" aria-hidden />
-            </button>
+            />
           ) : null}
           <CollapsibleTrigger
             nativeButton
             render={
-              <button
-                type="button"
-                className="flex min-w-0 flex-1 items-center gap-2 bg-transparent px-1.5 py-2 text-left"
-                aria-label={`${group.teamName} team lineup`}
+              <Item
+                size="row"
+                className="min-w-0 flex-1"
+                render={
+                  <button
+                    type="button"
+                    aria-label={`${group.teamName} team lineup`}
+                  />
+                }
               />
             }
           >
@@ -483,13 +490,17 @@ const lineupSkeletonColumns = [
   { key: "d", title: "6rem", positions: [2, 1] },
 ];
 
-const LineupLoadingState = () => (
+const LineupLoadingState = ({ stacked }: { stacked: boolean }) => (
   <ScrollArea className="min-h-0 flex-1">
-    <div className={lineupColumnsRowClassName}>
+    <div className={stacked ? lineupStackClassName : lineupColumnsRowClassName}>
       {lineupSkeletonColumns.map((column) => (
         <div
           key={column.key}
-          className={cn(teamColumnClass, "gap-1 p-1.5", lineupColumnWidthClass)}
+          className={cn(
+            teamColumnClass,
+            "gap-1 p-1.5",
+            stacked ? "w-full" : lineupColumnWidthClass
+          )}
         >
           <div className="flex h-9 items-center gap-2 px-2">
             <Skeleton variant="text" className="size-3.5" />
@@ -551,6 +562,7 @@ export const LineupTab = ({
 }: LineupTabProps) => {
   const [columnOrderByServiceType, updateColumnOrder] = useLineupColumnOrder();
   const [activeTeamId, setActiveTeamId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
   const reorderDisabled = serviceTypeId === null;
   const revealClassName = useRevealOnLoad(isLoading);
   const orderedGroups = useMemo(() => {
@@ -606,7 +618,7 @@ export const LineupTab = ({
   };
 
   if (isLoading) {
-    return <LineupLoadingState />;
+    return <LineupLoadingState stacked={isMobile} />;
   }
 
   if (groups.length === 0) {
@@ -622,6 +634,28 @@ export const LineupTab = ({
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
+    );
+  }
+
+  if (isMobile) {
+    return (
+      <ScrollArea className="-mx-4 min-h-0 flex-1">
+        <div className={cn(lineupStackClassName, "px-4", revealClassName)}>
+          {orderedGroups.map((group) => (
+            <TeamColumn
+              key={group.teamId}
+              group={group}
+              serviceTypeId={serviceTypeId}
+              planId={planId}
+              seriesId={seriesId}
+              planTimes={planTimes}
+              onSelectPosition={onSelectPosition}
+              onPreviewPosition={onPreviewPosition}
+              stacked
+            />
+          ))}
+        </div>
+      </ScrollArea>
     );
   }
 

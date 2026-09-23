@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { DashboardPage } from "@/components/dashboard-page";
 import { SchedulePlanWorkspaceFallback } from "@/components/schedule/schedule-page-fallbacks";
-import { isDashboardView } from "@/lib/schedule-navigation";
+import { isPlanView } from "@/lib/app-routes";
 
 interface ServicesPlanViewPageProps {
   params: Promise<{
@@ -16,7 +16,7 @@ interface ServicesPlanViewPageProps {
 const ServicesPlanViewPage = async ({ params }: ServicesPlanViewPageProps) => {
   const { serviceTypeId, planId, view } = await params;
 
-  if (!isDashboardView(view)) {
+  if (!isPlanView(view)) {
     notFound();
   }
 

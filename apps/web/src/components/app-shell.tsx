@@ -20,9 +20,9 @@ import {
 import type { PlanningCenterAccountsResponse } from "@pcobooster/contracts/accounts";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, ChevronLeft } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -30,6 +30,7 @@ import type { ReactNode } from "react";
 import { Suspense, startTransition, useCallback, useState } from "react";
 
 import { HotkeyChord } from "@/components/hotkey-chord";
+import { MobileTabBar } from "@/components/mobile-nav";
 import { SidebarBrandMark } from "@/components/sidebar-brand-mark";
 import { SidebarChromeTrigger } from "@/components/sidebar-chrome-trigger";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
@@ -46,6 +47,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import {
   Dialog,
   DialogContent,
@@ -78,16 +81,23 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
-import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import {
-  ACCOUNT_PANEL_CACHE_KEY,
-  parseCachedAccountPanel,
-  serializeAccountPanel,
-  summarizeAccountPanel,
-} from "@/lib/account-panel-cache";
-import { clearAccountScopedCaches } from "@/lib/account-scoped-caches";
+  signOutLabel,
+  useAccountPanel,
+  useAccountsQuery,
+} from "@/hooks/use-account-panel";
+import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import { APP_SHORTCUTS, SHORTCUTS_PALETTE_HOTKEY } from "@/lib/app-hotkeys";
-import { authClient } from "@/lib/auth-client";
+import type { PlanView } from "@/lib/app-routes";
+import {
+  buildPlanViewUrl,
+  getAppSection,
+  getAppSectionLabel,
+  getPlanViewLabel,
+  parseDetailRoute,
+  parsePlanRoute,
+  planViews,
+} from "@/lib/app-routes";
 import { writeBrowserStorage } from "@/lib/browser-storage";
 import {
   PEOPLE_PAGE_NAV_CACHE_KEY,
@@ -95,11 +105,7 @@ import {
   serializePeoplePageNavState,
 } from "@/lib/people-page-nav-cache";
 import { queryKeys } from "@/lib/query-keys";
-import type { DashboardView } from "@/lib/schedule-navigation";
-import {
-  parsePlanWorkspacePath,
-  updatePlanWorkspaceUrl,
-} from "@/lib/schedule-navigation";
+import { updatePlanWorkspaceUrl } from "@/lib/schedule-navigation";
 import { cn } from "@/lib/utils";
 import { orpc } from "@/orpc-client";
 
@@ -121,15 +127,6 @@ const initialsFromName = (name: string | null | undefined): string => {
   return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
 };
 
-const fetchAccounts = async ({ signal }: QueryFunctionContext) => {
-  const response = await orpc.accounts.list({}, { signal });
-  writeBrowserStorage(
-    ACCOUNT_PANEL_CACHE_KEY,
-    serializeAccountPanel(summarizeAccountPanel(response))
-  );
-  return response;
-};
-
 const fetchPeopleNavFeature = async ({ signal }: QueryFunctionContext) => {
   const response = await orpc.features.people({}, { signal });
   writeBrowserStorage(
@@ -148,49 +145,7 @@ const themeOptions = [
   { value: "system", label: "System", icon: LaptopIcon },
 ] as const;
 
-type TopBarView = DashboardView;
-type ServicesSidebarKey = "services" | TopBarView;
-
-const getTopBarViewLabel = (view: TopBarView): string => {
-  if (view === "lineup") {
-    return "Lineup";
-  }
-  if (view === "plan") {
-    return "Plan";
-  }
-  if (view === "times") {
-    return "Times";
-  }
-  return "Assign";
-};
-
-const planViewOptions: TopBarView[] = ["assign", "lineup", "plan", "times"];
-
-const buildScheduleViewUrl = (
-  pathname: string,
-  searchParams: Pick<URLSearchParams, "toString">,
-  view: TopBarView
-): string => {
-  const planPath = parsePlanWorkspacePath(pathname);
-  if (!planPath) {
-    return "/services";
-  }
-
-  const params = new URLSearchParams(searchParams.toString());
-  const query = params.toString();
-  const path = `/services/${planPath.serviceTypeId}/plans/${planPath.planId}/${view}`;
-  return query ? `${path}?${query}` : path;
-};
-
-const getTopLevelPageLabel = (pathname: string) => {
-  if (pathname.startsWith("/admin")) {
-    return "Admin";
-  }
-  if (pathname.startsWith("/people")) {
-    return "People";
-  }
-  return "Services";
-};
+type ServicesSidebarKey = "services" | PlanView;
 
 const AppInsetChromeHeader = ({ children }: { children: ReactNode }) => {
   const { open, isMobile } = useSidebar();
@@ -200,7 +155,7 @@ const AppInsetChromeHeader = ({ children }: { children: ReactNode }) => {
     <header
       className={cn(
         APP_CHROME_ROW,
-        "border-border/50 border-b",
+        "border-border/50 border-b max-md:hidden",
         alignWithPageContent ? "px-3 sm:px-4" : "px-2"
       )}
     >
@@ -212,13 +167,13 @@ const AppInsetChromeHeader = ({ children }: { children: ReactNode }) => {
 const AppTopBar = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const planPath = parsePlanWorkspacePath(pathname);
+  const planPath = parsePlanRoute(pathname);
   const hasPlan = Boolean(planPath);
   const planView = planPath?.view ?? "assign";
-  const planViewLabel = getTopBarViewLabel(planView);
+  const planViewLabel = getPlanViewLabel(planView);
   const isPersonDetail = /^\/people\/[^/]+/u.test(pathname);
   const isAdminUserDetail = /^\/admin\/users\/[^/]+/u.test(pathname);
-  const pageLabel = getTopLevelPageLabel(pathname);
+  const pageLabel = getAppSectionLabel(getAppSection(pathname));
 
   return (
     <div className="flex w-full min-w-0 items-center gap-2 sm:gap-3">
@@ -262,10 +217,10 @@ const AppTopBar = () => {
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         render={
-                          <button
-                            type="button"
+                          <Button
+                            variant="ghost"
+                            size="xs"
                             aria-label={`Change view from ${planViewLabel}`}
-                            className="text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-sm focus-visible:ring-2 focus-visible:outline-none"
                           />
                         }
                       >
@@ -276,11 +231,11 @@ const AppTopBar = () => {
                         />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-36">
-                        {planViewOptions.map((view) => (
+                        {planViews.map((view) => (
                           <DropdownMenuItem
                             key={view}
                             onSelect={() => {
-                              const nextUrl = buildScheduleViewUrl(
+                              const nextUrl = buildPlanViewUrl(
                                 pathname,
                                 new URLSearchParams(window.location.search),
                                 view
@@ -299,7 +254,7 @@ const AppTopBar = () => {
                               });
                             }}
                           >
-                            <span>{getTopBarViewLabel(view)}</span>
+                            <span>{getPlanViewLabel(view)}</span>
                             {planView === view ? (
                               <Check className="ml-auto size-4" aria-hidden />
                             ) : null}
@@ -321,7 +276,7 @@ const AppTopBar = () => {
 const AppTopBarFallback = ({ pathname }: { pathname: string }) => {
   const isPersonDetail = /^\/people\/[^/]+/u.test(pathname);
   const isAdminUserDetail = /^\/admin\/users\/[^/]+/u.test(pathname);
-  const pageLabel = getTopLevelPageLabel(pathname);
+  const pageLabel = getAppSectionLabel(getAppSection(pathname));
 
   return (
     <div className="flex w-full min-w-0 items-center gap-2 sm:gap-3">
@@ -400,100 +355,28 @@ const AccountSwitcher = ({
     </>
   ) : null;
 
-const signOutSession = async () => {
-  const result = await authClient.signOut();
-  if (result.error) {
-    throw new Error(result.error.message ?? "Unable to sign out");
-  }
-};
-
-const exitDemoSession = async () => {
-  await orpc.demo.exit({});
-};
-
-const signOutLabel = (demo: boolean, pending: boolean): string => {
-  if (demo) {
-    return pending ? "Leaving demo…" : "Exit demo";
-  }
-  return pending ? "Signing out…" : "Sign out";
-};
-
 const SidebarAccountPanel = ({
   onOpenShortcuts,
 }: {
   onOpenShortcuts: () => void;
 }) => {
-  const router = useRouter();
-  const queryClient = useQueryClient();
   const { setTheme, theme } = useTheme();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-  const accountsQuery = useQuery({
-    queryKey: queryKeys.accounts(),
-    queryFn: fetchAccounts,
-  });
-  const data = accountsQuery.data ?? null;
-  const loading = accountsQuery.isPending;
-  const [cachedPanel] = useBrowserStorage(ACCOUNT_PANEL_CACHE_KEY);
-  const cachedSummary = parseCachedAccountPanel(cachedPanel);
-  const [switchingAccountId, setSwitchingAccountId] = useState<string | null>(
-    null
-  );
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const [actionError, setActionError] = useState("");
-  const panelError = actionError || (accountsQuery.error?.message ?? "");
-  const demo = data?.demo === true;
-  const liveSummary = summarizeAccountPanel(data);
-  const triggerSummary = data ? liveSummary : (cachedSummary ?? liveSummary);
-
-  const handleSelectAccount = async (accountId: string) => {
-    if (switchingAccountId !== null || isSigningOut) {
-      return;
-    }
-    setActionError("");
-    setSwitchingAccountId(accountId);
-    try {
-      await orpc.accounts.select({ accountId });
-      clearAccountScopedCaches();
-      await accountsQuery.refetch();
-      await queryClient.invalidateQueries();
-      router.refresh();
+  const {
+    data,
+    loading,
+    demo,
+    summary: triggerSummary,
+    panelError,
+    switchingAccountId,
+    isSigningOut,
+    selectAccount,
+    signOut,
+  } = useAccountPanel({
+    onAccountSwitched: () => {
       setAccountMenuOpen(false);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to switch organization";
-      setActionError(message);
-    }
-    setSwitchingAccountId(null);
-  };
-
-  const handleSignOut = async () => {
-    if (isSigningOut || switchingAccountId !== null) {
-      return;
-    }
-    setActionError("");
-    setIsSigningOut(true);
-    try {
-      await (demo ? exitDemoSession() : signOutSession());
-      queryClient.clear();
-      clearAccountScopedCaches();
-      if (demo) {
-        // The home page is the marketing site, outside this app's router.
-        window.location.assign("/");
-        return;
-      }
-      startTransition(() => {
-        router.replace("/auth");
-        router.refresh();
-      });
-    } catch (error) {
-      setActionError(
-        error instanceof Error ? error.message : "Unable to sign out"
-      );
-    }
-    setIsSigningOut(false);
-  };
+    },
+  });
 
   return (
     <SidebarMenu>
@@ -547,7 +430,7 @@ const SidebarAccountPanel = ({
                 loading={loading}
                 switchingAccountId={switchingAccountId}
                 isSigningOut={isSigningOut}
-                onSelectAccount={handleSelectAccount}
+                onSelectAccount={selectAccount}
               />
             </DropdownMenuGroup>
 
@@ -611,7 +494,7 @@ const SidebarAccountPanel = ({
               variant="destructive"
               disabled={isSigningOut || Boolean(switchingAccountId)}
               onSelect={() => {
-                void handleSignOut();
+                void signOut();
               }}
             >
               {isSigningOut ? (
@@ -638,17 +521,17 @@ const servicesRootItem: SidebarTabGroupItem<ServicesSidebarKey> = {
 const ServicesSidebarMenuItem = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const planPath = parsePlanWorkspacePath(pathname);
+  const planPath = parsePlanRoute(pathname);
   const isPlanWorkspace = Boolean(planPath);
   const activeScheduleView = planPath?.view ?? "assign";
   const viewItem = (
-    key: TopBarView,
+    key: PlanView,
     icon: SidebarTabGroupItem["icon"]
   ): SidebarTabGroupItem<ServicesSidebarKey> => {
-    const href = buildScheduleViewUrl(pathname, searchParams, key);
+    const href = buildPlanViewUrl(pathname, searchParams, key);
     return {
       key,
-      label: getTopBarViewLabel(key),
+      label: getPlanViewLabel(key),
       href,
       icon,
       handleNavigate: (event) => {
@@ -689,8 +572,7 @@ const ServicesSidebarMenuItemFallback = () => (
   </SidebarMenuButton>
 );
 
-const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
-  const pathname = usePathname();
+const useNavFeatures = (peoplePageEnabled: boolean) => {
   const [cachedPeopleFeature] = useBrowserStorage(PEOPLE_PAGE_NAV_CACHE_KEY);
   const peopleFeatureQuery = useQuery({
     queryKey: queryKeys.peopleFeature(),
@@ -700,11 +582,23 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
     queryKey: queryKeys.adminFeature(),
     queryFn: fetchAdminNavFeature,
   });
-  const peopleNavEnabled =
-    peopleFeatureQuery.data?.enabled ??
-    parsePeoplePageNavState(cachedPeopleFeature)?.enabled ??
-    peoplePageEnabled;
-  const adminNavEnabled = adminFeatureQuery.data?.enabled ?? false;
+  return {
+    peopleNavEnabled:
+      peopleFeatureQuery.data?.enabled ??
+      parsePeoplePageNavState(cachedPeopleFeature)?.enabled ??
+      peoplePageEnabled,
+    adminNavEnabled: adminFeatureQuery.data?.enabled ?? false,
+  };
+};
+
+const AppSidebar = ({
+  peopleNavEnabled,
+  adminNavEnabled,
+}: {
+  peopleNavEnabled: boolean;
+  adminNavEnabled: boolean;
+}) => {
+  const pathname = usePathname();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   useHotkey(
@@ -814,10 +708,7 @@ const AppSidebar = ({ peoplePageEnabled }: { peoplePageEnabled: boolean }) => {
 
 /** Visitors on a demo link need to know why nothing they change sticks. */
 const DemoBadge = () => {
-  const { data } = useQuery({
-    queryKey: queryKeys.accounts(),
-    queryFn: fetchAccounts,
-  });
+  const { data } = useAccountsQuery();
   if (data?.demo !== true) {
     return null;
   }
@@ -831,6 +722,53 @@ const DemoBadge = () => {
     >
       Read-only demo
     </HoverLabel>
+  );
+};
+
+const PresentationModeBadge = () => (
+  <span className="bg-status-scheduled/10 text-status-scheduled ml-auto shrink-0 rounded-md px-2 py-1 text-xs font-medium">
+    <span className="md:hidden">Presenting</span>
+    <span className="max-md:hidden">Presentation mode</span>
+  </span>
+);
+
+/**
+ * Phone header for sections and detail pages. Plan workspaces render their own
+ * header with the plan title, so this stays out of the way there.
+ */
+const MobileChromeHeader = ({
+  presentationMode,
+}: {
+  presentationMode: boolean;
+}) => {
+  const pathname = usePathname();
+  if (parsePlanRoute(pathname)) {
+    return null;
+  }
+  const detail = parseDetailRoute(pathname);
+
+  return (
+    <header className="flex h-12 shrink-0 items-center gap-2 px-2 md:hidden">
+      {detail ? (
+        <Link
+          href={detail.parentHref}
+          className={buttonVariants({
+            variant: "ghost",
+            size: "lg",
+            className: "-ml-2 gap-0.5 pl-1.5 text-base",
+          })}
+        >
+          <ChevronLeft className="size-5" aria-hidden />
+          {detail.parentLabel}
+        </Link>
+      ) : (
+        <p className="px-2 text-lg font-semibold tracking-tight">
+          {getAppSectionLabel(getAppSection(pathname))}
+        </p>
+      )}
+      <DemoBadge />
+      {presentationMode ? <PresentationModeBadge /> : null}
+    </header>
   );
 };
 
@@ -850,6 +788,8 @@ export const AppShell = ({
     SIDEBAR_OPEN_STORAGE_KEY
   );
   const sidebarOpen = storedOpen !== "false";
+  const { peopleNavEnabled, adminNavEnabled } =
+    useNavFeatures(peoplePageEnabled);
 
   const handleSidebarOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -866,10 +806,13 @@ export const AppShell = ({
     <SidebarProvider
       open={sidebarOpen}
       onOpenChange={handleSidebarOpenChange}
-      className="h-svh min-h-0 overflow-hidden"
+      className="h-dvh min-h-0 overflow-hidden"
     >
       <SidebarToggleHotkey />
-      <AppSidebar peoplePageEnabled={peoplePageEnabled} />
+      <AppSidebar
+        peopleNavEnabled={peopleNavEnabled}
+        adminNavEnabled={adminNavEnabled}
+      />
       <SidebarInset className="min-h-0 overflow-hidden">
         <AppInsetChromeHeader>
           <SidebarChromeTrigger when="inset" />
@@ -877,13 +820,16 @@ export const AppShell = ({
             <AppTopBar />
           </Suspense>
           <DemoBadge />
-          {presentationMode ? (
-            <span className="bg-status-scheduled/10 text-status-scheduled ml-auto shrink-0 rounded-md px-2 py-1 text-xs font-medium">
-              Presentation mode
-            </span>
-          ) : null}
+          {presentationMode ? <PresentationModeBadge /> : null}
         </AppInsetChromeHeader>
+        <MobileChromeHeader presentationMode={presentationMode} />
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+        <Suspense fallback={null}>
+          <MobileTabBar
+            peopleEnabled={peopleNavEnabled}
+            adminEnabled={adminNavEnabled}
+          />
+        </Suspense>
       </SidebarInset>
     </SidebarProvider>
   );

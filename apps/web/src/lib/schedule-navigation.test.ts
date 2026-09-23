@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildPlanWorkspaceUrl,
-  parsePlanWorkspacePath,
   updatePlanWorkspaceUrl,
 } from "@/lib/schedule-navigation";
 
@@ -18,24 +17,6 @@ describe("schedule navigation", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
-  });
-
-  describe(parsePlanWorkspacePath, () => {
-    it("reads the service type, plan, and view", () => {
-      expect(
-        parsePlanWorkspacePath("/services/78/plans/90/lineup")
-      ).toStrictEqual({
-        serviceTypeId: "78",
-        planId: "90",
-        view: "lineup",
-      });
-    });
-
-    it("rejects unknown views and other pages", () => {
-      expect(parsePlanWorkspacePath("/services/78/plans/90/nope")).toBeNull();
-      expect(parsePlanWorkspacePath("/services")).toBeNull();
-      expect(parsePlanWorkspacePath("/people/12")).toBeNull();
-    });
   });
 
   describe(buildPlanWorkspaceUrl, () => {

@@ -1,5 +1,7 @@
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 
+import { parsePlanRoute } from "@/lib/app-routes";
+
 interface RouteSelectionIds {
   teamId: string | null;
   positionId: string | null;
@@ -70,26 +72,6 @@ export const buildPlanWorkspaceUrl = (
     positionId: null,
   });
 
-export const isDashboardView = (view: string): view is DashboardView =>
-  view === "assign" || view === "lineup" || view === "plan" || view === "times";
-
-const PLAN_WORKSPACE_PATH =
-  /^\/services\/(?<serviceTypeId>[^/]+)\/plans\/(?<planId>[^/]+)\/(?<view>[^/]+)$/u;
-
-export const parsePlanWorkspacePath = (
-  pathname: string
-): { serviceTypeId: string; planId: string; view: DashboardView } | null => {
-  const groups = PLAN_WORKSPACE_PATH.exec(pathname)?.groups;
-  if (!groups || !isDashboardView(groups.view)) {
-    return null;
-  }
-  return {
-    serviceTypeId: groups.serviceTypeId,
-    planId: groups.planId,
-    view: groups.view,
-  };
-};
-
 /**
  * Moves between views and slots of the plan already on screen without a server
  * round trip. Every view renders from the client query cache, and History API
@@ -101,8 +83,8 @@ export const updatePlanWorkspaceUrl = (
   nextUrl: string,
   method: "push" | "replace"
 ): boolean => {
-  const current = parsePlanWorkspacePath(currentPathname);
-  const next = parsePlanWorkspacePath(nextUrl.split("?")[0] ?? "");
+  const current = parsePlanRoute(currentPathname);
+  const next = parsePlanRoute(nextUrl.split("?")[0] ?? "");
   if (
     !current ||
     !next ||
