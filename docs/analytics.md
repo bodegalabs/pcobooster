@@ -12,7 +12,7 @@ Reporting uses America/Los_Angeles. Dashboards are saved ahead of deployment and
 
 ## Collection
 
-The shared `@pcobooster/analytics` package owns configuration and the outbound event allowlist. Both Next.js apps initialize through `instrumentation-client.ts`. The product waits for a successful account response before initializing or identifying, which excludes read-only demo sessions. The anonymous marketing ID carries across the shared origin and merges into the application's user ID on authenticated use. Names, emails, organization names, and Planning Center people are not identified.
+The shared `@pcobooster/analytics` package owns configuration and the outbound event allowlist. Both Next.js apps initialize through `instrumentation-client.ts`. The product waits for a successful account response before initializing or identifying, which excludes read-only demo sessions. The anonymous marketing ID carries across the shared origin and merges into the application's user ID on authenticated use. The browser never sends names, emails, or organization names; the server sets them on the person profile (see below). Planning Center people are never identified.
 
 | Event | Meaning | Additional properties |
 | --- | --- | --- |
@@ -28,11 +28,26 @@ Tracked writes: schedule assign/remove/status; plan-item create/update/delete/re
 
 Active users are distinct authenticated application users with pageviews. Marketing visitors are browser/cookie identities. `app opened` is not a signup event. The marketing funnel includes returning signed-in users; the sign-in funnel measures started sign-in to app access, not new registrations. Do Not Track, ad blockers, and failed network delivery can reduce counts.
 
+### Server activity and person profiles
+
+The API mirrors every `activity_events` audit row to PostHog, keyed by the same Better Auth user ID the browser identifies with, so one PostHog person shows both browser usage and server-side auth and scheduling activity. Delivery is best effort: the database row is written first and remains the full audit log, and a PostHog failure is logged without affecting sign-in or writes. Only Vercel Production (`VERCEL_ENV=production`) with `NEXT_PUBLIC_POSTHOG_KEY` forwards events.
+
+| Event | Source row | Properties |
+| --- | --- | --- |
+| `signed in` | `auth_session_created` | `$set`: `email`, `name`, `organization_id`, `organization_name` |
+| `signed out` | `auth_session_deleted` | None |
+| `planning center account linked` | `auth_account_linked` | `organization_id` |
+| `schedule assign attempted` | `schedule_attempt` | `success`, `status_code`, `error_code`, `service_type_id`, `plan_id`, `team_id`, `position_id`, `one_off` |
+| `schedule status changed` | `schedule_status_change` | Same as above plus `schedule_status` |
+| `schedule person removed` | `schedule_remove` | Same as assign |
+
+Every server event also carries `source: server`, `success`, and `status_code`. IP addresses, user agents, and Planning Center person IDs stay in the database only. Person profiles pick up email, name, and church on each new sign-in, so accounts that have not signed in since this shipped remain unlabeled until they do.
+
 ## Privacy and cost boundaries
 
 - No marketing, auth, or demo recordings. No heatmaps, automatic click/form capture, rage clicks, console logs, surveys, web experiments, web-vitals capture, or automatic exception capture.
 - PostHog feature flag evaluation is disabled; no Vercel flag configuration changes. The web app fetches PostHog remote configuration and the recorder asset for replay; marketing disables both external dependency loading and remote configuration.
-- Analytics event names and property keys are allowlisted. Replay snapshots are separately accepted only on authenticated product routes; rrweb masks their contents before transmission. Both ordinary event properties and the SDK's top-level person `$set`/`$set_once` fields are scrubbed.
+- Analytics event names and property keys are allowlisted. Replay snapshots are separately accepted only on authenticated product routes; rrweb masks their contents before transmission. Both ordinary event properties and the SDK's top-level person `$set`/`$set_once` fields are scrubbed in the browser; only the server sets identifying person properties.
 - URLs lose queries/fragments; external referrers retain only their origin. Product URLs use route placeholders for plan, service-type, and person IDs. Unknown and private routes become `/other`; demo-entry events are rejected entirely.
 - Campaign attribution retains `utm_source`, `utm_medium`, and `utm_campaign`. Do not put personal information in campaign labels.
 - The SDK honors Do Not Track. Sign-out stops recording before resetting analytics identity. Analytics errors never block app operations.
