@@ -159,11 +159,44 @@ const EVENTS = new Set([
   "workflow failed",
 ]);
 
+export const canRecordSession = (
+  pathname: string,
+  authenticated: boolean
+): boolean =>
+  authenticated &&
+  (pathname === "/services" ||
+    pathname === "/people" ||
+    PLAN_PATH.test(pathname) ||
+    PERSON_PATH.test(pathname));
+
 export const prepareAnalyticsEvent = (
   event: CaptureResult | null,
   pathname: string,
   authenticated: boolean
 ): CaptureResult | null => {
+  if (event?.event === "$snapshot") {
+    if (!canRecordSession(pathname, authenticated)) {
+      return null;
+    }
+    const snapshots = z
+      .array(z.unknown())
+      .safeParse(event.properties.$snapshot_data);
+    if (!snapshots.success) {
+      return null;
+    }
+    return {
+      uuid: event.uuid,
+      event: event.event,
+      timestamp: event.timestamp,
+      properties: {
+        ...sanitizeAnalyticsProperties(event.properties),
+        // rrweb masks DOM content before producing these replay frames.
+        $snapshot_data: snapshots.data,
+        $snapshot_bytes: z.number().safeParse(event.properties.$snapshot_bytes)
+          .data,
+      },
+    };
+  }
   if (
     event === null ||
     !EVENTS.has(event.event) ||

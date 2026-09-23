@@ -5,8 +5,10 @@ import { z } from "zod";
 import {
   analyticsUrl,
   canInitializeAnalytics,
+  canRecordSession,
   prepareAnalyticsEvent,
 } from "./privacy";
+import { replayOptions } from "./replay";
 
 type AnalyticsEvent =
   | "marketing cta clicked"
@@ -18,12 +20,26 @@ type AnalyticsEvent =
 let initialized = false;
 let currentUserId: string | undefined;
 
-const beforeSend = (event: CaptureResult | null): CaptureResult | null =>
-  prepareAnalyticsEvent(
+const syncSessionRecording = (): void => {
+  if (canRecordSession(window.location.pathname, currentUserId !== undefined)) {
+    // Respect the project's sampling and minimum-duration controls.
+    posthog.startSessionRecording();
+  } else {
+    posthog.stopSessionRecording();
+  }
+};
+
+const beforeSend = (event: CaptureResult | null): CaptureResult | null => {
+  if (initialized && event?.event === "$pageview") {
+    // Also stop capture on same-document navigation outside product routes.
+    syncSessionRecording();
+  }
+  return prepareAnalyticsEvent(
     event,
     window.location.pathname,
     currentUserId !== undefined
   );
+};
 
 export const captureAnalytics = (
   event: AnalyticsEvent,
@@ -60,6 +76,9 @@ export const initializeAnalytics = (
     return;
   }
   try {
+    const productDocument =
+      window.location.pathname === "/auth" ||
+      canRecordSession(window.location.pathname, true);
     currentUserId = userId;
     if (!initialized) {
       posthog.init(key, {
@@ -71,17 +90,19 @@ export const initializeAnalytics = (
         capture_pageview: "history_change",
         capture_pageleave: true,
         disable_session_recording: true,
+        session_recording: replayOptions,
         disable_surveys: true,
         disable_conversations: true,
         disable_product_tours: true,
         disable_web_experiments: true,
-        disable_external_dependency_loading: true,
+        disable_external_dependency_loading: !productDocument,
         capture_heatmaps: false,
         capture_dead_clicks: false,
         capture_exceptions: false,
         capture_performance: false,
         rageclick: false,
-        advanced_disable_flags: true,
+        // Replay needs remote configuration; feature flag evaluation stays disabled.
+        advanced_disable_flags: !productDocument,
         advanced_disable_feature_flags: true,
         enable_recording_console_log: false,
         respect_dnt: true,
@@ -115,6 +136,7 @@ export const initializeAnalytics = (
       posthog.identify(userId);
       captureAnalytics("app opened");
     }
+    syncSessionRecording();
   } catch {
     // SDK or browser-storage failures must not affect the product.
   }
@@ -124,6 +146,7 @@ export const resetAnalytics = (): void => {
   currentUserId = undefined;
   if (initialized) {
     try {
+      posthog.stopSessionRecording();
       posthog.reset();
     } catch {
       // Sign-out must work even when browser storage is unavailable.

@@ -4,11 +4,44 @@ import {
   analyticsPath,
   analyticsUrl,
   canInitializeAnalytics,
+  canRecordSession,
   prepareAnalyticsEvent,
   sanitizeAnalyticsProperties,
 } from "./privacy";
 
 describe("analytics privacy boundary", () => {
+  it("permits already-masked replay frames only on authenticated product routes", () => {
+    const event = {
+      uuid: "replay-event",
+      event: "$snapshot",
+      properties: {
+        $snapshot_data: [{ type: 2, data: { masked: true } }],
+        $snapshot_bytes: 100,
+        $session_id: "session",
+        email: "private@example.com",
+      },
+    };
+    for (const pathname of [
+      "/",
+      "/about",
+      "/auth",
+      "/demo/key",
+      "/admin",
+      "/other",
+    ]) {
+      expect(canRecordSession(pathname, true)).toBeFalsy();
+      expect(prepareAnalyticsEvent(event, pathname, true)).toBeNull();
+    }
+    expect(prepareAnalyticsEvent(event, "/services", false)).toBeNull();
+    expect(
+      prepareAnalyticsEvent(event, "/people/123", true)?.properties
+    ).toStrictEqual({
+      $snapshot_data: event.properties.$snapshot_data,
+      $snapshot_bytes: 100,
+      $session_id: "session",
+    });
+  });
+
   it("sanitizes SDK top-level person attribution on identify", () => {
     const event = prepareAnalyticsEvent(
       {
