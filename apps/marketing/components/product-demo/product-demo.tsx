@@ -1,13 +1,11 @@
 "use client";
 
-import {
-  Calendar04Icon,
-  Layout3ColumnIcon,
-  ListMusicIcon,
-  Moon02Icon,
-  Sun01Icon,
-  UserAdd01Icon,
-} from "@hugeicons/core-free-icons";
+import Calendar04Icon from "@hugeicons/core-free-icons/Calendar04Icon";
+import Layout3ColumnIcon from "@hugeicons/core-free-icons/Layout3ColumnIcon";
+import ListMusicIcon from "@hugeicons/core-free-icons/ListMusicIcon";
+import Moon02Icon from "@hugeicons/core-free-icons/Moon02Icon";
+import Sun01Icon from "@hugeicons/core-free-icons/Sun01Icon";
+import UserAdd01Icon from "@hugeicons/core-free-icons/UserAdd01Icon";
 import type { IconSvgElement } from "@hugeicons/react";
 import { ChevronRight, RotateCcw } from "lucide-react";
 import { useState } from "react";

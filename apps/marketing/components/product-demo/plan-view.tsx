@@ -1,6 +1,7 @@
 "use client";
 
-import { Clock01Icon, MusicNote01Icon } from "@hugeicons/core-free-icons";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import MusicNote01Icon from "@hugeicons/core-free-icons/MusicNote01Icon";
 
 import { DemoIcon } from "./demo-parts";
 import { planItems } from "./fixtures";

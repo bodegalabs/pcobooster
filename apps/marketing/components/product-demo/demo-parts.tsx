@@ -1,16 +1,16 @@
 "use client";
 
-import {
-  Camera01Icon,
-  Coffee01Icon,
-  DrumIcon,
-  GuitarIcon,
-  HandPrayerIcon,
-  LiveStreaming01Icon,
-  MicVocalIcon,
-  MusicNote01Icon,
-  Speaker01Icon,
-} from "@hugeicons/core-free-icons";
+// Per-icon imports: the package barrel references Grid*x* files whose on-disk
+// names are Grid*X*, which breaks webpack on case-sensitive filesystems.
+import Camera01Icon from "@hugeicons/core-free-icons/Camera01Icon";
+import Coffee01Icon from "@hugeicons/core-free-icons/Coffee01Icon";
+import DrumIcon from "@hugeicons/core-free-icons/DrumIcon";
+import GuitarIcon from "@hugeicons/core-free-icons/GuitarIcon";
+import HandPrayerIcon from "@hugeicons/core-free-icons/HandPrayerIcon";
+import LiveStreaming01Icon from "@hugeicons/core-free-icons/LiveStreaming01Icon";
+import MicVocalIcon from "@hugeicons/core-free-icons/MicVocalIcon";
+import MusicNote01Icon from "@hugeicons/core-free-icons/MusicNote01Icon";
+import Speaker01Icon from "@hugeicons/core-free-icons/Speaker01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
 import { KeyboardMusic } from "lucide-react";
