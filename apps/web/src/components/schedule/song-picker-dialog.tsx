@@ -18,7 +18,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { ItemSeparator } from "@/components/ui/item";
+import { LoadingBar } from "@/components/ui/loading-bar";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
@@ -105,29 +105,26 @@ export const SongPickerDialog = ({
               value={query}
               onValueChange={setQuery}
             />
+            <LoadingBar active={showRefreshing} className="-mt-0.5" />
             <CommandList className="max-h-[420px]">
               {showInitialLoading ? (
                 <div className="space-y-2 p-3">
                   {Array.from({ length: 6 }).map((_, index) => (
-                    <Skeleton key={index} className="h-20 w-full" />
+                    <Skeleton
+                      key={index}
+                      variant="control"
+                      className="h-20 w-full"
+                    />
                   ))}
                 </div>
               ) : null}
               {showResults && !showInitialLoading ? (
                 <>
                   <CommandEmpty>No songs matched that search.</CommandEmpty>
-                  {showRefreshing ? (
-                    <>
-                      <ItemSeparator className="my-0" />
-                      <div
-                        className="text-muted-foreground px-3 py-2 text-xs"
-                        aria-live="polite"
-                      >
-                        Searching…
-                      </div>
-                    </>
-                  ) : null}
-                  <div className="space-y-2 p-3">
+                  <div
+                    className="stale-while-busy space-y-2 p-3"
+                    aria-busy={showRefreshing}
+                  >
                     {songs.map((song) => {
                       const lastScheduledLabel = formatLastScheduled(
                         song.lastScheduledAt

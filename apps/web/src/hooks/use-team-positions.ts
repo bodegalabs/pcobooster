@@ -50,6 +50,5 @@ export const useTeamPositions = (
     ...createTeamPositionsQueryOptions(serviceTypeId, planId, seriesId),
     queryKey,
     enabled: isNonEmptyString(serviceTypeId) && isNonEmptyString(planId),
-    placeholderData: (previousGroups) => previousGroups,
   });
 };

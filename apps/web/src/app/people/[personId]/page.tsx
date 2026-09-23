@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { PersonDetailPage } from "@/components/people/person-detail-page";
-import { Skeleton } from "@/components/ui/skeleton";
+import {
+  PersonDetailPage,
+  PersonDetailPageSkeleton,
+} from "@/components/people/person-detail-page";
 import { isPeoplePageEnabled } from "@/people-page-availability";
 
 const PersonRoute = async ({
@@ -16,14 +18,7 @@ const PersonRoute = async ({
 
   const { personId } = await params;
   return (
-    <Suspense
-      fallback={
-        <output className="flex flex-col gap-4 p-6" aria-label="Loading person">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-64 w-full" />
-        </output>
-      }
-    >
+    <Suspense fallback={<PersonDetailPageSkeleton />}>
       <PersonDetailPage personId={personId} />
     </Suspense>
   );

@@ -13,11 +13,13 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Item } from "@/components/ui/item";
+import { LoadingBar } from "@/components/ui/loading-bar";
 import {
   ResponsivePopover,
   ResponsivePopoverContent,
   ResponsivePopoverTrigger,
 } from "@/components/ui/responsive-popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import { usePeopleSearch } from "@/hooks/use-people-search";
 import type { PeopleSearchResult } from "@/hooks/use-people-search";
 import { useSchedulePlanPerson } from "@/hooks/use-schedule-plan-person";
@@ -151,9 +153,17 @@ const SomeoneElseSearchContent = ({
     );
   } else if (showLoading) {
     searchContent = (
-      <div className="text-muted-foreground flex items-center gap-2 px-3 py-2.5 text-sm">
-        <Loader2 className="size-4 animate-spin" />
-        Searching
+      <div
+        className="flex flex-col p-1"
+        aria-busy
+        aria-label="Searching people"
+      >
+        {["8rem", "6rem", "9rem"].map((width) => (
+          <div key={width} className="flex items-center gap-2.5 px-2 py-1.5">
+            <Skeleton variant="round" className="size-6 shrink-0" />
+            <Skeleton variant="text" className="h-3.5" width={width} />
+          </div>
+        ))}
       </div>
     );
   } else if (isError) {
@@ -165,15 +175,6 @@ const SomeoneElseSearchContent = ({
   } else {
     searchContent = (
       <CommandGroup>
-        {showRefreshing ? (
-          <div
-            className="text-muted-foreground flex items-center gap-2 px-2 py-1.5 text-xs"
-            aria-live="polite"
-          >
-            <Loader2 className="size-3 animate-spin" />
-            Searching
-          </div>
-        ) : null}
         {results.map((person) => (
           <SomeoneElseResultRow
             key={person.id}
@@ -202,6 +203,7 @@ const SomeoneElseSearchContent = ({
         onValueChange={onQueryChange}
         placeholder="Search people"
       />
+      <LoadingBar active={showRefreshing} className="-mt-0.5" />
       <CommandList className="max-h-72">{searchContent}</CommandList>
     </Command>
   );

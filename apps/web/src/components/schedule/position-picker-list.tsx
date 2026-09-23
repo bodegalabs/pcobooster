@@ -5,6 +5,7 @@ import { CalendarDays } from "lucide-react";
 import { Fragment } from "react";
 import type { ReactNode } from "react";
 
+import { PositionPickerSkeleton } from "@/components/schedule/schedule-skeletons";
 import { TeamSlotsCollapsible } from "@/components/schedule/team-slots-collapsible";
 import type { SlotRef } from "@/components/schedule/types";
 import {
@@ -15,14 +16,12 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SidebarMenuSkeleton, SidebarSeparator } from "@/components/ui/sidebar";
+import { SidebarSeparator } from "@/components/ui/sidebar";
+import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { cn } from "@/lib/utils";
-
-const skeletonWidths = ["78%", "66%", "84%", "58%", "72%", "62%", "88%", "70%"];
 
 export const PositionPickerList = ({
   teamPositionsLoading,
-  teamPositionsPlaceholder,
   teamPositionGroups,
   collapsedTeams,
   selectedTeam,
@@ -36,7 +35,6 @@ export const PositionPickerList = ({
   /** Pad the end so the last rows scroll clear of the floating phone tab bar. */
   clearTabBar?: boolean;
   teamPositionsLoading: boolean;
-  teamPositionsPlaceholder: boolean;
   teamPositionGroups: TeamPositionGroup[] | undefined;
   collapsedTeams: Record<string, boolean>;
   selectedTeam: string | null;
@@ -49,11 +47,10 @@ export const PositionPickerList = ({
     positionName: string
   ) => SlotRef | null;
 }) => {
+  const revealClassName = useRevealOnLoad(teamPositionsLoading);
   let body: ReactNode;
   if (teamPositionsLoading) {
-    body = skeletonWidths.map((width) => (
-      <SidebarMenuSkeleton key={width} width={width} />
-    ));
+    body = <PositionPickerSkeleton />;
   } else if (
     teamPositionGroups === undefined ||
     teamPositionGroups.length === 0
@@ -73,36 +70,22 @@ export const PositionPickerList = ({
     );
   } else {
     body = (
-      <div aria-busy={teamPositionsPlaceholder}>
-        {teamPositionsPlaceholder ? (
-          <>
-            <div className="bg-sidebar/95 text-sidebar-foreground/70 sticky top-0 z-10 px-3 py-1.5 text-xs font-medium backdrop-blur">
-              Loading selected plan...
-            </div>
-            <SidebarSeparator className="my-0" />
-          </>
-        ) : null}
-        <div
-          className={cn(
-            teamPositionsPlaceholder && "pointer-events-none opacity-60"
-          )}
-        >
-          {teamPositionGroups.map((group, index) => (
-            <Fragment key={group.teamId}>
-              {index > 0 ? <SidebarSeparator className="my-0" /> : null}
-              <TeamSlotsCollapsible
-                group={group}
-                isCollapsed={collapsedTeams[group.teamId]}
-                selectedTeam={selectedTeam}
-                selectedPosition={selectedPosition}
-                onToggle={onToggleTeam}
-                onSelect={onSelect}
-                onPreview={onPreviewSlot}
-                onAddPosition={onAddPosition}
-              />
-            </Fragment>
-          ))}
-        </div>
+      <div className={revealClassName}>
+        {teamPositionGroups.map((group, index) => (
+          <Fragment key={group.teamId}>
+            {index > 0 ? <SidebarSeparator className="my-0" /> : null}
+            <TeamSlotsCollapsible
+              group={group}
+              isCollapsed={collapsedTeams[group.teamId]}
+              selectedTeam={selectedTeam}
+              selectedPosition={selectedPosition}
+              onToggle={onToggleTeam}
+              onSelect={onSelect}
+              onPreview={onPreviewSlot}
+              onAddPosition={onAddPosition}
+            />
+          </Fragment>
+        ))}
       </div>
     );
   }

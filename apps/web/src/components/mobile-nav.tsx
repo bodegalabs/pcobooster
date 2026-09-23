@@ -45,6 +45,7 @@ import {
   planViews,
 } from "@/lib/app-routes";
 import { getInitials } from "@/lib/format/initials";
+import { updatePlanWorkspaceUrl } from "@/lib/schedule-navigation";
 import { cn } from "@/lib/utils";
 
 const planViewIcons: Record<PlanView, IconSvgElement> = {
@@ -66,17 +67,26 @@ const TabLink = ({
   label,
   active,
   replace = false,
+  handleNavigate,
 }: {
   href: string;
   icon: IconSvgElement;
   label: string;
   active: boolean;
   replace?: boolean;
+  handleNavigate?: (event: { preventDefault: () => void }) => void;
 }) => (
   <TabBarItem
     active={active}
     aria-current={active ? "page" : undefined}
-    render={<Link href={href} replace={replace} scroll={false} />}
+    render={
+      <Link
+        href={href}
+        replace={replace}
+        scroll={false}
+        onNavigate={handleNavigate}
+      />
+    }
   >
     <SidebarNavIcon icon={icon} />
     <span className="max-w-full truncate">{label}</span>
@@ -271,16 +281,24 @@ const PlanTabBar = ({ view }: { view: PlanView }) => {
       tabCount={planViews.length}
       activeIndex={planViews.indexOf(view)}
     >
-      {planViews.map((planView) => (
-        <TabLink
-          key={planView}
-          href={buildPlanViewUrl(pathname, searchParams, planView)}
-          icon={planViewIcons[planView]}
-          label={getPlanViewLabel(planView)}
-          active={planView === view}
-          replace
-        />
-      ))}
+      {planViews.map((planView) => {
+        const href = buildPlanViewUrl(pathname, searchParams, planView);
+        return (
+          <TabLink
+            key={planView}
+            href={href}
+            icon={planViewIcons[planView]}
+            label={getPlanViewLabel(planView)}
+            active={planView === view}
+            replace
+            handleNavigate={(event) => {
+              if (updatePlanWorkspaceUrl(pathname, href, "replace")) {
+                event.preventDefault();
+              }
+            }}
+          />
+        );
+      })}
     </TabBar>
   );
 };

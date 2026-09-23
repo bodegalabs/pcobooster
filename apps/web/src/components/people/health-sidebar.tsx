@@ -9,6 +9,10 @@ import { Medal, ShieldAlert } from "lucide-react";
 import type { CalendarCell } from "@/components/people/calendar";
 import { HealthRhythm } from "@/components/people/health-rhythm";
 import {
+  PersonLineSkeleton,
+  PersonLineSkeletonList,
+} from "@/components/people/people-skeletons";
+import {
   PersonAvatar,
   PersonRowButton,
 } from "@/components/people/shared-components";
@@ -51,8 +55,11 @@ export const HealthSidebar = ({
           MVP of the month
         </CardTitle>
         <CardDescription>
-          {mvp?.highlight ??
-            (isLoading ? "Loading current roster..." : "No people loaded yet.")}
+          {isLoading && !mvp ? (
+            <Skeleton variant="text" className="mt-0.5 h-3.5 w-48" />
+          ) : (
+            (mvp?.highlight ?? "No people loaded yet.")
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -74,9 +81,12 @@ export const HealthSidebar = ({
             </span>
             <Badge variant="secondary">{mvp.monthCount}</Badge>
           </PersonRowButton>
-        ) : (
-          <Skeleton className="h-12 w-full" />
-        )}
+        ) : null}
+        {!mvp && isLoading ? (
+          <div className="border-border/40 flex items-center gap-3 rounded-md border px-1 py-0.5">
+            <PersonLineSkeleton index={0} />
+          </div>
+        ) : null}
       </CardContent>
     </Card>
 
@@ -91,6 +101,9 @@ export const HealthSidebar = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {isLoading ? (
+          <PersonLineSkeletonList rows={3} showAvatar={false} />
+        ) : null}
         {[...needsRest, ...underused].length === 0 && !isLoading ? (
           <p className="text-muted-foreground px-2 py-1.5 text-sm">
             No attention items in this sample.

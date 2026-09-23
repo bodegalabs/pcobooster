@@ -7,6 +7,8 @@ import { z } from "zod";
 export interface ServicePlanTableSelectorProps {
   selectedServiceTypeId: string | null;
   selectedPlanId: string | null;
+  /** True while the selected plan's route is loading. */
+  isNavigating?: boolean;
   onSelect: (selection: { serviceTypeId: string; planId: string }) => void;
 }
 

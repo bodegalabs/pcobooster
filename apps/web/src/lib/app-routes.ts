@@ -17,7 +17,7 @@ const planViewLabels: Record<PlanView, string> = {
 export const getPlanViewLabel = (view: PlanView): string =>
   planViewLabels[view];
 
-const isPlanView = (value: string): value is PlanView =>
+export const isPlanView = (value: string): value is PlanView =>
   planViews.some((view) => view === value);
 
 export interface PlanRoute {

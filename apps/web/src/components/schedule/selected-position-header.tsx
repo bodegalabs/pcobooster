@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/input-group";
 import { Item } from "@/components/ui/item";
 import { MiddleTruncate } from "@/components/ui/middle-truncate";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export const SelectedPositionHeader = ({
@@ -37,6 +38,7 @@ export const SelectedPositionHeader = ({
 }) => {
   const isTemporaryPosition =
     !!info?.position.source && info.position.source !== "team_position";
+  const nameLoading = info === null && teamPositionsLoading;
 
   return (
     <div className="flex shrink-0 flex-col gap-2 px-1 sm:gap-3">
@@ -71,7 +73,11 @@ export const SelectedPositionHeader = ({
                 isTemporaryPosition && "italic"
               )}
             >
-              <MiddleTruncate text={info?.positionName ?? "Position"} />
+              {nameLoading ? (
+                <Skeleton variant="control" className="my-0.5 h-5 w-36" />
+              ) : (
+                <MiddleTruncate text={info?.positionName ?? "Position"} />
+              )}
             </span>
             {info ? (
               <span className="text-muted-foreground truncate text-xs">
@@ -86,14 +92,18 @@ export const SelectedPositionHeader = ({
         </Item>
       </div>
 
-      <p
-        className={cn(
-          "min-w-0 truncate text-2xl leading-tight font-semibold tracking-tight max-lg:hidden",
-          isTemporaryPosition && "italic"
-        )}
-      >
-        {info?.positionName ?? "Position"}
-      </p>
+      {nameLoading ? (
+        <Skeleton variant="control" className="h-7 w-40 max-lg:hidden" />
+      ) : (
+        <p
+          className={cn(
+            "min-w-0 truncate text-2xl leading-tight font-semibold tracking-tight max-lg:hidden",
+            isTemporaryPosition && "italic"
+          )}
+        >
+          {info?.positionName ?? "Position"}
+        </p>
+      )}
 
       <div className="flex items-center gap-3">
         <InputGroup className="w-full flex-1 sm:max-w-sm">

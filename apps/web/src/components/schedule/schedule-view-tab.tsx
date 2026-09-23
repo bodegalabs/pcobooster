@@ -12,6 +12,7 @@ import { PlanPersonStatusMenu } from "@/components/schedule/plan-person-status-m
 import type { PlanPersonStatusValue } from "@/components/schedule/plan-person-status-menu";
 import { PositionPickerList } from "@/components/schedule/position-picker-list";
 import { ScheduleCandidateTile } from "@/components/schedule/schedule-candidate-tile";
+import { CandidateListSkeleton } from "@/components/schedule/schedule-skeletons";
 import { SectionLabel } from "@/components/schedule/section-label";
 import { SelectedPositionHeader } from "@/components/schedule/selected-position-header";
 import { SomeoneElseRow } from "@/components/schedule/someone-else-row";
@@ -32,21 +33,20 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { getInitials } from "@/lib/format/initials";
 import { partitionPeopleForRecommendationStrip } from "@/lib/people/recommendation-strip-order";
+import { cn } from "@/lib/utils";
 
 interface ScheduleViewTabProps {
   teamPositionsLoading: boolean;
-  teamPositionsPlaceholder: boolean;
   teamPositionGroups: TeamPositionGroup[] | undefined;
   collapsedTeams: Record<string, boolean>;
   selectedTeam: string | null;
   selectedPosition: string | null;
   people: PersonWithAvailability[] | undefined;
   peopleLoading: boolean;
-  peoplePlaceholder: boolean;
   selectedServiceTypeId: string | null;
   selectedPlanId: string | null;
   planReferenceDate?: Date | null;
@@ -146,7 +146,6 @@ const TemporaryFilledPersonRow = ({
 interface SchedulePeopleListProps {
   people: PersonWithAvailability[] | undefined;
   peopleLoading: boolean;
-  peoplePlaceholder: boolean;
   selectedSlotUsesCustomPosition: boolean;
   selectedFilledPeople: FilledPositionPerson[];
   filteredActionable: PersonWithAvailability[];
@@ -165,7 +164,6 @@ interface SchedulePeopleListProps {
 const SchedulePeopleList = ({
   people,
   peopleLoading,
-  peoplePlaceholder,
   selectedSlotUsesCustomPosition,
   selectedFilledPeople,
   filteredActionable,
@@ -180,6 +178,7 @@ const SchedulePeopleList = ({
   onScheduleSuccess,
   onScheduleError,
 }: SchedulePeopleListProps) => {
+  const revealClassName = useRevealOnLoad(peopleLoading);
   const personTileKey = (person: PersonWithAvailability) =>
     [
       person.id,
@@ -190,21 +189,7 @@ const SchedulePeopleList = ({
     ].join(":");
 
   if (peopleLoading) {
-    return (
-      <div className="border-border/40 bg-card/30 divide-border/25 divide-y overflow-hidden rounded-2xl border shadow-sm">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="flex items-center gap-3 px-3 py-3">
-            <Skeleton className="size-10 shrink-0" />
-            <div className="flex flex-1 flex-col gap-1.5">
-              <Skeleton className="h-3.5 w-32" />
-              <Skeleton className="h-3 w-48" />
-            </div>
-            <Skeleton className="hidden h-6 w-24 sm:block" />
-            <Skeleton className="h-8 w-20" />
-          </div>
-        ))}
-      </div>
-    );
+    return <CandidateListSkeleton />;
   }
 
   if (people === undefined || people.length === 0) {
@@ -253,21 +238,13 @@ const SchedulePeopleList = ({
 
   return (
     <div
-      className="relative flex min-h-0 flex-col gap-4 pb-4 sm:gap-5 sm:pr-2"
-      aria-busy={peoplePlaceholder}
+      className={cn(
+        "relative flex min-h-0 flex-col gap-4 pb-4 sm:gap-5 sm:pr-2",
+        revealClassName
+      )}
     >
-      {peoplePlaceholder ? (
-        <div className="border-border/60 bg-background/95 text-muted-foreground sticky top-0 z-10 -mb-2 rounded-md border px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur">
-          Loading selected slot...
-        </div>
-      ) : null}
       <section className="flex flex-col gap-2">
-        <div
-          className={[
-            "overflow-hidden rounded-xl border border-border/40 bg-card/30 divide-y divide-border/25",
-            peoplePlaceholder ? "pointer-events-none opacity-60" : "",
-          ].join(" ")}
-        >
+        <div className="border-border/40 bg-card/30 divide-border/25 divide-y overflow-hidden rounded-xl border">
           {filteredActionable.map((person) => (
             <ScheduleCandidateTile
               key={personTileKey(person)}
@@ -300,12 +277,7 @@ const SchedulePeopleList = ({
       {filteredExceptions.length > 0 ? (
         <section className="flex flex-col gap-2">
           <SectionLabel title="Unavailable" count={filteredExceptions.length} />
-          <div
-            className={[
-              "overflow-hidden rounded-xl border border-border/30 bg-card/20 opacity-80 divide-y divide-border/20",
-              peoplePlaceholder ? "pointer-events-none" : "",
-            ].join(" ")}
-          >
+          <div className="border-border/30 bg-card/20 divide-border/20 divide-y overflow-hidden rounded-xl border opacity-80">
             {filteredExceptions.map((person) => (
               <ScheduleCandidateTile
                 key={personTileKey(person)}
@@ -331,14 +303,12 @@ const SchedulePeopleList = ({
 
 const ScheduleViewContent = ({
   teamPositionsLoading,
-  teamPositionsPlaceholder,
   teamPositionGroups,
   collapsedTeams,
   selectedTeam,
   selectedPosition,
   people,
   peopleLoading,
-  peoplePlaceholder,
   selectedServiceTypeId,
   selectedPlanId,
   planReferenceDate = null,
@@ -409,7 +379,6 @@ const ScheduleViewContent = ({
   const positionPickerList = (
     <PositionPickerList
       teamPositionsLoading={teamPositionsLoading}
-      teamPositionsPlaceholder={teamPositionsPlaceholder}
       teamPositionGroups={teamPositionGroups}
       collapsedTeams={collapsedTeams}
       selectedTeam={selectedTeam}
@@ -450,7 +419,6 @@ const ScheduleViewContent = ({
                 <SchedulePeopleList
                   people={people}
                   peopleLoading={peopleLoading}
-                  peoplePlaceholder={peoplePlaceholder}
                   selectedSlotUsesCustomPosition={
                     selectedSlotUsesCustomPosition
                   }
@@ -478,7 +446,6 @@ const ScheduleViewContent = ({
             >
               <PositionPickerList
                 teamPositionsLoading={teamPositionsLoading}
-                teamPositionsPlaceholder={teamPositionsPlaceholder}
                 teamPositionGroups={teamPositionGroups}
                 collapsedTeams={collapsedTeams}
                 selectedTeam={selectedTeam}

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { PlanningCenterServicesIcon } from "@/components/planning-center-services-icon";
 import { LineupTab } from "@/components/schedule/lineup-tab";
 import { PlanTab } from "@/components/schedule/plan-tab";
+import { PlanHeaderSkeleton } from "@/components/schedule/schedule-skeletons";
 import { ScheduleViewTab } from "@/components/schedule/schedule-view-tab";
 import { TimesTab } from "@/components/schedule/times-tab";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useDashboardController } from "@/hooks/use-dashboard-controller";
+import { usePlanWorkspaceView } from "@/hooks/use-plan-workspace-view";
 import type { DashboardView } from "@/lib/schedule-navigation";
 import { cn } from "@/lib/utils";
 
@@ -218,13 +220,18 @@ const DashboardPlanHeader = ({
 );
 
 const DashboardPlanHeaderFallback = () => (
-  <header className="flex shrink-0 items-center gap-1 pt-1.5 pb-2 md:hidden">
-    <MobilePlanBack onBack={null} />
-    <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-      <Skeleton className="h-4 w-40" />
-      <Skeleton className="h-3 w-28" />
+  <>
+    <header className="flex shrink-0 items-center gap-1 pt-1.5 pb-2 md:hidden">
+      <MobilePlanBack onBack={null} />
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <Skeleton variant="text" className="h-4 w-40" />
+        <Skeleton variant="text" className="h-3 w-28" />
+      </div>
+    </header>
+    <div className="max-md:hidden">
+      <PlanHeaderSkeleton />
     </div>
-  </header>
+  </>
 );
 
 type DashboardController = ReturnType<typeof useDashboardController>;
@@ -259,12 +266,13 @@ const DashboardPlanHeaderSlot = ({
 export const DashboardPage = ({
   serviceTypeId,
   planId,
-  view,
+  view: routeView,
 }: {
   serviceTypeId: string;
   planId: string;
   view: DashboardView;
 }) => {
+  const view = usePlanWorkspaceView(serviceTypeId, planId, routeView);
   const {
     workspaceUnavailable,
     hasPlanUrlSelection,
@@ -273,7 +281,6 @@ export const DashboardPage = ({
     selectedPlan,
     activeView,
     teamPositionsLoading,
-    teamPositionsPlaceholder,
     teamPositionGroups,
     collapsedTeams,
     selectedTeam,
@@ -281,7 +288,6 @@ export const DashboardPage = ({
     selectedPositionUsesRoster,
     people,
     peopleLoading,
-    peoplePlaceholder,
     routeServiceTypeId,
     routePlanId,
     toggleTeamCollapsed,
@@ -322,7 +328,6 @@ export const DashboardPage = ({
             >
               <ScheduleViewTab
                 teamPositionsLoading={teamPositionsLoading}
-                teamPositionsPlaceholder={teamPositionsPlaceholder}
                 teamPositionGroups={teamPositionGroups}
                 collapsedTeams={collapsedTeams}
                 selectedTeam={selectedTeam}
@@ -330,9 +335,6 @@ export const DashboardPage = ({
                 people={selectedPositionUsesRoster ? people : []}
                 peopleLoading={
                   selectedPositionUsesRoster ? peopleLoading : false
-                }
-                peoplePlaceholder={
-                  selectedPositionUsesRoster ? peoplePlaceholder : false
                 }
                 selectedServiceTypeId={routeServiceTypeId}
                 selectedPlanId={routePlanId}
@@ -353,7 +355,6 @@ export const DashboardPage = ({
               <LineupTab
                 groups={teamPositionGroups ?? []}
                 isLoading={teamPositionsLoading}
-                isPlaceholderData={teamPositionsPlaceholder}
                 serviceTypeId={routeServiceTypeId}
                 planId={routePlanId}
                 seriesId={selectedPlan?.seriesId ?? null}

@@ -5,6 +5,7 @@ import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 import { loadBadge } from "@/components/people/calendar";
+import { PersonIdentitySkeleton } from "@/components/people/people-skeletons";
 import { PersonAvatar } from "@/components/people/shared-components";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -25,31 +26,25 @@ export const RosterTableBody = ({
   if (isLoading) {
     return (
       <TableBody>
-        {Array.from({ length: 6 }).map((_, index) => (
-          <TableRow key={`loading-${index}`}>
+        {Array.from({ length: 6 }, (_, index) => (
+          <TableRow key={index}>
             <TableCell>
-              <div className="flex items-center gap-3">
-                <Skeleton className="size-8" />
-                <div className="flex flex-col gap-1.5">
-                  <Skeleton className="h-3.5 w-32" />
-                  <Skeleton className="h-3 w-48" />
-                </div>
-              </div>
+              <PersonIdentitySkeleton index={index} />
             </TableCell>
             <TableCell>
-              <Skeleton className="h-3.5 w-12" />
+              <Skeleton variant="round" className="h-5 w-full max-w-14" />
             </TableCell>
             <TableCell>
-              <Skeleton className="h-3.5 w-12" />
+              <Skeleton variant="text" className="h-3 w-full max-w-12" />
             </TableCell>
             <TableCell>
-              <Skeleton className="h-3.5 w-16" />
+              <Skeleton variant="text" className="h-3 w-full max-w-12" />
             </TableCell>
             <TableCell>
-              <Skeleton className="h-3.5 w-6" />
+              <Skeleton variant="text" className="h-3 w-5" />
             </TableCell>
             <TableCell>
-              <Skeleton className="h-3.5 w-24" />
+              <Skeleton variant="text" className="h-3 w-full max-w-20" />
             </TableCell>
           </TableRow>
         ))}

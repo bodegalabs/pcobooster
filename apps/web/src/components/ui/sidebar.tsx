@@ -644,7 +644,8 @@ const SidebarMenuSkeleton = ({
     >
       {showIcon && (
         <Skeleton
-          className="size-4 rounded-xl"
+          variant="control"
+          className="size-4"
           data-sidebar="menu-skeleton-icon"
         />
       )}

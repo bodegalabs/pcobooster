@@ -6,6 +6,7 @@ import type {
 } from "@pcobooster/contracts/people-schemas";
 
 import { loadBadge } from "@/components/people/calendar";
+import { PersonLineSkeleton } from "@/components/people/people-skeletons";
 import { RosterTableBody } from "@/components/people/roster-table-body";
 import {
   PersonAvatar,
@@ -44,7 +45,7 @@ export const HealthRoster = ({
           <CardDescription>Scheduled people</CardDescription>
           <CardTitle>
             {isLoading ? (
-              <Skeleton className="h-7 w-10" />
+              <Skeleton variant="text" className="h-7 w-10" />
             ) : (
               (dashboard?.stats.scheduledPeople ?? 0)
             )}
@@ -56,7 +57,7 @@ export const HealthRoster = ({
           <CardDescription>High load</CardDescription>
           <CardTitle>
             {isLoading ? (
-              <Skeleton className="h-7 w-8" />
+              <Skeleton variant="text" className="h-7 w-8" />
             ) : (
               (dashboard?.stats.highLoadPeople ?? 0)
             )}
@@ -68,7 +69,7 @@ export const HealthRoster = ({
           <CardDescription>Available soon</CardDescription>
           <CardTitle>
             {isLoading ? (
-              <Skeleton className="h-7 w-10" />
+              <Skeleton variant="text" className="h-7 w-10" />
             ) : (
               (dashboard?.stats.availableSoonPeople ?? 0)
             )}
@@ -103,15 +104,9 @@ export const HealthRoster = ({
           ? Array.from({ length: 4 }).map((_, index) => (
               <div
                 key={`mobile-loading-${index}`}
-                className="border-border/35 border-b px-4 py-3 last:border-b-0"
+                className="border-border/35 border-b px-2 py-1.5 last:border-b-0"
               >
-                <div className="flex items-start gap-3">
-                  <Skeleton className="size-8" />
-                  <div className="flex flex-1 flex-col gap-2">
-                    <Skeleton className="h-3.5 w-32" />
-                    <Skeleton className="h-3 w-44" />
-                  </div>
-                </div>
+                <PersonLineSkeleton index={index} />
               </div>
             ))
           : visiblePeople.map((person) => {

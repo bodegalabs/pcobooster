@@ -49,6 +49,5 @@ export const usePlanItems = (
     ...createPlanItemsQueryOptions(serviceTypeId, planId),
     queryKey,
     enabled: isNonEmptyString(serviceTypeId) && isNonEmptyString(planId),
-    placeholderData: (previousItems) => previousItems,
   });
 };

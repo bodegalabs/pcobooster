@@ -14,7 +14,6 @@ interface PeopleHealthViewProps {
   dashboard: PeopleDashboardData | undefined;
   visiblePeople: PeopleDashboardPerson[];
   isLoading: boolean;
-  isPlaceholderData: boolean;
   mvp: PeopleDashboardPerson | null;
   needsRest: PeopleDashboardPerson[];
   underused: PeopleDashboardPerson[];
@@ -27,7 +26,6 @@ export const PeopleHealthView = ({
   dashboard,
   visiblePeople,
   isLoading,
-  isPlaceholderData,
   mvp,
   needsRest,
   underused,
@@ -35,10 +33,7 @@ export const PeopleHealthView = ({
   onPreviewPerson,
   onOpenPerson,
 }: PeopleHealthViewProps) => (
-  <div
-    className="grid shrink-0 items-start gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]"
-    aria-busy={isPlaceholderData}
-  >
+  <div className="grid shrink-0 items-start gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]">
     <section className="flex min-w-0 flex-col gap-3">
       <HealthRoster
         dashboard={dashboard}

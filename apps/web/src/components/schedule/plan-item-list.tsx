@@ -32,13 +32,13 @@ import { DragHandle } from "@/components/ui/drag-handle";
 import { Item } from "@/components/ui/item";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { reorderPlanItems } from "@/lib/plan-items-query-state";
 import { cn } from "@/lib/utils";
 
 interface PlanItemListProps {
   items: PlanItem[];
   isLoading: boolean;
-  isPlaceholderData: boolean;
   pendingItemId: string | null;
   onAddSong: () => void;
   onAddHeader: () => void;
@@ -58,6 +58,39 @@ interface SortablePlanItemProps {
   onPreview: () => void;
   onDelete: () => void;
 }
+
+const planItemSkeletonRows = [
+  { key: "a", header: true, title: "6rem" },
+  { key: "b", header: false, title: "11rem", badge: true },
+  { key: "c", header: false, title: "9rem", badge: true },
+  { key: "d", header: false, title: "7rem" },
+  { key: "e", header: true, title: "5rem" },
+  { key: "f", header: false, title: "10rem", badge: true },
+  { key: "g", header: false, title: "8rem" },
+];
+
+const PlanItemListSkeleton = () => (
+  <div className="pb-4 sm:pr-3">
+    <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
+      {planItemSkeletonRows.map((row) => (
+        <div
+          key={row.key}
+          className={cn(
+            "flex min-h-11 items-center gap-3 pr-3 pl-2.5",
+            row.header && "bg-muted/40"
+          )}
+        >
+          <Skeleton variant="text" className="size-4 shrink-0" />
+          <Skeleton variant="text" className="h-3.5" width={row.title} />
+          {row.badge === true ? (
+            <Skeleton variant="text" className="h-5 w-8" />
+          ) : null}
+          <Skeleton variant="control" className="ml-auto size-7 shrink-0" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 interface PlanItemCardProps {
   item: PlanItem;
@@ -91,8 +124,9 @@ const PlanItemCard = ({
 
   return (
     <div
+      aria-busy={isBusy}
       className={cn(
-        "group/plan-item",
+        "group/plan-item stale-while-busy",
         tone.row,
         !isDragged && rowHoverClassName,
         isDragged && "bg-muted/80 shadow-lg"
@@ -281,7 +315,6 @@ const SortablePlanItem = ({
 export const PlanItemList = ({
   items,
   isLoading,
-  isPlaceholderData,
   pendingItemId,
   onAddSong,
   onAddHeader,
@@ -293,6 +326,7 @@ export const PlanItemList = ({
 }: PlanItemListProps) => {
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const reorderDisabled = pendingItemId === "reorder";
+  const revealClassName = useRevealOnLoad(isLoading);
   const activeItem = items.find((item) => item.id === activeItemId) ?? null;
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -330,13 +364,7 @@ export const PlanItemList = ({
 
   return (
     <ScrollArea className="min-h-0 flex-1">
-      {isLoading ? (
-        <div className="space-y-2 pr-0 sm:pr-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <Skeleton key={index} className="h-14 w-full" />
-          ))}
-        </div>
-      ) : null}
+      {isLoading ? <PlanItemListSkeleton /> : null}
       {showEmpty ? (
         <Card className="mx-0 text-center sm:mr-3">
           <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
@@ -350,12 +378,7 @@ export const PlanItemList = ({
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-2">
-              <Button
-                type="button"
-                size="sm"
-                onClick={onAddSong}
-                disabled={isPlaceholderData}
-              >
+              <Button type="button" size="sm" onClick={onAddSong}>
                 <Music4 className="size-4" />
                 Add Song
               </Button>
@@ -364,7 +387,6 @@ export const PlanItemList = ({
                 variant="outline"
                 size="sm"
                 onClick={onAddHeader}
-                disabled={isPlaceholderData}
               >
                 Add Header
               </Button>
@@ -373,7 +395,6 @@ export const PlanItemList = ({
                 variant="outline"
                 size="sm"
                 onClick={onAddItem}
-                disabled={isPlaceholderData}
               >
                 Add Item
               </Button>
@@ -382,75 +403,64 @@ export const PlanItemList = ({
         </Card>
       ) : null}
       {showList ? (
-        <div className="relative" aria-busy={isPlaceholderData}>
-          {isPlaceholderData ? (
-            <div className="border-border/60 bg-background/95 text-muted-foreground sticky top-0 z-10 mb-2 rounded-md border px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur">
-              Loading selected plan...
-            </div>
-          ) : null}
-          <div
-            className={cn(
-              isPlaceholderData && "pointer-events-none opacity-60"
-            )}
+        <div className={cn("relative", revealClassName)}>
+          <DndContext
+            collisionDetection={closestCenter}
+            sensors={sensors}
+            onDragStart={handleDragStart}
+            onDragCancel={() => {
+              setActiveItemId(null);
+            }}
+            onDragEnd={(event) => {
+              startTransition(async () => {
+                await handleDragEnd(event);
+              });
+            }}
           >
-            <DndContext
-              collisionDetection={closestCenter}
-              sensors={sensors}
-              onDragStart={handleDragStart}
-              onDragCancel={() => {
-                setActiveItemId(null);
-              }}
-              onDragEnd={(event) => {
-                startTransition(async () => {
-                  await handleDragEnd(event);
-                });
-              }}
+            <SortableContext
+              items={items.map((item) => item.id)}
+              strategy={verticalListSortingStrategy}
             >
-              <SortableContext
-                items={items.map((item) => item.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="pb-tab-bar sm:pr-3 md:pb-4">
-                  <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
-                    {items.map((item) => (
-                      <SortablePlanItem
-                        key={item.id}
-                        item={item}
-                        isBusy={pendingItemId === item.id}
-                        isDragging={activeItemId === item.id}
-                        reorderDisabled={reorderDisabled}
-                        onEdit={() => {
-                          onEditItem(item.id);
-                        }}
-                        onPreview={() => onPreviewItem?.(item.id)}
-                        onDelete={() => {
-                          onRequestDelete(item.id);
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </SortableContext>
-              <DragOverlay zIndex={60}>
-                {activeItem ? (
-                  <div className="bg-background rotate-[0.2deg] overflow-hidden rounded-lg border shadow-2xl">
-                    <PlanItemCard
-                      item={activeItem}
-                      isBusy={pendingItemId === activeItem.id}
-                      isDragged
+              <div className="pb-tab-bar sm:pr-3 md:pb-4">
+                <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
+                  {items.map((item) => (
+                    <SortablePlanItem
+                      key={item.id}
+                      item={item}
+                      isBusy={pendingItemId === item.id}
+                      isDragging={activeItemId === item.id}
+                      reorderDisabled={reorderDisabled}
                       onEdit={() => {
-                        onEditItem(activeItem.id);
+                        onEditItem(item.id);
                       }}
-                      onPreview={() => onPreviewItem?.(activeItem.id)}
+                      onPreview={() => onPreviewItem?.(item.id)}
                       onDelete={() => {
-                        onRequestDelete(activeItem.id);
+                        onRequestDelete(item.id);
                       }}
                     />
-                  </div>
-                ) : null}
-              </DragOverlay>
-            </DndContext>
-          </div>
+                  ))}
+                </div>
+              </div>
+            </SortableContext>
+            <DragOverlay zIndex={60}>
+              {activeItem ? (
+                <div className="bg-background rotate-[0.2deg] overflow-hidden rounded-lg border shadow-2xl">
+                  <PlanItemCard
+                    item={activeItem}
+                    isBusy={pendingItemId === activeItem.id}
+                    isDragged
+                    onEdit={() => {
+                      onEditItem(activeItem.id);
+                    }}
+                    onPreview={() => onPreviewItem?.(activeItem.id)}
+                    onDelete={() => {
+                      onRequestDelete(activeItem.id);
+                    }}
+                  />
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         </div>
       ) : null}
     </ScrollArea>

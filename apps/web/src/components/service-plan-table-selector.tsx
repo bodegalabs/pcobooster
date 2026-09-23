@@ -18,6 +18,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Item } from "@/components/ui/item";
+import { LoadingBar } from "@/components/ui/loading-bar";
 import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import {
   NativeSelect,
@@ -420,6 +421,7 @@ const MyScheduledServiceCards = ({
 export const ServicePlanTableSelector = ({
   selectedServiceTypeId,
   selectedPlanId,
+  isNavigating = false,
   onSelect,
 }: ServicePlanTableSelectorProps) => {
   const {
@@ -501,6 +503,8 @@ export const ServicePlanTableSelector = ({
           <NativeSelectOption value="60">Next 60 days</NativeSelectOption>
         </NativeSelect>
       </div>
+
+      <LoadingBar active={isNavigating} className="-my-1.5 shrink-0" />
 
       <div className="md:border-border/40 [--plan-list-sticky-offset:6.25rem] md:min-h-0 md:flex-1 md:overflow-y-auto md:rounded-lg md:border">
         <Table className="hidden md:table">

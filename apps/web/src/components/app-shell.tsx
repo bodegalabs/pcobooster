@@ -105,6 +105,7 @@ import {
   serializePeoplePageNavState,
 } from "@/lib/people-page-nav-cache";
 import { queryKeys } from "@/lib/query-keys";
+import { updatePlanWorkspaceUrl } from "@/lib/schedule-navigation";
 import { cn } from "@/lib/utils";
 import { orpc } from "@/orpc-client";
 
@@ -234,14 +235,22 @@ const AppTopBar = () => {
                           <DropdownMenuItem
                             key={view}
                             onSelect={() => {
+                              const nextUrl = buildPlanViewUrl(
+                                pathname,
+                                new URLSearchParams(window.location.search),
+                                view
+                              );
+                              if (
+                                updatePlanWorkspaceUrl(
+                                  pathname,
+                                  nextUrl,
+                                  "replace"
+                                )
+                              ) {
+                                return;
+                              }
                               startTransition(() => {
-                                router.replace(
-                                  buildPlanViewUrl(
-                                    pathname,
-                                    new URLSearchParams(window.location.search),
-                                    view
-                                  )
-                                );
+                                router.replace(nextUrl);
                               });
                             }}
                           >
@@ -515,32 +524,29 @@ const ServicesSidebarMenuItem = () => {
   const planPath = parsePlanRoute(pathname);
   const isPlanWorkspace = Boolean(planPath);
   const activeScheduleView = planPath?.view ?? "assign";
+  const viewItem = (
+    key: PlanView,
+    icon: SidebarTabGroupItem["icon"]
+  ): SidebarTabGroupItem<ServicesSidebarKey> => {
+    const href = buildPlanViewUrl(pathname, searchParams, key);
+    return {
+      key,
+      label: getPlanViewLabel(key),
+      href,
+      icon,
+      handleNavigate: (event) => {
+        if (updatePlanWorkspaceUrl(pathname, href, "push")) {
+          event.preventDefault();
+        }
+      },
+    };
+  };
   const servicesViewItems: SidebarTabGroupItem<ServicesSidebarKey>[] = [
     servicesRootItem,
-    {
-      key: "assign",
-      label: "Assign",
-      href: buildPlanViewUrl(pathname, searchParams, "assign"),
-      icon: UserAdd01Icon,
-    },
-    {
-      key: "lineup",
-      label: "Lineup",
-      href: buildPlanViewUrl(pathname, searchParams, "lineup"),
-      icon: Layout3ColumnIcon,
-    },
-    {
-      key: "plan",
-      label: "Plan",
-      href: buildPlanViewUrl(pathname, searchParams, "plan"),
-      icon: ListMusicIcon,
-    },
-    {
-      key: "times",
-      label: "Times",
-      href: buildPlanViewUrl(pathname, searchParams, "times"),
-      icon: Clock01Icon,
-    },
+    viewItem("assign", UserAdd01Icon),
+    viewItem("lineup", Layout3ColumnIcon),
+    viewItem("plan", ListMusicIcon),
+    viewItem("times", Clock01Icon),
   ];
   let servicesActiveKey: ServicesSidebarKey | null = null;
   if (pathname === "/services") {

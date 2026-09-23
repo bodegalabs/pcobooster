@@ -46,15 +46,19 @@ export const usePeopleDashboardPerson = (
   return useQuery<PeopleDashboardPersonDetail>({
     ...createPeopleDashboardPersonQueryOptions(personId, month),
     queryKey,
-    placeholderData: () =>
-      getCachedPeopleDashboardPersonDetail(
-        queryClient
-          .getQueriesData<PeopleDashboardData>({
-            queryKey: ["people-dashboard"],
-          })
-          .map(([, dashboard]) => dashboard),
-        personId,
-        month
-      ),
+    // Seed from the roster when it covers this month. Otherwise keep this
+    // person on screen (dimmed) so paging months never blanks the page.
+    placeholderData: (previousDetail) => {
+      const dashboards = queryClient
+        .getQueriesData<PeopleDashboardData>({
+          queryKey: ["people-dashboard"],
+        })
+        .map(([, dashboard]) => dashboard);
+      return (
+        getCachedPeopleDashboardPersonDetail(dashboards, personId, month) ??
+        (previousDetail?.person.id === personId ? previousDetail : undefined) ??
+        getCachedPeopleDashboardPersonDetail(dashboards, personId, null)
+      );
+    },
   });
 };

@@ -105,6 +105,5 @@ export const usePeople = (
     ),
     queryKey,
     enabled: isNonEmptyString(positionId) && isNonEmptyString(serviceTypeId),
-    placeholderData: (previousPeople) => previousPeople,
   });
 };

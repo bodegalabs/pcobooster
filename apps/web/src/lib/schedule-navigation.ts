@@ -1,5 +1,7 @@
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 
+import { parsePlanRoute } from "@/lib/app-routes";
+
 interface RouteSelectionIds {
   teamId: string | null;
   positionId: string | null;
@@ -56,4 +58,45 @@ export const buildScheduleUrl = ({
   const query = searchParams.toString();
   const path = `/services/${encodeURIComponent(serviceTypeId)}/plans/${encodeURIComponent(planId)}/${view}`;
   return query ? `${path}?${query}` : path;
+};
+
+export const buildPlanWorkspaceUrl = (
+  serviceTypeId: string,
+  planId: string
+): string =>
+  buildScheduleUrl({
+    serviceTypeId,
+    planId,
+    view: "assign",
+    teamId: null,
+    positionId: null,
+  });
+
+/**
+ * Moves between views and slots of the plan already on screen without a server
+ * round trip. Every view renders from the client query cache, and History API
+ * updates keep usePathname and useSearchParams in sync. Returns false when the
+ * destination is another page, which the Next.js router must render.
+ */
+export const updatePlanWorkspaceUrl = (
+  currentPathname: string,
+  nextUrl: string,
+  method: "push" | "replace"
+): boolean => {
+  const current = parsePlanRoute(currentPathname);
+  const next = parsePlanRoute(nextUrl.split("?")[0] ?? "");
+  if (
+    !current ||
+    !next ||
+    current.serviceTypeId !== next.serviceTypeId ||
+    current.planId !== next.planId
+  ) {
+    return false;
+  }
+  if (method === "replace") {
+    window.history.replaceState(null, "", nextUrl);
+  } else {
+    window.history.pushState(null, "", nextUrl);
+  }
+  return true;
 };

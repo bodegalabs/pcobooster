@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 
 interface ClientCacheEntry<TData> {
   data: TData;
@@ -34,7 +34,9 @@ export const useHydrateQueryFromCache = <TData>(
   readCache: () => ClientCacheEntry<TData> | undefined
 ) => {
   const queryClient = useQueryClient();
-  useEffect(() => {
+  // Layout effect so persisted data lands before the first paint; a passive
+  // effect would paint one frame of skeleton for data the browser already has.
+  useLayoutEffect(() => {
     hydrateQueryFromCache(queryClient, queryKey, readCache);
   }, [queryClient, queryKey, readCache]);
 };

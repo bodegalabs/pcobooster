@@ -1,17 +1,23 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { startTransition, useCallback, useEffect } from "react";
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useState,
+  useTransition,
+} from "react";
 
 import { ServicePlanTableSelector } from "@/components/service-plan-table-selector";
-
-const buildPlanWorkspaceUrl = (serviceTypeId: string, planId: string): string =>
-  `/services/${encodeURIComponent(serviceTypeId)}/plans/${encodeURIComponent(planId)}/assign`;
+import { buildPlanWorkspaceUrl } from "@/lib/schedule-navigation";
 
 export const SchedulePlansPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const searchQuery = searchParams.toString();
+  const [isOpeningPlan, startOpeningPlan] = useTransition();
+  const [openingPlanId, setOpeningPlanId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!searchQuery) {
@@ -27,7 +33,10 @@ export const SchedulePlansPage = () => {
     ({ serviceTypeId, planId }: { serviceTypeId: string; planId: string }) => {
       const nextUrl = buildPlanWorkspaceUrl(serviceTypeId, planId);
 
-      startTransition(() => {
+      // Mark the row right away; if the route is not prefetched yet, the
+      // highlight and bar acknowledge the click until the plan shell arrives.
+      setOpeningPlanId(planId);
+      startOpeningPlan(() => {
         router.push(nextUrl);
       });
     },
@@ -39,7 +48,8 @@ export const SchedulePlansPage = () => {
       <div className="pb-tab-bar mx-auto flex w-full max-w-7xl flex-col px-4 pt-1 md:min-h-0 md:flex-1 md:px-4 md:py-4">
         <ServicePlanTableSelector
           selectedServiceTypeId={null}
-          selectedPlanId={null}
+          selectedPlanId={isOpeningPlan ? openingPlanId : null}
+          isNavigating={isOpeningPlan}
           onSelect={handleServicePlanSelect}
         />
       </div>
