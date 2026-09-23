@@ -25,6 +25,7 @@ export const ActionLink = ({
         : styles.action
     }
     href={href}
+    data-analytics-cta={href === "/services" ? "body" : undefined}
   >
     {children}
     <ArrowRight aria-hidden="true" size={15} />
@@ -49,7 +50,11 @@ export const SiteHeader = () => (
         <SiteLink href="/#pricing">Pricing</SiteLink>
         <SiteLink href="/about">Our story</SiteLink>
       </nav>
-      <SiteLink className={styles["header-login"]} href="/services">
+      <SiteLink
+        className={styles["header-login"]}
+        href="/services"
+        data-analytics-cta="header"
+      >
         Open app <ArrowUpRight aria-hidden="true" size={14} />
       </SiteLink>
     </div>

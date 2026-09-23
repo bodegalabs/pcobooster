@@ -1,5 +1,6 @@
 "use client";
 
+import { captureAnalytics } from "@pcobooster/analytics/client";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { preconnect } from "react-dom";
 
@@ -125,12 +126,14 @@ export const AuthSignInCard = ({
     }
     setSignInError("");
     setRedirecting(true);
+    captureAnalytics("sign in started");
 
     try {
       const url = await prepareAuthorization();
       // Keep the pending state until the browser leaves the page.
       window.location.assign(url);
     } catch (error) {
+      captureAnalytics("sign in failed");
       setSignInError(
         error instanceof Error ? error.message : START_SIGN_IN_ERROR
       );

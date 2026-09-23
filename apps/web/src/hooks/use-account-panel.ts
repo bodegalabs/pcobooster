@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  initializeAnalytics,
+  resetAnalytics,
+} from "@pcobooster/analytics/client";
 import type { PlanningCenterAccountsResponse } from "@pcobooster/contracts/accounts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
@@ -23,6 +27,15 @@ export const fetchAccounts = async ({
   signal,
 }: QueryFunctionContext): Promise<PlanningCenterAccountsResponse> => {
   const response = await orpc.accounts.list({}, { signal });
+  if (response.demo) {
+    resetAnalytics();
+  } else {
+    initializeAnalytics(
+      process.env.NEXT_PUBLIC_POSTHOG_KEY,
+      process.env.NODE_ENV === "production",
+      response.session.userId
+    );
+  }
   writeBrowserStorage(
     ACCOUNT_PANEL_CACHE_KEY,
     serializeAccountPanel(summarizeAccountPanel(response))
@@ -103,6 +116,7 @@ export const useAccountPanel = ({
     setIsSigningOut(true);
     try {
       await (demo ? exitDemoSession() : signOutSession());
+      resetAnalytics();
       queryClient.clear();
       clearAccountScopedCaches();
       if (demo) {
