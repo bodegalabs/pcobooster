@@ -144,10 +144,12 @@ describe("scheduling oRPC transport", () => {
       );
     const prepareAssignment = async () =>
       await Effect.runPromise(
-        Effect.provideService(
-          prepareScheduledPerson(input, dependencies),
-          PlanningCenterAccess,
-          access
+        withRequestContext(
+          Effect.provideService(
+            prepareScheduledPerson(input, dependencies),
+            PlanningCenterAccess,
+            access
+          )
         )
       );
     const commitAssignment = async (

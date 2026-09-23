@@ -79,7 +79,11 @@ const loadRequestSongOptions =
 
 export const listPlanItems = (
   input: PlanItemsListInput
-): Effect.Effect<PlanItem[], ApplicationFault, PlanningCenterAccess> =>
+): Effect.Effect<
+  PlanItem[],
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
   Effect.gen(function* listItems() {
     const access = yield* PlanningCenterAccess;
     return yield* tryPlanningCenter(
@@ -98,7 +102,7 @@ export const prepareRunSheetItemCreate = (
 ): Effect.Effect<
   PreparedCreatePlanItem,
   ApplicationFault,
-  PlanningCenterAccess
+  PlanningCenterAccess | RequestContext
 > =>
   Effect.gen(function* prepareItemCreate() {
     const access = yield* PlanningCenterAccess;
@@ -138,7 +142,7 @@ export const prepareRunSheetItemUpdate = (
 ): Effect.Effect<
   PreparedUpdatePlanItem,
   ApplicationFault,
-  PlanningCenterAccess
+  PlanningCenterAccess | RequestContext
 > =>
   Effect.gen(function* prepareItemUpdate() {
     const access = yield* PlanningCenterAccess;
@@ -214,7 +218,11 @@ export const reorderRunSheetItems = (
 
 export const listPlanTimes = (
   input: PlanTimesListInput
-): Effect.Effect<PlanTime[], ApplicationFault, PlanningCenterAccess> =>
+): Effect.Effect<
+  PlanTime[],
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
   Effect.gen(function* listTimes() {
     const access = yield* PlanningCenterAccess;
     return yield* tryPlanningCenter(
@@ -308,7 +316,11 @@ export const updateRunSheetPersonTimes = (
 
 export const searchRunSheetSongs = (
   input: SongsSearchInput
-): Effect.Effect<SongCatalogEntry[], ApplicationFault, PlanningCenterAccess> =>
+): Effect.Effect<
+  SongCatalogEntry[],
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
   Effect.gen(function* searchRunSheetCatalog() {
     const access = yield* PlanningCenterAccess;
     return yield* tryPlanningCenter(
@@ -325,7 +337,11 @@ export const searchRunSheetSongs = (
 
 export const getRunSheetSongOptions = (
   input: SongsOptionsInput
-): Effect.Effect<SongOptionSet, ApplicationFault, PlanningCenterAccess> =>
+): Effect.Effect<
+  SongOptionSet,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
   Effect.gen(function* readSongOptions() {
     const access = yield* PlanningCenterAccess;
     return yield* tryPlanningCenter(

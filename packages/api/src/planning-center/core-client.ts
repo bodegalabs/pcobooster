@@ -10,6 +10,7 @@ import {
 import { logger } from "@pcobooster/api/logger";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterRateLimitInfo } from "@pcobooster/api/planning-center/api-error";
+import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
 import { PlanningCenterReadOnlyError } from "@pcobooster/api/planning-center/read-only-error";
 import {
   pcCollectionResponseSchema,
@@ -40,6 +41,17 @@ const errorBodySchema = z.record(z.string(), z.json());
 const endpointUrl = (endpoint: string): string =>
   new URL(endpoint, PC_BASE_URL).toString();
 
+const invalidProviderResponse = (
+  status: number,
+  cause: unknown
+): PlanningCenterApiError =>
+  new PlanningCenterApiError({
+    message: "Planning Center returned an invalid response",
+    status,
+    code: "INVALID_RESPONSE",
+    cause,
+  });
+
 export const buildPlanningCenterUrl = (
   endpoint: string,
   params: Record<string, string> = {}
@@ -61,7 +73,14 @@ const parseJsonResponse = async (response: Response): Promise<JsonValue> => {
       code: "INVALID_RESPONSE",
     });
   }
-  return jsonValueSchema.parse(JSON.parse(text));
+  try {
+    return jsonValueSchema.parse(JSON.parse(text));
+  } catch (error) {
+    if (error instanceof SyntaxError || error instanceof z.ZodError) {
+      throw invalidProviderResponse(response.status, error);
+    }
+    throw error;
+  }
 };
 
 const normalizeHeaders = (
@@ -95,6 +114,13 @@ const isReadMethod = (method: string): boolean =>
 const isRetryableError = (error: Error): boolean => {
   if (error instanceof PlanningCenterApiError) {
     return RETRYABLE_STATUS_CODES.has(error.status);
+  }
+  if (error instanceof PlanningCenterNetworkError) {
+    const { cause } = error;
+    return (
+      cause instanceof Error &&
+      (cause.name === "AbortError" || cause.name === "TimeoutError")
+    );
   }
   return error.name === "AbortError" || error.name === "TimeoutError";
 };
@@ -172,7 +198,8 @@ const buildApiError = (
 
 const maybePauseNearRateLimit = async (
   headers: Headers,
-  method: string
+  method: string,
+  signal: AbortSignal
 ): Promise<void> => {
   if (!isReadMethod(method)) {
     return;
@@ -189,7 +216,7 @@ const maybePauseNearRateLimit = async (
     { rateLimit },
     "Planning Center API rate limit threshold reached; pausing briefly"
   );
-  await sleep(PROACTIVE_RATE_LIMIT_DELAY_MS);
+  await sleep(PROACTIVE_RATE_LIMIT_DELAY_MS, null, { signal });
 };
 
 const describePlanningCenterEndpoint = (value: string) => {
@@ -308,11 +335,19 @@ export class PlanningCenterCoreClient {
         options.headers
       );
       headers.set("Authorization", this.getAuthHeader());
-      const response = await fetch(url, {
-        ...options,
-        signal,
-        headers,
-      });
+      let response: Response;
+      try {
+        response = await fetch(url, { ...options, signal, headers });
+      } catch (error) {
+        if (options.signal?.aborted === true) {
+          throw error;
+        }
+        throw new PlanningCenterNetworkError(
+          error instanceof Error
+            ? error
+            : new Error("Planning Center fetch failed", { cause: error })
+        );
+      }
       logPlanningCenterTiming({
         url,
         method,
@@ -328,7 +363,7 @@ export class PlanningCenterCoreClient {
           response.headers
         );
       }
-      await maybePauseNearRateLimit(response.headers, method);
+      await maybePauseNearRateLimit(response.headers, method, signal);
       return response;
     } catch (error) {
       const requestError =
@@ -422,18 +457,30 @@ export class PlanningCenterCoreClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<PCApiResponse<PCResource>> {
-    return pcResourceResponseSchema.parse(
-      await this.fetchJson(endpoint, options)
-    );
+    const json = await this.fetchJson(endpoint, options);
+    try {
+      return pcResourceResponseSchema.parse(json);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw invalidProviderResponse(200, error);
+      }
+      throw error;
+    }
   }
 
   async fetchCollection(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<PCApiResponse<PCResource[]>> {
-    return pcCollectionResponseSchema.parse(
-      await this.fetchJson(endpoint, options)
-    );
+    const json = await this.fetchJson(endpoint, options);
+    try {
+      return pcCollectionResponseSchema.parse(json);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw invalidProviderResponse(200, error);
+      }
+      throw error;
+    }
   }
 
   async fetchAll(

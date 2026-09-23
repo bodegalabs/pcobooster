@@ -3,8 +3,8 @@ import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import { AlreadyScheduled } from "@pcobooster/api/application/errors/already-scheduled";
 import { PositionMismatch } from "@pcobooster/api/application/errors/position-mismatch";
 import {
+  failPlanningCenter,
   PlanningCenterAccess,
-  toApplicationFault,
   tryPlanningCenter,
 } from "@pcobooster/api/application/planning-center-access";
 import { invalidateCandidateHistoryForPerson } from "@pcobooster/api/modules/planning-center/get-people-for-position";
@@ -44,7 +44,7 @@ export const prepareScheduledPerson = (
 ): Effect.Effect<
   ScheduleAssignmentPreparation,
   ApplicationFault,
-  PlanningCenterAccess
+  PlanningCenterAccess | RequestContext
 > =>
   Effect.gen(function* preparePerson() {
     const access = yield* PlanningCenterAccess;
@@ -90,22 +90,29 @@ export const commitScheduledPerson = (
           input.teamId,
           preparation.target.positionName
         ),
-      catch: (error) => {
+      catch: (error) =>
+        error instanceof Error
+          ? error
+          : new Error("Scheduling request failed", { cause: error }),
+    }).pipe(
+      Effect.catchAll((error) => {
         const cause = error instanceof Error ? error : new Error(String(error));
         if (
           cause.message.includes("has already been scheduled for this position")
         ) {
           access.services.people.invalidateScheduleReadCaches(input);
           dependencies.invalidateHistory(input.personId, access.cacheScope);
-          return new AlreadyScheduled({
-            message:
-              "Person is already scheduled for this selected plan/team/position",
-            details: access.presentation ? undefined : cause.message,
-          });
+          return Effect.fail(
+            new AlreadyScheduled({
+              message:
+                "Person is already scheduled for this selected plan/team/position",
+              details: access.presentation ? undefined : cause.message,
+            })
+          );
         }
-        return toApplicationFault(cause);
-      },
-    });
+        return failPlanningCenter(error);
+      })
+    );
 
     access.services.people.invalidateScheduleReadCaches(input);
     dependencies.invalidateHistory(input.personId, access.cacheScope);

@@ -13,6 +13,7 @@ import { isDevAuthBypassEnabled } from "@pcobooster/api/auth/dev-bypass";
 import { requirePlanningCenterAccessToken } from "@pcobooster/api/auth/planning-center-session";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterPersonalAccessToken } from "@pcobooster/api/planning-center/core-client";
+import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
 import { PlanningCenterReadOnlyError } from "@pcobooster/api/planning-center/read-only-error";
 import {
   createPlanningCenterServices,
@@ -20,7 +21,7 @@ import {
   createReadOnlyPlanningCenterServices,
 } from "@pcobooster/api/planning-center/services/factory";
 import { isPresentationMode } from "@pcobooster/presentation-mode";
-import { Context, Effect, Option } from "effect";
+import { Context, Effect } from "effect";
 
 /** A signed-in user acting through their linked Planning Center account. */
 export interface AccountAuthentication {
@@ -97,7 +98,7 @@ const defaultDependencies: PlanningCenterAccessDependencies = {
   presentationMode: isPresentationMode,
 };
 
-export const toApplicationFault = (error: Error): ApplicationFault => {
+export const toApplicationFault = (error: Error): ApplicationFault | null => {
   if (
     error instanceof Unauthenticated ||
     error instanceof Forbidden ||
@@ -128,11 +129,22 @@ export const toApplicationFault = (error: Error): ApplicationFault => {
     });
   }
 
-  return new ExternalServiceFailure({
-    message: "Planning Center request failed.",
-    service: "planning-center",
-    cause: error,
-  });
+  if (error instanceof PlanningCenterNetworkError) {
+    return new ExternalServiceFailure({
+      message: "Planning Center request failed.",
+      service: "planning-center",
+      cause: error,
+    });
+  }
+
+  return null;
+};
+
+export const failPlanningCenter = (
+  error: Error
+): Effect.Effect<never, ApplicationFault> => {
+  const fault = toApplicationFault(error);
+  return fault === null ? Effect.die(error) : Effect.fail(fault);
 };
 
 /**
@@ -151,21 +163,13 @@ export const resolvePlanningCenterAccess = (
     const authentication = yield* Effect.tryPromise({
       try: async () => await dependencies.authorize(request),
       catch: (error) =>
-        toApplicationFault(
-          error instanceof Error
-            ? error
-            : new Error("Planning Center authorization failed")
-        ),
-    });
-    const services = yield* Effect.try({
-      try: () => dependencies.createServices(authentication),
-      catch: (error) =>
-        toApplicationFault(
-          error instanceof Error
-            ? error
-            : new Error("Planning Center service initialization failed")
-        ),
-    });
+        error instanceof Error
+          ? error
+          : new Error("Planning Center authorization failed", { cause: error }),
+    }).pipe(Effect.catchAll(failPlanningCenter));
+    const services = yield* Effect.sync(() =>
+      dependencies.createServices(authentication)
+    );
 
     return {
       authentication,
@@ -189,18 +193,16 @@ export const withPlanningCenterAccess = <Value, Failure, Requirements>(
   );
 
 export const tryPlanningCenter = <Value>(
-  operation: (signal?: AbortSignal) => Promise<Value>
-): Effect.Effect<Value, ApplicationFault> =>
+  operation: (signal: AbortSignal) => Promise<Value>
+): Effect.Effect<Value, ApplicationFault, RequestContext> =>
   Effect.gen(function* tryOperation() {
-    const requestContext = yield* Effect.serviceOption(RequestContext);
-    const signal = Option.getOrUndefined(requestContext)?.signal;
+    const { signal: requestSignal } = yield* RequestContext;
     return yield* Effect.tryPromise({
-      try: async () => await operation(signal),
+      try: async (fiberSignal) =>
+        await operation(AbortSignal.any([requestSignal, fiberSignal])),
       catch: (error) =>
-        toApplicationFault(
-          error instanceof Error
-            ? error
-            : new Error("Planning Center request failed")
-        ),
-    });
+        error instanceof Error
+          ? error
+          : new Error("Planning Center operation failed", { cause: error }),
+    }).pipe(Effect.catchAll(failPlanningCenter));
   });

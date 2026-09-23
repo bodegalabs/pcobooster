@@ -10,6 +10,7 @@ export interface PlanningCenterRateLimitInfo {
 interface PlanningCenterApiErrorOptions {
   message: string;
   status: number;
+  cause?: unknown;
   code?: string;
   details?: JsonValue;
   responseBody?: string;
@@ -27,7 +28,7 @@ export class PlanningCenterApiError extends Error {
   readonly retryAfterSeconds?: number;
 
   constructor(options: PlanningCenterApiErrorOptions) {
-    super(options.message);
+    super(options.message, { cause: options.cause });
     this.status = options.status;
     this.code = options.code;
     this.details = options.details;

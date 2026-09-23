@@ -8,14 +8,27 @@ import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger as requestLogger } from "hono/logger";
+import { z } from "zod";
 
 import { createContext } from "./context";
 
 type AuthHandler = (request: Request) => Promise<Response> | Response;
 const privateNoStore = "private, no-store";
+const requestLogContextSchema = z.object({
+  request: z.instanceof(Request),
+  requestId: z.string(),
+});
 
 interface ErrorLogger {
-  error: (bindings: { err: unknown }, message: string) => void;
+  error: (
+    bindings: {
+      err: unknown;
+      requestId?: string;
+      method?: string;
+      path?: string;
+    },
+    message: string
+  ) => void;
 }
 
 const preventSharedCaching = (response: Response): Response => {
@@ -74,8 +87,22 @@ export const createServerApp = ({
     ],
     interceptors: [
       // oxlint-disable-next-line promise/prefer-await-to-callbacks -- oRPC exposes error interceptors as callbacks.
-      onError((error) => {
-        log.error({ err: error }, "OpenAPI request failed");
+      onError((error, { context }) => {
+        const parsed = requestLogContextSchema.safeParse(context);
+        if (!parsed.success) {
+          log.error({ err: error }, "OpenAPI request failed");
+          return;
+        }
+        const rpcContext = parsed.data;
+        log.error(
+          {
+            err: error,
+            requestId: rpcContext.requestId,
+            method: rpcContext.request.method,
+            path: new URL(rpcContext.request.url).pathname,
+          },
+          "OpenAPI request failed"
+        );
       }),
     ],
   });
@@ -84,8 +111,22 @@ export const createServerApp = ({
     plugins: [new ResponseHeadersPlugin()],
     interceptors: [
       // oxlint-disable-next-line promise/prefer-await-to-callbacks -- oRPC exposes error interceptors as callbacks.
-      onError((error) => {
-        log.error({ err: error }, "oRPC request failed");
+      onError((error, { context }) => {
+        const parsed = requestLogContextSchema.safeParse(context);
+        if (!parsed.success) {
+          log.error({ err: error }, "oRPC request failed");
+          return;
+        }
+        const rpcContext = parsed.data;
+        log.error(
+          {
+            err: error,
+            requestId: rpcContext.requestId,
+            method: rpcContext.request.method,
+            path: new URL(rpcContext.request.url).pathname,
+          },
+          "oRPC request failed"
+        );
       }),
     ],
   });

@@ -8,6 +8,7 @@ import { Unauthenticated } from "@pcobooster/api/application/errors/unauthentica
 import {
   resolvePlanningCenterAccess,
   toApplicationFault,
+  tryPlanningCenter,
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
 import {
@@ -15,10 +16,11 @@ import {
   readDemoConfiguration,
 } from "@pcobooster/api/auth/demo-access";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
 import { PlanningCenterReadOnlyError } from "@pcobooster/api/planning-center/read-only-error";
 import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
 import { DEMO_SESSION_COOKIE } from "@pcobooster/contracts/demo";
-import { Effect } from "effect";
+import { Cause, Effect, Exit } from "effect";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const requestFor = (accountId: string): Request =>
@@ -173,7 +175,18 @@ describe("PlanningCenterAccess", () => {
       message: "Planning Center request failed.",
       service: "planning-center",
     });
-    expect(unavailable.message).not.toContain("diagnostic");
+    expect(unavailable?.message).not.toContain("diagnostic");
+  });
+
+  it("maps provider network errors to a tagged fault", () => {
+    expect(
+      toApplicationFault(
+        new PlanningCenterNetworkError(new TypeError("offline"))
+      )
+    ).toMatchObject({
+      _tag: "ExternalServiceFailure",
+      service: "planning-center",
+    });
   });
 
   it("explains a blocked demo write as forbidden", () => {
@@ -195,5 +208,26 @@ describe("PlanningCenterAccess", () => {
       message: "Selected position does not belong to selected team",
     });
     expect(toApplicationFault(invalid)).toBe(invalid);
+  });
+
+  it("keeps unexpected Promise adapter errors as defects", async () => {
+    const unexpected = new TypeError("broken response transform");
+    const result = await Effect.runPromiseExit(
+      Effect.provideService(
+        tryPlanningCenter(async () => {
+          await Promise.resolve();
+          throw unexpected;
+        }),
+        RequestContext,
+        createRequestContext(requestFor("first"))
+      )
+    );
+
+    expect(toApplicationFault(unexpected)).toBeNull();
+    if (Exit.isSuccess(result)) {
+      throw new Error("Expected the adapter error to fail");
+    }
+    expect([...Cause.defects(result.cause)]).toContain(unexpected);
+    expect([...Cause.failures(result.cause)]).toStrictEqual([]);
   });
 });

@@ -1,0 +1,51 @@
+import type { RequestContext } from "@pcobooster/api/application/context";
+import type { ApplicationFault } from "@pcobooster/api/application/errors";
+import {
+  PlanningCenterAccess,
+  resolvePlanningCenterAccess,
+} from "@pcobooster/api/application/planning-center-access";
+import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
+import type { ApplicationRuntime } from "@pcobooster/api/application/runtime";
+import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
+import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
+import { Effect } from "effect";
+
+/** Keep one request credential across interruptible preparation and a committed write. */
+export const executePreparedPlanningCenterWrite = async <Preparation, Value>(
+  runtime: ApplicationRuntime<never>,
+  context: RpcContext,
+  signal: AbortSignal | undefined,
+  prepare: Effect.Effect<
+    Preparation,
+    ApplicationFault,
+    PlanningCenterAccess | RequestContext
+  >,
+  commit: (
+    prepared: Preparation
+  ) => Effect.Effect<
+    Value,
+    ApplicationFault,
+    PlanningCenterAccess | RequestContext
+  >,
+  dependencies?: PlanningCenterAccessDependencies
+): Promise<Value> => {
+  const access = await executeApplicationEffect(
+    runtime,
+    resolvePlanningCenterAccess(dependencies),
+    context,
+    signal
+  );
+  const prepared = await executeApplicationEffect(
+    runtime,
+    Effect.provideService(prepare, PlanningCenterAccess, access),
+    context,
+    signal
+  );
+  return await executeApplicationEffect(
+    runtime,
+    Effect.provideService(commit(prepared), PlanningCenterAccess, access),
+    context,
+    signal,
+    { interruptOnAbort: false }
+  );
+};

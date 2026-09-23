@@ -8,7 +8,15 @@ const allowedOrigin = "https://pcobooster.com";
 const recordedAt = new Date("2026-09-19T12:34:56.000Z");
 const privateNoStore = "private, no-store";
 type TestAuthHandler = (request: Request) => Promise<Response> | Response;
-type TestErrorLogger = (bindings: { err: unknown }, message: string) => void;
+type TestErrorLogger = (
+  bindings: {
+    err: unknown;
+    requestId?: string;
+    path?: string;
+    method?: string;
+  },
+  message: string
+) => void;
 
 const testProcedure = os.$context<{ resHeaders?: Headers }>();
 
@@ -46,12 +54,17 @@ const testRouter = {
     .handler(() => ({ recordedAt })),
 };
 
-const rpcRequest = (path: string) =>
-  new Request(`http://localhost/api/rpc/${path}`, {
+const rpcRequest = (path: string, requestId?: string) => {
+  const headers = new Headers({ "content-type": "application/json" });
+  if (requestId !== undefined) {
+    headers.set("x-request-id", requestId);
+  }
+  return new Request(`http://localhost/api/rpc/${path}`, {
     body: JSON.stringify({ json: {} }),
-    headers: { "content-type": "application/json" },
+    headers,
     method: "POST",
   });
+};
 
 const createTestApp = (authHandler: TestAuthHandler) =>
   createServerApp({
@@ -147,6 +160,28 @@ describe(createServerApp, () => {
     expect(body).toContain("INTERNAL_SERVER_ERROR");
     expect(body).not.toContain("private database diagnostic");
     expect(response.headers.get("cache-control")).toBe(privateNoStore);
+  });
+
+  it("logs the request ID and path for an unexpected RPC failure", async () => {
+    const log = { error: vi.fn<TestErrorLogger>() };
+    const app = createServerApp({
+      authHandler: () => new Response(null, { status: 501 }),
+      corsOrigin: allowedOrigin,
+      enableRequestLogging: false,
+      log,
+      router: testRouter,
+    });
+
+    await app.request(rpcRequest("defect", "request-123"));
+
+    expect(log.error).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestId: "request-123",
+        path: "/api/rpc/defect",
+        method: "POST",
+      }),
+      "oRPC request failed"
+    );
   });
 
   it.each(["/api/rpc/missing", "/api/reference/missing"])(
