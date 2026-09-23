@@ -19,6 +19,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import {
   ResponsivePopover,
   ResponsivePopoverContent,
@@ -208,8 +209,8 @@ export const PersonRehearsalTimesPopover = ({
                       <Check
                         className={cn(selected ? "opacity-100" : "opacity-0")}
                       />
-                      <span className="min-w-0 flex-1 truncate">
-                        {planTime.name}
+                      <span className="min-w-0 flex-1">
+                        <MiddleTruncate text={planTime.name} />
                       </span>
                       <Badge variant="outline" className="max-w-[14rem]">
                         {formatPlanTimeScheduleLabel(planTime, timeZone)}

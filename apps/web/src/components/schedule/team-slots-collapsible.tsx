@@ -20,6 +20,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
+import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import {
   ResponsivePopover,
   ResponsivePopoverContent,
@@ -97,12 +98,9 @@ export const TeamSlotsCollapsible = ({
             teamName={group.teamName}
           />
           <span
-            className={cn(
-              "min-w-0 flex-1 truncate",
-              isTemporaryPosition && "italic"
-            )}
+            className={cn("min-w-0", "flex-1", isTemporaryPosition && "italic")}
           >
-            {position.name}
+            <MiddleTruncate text={position.name} />
           </span>
           <SlotBadgeCluster
             position={position}

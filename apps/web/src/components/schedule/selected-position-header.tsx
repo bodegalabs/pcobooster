@@ -11,6 +11,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Item } from "@/components/ui/item";
+import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import { cn } from "@/lib/utils";
 
 export const SelectedPositionHeader = ({
@@ -65,11 +66,12 @@ export const SelectedPositionHeader = ({
           <span className="flex min-w-0 flex-col">
             <span
               className={cn(
-                "truncate text-lg leading-tight font-semibold tracking-tight",
+                "block min-w-0",
+                "text-lg leading-tight font-semibold tracking-tight",
                 isTemporaryPosition && "italic"
               )}
             >
-              {info?.positionName ?? "Position"}
+              <MiddleTruncate text={info?.positionName ?? "Position"} />
             </span>
             {info ? (
               <span className="text-muted-foreground truncate text-xs">

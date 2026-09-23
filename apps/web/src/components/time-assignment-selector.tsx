@@ -21,6 +21,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { ItemSeparator } from "@/components/ui/item";
+import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import {
   ResponsivePopover,
   ResponsivePopoverContent,
@@ -347,8 +348,8 @@ export const TimeAssignmentSelector = ({
                             teamName={position.teamName}
                           />
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-medium">
-                              {position.name}
+                            <span className="block min-w-0 text-sm font-medium">
+                              <MiddleTruncate text={position.name} />
                             </span>
                             <span className="text-muted-foreground block truncate text-xs">
                               {position.teamName}
