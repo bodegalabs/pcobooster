@@ -13,22 +13,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatDateTime } from "@/lib/format-date";
 import { getAdminUser } from "@/server/api";
 
 export const dynamic = "force-dynamic";
-
-const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
-
-const formatDateTime = (value: string | null): string => {
-  if (!(value !== null && value !== "")) {
-    return "Never";
-  }
-
-  return dateTimeFormatter.format(new Date(value));
-};
 
 const splitScope = (scope: string | null): string[] => {
   if (!(scope !== null && scope !== "")) {
