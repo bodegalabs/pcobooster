@@ -31,7 +31,10 @@ export const PositionPickerList = ({
   onSelect,
   onPreviewSlot,
   onAddPosition,
+  clearTabBar = false,
 }: {
+  /** Pad the end so the last rows scroll clear of the floating phone tab bar. */
+  clearTabBar?: boolean;
   teamPositionsLoading: boolean;
   teamPositionsPlaceholder: boolean;
   teamPositionGroups: TeamPositionGroup[] | undefined;
@@ -105,7 +108,14 @@ export const PositionPickerList = ({
   }
   return (
     <ScrollArea className="min-h-0 flex-1">
-      <div className="flex flex-col py-1">{body}</div>
+      <div
+        className={cn(
+          "flex flex-col py-1",
+          clearTabBar && "pb-tab-bar md:pb-1"
+        )}
+      >
+        {body}
+      </div>
     </ScrollArea>
   );
 };

@@ -100,13 +100,8 @@ export const PositionIconsHoverCard = ({
 }) => (
   <HoverCard>
     <HoverCardTrigger
-      render={
-        <button
-          type="button"
-          className="inline-flex cursor-default items-center justify-end gap-0.5 rounded-md"
-          aria-label={label}
-        />
-      }
+      render={<button type="button" aria-label={label} />}
+      className="inline-flex cursor-default items-center justify-end gap-0.5 rounded-md"
     >
       {positions.map((position) => (
         <PositionPickerIcon

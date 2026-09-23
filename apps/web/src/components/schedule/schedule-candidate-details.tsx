@@ -4,12 +4,18 @@ import type { PersonWithAvailability } from "@pcobooster/planning-center-models/
 import type { CSSProperties, ReactNode } from "react";
 
 import { RecommendationPopover } from "@/components/schedule/popovers/recommendation-popover";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Avatar,
+  AvatarButton,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
+import { Item } from "@/components/ui/item";
+import {
+  ResponsivePopover,
+  ResponsivePopoverContent,
+  ResponsivePopoverTrigger,
+} from "@/components/ui/responsive-popover";
 import { cn } from "@/lib/utils";
 
 export type CandidateStatus =
@@ -111,15 +117,10 @@ export const ScheduleCandidateAvatar = ({
         ? trimmedReason
         : "No note was saved with this decline in Planning Center.";
     return (
-      <Popover>
-        <PopoverTrigger
+      <ResponsivePopover>
+        <ResponsivePopoverTrigger
           render={
-            <button
-              type="button"
-              className={cn(
-                "relative inline-flex shrink-0 cursor-pointer overflow-visible rounded-full border-0 bg-transparent p-0",
-                "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-              )}
+            <AvatarButton
               aria-label={`Decline reason for ${person.fullName}`}
               title="View decline reason"
             />
@@ -128,8 +129,9 @@ export const ScheduleCandidateAvatar = ({
           <AvatarStatusRing slotStatus={slotStatus}>
             <Avatar aria-hidden>{avatarInner}</Avatar>
           </AvatarStatusRing>
-        </PopoverTrigger>
-        <PopoverContent
+        </ResponsivePopoverTrigger>
+        <ResponsivePopoverContent
+          title="Decline reason"
           align="start"
           side="right"
           sideOffset={8}
@@ -143,25 +145,19 @@ export const ScheduleCandidateAvatar = ({
               {declineReason}
             </p>
           </div>
-        </PopoverContent>
-      </Popover>
+        </ResponsivePopoverContent>
+      </ResponsivePopover>
     );
   }
 
   if (isScheduledElsewhereOnPlan) {
     const assignmentsLabel = `Also scheduled for: ${selectedPlanAssignments.join(", ")}`;
     return (
-      <Popover>
-        <PopoverTrigger
+      <ResponsivePopover>
+        <ResponsivePopoverTrigger
           render={
-            <button
-              type="button"
-              className={cn(
-                "relative shrink-0 cursor-pointer overflow-visible rounded-full border-0 bg-transparent p-0",
-                "outline-status-info outline-2 outline-offset-2 outline-dashed",
-                "hover:outline-status-info dark:outline-status-info dark:hover:outline-info-border",
-                "focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-              )}
+            <AvatarButton
+              emphasis="info"
               aria-label={`${person.fullName}. ${assignmentsLabel}`}
               title={assignmentsLabel}
             />
@@ -169,8 +165,9 @@ export const ScheduleCandidateAvatar = ({
         >
           <Avatar aria-hidden>{avatarInner}</Avatar>
           {blockedAvatarTint}
-        </PopoverTrigger>
-        <PopoverContent
+        </ResponsivePopoverTrigger>
+        <ResponsivePopoverContent
+          title="Also scheduled"
           align="start"
           side="right"
           sideOffset={8}
@@ -186,8 +183,8 @@ export const ScheduleCandidateAvatar = ({
               </span>
             </p>
           </div>
-        </PopoverContent>
-      </Popover>
+        </ResponsivePopoverContent>
+      </ResponsivePopover>
     );
   }
 
@@ -219,10 +216,12 @@ export const ScheduleCandidateScore = ({
       reasoning={person.recommendationReasoning}
       personId={person.id}
     >
-      <button
-        type="button"
-        className="flex w-full items-center gap-2 text-left sm:flex-col sm:items-end sm:gap-1.5 sm:text-right"
-        aria-label={`${percentage} percent fit`}
+      <Item
+        size="row"
+        className="sm:flex-col sm:items-end sm:gap-1.5"
+        render={
+          <button type="button" aria-label={`${percentage} percent fit`} />
+        }
       >
         <span
           className={cn(
@@ -244,7 +243,7 @@ export const ScheduleCandidateScore = ({
             style={progressStyle}
           />
         </div>
-      </button>
+      </Item>
     </RecommendationPopover>
   );
 };

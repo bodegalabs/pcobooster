@@ -20,10 +20,10 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  ResponsivePopover,
+  ResponsivePopoverContent,
+  ResponsivePopoverTrigger,
+} from "@/components/ui/responsive-popover";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { useDraftPopover } from "@/hooks/use-persist-on-close-popover";
 import { queryKeys } from "@/lib/query-keys";
@@ -162,11 +162,11 @@ export const PersonRehearsalTimesPopover = ({
       className={cn(
         display === "lineup" &&
           !isPartialAssignment &&
-          "opacity-0 group-hover/person:opacity-100 focus-within:opacity-100"
+          "opacity-0 group-hover/person:opacity-100 focus-within:opacity-100 pointer-coarse:opacity-100"
       )}
     >
-      <Popover open={open} onOpenChange={handleOpenChange}>
-        <PopoverTrigger
+      <ResponsivePopover open={open} onOpenChange={handleOpenChange}>
+        <ResponsivePopoverTrigger
           render={
             <Button
               type="button"
@@ -180,8 +180,13 @@ export const PersonRehearsalTimesPopover = ({
         >
           <Clock3 data-icon="inline-start" />
           {selectedTimeCount}/{planTimes.length}
-        </PopoverTrigger>
-        <PopoverContent align="end" sideOffset={8} className="w-96">
+        </ResponsivePopoverTrigger>
+        <ResponsivePopoverContent
+          title="Rehearsal times"
+          align="end"
+          sideOffset={8}
+          className="w-96"
+        >
           <Command>
             <CommandList>
               <CommandGroup>
@@ -215,8 +220,8 @@ export const PersonRehearsalTimesPopover = ({
               </CommandGroup>
             </CommandList>
           </Command>
-        </PopoverContent>
-      </Popover>
+        </ResponsivePopoverContent>
+      </ResponsivePopover>
     </div>
   );
 };
