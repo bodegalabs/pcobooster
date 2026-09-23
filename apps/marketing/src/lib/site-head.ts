@@ -3,7 +3,7 @@ export const MARKETING_BASE = "/marketing/";
 
 const SITE_ORIGIN = "https://pcobooster.com";
 const SITE_NAME = "PCOBooster";
-const DEFAULT_TITLE = "PCOBooster — A clearer picture of your team";
+const DEFAULT_TITLE = "PCOBooster | A clearer picture of your team";
 const SHARE_TITLE = "A clearer picture of your team.";
 const SHARE_DESCRIPTION =
   "Thoughtful scheduling tools for Planning Center Services.";

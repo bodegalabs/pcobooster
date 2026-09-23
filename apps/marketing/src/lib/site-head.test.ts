@@ -19,7 +19,7 @@ describe(canonicalUrl, () => {
 
 describe(pageTitle, () => {
   it("uses the site default without a page title", () => {
-    expect(pageTitle()).toBe("PCOBooster — A clearer picture of your team");
+    expect(pageTitle()).toBe("PCOBooster | A clearer picture of your team");
   });
 
   it("suffixes page titles with the site name", () => {

@@ -111,7 +111,7 @@ export const ScoreMeter = ({
   reasons: readonly string[];
 }) => {
   if (score === null) {
-    return <span className={styles["score-empty"]}>—</span>;
+    return <span className={styles["score-empty"]}>No score</span>;
   }
   const barStyle: CSSProperties & { "--score": string } = {
     "--score": `${Math.max(4, score)}%`,
