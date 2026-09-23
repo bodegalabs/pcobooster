@@ -1,5 +1,6 @@
 import { getPlanningCenterIdentityFromAccessToken } from "@pcobooster/api/auth/planning-center-identity";
 import { db } from "@pcobooster/api/db";
+import type { Db } from "@pcobooster/api/db/client";
 import { getPlanningCenterAccountIdentity } from "@pcobooster/api/modules/admin/planning-center-account-identities";
 import type {
   AdminAccountActivity,
@@ -9,7 +10,7 @@ import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 
-const databaseDateSchema = z.union([z.date(), z.string()]);
+const databaseDateSchema = z.union([z.date(), z.string(), z.number()]);
 const databaseCountSchema = z.union([z.number(), z.string()]);
 const accountActivityRowSchema = z.object({
   user_id: z.string(),
@@ -19,7 +20,9 @@ const accountActivityRowSchema = z.object({
   created_at: databaseDateSchema,
   updated_at: databaseDateSchema,
   linked_accounts: databaseCountSchema,
-  providers: z.array(z.string()).nullable(),
+  providers: z
+    .string()
+    .transform((value) => z.array(z.string()).parse(JSON.parse(value))),
   active_sessions: databaseCountSchema,
   login_events: databaseCountSchema,
   login_events_7d: databaseCountSchema,
@@ -48,7 +51,7 @@ const linkedAccountRowSchema = z.object({
 
 const toNumber = Number;
 
-const toIsoString = (value: Date | string | null): string | null => {
+const toIsoString = (value: Date | string | number | null): string | null => {
   if (value === null) {
     return null;
   }
@@ -76,38 +79,40 @@ export const isAdminEmail = (email: string | null | undefined): boolean => {
   return getAdminEmailAllowlist().includes(email.toLowerCase());
 };
 
-export const getAccountActivity = async (): Promise<AdminAccountActivity[]> => {
-  const { rows } = await db.execute(sql`
+export const getAccountActivity = async (
+  database: Db = db
+): Promise<AdminAccountActivity[]> => {
+  const rows = await database.all(sql`
     with linked_accounts as (
       select
         "userId" as user_id,
-        count(*)::int as linked_accounts,
-        array_agg(distinct "providerId" order by "providerId") as providers
+        count(*) as linked_accounts,
+        json_group_array(distinct "providerId") as providers
       from account
       group by "userId"
     ),
     active_sessions as (
       select
         "userId" as user_id,
-        count(*)::int as active_sessions
+        count(*) as active_sessions
       from session
-      where "expiresAt" > now()
+      where "expiresAt" > cast((julianday('now') - 2440587.5) * 86400000 as integer)
       group by "userId"
     ),
     activity as (
       select
         actor_user_id as user_id,
-        count(*)::int as activity_events,
-        count(*) filter (where event_type = 'auth_session_created')::int as login_events,
+        count(*) as activity_events,
+        count(*) filter (where event_type = 'auth_session_created') as login_events,
         count(*) filter (
           where event_type = 'auth_session_created'
-            and created_at >= now() - interval '7 days'
-        )::int as login_events_7d,
+            and created_at >= cast((julianday('now', '-7 days') - 2440587.5) * 86400000 as integer)
+        ) as login_events_7d,
         count(*) filter (
           where event_type = 'auth_session_created'
-            and created_at >= now() - interval '30 days'
-        )::int as login_events_30d,
-        count(*) filter (where event_type = 'auth_session_deleted')::int as sign_out_events,
+            and created_at >= cast((julianday('now', '-30 days') - 2440587.5) * 86400000 as integer)
+        ) as login_events_30d,
+        count(*) filter (where event_type = 'auth_session_deleted') as sign_out_events,
         min(created_at) filter (where event_type = 'auth_session_created') as first_login_at,
         max(created_at) filter (where event_type = 'auth_session_created') as last_login_at,
         max(created_at) as last_activity_at
@@ -123,7 +128,7 @@ export const getAccountActivity = async (): Promise<AdminAccountActivity[]> => {
       u."createdAt" as created_at,
       u."updatedAt" as updated_at,
       coalesce(la.linked_accounts, 0) as linked_accounts,
-      coalesce(la.providers, array[]::text[]) as providers,
+      coalesce(la.providers, '[]') as providers,
       coalesce(s.active_sessions, 0) as active_sessions,
       coalesce(a.login_events, 0) as login_events,
       coalesce(a.login_events_7d, 0) as login_events_7d,
@@ -151,7 +156,7 @@ export const getAccountActivity = async (): Promise<AdminAccountActivity[]> => {
       createdAt: toIsoString(row.created_at) ?? "",
       updatedAt: toIsoString(row.updated_at) ?? "",
       linkedAccounts: toNumber(row.linked_accounts),
-      providers: row.providers ?? [],
+      providers: row.providers.toSorted(),
       activeSessions: toNumber(row.active_sessions),
       loginEvents: toNumber(row.login_events),
       loginEvents7d: toNumber(row.login_events_7d),
@@ -165,15 +170,16 @@ export const getAccountActivity = async (): Promise<AdminAccountActivity[]> => {
 };
 
 export const getUserAccountDetail = async (
-  userId: string
+  userId: string,
+  database: Db = db
 ): Promise<AdminUserAccountDetail | null> => {
-  const accounts = await getAccountActivity();
+  const accounts = await getAccountActivity(database);
   const user = accounts.find((account) => account.userId === userId);
   if (!user) {
     return null;
   }
 
-  const { rows } = await db.execute(
+  const rows = await database.all(
     sql`
       select
         a.id,
@@ -185,8 +191,8 @@ export const getUserAccountDetail = async (
         a."accessTokenExpiresAt" as access_token_expires_at,
         a."refreshTokenExpiresAt" as refresh_token_expires_at,
         a."accessToken" as access_token,
-        count(e.id)::int as activity_events,
-        count(e.id) filter (where e.event_type = 'auth_account_linked')::int as linked_events,
+        count(e.id) as activity_events,
+        count(e.id) filter (where e.event_type = 'auth_account_linked') as linked_events,
         min(e.created_at) as first_activity_at,
         max(e.created_at) as last_activity_at
       from account a
@@ -210,7 +216,10 @@ export const getUserAccountDetail = async (
       .array()
       .parse(rows)
       .map(async (row) => {
-        const storedIdentity = await getPlanningCenterAccountIdentity(row.id);
+        const storedIdentity = await getPlanningCenterAccountIdentity(
+          row.id,
+          database
+        );
         return {
           id: row.id,
           providerAccountId: row.provider_account_id,

@@ -1,4 +1,5 @@
 import { db } from "@pcobooster/api/db";
+import type { Db } from "@pcobooster/api/db/client";
 import { activityEvents } from "@pcobooster/api/db/schema";
 import { logger } from "@pcobooster/api/logger";
 import { forwardActivityEventToPostHog } from "@pcobooster/api/modules/analytics/posthog-activity";
@@ -101,9 +102,10 @@ export const getActivityRequestContext = (
 /** The database row is the audit record; PostHog delivery is best effort. */
 export const recordActivityEvent = async (
   input: ActivityEventInput,
-  person: PostHogPersonProperties | null = null
+  person: PostHogPersonProperties | null = null,
+  database: Db = db
 ): Promise<void> => {
-  await db.insert(activityEvents).values({
+  await database.insert(activityEvents).values({
     eventType: input.eventType,
     actorUserId: toNullableString(input.actorUserId),
     actorAccountId: toNullableString(input.actorAccountId),

@@ -11,7 +11,7 @@ Read [references/feature-map.md](references/feature-map.md) and select every flo
 
 - Public marketing-only changes: run `bun run dev:marketing` and use `http://127.0.0.1:3002`.
 - Integrated product changes: run `bun run dev`. Treat missing Infisical access or provider credentials as a blocked environment, not a product failure.
-- A Vercel preview may replace local launch when its head SHA matches the revision being proved.
+- A Cloudflare preview may replace local launch when its deployed revision matches the committed revision being proved. Confirm the Actions run and deployment; a stable per-PR URL alone does not prove the revision.
 
 Completion: the selected surface responds, the rendered page matches the target revision, and the browser console has no startup error.
 

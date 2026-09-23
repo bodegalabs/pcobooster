@@ -56,9 +56,10 @@ export interface PlanningCenterRequestAccess {
   readonly presentation: boolean;
 }
 
-export class PlanningCenterAccess extends Context.Tag(
-  "@pcobooster/api/PlanningCenterAccess"
-)<PlanningCenterAccess, PlanningCenterRequestAccess>() {}
+export class PlanningCenterAccess extends Context.Service<
+  PlanningCenterAccess,
+  PlanningCenterRequestAccess
+>()("@pcobooster/api/PlanningCenterAccess") {}
 
 export interface PlanningCenterAccessDependencies {
   readonly authorize: (request: Request) => Promise<RequestAuthentication>;
@@ -166,7 +167,7 @@ export const resolvePlanningCenterAccess = (
         error instanceof Error
           ? error
           : new Error("Planning Center authorization failed", { cause: error }),
-    }).pipe(Effect.catchAll(failPlanningCenter));
+    }).pipe(Effect.catch(failPlanningCenter));
     const services = yield* Effect.sync(() =>
       dependencies.createServices(authentication)
     );
@@ -204,5 +205,5 @@ export const tryPlanningCenter = <Value>(
         error instanceof Error
           ? error
           : new Error("Planning Center operation failed", { cause: error }),
-    }).pipe(Effect.catchAll(failPlanningCenter));
+    }).pipe(Effect.catch(failPlanningCenter));
   });

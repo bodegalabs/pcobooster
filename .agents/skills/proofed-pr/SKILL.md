@@ -33,7 +33,7 @@ bun run proof -- publish --pr <number-or-url> --receipt <receipt.json>
 
 The publisher rejects a mismatched PR head and duplicate proof for the same SHA.
 
-Completion: the PR body states risk and rollback, the proof comment is attached to the current head, and GitHub reports the `ci` and `Vercel` gates for that revision.
+Completion: the PR body states risk and rollback, the proof comment is attached to the current head, and GitHub reports the `ci` and `cloudflare-build` gates for that revision. Inspect the live ruleset during the migration transition described in [CI/CD](../../../docs/ci-cd.md); do not bypass its existing requirements.
 
 ## Babysit
 

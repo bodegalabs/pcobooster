@@ -162,7 +162,6 @@ const detail: PeopleDashboardPersonDetail = {
 
 const setupPresentationEnvironment = () => {
   vi.stubEnv("NODE_ENV", "development");
-  vi.stubEnv("VERCEL", "");
   vi.stubEnv("PRESENTATION_MODE", "1");
   vi.stubEnv("PRESENTATION_SEED", "test-seed");
   dependencies = createDependencies();
@@ -182,7 +181,6 @@ describe("presentation mode", () => {
     expect(dependencies.catalog.getOrganization).not.toHaveBeenCalled();
   });
 
-  // The Bun API dev server runs without NODE_ENV, unlike Next.js.
   it.each(["development", "test", undefined])(
     "enables the flag outside production (NODE_ENV=%s)",
     (environment) => {
@@ -192,10 +190,7 @@ describe("presentation mode", () => {
     }
   );
 
-  it("does not enable on Vercel or without the flag", () => {
-    vi.stubEnv("VERCEL", "1");
-    expect(isPresentationMode()).toBeFalsy();
-    vi.stubEnv("VERCEL", "");
+  it("does not enable without the flag", () => {
     vi.stubEnv("PRESENTATION_MODE", "0");
     expect(isPresentationMode()).toBeFalsy();
   });

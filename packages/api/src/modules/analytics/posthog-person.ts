@@ -1,4 +1,5 @@
 import { db } from "@pcobooster/api/db";
+import type { Db } from "@pcobooster/api/db/client";
 import {
   account,
   planningCenterAccountIdentities,
@@ -9,9 +10,10 @@ import { desc, eq } from "drizzle-orm";
 
 /** The most recently refreshed Planning Center identity names the user's church. */
 export const getPostHogPersonProperties = async (
-  userId: string
+  userId: string,
+  database: Db = db
 ): Promise<PostHogPersonProperties | null> => {
-  const [row] = await db
+  const [row] = await database
     .select({
       email: user.email,
       name: user.name,

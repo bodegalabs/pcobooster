@@ -1,5 +1,6 @@
 import type { PlanningCenterIdentity } from "@pcobooster/api/auth/planning-center-identity";
 import { db } from "@pcobooster/api/db";
+import type { Db } from "@pcobooster/api/db/client";
 import { planningCenterAccountIdentities } from "@pcobooster/api/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -9,16 +10,19 @@ export type StoredPlanningCenterAccountIdentity = PlanningCenterIdentity & {
   fetchedAt: string;
 };
 
-export const upsertPlanningCenterAccountIdentity = async (input: {
-  accountId: string;
-  providerAccountId: string;
-  identity: PlanningCenterIdentity;
-  fetchedAt?: Date;
-}) => {
+export const upsertPlanningCenterAccountIdentity = async (
+  input: {
+    accountId: string;
+    providerAccountId: string;
+    identity: PlanningCenterIdentity;
+    fetchedAt?: Date;
+  },
+  database: Db = db
+) => {
   const now = new Date();
   const fetchedAt = input.fetchedAt ?? now;
 
-  await db
+  await database
     .insert(planningCenterAccountIdentities)
     .values({
       accountId: input.accountId,
@@ -47,9 +51,10 @@ export const upsertPlanningCenterAccountIdentity = async (input: {
 };
 
 export const getPlanningCenterAccountIdentity = async (
-  accountId: string
+  accountId: string,
+  database: Db = db
 ): Promise<StoredPlanningCenterAccountIdentity | null> => {
-  const row = await db.query.planningCenterAccountIdentities.findFirst({
+  const row = await database.query.planningCenterAccountIdentities.findFirst({
     where: eq(planningCenterAccountIdentities.accountId, accountId),
   });
   if (!row) {

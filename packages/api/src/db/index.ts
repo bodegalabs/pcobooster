@@ -1,7 +1,6 @@
-import { pool } from "@pcobooster/api/db/pool";
-import * as schema from "@pcobooster/api/db/schema";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { env } from "cloudflare:workers";
 
-export const db = drizzle(pool, { schema });
+import { createDatabase } from "./client";
 
-export type Db = typeof db;
+export const db = createDatabase(env.DB);
+export type { Db } from "./client";

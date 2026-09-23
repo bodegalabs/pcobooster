@@ -14,7 +14,7 @@ This app helps teams schedule people into open positions for specific plans by c
 
 The public marketing site lives at `/`, with the origin story at `/about`. The authenticated product starts at `/services`.
 
-This is a Bun/Turborepo monorepo. The product UI lives in `apps/web`, the Bun/Hono API service lives in `apps/server`, server implementation lives in `packages/api`, browser-safe oRPC contracts live in `packages/contracts`, Planning Center models and calendar rules live in `packages/planning-center-models`, and the static marketing site lives in `apps/marketing`. See [marketing development and deployment](docs/marketing.md).
+This is a Bun/Turborepo monorepo. The product UI lives in `apps/web`, the Cloudflare Hono API Worker lives in `apps/server`, server implementation lives in `packages/api`, browser-safe oRPC contracts live in `packages/contracts`, Planning Center models and calendar rules live in `packages/planning-center-models`, and the static marketing site lives in `apps/marketing`. See [marketing development and deployment](docs/marketing.md).
 
 For parallel remote development, see [Codex cloud development](docs/codex-cloud.md).
 
@@ -36,41 +36,25 @@ Install the [Infisical CLI](https://infisical.com/docs/cli/usage) and run `infis
 
 Required local keys:
 
-- `BETTER_AUTH_URL`
 - `BETTER_AUTH_SECRET`
-- `DATABASE_URL`
 - `PLANNING_CENTER_OAUTH_CLIENT_ID`
 - `PLANNING_CENTER_OAUTH_CLIENT_SECRET`
 
-For the local Planning Center PAT shortcut, set `DEV_AUTH_BYPASS=1`, `PLANNING_CENTER_CLIENT`, and `PLANNING_CENTER_PAT` **only in Development's `/local` folder**. `bun run dev` and `bun run dev:present` read both `/` and `/local`, but database tools and Vercel secret sync read only `/`. The dev servers bind to `127.0.0.1` so this bypass is not exposed on your LAN. `DEV_AUTH_BYPASS` is ignored when `NODE_ENV=production`, but the PAT must never be copied to production or preview. Use separate database credentials per environment. Presentation mode can be started with a command, so it does not need a stored secret.
+For the local Planning Center PAT shortcut, set `DEV_AUTH_BYPASS=1`, `PLANNING_CENTER_CLIENT`, and `PLANNING_CENTER_PAT` **only in Development's `/local` folder**. `bun run dev` and `bun run dev:present` read both `/` and `/local`, while deployments read only their dedicated Infisical source. The dev servers bind to `127.0.0.1` so this bypass is not exposed on your LAN. `DEV_AUTH_BYPASS` is ignored when `NODE_ENV=production`, but the PAT must never be copied to production or preview. Alchemy creates a separate D1 database per stage. Presentation mode can be started with a command, so it does not need a stored secret.
 
 The normal Bun commands load Infisical automatically. The CLI injects variables into the command process and does not write an env file. For one-off local commands that need the bypass, use `infisical run --env=dev --path=/ --path=/local -- <command>`. Use only `--path=/` for deployable Development secrets.
 
-For deployments, the one-way flow is Infisical Development/Staging/Production `/` to Vercel Development/Preview/Production respectively. Infisical is the source of truth for every application setting through the [three active Vercel syncs](https://infisical.com/docs/integrations/secret-syncs/vercel). Vercel receives generated copies for builds and runtime; never edit those copies directly. Existing deployments need redeployment to pick up changes. See [environment and secret ownership](docs/neon-infisical-preview.md) for Neon branches, preview limitations, and token rotation.
+For deployments, Infisical supplies application secrets to Alchemy, which writes Worker bindings. Cloudflare credentials stay in an Alchemy profile. See [configuration](docs/environment.md) and [deployment](docs/ci-cd.md).
 
-### 3. Configure Planning Center OAuth callback URL
-
-In your Planning Center OAuth app settings, add:
-
-- Local: `http://localhost:3000/api/auth/callback/planning-center`
-- Production: `https://pcobooster.com/api/auth/callback/planning-center`
-
-Production `BETTER_AUTH_URL` is `https://pcobooster.com`, managed in Infisical Production `/` and synced to Vercel. The older domain migration record remains in `docs/` as historical context.
-
-### 4. Run database migrations and seeds
-
-```bash
-bun run db:migrate
-bun run db:seed
-```
-
-### 5. Start the app
+### 3. Start the app
 
 ```bash
 bun run dev
 ```
 
-Open `http://localhost:3001`. Turborepo starts the Hono API on port 3000, the product on port 3001, and marketing on port 3002. The product proxies `/api/*` to Hono and the public marketing routes to port 3002.
+Alchemy applies migrations to persistent local D1 and starts the API (3000), product (3001), and admin (3003). Marketing runs on 3002. Open `http://127.0.0.1:3001`; the admin preview is at `/admin`. For local OAuth, register `http://127.0.0.1:3001/api/auth/callback/planning-center` in Planning Center. Production uses `https://pcobooster.com/api/auth/callback/planning-center`; preview callbacks use the production OAuth broker.
+
+Generate schema migrations with `bun run db:generate`. Alchemy applies committed SQL during local startup and deployments. No remote database credentials are needed to run tests.
 
 ### Present locally
 
@@ -78,11 +62,11 @@ Open `http://localhost:3001`. Turborepo starts the Hono API on port 3000, the pr
 bun run dev:present
 ```
 
-This enables `PRESENTATION_MODE=1` for the local dev servers. It is ignored when `NODE_ENV=production` or on Vercel. The app shows a "Presentation mode" badge. Your signed-in account and organization stay visible. Planning Center people get consistent fictional names, fictional initials, and no photos across candidates, filled positions, search, and People pages. Blockout reasons/descriptions and selected-plan decline notes are masked on the server. Aliases come from about 9,500 name combinations, so two people rarely share one.
+This enables `PRESENTATION_MODE=1` for the local dev servers. It is ignored when `NODE_ENV=production` . The app shows a "Presentation mode" badge. Your signed-in account and organization stay visible. Planning Center people get consistent fictional names, fictional initials, and no photos across candidates, filled positions, search, and People pages. Blockout reasons/descriptions and selected-plan decline notes are masked on the server. Aliases come from about 9,500 name combinations, so two people rarely share one.
 
 Search matches the fictional names. Its first request loads the People directory; subsequent requests reuse the account-scoped directory cache for five minutes. Browser people caches and React Query caches are isolated from normal mode. `PRESENTATION_SEED` optionally changes the aliases and browser cache namespace.
 
-Stop the server, run `bun run dev`, and reload open tabs to return to normal mode. Do not store `PRESENTATION_MODE` in Infisical if you want the command to control it. The flag is ignored in production and on Vercel. It does not change authentication or grant API access.
+Stop the server, run `bun run dev`, and reload open tabs to return to normal mode. Do not store `PRESENTATION_MODE` in Infisical if you want the command to control it. The flag is ignored in production . It does not change authentication or grant API access.
 
 This masks person fields for app presentations, not the underlying dataset: IDs, schedules, team/position names, plan titles, and free-form plan-item text remain real. Review those custom labels before a public recording. Actions still write to the real Planning Center account; server logs and external Planning Center pages are outside the masking scope.
 

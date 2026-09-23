@@ -6,18 +6,21 @@ import type { appContract } from "@pcobooster/contracts";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
+import { getWorkerEnvironment } from "@/lib/cloudflare";
+
 type AppClient = ContractRouterClient<typeof appContract>;
 
 /**
  * The product app owns sign-in and the API. In production its session cookie
  * is scoped to the parent domain, so this subdomain forwards it unchanged.
  */
-const PRODUCT_ORIGIN =
+const getProductOrigin = (): string =>
   process.env.NODE_ENV === "production"
-    ? "https://pcobooster.com"
+    ? getWorkerEnvironment().PRODUCT_ORIGIN
     : "http://127.0.0.1:3001";
 
 const createServerRpcClient = async (): Promise<AppClient> => {
+  const productOrigin = getProductOrigin();
   const incomingHeaders = await headers();
   const forwardedHeaders = new Headers();
   const cookie = incomingHeaders.get("cookie");
@@ -27,11 +30,31 @@ const createServerRpcClient = async (): Promise<AppClient> => {
 
   const rpcLink = new RPCLink({
     headers: forwardedHeaders,
-    url: `${PRODUCT_ORIGIN}/api/rpc`,
+    url: `${productOrigin}/api/rpc`,
     fetch: async (request) => {
-      const response = await fetch(new Request(request, { cache: "no-store" }));
+      const outgoing = new Request(request, { cache: "no-store" });
+      const response =
+        process.env.NODE_ENV === "production"
+          ? await getWorkerEnvironment().API.fetch(outgoing.url, {
+              method: outgoing.method,
+              headers: Object.fromEntries(outgoing.headers),
+              body:
+                outgoing.method === "GET" || outgoing.method === "HEAD"
+                  ? undefined
+                  : await outgoing.arrayBuffer(),
+              redirect: "manual",
+              signal: request.signal,
+            })
+          : await fetch(outgoing);
       if (response.status === 401) {
-        redirect(`${PRODUCT_ORIGIN}/auth`);
+        const destination = new URL("/auth", productOrigin);
+        if (
+          process.env.NODE_ENV === "development" ||
+          process.env.ADMIN_BASE_PATH === "/admin"
+        ) {
+          destination.searchParams.set("next", "/admin");
+        }
+        redirect(destination.toString());
       }
       // Hide the app's existence from signed-in accounts outside the allowlist.
       if (response.status === 403 || response.status === 404) {

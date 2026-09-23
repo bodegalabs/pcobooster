@@ -1,6 +1,4 @@
-const localDevelopmentDefault =
-  process.env.NODE_ENV !== "production" &&
-  !(process.env.VERCEL !== undefined && process.env.VERCEL !== "");
+const localDevelopmentDefault = process.env.NODE_ENV !== "production";
 
 export const resolvePeoplePageAvailability = (
   configuredValue: string | undefined,

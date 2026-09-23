@@ -82,20 +82,28 @@ describe("application runtime", () => {
         Effect.fail(fault),
         requestContext("failure")
       );
-      const failureCause = Option.getOrThrow(Exit.causeOption(result));
-      expect(Cause.failureOption(failureCause)).toStrictEqual(
+      const failureCause = Option.getOrThrow(Exit.getCause(result));
+      expect(Cause.findErrorOption(failureCause)).toStrictEqual(
         Option.some(fault)
       );
-      expect(Cause.defects(failureCause)).toHaveLength(0);
+      expect(
+        failureCause.reasons
+          .filter(Cause.isDieReason)
+          .map((reason) => reason.defect)
+      ).toHaveLength(0);
 
       const defect = new Error("Unexpected invariant violation");
       const defectResult = await runtime.execute(
         Effect.die(defect),
         requestContext("defect")
       );
-      const defectCause = Option.getOrThrow(Exit.causeOption(defectResult));
-      expect(Cause.failureOption(defectCause)).toStrictEqual(Option.none());
-      expect([...Cause.defects(defectCause)]).toStrictEqual([defect]);
+      const defectCause = Option.getOrThrow(Exit.getCause(defectResult));
+      expect(Cause.findErrorOption(defectCause)).toStrictEqual(Option.none());
+      expect(
+        defectCause.reasons
+          .filter(Cause.isDieReason)
+          .map((reason) => reason.defect)
+      ).toStrictEqual([defect]);
     } finally {
       await runtime.dispose();
     }
@@ -108,7 +116,7 @@ describe("application runtime", () => {
 
     try {
       const pending = runtime.execute(
-        Effect.zipRight(Deferred.succeed(entered, true), Effect.never),
+        Effect.andThen(Deferred.succeed(entered, true), Effect.never),
         requestContext("aborted", controller.signal)
       );
       await Effect.runPromise(Deferred.await(entered));
@@ -116,7 +124,7 @@ describe("application runtime", () => {
       const result = await pending;
 
       expect(
-        Cause.isInterruptedOnly(Option.getOrThrow(Exit.causeOption(result)))
+        Cause.hasInterruptsOnly(Option.getOrThrow(Exit.getCause(result)))
       ).toBeTruthy();
     } finally {
       await runtime.dispose();
@@ -124,9 +132,11 @@ describe("application runtime", () => {
   });
 
   it("acquires shared resources once and releases them on disposal", async () => {
-    class Resource extends Context.Tag("TestResource")<Resource, string>() {}
+    class Resource extends Context.Service<Resource, string>()(
+      "TestResource"
+    ) {}
     const events: string[] = [];
-    const layer = Layer.scoped(
+    const layer = Layer.effect(
       Resource,
       Effect.acquireRelease(
         Effect.sync(() => {

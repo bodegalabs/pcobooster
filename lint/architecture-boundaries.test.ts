@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, extname, join, relative, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 
 const sourceExtensions = new Set([".js", ".jsx", ".ts", ".tsx"]);
 const ignoredDirectories = new Set([
@@ -253,7 +254,17 @@ describe("monorepo architecture boundaries", () => {
       }
 
       const contents = readFileSync(tsconfigPath, "utf8");
-      if (contents.includes("packages/api")) {
+      const config = z
+        .object({
+          compilerOptions: z
+            .object({
+              paths: z.record(z.string(), z.array(z.string())).optional(),
+            })
+            .optional(),
+        })
+        .parse(JSON.parse(contents));
+      const targets = Object.values(config.compilerOptions?.paths ?? {}).flat();
+      if (targets.some((target) => target.includes("packages/api"))) {
         violations.push(
           `${relative(repositoryRoot, tsconfigPath)} maps an alias into packages/api`
         );

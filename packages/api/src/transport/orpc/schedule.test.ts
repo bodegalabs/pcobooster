@@ -199,7 +199,7 @@ describe("scheduling oRPC transport", () => {
     );
     const duplicatePreparation = await prepareAssignment();
     const duplicate = await Effect.runPromise(
-      Effect.either(
+      Effect.result(
         withRequestContext(
           Effect.provideService(
             commitScheduledPerson(input, duplicatePreparation, dependencies),
@@ -210,8 +210,8 @@ describe("scheduling oRPC transport", () => {
       )
     );
     expect(duplicate).toMatchObject({
-      _tag: "Left",
-      left: { _tag: "AlreadyScheduled", details: undefined },
+      _tag: "Failure",
+      failure: { _tag: "AlreadyScheduled", details: undefined },
     });
     expect(dependencies.invalidateHistory).toHaveBeenCalledTimes(4);
     expect(dependencies.invalidateHistory).toHaveBeenNthCalledWith(

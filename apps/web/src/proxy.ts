@@ -27,6 +27,12 @@ const hasDemoSessionCookie = (request: NextRequest): boolean =>
   (request.cookies.get(DEMO_SESSION_COOKIE)?.value ?? "") !== "";
 
 export const proxy = (request: NextRequest) => {
+  if (request.nextUrl.hostname === "www.pcobooster.com") {
+    const canonical = request.nextUrl.clone();
+    canonical.hostname = "pcobooster.com";
+    canonical.protocol = "https:";
+    return NextResponse.redirect(canonical, 308);
+  }
   if (isPublicPath(request.nextUrl.pathname)) {
     return NextResponse.next();
   }

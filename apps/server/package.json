@@ -6,9 +6,7 @@
   "scripts": {
     "build": "tsdown",
     "test": "vitest run --root ../.. apps/server/src",
-    "typecheck": "tsc --noEmit",
-    "dev": "bun run --hot src/index.ts",
-    "start": "bun run src/index.ts"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",

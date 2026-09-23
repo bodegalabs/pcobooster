@@ -35,7 +35,10 @@ interface PreparedAuthorization {
 
 const buildErrorCallbackUrl = (returnPath: string): string => {
   const params = new URLSearchParams({ [SIGN_IN_RETURN_PARAM]: returnPath });
-  return `/auth?${params.toString()}`;
+  return new URL(
+    `/auth?${params.toString()}`,
+    window.location.origin
+  ).toString();
 };
 
 const requestAuthorizationUrl = async (returnPath: string): Promise<string> => {

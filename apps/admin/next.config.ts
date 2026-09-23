@@ -5,6 +5,9 @@ import type { NextConfig } from "next";
 const workspaceRoot = path.resolve(import.meta.dirname, "../..");
 
 const nextConfig: NextConfig = {
+  basePath:
+    process.env.ADMIN_BASE_PATH ??
+    (process.env.NODE_ENV === "development" ? "/admin" : ""),
   turbopack: { root: workspaceRoot },
   devIndicators: false,
   headers: async () =>

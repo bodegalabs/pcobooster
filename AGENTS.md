@@ -8,9 +8,9 @@
 ## Project Structure & Module Organization
 
 - `apps/web/`: Next.js product UI. App Router pages, components, hooks, proxy, and public assets live under `apps/web/src` and `apps/web/public`.
-- `apps/server/`: Bun/Hono composition root. It mounts Better Auth, oRPC, the OpenAPI reference, CORS, and cache policy.
+- `apps/server/`: Cloudflare Worker/Hono composition root. It mounts Better Auth, oRPC, the OpenAPI reference, CORS, and cache policy.
 - `apps/marketing/`: independent static-export Next.js marketing site. Its interactive product replica lives in `apps/marketing/components/product-demo/` with fictional fixtures; it shares only design tokens with the product, not components.
-- `apps/admin/`: private Next.js admin app for `admin.pcobooster.com`, deployed as its own Vercel project. See `docs/admin.md`.
+- `apps/admin/`: private Next.js admin app for `admin.pcobooster.com`, deployed as its own Cloudflare Worker. See `docs/admin.md`.
 - `packages/design-tokens/`: product color and radius tokens (`tokens.css`, light on `:root`, dark under `.dark`) shared by `apps/web` and the marketing replica.
 - `packages/contracts/`: browser-safe oRPC contracts, transport schemas, and safe error payloads.
 - `packages/planning-center-models/`: browser-safe Planning Center shapes and pure calendar/scheduling rules.
@@ -26,8 +26,8 @@
 ## Build, Test, and Development Commands
 
 - Use Bun for dependency management and scripts. `bun.lock` is the only committed lockfile; do not add `package-lock.json` or run npm-based install workflows for this repo.
-- `bun run dev`: start API, product, marketing, and admin through Turborepo (ports 3000, 3001, 3002, and 3003).
-- `bun run build`: build the Hono service and both Next.js apps through Turborepo.
+- `bun run dev`: start API, product, and admin through Alchemy, plus the marketing dev server (ports 3000, 3001, 3002, and 3003).
+- `bun run build`: build the Hono service and Next.js apps through Turborepo.
 - `bun run start`: run built app.
 - `bun run check` (also `lint`): run Ultracite formatting and type-aware lint checks; warnings fail the check. All selected presets in `oxlint.config.ts` remain strict.
 - `bun run lint:ci`: same as `lint` with `--format github` for Action annotations (used by CI).
@@ -36,19 +36,14 @@
 - `bun run typecheck`: run TypeScript checks (`tsc --noEmit`).
 - `bun run test`: run Vitest test suite once.
 - `bun run test:watch`: run Vitest in watch mode.
-- `bun run auth:generate`: generate Better Auth artifacts.
-- `bun run db:generate`: generate Drizzle migrations from `packages/api/src/db/schema.ts`.
-- `bun run db:migrate`: apply Drizzle migrations.
-- `bun run db:push`: push schema changes directly for local experiments.
-- `bun run db:seed`: run the idempotent seed entrypoint.
+- `bun run db:generate`: generate committed SQLite migrations from the Drizzle schema. Alchemy applies them at startup/deploy.
+- Deployment and rollback changes: read [docs/ci-cd.md](docs/ci-cd.md) and [docs/database.md](docs/database.md). Confirm each deployment with the user before executing it.
 
 ### Codex cloud sessions
 
-- The cache-safe Codex environment setup and maintenance scripts live under `scripts/codex-cloud/`; see `docs/codex-cloud.md` for environment configuration.
-- `bun run ci` is secretless and does not need a cloud database session.
-- Before running the app, a production-shaped build, or database commands in Codex cloud, run `bun run cloud:session:setup` and use the `cloud:*` wrappers so the per-session Neon branch is injected.
-- If a cloud session was created, run `bun run cloud:session:teardown` before the final response unless the user explicitly asks to keep it alive. Stale-branch pruning and optional Neon expiry are only failure-recovery backstops.
-- Never load Infisical Development `/local`, Staging, or Production in Codex cloud.
+- Setup/maintenance scripts live under `scripts/codex-cloud/`; see [docs/codex-cloud.md](docs/codex-cloud.md).
+- `bun run ci` is secretless. Local D1 belongs to the checkout; no Neon branch setup or teardown is required.
+- Cloud app commands read only Infisical Development `/cloud`. Keep local PAT and deployment secrets out of cloud sessions.
 
 ## Coding Style & Naming Conventions
 
@@ -77,7 +72,7 @@
 ## Architecture Notes
 
 - Preferred flow: `apps/web` -> oRPC contract -> `apps/server` -> `packages/api/src/transport/orpc/*` -> Effect application program -> `packages/api/src/modules/*` -> service adapter.
-- Better Auth is mounted directly by Hono at `/api/auth/*`. Vercel and the local Next.js rewrite keep browser requests on the web origin.
+- Better Auth is mounted directly by Hono at `/api/auth/*`. Next.js service bindings and local rewrites keep browser requests on the web origin.
 - Product operations use oRPC. Better Auth, liveness health, and the OpenAPI reference are the intentional non-oRPC surfaces.
 - Database access uses Drizzle through `packages/api/src/db`; migrations include Better Auth tables.
 - Browser query keys, persistence schemas, and cache hydration live in `apps/web/src/lib`. The web app may import contracts and Planning Center models, never `packages/api`.

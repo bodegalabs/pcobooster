@@ -17,7 +17,6 @@ export default defineConfig({
     clearMocks: true,
     // Unit tests must not inherit database or OAuth credentials from .env.local.
     env: {
-      DATABASE_URL: "postgresql://test:test@127.0.0.1:5432/pcobooster_test",
       BETTER_AUTH_URL: "http://localhost:3000",
       BETTER_AUTH_SECRET:
         "pcobooster-unit-test-secret-with-no-production-access",
@@ -34,6 +33,10 @@ export default defineConfig({
   },
   resolve: {
     alias: [
+      {
+        find: "cloudflare:workers",
+        replacement: `${rootDir}/scripts/testing/cloudflare-workers.ts`,
+      },
       {
         find: "@",
         replacement: `${rootDir}/apps/web/src`,

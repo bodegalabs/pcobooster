@@ -56,9 +56,7 @@ const RootLayout = ({
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-  const peoplePageEnabled =
-    process.env.NODE_ENV !== "production" &&
-    !(process.env.VERCEL !== undefined && process.env.VERCEL !== "");
+  const peoplePageEnabled = process.env.NODE_ENV !== "production";
 
   const presentationScope = getPresentationCacheScope();
 

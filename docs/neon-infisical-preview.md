@@ -1,4 +1,6 @@
-# Environment and secret ownership
+# Historical: Environment and secret ownership
+
+This records the former Vercel/Neon setup. For current deployment configuration, use [environment.md](environment.md) and [ci-cd.md](ci-cd.md).
 
 This is the shared-branch setup for `pcobooster.com`. The three one-way syncs were activated and checked on September 16, 2026. See the [Infisical Vercel sync guide](https://infisical.com/docs/integrations/secret-syncs/vercel) for the connection controls.
 

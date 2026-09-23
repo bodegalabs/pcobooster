@@ -116,12 +116,16 @@ export const executeApplicationEffect = async <Value>(
     return result.value;
   }
 
-  if (Cause.isInterruptedOnly(result.cause)) {
+  if (Cause.hasInterruptsOnly(result.cause)) {
     throw new ORPCError("CLIENT_CLOSED_REQUEST");
   }
 
-  const failures = [...Cause.failures(result.cause)];
-  const defects = [...Cause.defects(result.cause)];
+  const failures = result.cause.reasons.flatMap((reason) =>
+    Cause.isFailReason(reason) ? [reason.error] : []
+  );
+  const defects = result.cause.reasons.flatMap((reason) =>
+    Cause.isDieReason(reason) ? [reason.defect] : []
+  );
   if (failures.length === 1 && defects.length === 0) {
     throw toORPCError(failures[0]);
   }

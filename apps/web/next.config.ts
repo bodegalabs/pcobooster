@@ -15,26 +15,27 @@ const marketingRewrites =
           destination: `${marketingOrigin}/marketing/:path*`,
         },
       ]
-    : [
-        { source: "/", destination: "/marketing/index.html" },
-        { source: "/about", destination: "/marketing/about.html" },
-      ];
+    : [];
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@pcobooster/analytics"],
   turbopack: { root: workspaceRoot },
   rewrites: async () =>
-    await Promise.resolve([
-      ...(process.env.NODE_ENV === "development"
-        ? [
-            {
-              source: "/api/:path*",
-              destination: `${apiOrigin}/api/:path*`,
-            },
-          ]
-        : []),
-      ...marketingRewrites,
-    ]),
+    await Promise.resolve({
+      beforeFiles:
+        process.env.NODE_ENV === "development"
+          ? [
+              { source: "/api/:path*", destination: `${apiOrigin}/api/:path*` },
+              {
+                source: "/admin/:path*",
+                destination: "http://127.0.0.1:3003/admin/:path*",
+              },
+              ...marketingRewrites,
+            ]
+          : [],
+      afterFiles: [],
+      fallback: [],
+    }),
 };
 
 export default nextConfig;
