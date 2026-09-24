@@ -8,7 +8,7 @@ import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const resource = (
   id: string,
@@ -228,7 +228,12 @@ describe("PlanningCenterPeopleService.getPersonSchedulesAfter", () => {
     expect(fetchAllWithIncluded).toHaveBeenCalledOnce();
     expect(fetchAllWithIncluded.mock.calls[0]).toStrictEqual([
       "/services/v2/people/person-1/schedules",
-      { include: "plan_times", filter: "after", after: "2026-06-24" },
+      {
+        filter: "after",
+        after: "2026-06-24",
+        include: "plan_times",
+        order: "starts_at",
+      },
       2,
     ]);
     expect(first.data.map((schedule) => schedule.id)).toStrictEqual([
@@ -440,6 +445,148 @@ describe("PlanningCenterPeopleService.deletePlanPerson", () => {
     expect(request).toHaveBeenCalledWith(
       "/services/v2/people/person-456/plan_people/pp-123",
       { method: "DELETE" }
+    );
+  });
+});
+
+describe("PlanningCenterPeopleService.getPlanTeamMembers settled rosters", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("keeps a settled roster for 30 minutes and a live roster for 30 seconds", async () => {
+    vi.useFakeTimers({ now: new Date("2026-09-24T18:00:00.000Z") });
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
+    );
+    const fetchAllWithIncluded = vi
+      .spyOn(core, "fetchAllWithIncluded")
+      .mockReturnValue(Effect.succeed({ data: [], included: [] }));
+    const service = new PlanningCenterPeopleService(core);
+    const readBoth = async () => {
+      await Effect.runPromise(
+        service.getPlanTeamMembers("st-1", "plan-past", { settled: true })
+      );
+      await Effect.runPromise(service.getPlanTeamMembers("st-1", "plan-next"));
+    };
+
+    await readBoth();
+    vi.advanceTimersByTime(31 * 1000);
+    await readBoth();
+
+    expect(fetchAllWithIncluded.mock.calls.map(([path]) => path)).toStrictEqual(
+      [
+        "/services/v2/service_types/st-1/plans/plan-past/team_members",
+        "/services/v2/service_types/st-1/plans/plan-next/team_members",
+        "/services/v2/service_types/st-1/plans/plan-next/team_members",
+      ]
+    );
+  });
+
+  it("clears a settled roster when this app changes the plan", async () => {
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
+    );
+    const fetchAllWithIncluded = vi
+      .spyOn(core, "fetchAllWithIncluded")
+      .mockReturnValue(Effect.succeed({ data: [], included: [] }));
+    const service = new PlanningCenterPeopleService(core);
+    const read = async () =>
+      await Effect.runPromise(
+        service.getPlanTeamMembers("st-1", "plan-past", { settled: true })
+      );
+
+    await read();
+    service.invalidateScheduleReadCaches({
+      serviceTypeId: "st-1",
+      planId: "plan-past",
+    });
+    await read();
+
+    expect(fetchAllWithIncluded).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("PlanningCenterPeopleService.getPersonSchedulesAfter with an instant", () => {
+  it("reads past and future schedules after an instant without per-plan time reads", async () => {
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
+    );
+    const fetchAllWithIncluded = vi
+      .spyOn(core, "fetchAllWithIncluded")
+      .mockReturnValue(
+        Effect.succeed({
+          data: [
+            {
+              type: "Schedule",
+              id: "schedule-1",
+              attributes: {},
+              relationships: {
+                plan: { data: { type: "Plan", id: "plan-1" } },
+                times: { data: [{ type: "PlanTime", id: "rehearsal-1" }] },
+              },
+            },
+          ],
+          included: [],
+        })
+      );
+    const fetchAll = vi.spyOn(core, "fetchAll");
+    const service = new PlanningCenterPeopleService(core);
+
+    const first = await Effect.runPromise(
+      service.getPersonSchedulesAfter("person-1", "2026-03-31T07:00:00.000Z", 5)
+    );
+    await Effect.runPromise(
+      service.getPersonSchedulesAfter("person-1", "2026-03-31T07:00:00.000Z", 5)
+    );
+
+    expect(first.data).toHaveLength(1);
+    expect(fetchAll).not.toHaveBeenCalled();
+    expect(fetchAllWithIncluded).toHaveBeenCalledExactlyOnceWith(
+      "/services/v2/people/person-1/schedules",
+      {
+        filter: "after",
+        after: "2026-03-31T07:00:00.000Z",
+        include: "plan_times",
+        order: "starts_at",
+      },
+      5
+    );
+  });
+
+  it("drops cached schedules and plan people when the person's schedule changes", async () => {
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
+    );
+    const fetchAllWithIncluded = vi
+      .spyOn(core, "fetchAllWithIncluded")
+      .mockReturnValue(Effect.succeed({ data: [], included: [] }));
+    const service = new PlanningCenterPeopleService(core);
+    const readBoth = async () => {
+      await Effect.runPromise(
+        service.getPersonSchedulesAfter("person-1", "2026-03-31T07:00:00.000Z")
+      );
+      await Effect.runPromise(service.getPersonPlanPeople("person-1"));
+    };
+
+    await readBoth();
+    await readBoth();
+    service.invalidateScheduleReadCaches({
+      personId: "person-1",
+      serviceTypeId: "st-1",
+      planId: "plan-1",
+    });
+    await readBoth();
+
+    expect(fetchAllWithIncluded).toHaveBeenCalledTimes(4);
+    expect(fetchAllWithIncluded).toHaveBeenCalledWith(
+      "/services/v2/people/person-1/plan_people",
+      { include: "plan,team" },
+      3
     );
   });
 });
