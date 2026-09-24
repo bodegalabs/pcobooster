@@ -62,7 +62,7 @@ export const SongPickerDialog = ({
     data: songs = [],
     isLoading,
     isFetching,
-  } = useSongSearch(serviceTypeId, deferredQuery);
+  } = useSongSearch(deferredQuery);
   const showResults = deferredQuery.trim().length > 0;
   const showInitialLoading = showResults && isLoading && songs.length === 0;
   const showRefreshing = showResults && isFetching && songs.length > 0;

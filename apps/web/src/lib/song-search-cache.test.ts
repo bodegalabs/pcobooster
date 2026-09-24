@@ -54,9 +54,9 @@ describe("song search cache", () => {
     const savedAt = new Date("2026-05-23T16:00:00.000Z").getTime();
     vi.spyOn(Date, "now").mockReturnValue(savedAt);
 
-    writeCachedSongSearch("st-1", "Build My Life", songs());
+    writeCachedSongSearch("Build My Life", songs());
 
-    const cached = readCachedSongSearch("st-1", " build my life ");
+    const cached = readCachedSongSearch(" build my life ");
 
     expect(cached?.savedAt).toBe(savedAt);
     expect(cached?.data[0].title).toBe("Build My Life");
@@ -66,31 +66,30 @@ describe("song search cache", () => {
     );
   });
 
-  it("does not read a different service type or query snapshot", () => {
-    writeCachedSongSearch("st-1", "build", songs());
+  it("does not read a different query snapshot", () => {
+    writeCachedSongSearch("build", songs());
 
-    expect(readCachedSongSearch("st-2", "build")).toBeUndefined();
-    expect(readCachedSongSearch("st-1", "life")).toBeUndefined();
+    expect(readCachedSongSearch("life")).toBeUndefined();
   });
 
   it("ignores invalid cache payloads", () => {
     window.localStorage.setItem(
-      "pcobooster:song-search:v1:st-1:build",
+      "pcobooster:song-search:v2:build",
       JSON.stringify({ savedAt: Date.now(), data: [{ id: "song-1" }] })
     );
 
-    expect(readCachedSongSearch("st-1", "build")).toBeUndefined();
+    expect(readCachedSongSearch("build")).toBeUndefined();
   });
 
   it("clears song search snapshots without touching unrelated storage", () => {
-    writeCachedSongSearch("st-1", "build", songs());
-    writeCachedSongSearch("st-1", "life", songs());
+    writeCachedSongSearch("build", songs());
+    writeCachedSongSearch("life", songs());
     window.localStorage.setItem("unrelated", "keep");
 
     clearCachedSongSearch();
 
-    expect(readCachedSongSearch("st-1", "build")).toBeUndefined();
-    expect(readCachedSongSearch("st-1", "life")).toBeUndefined();
+    expect(readCachedSongSearch("build")).toBeUndefined();
+    expect(readCachedSongSearch("life")).toBeUndefined();
     expect(window.localStorage.getItem("unrelated")).toBe("keep");
   });
 });

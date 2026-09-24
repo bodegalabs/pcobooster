@@ -8,8 +8,8 @@ import { z } from "zod";
 
 const requiredId = z.string().trim().min(1);
 
+/** The song catalog is organization-wide, so search takes no service type. */
 export const songsSearchInputSchema = z.object({
-  serviceTypeId: requiredId,
   query: z.string().trim().min(1),
 });
 
@@ -33,7 +33,7 @@ export const songsContract = {
     .route({
       method: "GET",
       path: "/songs/search",
-      summary: "Search songs for a service type",
+      summary: "Search the song catalog",
     })
     .input(songsSearchInputSchema)
     .output(songsSearchOutputSchema),
