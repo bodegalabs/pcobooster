@@ -1,5 +1,8 @@
 import { searchSongs } from "@pcobooster/api/modules/planning-center/search-songs";
-import type { SongCatalogReader } from "@pcobooster/api/modules/planning-center/search-songs";
+import type {
+  SongCatalogReader,
+  SongSearchResultCache,
+} from "@pcobooster/api/modules/planning-center/search-songs";
 import type { SuccessOf } from "@pcobooster/api/testing/effect";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
@@ -10,12 +13,14 @@ const createFixture = () => {
   const songCatalogReader = {
     getSongsCatalogCached: getSongsCatalogCachedMock,
   } satisfies SongCatalogReader;
-  return { getSongsCatalogCachedMock, songCatalogReader };
+  const resultCache: SongSearchResultCache = new Map();
+  return { getSongsCatalogCachedMock, songCatalogReader, resultCache };
 };
 
 describe(searchSongs, () => {
   it("keeps fuzzy relevance first and orders ties by title", async () => {
-    const { getSongsCatalogCachedMock, songCatalogReader } = createFixture();
+    const { getSongsCatalogCachedMock, songCatalogReader, resultCache } =
+      createFixture();
     getSongsCatalogCachedMock.mockReturnValue(
       Effect.succeed<SuccessOf<typeof getSongsCatalogCachedMock>>([
         {
@@ -60,7 +65,7 @@ describe(searchSongs, () => {
     );
 
     const songs = await Effect.runPromise(
-      searchSongs("account-1", "lord", songCatalogReader)
+      searchSongs("account-1", "lord", songCatalogReader, resultCache)
     );
 
     expect(songs.map((song) => song.id)).toStrictEqual([
@@ -73,7 +78,8 @@ describe(searchSongs, () => {
   });
 
   it("caches normalized result sets and returns mutation-safe copies", async () => {
-    const { getSongsCatalogCachedMock, songCatalogReader } = createFixture();
+    const { getSongsCatalogCachedMock, songCatalogReader, resultCache } =
+      createFixture();
     getSongsCatalogCachedMock.mockReturnValue(
       Effect.succeed<SuccessOf<typeof getSongsCatalogCachedMock>>([
         {
@@ -88,11 +94,11 @@ describe(searchSongs, () => {
     );
 
     const first = await Effect.runPromise(
-      searchSongs("account-2", "  BUILD  ", songCatalogReader)
+      searchSongs("account-2", "  BUILD  ", songCatalogReader, resultCache)
     );
     first[0].title = "Changed locally";
     const second = await Effect.runPromise(
-      searchSongs("account-2", "build", songCatalogReader)
+      searchSongs("account-2", "build", songCatalogReader, resultCache)
     );
 
     expect(getSongsCatalogCachedMock).toHaveBeenCalledOnce();

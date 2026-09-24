@@ -3,11 +3,13 @@ import {
   getPersonScheduleWindow,
 } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
 import type { PeopleDashboardPersonDependencies } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
+import type { PeopleDashboardPersonDetail } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
 import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
 import { PROGRESSIVE_REQUEST_BUDGET } from "@pcobooster/api/planning-center/request-budget";
+import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import {
   planningCenterBudgetFailures,
   planningCenterNotFound,
@@ -121,6 +123,7 @@ interface Fixture {
   readonly rangeIncluded?: PCResource[];
   readonly planPlanTimes?: Record<string, PCResource[]>;
   readonly cacheScope?: string;
+  readonly detailCache?: PeopleDashboardPersonDependencies["detailCache"];
 }
 
 const dependenciesFor = ({
@@ -129,6 +132,7 @@ const dependenciesFor = ({
   rangeIncluded = [],
   planPlanTimes = {},
   cacheScope = crypto.randomUUID(),
+  detailCache = new PlanningCenterReadCache(),
 }: Fixture = {}) => {
   const getPerson = vi
     .fn<PeopleReader["getPerson"]>()
@@ -163,6 +167,7 @@ const dependenciesFor = ({
     catalogService: { getServiceTypesCached },
     plansService: { getPlansWithIncludedInDateRange },
     resolveTimeZone: Effect.succeed(LOS_ANGELES),
+    detailCache,
   };
   return {
     dependencies,
@@ -211,9 +216,15 @@ describe(getPeopleDashboardPerson, () => {
 
   it("separates cached dashboard details by account service scope", async () => {
     vi.useFakeTimers({ now: NOW });
-    const first = dependenciesFor({ cacheScope: "bearer:first" });
-    const second = dependenciesFor({ cacheScope: "bearer:second" });
+    const detailCache =
+      new PlanningCenterReadCache<PeopleDashboardPersonDetail>();
+    const first = dependenciesFor({ cacheScope: "bearer:first", detailCache });
+    const second = dependenciesFor({
+      cacheScope: "bearer:second",
+      detailCache,
+    });
 
+    await readDetail(first.dependencies);
     await readDetail(first.dependencies);
     await readDetail(second.dependencies);
 

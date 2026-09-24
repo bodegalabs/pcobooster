@@ -1,6 +1,9 @@
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
-import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
+import {
+  createOrganizationTimeZoneCache,
+  resolveOrganizationTimeZone,
+} from "@pcobooster/api/planning-center/resolve-organization-timezone";
 import { planningCenterBudgetFailures } from "@pcobooster/api/testing/planning-center-failures";
 import { testServerConfig } from "@pcobooster/api/testing/server";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
@@ -17,6 +20,7 @@ const organization = (timeZone: string): PCResource => ({
 
 describe(resolveOrganizationTimeZone, () => {
   it("uses the explicit service and cache scope for converted requests", async () => {
+    const cache = createOrganizationTimeZoneCache();
     const firstCatalog = {
       getOrganization: vi
         .fn<GetOrganization>()
@@ -33,6 +37,7 @@ describe(resolveOrganizationTimeZone, () => {
         resolveOrganizationTimeZone({
           catalogService: firstCatalog,
           cacheScope: "effect-request-first",
+          cache,
           fallbackTimeZone: "America/Los_Angeles",
         })
       )
@@ -42,10 +47,36 @@ describe(resolveOrganizationTimeZone, () => {
         resolveOrganizationTimeZone({
           catalogService: secondCatalog,
           cacheScope: "effect-request-second",
+          cache,
           fallbackTimeZone: "America/Los_Angeles",
         })
       )
     ).resolves.toBe("America/New_York");
+  });
+
+  it("reuses a zone only within the cache it was given", async () => {
+    const getOrganization = vi
+      .fn<GetOrganization>()
+      .mockReturnValue(Effect.succeed(organization("America/Chicago")));
+    const cache = createOrganizationTimeZoneCache();
+    const resolve = async (zones: typeof cache) =>
+      await Effect.runPromise(
+        resolveOrganizationTimeZone({
+          catalogService: { getOrganization },
+          cacheScope: "shared-scope",
+          cache: zones,
+          fallbackTimeZone: "America/Los_Angeles",
+        })
+      );
+
+    await expect(resolve(cache)).resolves.toBe("America/Chicago");
+    await expect(resolve(cache)).resolves.toBe("America/Chicago");
+    expect(getOrganization).toHaveBeenCalledOnce();
+
+    await expect(resolve(createOrganizationTimeZoneCache())).resolves.toBe(
+      "America/Chicago"
+    );
+    expect(getOrganization).toHaveBeenCalledTimes(2);
   });
 
   it.each([
@@ -73,6 +104,7 @@ describe(resolveOrganizationTimeZone, () => {
           resolveOrganizationTimeZone({
             catalogService,
             cacheScope: `fallback-${String(configured)}`,
+            cache: createOrganizationTimeZoneCache(),
             fallbackTimeZone,
           })
         )
@@ -90,6 +122,7 @@ describe(resolveOrganizationTimeZone, () => {
       const dependencies = {
         catalogService: { getOrganization },
         cacheScope: `budget-${failure._tag}-${crypto.randomUUID()}`,
+        cache: createOrganizationTimeZoneCache(),
         fallbackTimeZone: "America/Los_Angeles",
       };
 
@@ -111,6 +144,7 @@ describe(resolveOrganizationTimeZone, () => {
             .mockReturnValue(Effect.interrupt),
         },
         cacheScope: `interrupted-${crypto.randomUUID()}`,
+        cache: createOrganizationTimeZoneCache(),
         fallbackTimeZone: "America/Los_Angeles",
       })
     );
@@ -132,6 +166,7 @@ describe(resolveOrganizationTimeZone, () => {
         resolveOrganizationTimeZone({
           catalogService,
           cacheScope: "fallback-defect",
+          cache: createOrganizationTimeZoneCache(),
           fallbackTimeZone: "America/Phoenix",
         })
       )

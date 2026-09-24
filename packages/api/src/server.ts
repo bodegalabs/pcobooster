@@ -15,6 +15,8 @@ import type {
   FeatureFlags,
   FlagshipBinding,
 } from "@pcobooster/api/modules/feature-flags/feature-flags";
+import { createModuleReadCaches } from "@pcobooster/api/modules/read-caches";
+import type { ModuleReadCaches } from "@pcobooster/api/modules/read-caches";
 import { createPlanningCenterReadCaches } from "@pcobooster/api/planning-center/services/factory";
 import type { PlanningCenterReadCaches } from "@pcobooster/api/planning-center/services/factory";
 import type { SharedReadStore } from "@pcobooster/api/planning-center/services/shared-read-store";
@@ -27,6 +29,7 @@ export interface ServerDependencies {
   readonly auth: Auth;
   readonly featureFlags: FeatureFlags;
   readonly planningCenterReadCaches: PlanningCenterReadCaches;
+  readonly moduleReadCaches: ModuleReadCaches;
 }
 
 export class Server extends Context.Service<Server, ServerDependencies>()(
@@ -86,5 +89,6 @@ export const createServerDependencies = (
         readCacheLog.warn({ err: error }, message);
       },
     }),
+    moduleReadCaches: createModuleReadCaches(),
   };
 };

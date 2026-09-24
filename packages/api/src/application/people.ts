@@ -7,6 +7,7 @@ import {
   withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/planning-center-access";
+import { requestPresentationDependencies } from "@pcobooster/api/application/presentation";
 import { loadDevBypassIdentity } from "@pcobooster/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
 import { getCandidateDetails } from "@pcobooster/api/modules/planning-center/get-candidate-details";
@@ -44,29 +45,9 @@ import {
 } from "@pcobooster/api/modules/planning-center/presentation";
 import { searchPeople } from "@pcobooster/api/modules/planning-center/search-people";
 import type { PeopleSearchResult } from "@pcobooster/api/modules/planning-center/search-people";
-import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
-import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
 import { Server } from "@pcobooster/api/server";
 import type { Blockout } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
-
-const resolveRequestTimeZone = (
-  access: PlanningCenterRequestAccess
-): Effect.Effect<string, PlanningCenterError> =>
-  resolveOrganizationTimeZone({
-    cacheScope: access.cacheScope,
-    catalogService: access.services.catalog,
-    fallbackTimeZone: access.fallbackTimeZone,
-  });
-
-const requestPresentationDependencies = (
-  access: PlanningCenterRequestAccess
-) => ({
-  catalog: access.services.catalog,
-  people: access.services.people,
-  isPresentationMode: () => access.presentation,
-  getPresentationSeed: () => access.presentationSeed,
-});
 
 /** The People dashboard exists only where the `people` flag is on for this caller. */
 const requirePeopleDashboard = (access: PlanningCenterRequestAccess) =>
@@ -100,11 +81,11 @@ export const getPeoplePositionCandidates = (input: {
     const access = yield* PlanningCenterAccess;
     const result = yield* getPositionCandidates(input, {
       people: access.services.people,
-      resolveTimeZone: resolveRequestTimeZone(access),
+      resolveTimeZone: access.services.organizationTimeZone,
     });
     return yield* presentPositionCandidates(
       result,
-      requestPresentationDependencies(access)
+      yield* requestPresentationDependencies
     );
   }).pipe(withPlanningCenterFaults);
 
@@ -121,7 +102,7 @@ export const getPeoplePlanWindowHistory = (
       catalog: access.services.catalog,
       people: access.services.people,
       plans: access.services.plans,
-      resolveTimeZone: resolveRequestTimeZone(access),
+      resolveTimeZone: access.services.organizationTimeZone,
     });
     return presentPlanWindowHistory(batch, access.presentation);
   }).pipe(withPlanningCenterFaults);
@@ -137,7 +118,7 @@ export const getPeopleCandidateDetails = (
     const access = yield* PlanningCenterAccess;
     const batch = yield* getCandidateDetails(input, {
       people: access.services.people,
-      resolveTimeZone: resolveRequestTimeZone(access),
+      resolveTimeZone: access.services.organizationTimeZone,
     });
     return presentCandidateDetails(batch, access.presentation);
   }).pipe(withPlanningCenterFaults);
@@ -154,7 +135,7 @@ export const getPeopleSearch = (input: {
     return yield* searchPeople(input.query, 15, {
       people: access.services.people,
       getIdentityMapper: getPresentationIdentityMapper(
-        requestPresentationDependencies(access)
+        yield* requestPresentationDependencies
       ),
     });
   }).pipe(withPlanningCenterFaults);
@@ -184,11 +165,11 @@ export const getPeopleDashboardRoster = (): Effect.Effect<
     yield* requirePeopleDashboard(access);
     const roster = yield* getPeopleDashboardRosterData({
       peopleService: access.services.people,
-      resolveTimeZone: resolveRequestTimeZone(access),
+      resolveTimeZone: access.services.organizationTimeZone,
     });
     return yield* presentDashboardRoster(
       roster,
-      requestPresentationDependencies(access)
+      yield* requestPresentationDependencies
     );
   }).pipe(withPlanningCenterFaults);
 
@@ -207,7 +188,7 @@ export const getPeopleDashboardActivity = (input: {
       dependencies: {
         peopleService: access.services.people,
         plansService: access.services.plans,
-        resolveTimeZone: resolveRequestTimeZone(access),
+        resolveTimeZone: access.services.organizationTimeZone,
       },
     });
   }).pipe(withPlanningCenterFaults);
@@ -230,12 +211,13 @@ export const getPeopleDashboardPerson = (input: {
         peopleService: access.services.people,
         catalogService: access.services.catalog,
         plansService: access.services.plans,
-        resolveTimeZone: resolveRequestTimeZone(access),
+        resolveTimeZone: access.services.organizationTimeZone,
+        detailCache: (yield* Server).moduleReadCaches.peopleDashboardPerson,
       },
     });
     return yield* presentDashboardPerson(
       detail,
-      requestPresentationDependencies(access)
+      yield* requestPresentationDependencies
     );
   }).pipe(withPlanningCenterFaults);
 

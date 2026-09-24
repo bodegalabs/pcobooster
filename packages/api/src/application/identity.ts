@@ -88,6 +88,7 @@ export const createIdentityDependencies = ({
   auth,
   config,
   planningCenterReadCaches,
+  moduleReadCaches,
 }: ServerDependencies): IdentityDependencies => ({
   resolveDemoSession: (request) => resolveDemoSession(request, config.demo),
   loadDemoOrganization: (configuration) =>
@@ -102,7 +103,8 @@ export const createIdentityDependencies = ({
           )
         )
       ),
-      getDemoOrganization,
+      (services) =>
+        getDemoOrganization(services, moduleReadCaches.demoOrganization),
       (services) => services.settleReadCaches
     ),
   isDevAuthBypassEnabled: () => config.devAuthBypass,

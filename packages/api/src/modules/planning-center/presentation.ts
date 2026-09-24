@@ -7,7 +7,7 @@ import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-c
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
-import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
+import type { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { CandidateHistory } from "@pcobooster/planning-center-models/position-candidates";
 import type {
@@ -33,11 +33,9 @@ export interface PresentationDependencies {
   people: Pick<PlanningCenterPeopleService, "getCacheScope">;
   isPresentationMode: () => boolean;
   getPresentationSeed: () => string;
+  /** Per isolate: see `ModuleReadCaches.presentationOrganizationIds`. */
+  organizationIds: PlanningCenterReadCache<string>;
 }
-const organizationCaches = new WeakMap<
-  PresentationDependencies["catalog"],
-  PlanningCenterReadCache<string>
->();
 
 export interface PresentationIdentity {
   firstName: string;
@@ -77,18 +75,6 @@ export const presentationIdentity = (
 
 type IdentityMapper = (personId: string) => PresentationIdentity;
 
-const organizationCacheFor = (
-  catalog: PresentationDependencies["catalog"]
-): PlanningCenterReadCache<string> => {
-  const existing = organizationCaches.get(catalog);
-  if (existing) {
-    return existing;
-  }
-  const created = new PlanningCenterReadCache<string>();
-  organizationCaches.set(catalog, created);
-  return created;
-};
-
 export const getPresentationIdentityMapper = (
   dependencies: PresentationDependencies
 ): Effect.Effect<IdentityMapper | null, PlanningCenterError> =>
@@ -104,7 +90,7 @@ export const getPresentationIdentityMapper = (
       );
     return Effect.map(
       cachedRead(
-        organizationCacheFor(dependencies.catalog),
+        dependencies.organizationIds,
         dependencies.people.getCacheScope(),
         5 * 60 * 1000,
         loadOrganizationId

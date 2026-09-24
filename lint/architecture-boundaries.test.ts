@@ -81,6 +81,62 @@ const planningCenterRecoveryExceptions = new Map([
   ],
 ]);
 
+/** Constructions that hold state; at module scope they would outlive `ServerDependencies`. */
+const statefulConstructionPattern =
+  /\bnew\s+(?:Map|WeakMap|PlanningCenterReadCache)\b/u;
+const moduleDeclarationPattern =
+  /^(?:export\s+)?(?<kind>const|let|var)\s+(?<name>[\w$]+)/u;
+const staticStatefulFieldPattern =
+  /^\s*(?:(?:private|protected|public|readonly)\s+)*static\s+(?:readonly\s+)?[\w$#]+[^=\n]*=\s*new\s+(?:Map|WeakMap|PlanningCenterReadCache)\b/mu;
+/** Code after the first function in an initializer runs only when called, as in a cache factory. */
+const functionStartPattern = /=>|\bfunction\b/u;
+/**
+ * Module-scope state allowed under the checked roots, and why each is not request state.
+ * Caches belong in `createPlanningCenterReadCaches` or `createModuleReadCaches` instead.
+ */
+const moduleStateExceptions = new Map<string, string>();
+
+/** Splits a module into its top-level statements, relying on the formatter's indentation. */
+const topLevelStatements = (contents: string): string[] => {
+  const statements: string[] = [];
+  let current: string[] = [];
+  for (const line of contents.split("\n")) {
+    const startsStatement = /^[^\s)\]}]/u.test(line);
+    if (startsStatement && current.length > 0) {
+      statements.push(current.join("\n"));
+      current = [];
+    }
+    current.push(line);
+  }
+  statements.push(current.join("\n"));
+  return statements;
+};
+
+/** Describes each piece of mutable state a module creates at module scope. */
+const moduleScopeState = (contents: string): string[] =>
+  topLevelStatements(contents).flatMap((statement) => {
+    if (staticStatefulFieldPattern.test(statement)) {
+      const [firstLine] = statement.split("\n");
+      return [`a static cache field in ${firstLine?.trim() ?? "a class"}`];
+    }
+    const declaration = moduleDeclarationPattern.exec(statement);
+    if (declaration?.groups === undefined) {
+      return [];
+    }
+    const { kind, name } = declaration.groups;
+    if (kind !== "const") {
+      return [`module-level \`${kind} ${name}\``];
+    }
+    const assignment = statement.indexOf("=", declaration[0].length);
+    const initializer =
+      assignment === -1 ? "" : statement.slice(assignment + 1);
+    const [evaluatedAtLoad = ""] = initializer.split(functionStartPattern, 1);
+    if (!statefulConstructionPattern.test(evaluatedAtLoad)) {
+      return [];
+    }
+    return [`module-level cache \`${name}\``];
+  });
+
 type SourceFile = {
   path: string;
   relativePath: string;
@@ -459,5 +515,78 @@ describe("monorepo architecture boundaries", () => {
     }
 
     expectNoViolations("Planning Center failure recovery", violations);
+  });
+
+  it("finds module-scope caches and mutable bindings but not cache factories", () => {
+    expect(
+      moduleScopeState(
+        [
+          "const cache = new Map<string, number>();",
+          "export const detailCache =",
+          "  new PlanningCenterReadCache<Detail>();",
+          "const owners = { byCatalog: new WeakMap() };",
+          "let inflight: Promise<void> | null = null;",
+          "class Store {",
+          "  private static readonly entries = new Map();",
+          "}",
+          "export const createCaches = (): Caches => ({",
+          "  detail: new PlanningCenterReadCache<Detail>(),",
+          "});",
+          "const codec = {",
+          "  decode: (stored) => new Map(stored),",
+          "};",
+          "const RETRYABLE = new Set([429]);",
+          "const run = async () => {",
+          "  const local = new Map();",
+          "};",
+        ].join("\n")
+      )
+    ).toStrictEqual([
+      "module-level cache `cache`",
+      "module-level cache `detailCache`",
+      "module-level cache `owners`",
+      "module-level `let inflight`",
+      "a static cache field in class Store {",
+    ]);
+  });
+
+  it("keeps request-path caches out of module scope", () => {
+    const violations: string[] = [];
+    const matchedExceptions = new Set<string>();
+    const roots = [
+      join(repositoryRoot, "packages/api/src/planning-center"),
+      join(repositoryRoot, "packages/api/src/modules"),
+    ];
+
+    for (const root of roots) {
+      for (const file of sourceFiles(root)) {
+        if (/\.test(?:-support)?\.ts$/u.test(file.relativePath)) {
+          continue;
+        }
+        const state = moduleScopeState(file.contents);
+        if (state.length === 0) {
+          continue;
+        }
+        if (moduleStateExceptions.has(file.relativePath)) {
+          matchedExceptions.add(file.relativePath);
+          continue;
+        }
+        for (const item of state) {
+          violations.push(
+            `${file.relativePath} creates ${item}; create it in createPlanningCenterReadCaches or createModuleReadCaches and pass it in`
+          );
+        }
+      }
+    }
+
+    for (const exception of moduleStateExceptions.keys()) {
+      if (!matchedExceptions.has(exception)) {
+        violations.push(
+          `${exception} no longer creates module-scope state; remove its exception`
+        );
+      }
+    }
+
+    expectNoViolations("Module-scope request state", violations);
   });
 });

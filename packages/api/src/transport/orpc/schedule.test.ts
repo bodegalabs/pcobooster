@@ -111,7 +111,6 @@ const setup = () => {
       createServices: () => services,
       presentationMode: () => false,
       presentationSeed: "test-seed",
-      fallbackTimeZone: "America/Los_Angeles",
     },
     recordActivity,
   });
@@ -148,7 +147,6 @@ describe("scheduling oRPC transport", () => {
       cacheScope: services.core.getCacheScope(),
       presentation: true,
       presentationSeed: "test-seed",
-      fallbackTimeZone: "America/Los_Angeles",
     };
     const invalidateWindowRosters = vi.spyOn(
       services.people,

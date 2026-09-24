@@ -1,6 +1,7 @@
 import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import type {
   Blockout,
   TeamPositionGroup,
@@ -63,6 +64,7 @@ const createDependencies = () => {
     people,
     getPresentationSeed: () => getPresentationSeed(environment),
     isPresentationMode: () => isPresentationMode(environment),
+    organizationIds: new PlanningCenterReadCache<string>(),
   };
   const search = {
     people,
@@ -524,5 +526,24 @@ describe(getPresentationIdentityMapper, () => {
 
     expect(first?.("person-1")).toStrictEqual(second?.("person-1"));
     expect(dependencies.catalog.getOrganization).toHaveBeenCalledOnce();
+  });
+
+  it("reuses the organization id across requests that share the isolate cache", async () => {
+    const nextRequest = createDependencies();
+    const shared = {
+      ...nextRequest.presentation,
+      organizationIds: dependencies.presentation.organizationIds,
+    };
+
+    const first = await Effect.runPromise(
+      getPresentationIdentityMapper(dependencies.presentation)
+    );
+    const second = await Effect.runPromise(
+      getPresentationIdentityMapper(shared)
+    );
+
+    expect(second?.("person-1")).toStrictEqual(first?.("person-1"));
+    expect(dependencies.catalog.getOrganization).toHaveBeenCalledOnce();
+    expect(nextRequest.catalog.getOrganization).not.toHaveBeenCalled();
   });
 });

@@ -45,7 +45,6 @@ const setup = () => {
     services,
     presentation: false,
     presentationSeed: "test-seed",
-    fallbackTimeZone: "America/Los_Angeles",
   };
   return { access, services };
 };

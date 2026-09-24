@@ -14,7 +14,14 @@ const MISS_TTL_MS = 2 * 60 * 1000;
 
 const log = logger.for("planning-center/organization-time-zone");
 
-const cache = new Map<string, { timeZone: string; expiresAt: number }>();
+/** Resolved zones by credential cache scope, one per isolate (see `PlanningCenterReadCaches`). */
+export type OrganizationTimeZoneCache = Map<
+  string,
+  { readonly timeZone: string; readonly expiresAt: number }
+>;
+
+export const createOrganizationTimeZoneCache = (): OrganizationTimeZoneCache =>
+  new Map();
 
 export interface OrganizationTimeZoneDependencies {
   readonly catalogService: Pick<
@@ -22,6 +29,7 @@ export interface OrganizationTimeZoneDependencies {
     "getOrganization"
   >;
   readonly cacheScope: string;
+  readonly cache: OrganizationTimeZoneCache;
   /** When Planning Center does not return a zone, or the read fails with a provider error. */
   readonly fallbackTimeZone: string;
 }
@@ -46,6 +54,7 @@ export const resolveOrganizationTimeZone = (
   dependencies: OrganizationTimeZoneDependencies
 ): Effect.Effect<string, PlanningCenterError> =>
   Effect.suspend(() => {
+    const { cache } = dependencies;
     const key = dependencies.cacheScope;
     const now = Date.now();
     const hit = cache.get(key);

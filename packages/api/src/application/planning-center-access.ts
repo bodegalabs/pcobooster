@@ -59,8 +59,6 @@ export interface PlanningCenterRequestAccess {
   readonly presentation: boolean;
   /** Seeds the fictional names; stable so aliases survive restarts. */
   readonly presentationSeed: string;
-  /** Used when Planning Center does not report the organization's time zone. */
-  readonly fallbackTimeZone: string;
 }
 
 export class PlanningCenterAccess extends Context.Service<
@@ -77,7 +75,6 @@ export interface PlanningCenterAccessDependencies {
   /** Local presentation mode; demo sessions are always presented. */
   readonly presentationMode: () => boolean;
   readonly presentationSeed: string;
-  readonly fallbackTimeZone: string;
 }
 
 export const createPlanningCenterAccessDependencies = (
@@ -134,7 +131,6 @@ export const createPlanningCenterAccessDependencies = (
   },
   presentationMode: () => isPresentationMode(server.config.presentation),
   presentationSeed: getPresentationSeed(server.config.presentation),
-  fallbackTimeZone: server.config.fallbackTimeZone,
 });
 
 /** The fault reported for each expected Planning Center failure. */
@@ -260,7 +256,6 @@ export const resolvePlanningCenterAccess = (
       presentation:
         authentication.kind === "demo" || dependencies.presentationMode(),
       presentationSeed: dependencies.presentationSeed,
-      fallbackTimeZone: dependencies.fallbackTimeZone,
     };
   });
 
