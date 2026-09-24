@@ -4,11 +4,13 @@ import {
   PlanningCenterAccess,
   withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
+import { requestPresentationDependencies } from "@pcobooster/api/application/presentation";
 import { getPlansForServiceType } from "@pcobooster/api/modules/planning-center/get-plans";
 import { getServiceTypes } from "@pcobooster/api/modules/planning-center/get-service-types";
 import { getNeededTeamPositionsForPlan } from "@pcobooster/api/modules/planning-center/get-team-positions";
 import type { TeamPositionDependencies } from "@pcobooster/api/modules/planning-center/get-team-positions";
 import { presentTeamPositions } from "@pcobooster/api/modules/planning-center/presentation";
+import type { Server } from "@pcobooster/api/server";
 import type {
   Plan,
   ServiceType,
@@ -64,7 +66,7 @@ export const getCatalogTeamPositions = (input: {
 }): Effect.Effect<
   TeamPositionGroup[],
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterAccess | RequestContext | Server
 > =>
   Effect.gen(function* getTeamPositions() {
     const access = yield* PlanningCenterAccess;
@@ -79,10 +81,8 @@ export const getCatalogTeamPositions = (input: {
       input.seriesId,
       dependencies
     );
-    return yield* presentTeamPositions(groups, {
-      catalog: access.services.catalog,
-      people: access.services.people,
-      getPresentationSeed: () => access.presentationSeed,
-      isPresentationMode: () => access.presentation,
-    });
+    return yield* presentTeamPositions(
+      groups,
+      yield* requestPresentationDependencies
+    );
   }).pipe(withPlanningCenterFaults);

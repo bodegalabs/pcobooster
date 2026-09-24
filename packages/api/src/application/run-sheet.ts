@@ -30,6 +30,7 @@ import {
   prepareUpdatePlanItem,
 } from "@pcobooster/api/modules/planning-center/update-plan-item";
 import type { PreparedUpdatePlanItem } from "@pcobooster/api/modules/planning-center/update-plan-item";
+import { Server } from "@pcobooster/api/server";
 import type {
   PlanItemsCreateInput,
   PlanItemsDeleteInput,
@@ -265,14 +266,16 @@ export const searchRunSheetSongs = (
 ): Effect.Effect<
   SongCatalogEntry[],
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterAccess | RequestContext | Server
 > =>
   Effect.gen(function* searchRunSheetCatalog() {
     const access = yield* PlanningCenterAccess;
+    const { moduleReadCaches } = yield* Server;
     return yield* searchSongs(
       access.cacheScope,
       input.query,
-      access.services.songs
+      access.services.songs,
+      moduleReadCaches.songSearchResults
     );
   }).pipe(withPlanningCenterFaults);
 

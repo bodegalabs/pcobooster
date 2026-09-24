@@ -7,6 +7,7 @@ import {
   withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/planning-center-access";
+import { requestPresentationDependencies } from "@pcobooster/api/application/presentation";
 import { loadDevBypassIdentity } from "@pcobooster/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
 import { getCandidateDetails } from "@pcobooster/api/modules/planning-center/get-candidate-details";
@@ -48,15 +49,6 @@ import { Server } from "@pcobooster/api/server";
 import type { Blockout } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
-const requestPresentationDependencies = (
-  access: PlanningCenterRequestAccess
-) => ({
-  catalog: access.services.catalog,
-  people: access.services.people,
-  isPresentationMode: () => access.presentation,
-  getPresentationSeed: () => access.presentationSeed,
-});
-
 /** The People dashboard exists only where the `people` flag is on for this caller. */
 const requirePeopleDashboard = (access: PlanningCenterRequestAccess) =>
   Effect.gen(function* checkPeopleFlag() {
@@ -93,7 +85,7 @@ export const getPeoplePositionCandidates = (input: {
     });
     return yield* presentPositionCandidates(
       result,
-      requestPresentationDependencies(access)
+      yield* requestPresentationDependencies
     );
   }).pipe(withPlanningCenterFaults);
 
@@ -143,7 +135,7 @@ export const getPeopleSearch = (input: {
     return yield* searchPeople(input.query, 15, {
       people: access.services.people,
       getIdentityMapper: getPresentationIdentityMapper(
-        requestPresentationDependencies(access)
+        yield* requestPresentationDependencies
       ),
     });
   }).pipe(withPlanningCenterFaults);
@@ -177,7 +169,7 @@ export const getPeopleDashboardRoster = (): Effect.Effect<
     });
     return yield* presentDashboardRoster(
       roster,
-      requestPresentationDependencies(access)
+      yield* requestPresentationDependencies
     );
   }).pipe(withPlanningCenterFaults);
 
@@ -220,11 +212,12 @@ export const getPeopleDashboardPerson = (input: {
         catalogService: access.services.catalog,
         plansService: access.services.plans,
         resolveTimeZone: access.services.organizationTimeZone,
+        detailCache: (yield* Server).moduleReadCaches.peopleDashboardPerson,
       },
     });
     return yield* presentDashboardPerson(
       detail,
-      requestPresentationDependencies(access)
+      yield* requestPresentationDependencies
     );
   }).pipe(withPlanningCenterFaults);
 

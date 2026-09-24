@@ -18,7 +18,8 @@ interface SongSearchResultCacheEntry {
   songs: SongCatalogEntry[];
 }
 
-const songSearchResultCache = new Map<string, SongSearchResultCacheEntry>();
+/** Ranked results by credential cache scope and normalized query. */
+export type SongSearchResultCache = Map<string, SongSearchResultCacheEntry>;
 
 export interface SongCatalogReader {
   getSongsCatalogCached: PlanningCenterSongsService["getSongsCatalogCached"];
@@ -57,7 +58,8 @@ const rankSongs = (
 export const searchSongs = (
   cacheKey: string,
   query: string,
-  songCatalogReader: SongCatalogReader
+  songCatalogReader: SongCatalogReader,
+  resultCache: SongSearchResultCache
 ): Effect.Effect<SongCatalogEntry[], PlanningCenterError> =>
   Effect.suspend(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -67,7 +69,7 @@ export const searchSongs = (
 
     const resultCacheKey = [cacheKey, normalizedQuery].join(":");
     const now = Date.now();
-    const cached = songSearchResultCache.get(resultCacheKey);
+    const cached = resultCache.get(resultCacheKey);
     if (cached && cached.expiresAt > now) {
       return Effect.succeed(structuredClone(cached.songs));
     }
@@ -76,7 +78,7 @@ export const searchSongs = (
       songCatalogReader.getSongsCatalogCached(cacheKey),
       (catalog) => {
         const results = rankSongs(catalog, normalizedQuery);
-        songSearchResultCache.set(resultCacheKey, {
+        resultCache.set(resultCacheKey, {
           expiresAt: now + SONG_SEARCH_RESULT_CACHE_TTL_MS,
           songs: results,
         });

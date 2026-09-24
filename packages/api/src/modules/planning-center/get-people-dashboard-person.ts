@@ -25,7 +25,7 @@ import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-cent
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { PLAN_RANGE_MAX_PAGES } from "@pcobooster/api/planning-center/services/plans-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
-import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
+import type { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import {
   addCalendarDaysToDayKey,
   formatCalendarDateLabel,
@@ -62,8 +62,6 @@ const MISSING_PLAN_TIMES_CONCURRENCY = 4;
 const DIRECT_PLAN_TIME_READS_RESERVE = 5;
 const PEOPLE_DASHBOARD_PERSON_CACHE_TTL_MS = 2 * 60 * 1000;
 const PEOPLE_DASHBOARD_PERSON_CACHE_VERSION = "v9";
-const peopleDashboardPersonCache =
-  new PlanningCenterReadCache<PeopleDashboardPersonDetail>();
 
 type PeopleDashboardPersonReader = Pick<
   PlanningCenterPeopleService,
@@ -85,6 +83,8 @@ export interface PeopleDashboardPersonDependencies {
     "getPlansWithIncludedInDateRange"
   >;
   readonly resolveTimeZone: Effect.Effect<string, PlanningCenterError>;
+  /** Built pages, per isolate: see `ModuleReadCaches.peopleDashboardPerson`. */
+  readonly detailCache: PlanningCenterReadCache<PeopleDashboardPersonDetail>;
 }
 
 type ScheduleReaders = Pick<
@@ -823,7 +823,7 @@ export const getPeopleDashboardPerson = ({
       const monthKey = `${monthInfo.year}-${String(monthInfo.monthIndex + 1).padStart(2, "0")}`;
 
       return cachedRead(
-        peopleDashboardPersonCache,
+        dependencies.detailCache,
         [
           PEOPLE_DASHBOARD_PERSON_CACHE_VERSION,
           "people-dashboard-person",
