@@ -73,6 +73,7 @@
 
 The account is on Cloudflare Workers Free: each Worker invocation may make at most 50 subrequests (Planning Center calls, D1, KV, and service-binding calls all count), and Planning Center allows 100 requests per 20 seconds per user. Design within these limits; see `docs/research/planning-center-rate-limits.md`.
 
+- Transport caps every procedure at `PLANNING_CENTER_REQUEST_CAP` (40) Planning Center requests, retries included, leaving the rest for session, D1, KV, and flag subrequests; progressive procedures plan against `PROGRESSIVE_REQUEST_BUDGET` with real counts (`packages/api/src/planning-center/request-budget.ts`). Change the reserve there when a procedure adds non-Planning Center subrequests.
 - Keep each oRPC procedure well under the cap. Split heavy screens into several small procedures the browser calls progressively (for example, list first, then details in batches) instead of one call that fans out.
 - Treat the budget as explicit: when a procedure cannot finish within it, return partial data with a continuation cursor. Never swallow a subrequest or rate-limit failure into empty data.
 - Fetch less per call: prefer Planning Center `include`, filters (such as future-only blockouts), and a person's own records over scanning every roster. Cache slow-changing data (past plans, service types) longer.
@@ -99,7 +100,7 @@ The account is on Cloudflare Workers Free: each Worker invocation may make at mo
 
 ## Learned Workspace Facts
 
-- People availability and blockouts: compare the plan `sort_date` instant to blockouts using each blockout’s Planning Center `time_zone` (calendar-day logic); pass the full ISO `date` through the `people.list` oRPC input. Naive UTC-midnight or date-only string overlap checks can mislabel people near timezone boundaries.
+- People availability and blockouts: compare the plan `sort_date` instant to blockouts using each blockout’s Planning Center `time_zone` (calendar-day logic); pass the full ISO `date` through the `people.planWindowHistory` and `people.candidateDetails` oRPC inputs. Naive UTC-midnight or date-only string overlap checks can mislabel people near timezone boundaries.
 - Congregation-local business dates (plan windows, schedule history frequency, calendar-day deltas) use the org IANA zone from Planning Center, falling back to `PLANNING_CENTER_TIME_ZONE` (inlined into the product build as `import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE`), with shared helpers in `packages/planning-center-models/src/calendar.ts`.
 - Person card frequency labels should align with recommendation scoring: distinct calendar service/rehearsal days in org TZ, not raw plan-time row counts or grouped-card counts.
 - Feature flags are Cloudflare Flagship flags managed by Alchemy, not environment settings or build-time `define`s. Add a flag to the registry in `packages/api/src/config/feature-flags.ts` (key and per-tier value), put targeting rules in `apps/server/src/feature-flags.ts`, and evaluate it per request through `ServerDependencies.featureFlags`; the browser asks the API. Dashboard edits are overwritten on deploy, and the local stage serves registry values without Flagship. See [docs/environment.md](docs/environment.md#feature-flags).
