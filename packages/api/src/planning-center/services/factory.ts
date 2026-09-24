@@ -3,7 +3,11 @@ import {
   createBasicPlanningCenterClient,
 } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterPersonalAccessToken } from "@pcobooster/api/planning-center/core-client";
-import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
+import {
+  createOrganizationTimeZoneCache,
+  resolveOrganizationTimeZone,
+} from "@pcobooster/api/planning-center/resolve-organization-timezone";
+import type { OrganizationTimeZoneCache } from "@pcobooster/api/planning-center/resolve-organization-timezone";
 import {
   createPlanningCenterCatalogServiceCaches,
   PlanningCenterCatalogService,
@@ -58,6 +62,7 @@ export interface PlanningCenterReadCaches {
   readonly planItems: PlanningCenterPlanItemsServiceCaches;
   readonly plans: PlanningCenterPlansServiceCaches;
   readonly songs: PlanningCenterSongsServiceCaches;
+  readonly organizationTimeZones: OrganizationTimeZoneCache;
   readonly shared: SharedReadTier | null;
 }
 
@@ -73,6 +78,7 @@ export const createPlanningCenterReadCaches = (
   planItems: createPlanningCenterPlanItemsServiceCaches(),
   plans: createPlanningCenterPlansServiceCaches(),
   songs: createPlanningCenterSongsServiceCaches(),
+  organizationTimeZones: createOrganizationTimeZoneCache(),
   shared:
     shared === null
       ? null
@@ -134,19 +140,23 @@ const createServicesForClient = (
   const session = readCaches.shared?.session() ?? null;
   const caches = bindReadCaches(readCaches, session, core.getCacheScope());
   const catalog = new PlanningCenterCatalogService(core, caches.catalog);
+  const organizationTimeZone = resolveOrganizationTimeZone({
+    cacheScope: core.getCacheScope(),
+    cache: caches.organizationTimeZones,
+    catalogService: catalog,
+    fallbackTimeZone,
+  });
 
   return {
     core,
     catalog,
+    /** The organization's IANA zone, or the configured fallback; cached per isolate. */
+    organizationTimeZone,
     people: new PlanningCenterPeopleService(core, caches.people),
     planItems: new PlanningCenterPlanItemsService(core, caches.planItems),
     plans: new PlanningCenterPlansService(
       core,
-      resolveOrganizationTimeZone({
-        cacheScope: core.getCacheScope(),
-        catalogService: catalog,
-        fallbackTimeZone,
-      }),
+      organizationTimeZone,
       caches.plans
     ),
     songs: new PlanningCenterSongsService(core, caches.songs),

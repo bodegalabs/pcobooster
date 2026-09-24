@@ -51,7 +51,6 @@ const access = (
     services,
     presentation: false,
     presentationSeed: "seed",
-    fallbackTimeZone: "UTC",
   };
 };
 

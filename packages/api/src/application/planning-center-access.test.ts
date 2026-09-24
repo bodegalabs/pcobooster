@@ -57,7 +57,6 @@ const dependenciesFor = (
     ),
   presentationMode: () => false,
   presentationSeed: "test-seed",
-  fallbackTimeZone: "America/Los_Angeles",
 });
 
 const resolveFor = async (accountId: string) => {

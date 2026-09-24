@@ -38,7 +38,6 @@ describe(executePreparedPlanningCenterWrite, () => {
         ),
       presentationMode: () => false,
       presentationSeed: "test-seed",
-      fallbackTimeZone: "America/Los_Angeles",
     };
     const runtime = createApplicationRuntime(
       Layer.succeed(HttpClient.HttpClient, unreachableHttpClient)
