@@ -52,7 +52,7 @@ export const siteHead = (): PageHead => ({
   meta: [
     { charSet: "utf-8" },
     { name: "viewport", content: "width=device-width, initial-scale=1" },
-    { name: "theme-color", content: "#faf9f6" },
+    { name: "theme-color", content: "#eef2ec" },
     { name: "color-scheme", content: "light" },
   ],
   links: [{ rel: "icon", href: marketingAssetUrl("icon.svg") }],

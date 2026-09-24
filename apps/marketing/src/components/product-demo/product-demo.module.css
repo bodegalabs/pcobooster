@@ -130,7 +130,8 @@
   color: var(--status-scheduled);
   background: color-mix(in oklab, var(--status-scheduled) 14%, transparent);
 }
-.mobile-tabs {
+.phone-header,
+.phone-menu {
   display: none;
 }
 .content {
@@ -650,6 +651,8 @@
 
 .embedded {
   height: auto;
+  /* The frame may let popovers overflow, so the showcase rounds itself to match. */
+  border-radius: inherit;
   background: var(--background);
   overflow: visible;
 }
@@ -677,19 +680,83 @@
   .sample-badge {
     display: none;
   }
-  .mobile-tabs {
+  /* Phones: the product swaps its chrome for a plan header and a full-screen menu. */
+  .inset {
+    position: relative;
+  }
+  .topbar,
+  .plan-heading {
+    display: none;
+  }
+  .phone-header {
     display: flex;
-    gap: 4px;
-    padding: 8px 12px 0;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 10px 10px 8px 8px;
+  }
+  .phone-header > .icon {
+    color: var(--muted-foreground);
+  }
+  .phone-title {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    line-height: 1.25;
+  }
+  .phone-title strong {
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .phone-title span {
+    overflow: hidden;
+    font-size: 12px;
+    color: var(--muted-foreground);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .phone-header .sample-badge {
+    display: inline;
+  }
+  .phone-menu {
+    position: absolute;
+    inset: 54px 0 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 12px 16px;
+    background: color-mix(in oklch, var(--background) 72%, transparent);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    transition: opacity 180ms cubic-bezier(0.23, 1, 0.32, 1);
+    @starting-style {
+      opacity: 0;
+    }
+  }
+  .phone-menu li > button {
+    gap: 14px;
+    padding: 10px;
+    font-size: 19px;
+  }
+  .phone-menu-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 10px 8px;
+    font-size: 13px;
+    color: var(--muted-foreground);
+  }
+  .phone-menu-footer {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
   }
   .content {
-    padding: 14px 12px 0;
-  }
-  .plan-heading {
-    font-size: 17px;
-  }
-  .plan-heading span:last-child {
-    display: none;
+    padding: 4px 12px 0;
   }
   .assign {
     grid-template-columns: 1fr;

@@ -5,7 +5,7 @@ import Moon02Icon from "@hugeicons/core-free-icons/Moon02Icon";
 import Sun01Icon from "@hugeicons/core-free-icons/Sun01Icon";
 import UserAdd01Icon from "@hugeicons/core-free-icons/UserAdd01Icon";
 import type { IconSvgElement } from "@hugeicons/react";
-import { ChevronRight, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu, RotateCcw, X } from "lucide-react";
 import { useState } from "react";
 
 import { DemoButton } from "../ui/demo-control";
@@ -85,20 +85,113 @@ const Sidebar = ({
   </aside>
 );
 
+/** The product's phone plan header: back, two-line plan title, and the menu button. */
+const PhoneHeader = ({
+  menuOpen,
+  onToggleMenu,
+}: {
+  menuOpen: boolean;
+  onToggleMenu: () => void;
+}) => (
+  <header className={styles["phone-header"]}>
+    <ChevronLeft className={styles.icon} aria-hidden />
+    <div className={styles["phone-title"]}>
+      <strong>{plan.title}</strong>
+      <span>
+        {plan.when} · {plan.serviceType}
+      </span>
+    </div>
+    <span className={styles["sample-badge"]}>Sample</span>
+    <DemoButton
+      variant="icon"
+      aria-label={menuOpen ? "Close demo menu" : "Open demo menu"}
+      aria-expanded={menuOpen}
+      onClick={onToggleMenu}
+    >
+      {menuOpen ? (
+        <X className={styles.icon} aria-hidden />
+      ) : (
+        <Menu className={styles.icon} aria-hidden />
+      )}
+    </DemoButton>
+  </header>
+);
+
+/** The product's full-screen phone menu, scoped to the replica. */
+const PhoneMenu = ({
+  view,
+  dark,
+  onToggleTheme,
+  onClose,
+}: {
+  view: DemoView;
+  dark: boolean;
+  onToggleTheme: () => void;
+  onClose: () => void;
+}) => (
+  <nav className={styles["phone-menu"]} aria-label="Demo menu">
+    <p className={styles["phone-menu-group"]}>
+      <DemoIcon icon={Calendar04Icon} />
+      Services
+    </p>
+    <ul>
+      {views.map((entry) => (
+        <li key={entry.id}>
+          <DemoButton
+            variant="nav"
+            aria-current={entry.id === view ? "page" : undefined}
+            onClick={() => {
+              navigateDemo({ view: entry.id });
+              onClose();
+            }}
+          >
+            <DemoIcon icon={entry.icon} />
+            {entry.label}
+          </DemoButton>
+        </li>
+      ))}
+    </ul>
+    <ul className={styles["phone-menu-footer"]}>
+      <li>
+        <DemoButton
+          variant="nav"
+          onClick={() => {
+            onToggleTheme();
+            onClose();
+          }}
+        >
+          <DemoIcon icon={dark ? Sun01Icon : Moon02Icon} />
+          {dark ? "Light mode" : "Dark mode"}
+        </DemoButton>
+      </li>
+      <li>
+        <DemoButton
+          variant="nav"
+          onClick={() => {
+            resetAssignments();
+            onClose();
+          }}
+        >
+          <RotateCcw className={styles.icon} aria-hidden />
+          Reset demo
+        </DemoButton>
+      </li>
+    </ul>
+  </nav>
+);
+
 /** The full clickable replica: app shell, Assign, Lineup, and Plan. */
 export const ProductDemo = () => {
   const { view, positionId } = useDemoRoute();
   const [dark, setDark] = useState(false);
+  const [phoneMenuOpen, setPhoneMenuOpen] = useState(false);
+  const toggleTheme = () => {
+    setDark((value) => !value);
+  };
 
   return (
     <div className={`${styles.demo} ${dark ? "dark" : ""}`} data-demo-root="">
-      <Sidebar
-        view={view}
-        dark={dark}
-        onToggleTheme={() => {
-          setDark((value) => !value);
-        }}
-      />
+      <Sidebar view={view} dark={dark} onToggleTheme={toggleTheme} />
       <div className={styles.inset}>
         <header className={styles.topbar}>
           <span className={styles.crumbs}>
@@ -107,20 +200,22 @@ export const ProductDemo = () => {
           </span>
           <span className={styles["sample-badge"]}>Sample data</span>
         </header>
-        <nav className={styles["mobile-tabs"]} aria-label="Demo views">
-          {views.map((entry) => (
-            <DemoButton
-              key={entry.id}
-              variant="tab"
-              aria-current={entry.id === view ? "page" : undefined}
-              onClick={() => {
-                navigateDemo({ view: entry.id });
-              }}
-            >
-              {entry.label}
-            </DemoButton>
-          ))}
-        </nav>
+        <PhoneHeader
+          menuOpen={phoneMenuOpen}
+          onToggleMenu={() => {
+            setPhoneMenuOpen((open) => !open);
+          }}
+        />
+        {phoneMenuOpen ? (
+          <PhoneMenu
+            view={view}
+            dark={dark}
+            onToggleTheme={toggleTheme}
+            onClose={() => {
+              setPhoneMenuOpen(false);
+            }}
+          />
+        ) : null}
         <div className={styles.content}>
           <PlanTitle />
           {view === "assign" ? (
