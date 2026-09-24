@@ -359,3 +359,23 @@ The official migration guide exists at Start docs [`migrate-from-next-js.md`](ht
 10. **Marketing:** a Start app with `prerender.enabled`, `crawlLinks`, `failOnError`, `base: "/marketing/"`, `router.basepath: "/"`, and no Cloudflare plugin. `bun run build` then `stage-marketing.ts` copies `dist/client` into `apps/web/public/marketing/`. It stays independent of product components and shares only design tokens.
 11. **Data:** web creates the `QueryClient` in `getRouter` with `setupRouterSsrQueryIntegration`. Keep the raw oRPC client and `queryKeys`, and resolve `presentationScope` via a root server function. Admin calls oRPC server-side through `env.API` inside server functions.
 12. **Quality gates:** commit `routeTree.gen.ts`; `typecheck` = `tsc --noEmit`; root Vitest unchanged apart from binding stubs; turbo `build` outputs `dist/**`; drop the `next` lint presets after the last Next app is removed.
+
+## Implementation notes: admin (verified September 23, 2026)
+
+The admin migration tested the recommendations above. The following points were confirmed at runtime or changed from the conventions.
+
+Confirmed at runtime:
+
+- Under `alchemy dev --stage local`, the injected plugin runs Start correctly with the app's plugin order (`tailwindcss`, guarded `cloudflare`, `tanstackStart`, `viteReact`). SSR, server functions, and the `API` service binding to the local `Api` Worker all work. The Worker's `dev.port` (3003) fronts the Vite dev server. The product's Next.js dev rewrite to `127.0.0.1:3003/admin/*` still works. Vite's HMR websocket does not survive that rewrite; open 3003 directly for HMR.
+- The standalone `@cloudflare/vite-plugin` works with inline `config` and no wrangler file. With a custom server entry, set `config.main` to it (`./src/server.ts`). `vite build` emits `dist/server/wrangler.json`, which `wrangler dev -c dist/server/wrangler.json` can run to exercise the production bundle.
+- `vite preview` with the Cloudflare plugin does not serve client assets under a non-root `base` (`/admin/assets/*` returns 404). Alchemy keys uploads by `base`, so this limitation is local only. Check SSR with `ADMIN_BASE_PATH=""` or with `wrangler dev`.
+
+Deviations from the conventions:
+
+- **Base fallback (convention 9).** `base` is `ADMIN_BASE_PATH` when set; otherwise it is `/admin/` for the dev server and `/` for builds and `vite preview` (`resolveAdminBase` in `apps/admin/src/lib/base-path.ts`). This keeps Next's dev default and does not depend on `alchemy.run.ts`'s `process.env` write reaching Alchemy's dev host.
+- **Bare mount path needs a custom server entry.** Start treats `/admin/` as the canonical index URL and 307-redirects `/admin` to it (`loadServerRoute` in `router-core` `src/load-server.ts`). The product's Next.js route 308-redirects `/admin/` to `/admin`, so every preview would loop. `apps/admin/src/server.ts` rewrites `/admin` to `/admin/` internally. A small Vite plugin does the same for Vite's dev/preview base guard, which otherwise 404s `/admin`. Layer 3 (web) should forward both `/admin` and `/admin/*` without trailing-slash redirects.
+- **Env typing (convention 5).** Admin uses the DOM lib, and loading `@cloudflare/workers-types` globally clashes with DOM `Request`/`Response`. `src/worker-env.d.ts` therefore redeclares `cloudflare:workers` with only the bindings admin reads (the `packages/api` pattern). It does not augment `Cloudflare.Env`.
+- **Response headers.** `setResponseHeader(s)` in request middleware is not merged into non-2xx responses: h3 `prepareResponse` returns early when `!response.ok`. That drops headers from 404s, 500s, and redirects. Admin's middleware sets headers on `(await next()).response` instead. Start creates those responses, so their headers are mutable.
+- **`head()` dedupes meta by `name`** (`headContentUtils.tsx`): only the last `theme-color` survives. Per-scheme `theme-color` tags are rendered directly in the shell's `<head>`.
+- **Same-origin external redirects.** `router.resolveRedirect` turns an absolute `href` on the current origin into a path, and client navigation then resolves it inside the basepath. For example, `/auth` became `/admin/auth` in previews. Redirects to product pages from a basepath app need `reloadDocument: true`.
+- **Lint.** `throw redirect()`/`throw notFound()` trips `typescript/only-throw-error`. Use `redirect({ …, throw: true })` / `notFound({ throw: true })`. Where narrowing is needed, use a typed `asserts` helper (`apps/admin/src/lib/assert-found.ts`). The Next.js oxlint presets are turned off for Start apps through an `overrides` entry in `oxlint.config.ts` (`tanstackStartApps`). Add each migrated app there until the presets are removed.
