@@ -133,65 +133,43 @@ describe("PlanningCenterPeopleService.searchPeopleByName", () => {
   });
 });
 
+const team = (
+  id: string,
+  name: string,
+  personIds: string[],
+  archivedAt: string | null = null
+): PCResource => ({
+  id,
+  type: "Team",
+  attributes: { name, archived_at: archivedAt },
+  relationships: {
+    people: {
+      data: personIds.map((personId) => ({ id: personId, type: "Person" })),
+    },
+  },
+});
+
 describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
-  it("caches team roster reads and returns mutation-safe copies", async () => {
+  it("reads every team roster in one request and returns mutation-safe copies", async () => {
     const core = createBasicPlanningCenterClient(
       testPlanningCenterToken,
       unreachableHttpClient
     );
-    const fetchAll = vi
-      .spyOn(core, "fetchAll")
+    const fetchAllWithIncluded = vi
+      .spyOn(core, "fetchAllWithIncluded")
       .mockReturnValue(
-        Effect.succeed([
-          resource("team-1", "Team", { name: "Band" }),
-          resource("team-2", "Team", { name: "Hosts" }),
-        ])
-      );
-    const responseForEndpoint = (endpoint: string) => {
-      if (endpoint.includes("/teams/team-1/")) {
-        return {
+        Effect.succeed({
           data: [
-            {
-              id: "assignment-1",
-              type: "PersonTeamPositionAssignment",
-              attributes: {},
-              relationships: {
-                person: { data: { id: "person-1", type: "Person" } },
-              },
-            },
+            team("team-1", "Band", ["person-1", "person-2"]),
+            team("team-2", "Hosts", ["person-1"]),
+            team("team-3", "Retired", ["person-3"], "2026-01-01T00:00:00Z"),
           ],
           included: [
-            resource("person-1", "Person", {
-              first_name: "Alex",
-              last_name: "Adams",
-            }),
+            resource("person-1", "Person", { first_name: "Alex" }),
+            resource("person-2", "Person", { first_name: "Blair" }),
+            resource("person-3", "Person", { first_name: "Casey" }),
           ],
-        };
-      }
-
-      return {
-        data: [
-          {
-            id: "assignment-2",
-            type: "PersonTeamPositionAssignment",
-            attributes: {},
-            relationships: {
-              person: { data: { id: "person-1", type: "Person" } },
-            },
-          },
-        ],
-        included: [
-          resource("person-1", "Person", {
-            first_name: "Alex",
-            last_name: "Adams",
-          }),
-        ],
-      };
-    };
-    const fetch = vi
-      .spyOn(core, "fetchCollection")
-      .mockImplementation((endpoint: string) =>
-        Effect.succeed(responseForEndpoint(endpoint))
+        })
       );
     const service = new PlanningCenterPeopleService(core);
 
@@ -200,13 +178,62 @@ describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
     first.teamNamesByPersonId.get("person-1")?.add("Mutated Team");
     const second = await Effect.runPromise(service.getAllPeopleFromTeams());
 
-    expect(fetchAll).toHaveBeenCalledOnce();
-    expect(fetch).toHaveBeenCalledTimes(2);
-    expect(second.people).toHaveLength(1);
+    expect(fetchAllWithIncluded).toHaveBeenCalledOnce();
+    expect(fetchAllWithIncluded.mock.calls[0]?.slice(0, 2)).toStrictEqual([
+      "/services/v2/teams",
+      { include: "people" },
+    ]);
+    expect(second.people.map((person) => person.id)).toStrictEqual([
+      "person-1",
+      "person-2",
+    ]);
     expect(second.people[0].attributes.first_name).toBe("Alex");
     expect([
       ...(second.teamNamesByPersonId.get("person-1") ?? []),
     ]).toStrictEqual(["Band", "Hosts"]);
+  });
+});
+
+describe("PlanningCenterPeopleService.getPersonSchedulesAfter", () => {
+  it("reads past and future schedules after a day without per-plan reads", async () => {
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
+    );
+    const fetchAllWithIncluded = vi
+      .spyOn(core, "fetchAllWithIncluded")
+      .mockReturnValue(
+        Effect.succeed({
+          data: [
+            {
+              ...resource("schedule-1", "Schedule"),
+              relationships: {
+                plan: { data: { id: "plan-1", type: "Plan" } },
+                times: { data: [{ id: "rehearsal-1", type: "PlanTime" }] },
+              },
+            },
+          ],
+          included: [],
+        })
+      );
+    const service = new PlanningCenterPeopleService(core);
+
+    const first = await Effect.runPromise(
+      service.getPersonSchedulesAfter("person-1", "2026-06-24", 2)
+    );
+    await Effect.runPromise(
+      service.getPersonSchedulesAfter("person-1", "2026-06-24", 2)
+    );
+
+    expect(fetchAllWithIncluded).toHaveBeenCalledOnce();
+    expect(fetchAllWithIncluded.mock.calls[0]).toStrictEqual([
+      "/services/v2/people/person-1/schedules",
+      { include: "plan_times", filter: "after", after: "2026-06-24" },
+      2,
+    ]);
+    expect(first.data.map((schedule) => schedule.id)).toStrictEqual([
+      "schedule-1",
+    ]);
   });
 });
 

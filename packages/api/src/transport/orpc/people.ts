@@ -1,8 +1,9 @@
 import {
   getMyScheduledPlans,
   getPeopleBlockouts,
-  getPeopleDashboard,
+  getPeopleDashboardActivity,
   getPeopleDashboardPerson,
+  getPeopleDashboardRoster,
   getPeopleList,
   getPeopleScheduleHistory,
   getPeopleSearch,
@@ -55,11 +56,21 @@ const blockouts = rpc.people.blockouts.handler(
     )
 );
 
-const dashboard = rpc.people.dashboard.handler(
+const dashboardRoster = rpc.people.dashboardRoster.handler(
+  async ({ context, signal }) =>
+    await executeApplicationEffect(
+      applicationRuntime,
+      withPlanningCenterAccess(getPeopleDashboardRoster()),
+      context,
+      signal
+    )
+);
+
+const dashboardActivity = rpc.people.dashboardActivity.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
       applicationRuntime,
-      withPlanningCenterAccess(getPeopleDashboard(input)),
+      withPlanningCenterAccess(getPeopleDashboardActivity(input)),
       context,
       signal
     )
@@ -100,7 +111,8 @@ export const peopleRouter = {
   search,
   warmup,
   blockouts,
-  dashboard,
+  dashboardRoster,
+  dashboardActivity,
   dashboardPerson,
   scheduleHistory,
   myScheduledPlans,

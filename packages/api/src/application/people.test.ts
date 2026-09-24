@@ -3,8 +3,9 @@ import {
   RequestContext,
 } from "@pcobooster/api/application/context";
 import {
-  getPeopleDashboard,
+  getPeopleDashboardActivity,
   getPeopleDashboardPerson,
+  getPeopleDashboardRoster,
 } from "@pcobooster/api/application/people";
 import { PlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
 import type {
@@ -93,9 +94,18 @@ const accountEvaluation = [
 ];
 
 describe("People dashboard flag", () => {
-  it("hides the dashboard when the flag is off for the signed-in account", async () => {
+  it("hides the dashboard roster when the flag is off for the signed-in account", async () => {
     const { result, evaluations } = await runWithFlagOff(
-      getPeopleDashboard({ range: "month" }),
+      getPeopleDashboardRoster(),
+      accountAuthentication
+    );
+    expect(Result.getFailure(result)).toMatchObject(hiddenDashboard);
+    expect(evaluations).toStrictEqual(accountEvaluation);
+  });
+
+  it("hides dashboard activity batches when the flag is off for the signed-in account", async () => {
+    const { result, evaluations } = await runWithFlagOff(
+      getPeopleDashboardActivity({ personIds: ["person-1"] }),
       accountAuthentication
     );
     expect(Result.getFailure(result)).toMatchObject(hiddenDashboard);
@@ -112,13 +122,10 @@ describe("People dashboard flag", () => {
   });
 
   it("evaluates a demo visitor anonymously", async () => {
-    const { evaluations } = await runWithFlagOff(
-      getPeopleDashboard({ range: "month" }),
-      {
-        kind: "demo",
-        planningCenter: testPlanningCenterToken,
-      }
-    );
+    const { evaluations } = await runWithFlagOff(getPeopleDashboardRoster(), {
+      kind: "demo",
+      planningCenter: testPlanningCenterToken,
+    });
     expect(evaluations[0]?.subject).toStrictEqual({
       userId: null,
       planningCenterAccountId: null,

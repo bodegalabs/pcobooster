@@ -1,7 +1,4 @@
-import type {
-  PeopleDashboardData,
-  PeopleDashboardPerson,
-} from "@pcobooster/contracts/people-schemas";
+import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 
 import { loadBadge } from "@/components/people/calendar";
 import { PersonLineSkeleton } from "@/components/people/people-skeletons";
@@ -20,6 +17,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
+import type { PeopleDashboardData } from "@/lib/people-dashboard";
 import { cn } from "@/lib/utils";
 
 interface HealthRosterProps {

@@ -1,5 +1,3 @@
-export type PeopleDashboardRange = "month" | "30" | "90";
-
 export type PeopleDashboardLoad = "low" | "normal" | "high" | "rest";
 
 export type PeopleDashboardDayKind =
@@ -8,12 +6,24 @@ export type PeopleDashboardDayKind =
   | "blockout"
   | "rest";
 
-export interface PeopleDashboardPerson {
+export interface PeopleDashboardMonth {
+  year: number;
+  monthIndex: number;
+  label: string;
+  daysInMonth: number;
+  startsOnWeekday: number;
+}
+
+export interface PeopleDashboardRosterPerson {
   id: string;
   name: string;
   initials: string;
   photoThumbnailUrl: string | null;
   teams: string[];
+}
+
+export interface PeopleDashboardActivity {
+  id: string;
   roles: string;
   status: string;
   load: PeopleDashboardLoad;
@@ -37,50 +47,30 @@ export interface PeopleDashboardPerson {
   }[];
 }
 
-export interface PeopleDashboardDay {
-  day: number;
-  serviceCount: number;
-  confirmedServiceCount: number;
-  potentialServiceCount: number;
-  rehearsalCount: number;
-  blockoutCount: number;
-}
+export type PeopleDashboardPerson = PeopleDashboardRosterPerson &
+  Omit<PeopleDashboardActivity, "id">;
 
-export interface PeopleDashboardStats {
-  scheduledPeople: number;
-  highLoadPeople: number;
-  availableSoonPeople: number;
-}
-
-export interface PeopleDashboardRequestBudget {
-  teamRequests: number;
-  scheduleRequests: number;
-  blockoutRequests: number;
-  rosterPeopleCount: number;
-  hydratedPeopleCount: number;
-  sampled: boolean;
-}
-
-export interface PeopleDashboardData {
-  range: PeopleDashboardRange;
+export interface PeopleDashboardRoster {
   generatedAt: string;
-  month: {
-    year: number;
-    monthIndex: number;
-    label: string;
-    daysInMonth: number;
-    startsOnWeekday: number;
+  month: PeopleDashboardMonth;
+  people: PeopleDashboardRosterPerson[];
+}
+
+export interface PeopleDashboardActivityBatch {
+  generatedAt: string;
+  people: PeopleDashboardActivity[];
+  deferredPersonIds: string[];
+  requestBudget: {
+    limit: number;
+    planningCenterRequests: number;
+    scheduleRequests: number;
+    planTimeRequests: number;
   };
-  people: PeopleDashboardPerson[];
-  stats: PeopleDashboardStats;
-  monthDays: PeopleDashboardDay[];
-  matrixDays: number[];
-  requestBudget: PeopleDashboardRequestBudget;
 }
 
 export interface PeopleDashboardPersonDetail {
   generatedAt: string;
-  month: PeopleDashboardData["month"];
+  month: PeopleDashboardMonth;
   previousMonth: string;
   nextMonth: string;
   person: PeopleDashboardPerson;

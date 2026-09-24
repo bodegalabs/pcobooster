@@ -115,6 +115,8 @@ Path: `use-people.ts` to `transport/orpc/people.ts:18` to `application/people.ts
 
 ### People dashboard (`/people`, `people.dashboard`)
 
+> **Update (September 24, 2026):** `people.dashboard` is replaced by `people.dashboardRoster` (one `teams?include=people` read, 2 requests cold with the time zone) and `people.dashboardActivity` (16 people per call, schedules filtered to the last 91 days onward, rehearsal PlanTimes read once per service type; measured 16 to 19 requests cold, capped at 40 with `deferredPersonIds` as the continuation). The browser loads 48 people in 3 calls, 2 at a time, and loads more on request. The analysis below describes the old procedure. It also missed that `/people/{id}/schedules` without a filter returns only upcoming schedules, so past services never counted.
+
 Path: `use-people-dashboard.ts` to `application/people.ts:186` to `get-people-dashboard.ts:641-756`.
 
 | Step | Code | Requests |

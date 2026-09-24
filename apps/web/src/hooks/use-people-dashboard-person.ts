@@ -1,11 +1,9 @@
-import type {
-  PeopleDashboardData,
-  PeopleDashboardPersonDetail,
-} from "@pcobooster/contracts/people-schemas";
+import type { PeopleDashboardPersonDetail } from "@pcobooster/contracts/people-schemas";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
 import { useCallback } from "react";
 
+import { readPeopleDashboardFromQueryCache } from "@/hooks/use-people-dashboard";
 import {
   readCachedPeopleDashboardPerson,
   writeCachedPeopleDashboardPerson,
@@ -49,11 +47,7 @@ export const usePeopleDashboardPerson = (
     // Seed from the roster when it covers this month. Otherwise keep this
     // person on screen (dimmed) so paging months never blanks the page.
     placeholderData: (previousDetail) => {
-      const dashboards = queryClient
-        .getQueriesData<PeopleDashboardData>({
-          queryKey: ["people-dashboard"],
-        })
-        .map(([, dashboard]) => dashboard);
+      const dashboards = [readPeopleDashboardFromQueryCache(queryClient)];
       return (
         getCachedPeopleDashboardPersonDetail(dashboards, personId, month) ??
         (previousDetail?.person.id === personId ? previousDetail : undefined) ??

@@ -1,7 +1,4 @@
-import type {
-  PeopleDashboardData,
-  PeopleDashboardPerson,
-} from "@pcobooster/contracts/people-schemas";
+import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 import { Medal, ShieldAlert } from "lucide-react";
 
 import type { CalendarCell } from "@/components/people/calendar";
@@ -24,6 +21,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
+import type { PeopleDashboardData } from "@/lib/people-dashboard";
 
 interface HealthSidebarProps {
   dashboard: PeopleDashboardData | undefined;

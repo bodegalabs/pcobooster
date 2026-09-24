@@ -1,9 +1,7 @@
-import type {
-  PeopleDashboardData,
-  PeopleDashboardPerson,
-} from "@pcobooster/contracts/people-schemas";
+import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 import { describe, expect, it } from "vitest";
 
+import type { PeopleDashboardData } from "@/lib/people-dashboard";
 import { getCachedPeopleDashboardPersonDetail } from "@/lib/people-dashboard-person-placeholder";
 
 const dashboardPerson = (id: string): PeopleDashboardPerson => ({
@@ -28,7 +26,6 @@ const dashboardPerson = (id: string): PeopleDashboardPerson => ({
 });
 
 const dashboard = (): PeopleDashboardData => ({
-  range: "month",
   generatedAt: "2026-05-23T12:00:00.000Z",
   month: {
     year: 2026,
@@ -37,6 +34,7 @@ const dashboard = (): PeopleDashboardData => ({
     daysInMonth: 31,
     startsOnWeekday: 5,
   },
+  teams: ["Band"],
   people: [dashboardPerson("person-1")],
   stats: {
     scheduledPeople: 1,
@@ -45,13 +43,10 @@ const dashboard = (): PeopleDashboardData => ({
   },
   monthDays: [],
   matrixDays: [],
-  requestBudget: {
-    teamRequests: 1,
-    scheduleRequests: 1,
-    blockoutRequests: 0,
+  progress: {
     rosterPeopleCount: 1,
+    requestedPeopleCount: 1,
     hydratedPeopleCount: 1,
-    sampled: false,
   },
 });
 

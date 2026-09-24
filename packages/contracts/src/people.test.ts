@@ -5,8 +5,10 @@ import {
 } from "@pcobooster/contracts/people";
 import {
   blockoutSchema,
-  peopleDashboardDataSchema,
+  peopleDashboardActivityBatchSchema,
   peopleDashboardPersonDetailSchema,
+  peopleDashboardPersonSchema,
+  peopleDashboardRosterSchema,
   personWithAvailabilitySchema,
   scheduleHistoryResponseSchema,
 } from "@pcobooster/contracts/people-schemas";
@@ -110,35 +112,27 @@ describe("people read contracts", () => {
     ).toBeFalsy();
   });
 
-  it("preserves dashboard counts, per-day details, and request budgets", () => {
-    const dashboard = {
-      range: "month",
+  it("splits a dashboard person into roster identity and batch activity", () => {
+    const { id, name, initials, photoThumbnailUrl, teams, ...activity } =
+      dashboardPerson;
+    const roster = {
       generatedAt: "2026-09-19T17:00:00Z",
       month,
-      people: [dashboardPerson],
-      stats: { scheduledPeople: 1, highLoadPeople: 0, availableSoonPeople: 1 },
-      monthDays: [
-        {
-          day: 20,
-          serviceCount: 1,
-          confirmedServiceCount: 1,
-          potentialServiceCount: 0,
-          rehearsalCount: 0,
-          blockoutCount: 0,
-        },
-      ],
-      matrixDays: [20],
+      people: [{ id, name, initials, photoThumbnailUrl, teams }],
+    };
+    const batch = {
+      generatedAt: roster.generatedAt,
+      people: [{ id, ...activity }],
+      deferredPersonIds: ["person-2"],
       requestBudget: {
-        teamRequests: 1,
+        limit: 40,
+        planningCenterRequests: 3,
         scheduleRequests: 1,
-        blockoutRequests: 1,
-        rosterPeopleCount: 1,
-        hydratedPeopleCount: 1,
-        sampled: false,
+        planTimeRequests: 1,
       },
     };
     const detail = {
-      generatedAt: dashboard.generatedAt,
+      generatedAt: roster.generatedAt,
       month,
       previousMonth: "2026-08",
       nextMonth: "2026-10",
@@ -149,7 +143,13 @@ describe("people read contracts", () => {
       requestBudget: { scheduleRequests: 1, blockoutRequests: 1 },
     };
 
-    expect(peopleDashboardDataSchema.parse(dashboard)).toStrictEqual(dashboard);
+    expect(peopleDashboardRosterSchema.parse(roster)).toStrictEqual(roster);
+    expect(peopleDashboardActivityBatchSchema.parse(batch)).toStrictEqual(
+      batch
+    );
+    expect(
+      peopleDashboardPersonSchema.parse({ ...roster.people[0], ...activity })
+    ).toStrictEqual(dashboardPerson);
     expect(peopleDashboardPersonDetailSchema.parse(detail)).toStrictEqual(
       detail
     );

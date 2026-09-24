@@ -74,8 +74,6 @@ export const planPersonSchema = z.object({
   declineReason: z.string().optional(),
 });
 
-export const peopleDashboardRangeSchema = z.enum(["month", "30", "90"]);
-
 export const peopleDashboardLoadSchema = z.enum([
   "low",
   "high",
@@ -90,12 +88,26 @@ export const peopleDashboardDayKindSchema = z.enum([
   "blockout",
 ]);
 
-export const peopleDashboardPersonSchema = z.object({
+export const peopleDashboardMonthSchema = z.object({
+  year: z.number(),
+  monthIndex: z.number(),
+  label: z.string(),
+  daysInMonth: z.number(),
+  startsOnWeekday: z.number(),
+});
+
+/** Who is on the roster: identity and teams, with no schedule reads behind it. */
+export const peopleDashboardRosterPersonSchema = z.object({
   id: z.string(),
   name: z.string(),
   initials: z.string(),
   photoThumbnailUrl: z.string().nullable(),
   teams: z.array(z.string()),
+});
+
+/** How one roster person is serving, derived from their own schedules. */
+export const peopleDashboardActivitySchema = z.object({
+  id: z.string(),
   roles: z.string(),
   status: z.string(),
   load: peopleDashboardLoadSchema,
@@ -121,56 +133,38 @@ export const peopleDashboardPersonSchema = z.object({
   ),
 });
 
-export const peopleDashboardStatsSchema = z.object({
-  scheduledPeople: z.number(),
-  highLoadPeople: z.number(),
-  availableSoonPeople: z.number(),
-});
+export const peopleDashboardPersonSchema =
+  peopleDashboardRosterPersonSchema.extend(
+    peopleDashboardActivitySchema.omit({ id: true }).shape
+  );
 
-export const peopleDashboardDaySchema = z.object({
-  day: z.number(),
-  serviceCount: z.number(),
-  confirmedServiceCount: z.number(),
-  potentialServiceCount: z.number(),
-  rehearsalCount: z.number(),
-  blockoutCount: z.number(),
-});
-
-export const peopleDashboardRequestBudgetSchema = z.object({
-  teamRequests: z.number(),
-  scheduleRequests: z.number(),
-  blockoutRequests: z.number(),
-  rosterPeopleCount: z.number(),
-  hydratedPeopleCount: z.number(),
-  sampled: z.boolean(),
-});
-
-export const peopleDashboardDataSchema = z.object({
-  range: peopleDashboardRangeSchema,
+export const peopleDashboardRosterSchema = z.object({
   generatedAt: z.string(),
-  month: z.object({
-    year: z.number(),
-    monthIndex: z.number(),
-    label: z.string(),
-    daysInMonth: z.number(),
-    startsOnWeekday: z.number(),
+  month: peopleDashboardMonthSchema,
+  /** Sorted by last name, then first name. */
+  people: z.array(peopleDashboardRosterPersonSchema),
+});
+
+export const peopleDashboardActivityBatchSchema = z.object({
+  generatedAt: z.string(),
+  people: z.array(peopleDashboardActivitySchema),
+  /**
+   * Requested people this call left for a follow-up call to stay within its
+   * Planning Center request budget. Empty when the batch is complete.
+   */
+  deferredPersonIds: z.array(z.string()),
+  requestBudget: z.object({
+    limit: z.number(),
+    /** Upper bound: a cached read is counted as if it reached Planning Center. */
+    planningCenterRequests: z.number(),
+    scheduleRequests: z.number(),
+    planTimeRequests: z.number(),
   }),
-  people: z.array(peopleDashboardPersonSchema),
-  stats: peopleDashboardStatsSchema,
-  monthDays: z.array(peopleDashboardDaySchema),
-  matrixDays: z.array(z.number()),
-  requestBudget: peopleDashboardRequestBudgetSchema,
 });
 
 export const peopleDashboardPersonDetailSchema = z.object({
   generatedAt: z.string(),
-  month: z.object({
-    year: z.number(),
-    monthIndex: z.number(),
-    label: z.string(),
-    daysInMonth: z.number(),
-    startsOnWeekday: z.number(),
-  }),
+  month: peopleDashboardMonthSchema,
   previousMonth: z.string(),
   nextMonth: z.string(),
   person: peopleDashboardPersonSchema,
@@ -212,20 +206,26 @@ export type PersonWithAvailability = z.output<
   typeof personWithAvailabilitySchema
 >;
 export type PlanPerson = z.output<typeof planPersonSchema>;
-export type PeopleDashboardRange = z.output<typeof peopleDashboardRangeSchema>;
 export type PeopleDashboardLoad = z.output<typeof peopleDashboardLoadSchema>;
 export type PeopleDashboardDayKind = z.output<
   typeof peopleDashboardDayKindSchema
 >;
+export type PeopleDashboardMonth = z.output<typeof peopleDashboardMonthSchema>;
+export type PeopleDashboardRosterPerson = z.output<
+  typeof peopleDashboardRosterPersonSchema
+>;
+export type PeopleDashboardActivity = z.output<
+  typeof peopleDashboardActivitySchema
+>;
 export type PeopleDashboardPerson = z.output<
   typeof peopleDashboardPersonSchema
 >;
-export type PeopleDashboardStats = z.output<typeof peopleDashboardStatsSchema>;
-export type PeopleDashboardDay = z.output<typeof peopleDashboardDaySchema>;
-export type PeopleDashboardRequestBudget = z.output<
-  typeof peopleDashboardRequestBudgetSchema
+export type PeopleDashboardRoster = z.output<
+  typeof peopleDashboardRosterSchema
 >;
-export type PeopleDashboardData = z.output<typeof peopleDashboardDataSchema>;
+export type PeopleDashboardActivityBatch = z.output<
+  typeof peopleDashboardActivityBatchSchema
+>;
 export type PeopleDashboardPersonDetail = z.output<
   typeof peopleDashboardPersonDetailSchema
 >;
