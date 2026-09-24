@@ -3,9 +3,9 @@ import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import {
   blockoutSchema,
   myScheduledPlansDataSchema,
-  peopleDashboardDataSchema,
+  peopleDashboardActivityBatchSchema,
   peopleDashboardPersonDetailSchema,
-  peopleDashboardRangeSchema,
+  peopleDashboardRosterSchema,
   peopleSearchResultSchema,
   personWithAvailabilitySchema,
   scheduleHistoryResponseSchema,
@@ -33,8 +33,17 @@ export const peopleBlockoutsInputSchema = z.object({
   personId: z.string().trim().min(1),
 });
 
-export const peopleDashboardInputSchema = z.object({
-  range: peopleDashboardRangeSchema,
+/**
+ * People per `people.dashboardActivity` call. Each person costs one schedule
+ * page (two at most), so a full batch stays well under the per-call budget.
+ */
+export const PEOPLE_DASHBOARD_ACTIVITY_BATCH_SIZE = 16;
+
+export const peopleDashboardActivityInputSchema = z.object({
+  personIds: z
+    .array(z.string().trim().min(1))
+    .min(1)
+    .max(PEOPLE_DASHBOARD_ACTIVITY_BATCH_SIZE),
 });
 
 export const peopleDashboardPersonInputSchema =
@@ -104,14 +113,21 @@ export const peopleContract = {
     })
     .input(peopleBlockoutsInputSchema)
     .output(peopleBlockoutsOutputSchema),
-  dashboard: dashboardProcedure
+  dashboardRoster: dashboardProcedure
     .route({
       method: "GET",
-      path: "/people/dashboard",
-      summary: "Read the people activity dashboard",
+      path: "/people/dashboard-roster",
+      summary: "Read the People dashboard roster",
     })
-    .input(peopleDashboardInputSchema)
-    .output(peopleDashboardDataSchema),
+    .output(peopleDashboardRosterSchema),
+  dashboardActivity: dashboardProcedure
+    .route({
+      method: "POST",
+      path: "/people/dashboard-activity",
+      summary: "Read serving activity for a batch of roster people",
+    })
+    .input(peopleDashboardActivityInputSchema)
+    .output(peopleDashboardActivityBatchSchema),
   dashboardPerson: dashboardProcedure
     .route({
       method: "GET",
@@ -142,7 +158,9 @@ export type PeopleListInput = z.input<typeof peopleListInputSchema>;
 export type PeopleSearchInput = z.input<typeof peopleSearchInputSchema>;
 export type PeopleWarmupInput = z.input<typeof peopleWarmupInputSchema>;
 export type PeopleBlockoutsInput = z.input<typeof peopleBlockoutsInputSchema>;
-export type PeopleDashboardInput = z.input<typeof peopleDashboardInputSchema>;
+export type PeopleDashboardActivityInput = z.input<
+  typeof peopleDashboardActivityInputSchema
+>;
 export type PeopleDashboardPersonInput = z.input<
   typeof peopleDashboardPersonInputSchema
 >;

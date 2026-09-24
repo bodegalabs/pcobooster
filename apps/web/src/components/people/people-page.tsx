@@ -1,8 +1,4 @@
-import type {
-  PeopleDashboardData,
-  PeopleDashboardPerson,
-  PeopleDashboardRange,
-} from "@pcobooster/contracts/people-schemas";
+import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { Search } from "lucide-react";
@@ -12,6 +8,7 @@ import {
   buildCalendarCells,
   monthDays as defaultMonthDays,
 } from "@/components/people/calendar";
+import { PeopleDashboardProgress } from "@/components/people/dashboard-progress";
 import { PeopleHealthView } from "@/components/people/health-view";
 import { MonthView } from "@/components/people/month-view";
 import {
@@ -31,8 +28,12 @@ import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import { usePeopleDashboard } from "@/hooks/use-people-dashboard";
 import { createPeopleDashboardPersonQueryOptions } from "@/hooks/use-people-dashboard-person";
 import { isQueryFresh } from "@/lib/intent-prefetch";
+import type { PeopleDashboardData } from "@/lib/people-dashboard";
 
 const EMPTY_PEOPLE: PeopleDashboardPerson[] = [];
+const EMPTY_TEAMS: string[] = [];
+
+type PeopleDashboardRange = "month" | "30" | "90";
 
 interface PeoplePageContentProps {
   activeView: "health" | "month";
@@ -126,25 +127,25 @@ export const PeoplePage = () => {
   const [range, setRange] = useState<PeopleDashboardRange>("month");
   const [selectedTeam, setSelectedTeam] = useState("all");
   const {
-    data: dashboard,
+    dashboard,
     isLoading,
     isError,
-    isPlaceholderData,
-  } = usePeopleDashboard(range);
+    isFetching,
+    isLoadingActivity,
+    failedBatchCount,
+    retryFailed,
+    canLoadMore,
+    loadMore,
+  } = usePeopleDashboard();
   const people = dashboard?.people ?? EMPTY_PEOPLE;
+  const teamOptions = dashboard?.teams ?? EMPTY_TEAMS;
+
   const rhythmCalendarCells = dashboard
     ? buildCalendarCells(
         dashboard.month.startsOnWeekday,
         dashboard.month.daysInMonth
       )
     : buildCalendarCells(0, defaultMonthDays.length);
-  const teamOptions = useMemo(
-    () =>
-      [...new Set(people.flatMap((person) => person.teams))].toSorted((a, b) =>
-        a.localeCompare(b)
-      ),
-    [people]
-  );
 
   const visiblePeople = useMemo(() => {
     const normalized = deferredQuery.trim().toLowerCase();
@@ -279,14 +280,20 @@ export const PeoplePage = () => {
         </header>
 
         <LoadingBar
-          active={isPlaceholderData && !isError}
+          active={isFetching && !isError}
           className="-my-1.5 shrink-0"
         />
 
-        <div
-          className="stale-while-busy shrink-0"
-          aria-busy={isPlaceholderData && !isError}
-        >
+        <PeopleDashboardProgress
+          progress={dashboard?.progress}
+          isLoadingActivity={isLoadingActivity}
+          failedBatchCount={failedBatchCount}
+          canLoadMore={canLoadMore}
+          onRetry={retryFailed}
+          onLoadMore={loadMore}
+        />
+
+        <div className="shrink-0" aria-busy={isLoading}>
           <PeoplePageContent
             activeView={activeView}
             dashboard={dashboard}

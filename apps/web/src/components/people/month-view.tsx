@@ -1,7 +1,4 @@
-import type {
-  PeopleDashboardDay,
-  PeopleDashboardPerson,
-} from "@pcobooster/contracts/people-schemas";
+import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 import { CalendarDays } from "lucide-react";
 import { useState } from "react";
 
@@ -35,6 +32,7 @@ import {
 } from "@/components/ui/hover-card";
 import { MonthGridDay } from "@/components/ui/month-grid-day";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
+import type { PeopleDashboardDay } from "@/lib/people-dashboard";
 import { cn } from "@/lib/utils";
 
 interface Month {

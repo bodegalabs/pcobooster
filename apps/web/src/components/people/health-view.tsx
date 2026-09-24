@@ -1,13 +1,11 @@
-import type {
-  PeopleDashboardData,
-  PeopleDashboardPerson,
-} from "@pcobooster/contracts/people-schemas";
+import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 
 import type { buildCalendarCells } from "@/components/people/calendar";
 import { HealthQueues } from "@/components/people/health-queues";
 import { HealthRoster } from "@/components/people/health-roster";
 import { HealthSidebar } from "@/components/people/health-sidebar";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
+import type { PeopleDashboardData } from "@/lib/people-dashboard";
 
 interface PeopleHealthViewProps {
   dashboard: PeopleDashboardData | undefined;

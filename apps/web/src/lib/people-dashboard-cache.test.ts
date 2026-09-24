@@ -1,15 +1,19 @@
 import type {
-  PeopleDashboardData,
+  PeopleDashboardActivity,
+  PeopleDashboardPerson,
   PeopleDashboardPersonDetail,
+  PeopleDashboardRoster,
 } from "@pcobooster/contracts/people-schemas";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   clearCachedPeopleDashboards,
-  readCachedPeopleDashboard,
+  readCachedPeopleDashboardActivity,
   readCachedPeopleDashboardPerson,
-  writeCachedPeopleDashboard,
+  readCachedPeopleDashboardRoster,
+  writeCachedPeopleDashboardActivity,
   writeCachedPeopleDashboardPerson,
+  writeCachedPeopleDashboardRoster,
 } from "@/lib/people-dashboard-cache";
 
 const installLocalStorageMock = () => {
@@ -31,18 +35,46 @@ const installLocalStorageMock = () => {
   });
 };
 
-const dashboard = (
-  overrides: Partial<PeopleDashboardData> = {}
-): PeopleDashboardData => ({
-  range: "month",
+const month = {
+  year: 2026,
+  monthIndex: 4,
+  label: "May 2026",
+  daysInMonth: 31,
+  startsOnWeekday: 5,
+};
+
+const dashboardPerson: PeopleDashboardPerson = {
+  id: "person-1",
+  name: "Andrew Hinea",
+  initials: "AH",
+  photoThumbnailUrl: null,
+  teams: ["Band"],
+  roles: "Acoustic Guitar",
+  status: "Available soon",
+  load: "normal",
+  lastServed: "May 17",
+  nextScheduled: "May 31",
+  monthCount: 2,
+  thirtyDayCount: 2,
+  ninetyDayCount: 5,
+  upcomingCount: 1,
+  streak: "2 this month",
+  highlight: "Available soon",
+  monthDays: [
+    {
+      day: 31,
+      kind: "service",
+      positionName: "Acoustic Guitar",
+      serviceTypeName: "Agape Worship Services",
+      status: "U",
+      planUrl: "/services/service-type-1/plans/plan-1/lineup",
+    },
+  ],
+};
+
+const roster = (): PeopleDashboardRoster => ({
   generatedAt: "2026-05-23T12:00:00.000Z",
-  month: {
-    year: 2026,
-    monthIndex: 4,
-    label: "May 2026",
-    daysInMonth: 31,
-    startsOnWeekday: 5,
-  },
+  month,
   people: [
     {
       id: "person-1",
@@ -50,62 +82,27 @@ const dashboard = (
       initials: "AH",
       photoThumbnailUrl: null,
       teams: ["Band"],
-      roles: "Acoustic Guitar",
-      status: "Available soon",
-      load: "normal",
-      lastServed: "May 17",
-      nextScheduled: "May 31",
-      monthCount: 2,
-      thirtyDayCount: 2,
-      ninetyDayCount: 5,
-      upcomingCount: 1,
-      streak: "2 this month",
-      highlight: "Available soon",
-      monthDays: [
-        {
-          day: 31,
-          kind: "service",
-          positionName: "Acoustic Guitar",
-          serviceTypeName: "Agape Worship Services",
-          status: "U",
-          planUrl: "/services/service-type-1/plans/plan-1/lineup",
-        },
-      ],
     },
   ],
-  stats: {
-    scheduledPeople: 1,
-    highLoadPeople: 0,
-    availableSoonPeople: 1,
-  },
-  monthDays: [
-    {
-      day: 31,
-      serviceCount: 1,
-      confirmedServiceCount: 0,
-      potentialServiceCount: 1,
-      rehearsalCount: 0,
-      blockoutCount: 0,
-    },
-  ],
-  matrixDays: [31],
-  requestBudget: {
-    teamRequests: 1,
-    scheduleRequests: 1,
-    blockoutRequests: 1,
-    rosterPeopleCount: 1,
-    hydratedPeopleCount: 1,
-    sampled: false,
-  },
-  ...overrides,
 });
+
+const activity = (id: string): PeopleDashboardActivity => {
+  const {
+    name: _name,
+    initials: _initials,
+    photoThumbnailUrl: _photo,
+    teams: _teams,
+    ...serving
+  } = dashboardPerson;
+  return { ...serving, id };
+};
 
 const personDetail = (): PeopleDashboardPersonDetail => ({
   generatedAt: "2026-05-23T12:10:00.000Z",
-  month: dashboard().month,
+  month,
   previousMonth: "2026-04",
   nextMonth: "2026-06",
-  person: dashboard().people[0],
+  person: dashboardPerson,
   trend: [
     {
       month: "2026-05",
@@ -120,6 +117,11 @@ const personDetail = (): PeopleDashboardPersonDetail => ({
   },
 });
 
+const storedDashboardParts = () => ({
+  roster: readCachedPeopleDashboardRoster() !== undefined,
+  activity: readCachedPeopleDashboardActivity(["person-1"]) !== undefined,
+});
+
 describe("people dashboard cache", () => {
   beforeEach(() => {
     vi.unstubAllGlobals();
@@ -127,35 +129,59 @@ describe("people dashboard cache", () => {
     installLocalStorageMock();
   });
 
-  it("round-trips dashboard data with the original saved timestamp", () => {
+  it("round-trips the roster with the original saved timestamp", () => {
     const savedAt = new Date("2026-05-23T12:05:00.000Z").getTime();
     vi.spyOn(Date, "now").mockReturnValue(savedAt);
 
-    writeCachedPeopleDashboard(dashboard());
+    writeCachedPeopleDashboardRoster(roster());
 
-    expect(readCachedPeopleDashboard("month")).toStrictEqual({
+    expect(readCachedPeopleDashboardRoster()).toStrictEqual({
       savedAt,
-      data: dashboard(),
+      data: roster(),
     });
   });
 
-  it("ignores cache entries for a different range", () => {
-    writeCachedPeopleDashboard(dashboard({ range: "30" }));
+  it("reads saved activity only when every requested person has some", () => {
+    const now = vi.spyOn(Date, "now");
+    now.mockReturnValue(1000);
+    writeCachedPeopleDashboardActivity([activity("person-1")]);
+    now.mockReturnValue(2000);
+    writeCachedPeopleDashboardActivity([activity("person-2")]);
 
-    expect(readCachedPeopleDashboard("month")).toBeUndefined();
-    expect(readCachedPeopleDashboard("30")?.data.range).toBe("30");
+    expect(
+      readCachedPeopleDashboardActivity(["person-1", "person-2"])
+    ).toStrictEqual({
+      savedAt: 1000,
+      data: [activity("person-1"), activity("person-2")],
+    });
+    expect(
+      readCachedPeopleDashboardActivity(["person-1", "person-3"])
+    ).toBeUndefined();
+  });
+
+  it("drops activity saved more than a day before the latest save", () => {
+    const now = vi.spyOn(Date, "now");
+    now.mockReturnValue(0);
+    writeCachedPeopleDashboardActivity([activity("person-1")]);
+    now.mockReturnValue(24 * 60 * 60 * 1000);
+    writeCachedPeopleDashboardActivity([activity("person-2")]);
+
+    expect(readCachedPeopleDashboardActivity(["person-1"])).toBeUndefined();
+    expect(readCachedPeopleDashboardActivity(["person-2"])?.data).toStrictEqual(
+      [activity("person-2")]
+    );
   });
 
   it("clears all people dashboard snapshots without touching unrelated storage", () => {
-    writeCachedPeopleDashboard(dashboard());
-    writeCachedPeopleDashboard(dashboard({ range: "90" }));
+    writeCachedPeopleDashboardRoster(roster());
+    writeCachedPeopleDashboardActivity([activity("person-1")]);
     writeCachedPeopleDashboardPerson("person-1", "2026-05", personDetail());
     window.localStorage.setItem("unrelated", "keep");
 
     clearCachedPeopleDashboards();
 
-    expect(readCachedPeopleDashboard("month")).toBeUndefined();
-    expect(readCachedPeopleDashboard("90")).toBeUndefined();
+    expect(readCachedPeopleDashboardRoster()).toBeUndefined();
+    expect(readCachedPeopleDashboardActivity(["person-1"])).toBeUndefined();
     expect(
       readCachedPeopleDashboardPerson("person-1", "2026-05")
     ).toBeUndefined();
@@ -201,19 +227,30 @@ describe("people dashboard cache", () => {
     ).toBeUndefined();
   });
 
-  it("isolates presentation storage from live data and other seeds (readCachedPeopleDashboard)", () => {
+  it("isolates presentation storage from live data and other seeds (roster and activity)", () => {
     const dataset = { presentationScope: "live" };
     vi.stubGlobal("document", { documentElement: { dataset } });
-    writeCachedPeopleDashboard(dashboard());
-    expect(readCachedPeopleDashboard("month")).toBeDefined();
+    writeCachedPeopleDashboardRoster(roster());
+    writeCachedPeopleDashboardActivity([activity("person-1")]);
     dataset.presentationScope = "present-v1-seed-a";
-    expect(readCachedPeopleDashboard("month")).toBeUndefined();
-    writeCachedPeopleDashboard(dashboard());
-    expect(readCachedPeopleDashboard("month")).toBeDefined();
+    const seedA = storedDashboardParts();
+    writeCachedPeopleDashboardRoster(roster());
+    const seedAWritten = storedDashboardParts();
     dataset.presentationScope = "present-v1-seed-b";
-    expect(readCachedPeopleDashboard("month")).toBeUndefined();
+    const seedB = storedDashboardParts();
     dataset.presentationScope = "live";
-    expect(readCachedPeopleDashboard("month")).toBeDefined();
+
+    expect({
+      seedA,
+      seedAWritten,
+      seedB,
+      live: storedDashboardParts(),
+    }).toStrictEqual({
+      seedA: { roster: false, activity: false },
+      seedAWritten: { roster: true, activity: false },
+      seedB: { roster: false, activity: false },
+      live: { roster: true, activity: true },
+    });
     vi.unstubAllGlobals();
   });
 

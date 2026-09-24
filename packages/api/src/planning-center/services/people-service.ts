@@ -28,7 +28,8 @@ const PLAN_TIMES_CACHE_TTL_MS = 5 * 60 * 1000;
 const PERSON_TEAM_POSITION_ASSIGNMENTS_CACHE_TTL_MS = 5 * 60 * 1000;
 const ALL_TEAM_PEOPLE_CACHE_TTL_MS = 5 * 60 * 1000;
 const PEOPLE_SEARCH_CACHE_TTL_MS = 60 * 1000;
-const TEAM_PEOPLE_CONCURRENCY = 8;
+/** 100 teams per page; an organization with more than 1,000 teams is cut off. */
+const TEAM_PAGES_MAX = 10;
 
 interface AllTeamPeopleResponse {
   people: PCResource[];
@@ -39,11 +40,6 @@ interface AllTeamPeopleResponse {
 interface ResourceCollectionResponse {
   data: PCResource[];
   included: PCResource[];
-}
-
-interface TeamPeopleResponse {
-  team: PCResource;
-  response: PCApiResponse<PCResource[]>;
 }
 
 export interface PlanningCenterPeopleServiceCaches {
@@ -131,68 +127,49 @@ const findMissingPlanTimes = (
   return missingByPlan;
 };
 
-const findTeamPerson = (
-  person: PCResource,
-  included: PCResource[]
-): PCResource | null => {
-  if (person.type === "Person") {
-    return person;
+/**
+ * `teams?include=people` lists every member of each team in one response
+ * (measured: a 65-person team arrives whole), unlike `teams/{id}/people`,
+ * which needs one request per team and pages at 25.
+ */
+const collectTeamPeople = ({
+  data: teams,
+  included,
+}: ResourceCollectionResponse): AllTeamPeopleResponse => {
+  const peopleById = new Map<string, PCResource>();
+  for (const resource of included) {
+    if (resource.type === "Person") {
+      peopleById.set(resource.id, resource);
+    }
   }
-  const personData = person.relationships?.person?.data;
-  if (!personData) {
-    return null;
-  }
-  const personId = Array.isArray(personData)
-    ? personData[0]?.id
-    : personData?.id;
-  if (!personId) {
-    return null;
-  }
-  return (
-    included.find(
-      (candidate) => candidate.type === "Person" && candidate.id === personId
-    ) ?? null
-  );
-};
 
-const collectTeamPeople = (
-  teamResponses: (TeamPeopleResponse | null)[]
-): AllTeamPeopleResponse => {
-  const allPeople: PCResource[] = [];
-  const allIncluded: PCResource[] = [];
+  const people: PCResource[] = [];
   const teamNamesByPersonId = new Map<string, Set<string>>();
-  const seenIds = new Set<string>();
-
-  for (const result of teamResponses) {
-    if (!result) {
+  for (const team of teams) {
+    if (isNonEmptyString(team.attributes.archived_at)) {
       continue;
     }
-
-    const { team, response } = result;
-    const included = response.included ?? [];
-
-    for (const person of response.data) {
-      const personResource = findTeamPerson(person, included);
-      if (!personResource) {
+    const teamName = team.attributes.name;
+    for (const { id } of getRelationshipIdentifiers(
+      team.relationships?.people?.data
+    )) {
+      const person = peopleById.get(id);
+      if (!person) {
         continue;
       }
-      if (!seenIds.has(personResource.id)) {
-        seenIds.add(personResource.id);
-        allPeople.push(personResource);
+      const teamNames = teamNamesByPersonId.get(id);
+      if (!teamNames) {
+        people.push(person);
       }
-      const teamName = team.attributes.name;
+      const nextTeamNames = teamNames ?? new Set<string>();
       if (isString(teamName) && teamName.trim()) {
-        const teamNames =
-          teamNamesByPersonId.get(personResource.id) ?? new Set<string>();
-        teamNames.add(teamName);
-        teamNamesByPersonId.set(personResource.id, teamNames);
+        nextTeamNames.add(teamName);
       }
+      teamNamesByPersonId.set(id, nextTeamNames);
     }
-
-    allIncluded.push(...included);
   }
 
-  return { people: allPeople, included: allIncluded, teamNamesByPersonId };
+  return { people, included: [], teamNamesByPersonId };
 };
 
 export class PlanningCenterPeopleService {
@@ -355,6 +332,41 @@ export class PlanningCenterPeopleService {
       ),
       PERSON_READ_CACHE_TTL_MS,
       load
+    ).pipe(Effect.map(cloneResourceCollectionResponse));
+  }
+
+  /**
+   * A person's schedules on or after `afterDayKey` (YYYY-MM-DD), past and
+   * future; without a filter Planning Center returns only upcoming ones.
+   * Unlike `getPersonSchedules`, rehearsal PlanTimes that `include=plan_times`
+   * leaves out are not fetched per plan here: callers resolve them within
+   * their own request budget.
+   */
+  getPersonSchedulesAfter(
+    personId: string,
+    afterDayKey: string,
+    maxPages: number
+  ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
+    const params = {
+      include: "plan_times",
+      filter: "after",
+      after: afterDayKey,
+    };
+    return cachedRead(
+      this.caches.collections,
+      this.buildCacheKey(
+        "person-schedules",
+        personId,
+        stableParams(params),
+        String(maxPages)
+      ),
+      PERSON_READ_CACHE_TTL_MS,
+      () =>
+        this.core.fetchAllWithIncluded(
+          `/services/v2/people/${personId}/schedules`,
+          params,
+          maxPages
+        )
     ).pipe(Effect.map(cloneResourceCollectionResponse));
   }
 
@@ -656,34 +668,17 @@ export class PlanningCenterPeopleService {
     ].join(":");
   }
 
-  /** Teams that fail to load (partial access or a transient error) are skipped. */
   private loadAllPeopleFromTeams(): Effect.Effect<
     AllTeamPeopleResponse,
     PlanningCenterError
   > {
-    return this.core.fetchAll("/services/v2/teams", {}, 10).pipe(
-      Effect.flatMap((teams) =>
-        Effect.forEach(
-          teams.filter(
-            (team) => !isNonEmptyString(team.attributes.archived_at)
-          ),
-          (team) =>
-            this.core
-              .fetchCollection(
-                `/services/v2/teams/${team.id}/people?include=person`
-              )
-              .pipe(
-                Effect.map((response): TeamPeopleResponse | null => ({
-                  team,
-                  response,
-                })),
-                recoverUnlessInterrupted(() => null)
-              ),
-          { concurrency: TEAM_PEOPLE_CONCURRENCY }
-        )
-      ),
-      Effect.map(collectTeamPeople)
-    );
+    return this.core
+      .fetchAllWithIncluded(
+        "/services/v2/teams",
+        { include: "people" },
+        TEAM_PAGES_MAX
+      )
+      .pipe(Effect.map(collectTeamPeople));
   }
 
   getCacheScope(): string {

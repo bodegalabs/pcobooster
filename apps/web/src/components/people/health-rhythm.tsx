@@ -1,4 +1,3 @@
-import type { PeopleDashboardData } from "@pcobooster/contracts/people-schemas";
 import { CalendarDays } from "lucide-react";
 
 import {
@@ -19,6 +18,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { MonthGridDay } from "@/components/ui/month-grid-day";
+import type { PeopleDashboardData } from "@/lib/people-dashboard";
 import { cn } from "@/lib/utils";
 
 type MonthDay = PeopleDashboardData["monthDays"][number];
@@ -172,12 +172,6 @@ export const HealthRhythm = ({
           />
         ))}
       </div>
-      {dashboard?.requestBudget.sampled === true ? (
-        <p className="text-muted-foreground mt-3 text-xs">
-          Showing {dashboard.requestBudget.hydratedPeopleCount} of{" "}
-          {dashboard.requestBudget.rosterPeopleCount} roster people.
-        </p>
-      ) : null}
     </CardContent>
   </Card>
 );

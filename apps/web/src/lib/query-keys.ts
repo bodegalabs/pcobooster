@@ -26,7 +26,9 @@ export const queryKeys = {
   peopleSearch: (query: string) => ["people-search", query] as const,
   peopleHistoryWarmup: (serviceTypeId: string | null, dateKey: string | null) =>
     ["people-history-warmup", serviceTypeId, dateKey] as const,
-  peopleDashboard: (range: string) => ["people-dashboard", range] as const,
+  peopleDashboardRoster: () => ["people-dashboard-roster"] as const,
+  peopleDashboardActivity: (personIds: readonly string[]) =>
+    ["people-dashboard-activity", ...personIds] as const,
   peopleDashboardPerson: (personId: string, month: string | null) =>
     ["people-dashboard-person", personId, month] as const,
   blockouts: (personId: string | null) => ["blockouts", personId] as const,

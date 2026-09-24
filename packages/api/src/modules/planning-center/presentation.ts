@@ -16,9 +16,9 @@ import type {
 import { Effect } from "effect";
 
 import type {
-  PeopleDashboardData,
-  PeopleDashboardPerson,
   PeopleDashboardPersonDetail,
+  PeopleDashboardRoster,
+  PeopleDashboardRosterPerson,
 } from "./people-dashboard-types";
 import {
   PRESENTATION_FIRST_NAMES,
@@ -188,10 +188,10 @@ export const presentTeamPositions = (
       : groups
   );
 
-const maskDashboardPerson = (
-  person: PeopleDashboardPerson,
+const maskDashboardPerson = <Person extends PeopleDashboardRosterPerson>(
+  person: Person,
   identity: IdentityMapper
-): PeopleDashboardPerson => {
+): Person => {
   const alias = identity(person.id);
   return {
     ...person,
@@ -201,10 +201,11 @@ const maskDashboardPerson = (
   };
 };
 
-export const presentDashboard = (
-  data: PeopleDashboardData,
+/** Batch activity carries no names or photos, so only the roster is masked. */
+export const presentDashboardRoster = (
+  data: PeopleDashboardRoster,
   dependencies: PresentationDependencies
-): Effect.Effect<PeopleDashboardData, PlanningCenterError> =>
+): Effect.Effect<PeopleDashboardRoster, PlanningCenterError> =>
   Effect.map(getPresentationIdentityMapper(dependencies), (identity) =>
     identity
       ? {

@@ -10,7 +10,10 @@ import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/pl
 import { loadDevBypassIdentity } from "@pcobooster/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
 import { getCurrentUserScheduledPlanIds } from "@pcobooster/api/modules/planning-center/get-current-user-scheduled-plans";
-import { getPeopleDashboard as getPeopleDashboardData } from "@pcobooster/api/modules/planning-center/get-people-dashboard";
+import {
+  getPeopleDashboardActivity as getPeopleDashboardActivityData,
+  getPeopleDashboardRoster as getPeopleDashboardRosterData,
+} from "@pcobooster/api/modules/planning-center/get-people-dashboard";
 import { getPeopleDashboardPerson as getPeopleDashboardPersonDetail } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
 import {
   getPeopleForPosition,
@@ -21,13 +24,13 @@ import { getFutureBlockoutsForPerson } from "@pcobooster/api/modules/planning-ce
 import { getScheduleHistory } from "@pcobooster/api/modules/planning-center/get-schedule-history";
 import type { ScheduleHistoryResult } from "@pcobooster/api/modules/planning-center/get-schedule-history";
 import type {
-  PeopleDashboardData,
+  PeopleDashboardActivityBatch,
   PeopleDashboardPersonDetail,
-  PeopleDashboardRange,
+  PeopleDashboardRoster,
 } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
 import {
   presentBlockouts,
-  presentDashboard,
+  presentDashboardRoster,
   presentDashboardPerson,
   presentPeople,
   getPresentationIdentityMapper,
@@ -159,25 +162,42 @@ export const getPeopleBlockouts = (input: {
     return presentBlockouts(blockouts, access.presentation);
   }).pipe(withPlanningCenterFaults);
 
-export const getPeopleDashboard = (input: {
-  readonly range: PeopleDashboardRange;
-}): Effect.Effect<
-  PeopleDashboardData,
+export const getPeopleDashboardRoster = (): Effect.Effect<
+  PeopleDashboardRoster,
   ApplicationFault,
   PlanningCenterAccess | RequestContext | Server
 > =>
-  Effect.gen(function* readPeopleDashboard() {
+  Effect.gen(function* readPeopleDashboardRoster() {
     const access = yield* PlanningCenterAccess;
     yield* requirePeopleDashboard(access);
-    const dashboard = yield* getPeopleDashboardData({
-      range: input.range,
+    const roster = yield* getPeopleDashboardRosterData({
       peopleService: access.services.people,
       resolveTimeZone: resolveRequestTimeZone(access),
     });
-    return yield* presentDashboard(
-      dashboard,
+    return yield* presentDashboardRoster(
+      roster,
       requestPresentationDependencies(access)
     );
+  }).pipe(withPlanningCenterFaults);
+
+export const getPeopleDashboardActivity = (input: {
+  readonly personIds: readonly string[];
+}): Effect.Effect<
+  PeopleDashboardActivityBatch,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext | Server
+> =>
+  Effect.gen(function* readPeopleDashboardActivity() {
+    const access = yield* PlanningCenterAccess;
+    yield* requirePeopleDashboard(access);
+    return yield* getPeopleDashboardActivityData({
+      personIds: input.personIds,
+      dependencies: {
+        peopleService: access.services.people,
+        plansService: access.services.plans,
+        resolveTimeZone: resolveRequestTimeZone(access),
+      },
+    });
   }).pipe(withPlanningCenterFaults);
 
 export const getPeopleDashboardPerson = (input: {

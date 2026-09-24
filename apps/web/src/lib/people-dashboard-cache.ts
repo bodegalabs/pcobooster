@@ -1,7 +1,11 @@
+import {
+  peopleDashboardActivitySchema,
+  peopleDashboardRosterSchema,
+} from "@pcobooster/contracts/people-schemas";
 import type {
-  PeopleDashboardData,
+  PeopleDashboardActivity,
   PeopleDashboardPersonDetail,
-  PeopleDashboardRange,
+  PeopleDashboardRoster,
 } from "@pcobooster/contracts/people-schemas";
 import { z } from "zod";
 
@@ -10,15 +14,24 @@ import { presentationCacheKey } from "@/lib/presentation-cache";
 const CACHE_VERSION = "v1";
 const KEY_PREFIX = `pcobooster:people-dashboard:${CACHE_VERSION}:`;
 const PERSON_DETAIL_KEY_PREFIX = `${KEY_PREFIX}person:`;
+const ROSTER_KEY = `${KEY_PREFIX}roster`;
+const ACTIVITY_KEY = `${KEY_PREFIX}activity`;
+/** Activity older than this is dropped when new activity is saved. */
+const ACTIVITY_RETENTION_MS = 24 * 60 * 60 * 1000;
 
 interface CachedPayload<T> {
   savedAt: number;
   data: T;
 }
 
-export interface PeopleDashboardCacheEntry {
+export interface PeopleDashboardRosterCacheEntry {
   savedAt: number;
-  data: PeopleDashboardData;
+  data: PeopleDashboardRoster;
+}
+
+export interface PeopleDashboardActivityCacheEntry {
+  savedAt: number;
+  data: PeopleDashboardActivity[];
 }
 
 export interface PeopleDashboardPersonCacheEntry {
@@ -65,39 +78,6 @@ const dashboardPersonSchema = z.object({
   monthDays: z.array(personMonthDaySchema),
 });
 
-const dashboardDaySchema = z.object({
-  day: z.number(),
-  serviceCount: z.number(),
-  confirmedServiceCount: z.number(),
-  potentialServiceCount: z.number(),
-  rehearsalCount: z.number(),
-  blockoutCount: z.number(),
-});
-
-const requestBudgetSchema = z.object({
-  teamRequests: z.number(),
-  scheduleRequests: z.number(),
-  blockoutRequests: z.number(),
-  rosterPeopleCount: z.number(),
-  hydratedPeopleCount: z.number(),
-  sampled: z.boolean(),
-});
-
-const peopleDashboardDataSchema = z.object({
-  range: z.enum(["month", "30", "90"]),
-  generatedAt: z.string(),
-  month: dashboardMonthSchema,
-  people: z.array(dashboardPersonSchema),
-  stats: z.object({
-    scheduledPeople: z.number(),
-    highLoadPeople: z.number(),
-    availableSoonPeople: z.number(),
-  }),
-  monthDays: z.array(dashboardDaySchema),
-  matrixDays: z.array(z.number()),
-  requestBudget: requestBudgetSchema,
-});
-
 const peopleDashboardPersonDetailSchema = z.object({
   generatedAt: z.string(),
   month: dashboardMonthSchema,
@@ -118,18 +98,21 @@ const peopleDashboardPersonDetailSchema = z.object({
   }),
 });
 
-const cachedDashboardPayloadSchema = z.object({
+const cachedRosterPayloadSchema = z.object({
   savedAt: z.number(),
-  data: peopleDashboardDataSchema,
+  data: peopleDashboardRosterSchema,
 });
+
+const cachedActivityPayloadSchema = z.record(
+  z.string(),
+  z.object({ savedAt: z.number(), data: peopleDashboardActivitySchema })
+);
+type CachedActivityPayload = z.output<typeof cachedActivityPayloadSchema>;
 
 const cachedPersonDetailPayloadSchema = z.object({
   savedAt: z.number(),
   data: peopleDashboardPersonDetailSchema,
 });
-
-const buildCacheKey = (range: PeopleDashboardRange): string =>
-  presentationCacheKey(`${KEY_PREFIX}${range}`);
 
 const buildPersonDetailCacheKey = (
   personId: string,
@@ -139,43 +122,91 @@ const buildPersonDetailCacheKey = (
     `${PERSON_DETAIL_KEY_PREFIX}${encodeURIComponent(personId)}:${encodeURIComponent(month ?? "current")}`
   );
 
-export const readCachedPeopleDashboard = (
-  range: PeopleDashboardRange
-): PeopleDashboardCacheEntry | undefined => {
-  const storage = globalThis.window?.localStorage;
-  if (storage === undefined) {
+/** Reads and validates a stored entry; throws only on malformed JSON. */
+const readStorageEntry = <Entry>(
+  key: string,
+  schema: z.ZodType<Entry>
+): Entry | undefined => {
+  const raw = globalThis.window?.localStorage.getItem(
+    presentationCacheKey(key)
+  );
+  if (raw === null || raw === undefined) {
     return undefined;
   }
+  const parsed = schema.safeParse(JSON.parse(raw));
+  return parsed.success ? parsed.data : undefined;
+};
 
+const writeStorageJson = (
+  key: string,
+  value: PeopleDashboardRosterCacheEntry | CachedActivityPayload
+): void => {
+  globalThis.window?.localStorage.setItem(
+    presentationCacheKey(key),
+    JSON.stringify(value)
+  );
+};
+
+export const readCachedPeopleDashboardRoster = ():
+  | PeopleDashboardRosterCacheEntry
+  | undefined => {
   try {
-    const raw = storage.getItem(buildCacheKey(range));
-    if (raw === null) {
-      return undefined;
-    }
-    const parsed = cachedDashboardPayloadSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success || parsed.data.data.range !== range) {
-      return undefined;
-    }
-    return parsed.data;
+    return readStorageEntry(ROSTER_KEY, cachedRosterPayloadSchema);
   } catch {
     return undefined;
   }
 };
 
-export const writeCachedPeopleDashboard = (data: PeopleDashboardData): void => {
-  const storage = globalThis.window?.localStorage;
-  if (storage === undefined) {
-    return;
-  }
-
+export const writeCachedPeopleDashboardRoster = (
+  data: PeopleDashboardRoster
+): void => {
   try {
-    storage.setItem(
-      buildCacheKey(data.range),
-      JSON.stringify({
-        savedAt: Date.now(),
-        data,
-      } satisfies CachedPayload<PeopleDashboardData>)
+    writeStorageJson(ROSTER_KEY, {
+      savedAt: Date.now(),
+      data,
+    } satisfies CachedPayload<PeopleDashboardRoster>);
+  } catch {
+    // Ignore storage failures; query invalidation still refreshes live data.
+  }
+};
+
+const readActivityPayload = (): CachedActivityPayload =>
+  readStorageEntry(ACTIVITY_KEY, cachedActivityPayloadSchema) ?? {};
+
+/** Saved activity for every one of `personIds`, or nothing if any is missing. */
+export const readCachedPeopleDashboardActivity = (
+  personIds: readonly string[]
+): PeopleDashboardActivityCacheEntry | undefined => {
+  try {
+    const payload = readActivityPayload();
+    const entries = personIds.map((personId) => payload[personId]);
+    const complete = entries.filter((entry) => entry !== undefined);
+    if (complete.length === 0 || complete.length !== personIds.length) {
+      return undefined;
+    }
+    return {
+      savedAt: Math.min(...complete.map((entry) => entry.savedAt)),
+      data: complete.map((entry) => entry.data),
+    };
+  } catch {
+    return undefined;
+  }
+};
+
+export const writeCachedPeopleDashboardActivity = (
+  activities: readonly PeopleDashboardActivity[]
+): void => {
+  try {
+    const savedAt = Date.now();
+    const payload: CachedActivityPayload = Object.fromEntries(
+      Object.entries(readActivityPayload()).filter(
+        ([, entry]) => savedAt - entry.savedAt < ACTIVITY_RETENTION_MS
+      )
     );
+    for (const activity of activities) {
+      payload[activity.id] = { savedAt, data: activity };
+    }
+    writeStorageJson(ACTIVITY_KEY, payload);
   } catch {
     // Ignore storage failures; query invalidation still refreshes live data.
   }

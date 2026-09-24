@@ -16,14 +16,14 @@ import { Effect } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
-  PeopleDashboardData,
+  PeopleDashboardRoster,
   PeopleDashboardPerson,
   PeopleDashboardPersonDetail,
 } from "./people-dashboard-types";
 import {
   getPresentationIdentityMapper,
   presentBlockouts,
-  presentDashboard,
+  presentDashboardRoster,
   presentDashboardPerson,
   presentPeople,
   presentTeamPositions,
@@ -136,27 +136,23 @@ const dashboardPerson: PeopleDashboardPerson = {
   highlight: "Healthy cadence",
   monthDays: [],
 };
-const dashboard: PeopleDashboardData = {
-  range: "month",
+const dashboard: PeopleDashboardRoster = {
   generatedAt: "2026-09-16",
-  people: [dashboardPerson],
+  people: [
+    {
+      id: dashboardPerson.id,
+      name: dashboardPerson.name,
+      initials: dashboardPerson.initials,
+      photoThumbnailUrl: dashboardPerson.photoThumbnailUrl,
+      teams: dashboardPerson.teams,
+    },
+  ],
   month: {
     year: 2026,
     monthIndex: 8,
     label: "September",
     daysInMonth: 30,
     startsOnWeekday: 2,
-  },
-  stats: { scheduledPeople: 1, highLoadPeople: 0, availableSoonPeople: 0 },
-  monthDays: [],
-  matrixDays: [],
-  requestBudget: {
-    teamRequests: 1,
-    scheduleRequests: 1,
-    blockoutRequests: 1,
-    rosterPeopleCount: 1,
-    hydratedPeopleCount: 1,
-    sampled: false,
   },
 };
 const detail: PeopleDashboardPersonDetail = {
@@ -264,7 +260,7 @@ describe("presentation mode", () => {
           [
             presentPeople(people, dependencies.presentation),
             presentTeamPositions(groups, dependencies.presentation),
-            presentDashboard(dashboard, dependencies.presentation),
+            presentDashboardRoster(dashboard, dependencies.presentation),
             presentDashboardPerson(detail, dependencies.presentation),
           ],
           { concurrency: "unbounded" }
@@ -345,7 +341,9 @@ describe("presentation mode", () => {
       Effect.runPromise(presentTeamPositions(groups, dependencies.presentation))
     ).resolves.toBe(groups);
     await expect(
-      Effect.runPromise(presentDashboard(dashboard, dependencies.presentation))
+      Effect.runPromise(
+        presentDashboardRoster(dashboard, dependencies.presentation)
+      )
     ).resolves.toBe(dashboard);
     await expect(
       Effect.runPromise(
