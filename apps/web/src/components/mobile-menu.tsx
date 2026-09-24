@@ -6,13 +6,13 @@ import {
   Sun01Icon,
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import {
   MobileMenuIcon,
   MobileMenuItem,
   MobileMenuOverlay,
   useMobileMenu,
-} from "@pcobooster/mobile-menu";
-import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+} from "@pcobooster/ui/mobile-menu";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import type { ComponentProps, ReactElement, ReactNode } from "react";
@@ -264,7 +264,7 @@ const MenuAccount = ({
 
 /**
  * The phone header: a pinned bar with the menu button on the right and the
- * shared full-screen menu (`@pcobooster/mobile-menu`) beneath it. The bar
+ * shared full-screen menu (`@pcobooster/ui/mobile-menu`) beneath it. The bar
  * blurs content scrolling under it; the header itself stays filter-free so the
  * fixed overlay is not trapped. `className` places the header (for example,
  * `-mx-4` inside padded pages).

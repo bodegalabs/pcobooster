@@ -9,10 +9,10 @@
 
 - `apps/web/`: TanStack Start product UI on Cloudflare Workers. File routes live in `apps/web/src/routes` (`src/routeTree.gen.ts` is generated and committed); the sign-in gate and other request middleware in `src/start.ts`; components, hooks, and public assets under `apps/web/src` and `apps/web/public`.
 - `apps/server/`: the API Worker, an Alchemy Effect-native `Cloudflare.Worker` (`src/worker.ts`) that reads its settings with `Config` at startup, binds D1, and serves the Hono composition root (`src/app.ts`: Better Auth, oRPC, the OpenAPI reference, CORS, and cache policy). `src/database.ts` declares the D1 database and its `Drizzle.Schema`; `src/stage.ts` derives per-stage origins for both the Worker and `alchemy.run.ts`.
-- `apps/marketing/`: independent marketing site, a TanStack Start app prerendered to static files. Its interactive product replica lives in `apps/marketing/src/components/product-demo/` with fictional fixtures; it shares design tokens and the phone menu (`packages/mobile-menu`) with the product, not other components.
+- `apps/marketing/`: independent marketing site, a TanStack Start app prerendered to static files. Its interactive product replica lives in `apps/marketing/src/components/product-demo/` with fictional fixtures; it shares design tokens and shared UI from `packages/ui` (currently the phone menu) with the product; its own primitives stay in `apps/marketing/src/components/ui`.
 - `apps/admin/`: private TanStack Start admin app for `admin.pcobooster.com`, deployed as its own Cloudflare Worker. See `docs/admin.md`.
 - `packages/design-tokens/`: product color and radius tokens (`tokens.css`, light on `:root`, dark under `.dark`) shared by `apps/web` and the marketing replica.
-- `packages/mobile-menu/`: the full-screen phone menu (open state, blurred overlay, cascading items) shared by `apps/web` and `apps/marketing`; each app `@source`s it and supplies its own header and button.
+- `packages/ui/`: UI shared by `apps/web` and `apps/marketing`, one export per component (`@pcobooster/ui/mobile-menu`). Components are primitive-free (each app supplies its own buttons and headers) and styled with Tailwind utilities that exist in both apps; each app `@source`s `packages/ui/src`.
 - `packages/contracts/`: browser-safe oRPC contracts, transport schemas, and safe error payloads.
 - `packages/planning-center-models/`: browser-safe Planning Center shapes and pure calendar/scheduling rules.
 - `packages/presentation-mode/`: server-side presentation-mode guard, seed, and cache namespace.

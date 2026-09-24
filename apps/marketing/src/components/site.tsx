@@ -3,7 +3,7 @@ import {
   MobileMenuItem,
   MobileMenuOverlay,
   useMobileMenu,
-} from "@pcobooster/mobile-menu";
+} from "@pcobooster/ui/mobile-menu";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
@@ -95,7 +95,7 @@ const OpenAppLink = () => (
 
 /**
  * The header stays pinned at every width. Desktop shows the links inline; phones get a menu
- * button that opens the shared full-screen menu (`@pcobooster/mobile-menu`) under the header.
+ * button that opens the shared full-screen menu (`@pcobooster/ui/mobile-menu`) under the header.
  */
 export const SiteHeader = () => {
   const menu = useMobileMenu();

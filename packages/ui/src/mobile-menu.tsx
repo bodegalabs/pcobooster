@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 /**
- * The phone menu shared by marketing and the product: a full-screen blurred
+ * The phone menu shared by marketing and the product (`@pcobooster/ui/mobile-menu`): a full-screen blurred
  * overlay that fades in under a pinned header, with links that rise in a short
  * cascade. Each app owns its header and button primitives; this package owns
  * the open state, the overlay, and the motion.

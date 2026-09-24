@@ -2,7 +2,7 @@
 @import "shadcn/tailwind.css";
 @import "@pcobooster/design-tokens/tokens.css";
 
-@source "../../../../packages/mobile-menu/src";
+@source "../../../../packages/ui/src";
 
 /*
  * The marketing site wears the product's own tokens (from @pcobooster/design-tokens) so the
