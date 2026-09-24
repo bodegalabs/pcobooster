@@ -1,7 +1,9 @@
-import {
-  getPeopleForPosition,
-  isSettledPlan,
-} from "@pcobooster/api/modules/planning-center/get-people-for-position";
+import { isSettledPlan } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
+import { loadPositionCandidatesProgressively } from "@pcobooster/api/modules/planning-center/load-position-candidates.test-support";
+import type {
+  CandidateListDependencies,
+  CandidateListInput,
+} from "@pcobooster/api/modules/planning-center/load-position-candidates.test-support";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
@@ -47,7 +49,7 @@ const createFixture = () => {
       getPlansWithIncludedInDateRange: mocks.getPlansWithIncludedInDateRange,
     },
     resolveTimeZone: Effect.sync(() => mocks.resolveTimeZone()),
-  } satisfies NonNullable<Parameters<typeof getPeopleForPosition>[1]>;
+  } satisfies CandidateListDependencies;
   return { mocks, dependencies };
 };
 
@@ -239,10 +241,18 @@ const planSortedAt = (sortDate: string | null): PCResource => ({
   attributes: { sort_date: sortDate },
 });
 
-describe(getPeopleForPosition, () => {
+describe("position candidate list", () => {
   let cacheScopeIndex = 0;
   let mocks: ReturnType<typeof createFixture>["mocks"];
   let dependencies: ReturnType<typeof createFixture>["dependencies"];
+  const loadCandidates = async (input: CandidateListInput) => {
+    const { people, complete } = await loadPositionCandidatesProgressively(
+      input,
+      dependencies
+    );
+    expect(complete).toBeTruthy();
+    return people;
+  };
 
   beforeEach(() => {
     ({ mocks, dependencies } = createFixture());
@@ -349,18 +359,13 @@ describe(getPeopleForPosition, () => {
       return Effect.succeed([]);
     });
 
-    const result = await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId,
-          positionId,
-          teamId,
-          planId,
-          date,
-        },
-        dependencies
-      )
-    );
+    const result = await loadCandidates({
+      serviceTypeId,
+      positionId,
+      teamId,
+      planId,
+      date,
+    });
 
     expect(result).toMatchObject([
       {
@@ -419,18 +424,13 @@ describe(getPeopleForPosition, () => {
       })
     );
 
-    const result = await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId,
-          positionId,
-          teamId,
-          planId,
-          date: "2026-02-22",
-        },
-        dependencies
-      )
-    );
+    const result = await loadCandidates({
+      serviceTypeId,
+      positionId,
+      teamId,
+      planId,
+      date: "2026-02-22",
+    });
 
     expect(result).toHaveLength(1);
     expect(result[0]).toMatchObject({
@@ -440,7 +440,7 @@ describe(getPeopleForPosition, () => {
     expect(result[0]?.scheduledPlanPersonId).toBeUndefined();
   });
 
-  it("reuses derived candidate history for the same person and reference date across positions", async () => {
+  it("matches the same person's history against each position", async () => {
     const serviceTypeId = "st-1";
     const teamId = "team-1";
     const planId = "plan-target";
@@ -478,32 +478,21 @@ describe(getPeopleForPosition, () => {
       })
     );
 
-    const vocalsResult = await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId,
-          positionId: "pos-vocals",
-          teamId,
-          planId,
-          date: "2026-02-22",
-        },
-        dependencies
-      )
-    );
-    const keysResult = await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId,
-          positionId: "pos-keys",
-          teamId,
-          planId,
-          date: "2026-02-22",
-        },
-        dependencies
-      )
-    );
+    const vocalsResult = await loadCandidates({
+      serviceTypeId,
+      positionId: "pos-vocals",
+      teamId,
+      planId,
+      date: "2026-02-22",
+    });
+    const keysResult = await loadCandidates({
+      serviceTypeId,
+      positionId: "pos-keys",
+      teamId,
+      planId,
+      date: "2026-02-22",
+    });
 
-    expect(mocks.getPersonSchedules).toHaveBeenCalledOnce();
     expect(vocalsResult[0]).toMatchObject({
       selectedPlanAssignmentLabels: ["Band - Keys"],
       isScheduledForSelectedPlanPosition: false,
@@ -514,7 +503,7 @@ describe(getPeopleForPosition, () => {
     });
   });
 
-  it("uses a shared plan-window history snapshot instead of per-person schedule reads", async () => {
+  it("takes history from the plan window instead of per-person schedule reads", async () => {
     const serviceTypeId = "st-1";
     const teamId = "team-1";
     const positionId = "pos-vocals";
@@ -586,21 +575,21 @@ describe(getPeopleForPosition, () => {
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
 
-    const result = await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId,
-          positionId,
-          teamId,
-          planId,
-          date: "2026-02-22",
-        },
-        dependencies
-      )
-    );
+    const result = await loadCandidates({
+      serviceTypeId,
+      positionId,
+      teamId,
+      planId,
+      date: "2026-02-22",
+    });
 
     expect(mocks.getPersonSchedules).not.toHaveBeenCalled();
-    expect(mocks.getPlanTeamMembers.mock.calls).toStrictEqual([
+    // The fresh selected-plan read has no options; window reads mark settled plans.
+    expect(
+      mocks.getPlanTeamMembers.mock.calls.toSorted((a, b) =>
+        JSON.stringify(a).localeCompare(JSON.stringify(b))
+      )
+    ).toStrictEqual([
       [serviceTypeId, previousPlanId, { settled: true }],
       [serviceTypeId, planId, { settled: true }],
       [serviceTypeId, planId],
@@ -682,18 +671,13 @@ describe(getPeopleForPosition, () => {
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
 
-    const result = await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId,
-          positionId,
-          teamId,
-          planId,
-          date: "2026-02-22",
-        },
-        dependencies
-      )
-    );
+    const result = await loadCandidates({
+      serviceTypeId,
+      positionId,
+      teamId,
+      planId,
+      date: "2026-02-22",
+    });
 
     const recent = result.find((row) => row.id === recentPersonId);
     const unused = result.find((row) => row.id === unusedPersonId);
@@ -807,18 +791,13 @@ describe(getPeopleForPosition, () => {
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
 
-    const result = await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId,
-          positionId,
-          teamId,
-          planId: selectedPlanId,
-          date: "2026-05-04",
-        },
-        dependencies
-      )
-    );
+    const result = await loadCandidates({
+      serviceTypeId,
+      positionId,
+      teamId,
+      planId: selectedPlanId,
+      date: "2026-05-04",
+    });
 
     expect(mocks.getPersonSchedules).not.toHaveBeenCalled();
     expect(result).toHaveLength(1);
@@ -863,18 +842,13 @@ describe(getPeopleForPosition, () => {
       Effect.succeed({ data: [], included: [] })
     );
 
-    const result = await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId,
-          positionId,
-          teamId,
-          planId,
-          date: "2026-02-22",
-        },
-        dependencies
-      )
-    );
+    const result = await loadCandidates({
+      serviceTypeId,
+      positionId,
+      teamId,
+      planId,
+      date: "2026-02-22",
+    });
 
     expect(result.map((row) => row.id)).toStrictEqual([personId]);
     expect(result[0]).toMatchObject({
@@ -921,18 +895,13 @@ describe(getPeopleForPosition, () => {
       Effect.succeed({ data: [], included: [] })
     );
 
-    const result = await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId,
-          positionId,
-          teamId,
-          planId,
-          date: "2026-02-22",
-        },
-        dependencies
-      )
-    );
+    const result = await loadCandidates({
+      serviceTypeId,
+      positionId,
+      teamId,
+      planId,
+      date: "2026-02-22",
+    });
 
     expect(result.map((row) => row.id)).toStrictEqual(["p-lead"]);
   });
@@ -969,18 +938,13 @@ describe(getPeopleForPosition, () => {
       })
     );
 
-    const result = await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId,
-          positionId,
-          teamId,
-          planId,
-          date: "2026-02-22",
-        },
-        dependencies
-      )
-    );
+    const result = await loadCandidates({
+      serviceTypeId,
+      positionId,
+      teamId,
+      planId,
+      date: "2026-02-22",
+    });
 
     expect(result).toHaveLength(1);
     expect(result[0]).toMatchObject({
@@ -1024,18 +988,13 @@ describe(getPeopleForPosition, () => {
       })
     );
 
-    const result = await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId,
-          positionId,
-          teamId,
-          planId,
-          date: "2026-02-22",
-        },
-        dependencies
-      )
-    );
+    const result = await loadCandidates({
+      serviceTypeId,
+      positionId,
+      teamId,
+      planId,
+      date: "2026-02-22",
+    });
 
     expect(result[0]).toMatchObject({
       isScheduledForSelectedPlanPosition: false,
@@ -1043,7 +1002,7 @@ describe(getPeopleForPosition, () => {
     expect(result[0]?.scheduledPlanPersonId).toBeUndefined();
   });
 
-  it("builds history from person schedules without prefetching plan team members", async () => {
+  it("reads empty-window history from the person's schedules starting 28 days before the plan", async () => {
     const serviceTypeId = "st-1";
     const teamId = "team-1";
     const positionId = "pos-bass";
@@ -1078,24 +1037,22 @@ describe(getPeopleForPosition, () => {
       })
     );
 
-    const result = await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId,
-          positionId,
-          teamId,
-          planId: planEasterId,
-          date: easterSortDay,
-        },
-        dependencies
-      )
-    );
+    const result = await loadCandidates({
+      serviceTypeId,
+      positionId,
+      teamId,
+      planId: planEasterId,
+      date: easterSortDay,
+    });
 
-    expect(mocks.getPersonSchedules).toHaveBeenCalledOnce();
-    expect(mocks.getPersonSchedules.mock.calls[0]?.slice(0, 3)).toStrictEqual([
-      personId,
-      { order: "-starts_at" },
-      5,
+    // Without a filter Planning Center returns only upcoming schedules, so past services
+    // never counted; `after` from the window start makes them visible.
+    expect(mocks.getPersonSchedules.mock.calls).toStrictEqual([
+      [
+        personId,
+        { filter: "after", after: "2026-03-08", order: "starts_at" },
+        2,
+      ],
     ]);
     const [personRow] = result;
     if (!personRow?.serviceHistory || !personRow.frequency) {
@@ -1151,18 +1108,13 @@ describe(getPeopleForPosition, () => {
       })
     );
 
-    const result = await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId,
-          positionId,
-          teamId,
-          planId,
-          date: planSortDay,
-        },
-        dependencies
-      )
-    );
+    const result = await loadCandidates({
+      serviceTypeId,
+      positionId,
+      teamId,
+      planId,
+      date: planSortDay,
+    });
 
     expect(result).toHaveLength(1);
     expect(mocks.getPersonBlockoutDates).toHaveBeenCalledWith("p1", "b-weekly");
@@ -1204,18 +1156,13 @@ describe(getPeopleForPosition, () => {
       Effect.succeed({ data: [], included: [] })
     );
 
-    const result = await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId: "st-1",
-          positionId,
-          teamId,
-          planId: "plan-target",
-          date: "2026-04-13",
-        },
-        dependencies
-      )
-    );
+    const result = await loadCandidates({
+      serviceTypeId: "st-1",
+      positionId,
+      teamId,
+      planId: "plan-target",
+      date: "2026-04-13",
+    });
 
     expect(result[0]).toMatchObject({ isBlockedForDate: true });
   });
@@ -1234,18 +1181,13 @@ describe(getPeopleForPosition, () => {
   };
 
   const readCandidates = async (date: string, planId = "plan-target") =>
-    await Effect.runPromise(
-      getPeopleForPosition(
-        {
-          serviceTypeId: "st-1",
-          positionId: "pos-1",
-          teamId: "team-1",
-          planId,
-          date,
-        },
-        dependencies
-      )
-    );
+    await loadCandidates({
+      serviceTypeId: "st-1",
+      positionId: "pos-1",
+      teamId: "team-1",
+      planId,
+      date,
+    });
 
   it("compares blockouts by calendar day in the blockout's own time zone", async () => {
     singleCandidate();
@@ -1321,7 +1263,7 @@ describe(getPeopleForPosition, () => {
     expect(result[0]).toMatchObject({ isBlockedForDate: true });
   });
 
-  it("reads the selected plan's roster fresh while reusing the window snapshot", async () => {
+  it("reads the selected plan's roster fresh while reusing the window's cached roster", async () => {
     singleCandidate();
     mocks.getPlansWithIncludedInDateRange.mockReturnValue(
       Effect.succeed({
@@ -1349,7 +1291,14 @@ describe(getPeopleForPosition, () => {
     mocks.getPlanTeamMembers.mockReturnValue(Effect.succeed(rosterWith("C")));
     const after = await readCandidates("2026-02-22");
 
-    expect(mocks.getPlansWithIncludedInDateRange).toHaveBeenCalledOnce();
+    const readOptions = mocks.getPlanTeamMembers.mock.calls.map(
+      (call) => call[2]
+    );
+    const [freshReads, windowReads] = [
+      readOptions.filter((options) => options === undefined),
+      readOptions.filter((options) => options !== undefined),
+    ];
+    expect([freshReads.length, windowReads.length]).toStrictEqual([2, 1]);
     expect(before[0]).toMatchObject({
       isScheduledForSelectedPlanPosition: true,
       isConfirmedForSelectedPlanPosition: false,
@@ -1360,7 +1309,7 @@ describe(getPeopleForPosition, () => {
     });
   });
 
-  it("falls back to the snapshot's roster when the fresh selected-plan read fails", async () => {
+  it("fails instead of falling back when the fresh selected-plan read fails", async () => {
     singleCandidate();
     mocks.getPlansWithIncludedInDateRange.mockReturnValue(
       Effect.succeed({
@@ -1369,38 +1318,20 @@ describe(getPeopleForPosition, () => {
       })
     );
     mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
-    mocks.getPlanTeamMembers
-      .mockReturnValueOnce(
-        Effect.succeed({
-          data: [
-            planMemberEntry({
-              id: "pp-target",
-              personId: "p1",
-              planId: "plan-target",
-              teamId: "team-1",
-              status: "D",
-              teamPositionName: "Band - Vocals",
-            }),
-          ],
-          included: [person("p1", "Pat", "Person"), team("team-1", "Band")],
-        })
-      )
-      .mockReturnValue(
-        Effect.fail(
-          new PlanningCenterApiError({
-            message: "Unavailable",
-            status: 503,
-            code: "UPSTREAM",
-          })
-        )
-      );
-
-    const result = await readCandidates("2026-02-22");
-
-    expect(result[0]).toMatchObject({
-      isScheduledForSelectedPlanPosition: true,
-      isDeclinedForSelectedPlanPosition: true,
+    const unavailable = new PlanningCenterApiError({
+      message: "Unavailable",
+      status: 503,
+      code: "UPSTREAM",
     });
+    mocks.getPlanTeamMembers.mockImplementation(
+      (_serviceTypeId, _planId, options) =>
+        options === undefined
+          ? Effect.fail(unavailable)
+          : Effect.succeed({ data: [], included: [] })
+    );
+
+    // The browser retries the call; a stale roster must not pass for the fresh one.
+    await expect(readCandidates("2026-02-22")).rejects.toBe(unavailable);
   });
 });
 

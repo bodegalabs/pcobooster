@@ -8,21 +8,12 @@ import {
   peopleDashboardPersonDetailSchema,
   peopleDashboardRosterSchema,
   peopleSearchResultSchema,
-  personWithAvailabilitySchema,
   planWindowHistoryBatchSchema,
   positionCandidatesSchema,
   scheduleHistoryResponseSchema,
   windowPlanRefSchema,
 } from "@pcobooster/contracts/people-schemas";
 import { z } from "zod";
-
-export const peopleListInputSchema = z.object({
-  serviceTypeId: z.string().trim().min(1),
-  positionId: z.string().trim().min(1),
-  teamId: z.string().trim().min(1).optional(),
-  planId: z.string().trim().min(1).optional(),
-  date: z.string().min(1).optional(),
-});
 
 export const peoplePositionCandidatesInputSchema = z.object({
   serviceTypeId: z.string().trim().min(1),
@@ -67,11 +58,6 @@ export const peopleSearchInputSchema = z.object({
   query: z.string().trim().min(2).max(80),
 });
 
-export const peopleWarmupInputSchema = z.object({
-  serviceTypeId: z.string().trim().min(1),
-  date: z.string().min(1),
-});
-
 export const peopleBlockoutsInputSchema = z.object({
   personId: z.string().trim().min(1),
 });
@@ -106,9 +92,7 @@ export const peopleMyScheduledPlansInputSchema = z.object({
   planIds: z.array(z.string().min(1)).max(500),
 });
 
-export const peopleListOutputSchema = z.array(personWithAvailabilitySchema);
 export const peopleSearchOutputSchema = z.array(peopleSearchResultSchema);
-export const peopleWarmupOutputSchema = z.object({ warmed: z.literal(true) });
 export const peopleBlockoutsOutputSchema = z.array(blockoutSchema);
 
 const peopleProcedure = oc.errors({
@@ -124,14 +108,6 @@ const dashboardProcedure = peopleProcedure.errors({
 });
 
 export const peopleContract = {
-  list: peopleProcedure
-    .route({
-      method: "GET",
-      path: "/people",
-      summary: "List people available for a team position",
-    })
-    .input(peopleListInputSchema)
-    .output(peopleListOutputSchema),
   positionCandidates: peopleProcedure
     .route({
       method: "GET",
@@ -164,14 +140,6 @@ export const peopleContract = {
     })
     .input(peopleSearchInputSchema)
     .output(peopleSearchOutputSchema),
-  warmup: peopleProcedure
-    .route({
-      method: "POST",
-      path: "/people/warmup",
-      summary: "Warm people history for a plan date",
-    })
-    .input(peopleWarmupInputSchema)
-    .output(peopleWarmupOutputSchema),
   blockouts: peopleProcedure
     .route({
       method: "GET",
@@ -221,7 +189,6 @@ export const peopleContract = {
     .output(myScheduledPlansDataSchema),
 };
 
-export type PeopleListInput = z.input<typeof peopleListInputSchema>;
 export type PeoplePositionCandidatesInput = z.input<
   typeof peoplePositionCandidatesInputSchema
 >;
@@ -232,7 +199,6 @@ export type PeopleCandidateDetailsInput = z.input<
   typeof peopleCandidateDetailsInputSchema
 >;
 export type PeopleSearchInput = z.input<typeof peopleSearchInputSchema>;
-export type PeopleWarmupInput = z.input<typeof peopleWarmupInputSchema>;
 export type PeopleBlockoutsInput = z.input<typeof peopleBlockoutsInputSchema>;
 export type PeopleDashboardActivityInput = z.input<
   typeof peopleDashboardActivityInputSchema

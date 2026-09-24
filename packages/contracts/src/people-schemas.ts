@@ -1,4 +1,3 @@
-import { teamPositionSchema } from "@pcobooster/contracts/catalog";
 import { z } from "zod";
 
 export const blockoutSchema = z.object({
@@ -38,30 +37,6 @@ export const serviceHistoryItemSchema = z.object({
   planTitle: z.string().optional(),
   status: z.string(),
   timeType: z.enum(["service", "rehearsal", "other"]).optional(),
-});
-
-export const personWithAvailabilitySchema = z.object({
-  availability: z.enum(["available", "blocked", "unknown"]).optional(),
-  frequency: scheduleFrequencySchema.optional(),
-  blockouts: z.array(blockoutSchema).optional(),
-  serviceHistory: z.array(serviceHistoryItemSchema).optional(),
-  isBlockedForDate: z.boolean().optional(),
-  isScheduledForSelectedPlanPosition: z.boolean().optional(),
-  isConfirmedForSelectedPlanPosition: z.boolean().optional(),
-  isDeclinedForSelectedPlanPosition: z.boolean().optional(),
-  selectedPlanDeclineReason: z.string().nullable().optional(),
-  selectedPlanAssignmentLabels: z.array(z.string()).optional(),
-  scheduledPlanPersonId: z.string().optional(),
-  recommendationScore: z.number().optional(),
-  recommendationReasoning: z.array(z.string()).optional(),
-  id: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  fullName: z.string(),
-  photoUrl: z.string().nullable(),
-  photoThumbnailUrl: z.string().nullable(),
-  archived: z.boolean(),
-  positions: z.array(teamPositionSchema),
 });
 
 /** The selected plan and slot candidates are matched against. */
@@ -329,9 +304,6 @@ export const scheduleHistoryResponseSchema = z.object({
 export type Blockout = z.output<typeof blockoutSchema>;
 export type ScheduleFrequency = z.output<typeof scheduleFrequencySchema>;
 export type ServiceHistoryItem = z.output<typeof serviceHistoryItemSchema>;
-export type PersonWithAvailability = z.output<
-  typeof personWithAvailabilitySchema
->;
 export type PlanPerson = z.output<typeof planPersonSchema>;
 export type PositionCandidates = z.output<typeof positionCandidatesSchema>;
 export type PlanWindowHistoryBatch = z.output<

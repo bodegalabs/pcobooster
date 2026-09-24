@@ -1,4 +1,3 @@
-import type { SelectedPlanMatchContext } from "@pcobooster/api/modules/planning-center/people/types";
 import {
   getRosterEntriesForPerson,
   getRosterEntriesForSlot,
@@ -10,10 +9,8 @@ import type {
   PlanSchedulingContext,
 } from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
-import type {
-  PersonWithAvailability,
-  RawPerson,
-} from "@pcobooster/planning-center-models/types";
+import type { SelectedPlanMatchContext } from "@pcobooster/planning-center-models/position-candidates";
+import type { RawPerson } from "@pcobooster/planning-center-models/types";
 
 export interface SelectedPlanRosterOverlay {
   selectedSlotEntry?: PlanRosterEntry;
@@ -50,45 +47,6 @@ export const mergeAssignedAndSelectedPlanSlotPeople = ({
   }
 
   return [...peopleById.values()];
-};
-
-export const applySelectedPlanRosterStatus = (
-  person: PersonWithAvailability,
-  overlay: SelectedPlanRosterOverlay,
-  assignmentLabels: string[] = overlay.assignmentLabels
-) => {
-  person.selectedPlanAssignmentLabels = assignmentLabels;
-  person.selectedPlanDeclineReason = undefined;
-  if (!overlay.selectedSlotEntry) {
-    return;
-  }
-
-  person.isScheduledForSelectedPlanPosition = true;
-  person.isConfirmedForSelectedPlanPosition =
-    overlay.selectedSlotEntry.status === "confirmed";
-  person.isDeclinedForSelectedPlanPosition =
-    overlay.selectedSlotEntry.status === "declined";
-  person.scheduledPlanPersonId = overlay.selectedSlotEntry.planPersonId;
-
-  if (person.isDeclinedForSelectedPlanPosition) {
-    person.selectedPlanDeclineReason =
-      overlay.selectedSlotEntry.declineReason ?? null;
-  }
-};
-
-export const mergeAssignmentLabels = (...labelGroups: string[][]): string[] => {
-  const merged = new Map<string, string>();
-
-  for (const rawLabel of labelGroups.flat()) {
-    const label = rawLabel.trim();
-    if (!label) {
-      continue;
-    }
-
-    merged.set(label.toLowerCase(), label);
-  }
-
-  return [...merged.values()];
 };
 
 const findSelectedSlotEntry = (

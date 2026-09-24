@@ -12,8 +12,8 @@ import {
 } from "@pcobooster/api/modules/planning-center/create-plan-item";
 import type { PreparedCreatePlanItem } from "@pcobooster/api/modules/planning-center/create-plan-item";
 import { deletePlanItem } from "@pcobooster/api/modules/planning-center/delete-plan-item";
-import { invalidatePlanWindowHistory } from "@pcobooster/api/modules/planning-center/get-people-for-position";
 import { getPlanItems } from "@pcobooster/api/modules/planning-center/get-plan-items";
+import { invalidatePlanWindowHistory } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
 import { getSongOptions } from "@pcobooster/api/modules/planning-center/get-song-options";
 import type { LoadSongOptions } from "@pcobooster/api/modules/planning-center/plan-item-payload";
 import { updatePlanPersonTimes } from "@pcobooster/api/modules/planning-center/plan-person-times";

@@ -240,19 +240,7 @@ describe("scheduling oRPC transport", () => {
       failure: { _tag: "AlreadyScheduled", details: undefined },
     });
     expect(dependencies.invalidateHistory).toHaveBeenCalledTimes(4);
-    expect(dependencies.invalidateHistory).toHaveBeenNthCalledWith(
-      1,
-      "person-1",
-      access.cacheScope
-    );
-    expect(dependencies.invalidateHistory).toHaveBeenNthCalledWith(
-      3,
-      "person-1",
-      access.cacheScope
-    );
-    expect(dependencies.invalidateHistory).toHaveBeenNthCalledWith(
-      4,
-      "person-1",
+    expect(dependencies.invalidateHistory).toHaveBeenLastCalledWith(
       access.cacheScope
     );
   });

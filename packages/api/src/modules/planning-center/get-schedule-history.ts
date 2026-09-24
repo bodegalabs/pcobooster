@@ -59,7 +59,6 @@ export const getScheduleHistory = (
       schedules,
       historyIncluded,
       now,
-      {},
       Number.POSITIVE_INFINITY,
       orgTz
     );

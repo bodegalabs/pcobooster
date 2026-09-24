@@ -20,11 +20,6 @@ import {
   getPeopleDashboardRoster as getPeopleDashboardRosterData,
 } from "@pcobooster/api/modules/planning-center/get-people-dashboard";
 import { getPeopleDashboardPerson as getPeopleDashboardPersonDetail } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
-import {
-  getPeopleForPosition,
-  warmPeopleHistoryForPlan,
-} from "@pcobooster/api/modules/planning-center/get-people-for-position";
-import type { PeopleForPositionDependencies } from "@pcobooster/api/modules/planning-center/get-people-for-position";
 import { getFutureBlockoutsForPerson } from "@pcobooster/api/modules/planning-center/get-person-blockouts";
 import { getPlanWindowHistory } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
 import type {
@@ -45,7 +40,6 @@ import {
   presentCandidateDetails,
   presentDashboardRoster,
   presentDashboardPerson,
-  presentPeople,
   presentPlanWindowHistory,
   presentPositionCandidates,
   getPresentationIdentityMapper,
@@ -54,10 +48,7 @@ import { searchPeople } from "@pcobooster/api/modules/planning-center/search-peo
 import type { PeopleSearchResult } from "@pcobooster/api/modules/planning-center/search-people";
 import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
 import { Server } from "@pcobooster/api/server";
-import type {
-  Blockout,
-  PersonWithAvailability,
-} from "@pcobooster/planning-center-models/types";
+import type { Blockout } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
 const resolveRequestTimeZone = (
@@ -78,15 +69,6 @@ const requestPresentationDependencies = (
   getPresentationSeed: () => access.presentationSeed,
 });
 
-const requestPeopleForPositionDependencies = (
-  access: PlanningCenterRequestAccess
-): PeopleForPositionDependencies => ({
-  catalog: access.services.catalog,
-  people: access.services.people,
-  plans: access.services.plans,
-  resolveTimeZone: resolveRequestTimeZone(access),
-});
-
 /** The People dashboard exists only where the `people` flag is on for this caller. */
 const requirePeopleDashboard = (access: PlanningCenterRequestAccess) =>
   Effect.gen(function* checkPeopleFlag() {
@@ -104,29 +86,6 @@ const requirePeopleDashboard = (access: PlanningCenterRequestAccess) =>
       );
     }
   });
-
-export const getPeopleList = (input: {
-  readonly serviceTypeId: string;
-  readonly positionId: string;
-  readonly teamId?: string;
-  readonly planId?: string;
-  readonly date?: string;
-}): Effect.Effect<
-  PersonWithAvailability[],
-  ApplicationFault,
-  PlanningCenterAccess | RequestContext | Server
-> =>
-  Effect.gen(function* listPeople() {
-    const access = yield* PlanningCenterAccess;
-    const people = yield* getPeopleForPosition(
-      input,
-      requestPeopleForPositionDependencies(access)
-    );
-    return yield* presentPeople(
-      people,
-      requestPresentationDependencies(access)
-    );
-  }).pipe(withPlanningCenterFaults);
 
 export const getPeoplePositionCandidates = (input: {
   readonly serviceTypeId: string;
@@ -199,23 +158,6 @@ export const getPeopleSearch = (input: {
         requestPresentationDependencies(access)
       ),
     });
-  }).pipe(withPlanningCenterFaults);
-
-export const warmPeople = (input: {
-  readonly serviceTypeId: string;
-  readonly date: string;
-}): Effect.Effect<
-  { readonly warmed: true },
-  ApplicationFault,
-  PlanningCenterAccess | RequestContext | Server
-> =>
-  Effect.gen(function* warmPeopleHistory() {
-    const access = yield* PlanningCenterAccess;
-    yield* warmPeopleHistoryForPlan(
-      input,
-      requestPeopleForPositionDependencies(access)
-    );
-    return { warmed: true as const };
   }).pipe(withPlanningCenterFaults);
 
 export const getPeopleBlockouts = (input: {

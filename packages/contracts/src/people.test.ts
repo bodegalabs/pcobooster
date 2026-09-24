@@ -1,7 +1,8 @@
 import {
-  peopleListInputSchema,
+  PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE,
+  peopleCandidateDetailsInputSchema,
   peopleMyScheduledPlansInputSchema,
-  peopleWarmupOutputSchema,
+  peoplePlanWindowHistoryInputSchema,
 } from "@pcobooster/contracts/people";
 import {
   blockoutSchema,
@@ -9,7 +10,7 @@ import {
   peopleDashboardPersonDetailSchema,
   peopleDashboardPersonSchema,
   peopleDashboardRosterSchema,
-  personWithAvailabilitySchema,
+  positionCandidatesSchema,
   scheduleHistoryResponseSchema,
 } from "@pcobooster/contracts/people-schemas";
 import { describe, expect, it } from "vitest";
@@ -155,46 +156,64 @@ describe("people read contracts", () => {
     );
   });
 
-  it("keeps false availability flags distinct from absent optional flags", () => {
-    const person = {
-      id: "person-1",
-      firstName: "A",
-      lastName: "Person",
-      fullName: "A Person",
-      photoUrl: null,
-      photoThumbnailUrl: null,
-      archived: false,
-      positions: [],
-      isBlockedForDate: false,
-      isScheduledForSelectedPlanPosition: false,
-      isConfirmedForSelectedPlanPosition: false,
-      isDeclinedForSelectedPlanPosition: false,
-      selectedPlanDeclineReason: null,
-      selectedPlanAssignmentLabels: [],
-      frequency,
+  it("keeps an empty slot distinct from a missing one", () => {
+    const candidates = {
+      generatedAt: "2026-09-20T00:00:00Z",
+      timeZone: "America/Los_Angeles",
+      match: { planId: "plan-1" },
+      candidates: [
+        {
+          id: "person-1",
+          firstName: "A",
+          lastName: "Person",
+          fullName: "A Person",
+          photoUrl: null,
+          photoThumbnailUrl: null,
+          archived: false,
+          selectedPlanRosterLabels: [],
+          selectedPlanSlot: null,
+        },
+      ],
     };
 
-    expect(personWithAvailabilitySchema.parse(person)).toStrictEqual(person);
-    expect(personWithAvailabilitySchema.parse(person)).not.toHaveProperty(
-      "availability"
+    expect(positionCandidatesSchema.parse(candidates)).toStrictEqual(
+      candidates
     );
+    expect(
+      positionCandidatesSchema.safeParse({
+        ...candidates,
+        candidates: [
+          { ...candidates.candidates[0], selectedPlanSlot: undefined },
+        ],
+      }).success
+    ).toBeFalsy();
   });
 
   it("retains the full plan instant and bounds batch lookups", () => {
-    const input = {
-      serviceTypeId: "service-1",
-      positionId: "position-1",
-      date: "2026-09-20T00:30:00-07:00",
-    };
+    const history = { date: "2026-09-20T00:30:00-07:00" };
 
-    expect(peopleListInputSchema.parse(input)).toStrictEqual(input);
+    expect(peoplePlanWindowHistoryInputSchema.parse(history)).toStrictEqual(
+      history
+    );
+    expect(
+      peoplePlanWindowHistoryInputSchema.safeParse({ date: "2026-09-20" })
+        .success
+    ).toBeFalsy();
+    expect(
+      peopleCandidateDetailsInputSchema.safeParse({
+        personIds: Array.from(
+          { length: PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE + 1 },
+          (_, index) => String(index)
+        ),
+        planId: "plan-1",
+        date: history.date,
+        scheduleHistory: false,
+      }).success
+    ).toBeFalsy();
     expect(
       peopleMyScheduledPlansInputSchema.safeParse({
         planIds: Array.from({ length: 501 }, (_, index) => String(index)),
       }).success
-    ).toBeFalsy();
-    expect(
-      peopleWarmupOutputSchema.safeParse({ warmed: false }).success
     ).toBeFalsy();
   });
 });

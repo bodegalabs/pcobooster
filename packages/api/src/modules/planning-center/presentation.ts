@@ -13,7 +13,6 @@ import type { CandidateHistory } from "@pcobooster/planning-center-models/positi
 import type {
   Blockout,
   FilledPositionPerson,
-  PersonWithAvailability,
   TeamPosition,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
@@ -148,34 +147,6 @@ const maskPosition = (
       }
     : undefined),
 });
-
-const maskPeople = (
-  people: PersonWithAvailability[],
-  identity: IdentityMapper
-): PersonWithAvailability[] =>
-  people.map((person) => ({
-    ...person,
-    ...identity(person.id),
-    positions: person.positions.map((position) =>
-      maskPosition(position, identity)
-    ),
-    ...(person.blockouts
-      ? { blockouts: person.blockouts.map(maskBlockout) }
-      : undefined),
-    selectedPlanDeclineReason: isNonEmptyString(
-      person.selectedPlanDeclineReason
-    )
-      ? "Unavailable"
-      : person.selectedPlanDeclineReason,
-  }));
-
-export const presentPeople = (
-  people: PersonWithAvailability[],
-  dependencies: PresentationDependencies
-): Effect.Effect<PersonWithAvailability[], PlanningCenterError> =>
-  Effect.map(getPresentationIdentityMapper(dependencies), (identity) =>
-    identity ? maskPeople(people, identity) : people
-  );
 
 const maskDeclineReason = (reason: string | null): string | null =>
   reason === null ? null : "Unavailable";

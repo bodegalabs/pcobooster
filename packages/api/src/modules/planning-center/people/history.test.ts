@@ -1,13 +1,9 @@
-import {
-  buildHistoryAndFrequencyForPerson,
-  buildHistoryAndFrequencyForPlanPeople,
-} from "@pcobooster/api/modules/planning-center/people/history";
+import { buildHistoryAndFrequencyForPerson } from "@pcobooster/api/modules/planning-center/people/history";
 import { scheduleResourceSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import { buildFrequencyFromServiceHistory } from "@pcobooster/planning-center-models/candidate-frequency";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   PCResource,
-  RawPlanPerson,
   ServiceHistoryItem,
 } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
@@ -121,7 +117,6 @@ describe(buildHistoryAndFrequencyForPerson, () => {
       schedules,
       included,
       referenceDate,
-      {},
       4,
       "UTC"
     );
@@ -178,7 +173,6 @@ describe(buildHistoryAndFrequencyForPerson, () => {
       schedules,
       included,
       referenceDate,
-      {},
       Number.POSITIVE_INFINITY,
       "UTC"
     );
@@ -235,7 +229,6 @@ describe("declined assignments", () => {
       schedules,
       included,
       referenceDate,
-      {},
       Number.POSITIVE_INFINITY,
       "UTC"
     );
@@ -248,85 +241,6 @@ describe("declined assignments", () => {
     ).toBeTruthy();
     expect(result.frequency.recentServedDays).toBe(1);
     expect(result.frequency.totalServed).toBe(1);
-  });
-
-  it("omits declined plan_people from history and frequency", () => {
-    const referenceDate = new Date("2026-02-22T00:00:00Z");
-    const planOk = "plan-ok";
-    const planNo = "plan-no";
-    const included: PCResource[] = [
-      {
-        type: "Plan",
-        id: planOk,
-        attributes: {
-          title: "Ok",
-          sort_date: "2026-02-12T00:00:00Z",
-          created_at: "2026-02-12T00:00:00Z",
-        },
-        relationships: {
-          service_type: { data: { type: "ServiceType", id: "st-1" } },
-        },
-      },
-      {
-        type: "Plan",
-        id: planNo,
-        attributes: {
-          title: "Declined plan",
-          sort_date: "2026-02-10T00:00:00Z",
-          created_at: "2026-02-10T00:00:00Z",
-        },
-        relationships: {
-          service_type: { data: { type: "ServiceType", id: "st-1" } },
-        },
-      },
-    ];
-
-    const planPeople: RawPlanPerson[] = [
-      {
-        type: "PlanPerson",
-        id: "pp-d",
-        attributes: {
-          status: "D",
-          created_at: "2026-02-01T00:00:00Z",
-          team_position_name: "Band - Vocals",
-        },
-        relationships: {
-          plan: { data: { type: "Plan", id: planNo } },
-          team: { data: { type: "Team", id: "team-1" } },
-        },
-      },
-      {
-        type: "PlanPerson",
-        id: "pp-c",
-        attributes: {
-          status: "C",
-          created_at: "2026-02-01T00:00:00Z",
-          team_position_name: "Band - Vocals",
-        },
-        relationships: {
-          plan: { data: { type: "Plan", id: planOk } },
-          team: { data: { type: "Team", id: "team-1" } },
-        },
-      },
-    ] satisfies RawPlanPerson[];
-
-    const result = buildHistoryAndFrequencyForPlanPeople(
-      planPeople,
-      included,
-      referenceDate,
-      {},
-      new Map(),
-      Number.POSITIVE_INFINITY,
-      "UTC"
-    );
-
-    expect(
-      result.serviceHistory.some((h) => h.sourceScheduleId === "pp-d")
-    ).toBeFalsy();
-    expect(
-      result.serviceHistory.some((h) => h.sourceScheduleId === "pp-c")
-    ).toBeTruthy();
-    expect(result.frequency.recentServedDays).toBe(1);
   });
 });
 

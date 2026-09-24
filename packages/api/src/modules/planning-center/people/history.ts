@@ -1,8 +1,3 @@
-import { findMatchingScheduleForSelectedPosition } from "@pcobooster/api/modules/planning-center/people/matching";
-import type {
-  HistoryBuildResult,
-  SelectedPlanMatchContext,
-} from "@pcobooster/api/modules/planning-center/people/types";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import {
   isDeclinedAssignmentStatus,
@@ -14,9 +9,8 @@ import {
 } from "@pcobooster/planning-center-models/json";
 import type {
   PCResource,
-  RawPlanPerson,
-  RawPlanTime,
   RawSchedule,
+  ScheduleFrequency,
   ServiceHistoryItem,
 } from "@pcobooster/planning-center-models/types";
 
@@ -93,127 +87,6 @@ const getSchedulePlanTimes = (
   }
   return planTimes;
 };
-
-const splitPlanPositionName = (teamPositionName: string) => {
-  const teamPositionParts = teamPositionName.split(" - ");
-  const teamName =
-    teamPositionParts.length > 1 ? teamPositionParts[0] : undefined;
-  const positionName =
-    teamPositionParts.length > 1
-      ? teamPositionParts.slice(1).join(" - ")
-      : teamPositionParts[0];
-
-  return { teamName, positionName };
-};
-
-const getPlanPersonHistoryContext = (
-  pp: RawPlanPerson,
-  historyIncluded: PCResource[]
-) => {
-  const planRel = pp.relationships?.plan?.data;
-  const planId = planRel?.id;
-  const plan = isNonEmptyString(planId)
-    ? findIncluded(historyIncluded, "Plan", planId)
-    : undefined;
-  const serviceTypeRel = plan?.relationships?.service_type?.data;
-  const serviceTypeId = Array.isArray(serviceTypeRel)
-    ? serviceTypeRel[0]?.id
-    : serviceTypeRel?.id;
-  const serviceType = isNonEmptyString(serviceTypeId)
-    ? findIncluded(historyIncluded, "ServiceType", serviceTypeId)
-    : undefined;
-  const serviceTypeName = isString(serviceType?.attributes.name)
-    ? serviceType.attributes.name
-    : undefined;
-
-  const fallbackDate = isNonEmptyString(plan?.attributes.sort_date)
-    ? new Date(plan.attributes.sort_date)
-    : new Date(pp.attributes.created_at);
-
-  const { teamName, positionName } = splitPlanPositionName(
-    pp.attributes.team_position_name
-  );
-  const planTitle = isString(plan?.attributes.title)
-    ? plan.attributes.title
-    : undefined;
-  return { fallbackDate, teamName, positionName, serviceTypeName, planTitle };
-};
-
-const inferAssignedTimeType = (
-  rawType: string | undefined
-): HistoryTimeType => {
-  if (rawType === "other" || rawType === "service") {
-    return rawType;
-  }
-  return "rehearsal";
-};
-
-/** History rows for window roster entries; declined entries are left out. */
-export const mapPlanPeopleToServiceHistory = (
-  planPeople: RawPlanPerson[],
-  historyIncluded: PCResource[],
-  planTimeById = new Map<string, RawPlanTime>()
-): ServiceHistoryItem[] =>
-  planPeople.flatMap((pp) => {
-    if (isDeclinedAssignmentStatus(pp.attributes.status)) {
-      return [];
-    }
-
-    const { fallbackDate, teamName, positionName, serviceTypeName, planTitle } =
-      getPlanPersonHistoryContext(pp, historyIncluded);
-
-    const buildItem = (
-      id: string,
-      date: Date,
-      timeType: HistoryTimeType | undefined
-    ): ServiceHistoryItem => ({
-      id,
-      sourceScheduleId: pp.id,
-      date,
-      teamPositionName: positionName || "",
-      teamName,
-      serviceTypeName,
-      planTitle,
-      status: pp.attributes.status || "",
-      timeType,
-    });
-
-    const timesIds = new Set(getRelationshipIds(pp.relationships?.times));
-    const serviceTimesIds = new Set(
-      getRelationshipIds(pp.relationships?.service_times)
-    );
-
-    if (timesIds.size === 0 && serviceTimesIds.size === 0) {
-      return [buildItem(pp.id, fallbackDate, "service")];
-    }
-
-    const serviceRows = [...serviceTimesIds].map((planTimeId) => {
-      const planTime = planTimeById.get(planTimeId);
-      const date = isNonEmptyString(planTime?.attributes.starts_at)
-        ? new Date(planTime.attributes.starts_at)
-        : fallbackDate;
-      return buildItem(`${pp.id}:${planTimeId}`, date, "service");
-    });
-
-    const rehearsalCandidateIds = [...timesIds].filter(
-      (id) => !serviceTimesIds.has(id)
-    );
-    const rehearsalRows = rehearsalCandidateIds.map((planTimeId) => {
-      const planTime = planTimeById.get(planTimeId);
-      const rawType = planTime?.attributes.time_type;
-      const inferredType = inferAssignedTimeType(rawType);
-      const date = isNonEmptyString(planTime?.attributes.starts_at)
-        ? new Date(planTime.attributes.starts_at)
-        : fallbackDate;
-      return buildItem(`${pp.id}:${planTimeId}`, date, inferredType);
-    });
-
-    const rows = [...serviceRows, ...rehearsalRows].filter(
-      (item) => item.timeType === "service" || item.timeType === "rehearsal"
-    );
-
-    return rows.length > 0 ? rows : [buildItem(pp.id, fallbackDate, "service")];
-  });
 
 /** History rows for a person's own schedules; declined schedules are left out. */
 export const mapSchedulesToServiceHistory = (
@@ -315,11 +188,15 @@ const limitHistory = (
     : serviceHistory.slice(-Math.floor(historyLimit));
 };
 
+export interface HistoryBuildResult {
+  serviceHistory: ServiceHistoryItem[];
+  frequency: ScheduleFrequency;
+}
+
 export const buildHistoryAndFrequencyForPerson = (
   schedules: RawSchedule[],
   historyIncluded: PCResource[],
   referenceDate: Date,
-  selectedMatchContext: SelectedPlanMatchContext,
   historyLimit: number,
   orgTimeZone: string
 ): HistoryBuildResult => {
@@ -331,33 +208,5 @@ export const buildHistoryAndFrequencyForPerson = (
   return {
     serviceHistory: limitHistory(serviceHistory, historyLimit),
     frequency,
-    matchedSchedule: findMatchingScheduleForSelectedPosition(
-      schedules,
-      selectedMatchContext
-    ),
-  };
-};
-
-export const buildHistoryAndFrequencyForPlanPeople = (
-  planPeople: RawPlanPerson[],
-  historyIncluded: PCResource[],
-  referenceDate: Date,
-  selectedMatchContext: SelectedPlanMatchContext,
-  planTimeById: Map<string, RawPlanTime>,
-  historyLimit: number,
-  orgTimeZone: string
-): HistoryBuildResult => {
-  const { frequency, serviceHistory } = summarizeCandidateHistory(
-    mapPlanPeopleToServiceHistory(planPeople, historyIncluded, planTimeById),
-    referenceDate,
-    orgTimeZone
-  );
-  return {
-    serviceHistory: limitHistory(serviceHistory, historyLimit),
-    frequency,
-    matchedSchedule: findMatchingScheduleForSelectedPosition(
-      planPeople,
-      selectedMatchContext
-    ),
   };
 };

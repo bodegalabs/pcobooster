@@ -1,26 +1,17 @@
-import { getCandidateDetails } from "@pcobooster/api/modules/planning-center/get-candidate-details";
-import type { CandidateDetail } from "@pcobooster/api/modules/planning-center/get-candidate-details";
-import { getPeopleForPosition } from "@pcobooster/api/modules/planning-center/get-people-for-position";
-import { getPlanWindowHistory } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
-import type { PlanWindowHistoryBatch } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
-import { getPositionCandidates } from "@pcobooster/api/modules/planning-center/get-position-candidates";
-import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
-import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
-import { expandPlanWindowHistory } from "@pcobooster/planning-center-models/plan-window-history";
-import {
-  assemblePositionCandidates,
-  EMPTY_CANDIDATE_HISTORY,
-} from "@pcobooster/planning-center-models/position-candidates";
-import type {
-  PCResource,
-  PersonWithAvailability,
-} from "@pcobooster/planning-center-models/types";
+import { loadPositionCandidatesProgressively } from "@pcobooster/api/modules/planning-center/load-position-candidates.test-support";
+import type { JsonValue } from "@pcobooster/planning-center-models/json";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
+
+import goldenJson from "./position-candidates-equivalence.golden.json";
 
 /**
  * The progressive candidate list (candidates, plan-window history in batches, candidate details
  * in batches, assembled in the browser) must equal what `people.list` returned in one call.
+ * The fixtures cover two service types, time zone boundary blockouts, repeating blockouts,
+ * declined rows, rehearsal-only days, a plan with no one scheduled, an archived candidate, a
+ * window roster that lags the fresh selected-plan roster, and an empty window.
  */
 
 const ORG_TIME_ZONE = "America/Los_Angeles";
@@ -712,166 +703,63 @@ const input = {
   date: PLAN_DATE,
 };
 
-/** Runs one call as if transport had already counted `spent` requests. */
-const runWithSpent = async <Value>(
-  program: Effect.Effect<Value, unknown>,
-  spent: number
-): Promise<Value> => {
-  const accounting = new PlanningCenterRequestAccounting();
-  for (let index = 0; index < spent; index += 1) {
-    accounting.recordRequest();
-  }
-  return await Effect.runPromise(
-    program.pipe(Effect.provideService(PlanningCenterAccounting, accounting))
+const loadProgressively = async (org: Org, spent = 0) =>
+  await loadPositionCandidatesProgressively(input, org, { spent });
+
+/**
+ * What the browser receives: JSON, so dates are strings and undefined fields are gone. Keys
+ * are sorted so the comparison ignores the order fields were assigned in.
+ */
+const wireJson = (people: readonly object[]): string =>
+  JSON.stringify(
+    people,
+    (_key: string, entry: JsonValue) =>
+      entry instanceof Object && !Array.isArray(entry)
+        ? Object.fromEntries(
+            Object.entries(entry).toSorted(([a], [b]) => a.localeCompare(b))
+          )
+        : entry,
+    1
   );
+
+/**
+ * `people.list` output for these fixtures, recorded from `getPeopleForPosition` before it was
+ * removed (commit 78d0fcb), where the same assertions compared both implementations directly.
+ */
+const golden = {
+  window: wireJson(goldenJson.window),
+  emptyWindow: wireJson(goldenJson.emptyWindow),
 };
-
-const BATCH_SIZE = 16;
-
-interface Progress {
-  calls: number;
-}
-
-type HistoryContinuation = Parameters<
-  typeof getPlanWindowHistory
->[0]["continuation"];
-
-/** Follows plan-window continuations; the browser expands the calls in order. */
-const loadWindowHistory = async (
-  org: Org,
-  spent: number,
-  progress: Progress,
-  continuation?: HistoryContinuation
-): Promise<PlanWindowHistoryBatch[]> => {
-  const batch = await runWithSpent(
-    getPlanWindowHistory({ date: PLAN_DATE, continuation }, org),
-    spent
-  );
-  progress.calls += 1;
-  if (
-    batch.deferredPlans.length === 0 &&
-    batch.deferredServiceTypeIds.length === 0
-  ) {
-    return [batch];
-  }
-  return [
-    batch,
-    ...(await loadWindowHistory(org, spent, progress, {
-      plans: batch.deferredPlans,
-      serviceTypeIds: batch.deferredServiceTypeIds,
-    })),
-  ];
-};
-
-/** Follows `deferredPersonIds` for one batch of candidates. */
-const loadDetails = async (
-  org: Org,
-  spent: number,
-  progress: Progress,
-  personIds: string[],
-  scheduleHistory: boolean
-): Promise<CandidateDetail[]> => {
-  if (personIds.length === 0) {
-    return [];
-  }
-  const batch = await runWithSpent(
-    getCandidateDetails(
-      { personIds, planId: PLAN_ID, date: PLAN_DATE, scheduleHistory },
-      org
-    ),
-    spent
-  );
-  progress.calls += 1;
-  if (batch.deferredPersonIds.length >= personIds.length) {
-    throw new Error("Candidate details made no progress");
-  }
-  return [
-    ...batch.people,
-    ...(await loadDetails(
-      org,
-      spent,
-      progress,
-      batch.deferredPersonIds,
-      scheduleHistory
-    )),
-  ];
-};
-
-/** What the browser does, with `spent` requests already counted before every call. */
-const loadProgressively = async (
-  org: Org,
-  spent: number
-): Promise<{ people: PersonWithAvailability[]; calls: number }> => {
-  const progress: Progress = { calls: 1 };
-  const candidates = await Effect.runPromise(getPositionCandidates(input, org));
-  const windowCalls = await loadWindowHistory(org, spent, progress);
-  const windowHistory = expandPlanWindowHistory(windowCalls, PLAN_ID);
-  const scheduleHistory = windowCalls.every(
-    ({ loadedPlanCount }) => loadedPlanCount === 0
-  );
-  const candidateIds = candidates.candidates.map(({ id }) => id);
-  const batches: string[][] = [];
-  for (let start = 0; start < candidateIds.length; start += BATCH_SIZE) {
-    batches.push(candidateIds.slice(start, start + BATCH_SIZE));
-  }
-  const batchDetails = await Promise.all(
-    batches.map(
-      async (personIds) =>
-        await loadDetails(org, spent, progress, personIds, scheduleHistory)
-    )
-  );
-  const details = new Map(
-    batchDetails.flat().map((detail) => [detail.personId, detail])
-  );
-
-  const assembled = assemblePositionCandidates({
-    candidates: candidates.candidates,
-    match: candidates.match,
-    referenceDate: new Date(PLAN_DATE),
-    timeZone: candidates.timeZone,
-    historyFor: (personId) =>
-      scheduleHistory
-        ? details.get(personId)?.history
-        : (windowHistory.get(personId) ?? EMPTY_CANDIDATE_HISTORY),
-    blockedFor: (personId) => details.get(personId)?.isBlockedForDate,
-  });
-  expect(assembled.complete).toBeTruthy();
-  return { people: assembled.people, calls: progress.calls };
-};
-
-const loadInOneCall = async (org: Org) =>
-  await Effect.runPromise(getPeopleForPosition(input, org));
 
 describe("progressive candidate list equivalence", () => {
   it("matches the single call over the plan window", async () => {
-    const single = await loadInOneCall(createOrg());
-    const progressive = await loadProgressively(createOrg(), 0);
+    const progressive = await loadProgressively(createOrg());
 
-    expect(progressive.people).toStrictEqual(single);
-    expect(progressive.calls).toBe(3);
+    expect({
+      complete: progressive.complete,
+      people: wireJson(progressive.people),
+      calls: progressive.calls,
+    }).toStrictEqual({ complete: true, people: golden.window, calls: 3 });
   });
 
   it("matches the single call when every call is left almost no budget", async () => {
-    const single = await loadInOneCall(createOrg());
     // 39 of 40 requests already spent: one roster (or one blockout date) per call.
     const progressive = await loadProgressively(createOrg(), 39);
 
-    expect(progressive.people).toStrictEqual(single);
+    expect(wireJson(progressive.people)).toBe(golden.window);
     expect(progressive.calls).toBeGreaterThan(6);
   });
 
   it("matches the single call when the window has no plans", async () => {
-    const single = await loadInOneCall(createOrg({ emptyWindow: true }));
     const progressive = await loadProgressively(
-      createOrg({ emptyWindow: true }),
-      0
+      createOrg({ emptyWindow: true })
     );
 
-    expect(progressive.people).toStrictEqual(single);
+    expect(wireJson(progressive.people)).toBe(golden.emptyWindow);
   });
 
   it("exercises the cases it claims to", async () => {
-    const people = await loadInOneCall(createOrg());
+    const { people } = await loadProgressively(createOrg());
     const byId = new Map(people.map((person) => [person.id, person]));
 
     expect({
@@ -897,6 +785,7 @@ describe("progressive candidate list equivalence", () => {
         },
       },
       ben: {
+        // Blocked all of Saturday in Los Angeles, which runs into Sunday in UTC.
         isBlockedForDate: false,
         selectedPlanAssignmentLabels: [
           "Band - Electric Guitar",
@@ -909,6 +798,7 @@ describe("progressive candidate list equivalence", () => {
       },
       dee: true,
       eve: false,
+      // Only history's lagging copy of the roster has Gus on the slot.
       gus: {
         isBlockedForDate: true,
         isScheduledForSelectedPlanPosition: true,
