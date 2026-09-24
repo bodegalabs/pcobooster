@@ -11,7 +11,7 @@ import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 import { z } from "zod";
 
-import { resolvePeoplePageAvailability } from "./src/people-page-availability";
+import { resolvePeoplePageAvailability } from "./src/people-page-availability.ts";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../..");
 
