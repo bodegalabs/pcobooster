@@ -122,4 +122,37 @@ describe(scoreAndNormalizePeople, () => {
       formatPlanHistoryHalfRangeWeeksLabel()
     );
   });
+
+  it("names late-evening services by their org calendar day, not the host's", () => {
+    /** Sunday September 27, 2026, 10:00 AM in Los Angeles. */
+    const referenceDate = new Date("2026-09-27T17:00:00.000Z");
+    const eveningServer = person(
+      "evening",
+      baseFrequency({
+        totalServed: 1,
+        upcomingServices: 1,
+        upcomingRehearsals: 1,
+        /** Friday September 25, 7:00 PM Pacific; Saturday in UTC. */
+        lastServedDate: new Date("2026-09-26T02:00:00.000Z"),
+        /** Friday October 2, 7:30 PM Pacific; Saturday in UTC. */
+        nextUpcomingDate: new Date("2026-10-03T02:30:00.000Z"),
+        /** Wednesday September 30, 8:00 PM Pacific; Thursday in UTC. */
+        nextRehearsalDate: new Date("2026-10-01T03:00:00.000Z"),
+      })
+    );
+
+    scoreAndNormalizePeople(
+      [eveningServer],
+      referenceDate,
+      "America/Los_Angeles"
+    );
+
+    expect(eveningServer.recommendationReasoning).toStrictEqual([
+      "Last served 2 days before on Fri, Sep 25, 2026",
+      "Upcoming: 5 days after on Fri, Oct 2, 2026",
+      "Ranked lower: scheduled 5 days after",
+      "Rehearsal upcoming: 3 days after on Wed, Sep 30, 2026",
+      "Slight rehearsal penalty: rehearsal 3 days after",
+    ]);
+  });
 });

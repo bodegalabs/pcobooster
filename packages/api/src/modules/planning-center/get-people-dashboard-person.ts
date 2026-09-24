@@ -24,6 +24,7 @@ import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import {
   addCalendarDaysToDayKey,
+  formatCalendarDateLabel,
   formatCalendarDayInTimeZone,
   zonedWallTimeToUtcIso,
 } from "@pcobooster/planning-center-models/calendar";
@@ -53,11 +54,7 @@ const MISSING_PLAN_TIMES_CONCURRENCY = 4;
  */
 const MAX_DIRECT_PLAN_TIME_READS = 5;
 const PEOPLE_DASHBOARD_PERSON_CACHE_TTL_MS = 2 * 60 * 1000;
-const PEOPLE_DASHBOARD_PERSON_CACHE_VERSION = "v8";
-const monthLabelFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  timeZone: "UTC",
-});
+const PEOPLE_DASHBOARD_PERSON_CACHE_VERSION = "v9";
 const peopleDashboardPersonCache =
   new PlanningCenterReadCache<PeopleDashboardPersonDetail>();
 
@@ -463,6 +460,7 @@ const buildMonthlyTrend = (
   orgTimeZone: string
 ): PeopleDashboardPersonDetail["trend"] => {
   const monthKeys = Array.from({ length: TREND_MONTH_COUNT }, (_, index) => {
+    // UTC noon on each org month's first day: a civil-date carrier, so read it in UTC.
     const date = new Date(
       Date.UTC(
         monthInfo.year,
@@ -473,7 +471,7 @@ const buildMonthlyTrend = (
     );
     return {
       month: `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`,
-      label: monthLabelFormatter.format(date),
+      label: formatCalendarDateLabel(date, "UTC", "monthShort"),
       serviceDays: new Set<string>(),
       rehearsalDays: new Set<string>(),
     };
@@ -679,11 +677,16 @@ const buildDashboardPersonDetail = (
       frequency.nextUpcomingDate
     ),
     load,
-    lastServed: formatShortDate(frequency.lastServedDate),
-    lastRehearsal: formatShortDate(frequency.lastRehearsalDate),
-    nextScheduled: formatShortDate(frequency.nextUpcomingDate, "Not scheduled"),
+    lastServed: formatShortDate(frequency.lastServedDate, orgTimeZone),
+    lastRehearsal: formatShortDate(frequency.lastRehearsalDate, orgTimeZone),
+    nextScheduled: formatShortDate(
+      frequency.nextUpcomingDate,
+      orgTimeZone,
+      "Not scheduled"
+    ),
     nextRehearsal: formatShortDate(
       frequency.nextRehearsalDate,
+      orgTimeZone,
       "Not scheduled"
     ),
     monthCount: serviceDaysThisMonth.size,

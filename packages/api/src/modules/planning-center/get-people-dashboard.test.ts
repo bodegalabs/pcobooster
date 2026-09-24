@@ -74,7 +74,9 @@ const rosterService = (
 const activityDependencies = ({
   schedulesByPerson = {},
   plansByServiceType = {},
+  orgTimeZone = "UTC",
 }: {
+  orgTimeZone?: string;
   schedulesByPerson?: Record<
     string,
     { data: PCResource[]; included?: PCResource[] }
@@ -102,7 +104,7 @@ const activityDependencies = ({
   const dependencies: PeopleDashboardActivityDependencies = {
     peopleService: { getPersonSchedulesAfter },
     plansService: { getPlansWithIncludedInDateRange },
-    resolveTimeZone: Effect.succeed("UTC"),
+    resolveTimeZone: Effect.succeed(orgTimeZone),
   };
   return {
     dependencies,
@@ -242,6 +244,35 @@ describe(getPeopleDashboardActivity, () => {
       scheduleRequests: 1,
       planTimeRequests: 0,
     });
+  });
+
+  it("labels late-evening services with their org calendar day, not the host's", async () => {
+    vi.useFakeTimers({ now: new Date("2026-09-15T19:00:00.000Z") });
+    const { dependencies } = activityDependencies({
+      orgTimeZone: "America/Los_Angeles",
+      schedulesByPerson: {
+        "person-1": {
+          data: [
+            // Wednesday September 9, 7:00 PM Pacific; September 10 in UTC.
+            schedule("past", "2026-09-10T02:00:00.000Z"),
+            // Saturday September 19, 8:30 PM Pacific; September 20 in UTC.
+            schedule("next", "2026-09-20T03:30:00.000Z", { status: "U" }),
+          ],
+        },
+      },
+    });
+
+    const batch = await Effect.runPromise(
+      getPeopleDashboardActivity({ personIds: ["person-1"], dependencies })
+    );
+
+    expect(batch.people[0]).toMatchObject({
+      lastServed: "Sep 9",
+      nextScheduled: "Sep 19",
+    });
+    expect(batch.people[0]?.monthDays.map(({ day }) => day)).toStrictEqual([
+      9, 19,
+    ]);
   });
 
   it("classifies rehearsals with one plan-range read per service type, not per plan", async () => {
