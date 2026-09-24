@@ -33,7 +33,7 @@ import type {
   ServicePlanTableSelectorProps,
 } from "@/lib/service-plan-selection";
 import {
-  formatDate,
+  formatPlanDate,
   isInDateWindow,
   parsePlanDate,
   readStoredServiceTypeIds,
@@ -236,7 +236,7 @@ export const useServicePlanSelection = ({
         row.serviceTypeName,
         row.planTitle,
         row.seriesTitle ?? "",
-        formatDate(row.sortDate),
+        formatPlanDate(row.sortDate, orgTimeZone),
       ]
         .join(" ")
         .toLowerCase();
@@ -365,5 +365,6 @@ export const useServicePlanSelection = ({
     myScheduledPlanIdSet,
     handleSelectRow,
     getPlanIntentProps,
+    orgTimeZone,
   };
 };

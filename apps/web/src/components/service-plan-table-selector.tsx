@@ -39,7 +39,12 @@ import type {
   ServicePlanRow,
   ServicePlanTableSelectorProps,
 } from "@/lib/service-plan-selection";
-import { dateRangeSchema, formatDate } from "@/lib/service-plan-selection";
+import {
+  dateRangeSchema,
+  formatPlanDate,
+  formatPlanDateTile,
+  formatPlanMonthHeading,
+} from "@/lib/service-plan-selection";
 import { cn } from "@/lib/utils";
 
 interface PlanListProps {
@@ -50,6 +55,7 @@ interface PlanListProps {
   myScheduledPlanIdSet: Set<string>;
   handleSelectRow: (row: ServicePlanRow) => void;
   getPlanIntentProps: GetIntentPrefetchProps<ServicePlanRow>;
+  orgTimeZone: string;
 }
 
 const DesktopPlanRows = ({
@@ -60,6 +66,7 @@ const DesktopPlanRows = ({
   myScheduledPlanIdSet,
   handleSelectRow,
   getPlanIntentProps,
+  orgTimeZone,
 }: PlanListProps) => {
   if (isInitialLoading) {
     return Array.from({ length: 8 }).map((_, index) => (
@@ -145,7 +152,7 @@ const DesktopPlanRows = ({
         }}
       >
         <TableCell>{row.serviceTypeName}</TableCell>
-        <TableCell>{formatDate(row.sortDate)}</TableCell>
+        <TableCell>{formatPlanDate(row.sortDate, orgTimeZone)}</TableCell>
         <TableCell>
           {isNonEmptyString(row.seriesTitle) ? (
             <span className="truncate">{row.seriesTitle}</span>
@@ -161,44 +168,36 @@ const DesktopPlanRows = ({
   });
 };
 
-const monthHeadingFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "long",
-  year: "numeric",
-});
-const formatMonthHeading = (date: Date): string =>
-  monthHeadingFormatter.format(date);
-const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-});
-const monthShortFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-});
-
 const PlanDateTile = ({
   date,
+  orgTimeZone,
   highlighted,
 }: {
   date: Date;
+  orgTimeZone: string;
   highlighted: boolean;
-}) => (
-  <span
-    aria-hidden
-    className={cn(
-      "flex w-12 shrink-0 flex-col items-center justify-center rounded-xl py-1.5 leading-none tabular-nums",
-      highlighted
-        ? "bg-status-confirmed/12 text-status-confirmed"
-        : "bg-muted text-foreground"
-    )}
-  >
-    <span className="text-xs font-semibold tracking-wide uppercase opacity-70">
-      {monthShortFormatter.format(date)}
+}) => {
+  const tile = formatPlanDateTile(date, orgTimeZone);
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "flex w-12 shrink-0 flex-col items-center justify-center rounded-xl py-1.5 leading-none tabular-nums",
+        highlighted
+          ? "bg-status-confirmed/12 text-status-confirmed"
+          : "bg-muted text-foreground"
+      )}
+    >
+      <span className="text-xs font-semibold tracking-wide uppercase opacity-70">
+        {tile.month}
+      </span>
+      <span className="mt-0.5 text-lg font-semibold">{tile.day}</span>
+      <span className="mt-0.5 text-xs font-medium opacity-60">
+        {tile.weekday}
+      </span>
     </span>
-    <span className="mt-0.5 text-lg font-semibold">{date.getDate()}</span>
-    <span className="mt-0.5 text-xs font-medium opacity-60">
-      {weekdayFormatter.format(date)}
-    </span>
-  </span>
-);
+  );
+};
 
 const MobilePlanRow = ({
   row,
@@ -206,12 +205,14 @@ const MobilePlanRow = ({
   isScheduledForCurrentUser,
   onSelect,
   getPlanIntentProps,
+  orgTimeZone,
 }: {
   row: ServicePlanRow;
   isActive: boolean;
   isScheduledForCurrentUser: boolean;
   onSelect: (row: ServicePlanRow) => void;
   getPlanIntentProps: GetIntentPrefetchProps<ServicePlanRow>;
+  orgTimeZone: string;
 }) => (
   <Item
     size="xs"
@@ -222,8 +223,8 @@ const MobilePlanRow = ({
         aria-current={isActive ? "page" : undefined}
         aria-label={
           isScheduledForCurrentUser
-            ? `${row.serviceTypeName}, ${formatDate(row.sortDate)}: you are scheduled`
-            : `${row.serviceTypeName}, ${formatDate(row.sortDate)}`
+            ? `${row.serviceTypeName}, ${formatPlanDate(row.sortDate, orgTimeZone)}: you are scheduled`
+            : `${row.serviceTypeName}, ${formatPlanDate(row.sortDate, orgTimeZone)}`
         }
       />
     }
@@ -232,7 +233,11 @@ const MobilePlanRow = ({
       onSelect(row);
     }}
   >
-    <PlanDateTile date={row.sortDate} highlighted={isScheduledForCurrentUser} />
+    <PlanDateTile
+      date={row.sortDate}
+      orgTimeZone={orgTimeZone}
+      highlighted={isScheduledForCurrentUser}
+    />
     <span className="flex min-w-0 flex-1 flex-col gap-0.5">
       <span className="text-muted-foreground truncate text-xs font-medium">
         {row.serviceTypeName}
@@ -261,6 +266,7 @@ const MobilePlanRows = ({
   myScheduledPlanIdSet,
   handleSelectRow,
   getPlanIntentProps,
+  orgTimeZone,
 }: PlanListProps) => {
   if (isInitialLoading) {
     return Array.from({ length: 8 }).map((_, index) => (
@@ -311,7 +317,7 @@ const MobilePlanRows = ({
   const rows: ReactNode[] = [];
   let previousMonth = "";
   for (const row of visibleRows) {
-    const month = formatMonthHeading(row.sortDate);
+    const month = formatPlanMonthHeading(row.sortDate, orgTimeZone);
     if (month !== previousMonth) {
       previousMonth = month;
       rows.push(
@@ -331,6 +337,7 @@ const MobilePlanRows = ({
         isScheduledForCurrentUser={myScheduledPlanIdSet.has(row.planId)}
         onSelect={handleSelectRow}
         getPlanIntentProps={getPlanIntentProps}
+        orgTimeZone={orgTimeZone}
       />
     );
   }
@@ -342,6 +349,7 @@ interface MyScheduledServiceCardsProps {
   isLoading: boolean;
   onSelect: (row: ServicePlanRow) => void;
   getPlanIntentProps: GetIntentPrefetchProps<ServicePlanRow>;
+  orgTimeZone: string;
 }
 
 const myScheduledServiceCardClass =
@@ -352,6 +360,7 @@ const MyScheduledServiceCards = ({
   isLoading,
   onSelect,
   getPlanIntentProps,
+  orgTimeZone,
 }: MyScheduledServiceCardsProps) => {
   if (!isLoading && rows.length === 0) {
     return null;
@@ -376,7 +385,7 @@ const MyScheduledServiceCards = ({
                 render={
                   <button
                     type="button"
-                    aria-label={`${row.serviceTypeName}, ${formatDate(row.sortDate)}`}
+                    aria-label={`${row.serviceTypeName}, ${formatPlanDate(row.sortDate, orgTimeZone)}`}
                   />
                 }
                 {...getPlanIntentProps(row)}
@@ -385,7 +394,7 @@ const MyScheduledServiceCards = ({
                 }}
               >
                 <span className="w-full truncate text-base font-medium">
-                  {formatDate(row.sortDate)}
+                  {formatPlanDate(row.sortDate, orgTimeZone)}
                 </span>
                 <span className="text-muted-foreground block w-full min-w-0 text-sm">
                   <MiddleTruncate
@@ -426,6 +435,7 @@ export const ServicePlanTableSelector = ({
     myScheduledPlanIdSet,
     handleSelectRow,
     getPlanIntentProps,
+    orgTimeZone,
   } = useServicePlanSelection({
     selectedServiceTypeId,
     selectedPlanId,
@@ -439,6 +449,7 @@ export const ServicePlanTableSelector = ({
     myScheduledPlanIdSet,
     handleSelectRow,
     getPlanIntentProps,
+    orgTimeZone,
   };
   return (
     <div className="flex flex-col gap-3 md:h-full md:min-h-0">
@@ -447,6 +458,7 @@ export const ServicePlanTableSelector = ({
         isLoading={isInitialLoading || myScheduledPlansLoading}
         onSelect={handleSelectRow}
         getPlanIntentProps={getPlanIntentProps}
+        orgTimeZone={orgTimeZone}
       />
 
       <div className="bg-background/90 supports-backdrop-filter:bg-background/75 sticky top-0 z-10 -mx-4 grid shrink-0 grid-cols-2 gap-2 px-4 py-2 backdrop-blur-md md:static md:mx-0 md:grid-cols-[minmax(0,1fr)_180px_160px] md:bg-transparent md:p-0 md:backdrop-blur-none">

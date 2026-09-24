@@ -1,5 +1,6 @@
 import {
   addCalendarDaysToDayKey,
+  formatCalendarDateLabel,
   formatCalendarDayInTimeZone,
 } from "@pcobooster/planning-center-models/calendar";
 import { z } from "zod";
@@ -27,14 +28,22 @@ export interface ServicePlanRow {
   sortDate: Date;
 }
 
-const desktopDateFormatter = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  year: "numeric",
+/** "Sat, Oct 31, 2026" for the org calendar day a plan falls on. */
+export const formatPlanDate = (date: Date, orgTimeZone: string): string =>
+  formatCalendarDateLabel(date, orgTimeZone, "weekdayMonthDayYear");
+
+/** "October 2026": the org month a plan falls in, for list section headings. */
+export const formatPlanMonthHeading = (
+  date: Date,
+  orgTimeZone: string
+): string => formatCalendarDateLabel(date, orgTimeZone, "monthYear");
+
+/** Month, day, and weekday for the mobile plan date tile, all in the org zone. */
+export const formatPlanDateTile = (date: Date, orgTimeZone: string) => ({
+  month: formatCalendarDateLabel(date, orgTimeZone, "monthShort"),
+  day: formatCalendarDateLabel(date, orgTimeZone, "dayOfMonth"),
+  weekday: formatCalendarDateLabel(date, orgTimeZone, "weekday"),
 });
-export const formatDate = (date: Date): string =>
-  desktopDateFormatter.format(date);
 
 export const parsePlanDate = (
   value: Date | string | undefined

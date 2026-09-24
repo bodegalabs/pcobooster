@@ -1,23 +1,13 @@
-import { orgCalendarDaysRefMinusItem } from "@pcobooster/planning-center-models/calendar";
+import {
+  formatCalendarDateLabel,
+  orgCalendarDaysRefMinusItem,
+} from "@pcobooster/planning-center-models/calendar";
 import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar-day";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   ScheduleFrequency,
   ServiceHistoryItem,
 } from "@pcobooster/planning-center-models/types";
-
-const displayDateFormatter = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
-const localDayFormatter = new Intl.DateTimeFormat("en-CA", {
-  timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
 
 /** Distinct engagement days in the plan-history band (parity: past = service days + rehearsal-only days; future = same split). */
 export const formatScheduleFrequencyLine = (
@@ -43,8 +33,10 @@ export const toServiceHistoryDate = (value: Date | string | undefined) => {
   return parsed;
 };
 
-export const formatServiceHistoryDisplayDate = (
-  date: Date | string | undefined
+/** "Sat, Sep 26" for the org calendar day a history item falls on. */
+export const formatServiceHistoryDayLabel = (
+  date: Date | string | undefined,
+  orgTimeZone: string
 ) => {
   if (date === undefined || date === "") {
     return "Unknown date";
@@ -54,7 +46,7 @@ export const formatServiceHistoryDisplayDate = (
     return "Invalid date";
   }
 
-  return displayDateFormatter.format(dateObj);
+  return formatCalendarDateLabel(dateObj, orgTimeZone, "weekdayMonthDay");
 };
 
 export const formatHistoryStatusLabel = (
@@ -108,12 +100,15 @@ export const getHistoryStatusDotClass = (
   return "bg-muted-foreground/50";
 };
 
-const toDayKey = (value: Date | string | undefined): string | null => {
+const toDayKey = (
+  value: Date | string | undefined,
+  orgTimeZone: string
+): string | null => {
   const date = toServiceHistoryDate(value);
   if (Number.isNaN(date.getTime())) {
     return null;
   }
-  return localDayFormatter.format(date);
+  return formatCalendarDayInTimeZone(date, orgTimeZone);
 };
 
 export interface ServiceHistoryGroup {
@@ -123,8 +118,10 @@ export interface ServiceHistoryGroup {
   rehearsals: ServiceHistoryItem[];
 }
 
+/** Groups history by schedule, then merges groups whose primary falls on the same org day. */
 export const buildServiceHistoryGroups = (
-  items: ServiceHistoryItem[]
+  items: ServiceHistoryItem[],
+  orgTimeZone: string
 ): ServiceHistoryGroup[] => {
   const bySchedule = new Map<string, ServiceHistoryItem[]>();
   const order: string[] = [];
@@ -151,7 +148,7 @@ export const buildServiceHistoryGroups = (
       groupItems.find((item) => item.timeType !== "rehearsal") ??
       groupItems[0];
 
-    const primaryDayKey = toDayKey(primary.date);
+    const primaryDayKey = toDayKey(primary.date, orgTimeZone);
     const seenRehearsalDays = new Set<string>();
     const additionalServices = groupItems.filter((item) => {
       if (item.id === primary.id) {
@@ -163,7 +160,7 @@ export const buildServiceHistoryGroups = (
       if (item.id === primary.id || item.timeType !== "rehearsal") {
         return false;
       }
-      const rehearsalDayKey = toDayKey(item.date);
+      const rehearsalDayKey = toDayKey(item.date, orgTimeZone);
       if (
         isNonEmptyString(primaryDayKey) &&
         isNonEmptyString(rehearsalDayKey) &&
@@ -191,7 +188,7 @@ export const buildServiceHistoryGroups = (
 
   for (const group of baseGroups) {
     const mergeKey = [
-      toDayKey(group.primary.date) ?? group.dayKey,
+      toDayKey(group.primary.date, orgTimeZone) ?? group.dayKey,
       group.primary.teamName ?? "",
       group.primary.serviceTypeName ?? "",
       group.primary.planTitle ?? "",
@@ -220,7 +217,7 @@ export const buildServiceHistoryGroups = (
     );
     const seenRehearsalDayKeys = new Set<string>();
     for (const rehearsal of existing.rehearsals) {
-      const dayKey = toDayKey(rehearsal.date);
+      const dayKey = toDayKey(rehearsal.date, orgTimeZone);
       if (dayKey !== null) {
         seenRehearsalDayKeys.add(dayKey);
       }
@@ -229,7 +226,7 @@ export const buildServiceHistoryGroups = (
       if (seenRehearsalIds.has(rehearsal.id)) {
         continue;
       }
-      const rehearsalDay = toDayKey(rehearsal.date);
+      const rehearsalDay = toDayKey(rehearsal.date, orgTimeZone);
       if (
         isNonEmptyString(rehearsalDay) &&
         seenRehearsalDayKeys.has(rehearsalDay)

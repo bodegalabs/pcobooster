@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  formatSongLastScheduled,
   hydrateSongCatalogEntry,
   hydrateSongOptionSet,
   parseOptionalDate,
@@ -51,5 +52,25 @@ describe("song catalog client hydration", () => {
     expect(hydrated.song.lastScheduledAt?.toISOString()).toBe(
       "2026-02-15T00:00:00.000Z"
     );
+  });
+});
+
+describe(formatSongLastScheduled, () => {
+  it("labels the org calendar day a song was last scheduled", () => {
+    expect(
+      formatSongLastScheduled(
+        // Saturday December 31, 2026, 7:00 PM Pacific; January 1, 2027 in UTC.
+        "2027-01-01T03:00:00.000Z",
+        "America/Los_Angeles"
+      )
+    ).toBe("Dec 31, 2026");
+  });
+
+  it("returns null when the song has no usable date", () => {
+    expect(
+      [null, "", "not a date"].map((value) =>
+        formatSongLastScheduled(value, "America/Los_Angeles")
+      )
+    ).toStrictEqual([null, null, null]);
   });
 });

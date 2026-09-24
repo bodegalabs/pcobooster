@@ -21,10 +21,11 @@ import {
 } from "@/components/ui/responsive-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
+import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { createSongOptionsQueryOptions } from "@/hooks/use-song-options";
 import { useSongSearch } from "@/hooks/use-song-search";
 import { isQueryFresh } from "@/lib/intent-prefetch";
-import { parseOptionalDate } from "@/lib/song-catalog-client";
+import { formatSongLastScheduled } from "@/lib/song-catalog-client";
 
 interface SongPickerDialogProps {
   open: boolean;
@@ -34,20 +35,6 @@ interface SongPickerDialogProps {
   pendingSongId?: string | null;
 }
 
-const lastScheduledFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
-
-const formatLastScheduled = (date: Date | string | null) => {
-  const parsedDate = parseOptionalDate(date);
-  if (!parsedDate) {
-    return null;
-  }
-  return lastScheduledFormatter.format(parsedDate);
-};
-
 export const SongPickerDialog = ({
   open,
   onOpenChange,
@@ -56,6 +43,7 @@ export const SongPickerDialog = ({
   pendingSongId = null,
 }: SongPickerDialogProps) => {
   const queryClient = useQueryClient();
+  const orgTimeZone = useOrganizationTimeZone();
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const {
@@ -123,8 +111,9 @@ export const SongPickerDialog = ({
                     aria-busy={showRefreshing}
                   >
                     {songs.map((song) => {
-                      const lastScheduledLabel = formatLastScheduled(
-                        song.lastScheduledAt
+                      const lastScheduledLabel = formatSongLastScheduled(
+                        song.lastScheduledAt,
+                        orgTimeZone
                       );
 
                       return (
