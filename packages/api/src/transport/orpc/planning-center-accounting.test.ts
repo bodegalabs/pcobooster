@@ -3,6 +3,7 @@ import type {
   PlanningCenterLogFields,
   PlanningCenterLogger,
 } from "@pcobooster/api/planning-center/request-accounting";
+import { PLANNING_CENTER_REQUEST_CAP } from "@pcobooster/api/planning-center/request-budget";
 import { accountPlanningCenterProcedure } from "@pcobooster/api/transport/orpc/planning-center-accounting";
 import { describe, expect, it } from "vitest";
 
@@ -28,7 +29,10 @@ const steppingClock = () => {
   };
 };
 
-const procedure = { procedure: "people.list", requestId: "request-1" };
+const procedure = {
+  procedure: "people.planWindowHistory",
+  requestId: "request-1",
+};
 
 describe(accountPlanningCenterProcedure, () => {
   it("logs one summary for a procedure that called Planning Center", async () => {
@@ -49,7 +53,7 @@ describe(accountPlanningCenterProcedure, () => {
       {
         message: "Planning Center procedure summary",
         fields: {
-          procedure: "people.list",
+          procedure: "people.planWindowHistory",
           requestId: "request-1",
           durationMs: 25,
           outcome: "success",
@@ -84,10 +88,25 @@ describe(accountPlanningCenterProcedure, () => {
       {
         fields: {
           outcome: "failure",
-          planningCenter: { requests: 1, requestBudget: undefined },
+          planningCenter: {
+            requests: 1,
+            requestBudget: PLANNING_CENTER_REQUEST_CAP,
+          },
         },
       },
     ]);
+  });
+
+  it("caps every procedure's Planning Center requests below the Workers Free subrequest limit", async () => {
+    let received: PlanningCenterRequestAccounting | undefined;
+    await accountPlanningCenterProcedure(procedure, async (accounting) => {
+      received = accounting;
+      await Promise.resolve();
+    });
+    expect({
+      cap: PLANNING_CENTER_REQUEST_CAP,
+      requestBudget: received?.requestBudget,
+    }).toStrictEqual({ cap: 40, requestBudget: 40 });
   });
 
   it("stays quiet for procedures that never called Planning Center", async () => {

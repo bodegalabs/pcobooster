@@ -724,6 +724,44 @@ describe("Planning Center pacing and accounting", () => {
     ]);
   });
 
+  it("counts retries against the request budget and does not retry past it", async () => {
+    const fetch = fetchMock().mockImplementation(
+      async () =>
+        await Promise.resolve(
+          jsonResponse({ error: "Temporarily unavailable" }, { status: 503 })
+        )
+    );
+    const { logger } = recordingLogger();
+    const scope = limits(
+      new PlanningCenterRequestAccounting({ requestBudget: 2 })
+    );
+    const failure = await Effect.runPromise(
+      Effect.gen(function* retryUntilBudget() {
+        const fiber = yield* Effect.forkChild(
+          Effect.flip(pacedClient(fetch, logger).fetch("/services/v2/people/1"))
+        );
+        yield* settle;
+        yield* TestClock.adjust("500 millis");
+        yield* settle;
+        yield* TestClock.adjust("1 second");
+        yield* settle;
+        return yield* Fiber.join(fiber);
+      }).pipe(withLimits(scope), Effect.provide(TestClock.layer()))
+    );
+    expect({
+      failure: {
+        tag: failure._tag,
+        source: "source" in failure ? failure.source : undefined,
+      },
+      sent: fetch.mock.calls.length,
+      requests: scope.accounting.requestCount,
+    }).toStrictEqual({
+      failure: { tag: "PlanningCenterSubrequestLimitError", source: "budget" },
+      sent: 2,
+      requests: 2,
+    });
+  });
+
   it("reports Cloudflare's subrequest cap distinctly and stops sending", async () => {
     const fetch = fetchMock().mockRejectedValue(
       new Error("Too many subrequests.")
