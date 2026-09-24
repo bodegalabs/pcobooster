@@ -3,9 +3,9 @@ import { createRequestContext } from "@pcobooster/api/application/context";
 import type { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import type { ApplicationRuntime } from "@pcobooster/api/application/runtime";
+import { Server } from "@pcobooster/api/server";
 import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
-import { Cause, Exit } from "effect";
-import type { Effect } from "effect";
+import { Cause, Effect, Exit } from "effect";
 
 export interface ExecuteApplicationEffectOptions {
   /**
@@ -91,7 +91,7 @@ export const toORPCError = (
 
 export const executeApplicationEffect = async <Value>(
   runtime: ApplicationRuntime<never>,
-  program: Effect.Effect<Value, ApplicationFault, RequestContext>,
+  program: Effect.Effect<Value, ApplicationFault, RequestContext | Server>,
   rpcContext: RpcContext,
   signal?: AbortSignal,
   options: ExecuteApplicationEffectOptions = {}
@@ -103,7 +103,7 @@ export const executeApplicationEffect = async <Value>(
       ? new AbortController().signal
       : requestSignal;
   const result = await runtime.execute(
-    program,
+    Effect.provideService(program, Server, rpcContext.server),
     {
       ...baseContext,
       requestId: rpcContext.requestId,

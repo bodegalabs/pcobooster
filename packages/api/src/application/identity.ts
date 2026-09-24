@@ -4,21 +4,16 @@ import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
 import { NotFound } from "@pcobooster/api/application/errors/not-found";
 import { PersistenceFailure } from "@pcobooster/api/application/errors/persistence-failure";
 import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
-import { auth } from "@pcobooster/api/auth";
-import {
-  readDemoConfiguration,
-  resolveDemoSession,
-} from "@pcobooster/api/auth/demo-access";
+import type { Auth } from "@pcobooster/api/auth";
+import { resolveDemoSession } from "@pcobooster/api/auth/demo-access";
 import type { DemoConfiguration } from "@pcobooster/api/auth/demo-access";
 import {
   getDevBypassPlanningCenterAccount,
   getDevBypassSession,
-  isDevAuthBypassEnabled,
   loadDevBypassIdentity,
 } from "@pcobooster/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
 import { getSelectedPlanningCenterAccountId } from "@pcobooster/api/auth/planning-center-session";
-import { isPeoplePageEnabled } from "@pcobooster/api/config/people-page-availability";
 import { authorizeAdminRequest } from "@pcobooster/api/modules/admin/authorize-admin";
 import {
   getAccountActivity,
@@ -27,16 +22,16 @@ import {
 import { getDemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
 import type { DemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
 import { createReadOnlyPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import { Server } from "@pcobooster/api/server";
+import type { ServerDependencies } from "@pcobooster/api/server";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { Effect } from "effect";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
 const DEMO_ACCOUNT_ID = "demo";
 
-type AuthSession = Awaited<ReturnType<typeof auth.api.getSession>>;
-type AuthAccount = Awaited<
-  ReturnType<typeof auth.api.listUserAccounts>
->[number];
+type AuthSession = Awaited<ReturnType<Auth["api"]["getSession"]>>;
+type AuthAccount = Awaited<ReturnType<Auth["api"]["listUserAccounts"]>>[number];
 
 export interface SessionSummary {
   readonly userId: string;
@@ -67,34 +62,51 @@ export interface IdentityDependencies {
     configuration: DemoConfiguration,
     signal: AbortSignal
   ) => Promise<DemoOrganization>;
-  readonly isDevAuthBypassEnabled: typeof isDevAuthBypassEnabled;
-  readonly loadDevBypassIdentity: typeof loadDevBypassIdentity;
+  readonly isDevAuthBypassEnabled: () => boolean;
+  readonly loadDevBypassIdentity: () => ReturnType<
+    typeof loadDevBypassIdentity
+  >;
   readonly getDevBypassSession: typeof getDevBypassSession;
   readonly getDevBypassPlanningCenterAccount: typeof getDevBypassPlanningCenterAccount;
   readonly getSession: (headers: Headers) => Promise<AuthSession>;
   readonly listUserAccounts: (headers: Headers) => Promise<AuthAccount[]>;
-  readonly getIdentityForAccount: typeof getPlanningCenterIdentityForAccount;
+  readonly getIdentityForAccount: (
+    request: Request,
+    account: { id: string; accountId: string }
+  ) => ReturnType<typeof getPlanningCenterIdentityForAccount>;
   readonly getSelectedAccountId: typeof getSelectedPlanningCenterAccountId;
 }
 
-const defaultIdentityDependencies: IdentityDependencies = {
-  resolveDemoSession: (request) =>
-    resolveDemoSession(request, readDemoConfiguration()),
+export const createIdentityDependencies = ({
+  auth,
+  config,
+}: ServerDependencies): IdentityDependencies => ({
+  resolveDemoSession: (request) => resolveDemoSession(request, config.demo),
   loadDemoOrganization: async (configuration, signal) =>
     await getDemoOrganization(
-      createReadOnlyPlanningCenterServices(configuration.planningCenter),
+      createReadOnlyPlanningCenterServices(
+        configuration.planningCenter,
+        config.fallbackTimeZone
+      ),
       signal
     ),
-  isDevAuthBypassEnabled,
-  loadDevBypassIdentity,
+  isDevAuthBypassEnabled: () => config.devAuthBypass,
+  loadDevBypassIdentity: async () =>
+    await loadDevBypassIdentity(config.localPlanningCenterToken),
   getDevBypassSession,
   getDevBypassPlanningCenterAccount,
   getSession: async (headers) => await auth.api.getSession({ headers }),
   listUserAccounts: async (headers) =>
     await auth.api.listUserAccounts({ headers }),
-  getIdentityForAccount: getPlanningCenterIdentityForAccount,
+  getIdentityForAccount: async (request, account) =>
+    await getPlanningCenterIdentityForAccount(auth, request, account),
   getSelectedAccountId: getSelectedPlanningCenterAccountId,
-};
+});
+
+const resolveIdentityDependencies = (overrides?: IdentityDependencies) =>
+  overrides === undefined
+    ? Server.pipe(Effect.map(createIdentityDependencies))
+    : Effect.succeed(overrides);
 
 const toIdentityFault = (error: Error, operation: string): ApplicationFault =>
   error instanceof Unauthenticated || error instanceof Forbidden
@@ -182,13 +194,14 @@ const demoAccountsSummary = (
 });
 
 export const getSessionStatus = (
-  dependencies: IdentityDependencies = defaultIdentityDependencies
+  overrides?: IdentityDependencies
 ): Effect.Effect<
   { readonly authenticated: boolean },
   ApplicationFault,
-  RequestContext
+  RequestContext | Server
 > =>
   Effect.gen(function* readSessionStatus() {
+    const dependencies = yield* resolveIdentityDependencies(overrides);
     const { request, headers } = yield* RequestContext;
     if (
       dependencies.resolveDemoSession(request) !== null ||
@@ -204,13 +217,14 @@ export const getSessionStatus = (
   });
 
 export const getPlanningCenterAccounts = (
-  dependencies: IdentityDependencies = defaultIdentityDependencies
+  overrides?: IdentityDependencies
 ): Effect.Effect<
   PlanningCenterAccountsSummary,
   ApplicationFault,
-  RequestContext
+  RequestContext | Server
 > =>
   Effect.gen(function* listPlanningCenterAccounts() {
+    const dependencies = yield* resolveIdentityDependencies(overrides);
     const { request, headers, signal } = yield* RequestContext;
     const demo = dependencies.resolveDemoSession(request);
     if (demo) {
@@ -281,13 +295,14 @@ export const getPlanningCenterAccounts = (
 
 export const selectPlanningCenterAccount = (
   input: { readonly accountId: string },
-  dependencies: IdentityDependencies = defaultIdentityDependencies
+  overrides?: IdentityDependencies
 ): Effect.Effect<
   { readonly success: true; readonly selectedAccountId: string },
   ApplicationFault,
-  RequestContext
+  RequestContext | Server
 > =>
   Effect.gen(function* selectAccount() {
+    const dependencies = yield* resolveIdentityDependencies(overrides);
     const { request, headers } = yield* RequestContext;
     if (dependencies.resolveDemoSession(request) !== null) {
       if (input.accountId !== DEMO_ACCOUNT_ID) {
@@ -333,18 +348,19 @@ export const selectPlanningCenterAccount = (
     return { success: true, selectedAccountId: account.id };
   });
 
-export const getPeopleFeature = Effect.sync(() => ({
-  enabled: isPeoplePageEnabled(),
-}));
+export const getPeopleFeature = Server.pipe(
+  Effect.map(({ config }) => ({ enabled: config.peoplePageEnabled }))
+);
 
 export const getAdminAccounts = Effect.gen(function* readAdminAccounts() {
   const { request } = yield* RequestContext;
+  const server = yield* Server;
   const session = yield* tryIdentity(
-    async () => await authorizeAdminRequest(request),
+    async () => await authorizeAdminRequest(server, request),
     "authorize-admin"
   );
   const accounts = yield* tryIdentity(
-    async () => await getAccountActivity(),
+    async () => await getAccountActivity(server.database),
     "get-account-activity"
   );
   return { email: session.user.email, accounts };
@@ -355,16 +371,17 @@ export const getAdminUser = (input: {
 }): Effect.Effect<
   { readonly user: Awaited<ReturnType<typeof getUserAccountDetail>> },
   ApplicationFault,
-  RequestContext
+  RequestContext | Server
 > =>
   Effect.gen(function* readAdminUser() {
     const { request } = yield* RequestContext;
+    const server = yield* Server;
     yield* tryIdentity(
-      async () => await authorizeAdminRequest(request),
+      async () => await authorizeAdminRequest(server, request),
       "authorize-admin"
     );
     const user = yield* tryIdentity(
-      async () => await getUserAccountDetail(input.userId),
+      async () => await getUserAccountDetail(input.userId, server.database),
       "get-user-account-detail"
     );
     return { user };

@@ -5,6 +5,7 @@ import {
   updateRunSheetTime,
 } from "@pcobooster/api/application/run-sheet";
 import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import { testServer } from "@pcobooster/api/testing/server";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
 import { applicationRuntime } from "@pcobooster/api/transport/orpc/implementation";
 import { Effect } from "effect";
@@ -16,10 +17,14 @@ const context = {
   }),
   requestId: "run-sheet-request",
   resHeaders: new Headers(),
+  server: testServer(),
 };
 
 const setup = () => {
-  const services = createPlanningCenterServices("run-sheet-test-token");
+  const services = createPlanningCenterServices(
+    "run-sheet-test-token",
+    "America/Los_Angeles"
+  );
   const access = {
     authentication: {
       kind: "account" as const,
@@ -32,6 +37,8 @@ const setup = () => {
     cacheScope: services.core.getCacheScope(),
     services,
     presentation: false,
+    presentationSeed: "test-seed",
+    fallbackTimeZone: "America/Los_Angeles",
   };
   return { access, services };
 };

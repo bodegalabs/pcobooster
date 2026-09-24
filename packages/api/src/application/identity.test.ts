@@ -14,33 +14,28 @@ import {
   getDevBypassSession,
   loadDevBypassIdentity,
 } from "@pcobooster/api/auth/dev-bypass";
-import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
+import { Server } from "@pcobooster/api/server";
+import { testServer } from "@pcobooster/api/testing/server";
 import { Cause, Effect, Exit, Option } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 const request = new Request("https://pcobooster.com/api/rpc/accounts");
 
-const run = async <Value>(
-  program: Effect.Effect<Value, unknown, RequestContext>
+const provide = <Value, Failure>(
+  program: Effect.Effect<Value, Failure, RequestContext | Server>
 ) =>
-  await Effect.runPromise(
-    Effect.provideService(
-      program,
-      RequestContext,
-      createRequestContext(request)
-    )
+  program.pipe(
+    Effect.provideService(RequestContext, createRequestContext(request)),
+    Effect.provideService(Server, testServer())
   );
 
+const run = async <Value>(
+  program: Effect.Effect<Value, unknown, RequestContext | Server>
+) => await Effect.runPromise(provide(program));
+
 const runExit = async <Value, Failure extends { readonly _tag: string }>(
-  program: Effect.Effect<Value, Failure, RequestContext>
-) =>
-  await Effect.runPromiseExit(
-    Effect.provideService(
-      program,
-      RequestContext,
-      createRequestContext(request)
-    )
-  );
+  program: Effect.Effect<Value, Failure, RequestContext | Server>
+) => await Effect.runPromiseExit(provide(program));
 
 const failureTag = (exit: Exit.Exit<unknown, { readonly _tag: string }>) => {
   const cause = Option.getOrThrow(Exit.getCause(exit));
@@ -53,7 +48,7 @@ const unauthenticatedDependencies = (): IdentityDependencies => ({
     .fn<IdentityDependencies["loadDemoOrganization"]>()
     .mockRejectedValue(new Error("Demo is not configured")),
   isDevAuthBypassEnabled: () => false,
-  loadDevBypassIdentity,
+  loadDevBypassIdentity: async () => await loadDevBypassIdentity(null),
   getDevBypassSession,
   getDevBypassPlanningCenterAccount,
   getSession: vi
@@ -62,7 +57,9 @@ const unauthenticatedDependencies = (): IdentityDependencies => ({
   listUserAccounts: vi
     .fn<IdentityDependencies["listUserAccounts"]>()
     .mockResolvedValue([]),
-  getIdentityForAccount: getPlanningCenterIdentityForAccount,
+  getIdentityForAccount: vi
+    .fn<IdentityDependencies["getIdentityForAccount"]>()
+    .mockResolvedValue(null),
   getSelectedAccountId: () => null,
 });
 

@@ -16,21 +16,6 @@ export default defineConfig({
     environment: "node",
     globals: true,
     clearMocks: true,
-    // Unit tests must not inherit database or OAuth credentials from .env.local.
-    env: {
-      BETTER_AUTH_URL: "http://localhost:3000",
-      BETTER_AUTH_SECRET:
-        "pcobooster-unit-test-secret-with-no-production-access",
-      PLANNING_CENTER_OAUTH_CLIENT_ID: "test-client",
-      PLANNING_CENTER_OAUTH_CLIENT_SECRET: "test-client-secret",
-      PLANNING_CENTER_CLIENT: "test-client",
-      PLANNING_CENTER_PAT: "test-token",
-      DEV_AUTH_BYPASS: "0",
-      PRESENTATION_MODE: "0",
-      DEMO_ACCESS_KEY: "",
-      DEMO_PLANNING_CENTER_CLIENT: "",
-      DEMO_PLANNING_CENTER_PAT: "",
-    },
   },
   resolve: {
     alias: [

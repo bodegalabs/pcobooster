@@ -65,7 +65,7 @@ const publicDefines = (devServer: boolean) => ({
   // `bun run dev:present` sets presentation mode for the dev server; deployed builds are
   // always live.
   "import.meta.env.VITE_PRESENTATION_SCOPE": JSON.stringify(
-    devServer ? getPresentationCacheScope() : "live"
+    devServer ? getPresentationCacheScope(process.env) : "live"
   ),
 });
 

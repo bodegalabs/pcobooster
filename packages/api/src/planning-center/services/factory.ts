@@ -25,7 +25,10 @@ import {
   PlanningCenterSongsService,
 } from "@pcobooster/api/planning-center/services/songs-service";
 
-const createServicesForClient = (core: PlanningCenterCoreClient) => {
+const createServicesForClient = (
+  core: PlanningCenterCoreClient,
+  fallbackTimeZone: string
+) => {
   const catalog = new PlanningCenterCatalogService(
     core,
     planningCenterCatalogServiceCaches
@@ -48,6 +51,7 @@ const createServicesForClient = (core: PlanningCenterCoreClient) => {
         await resolveOrganizationTimeZone({
           cacheScope: core.getCacheScope(),
           catalogService: catalog,
+          fallbackTimeZone,
           signal,
         }),
       planningCenterPlansServiceCaches
@@ -59,21 +63,33 @@ const createServicesForClient = (core: PlanningCenterCoreClient) => {
   };
 };
 
-export const createPlanningCenterServices = (accessToken: string) =>
+export const createPlanningCenterServices = (
+  accessToken: string,
+  fallbackTimeZone: string
+) =>
   createServicesForClient(
-    new PlanningCenterCoreClient({ kind: "bearer", accessToken })
+    new PlanningCenterCoreClient({ kind: "bearer", accessToken }),
+    fallbackTimeZone
   );
 
-export const createBasicPlanningCenterServices = () =>
-  createServicesForClient(createBasicPlanningCenterClient());
+export const createBasicPlanningCenterServices = (
+  token: PlanningCenterPersonalAccessToken,
+  fallbackTimeZone: string
+) =>
+  createServicesForClient(
+    createBasicPlanningCenterClient(token),
+    fallbackTimeZone
+  );
 
 /** Demo services can read the demo organization but never write to it. */
 export const createReadOnlyPlanningCenterServices = (
-  token: PlanningCenterPersonalAccessToken
+  token: PlanningCenterPersonalAccessToken,
+  fallbackTimeZone: string
 ) =>
   createServicesForClient(
     new PlanningCenterCoreClient(
       { kind: "basic", ...token },
       { readOnly: true }
-    )
+    ),
+    fallbackTimeZone
   );

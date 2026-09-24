@@ -6,7 +6,6 @@ import {
   getSessionStatus,
   selectPlanningCenterAccount,
 } from "@pcobooster/api/application/identity";
-import { isDevAuthBypassEnabled } from "@pcobooster/api/auth/dev-bypass";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
 import {
   applicationRuntime,
@@ -48,9 +47,9 @@ const accountsSelect = rpc.accounts.select.handler(
       context,
       signal
     );
-    if (!isDevAuthBypassEnabled()) {
+    if (!context.server.config.devAuthBypass) {
       appendSelectedPlanningCenterAccountCookie(
-        context.resHeaders,
+        context,
         result.selectedAccountId
       );
     }

@@ -22,11 +22,15 @@ export interface DemoConfiguration {
   readonly planningCenter: PlanningCenterPersonalAccessToken;
 }
 
-type DemoEnvironment = Readonly<Record<string, string | undefined>>;
+interface DemoEnvironment {
+  readonly DEMO_ACCESS_KEY?: string;
+  readonly DEMO_PLANNING_CENTER_CLIENT?: string;
+  readonly DEMO_PLANNING_CENTER_PAT?: string;
+}
 
 /** Null unless every demo setting is present, so the demo is off by default. */
 export const readDemoConfiguration = (
-  environment: DemoEnvironment = process.env
+  environment: DemoEnvironment
 ): DemoConfiguration | null => {
   const accessKey = environment.DEMO_ACCESS_KEY?.trim();
   const applicationId = environment.DEMO_PLANNING_CENTER_CLIENT?.trim();

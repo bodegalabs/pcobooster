@@ -8,7 +8,7 @@
 ## Project Structure & Module Organization
 
 - `apps/web/`: TanStack Start product UI on Cloudflare Workers. File routes live in `apps/web/src/routes` (`src/routeTree.gen.ts` is generated and committed); the sign-in gate and other request middleware in `src/start.ts`; components, hooks, and public assets under `apps/web/src` and `apps/web/public`.
-- `apps/server/`: Cloudflare Worker/Hono composition root. It mounts Better Auth, oRPC, the OpenAPI reference, CORS, and cache policy.
+- `apps/server/`: the API Worker, an Alchemy Effect-native `Cloudflare.Worker` (`src/worker.ts`) that reads its settings with `Config` at startup, binds D1, and serves the Hono composition root (`src/app.ts`: Better Auth, oRPC, the OpenAPI reference, CORS, and cache policy). `src/database.ts` declares the D1 database and its `Drizzle.Schema`; `src/stage.ts` derives per-stage origins for both the Worker and `alchemy.run.ts`.
 - `apps/marketing/`: independent marketing site, a TanStack Start app prerendered to static files. Its interactive product replica lives in `apps/marketing/src/components/product-demo/` with fictional fixtures; it shares only design tokens with the product, not components.
 - `apps/admin/`: private TanStack Start admin app for `admin.pcobooster.com`, deployed as its own Cloudflare Worker. See `docs/admin.md`.
 - `packages/design-tokens/`: product color and radius tokens (`tokens.css`, light on `:root`, dark under `.dark`) shared by `apps/web` and the marketing replica.
@@ -27,7 +27,7 @@
 
 - Use Bun for dependency management and scripts. `bun.lock` is the only committed lockfile; do not add `package-lock.json` or run npm-based install workflows for this repo.
 - `bun run dev`: start API, product, and admin through Alchemy, plus the marketing dev server (ports 3000, 3001, 3002, and 3003).
-- `bun run build`: build the Hono service and the Vite apps through Turborepo.
+- `bun run build`: build the Vite apps through Turborepo. Alchemy bundles the API Worker itself on `dev`/deploy.
 - `bun run check` (also `lint`): run Ultracite formatting and type-aware lint checks; warnings fail the check. All selected presets in `oxlint.config.ts` remain strict.
 - `bun run lint:ci`: same as `lint` with `--format github` for Action annotations (used by CI).
 - `bun run fix` (also `lint:fix`): apply Ultracite fixes and formatting. Review fixes and run validation afterward.
@@ -35,7 +35,7 @@
 - `bun run typecheck`: run TypeScript checks (`tsc --noEmit`).
 - `bun run test`: run Vitest test suite once.
 - `bun run test:watch`: run Vitest in watch mode.
-- `bun run db:generate`: generate SQLite migrations from the Drizzle schema interactively. `Drizzle.Schema` in `alchemy.run.ts` also generates them on `bun run dev`/deploy; commit every generated migration (a test enforces it). Name new migrations with `bun run --cwd packages/api db:generate --name <what_changed>`. Alchemy applies them at startup/deploy. Migrations must keep the deployed code working (expand, then contract); see [docs/database.md](docs/database.md#migrations-must-keep-the-running-app-online).
+- `bun run db:generate`: generate SQLite migrations from the Drizzle schema interactively. `Drizzle.Schema` (`apps/server/src/database.ts`) also generates them on `bun run dev`/deploy; commit every generated migration (a test enforces it). Name new migrations with `bun run --cwd packages/api db:generate --name <what_changed>`. Alchemy applies them at startup/deploy. Migrations must keep the deployed code working (expand, then contract); see [docs/database.md](docs/database.md#migrations-must-keep-the-running-app-online).
 - Deployment and rollback changes: read [docs/ci-cd.md](docs/ci-cd.md) and [docs/database.md](docs/database.md). Merges to `main` deploy production automatically through CI. Confirm any deployment you run yourself (`deploy:*`, `infra:deploy`) with the user before executing it.
 - `bun run infra:plan`: dry-run the CI/deploy control plane (`alchemy.ci.ts`: GitHub ruleset, environments, Cloudflare deploy tokens, Infisical secrets and OIDC bindings) with drift detection. Apply only with `bun run infra:deploy` after the user confirms.
 
@@ -75,6 +75,7 @@
 - Better Auth is mounted directly by Hono at `/api/auth/*`. The product Worker's `/api/*` and `/admin/*` server routes forward through service bindings (locally too), so browser requests stay on the web origin.
 - Product operations use oRPC. Better Auth, liveness health, and the OpenAPI reference are the intentional non-oRPC surfaces.
 - Database access uses Drizzle through `packages/api/src/db`; migrations include Better Auth tables.
+- The API Worker builds `ServerDependencies` (`packages/api/src/server.ts`: typed `ServerConfig`, Drizzle database, Better Auth) once per isolate and passes them explicitly: in the oRPC context, and to Effect programs as the `Server` service. `packages/api` never reads `process.env` or `cloudflare:workers`; add new settings to `ServerConfig` and read them in `apps/server/src/worker.ts`.
 - Browser query keys, persistence schemas, and cache hydration live in `apps/web/src/lib`. The web app may import contracts and Planning Center models, never `packages/api`.
 - Backward compatibility is not a priority during the current dev phase; prefer cleaner APIs/URLs/UX over temporary compatibility shims unless explicitly requested.
 

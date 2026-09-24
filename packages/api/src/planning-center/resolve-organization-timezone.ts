@@ -16,14 +16,10 @@ export interface OrganizationTimeZoneDependencies {
     "getOrganization"
   >;
   readonly cacheScope: string;
+  /** When Planning Center does not return a zone (or the request fails). */
+  readonly fallbackTimeZone: string;
   readonly signal?: AbortSignal;
 }
-
-/** When Planning Center does not return a zone (or the request fails). */
-const configuredFallbackTimeZone = (): string => {
-  const configured = process.env.PLANNING_CENTER_TIME_ZONE?.trim();
-  return isNonEmptyString(configured) ? configured : "America/Los_Angeles";
-};
 
 const readTimeZoneFromOrganization = (org: PCResource): string | null => {
   const raw = org.attributes.time_zone;
@@ -65,7 +61,7 @@ export const resolveOrganizationTimeZone = async (
     // fall through to fallback
   }
 
-  const fb = configuredFallbackTimeZone();
+  const fb = dependencies.fallbackTimeZone;
   cache.set(key, { timeZone: fb, expiresAt: now + MISS_TTL_MS });
   return fb;
 };

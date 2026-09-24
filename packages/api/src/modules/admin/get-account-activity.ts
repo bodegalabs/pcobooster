@@ -1,5 +1,4 @@
 import { getPlanningCenterIdentityFromAccessToken } from "@pcobooster/api/auth/planning-center-identity";
-import { db } from "@pcobooster/api/db";
 import type { Db } from "@pcobooster/api/db/client";
 import { getPlanningCenterAccountIdentity } from "@pcobooster/api/modules/admin/planning-center-account-identities";
 import type {
@@ -60,27 +59,14 @@ const toIsoString = (value: Date | string | number | null): string | null => {
     : new Date(value).toISOString();
 };
 
-export const getAdminEmailAllowlist = (): string[] => {
-  const configured = process.env.PCOBOOSTER_ADMIN_EMAILS;
-  if (!isNonEmptyString(configured)) {
-    return ["jakebodea@gmail.com"];
-  }
-
-  return configured
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
-};
-
-export const isAdminEmail = (email: string | null | undefined): boolean => {
-  if (!isNonEmptyString(email)) {
-    return false;
-  }
-  return getAdminEmailAllowlist().includes(email.toLowerCase());
-};
+export const isAdminEmail = (
+  adminEmails: readonly string[],
+  email: string | null | undefined
+): boolean =>
+  isNonEmptyString(email) && adminEmails.includes(email.toLowerCase());
 
 export const getAccountActivity = async (
-  database: Db = db
+  database: Db
 ): Promise<AdminAccountActivity[]> => {
   const rows = await database.all(sql`
     with linked_accounts as (
@@ -171,7 +157,7 @@ export const getAccountActivity = async (
 
 export const getUserAccountDetail = async (
   userId: string,
-  database: Db = db
+  database: Db
 ): Promise<AdminUserAccountDetail | null> => {
   const accounts = await getAccountActivity(database);
   const user = accounts.find((account) => account.userId === userId);

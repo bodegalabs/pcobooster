@@ -5,6 +5,7 @@ import type { AnyRouter } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ResponseHeadersPlugin } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
+import type { ServerDependencies } from "@pcobooster/api/server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger as requestLogger } from "hono/logger";
@@ -12,7 +13,6 @@ import { z } from "zod";
 
 import { createContext } from "./context";
 
-type AuthHandler = (request: Request) => Promise<Response> | Response;
 const privateNoStore = "private, no-store";
 const requestLogContextSchema = z.object({
   request: z.instanceof(Request),
@@ -36,17 +36,20 @@ const preventSharedCaching = (response: Response): Response => {
   return response;
 };
 
+type AuthHandler = (request: Request) => Promise<Response> | Response;
+
 export interface CreateServerAppOptions {
-  authHandler: AuthHandler;
-  corsOrigin: string;
+  server: ServerDependencies;
+  /** Defaults to Better Auth's handler; tests substitute their own. */
+  authHandler?: AuthHandler;
   enableRequestLogging?: boolean;
   log: ErrorLogger;
   router: AnyRouter;
 }
 
 export const createServerApp = ({
-  authHandler,
-  corsOrigin,
+  server,
+  authHandler = async (request) => await server.auth.handler(request),
   enableRequestLogging = true,
   log,
   router,
@@ -63,7 +66,7 @@ export const createServerApp = ({
       allowHeaders: ["Content-Type", "Authorization"],
       allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
       credentials: true,
-      origin: corsOrigin,
+      origin: server.config.publicOrigin,
     })
   );
 
@@ -133,7 +136,7 @@ export const createServerApp = ({
 
   const handleRpcRequest = async (request: Request): Promise<Response> => {
     const result = await rpcHandler.handle(request, {
-      context: createContext({ request }),
+      context: createContext({ request, server }),
       prefix: "/api/rpc",
     });
 
@@ -146,7 +149,7 @@ export const createServerApp = ({
 
   const handleOpenApiRequest = async (request: Request): Promise<Response> => {
     const result = await apiHandler.handle(request, {
-      context: createContext({ request }),
+      context: createContext({ request, server }),
       prefix: "/api/reference",
     });
 

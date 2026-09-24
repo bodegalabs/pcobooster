@@ -1,10 +1,15 @@
 import { ORPCError, os } from "@orpc/server";
+import { appRouter } from "@pcobooster/api/orpc";
+import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { createServerApp } from "./app";
 
 const allowedOrigin = "https://pcobooster.com";
+const server = testServer({
+  config: testServerConfig({ BETTER_AUTH_URL: allowedOrigin }),
+});
 const recordedAt = new Date("2026-09-19T12:34:56.000Z");
 const privateNoStore = "private, no-store";
 type TestAuthHandler = (request: Request) => Promise<Response> | Response;
@@ -69,7 +74,7 @@ const rpcRequest = (path: string, requestId?: string) => {
 const createTestApp = (authHandler: TestAuthHandler) =>
   createServerApp({
     authHandler,
-    corsOrigin: allowedOrigin,
+    server,
     enableRequestLogging: false,
     log: { error: vi.fn<TestErrorLogger>() },
     router: testRouter,
@@ -77,7 +82,12 @@ const createTestApp = (authHandler: TestAuthHandler) =>
 
 describe(createServerApp, () => {
   it("composes the production router for both API transports", async () => {
-    const { default: productionApp } = await import("./index");
+    const productionApp = createServerApp({
+      server,
+      enableRequestLogging: false,
+      log: { error: vi.fn<TestErrorLogger>() },
+      router: appRouter,
+    });
 
     const rpcResponse = await productionApp.request(rpcRequest("health"));
     const referenceResponse = await productionApp.request(
@@ -167,7 +177,7 @@ describe(createServerApp, () => {
     const log = { error: vi.fn<TestErrorLogger>() };
     const app = createServerApp({
       authHandler: () => new Response(null, { status: 501 }),
-      corsOrigin: allowedOrigin,
+      server,
       enableRequestLogging: false,
       log,
       router: testRouter,
@@ -274,7 +284,7 @@ describe(createServerApp, () => {
     );
     const app = createServerApp({
       authHandler,
-      corsOrigin: allowedOrigin,
+      server,
       enableRequestLogging: false,
       log: { error: vi.fn<TestErrorLogger>() },
       router: testRouter,

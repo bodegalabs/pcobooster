@@ -1,8 +1,7 @@
-const localDevelopmentDefault = process.env.NODE_ENV !== "production";
-
+/** Unset means on for local development and off once deployed (`fallback`). */
 export const resolvePeoplePageAvailability = (
   configuredValue: string | undefined,
-  fallback = localDevelopmentDefault
+  fallback: boolean
 ): boolean => {
   if (configuredValue === undefined || configuredValue === "") {
     return fallback;
@@ -15,6 +14,3 @@ export const resolvePeoplePageAvailability = (
   }
   throw new Error('PEOPLE_PAGE_ENABLED must be either "true" or "false"');
 };
-
-export const isPeoplePageEnabled = (): boolean =>
-  resolvePeoplePageAvailability(process.env.PEOPLE_PAGE_ENABLED);

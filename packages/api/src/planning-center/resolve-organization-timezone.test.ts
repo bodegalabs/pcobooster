@@ -1,6 +1,7 @@
 import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
+import { testServerConfig } from "@pcobooster/api/testing/server";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 const organization = (timeZone: string): PCResource => ({
   type: "Organization",
@@ -9,10 +10,6 @@ const organization = (timeZone: string): PCResource => ({
 });
 
 describe(resolveOrganizationTimeZone, () => {
-  afterEach(() => {
-    vi.unstubAllEnvs();
-  });
-
   it("uses the explicit service and cache scope for converted requests", async () => {
     const firstCatalog = {
       getOrganization: vi
@@ -29,12 +26,14 @@ describe(resolveOrganizationTimeZone, () => {
       resolveOrganizationTimeZone({
         catalogService: firstCatalog,
         cacheScope: "effect-request-first",
+        fallbackTimeZone: "America/Los_Angeles",
       })
     ).resolves.toBe("America/Chicago");
     await expect(
       resolveOrganizationTimeZone({
         catalogService: secondCatalog,
         cacheScope: "effect-request-second",
+        fallbackTimeZone: "America/Los_Angeles",
       })
     ).resolves.toBe("America/New_York");
   });
@@ -46,7 +45,9 @@ describe(resolveOrganizationTimeZone, () => {
   ])(
     "falls back to PLANNING_CENTER_TIME_ZONE=%j as %s without an org zone",
     async (configured, expected) => {
-      vi.stubEnv("PLANNING_CENTER_TIME_ZONE", configured);
+      const { fallbackTimeZone } = testServerConfig({
+        PLANNING_CENTER_TIME_ZONE: configured,
+      });
       const catalogService = {
         getOrganization: vi
           .fn<() => Promise<PCResource>>()
@@ -57,6 +58,7 @@ describe(resolveOrganizationTimeZone, () => {
         resolveOrganizationTimeZone({
           catalogService,
           cacheScope: `fallback-${String(configured)}`,
+          fallbackTimeZone,
         })
       ).resolves.toBe(expected);
     }

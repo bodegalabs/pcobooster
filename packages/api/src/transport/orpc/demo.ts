@@ -17,13 +17,13 @@ const start = rpc.demo.start.handler(async ({ input, context, signal }) => {
     context,
     signal
   );
-  appendDemoSessionCookie(context.resHeaders, sessionToken);
+  appendDemoSessionCookie(context, sessionToken);
   return { demo: true };
 });
 
 const exit = rpc.demo.exit.handler(({ context }) => {
   applyPrivateNoStore(context.resHeaders);
-  appendDemoSessionCookie(context.resHeaders, null);
+  appendDemoSessionCookie(context, null);
   return { demo: false };
 });
 

@@ -5,11 +5,7 @@ import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
 import { InvalidInput } from "@pcobooster/api/application/errors/invalid-input";
 import { RateLimited } from "@pcobooster/api/application/errors/rate-limited";
 import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
-import {
-  readDemoConfiguration,
-  resolveDemoSession,
-} from "@pcobooster/api/auth/demo-access";
-import { isDevAuthBypassEnabled } from "@pcobooster/api/auth/dev-bypass";
+import { resolveDemoSession } from "@pcobooster/api/auth/demo-access";
 import { requirePlanningCenterAccessToken } from "@pcobooster/api/auth/planning-center-session";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterPersonalAccessToken } from "@pcobooster/api/planning-center/core-client";
@@ -20,7 +16,12 @@ import {
   createBasicPlanningCenterServices,
   createReadOnlyPlanningCenterServices,
 } from "@pcobooster/api/planning-center/services/factory";
-import { isPresentationMode } from "@pcobooster/presentation-mode";
+import { Server } from "@pcobooster/api/server";
+import type { ServerDependencies } from "@pcobooster/api/server";
+import {
+  getPresentationSeed,
+  isPresentationMode,
+} from "@pcobooster/presentation-mode";
 import { Context, Effect } from "effect";
 
 /** A signed-in user acting through their linked Planning Center account. */
@@ -54,6 +55,10 @@ export interface PlanningCenterRequestAccess {
   readonly services: RequestPlanningCenterServices;
   /** Replace people's personal details with stable fictional ones. */
   readonly presentation: boolean;
+  /** Seeds the fictional names; stable so aliases survive restarts. */
+  readonly presentationSeed: string;
+  /** Used when Planning Center does not report the organization's time zone. */
+  readonly fallbackTimeZone: string;
 }
 
 export class PlanningCenterAccess extends Context.Service<
@@ -68,15 +73,22 @@ export interface PlanningCenterAccessDependencies {
   ) => RequestPlanningCenterServices;
   /** Local presentation mode; demo sessions are always presented. */
   readonly presentationMode: () => boolean;
+  readonly presentationSeed: string;
+  readonly fallbackTimeZone: string;
 }
 
-const defaultDependencies: PlanningCenterAccessDependencies = {
+export const createPlanningCenterAccessDependencies = (
+  server: ServerDependencies
+): PlanningCenterAccessDependencies => ({
   authorize: async (request) => {
-    const demo = resolveDemoSession(request, readDemoConfiguration());
+    const demo = resolveDemoSession(request, server.config.demo);
     if (demo) {
       return { kind: "demo", planningCenter: demo.planningCenter };
     }
-    const authenticated = await requirePlanningCenterAccessToken(request);
+    const authenticated = await requirePlanningCenterAccessToken(
+      server,
+      request
+    );
     return {
       kind: "account",
       userId: authenticated.session.user.id,
@@ -87,17 +99,33 @@ const defaultDependencies: PlanningCenterAccessDependencies = {
     };
   },
   createServices: (authentication) => {
+    const { fallbackTimeZone, localPlanningCenterToken } = server.config;
     if (authentication.kind === "demo") {
       return createReadOnlyPlanningCenterServices(
-        authentication.planningCenter
+        authentication.planningCenter,
+        fallbackTimeZone
       );
     }
-    return isDevAuthBypassEnabled()
-      ? createBasicPlanningCenterServices()
-      : createPlanningCenterServices(authentication.accessToken);
+    if (server.config.devAuthBypass) {
+      if (localPlanningCenterToken === null) {
+        throw new Error(
+          "DEV_AUTH_BYPASS needs PLANNING_CENTER_CLIENT and PLANNING_CENTER_PAT"
+        );
+      }
+      return createBasicPlanningCenterServices(
+        localPlanningCenterToken,
+        fallbackTimeZone
+      );
+    }
+    return createPlanningCenterServices(
+      authentication.accessToken,
+      fallbackTimeZone
+    );
   },
-  presentationMode: isPresentationMode,
-};
+  presentationMode: () => isPresentationMode(server.config.presentation),
+  presentationSeed: getPresentationSeed(server.config.presentation),
+  fallbackTimeZone: server.config.fallbackTimeZone,
+});
 
 export const toApplicationFault = (error: Error): ApplicationFault | null => {
   if (
@@ -153,14 +181,16 @@ export const failPlanningCenter = (
  * this Effect only. Each client retains its credential for its entire lifetime.
  */
 export const resolvePlanningCenterAccess = (
-  dependencies: PlanningCenterAccessDependencies = defaultDependencies
+  overrides?: PlanningCenterAccessDependencies
 ): Effect.Effect<
   PlanningCenterRequestAccess,
   ApplicationFault,
-  RequestContext
+  RequestContext | Server
 > =>
   Effect.gen(function* resolveAccess() {
     const { request } = yield* RequestContext;
+    const dependencies =
+      overrides ?? createPlanningCenterAccessDependencies(yield* Server);
     const authentication = yield* Effect.tryPromise({
       try: async () => await dependencies.authorize(request),
       catch: (error) =>
@@ -178,16 +208,18 @@ export const resolvePlanningCenterAccess = (
       services,
       presentation:
         authentication.kind === "demo" || dependencies.presentationMode(),
+      presentationSeed: dependencies.presentationSeed,
+      fallbackTimeZone: dependencies.fallbackTimeZone,
     };
   });
 
 export const withPlanningCenterAccess = <Value, Failure, Requirements>(
   program: Effect.Effect<Value, Failure, Requirements | PlanningCenterAccess>,
-  dependencies: PlanningCenterAccessDependencies = defaultDependencies
+  dependencies?: PlanningCenterAccessDependencies
 ): Effect.Effect<
   Value,
   Failure | ApplicationFault,
-  Exclude<Requirements, PlanningCenterAccess> | RequestContext
+  Exclude<Requirements, PlanningCenterAccess> | RequestContext | Server
 > =>
   Effect.flatMap(resolvePlanningCenterAccess(dependencies), (access) =>
     Effect.provideService(program, PlanningCenterAccess, access)

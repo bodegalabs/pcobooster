@@ -1,6 +1,7 @@
 import { RequestContext } from "@pcobooster/api/application/context";
 import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
 import { createApplicationRuntime } from "@pcobooster/api/application/runtime";
+import { testServer } from "@pcobooster/api/testing/server";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
 import { Effect, Layer } from "effect";
 import { describe, expect, it } from "vitest";
@@ -8,6 +9,7 @@ import { describe, expect, it } from "vitest";
 const createRpcContext = () => ({
   request: new Request("https://pcobooster.com/api/rpc/health"),
   requestId: "request-1",
+  server: testServer(),
 });
 
 describe(executeApplicationEffect, () => {

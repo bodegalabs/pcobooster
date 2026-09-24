@@ -3,22 +3,16 @@ import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
 import { PersistenceFailure } from "@pcobooster/api/application/errors/persistence-failure";
 import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
-import { auth } from "@pcobooster/api/auth";
-import {
-  readDemoConfiguration,
-  resolveDemoSession,
-} from "@pcobooster/api/auth/demo-access";
-import {
-  getDevBypassSession,
-  isDevAuthBypassEnabled,
-} from "@pcobooster/api/auth/dev-bypass";
+import { resolveDemoSession } from "@pcobooster/api/auth/demo-access";
+import { getDevBypassSession } from "@pcobooster/api/auth/dev-bypass";
 import { logger } from "@pcobooster/api/logger";
-import { productionPostHogApiKey } from "@pcobooster/api/modules/analytics/posthog-capture";
 import { createPostHogFeedbackForwarder } from "@pcobooster/api/modules/analytics/posthog-feedback";
 import { getPostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-person";
 import { saveFeedback } from "@pcobooster/api/modules/feedback/save-feedback";
 import { submitFeedback } from "@pcobooster/api/modules/feedback/submit-feedback";
 import type { FeedbackDependencies } from "@pcobooster/api/modules/feedback/submit-feedback";
+import { Server } from "@pcobooster/api/server";
+import type { ServerDependencies } from "@pcobooster/api/server";
 import type { FeedbackSubmitInput } from "@pcobooster/contracts/feedback";
 import { Effect } from "effect";
 
@@ -30,21 +24,26 @@ export interface SubmitFeedbackDependencies extends FeedbackDependencies {
   readonly identify: (request: Request) => Promise<FeedbackAuthor | null>;
 }
 
-const defaultDependencies: SubmitFeedbackDependencies = {
+export const createSubmitFeedbackDependencies = ({
+  auth,
+  config,
+  database,
+}: ServerDependencies): SubmitFeedbackDependencies => ({
   identify: async (request) => {
-    if (resolveDemoSession(request, readDemoConfiguration()) !== null) {
+    if (resolveDemoSession(request, config.demo) !== null) {
       return { kind: "demo" };
     }
-    if (isDevAuthBypassEnabled()) {
+    if (config.devAuthBypass) {
       return { kind: "user", userId: getDevBypassSession().user.id };
     }
     const session = await auth.api.getSession({ headers: request.headers });
     return session === null ? null : { kind: "user", userId: session.user.id };
   },
-  save: saveFeedback,
-  loadPerson: getPostHogPersonProperties,
+  save: async (submission) => await saveFeedback(database, submission),
+  loadPerson: async (userId) =>
+    await getPostHogPersonProperties(userId, database),
   forward: createPostHogFeedbackForwarder({
-    apiKey: productionPostHogApiKey,
+    apiKey: config.postHogProjectKey ?? undefined,
     fetch: globalThis.fetch,
   }),
   onForwardFailure: (error, feedbackId) => {
@@ -53,7 +52,7 @@ const defaultDependencies: SubmitFeedbackDependencies = {
       "Failed to forward feedback to PostHog"
     );
   },
-};
+});
 
 const persistenceFailure = (operation: string) => (cause: unknown) =>
   new PersistenceFailure({
@@ -64,10 +63,16 @@ const persistenceFailure = (operation: string) => (cause: unknown) =>
 
 export const submitUserFeedback = (
   input: FeedbackSubmitInput,
-  dependencies: SubmitFeedbackDependencies = defaultDependencies
-): Effect.Effect<{ readonly id: number }, ApplicationFault, RequestContext> =>
+  overrides?: SubmitFeedbackDependencies
+): Effect.Effect<
+  { readonly id: number },
+  ApplicationFault,
+  RequestContext | Server
+> =>
   Effect.gen(function* submit() {
     const { request, metadata } = yield* RequestContext;
+    const dependencies =
+      overrides ?? createSubmitFeedbackDependencies(yield* Server);
     const author = yield* Effect.tryPromise({
       try: async () => await dependencies.identify(request),
       catch: persistenceFailure("identify-feedback-author"),

@@ -2,6 +2,7 @@ import { PlanningCenterAccess } from "@pcobooster/api/application/planning-cente
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
 import { createApplicationRuntime } from "@pcobooster/api/application/runtime";
 import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import { testServer } from "@pcobooster/api/testing/server";
 import { executePreparedPlanningCenterWrite } from "@pcobooster/api/transport/orpc/planning-center-write";
 import { Effect, Layer } from "effect";
 import { describe, expect, it, vi } from "vitest";
@@ -25,14 +26,18 @@ describe(executePreparedPlanningCenterWrite, () => {
       authorize,
       createServices: (authentication) =>
         createPlanningCenterServices(
-          authentication.kind === "account" ? authentication.accessToken : ""
+          authentication.kind === "account" ? authentication.accessToken : "",
+          "America/Los_Angeles"
         ),
       presentationMode: () => false,
+      presentationSeed: "test-seed",
+      fallbackTimeZone: "America/Los_Angeles",
     };
     const runtime = createApplicationRuntime(Layer.empty);
     const context = {
       request: new Request("https://pcobooster.com/api/rpc/plan-items"),
       requestId: "request-1",
+      server: testServer(),
     };
 
     try {

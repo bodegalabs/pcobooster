@@ -24,15 +24,11 @@ import { Effect } from "effect";
 
 export interface ScheduleRouterDependencies {
   readonly access?: PlanningCenterAccessDependencies;
-  readonly recordActivity: (event: ActivityEventInput) => Promise<void>;
+  readonly recordActivity?: (event: ActivityEventInput) => Promise<void>;
 }
 
-const defaultDependencies: ScheduleRouterDependencies = {
-  recordActivity: recordActivityEvent,
-};
-
 export const createScheduleRouter = (
-  dependencies: ScheduleRouterDependencies = defaultDependencies
+  dependencies: ScheduleRouterDependencies = {}
 ) => {
   const audited = (operation: ScheduleOperation) =>
     rpc.schedule.use(async ({ context, next, signal }, input) => {
@@ -53,8 +49,13 @@ export const createScheduleRouter = (
         if (authentication.kind === "demo") {
           return;
         }
+        const recordActivity =
+          dependencies.recordActivity ??
+          (async (event: ActivityEventInput) => {
+            await recordActivityEvent(context.server, event);
+          });
         try {
-          await dependencies.recordActivity(
+          await recordActivity(
             scheduleActivityEvent({
               operation,
               input,

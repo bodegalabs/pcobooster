@@ -68,7 +68,12 @@ const relationshipId = (
   return data?.id;
 };
 
-const client = createBasicPlanningCenterClient();
+const applicationId = process.env.PLANNING_CENTER_CLIENT;
+const secret = process.env.PLANNING_CENTER_PAT;
+if (!isNonEmptyString(applicationId) || !isNonEmptyString(secret)) {
+  throw new Error("Set PLANNING_CENTER_CLIENT and PLANNING_CENTER_PAT");
+}
+const client = createBasicPlanningCenterClient({ applicationId, secret });
 const serviceTypes = await client.fetchAll("/services/v2/service_types", {
   per_page: "100",
 });

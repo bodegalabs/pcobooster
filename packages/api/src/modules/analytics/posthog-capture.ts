@@ -48,9 +48,3 @@ export const createPostHogCaptureSender =
       throw new Error(`PostHog capture failed with status ${response.status}`);
     }
   };
-
-/** Only production deployments share the product's PostHog project. */
-export const productionPostHogApiKey =
-  process.env.APP_ENV === "production"
-    ? process.env.POSTHOG_PROJECT_KEY
-    : undefined;

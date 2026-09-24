@@ -15,6 +15,7 @@ import type { ScheduleApplicationDependencies } from "@pcobooster/api/applicatio
 import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import { testServer } from "@pcobooster/api/testing/server";
 import { createScheduleRouter } from "@pcobooster/api/transport/orpc/schedule";
 import type { ScheduleAssignInput } from "@pcobooster/contracts/schedule";
 import { Effect } from "effect";
@@ -29,7 +30,10 @@ const input: ScheduleAssignInput = {
 };
 
 const setup = () => {
-  const services = createPlanningCenterServices("schedule-test-token");
+  const services = createPlanningCenterServices(
+    "schedule-test-token",
+    "America/Los_Angeles"
+  );
   const getTeamPositions = vi
     .spyOn(services.catalog, "getServiceTypeTeamPositionsWithTeams")
     .mockResolvedValue({
@@ -95,6 +99,8 @@ const setup = () => {
       authorize,
       createServices: () => services,
       presentationMode: () => false,
+      presentationSeed: "test-seed",
+      fallbackTimeZone: "America/Los_Angeles",
     },
     recordActivity,
   });
@@ -105,6 +111,7 @@ const setup = () => {
     }),
     requestId: "request-1",
     resHeaders: new Headers(),
+    server: testServer(),
   };
   return {
     services,
@@ -129,6 +136,8 @@ describe("scheduling oRPC transport", () => {
       services,
       cacheScope: services.core.getCacheScope(),
       presentation: true,
+      presentationSeed: "test-seed",
+      fallbackTimeZone: "America/Los_Angeles",
     };
     const dependencies: ScheduleApplicationDependencies = {
       invalidateHistory:

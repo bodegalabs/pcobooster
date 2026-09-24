@@ -1,5 +1,5 @@
 /**
- * Dev-only auth shortcut. When DEV_AUTH_BYPASS=1 (and NODE_ENV !== "production"),
+ * Dev-only auth shortcut. When `ServerConfig.devAuthBypass` is on (local stage only),
  * server-side auth helpers return a synthesized session so the app can hit Planning
  * Center via the Basic-auth PAT fallback in the core client without OAuth.
  *
@@ -9,6 +9,7 @@
  * It runs only in the API Worker; browser apps never import `packages/api`.
  */
 import { logger } from "@pcobooster/api/logger";
+import type { PlanningCenterPersonalAccessToken } from "@pcobooster/api/planning-center/core-client";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { z } from "zod";
 
@@ -19,16 +20,6 @@ const PC_BASE_URL = "https://api.planningcenteronline.com";
 const IDENTITY_TTL_MS = 10 * 60 * 1000;
 
 const log = logger.for("auth/dev-bypass");
-
-export const isDevAuthBypassEnabled = (): boolean => {
-  if (process.env.NODE_ENV === "production") {
-    return false;
-  }
-  return (
-    process.env.DEV_AUTH_BYPASS === "1" ||
-    process.env.DEV_AUTH_BYPASS === "true"
-  );
-};
 
 export interface DevBypassSession {
   user: {
@@ -66,13 +57,15 @@ let identityCache: { expiresAt: number; identity: DevBypassIdentity } | null =
   null;
 let inflight: Promise<DevBypassIdentity> | null = null;
 
-const getBasicAuthHeader = (): string | null => {
-  const id = process.env.PLANNING_CENTER_CLIENT;
-  const pat = process.env.PLANNING_CENTER_PAT;
-  if (!isNonEmptyString(id) || !isNonEmptyString(pat)) {
+const getBasicAuthHeader = (
+  token: PlanningCenterPersonalAccessToken | null
+): string | null => {
+  if (token === null) {
     return null;
   }
-  const credentials = Buffer.from(`${id}:${pat}`).toString("base64");
+  const credentials = Buffer.from(
+    `${token.applicationId}:${token.secret}`
+  ).toString("base64");
   return `Basic ${credentials}`;
 };
 
@@ -116,10 +109,11 @@ const organizationResponseSchema = z.object({
 });
 
 const fetchPcResource = async <T>(
+  token: PlanningCenterPersonalAccessToken | null,
   path: string,
   schema: z.ZodType<T>
 ): Promise<T | null> => {
-  const authorization = getBasicAuthHeader();
+  const authorization = getBasicAuthHeader(token);
   if (authorization === null) {
     return null;
   }
@@ -169,10 +163,12 @@ const getPersonIdentity = (me: z.infer<typeof meResponseSchema> | null) => {
   };
 };
 
-const hydrateIdentity = async (): Promise<DevBypassIdentity> => {
+const hydrateIdentity = async (
+  token: PlanningCenterPersonalAccessToken | null
+): Promise<DevBypassIdentity> => {
   const [me, organization] = await Promise.all([
-    fetchPcResource("/people/v2/me?include=emails", meResponseSchema),
-    fetchPcResource("/services/v2", organizationResponseSchema),
+    fetchPcResource(token, "/people/v2/me?include=emails", meResponseSchema),
+    fetchPcResource(token, "/services/v2", organizationResponseSchema),
   ]);
   const organizationRoot = Array.isArray(organization?.data)
     ? organization.data.at(0)
@@ -184,7 +180,9 @@ const hydrateIdentity = async (): Promise<DevBypassIdentity> => {
   };
 };
 
-const getIdentity = async (): Promise<DevBypassIdentity> => {
+const getIdentity = async (
+  token: PlanningCenterPersonalAccessToken | null
+): Promise<DevBypassIdentity> => {
   const now = Date.now();
   if (identityCache && identityCache.expiresAt > now) {
     return identityCache.identity;
@@ -193,7 +191,7 @@ const getIdentity = async (): Promise<DevBypassIdentity> => {
     return await inflight;
   }
 
-  inflight = hydrateIdentity();
+  inflight = hydrateIdentity(token);
   try {
     const identity = await inflight;
     identityCache = { identity, expiresAt: Date.now() + IDENTITY_TTL_MS };
@@ -251,5 +249,7 @@ export const getDevBypassPlanningCenterAccount = (
   };
 };
 
-export const loadDevBypassIdentity = async (): Promise<DevBypassIdentity> =>
-  await getIdentity();
+/** Hydrated from the local personal access token (`ServerConfig.localPlanningCenterToken`). */
+export const loadDevBypassIdentity = async (
+  token: PlanningCenterPersonalAccessToken | null
+): Promise<DevBypassIdentity> => await getIdentity(token);

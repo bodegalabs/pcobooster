@@ -10,7 +10,8 @@ import {
   getPresentationCacheScope,
   isPresentationMode,
 } from "@pcobooster/presentation-mode";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { PresentationEnvironment } from "@pcobooster/presentation-mode";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
   PeopleDashboardData,
@@ -27,6 +28,11 @@ import {
   presentationIdentity,
 } from "./presentation";
 import { searchPeople } from "./search-people";
+
+let environment: PresentationEnvironment = {};
+const setEnvironment = (key: keyof PresentationEnvironment, value?: string) => {
+  environment = { ...environment, [key]: value };
+};
 
 const createDependencies = () => {
   const catalog = {
@@ -47,8 +53,8 @@ const createDependencies = () => {
   const presentation = {
     catalog,
     people,
-    getPresentationSeed,
-    isPresentationMode,
+    getPresentationSeed: () => getPresentationSeed(environment),
+    isPresentationMode: () => isPresentationMode(environment),
   };
   const search = {
     people,
@@ -161,20 +167,21 @@ const detail: PeopleDashboardPersonDetail = {
 };
 
 const setupPresentationEnvironment = () => {
-  vi.stubEnv("NODE_ENV", "development");
-  vi.stubEnv("PRESENTATION_MODE", "1");
-  vi.stubEnv("PRESENTATION_SEED", "test-seed");
+  environment = {
+    NODE_ENV: "development",
+    PRESENTATION_MODE: "1",
+    PRESENTATION_SEED: "test-seed",
+  };
   dependencies = createDependencies();
 };
 
 describe("presentation mode", () => {
   beforeEach(setupPresentationEnvironment);
-  afterEach(() => vi.unstubAllEnvs());
 
   it("ignores the flag in production", async () => {
-    vi.stubEnv("NODE_ENV", "production");
-    expect(isPresentationMode()).toBeFalsy();
-    expect(getPresentationCacheScope()).toBe("live");
+    setEnvironment("NODE_ENV", "production");
+    expect(isPresentationMode(environment)).toBeFalsy();
+    expect(getPresentationCacheScope(environment)).toBe("live");
     await expect(
       presentPeople(people, dependencies.presentation)
     ).resolves.toBe(people);
@@ -183,16 +190,16 @@ describe("presentation mode", () => {
 
   it.each(["development", "test", undefined])(
     "enables the flag outside production (NODE_ENV=%s)",
-    (environment) => {
-      vi.stubEnv("NODE_ENV", environment);
-      expect(isPresentationMode()).toBeTruthy();
-      expect(getPresentationCacheScope()).toMatch(/^present-v1-/u);
+    (nodeEnvironment) => {
+      setEnvironment("NODE_ENV", nodeEnvironment);
+      expect(isPresentationMode(environment)).toBeTruthy();
+      expect(getPresentationCacheScope(environment)).toMatch(/^present-v1-/u);
     }
   );
 
   it("does not enable without the flag", () => {
-    vi.stubEnv("PRESENTATION_MODE", "0");
-    expect(isPresentationMode()).toBeFalsy();
+    setEnvironment("PRESENTATION_MODE", "0");
+    expect(isPresentationMode(environment)).toBeFalsy();
   });
 
   it("keeps aliases deterministic, scoped by organization, person, and seed", () => {
@@ -209,9 +216,9 @@ describe("presentation mode", () => {
     expect(alias).not.toStrictEqual(
       presentationIdentity("org-1", "person-1", "other-seed")
     );
-    const cacheScope = getPresentationCacheScope();
-    vi.stubEnv("PRESENTATION_SEED", "other-seed");
-    expect(getPresentationCacheScope()).not.toBe(cacheScope);
+    const cacheScope = getPresentationCacheScope(environment);
+    setEnvironment("PRESENTATION_SEED", "other-seed");
+    expect(getPresentationCacheScope(environment)).not.toBe(cacheScope);
   });
 
   it("isolates organization caches for independent services sharing a scope", async () => {
@@ -311,7 +318,7 @@ describe("presentation mode", () => {
   });
 
   it("preserves normal-mode data, including notes and photos", async () => {
-    vi.stubEnv("PRESENTATION_MODE", "0");
+    setEnvironment("PRESENTATION_MODE", "0");
     await expect(
       presentPeople(people, dependencies.presentation)
     ).resolves.toBe(people);
@@ -331,7 +338,6 @@ describe("presentation mode", () => {
 
 describe("people search", () => {
   beforeEach(setupPresentationEnvironment);
-  afterEach(() => vi.unstubAllEnvs());
   const resources = [
     {
       id: "person-1",
@@ -370,7 +376,7 @@ describe("people search", () => {
   });
 
   it("keeps the existing upstream search and real avatar in normal mode", async () => {
-    vi.stubEnv("PRESENTATION_MODE", "0");
+    setEnvironment("PRESENTATION_MODE", "0");
     dependencies.people.searchPeopleByName.mockResolvedValue(resources);
     await expect(
       searchPeople("Private", 15, dependencies.search)
@@ -394,7 +400,6 @@ describe("people search", () => {
 
 describe(getPresentationIdentityMapper, () => {
   beforeEach(setupPresentationEnvironment);
-  afterEach(() => vi.unstubAllEnvs());
 
   it("passes its request signal through the organization cache loader", async () => {
     const controller = new AbortController();
