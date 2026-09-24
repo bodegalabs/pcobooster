@@ -14,8 +14,8 @@ The app does hit Planning Center's limit, and it can do so from a single page lo
 | --- | --- | --- |
 | People dashboard, `people.dashboard` | about 75 to 310 | One request per active team, then schedules for 48 people at up to 6 pages each |
 | Person detail, `people.dashboardPerson` | about 50 to 70 | Scans every plan in the month across every service type, 2 requests per plan. Hovering a roster row prefetches it with no delay |
-| Assign view candidate list, `people.list` | about 65; about 58 again once the 60 s cache lapses | Fetches the roster of every plan within 28 days either side of the date, across all service types, plus blockouts for every candidate |
-| Plan row hover on Services, `people.warmup` | about 37 | Builds the same plan-window history as `people.list`, on hover |
+| Assign view candidate list, `people.list` | about 65; about 58 again once the 60 s cache lapses | Fetches the roster of every plan within 28 days either side of the date, across all service types, plus blockouts for every candidate. **Replaced** by three progressive procedures, each within 40 requests; see [the update](#assign-view-candidate-list-peoplelist-the-worst-path-in-scheduling) |
+| Plan row hover on Services, `people.warmup` | about 37 | Builds the same plan-window history as `people.list`, on hover. **Removed**: opening a plan loads `people.planWindowHistory` instead |
 | Song search, `songs.search` | about 12 sequential pages per service type | Cached per service type although the catalog covers the whole organization |
 
 Two platform facts make this worse than the Planning Center limit alone:
@@ -93,6 +93,31 @@ Total: about 8 to 12 cold. Not a problem on its own. `myScheduledPlans` pages th
 Opening a plan cold costs about 6 to 8 requests. Not a problem. `team_positions` reads one page of 100 with no pagination, so a service type with more than 100 positions is silently cut off. That is a correctness issue, not a rate issue.
 
 ### Assign view candidate list (`people.list`), the worst path in scheduling
+
+> **Update (September 24, 2026, `people-list-progressive`):** `people.list` and `people.warmup` are replaced by three procedures the browser calls progressively, each within a 40 request budget with a continuation (see [API architecture](../api-architecture.md#progressive-procedures)):
+>
+> - `people.positionCandidates`: position assignments and the selected plan's fresh roster. The list renders from this alone.
+> - `people.planWindowHistory`: every roster in the 57-day window, in window order until the budget runs out, continued with `deferredPlans`. One browser query per plan date, shared by every position and plan on it; opening a plan loads it.
+> - `people.candidateDetails`: blocked on the plan date for 16 candidates per call, continued with `deferredPersonIds`; with `scheduleHistory` it also reads each person's own schedules when the window has no plans.
+>
+> Split choice: history needs every roster in the window (the plan-window read is inherently per plan, not per person), while availability is per person and independent of history, so the two run in parallel as separate budgets. Candidates come first because they cost about 3 requests and let the view render at once. Scores are normalized across available candidates, so they appear when every part has arrived; until then the list keeps a stable order (slot status, then name) with blocked people in place.
+>
+> Measured against the dev organization (7 active service types, 39 plans in the window, 19 candidates for a vocals position, September 27 plan), with the real modules and a counting fetch:
+>
+> | Call | Cold requests | Cold time | Warm (same isolate) |
+> | --- | --- | --- | --- |
+> | `people.list` (removed) | 65 (65 to 67 across runs) | 6.3 to 9.1 s |  |
+> | `people.positionCandidates` | 2 (time zone cached) | 0.6 to 0.9 s | 0; another position on the plan: 1 |
+> | `people.planWindowHistory` | 38, one call (1 service type list, 7 plan ranges, 30 rosters) | 4.5 to 5.1 s | 0 |
+> | `people.candidateDetails`, 16 people | 20 | 1.6 s | 0 |
+> | `people.candidateDetails`, 3 people | 4 | 0.7 to 0.9 s | 0 |
+> | Total | 64, no call over 40 | list visible after about 0.7 s, complete after about 5 s | 0 |
+>
+> The assembled list equaled `people.list`'s output exactly for this position (compared live before the old procedure was removed). The history payload is 142 KB as compact roster rows (400 KB when the server expanded every row into history items). A larger org spills into a second history call rather than exceeding the budget; `position-candidates-equivalence.test.ts` forces one roster per call and still matches.
+>
+> Also fixed: the old per-person fallback (used when the window had no plans) read schedules with `order=-starts_at` and no filter, which Planning Center scopes to upcoming schedules only, so past services never counted. It now reads `filter=after` from 28 days before the plan.
+>
+> **Blockout filter, checked live on September 24, 2026.** The documentation API lists `future` and `past` as the only filters on `/people/{id}/blockouts`; `blockout_dates` has none. Across the dev organization's 125 people with blockouts (3,599 blockouts), `filter=future` kept every one-time blockout that ends in the future, including ones that started months earlier (for example April 8, 2026 to January 1, 2027), and dropped every one that had ended. All 13 repeating blockouts in the organization had a `repeat_until` in the past, and `filter=future` dropped all of them, which is also what an end-date rule predicts. No repeating blockout that started in the past and repeats into the future exists there, so whether `future` keeps one (its parent `ends_at` is the first occurrence's end) could not be verified without writing test data to the organization. Blockout lists therefore stay unfiltered: correct, at one page per person for almost everyone. The cost of not filtering is concentrated in 10 people with 104 to 235 blockouts (2 to 3 pages each). If a repeating blockout is later confirmed to survive `filter=future`, that filter would save those pages.
 
 Path: `use-people.ts` to `transport/orpc/people.ts:18` to `application/people.ts:88` to `getPeopleForPosition` (`get-people-for-position.ts:446-592`). The web enables the query only when the plan has a `sortDate` (`use-dashboard-controller.ts:83-93`), so `date` is always set and the shared plan-window path always runs.
 
@@ -219,7 +244,7 @@ Ranked by expected benefit for the effort. "After rewrite" marks changes to `cor
    - Plan rows: do not call `people.warmup` on hover. Run it when the plan is selected, or when the Assign view opens.
    - Expected: a pointer sweep over 10 people drops from about 30 to 250 requests to 0. A plan hover drops from about 41 to about 4.
 
-4. **Cut `people.list` and `people.warmup` fan-out.** Medium effort. Modules do not conflict; the TTL and filter edits in `people-service.ts` are small.
+4. **Cut `people.list` and `people.warmup` fan-out.** **Implemented** (TTLs and concurrency in `people-list-detail-fanout`; the split into budgeted progressive procedures in `people-list-progressive`, see [the update](#assign-view-candidate-list-peoplelist-the-worst-path-in-scheduling)). Blockouts stay unfiltered; `filter=future` is unverified for repeating blockouts. Medium effort. Modules do not conflict; the TTL and filter edits in `people-service.ts` are small.
    - Give past plans' `team_members` a long TTL (for example 30 minutes, cleared by this app's own writes as today), and keep 30 s only for the selected plan and future plans. Expected: the 60 s rebuild drops from about 32 roster reads to about 4 to 8.
    - Raise `PLAN_WINDOW_HISTORY_CACHE_TTL_MS` from 60 s to 5 minutes. Writes already clear it (`invalidatePlanWindowHistory`).
    - Fetch blockouts with `filter=future` (edge filter above). Fetch `blockout_dates` only for repeating blockouts whose `repeat_until` is empty or after the plan date. Raise the blockout TTL to 5 minutes. Expected: about 26 per load drops to about 20 cold and about 0 warm, with fewer pages for long-time volunteers.
