@@ -1,0 +1,841 @@
+[
+  {
+    "id": 2127632,
+    "name": "Marketing & conversion",
+    "description": "pcobooster.com visitors, acquisition channels, devices, and conversion into authenticated app use. Production only. No recordings. Empty until the analytics release is deployed.",
+    "pinned": true,
+    "deleted": false,
+    "tags": ["pcobooster", "marketing"],
+    "tiles": [
+      {
+        "id": 12547062,
+        "order": 0,
+        "layouts": {},
+        "insight": {
+          "id": 12152286,
+          "short_id": "64IqMoGF",
+          "name": "Daily marketing visitors",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "$pageview",
+                  "properties": [
+                    {
+                      "key": "surface",
+                      "type": "event",
+                      "value": ["marketing"],
+                      "operator": "exact"
+                    }
+                  ]
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "filterTestAccounts": false
+            }
+          },
+          "description": "Unique visitors to the public marketing pages each day. Cookie/browser-based until sign-in; not a count of registered users.",
+          "favorited": true,
+          "tags": ["pcobooster"]
+        }
+      },
+      {
+        "id": 12547063,
+        "order": 1,
+        "layouts": {},
+        "insight": {
+          "id": 12152287,
+          "short_id": "f8G3EPPg",
+          "name": "Marketing acquisition sources",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "$pageview",
+                  "properties": [
+                    {
+                      "key": "surface",
+                      "type": "event",
+                      "value": ["marketing"],
+                      "operator": "exact"
+                    }
+                  ]
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsTable",
+                "showLegend": false,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": false,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdowns": [
+                  { "type": "event", "property": "$referring_domain" }
+                ],
+                "breakdown_type": "event"
+              },
+              "filterTestAccounts": false
+            }
+          },
+          "description": "Unique marketing visitors by referring domain over the selected period.",
+          "favorited": true,
+          "tags": ["pcobooster"]
+        }
+      },
+      {
+        "id": 12547064,
+        "order": 2,
+        "layouts": {},
+        "insight": {
+          "id": 12152289,
+          "short_id": "SEx3emJA",
+          "name": "Marketing campaigns",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "$pageview",
+                  "properties": [
+                    {
+                      "key": "surface",
+                      "type": "event",
+                      "value": ["marketing"],
+                      "operator": "exact"
+                    }
+                  ]
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsTable",
+                "showLegend": false,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": false,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdowns": [{ "type": "event", "property": "utm_campaign" }],
+                "breakdown_type": "event"
+              },
+              "filterTestAccounts": false
+            }
+          },
+          "description": "Unique marketing visitors by utm_campaign. Use utm_source, utm_medium, and utm_campaign on shared links.",
+          "favorited": true,
+          "tags": ["pcobooster"]
+        }
+      },
+      {
+        "id": 12547065,
+        "order": 3,
+        "layouts": {},
+        "insight": {
+          "id": 12152291,
+          "short_id": "vHN5Bhs9",
+          "name": "Marketing devices",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "$pageview",
+                  "properties": [
+                    {
+                      "key": "surface",
+                      "type": "event",
+                      "value": ["marketing"],
+                      "operator": "exact"
+                    }
+                  ]
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsTable",
+                "showLegend": false,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": false,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdowns": [{ "type": "event", "property": "$device_type" }],
+                "breakdown_type": "event"
+              },
+              "filterTestAccounts": false
+            }
+          },
+          "description": "Unique marketing visitors by desktop, mobile, and tablet.",
+          "favorited": true,
+          "tags": ["pcobooster"]
+        }
+      },
+      {
+        "id": 12547070,
+        "order": 4,
+        "layouts": {},
+        "insight": {
+          "id": 12152296,
+          "short_id": "SYdQUvWG",
+          "name": "Marketing pages",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "$pageview",
+                  "properties": [
+                    {
+                      "key": "surface",
+                      "type": "event",
+                      "value": ["marketing"],
+                      "operator": "exact"
+                    }
+                  ]
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsTable",
+                "showLegend": false,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": false,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdowns": [{ "type": "event", "property": "$pathname" }],
+                "breakdown_type": "event"
+              },
+              "filterTestAccounts": false
+            }
+          },
+          "description": "Unique visitors by public page path. Queries and fragments are removed before capture.",
+          "favorited": true,
+          "tags": ["pcobooster"]
+        }
+      },
+      {
+        "id": 12547071,
+        "order": 5,
+        "layouts": {},
+        "insight": {
+          "id": 12152297,
+          "short_id": "livG4Ak6",
+          "name": "Marketing to app conversion",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "FunnelsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "$pageview",
+                  "properties": [
+                    {
+                      "key": "surface",
+                      "type": "event",
+                      "value": ["marketing"],
+                      "operator": "exact"
+                    }
+                  ]
+                },
+                { "kind": "EventsNode", "event": "marketing cta clicked" },
+                { "kind": "EventsNode", "event": "app opened" }
+              ],
+              "version": 2,
+              "dateRange": {
+                "date_from": "-30d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "funnelsFilter": {
+                "layout": "vertical",
+                "exclusions": [],
+                "showLegend": false,
+                "funnelVizType": "steps",
+                "legendPosition": "bottom",
+                "funnelOrderType": "ordered",
+                "showAnnotations": true,
+                "showValuesOnSeries": false,
+                "funnelStepReference": "total",
+                "funnelWindowInterval": 7,
+                "breakdownAttributionType": "first_touch",
+                "funnelWindowIntervalUnit": "day",
+                "hideIncompleteConversionWindowPeriods": false
+              },
+              "filterTestAccounts": false
+            }
+          },
+          "description": "Visitors who view marketing, click Open app, then reach an authenticated app session within 7 days. Includes returning users; not a signup funnel.",
+          "favorited": true,
+          "tags": ["pcobooster"]
+        }
+      }
+    ]
+  },
+  {
+    "id": 2127633,
+    "name": "Product usage & health",
+    "description": "Authenticated active users, feature adoption, weekly retention, and confirmed workflow outcomes for pcobooster.com. Demo and preview traffic excluded. Client-observed analytics, not uptime monitoring.",
+    "pinned": true,
+    "deleted": false,
+    "tags": ["pcobooster", "product"],
+    "tiles": [
+      {
+        "id": 12547072,
+        "order": 0,
+        "layouts": {},
+        "insight": {
+          "id": 12152298,
+          "short_id": "lA7Z9GUg",
+          "name": "Active app users — daily, weekly, monthly",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "$pageview",
+                  "properties": [
+                    {
+                      "key": "surface",
+                      "type": "event",
+                      "value": ["app"],
+                      "operator": "exact"
+                    },
+                    {
+                      "key": "is_authenticated",
+                      "type": "event",
+                      "value": ["true"],
+                      "operator": "exact"
+                    }
+                  ]
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "weekly_active",
+                  "event": "$pageview",
+                  "properties": [
+                    {
+                      "key": "surface",
+                      "type": "event",
+                      "value": ["app"],
+                      "operator": "exact"
+                    },
+                    {
+                      "key": "is_authenticated",
+                      "type": "event",
+                      "value": ["true"],
+                      "operator": "exact"
+                    }
+                  ]
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "monthly_active",
+                  "event": "$pageview",
+                  "properties": [
+                    {
+                      "key": "surface",
+                      "type": "event",
+                      "value": ["app"],
+                      "operator": "exact"
+                    },
+                    {
+                      "key": "is_authenticated",
+                      "type": "event",
+                      "value": ["true"],
+                      "operator": "exact"
+                    }
+                  ]
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "filterTestAccounts": false
+            }
+          },
+          "description": "Distinct authenticated users with an app pageview. Weekly/monthly series use rolling windows. Demo traffic is excluded before capture.",
+          "favorited": true,
+          "tags": ["pcobooster"]
+        }
+      },
+      {
+        "id": 12547073,
+        "order": 1,
+        "layouts": {},
+        "insight": {
+          "id": 12152299,
+          "short_id": "0jkQPBD3",
+          "name": "Feature adoption",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "$pageview",
+                  "properties": [
+                    {
+                      "key": "surface",
+                      "type": "event",
+                      "value": ["app"],
+                      "operator": "exact"
+                    },
+                    {
+                      "key": "is_authenticated",
+                      "type": "event",
+                      "value": ["true"],
+                      "operator": "exact"
+                    }
+                  ]
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsTable",
+                "showLegend": false,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": false,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdowns": [{ "type": "event", "property": "$pathname" }],
+                "breakdown_type": "event"
+              },
+              "filterTestAccounts": false
+            }
+          },
+          "description": "Unique authenticated users by app page or plan workspace view. Provider IDs are replaced with route placeholders.",
+          "favorited": true,
+          "tags": ["pcobooster"]
+        }
+      },
+      {
+        "id": 12547089,
+        "order": 2,
+        "layouts": {},
+        "insight": {
+          "id": 12152307,
+          "short_id": "xOVHCAhA",
+          "name": "Weekly app retention",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "RetentionQuery",
+              "version": 2,
+              "dateRange": {
+                "date_from": "-8w",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "retentionFilter": {
+                "period": "Week",
+                "targetEntity": { "id": "app opened", "type": "events" },
+                "retentionType": "retention_first_time",
+                "totalIntervals": 8,
+                "aggregationType": "count",
+                "returningEntity": {
+                  "id": "$pageview",
+                  "type": "events",
+                  "properties": [
+                    {
+                      "key": "surface",
+                      "type": "event",
+                      "value": ["app"],
+                      "operator": "exact"
+                    },
+                    {
+                      "key": "is_authenticated",
+                      "type": "event",
+                      "value": ["true"],
+                      "operator": "exact"
+                    }
+                  ]
+                },
+                "cohortLabelStartIndex": 0,
+                "aggregationPropertyType": "event"
+              },
+              "filterTestAccounts": false
+            }
+          },
+          "description": "Weekly return rate after first observed app open. New cohort means first tracked use, not account creation. Recent cohorts need time to mature.",
+          "favorited": true,
+          "tags": ["pcobooster"]
+        }
+      },
+      {
+        "id": 12547092,
+        "order": 3,
+        "layouts": {},
+        "insight": {
+          "id": 12152310,
+          "short_id": "jq6gJwUh",
+          "name": "Completed workflows",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "event": "workflow completed",
+                  "properties": []
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsTable",
+                "showLegend": false,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": false,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdowns": [{ "type": "event", "property": "operation" }],
+                "breakdown_type": "event"
+              },
+              "filterTestAccounts": false
+            }
+          },
+          "description": "Confirmed scheduling, plan-item, plan-time, and account-switch operations. Counts after the server responds; optimistic UI does not count as success.",
+          "favorited": true,
+          "tags": ["pcobooster"]
+        }
+      },
+      {
+        "id": 12547093,
+        "order": 4,
+        "layouts": {},
+        "insight": {
+          "id": 12152311,
+          "short_id": "H0RPWuwq",
+          "name": "Workflow failures",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "event": "workflow failed",
+                  "properties": []
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsTable",
+                "showLegend": false,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": false,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdowns": [{ "type": "event", "property": "operation" }],
+                "breakdown_type": "event"
+              },
+              "filterTestAccounts": false
+            }
+          },
+          "description": "Failed user-initiated writes by operation. Cancellations and background reads are excluded; this is client-observed health, not server uptime.",
+          "favorited": true,
+          "tags": ["pcobooster"]
+        }
+      },
+      {
+        "id": 12547094,
+        "order": 5,
+        "layouts": {},
+        "insight": {
+          "id": 12152312,
+          "short_id": "FYaNkfIa",
+          "name": "Failure reasons",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "event": "workflow failed",
+                  "properties": []
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-30d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsTable",
+                "showLegend": false,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": false,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdowns": [{ "type": "event", "property": "error_code" }],
+                "breakdown_type": "event"
+              },
+              "filterTestAccounts": false
+            }
+          },
+          "description": "Safe error codes only. Raw messages, request bodies, and provider data are never sent.",
+          "favorited": true,
+          "tags": ["pcobooster"]
+        }
+      },
+      {
+        "id": 12547099,
+        "order": 6,
+        "layouts": {},
+        "insight": {
+          "id": 12152319,
+          "short_id": "x1CQYEh2",
+          "name": "Sign-in to app conversion",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "FunnelsQuery",
+              "series": [
+                { "kind": "EventsNode", "event": "sign in started" },
+                { "kind": "EventsNode", "event": "app opened" }
+              ],
+              "version": 2,
+              "dateRange": {
+                "date_from": "-30d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "funnelsFilter": {
+                "layout": "vertical",
+                "exclusions": [],
+                "showLegend": false,
+                "funnelVizType": "steps",
+                "legendPosition": "bottom",
+                "funnelOrderType": "ordered",
+                "showAnnotations": true,
+                "showValuesOnSeries": false,
+                "funnelStepReference": "total",
+                "funnelWindowInterval": 1,
+                "breakdownAttributionType": "first_touch",
+                "funnelWindowIntervalUnit": "hour",
+                "hideIncompleteConversionWindowPeriods": false
+              },
+              "filterTestAccounts": false
+            }
+          },
+          "description": "Sign-in clicks followed by authenticated app open within one hour. A drop can mean abandonment or provider login failure.",
+          "favorited": true,
+          "tags": ["pcobooster"]
+        }
+      }
+    ]
+  }
+]

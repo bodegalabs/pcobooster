@@ -168,3 +168,6 @@ jobs:
         run: bun alchemy deploy --stage prod --no-input --yes
       - name: Verify production serves this commit
         run: bun scripts/cloudflare/verify-deployment.ts https://pcobooster.com "$GITHUB_SHA"
+      # Warns and skips when POSTHOG_ANNOTATION_API_KEY is absent; never fails the deploy.
+      - name: Mark the deploy on PostHog charts
+        run: bun scripts/posthog/annotate-deploy.ts "$GITHUB_SHA"

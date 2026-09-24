@@ -34,7 +34,8 @@ export const analyticsUrl = (value: string): string => {
   }
 };
 
-const SAFE_PROPERTIES = new Set([
+/** Scalar event properties that leave the browser unchanged. */
+export const safeAnalyticsProperties = [
   "token",
   "distinct_id",
   "$device_id",
@@ -82,7 +83,8 @@ const SAFE_PROPERTIES = new Set([
   "error_code",
   "duration_ms",
   "cta_location",
-]);
+] as const;
+const SAFE_PROPERTIES = new Set<string>(safeAnalyticsProperties);
 const URL_PROPERTIES = new Set([
   "$current_url",
   "$initial_current_url",
@@ -91,11 +93,18 @@ const URL_PROPERTIES = new Set([
   "$session_entry_url",
   "$prev_pageview_url",
 ]);
-const PATH_PROPERTIES = new Set([
+/** Path properties that leave the browser as route templates. */
+export const pathAnalyticsProperties = [
   "$pathname",
   "$initial_pathname",
   "$prev_pageview_pathname",
-]);
+] as const;
+const PATH_PROPERTIES = new Set<string>(pathAnalyticsProperties);
+
+/** Event property keys that saved reports may filter or break down by. */
+export type AnalyticsProperty =
+  | (typeof safeAnalyticsProperties)[number]
+  | (typeof pathAnalyticsProperties)[number];
 
 const propertyBagSchema = z.record(z.string(), z.unknown());
 const stringPropertySchema = z.string();
@@ -147,7 +156,8 @@ export const canInitializeAnalytics = (
   production: boolean
 ): boolean => production && Boolean(key) && hostname === "pcobooster.com";
 
-const EVENTS = new Set([
+/** The only events the browser sends. */
+export const analyticsEvents = [
   "$pageview",
   "$pageleave",
   "$identify",
@@ -157,7 +167,9 @@ const EVENTS = new Set([
   "app opened",
   "workflow completed",
   "workflow failed",
-]);
+] as const;
+export type AnalyticsEvent = (typeof analyticsEvents)[number];
+const EVENTS = new Set<string>(analyticsEvents);
 
 export const canRecordSession = (
   pathname: string,

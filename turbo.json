@@ -52,7 +52,14 @@
       "outputs": []
     },
     "//#test:root": {
-      "inputs": ["lint/**/*.ts", "scripts/**/*.ts", "vitest.config.ts"],
+      "inputs": [
+        "lint/**/*.ts",
+        "scripts/**/*.ts",
+        "scripts/**/*.json",
+        "vitest.config.ts",
+        "packages/analytics/src/reports.ts",
+        "packages/analytics/src/privacy.ts"
+      ],
       "outputs": []
     },
     "//#typecheck:root": {
@@ -64,7 +71,10 @@
         "packages/config/tsconfig.base.json",
         "alchemy.run.ts",
         "alchemy.cleanup.ts",
-        "alchemy.ci.ts"
+        "alchemy.ci.ts",
+        "alchemy.posthog.ts",
+        "packages/analytics/src/reports.ts",
+        "packages/analytics/src/privacy.ts"
       ],
       "outputs": []
     },

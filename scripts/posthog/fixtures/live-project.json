@@ -1,0 +1,35 @@
+{
+  "id": 614621,
+  "name": "pcobooster.com",
+  "product_description": "Lean marketing and product analytics for pcobooster.com. Sampled masked replay only after authenticated app access; no marketing/auth/demo recordings. Vercel remains the feature-flag provider.",
+  "app_urls": ["https://pcobooster.com"],
+  "anonymize_ips": false,
+  "test_account_filters": [
+    { "key": "id", "type": "cohort", "value": 576665, "operator": "not_in" }
+  ],
+  "timezone": "America/Los_Angeles",
+  "autocapture_opt_out": false,
+  "autocapture_exceptions_opt_in": false,
+  "autocapture_web_vitals_opt_in": true,
+  "capture_console_log_opt_in": true,
+  "capture_performance_opt_in": true,
+  "session_recording_opt_in": true,
+  "session_recording_sample_rate": "0.20",
+  "session_recording_minimum_duration_milliseconds": 10000,
+  "session_recording_linked_flag": null,
+  "session_recording_network_payload_capture_config": {
+    "recordBody": false,
+    "recordHeaders": false
+  },
+  "session_recording_masking_config": {
+    "blockSelector": "img, svg, canvas, video, audio, iframe, object, embed",
+    "maskAllInputs": true,
+    "maskTextSelector": "*"
+  },
+  "session_recording_retention_period": "30d",
+  "surveys_opt_in": false,
+  "heatmaps_opt_in": true,
+  "capture_dead_clicks": false,
+  "primary_dashboard": 2127633,
+  "recording_domains": ["https://pcobooster.com"]
+}

@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./client": "./src/client.ts",
-    "./privacy": "./src/privacy.ts"
+    "./privacy": "./src/privacy.ts",
+    "./reports": "./src/reports.ts"
   },
   "scripts": {
     "test": "vitest run --root ../.. packages/analytics/src",
