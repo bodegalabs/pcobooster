@@ -1,6 +1,6 @@
 # CI/CD
 
-The Cloudflare workflow separates secretless validation from deployment: pull request previews wait for Jake's approval, and merges to `main` deploy production. `ci` runs dependency review, strict linting, typechecks, and tests. `cloudflare-build` runs the product's and the admin app's Vite Worker builds (with the prerendered marketing site staged into the product) without credentials. Both run for pull requests and merge queue commits; deployment jobs never run for `merge_group`.
+The Cloudflare workflow separates secretless validation from deployment: labeled pull requests deploy previews, and merges to `main` deploy production. `ci` runs dependency review, strict linting, typechecks, and tests. `cloudflare-build` runs the product's and the admin app's Vite Worker builds (with the prerendered marketing site staged into the product) without credentials. Both run for pull requests and merge queue commits; deployment jobs never run for `merge_group`.
 
 Run the local gates before opening a pull request:
 
@@ -25,11 +25,11 @@ Concurrency is set per job. A new push to a pull request cancels that PR's older
 
 ## Preview lifecycle
 
-Previews deploy only on request. Add the `preview` label to a same-repository pull request; adding the label, and every later push while it is present, requests a deployment once validation passes. Each deployment still waits for Jake's approval in the `cloudflare-preview` GitHub environment, because anyone with write access can add a label. Pull requests without the label get checks only, with no waiting deployment.
+Previews deploy only on request. Add the `preview` label to a same-repository pull request; adding the label, and every later push while it is present, requests a deployment once validation passes. The label is the approval: while it is present, every push to the PR deploys without further review, so only label a PR whose incoming commits you trust. Pull requests without the label get checks only, with no waiting deployment. Adding the label reruns nothing: the `labeled` run skips `ci` and `cloudflare-build` and its `preview` job waits for those checks to pass on the current head.
 
-Deploys build from source: Alchemy runs each Vite app's build itself and skips an app whose inputs are unchanged, so `cloudflare-build` outputs are validation only. `cloudflare-build` sets `PEOPLE_PAGE_ENABLED=false` to build the product as previews do; keep the two aligned. Fork PRs receive secretless checks only. Approval grants the checked-out revision access to preview app secrets and an account-scoped Cloudflare token, so review workflow/dependency changes before approving.
+Deploys build from source: Alchemy runs each Vite app's build itself and skips an app whose inputs are unchanged, so `cloudflare-build` outputs are validation only. `cloudflare-build` sets `PEOPLE_PAGE_ENABLED=false` to build the product as previews do; keep the two aligned. Fork PRs receive secretless checks only. A labeled revision gets preview app secrets and an account-scoped Cloudflare token, so review workflow/dependency changes before they land on a labeled PR.
 
-An approved job authenticates to Infisical using GitHub OIDC, checks the PR is still open at the expected head, and runs `bun alchemy deploy --stage pr-<number>`. Alchemy owns a separate D1 database and API/web/admin Workers for each PR. The preview URL is exposed in GitHub's deployment environment. Production data is never copied into these databases.
+A preview job authenticates to Infisical using GitHub OIDC, checks the PR is still open at the expected head, and runs `bun alchemy deploy --stage pr-<number>`. Alchemy owns a separate D1 database and API/web/admin Workers for each PR. The preview URL is exposed in GitHub's deployment environment. Production data is never copied into these databases.
 
 Every deploy then runs `scripts/cloudflare/verify-deployment.ts`. The API reports `PCOBOOSTER_VERSION`, which is the deployed `GITHUB_SHA`, from `health`. The script polls `POST /api/rpc/health` through the web Worker until that version matches the commit, then checks that `/` returns 200. A deploy that finishes without the new code live, or with a broken web → API binding, fails the job.
 
@@ -38,7 +38,7 @@ Teardown uses `alchemy.cleanup.ts`. It has the application stack's name and stat
 Cleanup runs in the `cloudflare-preview-cleanup` environment. That environment is restricted to `main` and needs no approval, because it only ever runs trusted `main` code:
 
 - Closing a same-repository PR triggers `pull_request_target`, which checks out `main` (never PR code), confirms the PR is still closed, and destroys its stage.
-- A nightly sweep (`scripts/cloudflare/sweep-previews.ts`, also available through `workflow_dispatch`) lists `pcobooster-pr-*` Workers and D1 databases, then destroys every stage whose PR is no longer open. It also destroys an open PR's stage once it has gone 3 days without a deploy, measured by the newest Worker upload; the next approved push recreates it. Previews therefore expire even when a PR stays open. Use `--dry-run` locally to see what it would destroy.
+- A nightly sweep (`scripts/cloudflare/sweep-previews.ts`, also available through `workflow_dispatch`) lists `pcobooster-pr-*` Workers and D1 databases, then destroys every stage whose PR is no longer open. It also destroys an open PR's stage once it has gone 3 days without a deploy, measured by the newest Worker upload; the next push to a labeled PR recreates it. Previews therefore expire even when a PR stays open. Use `--dry-run` locally to see what it would destroy.
 
 Deployment and cleanup share a per-stage concurrency group. Reopening the PR creates a fresh deployment request.
 
@@ -65,7 +65,7 @@ The issuer/discovery URL is `https://token.actions.githubusercontent.com`; audie
 - Preview and cleanup: `repo:bodegalabs@305914027/pcobooster@1125110564:environment:cloudflare-preview{,-cleanup}`. This is an Infisical glob that matches exactly those two environments.
 - Production: `repo:bodegalabs@305914027/pcobooster@1125110564:environment:cloudflare-production`
 
-Access tokens have a one-hour TTL and maximum TTL. The preview identity is Viewer only in `pcobooster-preview`. Its Cloudflare token permits Workers Scripts Write, D1 Write, and Secrets Store Write in the current account. It has no DNS, registrar, R2, or token-administration permission. These account-level permissions can affect other resources in that account; project separation does not create resource-level Cloudflare isolation. Only trusted, explicitly approved revisions may deploy previews.
+Access tokens have a one-hour TTL and maximum TTL. The preview identity is Viewer only in `pcobooster-preview`. Its Cloudflare token permits Workers Scripts Write, D1 Write, and Secrets Store Write in the current account. It has no DNS, registrar, R2, or token-administration permission. These account-level permissions can affect other resources in that account; project separation does not create resource-level Cloudflare isolation. Only revisions on a PR you labeled may deploy previews.
 
 The production token has the same account-level deployment permissions, plus DNS Write and Zone Read scoped to `pcobooster.com`. It is stored only in the production Infisical project. `Cloudflare.state()` shares the bootstrapped Alchemy state Worker and Secrets Store across stages. Keep their credentials out of application bindings, artifacts, and logs.
 
@@ -75,7 +75,7 @@ The production token has the same account-level deployment permissions, plus DNS
 
 - Repository merge settings on `bodegalabs/pcobooster`: squash on, merge commits off, auto-merge on, delete branches on merge. `allowRebaseMerge` is deliberately unmanaged; the ruleset alone keeps `main` squash-only.
 - The `main` ruleset "Protect main via pull requests" (`scripts/infra/main-ruleset.ts`): required checks `ci` and `cloudflare-build` from GitHub Actions, the squash merge queue, squash-only merges, linear history, no deletion or force pushes, and no bypass actors. `main-ruleset.test.ts` compares it with a snapshot of the live ruleset.
-- The `cloudflare-preview` (Jake as required reviewer, any branch), `cloudflare-preview-cleanup` (`main` only), and `cloudflare-production` (`main` only, no reviewers) environments and their variables. The repository is public, so GitHub accepts environment protection rules on the Free plan.
+- The `cloudflare-preview` (any branch, no reviewers), `cloudflare-preview-cleanup` (`main` only), and `cloudflare-production` (`main` only, no reviewers) environments and their variables. The repository is public, so GitHub accepts environment protection rules on the Free plan.
 - The preview and production Cloudflare deploy tokens, as account-owned API tokens.
 - `CLOUDFLARE_API_TOKEN` in each Infisical deployment project (preview `staging`, production `prod`, path `/`), written from the token Alchemy just created.
 - Both Infisical identities' GitHub OIDC bindings.
