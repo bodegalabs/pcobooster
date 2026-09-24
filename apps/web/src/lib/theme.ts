@@ -1,7 +1,7 @@
 /** Saved preferences use this key and these values; changing them resets every visitor's theme. */
 export const THEME_STORAGE_KEY = "theme";
 
-export const themePreferences = ["light", "dark", "system"] as const;
+const themePreferences = ["light", "dark", "system"] as const;
 
 export type ThemePreference = (typeof themePreferences)[number];
 
