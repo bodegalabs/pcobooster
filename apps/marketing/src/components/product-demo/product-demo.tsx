@@ -1,5 +1,3 @@
-"use client";
-
 import Calendar04Icon from "@hugeicons/core-free-icons/Calendar04Icon";
 import Layout3ColumnIcon from "@hugeicons/core-free-icons/Layout3ColumnIcon";
 import ListMusicIcon from "@hugeicons/core-free-icons/ListMusicIcon";

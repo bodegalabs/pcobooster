@@ -9,7 +9,7 @@
 
 - `apps/web/`: Next.js product UI. App Router pages, components, hooks, proxy, and public assets live under `apps/web/src` and `apps/web/public`.
 - `apps/server/`: Cloudflare Worker/Hono composition root. It mounts Better Auth, oRPC, the OpenAPI reference, CORS, and cache policy.
-- `apps/marketing/`: independent static-export Next.js marketing site. Its interactive product replica lives in `apps/marketing/components/product-demo/` with fictional fixtures; it shares only design tokens with the product, not components.
+- `apps/marketing/`: independent marketing site, a TanStack Start app prerendered to static files. Its interactive product replica lives in `apps/marketing/src/components/product-demo/` with fictional fixtures; it shares only design tokens with the product, not components.
 - `apps/admin/`: private TanStack Start admin app for `admin.pcobooster.com`, deployed as its own Cloudflare Worker. See `docs/admin.md`.
 - `packages/design-tokens/`: product color and radius tokens (`tokens.css`, light on `:root`, dark under `.dark`) shared by `apps/web` and the marketing replica.
 - `packages/contracts/`: browser-safe oRPC contracts, transport schemas, and safe error payloads.

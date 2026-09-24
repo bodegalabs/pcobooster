@@ -1,16 +1,10 @@
+import { createFileRoute } from "@tanstack/react-router";
 import { ArrowUpRight } from "lucide-react";
-import type { Metadata } from "next";
 
-import { SiteLink, ActionLink } from "../../components/site";
+import { SiteLink, ActionLink } from "../components/site";
+import { pageHead } from "../lib/site-head";
 
-import styles from "../site.module.css";
-
-export const metadata: Metadata = {
-  title: "Our story",
-  description:
-    "Why Jake built PCOBooster: a clearer view of the people behind the plan, connected to Planning Center Services.",
-  alternates: { canonical: "/about" },
-};
+import styles from "../styles/site.module.css";
 
 const AboutPage = () => (
   <main id="main" className={`${styles["about-page"]} ${styles.wrap}`}>
@@ -89,4 +83,13 @@ const AboutPage = () => (
   </main>
 );
 
-export default AboutPage;
+export const Route = createFileRoute("/about")({
+  head: () =>
+    pageHead({
+      title: "Our story",
+      description:
+        "Why Jake built PCOBooster: a clearer view of the people behind the plan, connected to Planning Center Services.",
+      pathname: "/about",
+    }),
+  component: AboutPage,
+});

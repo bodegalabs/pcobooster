@@ -3,12 +3,7 @@ import {
   initializeAnalytics,
 } from "@pcobooster/analytics/client";
 
-initializeAnalytics(
-  process.env.NEXT_PUBLIC_POSTHOG_KEY,
-  process.env.NODE_ENV === "production"
-);
-
-document.addEventListener("click", (event) => {
+const recordCtaClick = (event: MouseEvent): void => {
   const link =
     event.target instanceof Element
       ? event.target.closest("a[data-analytics-cta]")
@@ -18,4 +13,10 @@ document.addEventListener("click", (event) => {
       cta_location: link.dataset.analyticsCta ?? "unknown",
     });
   }
-});
+};
+
+/** Runs once per document, before hydration; product links are full document navigations. */
+export const startMarketingAnalytics = (): void => {
+  initializeAnalytics(import.meta.env.VITE_POSTHOG_KEY, import.meta.env.PROD);
+  document.addEventListener("click", recordCtaClick);
+};

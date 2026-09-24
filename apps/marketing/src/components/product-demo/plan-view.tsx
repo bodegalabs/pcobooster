@@ -1,5 +1,3 @@
-"use client";
-
 import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
 import MusicNote01Icon from "@hugeicons/core-free-icons/MusicNote01Icon";
 
