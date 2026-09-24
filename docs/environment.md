@@ -1,6 +1,6 @@
 # Application configuration
 
-Infisical is the source of truth for application secrets. Alchemy reads them at deployment time and binds the approved values to Cloudflare Workers. Do not create application `.env` files or maintain a second set of values in Cloudflare. Redeploy after changing secrets; browser `NEXT_PUBLIC_*` values require a rebuilt frontend.
+Infisical is the source of truth for application secrets. Alchemy reads them at deployment time and binds the approved values to Cloudflare Workers. Do not create application `.env` files or maintain a second set of values in Cloudflare. Redeploy after changing secrets. Values the product build inlines (browser keys and `PEOPLE_PAGE_ENABLED`) take effect only in a rebuilt frontend; `scripts/cloudflare/prepare.ts` stamps them into the build inputs so Alchemy rebuilds when they change.
 
 ## Environment boundaries
 
@@ -24,17 +24,17 @@ The production deployment project is `pcobooster-production` (`2eca20e1-20ac-4f0
 | `OAUTH_PROXY_SECRET` | Shared production/preview broker secret. Preview callbacks use production only to finish the provider exchange; preview accounts and sessions stay in preview D1. |
 | `PLANNING_CENTER_OAUTH_CLIENT_ID`, `PLANNING_CENTER_OAUTH_CLIENT_SECRET` | Planning Center application credentials from Infisical. |
 | `PCOBOOSTER_ADMIN_EMAILS` | Comma-separated admin allowlist. |
-| `PEOPLE_PAGE_ENABLED` | Strict `true` or `false` feature setting. |
+| `PEOPLE_PAGE_ENABLED` | Strict `true` or `false` feature setting. The API reads it at runtime; the product build inlines it to gate the People routes. |
 | `DEMO_ACCESS_KEY`, `DEMO_PLANNING_CENTER_CLIENT`, `DEMO_PLANNING_CENTER_PAT` | Optional production-only read-only demo. |
-| `NEXT_PUBLIC_POSTHOG_KEY` | Optional production analytics key, compiled into browser assets and bound to the API. |
+| `NEXT_PUBLIC_POSTHOG_KEY` | Optional production analytics key, bound to the API. The product's `vite.config.ts` inlines it as `import.meta.env.VITE_POSTHOG_KEY`, as marketing's does; a `VITE_POSTHOG_KEY` value takes precedence. |
 | `PLANNING_CENTER_TIME_ZONE` | Server fallback, default `America/Los_Angeles`. |
-| `NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE` | Optional browser fallback during organization loading. |
+| `NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE` | Optional browser fallback during organization loading, inlined as `import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE` (a `VITE_*` value takes precedence). |
 
 Alchemy owns stage origins, `BETTER_AUTH_URL`, `CORS_ORIGIN`, cookie domain, OAuth receiver allowlist, `NODE_ENV`, and service bindings. Production uses parent-domain cookies for `admin.pcobooster.com`; previews use host-only cookies and serve admin at `/admin` on the preview origin. Do not override these derived values in Infisical.
 
 ## Developer credentials
 
-Development `/local` may contain `DEV_AUTH_BYPASS`, `PLANNING_CENTER_CLIENT`, `PLANNING_CENTER_PAT`, and `PRESENTATION_SEED`. Only local commands read it. Codex cloud reads only Development `/cloud`; never `/local`, Staging, or Production. Alchemy binds these development keys only in stage `local`.
+Development `/local` may contain `DEV_AUTH_BYPASS`, `PLANNING_CENTER_CLIENT`, `PLANNING_CENTER_PAT`, and `PRESENTATION_SEED`. Only local commands read it. Codex cloud reads only Development `/cloud`; never `/local`, Staging, or Production. Alchemy binds these development keys only in stage `local`. The product Worker also receives `DEV_AUTH_BYPASS` there; its sign-in gate honors it only in the development server, never in a production build.
 
 `PRESENTATION_MODE` is process-owned: `bun run dev:present` enables it. Every deployed Worker uses production mode, which disables presentation mode and local authentication bypass.
 

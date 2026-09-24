@@ -33,7 +33,7 @@ After `verify-deployment.ts` succeeds, the production CI job runs `scripts/posth
 
 ## Collection
 
-The shared `@pcobooster/analytics` package owns configuration and the outbound event allowlist. The product initializes through Next.js `instrumentation-client.ts`; marketing initializes from its Start client entry (`apps/marketing/src/client.tsx`) before hydration. The product waits for a successful account response before initializing or identifying, which excludes read-only demo sessions. The anonymous marketing ID carries across the shared origin and merges into the application's user ID on authenticated use. The browser never sends names, emails, or organization names; the server sets them on the person profile (see below). Planning Center people are never identified.
+The shared `@pcobooster/analytics` package owns configuration and the outbound event allowlist. Both apps initialize from their Start client entries before hydration (`apps/web/src/client.tsx`, which initializes only on `/auth`, and `apps/marketing/src/client.tsx`). The product waits for a successful account response before initializing or identifying, which excludes read-only demo sessions. The anonymous marketing ID carries across the shared origin and merges into the application's user ID on authenticated use. The browser never sends names, emails, or organization names; the server sets them on the person profile (see below). Planning Center people are never identified.
 
 | Event | Meaning | Additional properties |
 | --- | --- | --- |
@@ -85,10 +85,10 @@ Replay masks all page text and inputs, blocks media/iframes, removes document me
 
 ## Configuration and release
 
-`NEXT_PUBLIC_POSTHOG_KEY` belongs in **Infisical Production `/`**, which syncs to Vercel Production. It is a public ingestion token, not a personal API key. Leave it absent from Development and Staging. Both app build tasks include it in the Turborepo environment/cache key so the independently prerendered marketing assets receive the correct value. Marketing's `vite.config.ts` inlines it as `import.meta.env.VITE_POSTHOG_KEY`.
+`NEXT_PUBLIC_POSTHOG_KEY` belongs in **Infisical Production `/`**, which syncs to Vercel Production. It is a public ingestion token, not a personal API key. Leave it absent from Development and Staging. Both app build tasks include it in the Turborepo environment/cache key so the independently prerendered marketing assets receive the correct value. Both apps' `vite.config.ts` inline it as `import.meta.env.VITE_POSTHOG_KEY`.
 
 The host is fixed to `https://us.i.posthog.com`, matching project 614621. Traffic goes directly to PostHog; there is no added proxy or domain cost. A production deployment is required after changing the key. Reverting the analytics PR restores Vercel Analytics; removing the PostHog key and rebuilding disables PostHog capture.
 
 After deployment, open marketing, follow Open app, sign in, and navigate the product. In PostHog's live events, confirm marketing/auth/app pageviews share the expected merged identity and `app opened` appears once per document. Confirm recordings appear only for sampled authenticated app sessions, and that marketing/auth/demo remain unrecorded. Check masked replay content and the absence of feature flag requests. Inspect property payloads for scrubbed URLs. Use only read-only product navigation for verification; verify writes through synthetic tests rather than changing live Planning Center data.
 
-Implementation follows the [standard Next.js integration](https://posthog.com/docs/libraries/next-js), [SDK configuration reference](https://posthog.com/docs/libraries/js/config), and [guidance on reducing unwanted events](https://posthog.com/tutorials/fewer-unwanted-events).
+Implementation follows the [TanStack Start integration](https://posthog.com/docs/libraries/tanstack-start) without its provider, since `@pcobooster/analytics` owns initialization, plus the [SDK configuration reference](https://posthog.com/docs/libraries/js/config), and [guidance on reducing unwanted events](https://posthog.com/tutorials/fewer-unwanted-events).

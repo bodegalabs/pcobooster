@@ -7,7 +7,7 @@
 
 ## Project Structure & Module Organization
 
-- `apps/web/`: Next.js product UI. App Router pages, components, hooks, proxy, and public assets live under `apps/web/src` and `apps/web/public`.
+- `apps/web/`: TanStack Start product UI on Cloudflare Workers. File routes live in `apps/web/src/routes` (`src/routeTree.gen.ts` is generated and committed); the sign-in gate and other request middleware in `src/start.ts`; components, hooks, and public assets under `apps/web/src` and `apps/web/public`.
 - `apps/server/`: Cloudflare Worker/Hono composition root. It mounts Better Auth, oRPC, the OpenAPI reference, CORS, and cache policy.
 - `apps/marketing/`: independent marketing site, a TanStack Start app prerendered to static files. Its interactive product replica lives in `apps/marketing/src/components/product-demo/` with fictional fixtures; it shares only design tokens with the product, not components.
 - `apps/admin/`: private TanStack Start admin app for `admin.pcobooster.com`, deployed as its own Cloudflare Worker. See `docs/admin.md`.
@@ -27,7 +27,7 @@
 
 - Use Bun for dependency management and scripts. `bun.lock` is the only committed lockfile; do not add `package-lock.json` or run npm-based install workflows for this repo.
 - `bun run dev`: start API, product, and admin through Alchemy, plus the marketing dev server (ports 3000, 3001, 3002, and 3003).
-- `bun run build`: build the Hono service and Next.js apps through Turborepo.
+- `bun run build`: build the Hono service and the Vite apps through Turborepo.
 - `bun run start`: run built app.
 - `bun run check` (also `lint`): run Ultracite formatting and type-aware lint checks; warnings fail the check. All selected presets in `oxlint.config.ts` remain strict.
 - `bun run lint:ci`: same as `lint` with `--format github` for Action annotations (used by CI).
@@ -73,7 +73,7 @@
 ## Architecture Notes
 
 - Preferred flow: `apps/web` -> oRPC contract -> `apps/server` -> `packages/api/src/transport/orpc/*` -> Effect application program -> `packages/api/src/modules/*` -> service adapter.
-- Better Auth is mounted directly by Hono at `/api/auth/*`. Next.js service bindings and local rewrites keep browser requests on the web origin.
+- Better Auth is mounted directly by Hono at `/api/auth/*`. The product Worker's `/api/*` and `/admin/*` server routes forward through service bindings (locally too), so browser requests stay on the web origin.
 - Product operations use oRPC. Better Auth, liveness health, and the OpenAPI reference are the intentional non-oRPC surfaces.
 - Database access uses Drizzle through `packages/api/src/db`; migrations include Better Auth tables.
 - Browser query keys, persistence schemas, and cache hydration live in `apps/web/src/lib`. The web app may import contracts and Planning Center models, never `packages/api`.
@@ -90,7 +90,7 @@
 ## Learned Workspace Facts
 
 - People availability and blockouts: compare the plan `sort_date` instant to blockouts using each blockout’s Planning Center `time_zone` (calendar-day logic); pass the full ISO `date` through the `people.list` oRPC input. Naive UTC-midnight or date-only string overlap checks can mislabel people near timezone boundaries.
-- Congregation-local business dates (plan windows, schedule history frequency, calendar-day deltas) use the org IANA zone from `NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE` / `PLANNING_CENTER_TIME_ZONE` with shared helpers in `packages/planning-center-models/src/calendar.ts`.
+- Congregation-local business dates (plan windows, schedule history frequency, calendar-day deltas) use the org IANA zone from `VITE_PLANNING_CENTER_TIME_ZONE` (inlined from `NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE` until renamed) / `PLANNING_CENTER_TIME_ZONE` with shared helpers in `packages/planning-center-models/src/calendar.ts`.
 - Person card frequency labels should align with recommendation scoring: distinct calendar service/rehearsal days in org TZ, not raw plan-time row counts or grouped-card counts.
 
 # Ultracite Code Standards

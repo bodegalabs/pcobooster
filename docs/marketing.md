@@ -20,9 +20,9 @@ Run `bun run build` from the repository root. It:
 2. Stages `dist/client` into the ignored, generated `apps/web/public/marketing` directory (`scripts/stage-marketing.ts`).
 3. Builds the product and Hono service.
 
-Alchemy's native Next.js resource builds OpenNext and uploads the staged marketing files as Worker assets. The OpenNext build command builds and stages marketing before the product. Public `/` and `/about` route handlers fetch `/marketing/index.html` and `/marketing/about.html` from the `ASSETS` binding.
+The product is a TanStack Start app deployed with Alchemy's `Cloudflare.Website.Vite`. Vite copies the staged files into the product's client assets, which Alchemy uploads. Alchemy's build has no pre-build hook, so a plugin in `apps/web/vite.config.ts` runs `bun run build:marketing` first when Alchemy drives the build; standalone builds stage the marketing build Turborepo already ran. The product's `/` and `/about` server routes fetch `/marketing/index.html` and `/marketing/about.html` from the `ASSETS` binding.
 
-Marketing assets use `/marketing` (the Vite `base`), avoiding collisions with the product's `/_next` chunks. Those exact public routes bypass the product auth proxy; `/services`, `/people`, `/admin`, and product APIs retain their existing authentication behavior.
+Marketing assets use `/marketing` (the Vite `base`), avoiding collisions with the product's `/assets` chunks. Those exact public routes bypass the product's sign-in gate (`apps/web/src/lib/request-gate.ts`); `/services`, `/people`, `/admin`, and product APIs retain their existing authentication behavior. In development the product's Vite server proxies `/`, `/about`, and `/marketing/*` to the marketing dev server on port 3002.
 
 Prerendering runs only at build time. Start serves the pages through `vite preview` while it writes them; `src/server.ts` and a preview middleware in `vite.config.ts` reconcile the `/marketing/` asset base with the `/` page paths there. Nothing marketing-specific runs on a server in production. Titles, descriptions, canonical URLs, and the Open Graph/Twitter card come from `src/lib/site-head.ts`.
 
