@@ -421,7 +421,7 @@ export const PlanItemList = ({
               items={items.map((item) => item.id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="pb-tab-bar sm:pr-3 md:pb-4">
+              <div className="pb-safe-4 sm:pr-3 md:pb-4">
                 <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
                   {items.map((item) => (
                     <SortablePlanItem
