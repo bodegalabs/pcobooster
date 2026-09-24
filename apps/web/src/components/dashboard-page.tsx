@@ -1,8 +1,6 @@
-"use client";
-
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import { Link } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
-import Link from "next/link";
 import { toast } from "sonner";
 
 import { PlanningCenterServicesIcon } from "@/components/planning-center-services-icon";
@@ -18,7 +16,6 @@ import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useDashboardController } from "@/hooks/use-dashboard-controller";
-import { usePlanWorkspaceView } from "@/hooks/use-plan-workspace-view";
 import type { DashboardView } from "@/lib/schedule-navigation";
 import { cn } from "@/lib/utils";
 
@@ -104,7 +101,7 @@ const WorkspaceUnavailable = () => (
     <p className="text-muted-foreground text-sm">
       This plan could not be loaded. Choose a plan from Services.
     </p>
-    <Link href="/services" className={buttonVariants()}>
+    <Link to="/services" className={buttonVariants()}>
       Go to Services
     </Link>
   </main>
@@ -155,7 +152,7 @@ const MobilePlanBack = ({ onBack }: { onBack: (() => void) | null }) =>
     </Button>
   ) : (
     <Link
-      href="/services"
+      to="/services"
       aria-label="Back to services"
       className={servicesBackClassName}
     >
@@ -266,13 +263,12 @@ const DashboardPlanHeaderSlot = ({
 export const DashboardPage = ({
   serviceTypeId,
   planId,
-  view: routeView,
+  view,
 }: {
   serviceTypeId: string;
   planId: string;
   view: DashboardView;
 }) => {
-  const view = usePlanWorkspaceView(serviceTypeId, planId, routeView);
   const {
     workspaceUnavailable,
     hasPlanUrlSelection,

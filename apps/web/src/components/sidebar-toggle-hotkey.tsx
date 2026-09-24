@@ -1,5 +1,3 @@
-"use client";
-
 import { useHotkey } from "@tanstack/react-hotkeys";
 
 import { useSidebar } from "@/components/ui/sidebar";

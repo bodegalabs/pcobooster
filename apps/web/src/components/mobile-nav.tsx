@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Calendar04Icon,
   Clock01Icon,
@@ -15,12 +13,12 @@ import {
 } from "@hugeicons/core-free-icons";
 import type { IconSvgElement } from "@hugeicons/react";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
-import { useTheme } from "next-themes";
-import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { Link, useLocation } from "@tanstack/react-router";
+import type { ReactElement } from "react";
 import { useState } from "react";
 
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
+import { useTheme } from "@/components/theme-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,16 +33,10 @@ import { Spinner } from "@/components/ui/spinner";
 import { TabBar, TabBarItem } from "@/components/ui/tab-bar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { signOutLabel, useAccountPanel } from "@/hooks/use-account-panel";
-import type { AppSection, PlanView } from "@/lib/app-routes";
-import {
-  buildPlanViewUrl,
-  getAppSection,
-  getPlanViewLabel,
-  parsePlanRoute,
-  planViews,
-} from "@/lib/app-routes";
+import { usePlanRoute } from "@/hooks/use-plan-route";
+import type { AppSection, PlanRoute, PlanView } from "@/lib/app-routes";
+import { getAppSection, getPlanViewLabel, planViews } from "@/lib/app-routes";
 import { getInitials } from "@/lib/format/initials";
-import { updatePlanWorkspaceUrl } from "@/lib/schedule-navigation";
 import { cn } from "@/lib/utils";
 
 const planViewIcons: Record<PlanView, IconSvgElement> = {
@@ -61,31 +53,21 @@ const themeOptions = [
 ] as const;
 
 const TabLink = ({
-  href,
+  link,
   icon,
   label,
   active,
-  replace = false,
-  handleNavigate,
 }: {
-  href: string;
+  /** A router `<Link>`; the tab renders through it. */
+  link: ReactElement;
   icon: IconSvgElement;
   label: string;
   active: boolean;
-  replace?: boolean;
-  handleNavigate?: (event: { preventDefault: () => void }) => void;
 }) => (
   <TabBarItem
     active={active}
     aria-current={active ? "page" : undefined}
-    render={
-      <Link
-        href={href}
-        replace={replace}
-        scroll={false}
-        onNavigate={handleNavigate}
-      />
-    }
+    render={link}
   >
     <SidebarNavIcon icon={icon} />
     <span className="max-w-full truncate">{label}</span>
@@ -222,7 +204,7 @@ const MobileAccountSheet = ({
               Appearance
             </h3>
             <Tabs
-              value={theme ?? "system"}
+              value={theme}
               onValueChange={(value) => {
                 const option = themeOptions.find(
                   (candidate) => candidate.value === value
@@ -270,54 +252,50 @@ const MobileAccountSheet = ({
   );
 };
 
-const PlanTabBar = ({ view }: { view: PlanView }) => {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  return (
-    <TabBar
-      aria-label="Plan views"
-      tabCount={planViews.length}
-      activeIndex={planViews.indexOf(view)}
-    >
-      {planViews.map((planView) => {
-        const href = buildPlanViewUrl(pathname, searchParams, planView);
-        return (
-          <TabLink
-            key={planView}
-            href={href}
-            icon={planViewIcons[planView]}
-            label={getPlanViewLabel(planView)}
-            active={planView === view}
+const PlanTabBar = ({ planRoute }: { planRoute: PlanRoute }) => (
+  <TabBar
+    aria-label="Plan views"
+    tabCount={planViews.length}
+    activeIndex={planViews.indexOf(planRoute.view)}
+  >
+    {planViews.map((planView) => (
+      <TabLink
+        key={planView}
+        // Keeps the selected slot and scroll position across views.
+        link={
+          <Link
+            to="/services/$serviceTypeId/plans/$planId/$view"
+            params={{ ...planRoute, view: planView }}
+            search
             replace
-            handleNavigate={(event) => {
-              if (updatePlanWorkspaceUrl(pathname, href, "replace")) {
-                event.preventDefault();
-              }
-            }}
+            resetScroll={false}
           />
-        );
-      })}
-    </TabBar>
-  );
-};
+        }
+        icon={planViewIcons[planView]}
+        label={getPlanViewLabel(planView)}
+        active={planView === planRoute.view}
+      />
+    ))}
+  </TabBar>
+);
 
 interface SectionTab {
   section: AppSection;
-  href: string;
+  link: ReactElement;
   icon: IconSvgElement;
   label: string;
 }
 
 const SectionTabBar = ({ peopleEnabled }: { peopleEnabled: boolean }) => {
-  const pathname = usePathname();
-  const section = getAppSection(pathname);
+  const section = getAppSection(
+    useLocation({ select: (location) => location.pathname })
+  );
   const [accountOpen, setAccountOpen] = useState(false);
   const { summary } = useAccountPanel();
   const tabs: SectionTab[] = [
     {
       section: "services",
-      href: "/services",
+      link: <Link to="/services" />,
       icon: Calendar04Icon,
       label: "Services",
     },
@@ -325,7 +303,7 @@ const SectionTabBar = ({ peopleEnabled }: { peopleEnabled: boolean }) => {
   if (peopleEnabled) {
     tabs.push({
       section: "people",
-      href: "/people",
+      link: <Link to="/people" />,
       icon: UsersIcon,
       label: "People",
     });
@@ -342,7 +320,7 @@ const SectionTabBar = ({ peopleEnabled }: { peopleEnabled: boolean }) => {
         {tabs.map((tab) => (
           <TabLink
             key={tab.section}
-            href={tab.href}
+            link={tab.link}
             icon={tab.icon}
             label={tab.label}
             active={tab.section === section}
@@ -370,11 +348,10 @@ const SectionTabBar = ({ peopleEnabled }: { peopleEnabled: boolean }) => {
 
 /** Thumb-reach navigation for phones: plan views inside a plan, sections elsewhere. */
 export const MobileTabBar = ({ peopleEnabled }: { peopleEnabled: boolean }) => {
-  const pathname = usePathname();
-  const planRoute = parsePlanRoute(pathname);
+  const planRoute = usePlanRoute();
 
-  if (planRoute) {
-    return <PlanTabBar view={planRoute.view} />;
+  if (planRoute !== null) {
+    return <PlanTabBar planRoute={planRoute} />;
   }
   return <SectionTabBar peopleEnabled={peopleEnabled} />;
 };

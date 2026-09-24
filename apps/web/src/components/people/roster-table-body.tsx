@@ -1,8 +1,6 @@
-"use client";
-
 import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
+import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
-import Link from "next/link";
 
 import { loadBadge } from "@/components/people/calendar";
 import { PersonIdentitySkeleton } from "@/components/people/people-skeletons";
@@ -84,7 +82,8 @@ export const RosterTableBody = ({
                 <PersonAvatar person={person} />
                 <div className="min-w-0">
                   <Link
-                    href={`/people/${person.id}`}
+                    to="/people/$personId"
+                    params={{ personId: person.id }}
                     className="focus-visible:outline-ring block w-full truncate text-left text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2"
                     onFocus={() => {
                       onPreviewPerson(person);

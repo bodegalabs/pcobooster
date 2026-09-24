@@ -1,9 +1,10 @@
 import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Item } from "@/components/ui/item";
+import { parsePlanRoute } from "@/lib/app-routes";
 import { cn } from "@/lib/utils";
 
 export const CommitmentEntryText = ({
@@ -13,7 +14,9 @@ export const CommitmentEntryText = ({
 }) => {
   const hasServiceType =
     entry.serviceTypeName !== undefined && entry.serviceTypeName !== "";
-  const hasPlanUrl = entry.planUrl !== undefined && entry.planUrl !== "";
+  // The API links each commitment to its plan workspace.
+  const planRoute =
+    entry.planUrl === undefined ? null : parsePlanRoute(entry.planUrl);
 
   return (
     <>
@@ -21,9 +24,10 @@ export const CommitmentEntryText = ({
       {hasServiceType ? (
         <>
           {" · "}
-          {hasPlanUrl ? (
+          {planRoute ? (
             <Link
-              href={entry.planUrl ?? ""}
+              to="/services/$serviceTypeId/plans/$planId/$view"
+              params={planRoute}
               className="text-foreground font-medium underline-offset-2 hover:underline"
             >
               {entry.serviceTypeName}

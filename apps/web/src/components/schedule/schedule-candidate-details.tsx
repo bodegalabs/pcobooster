@@ -1,5 +1,3 @@
-"use client";
-
 import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
 import type { CSSProperties, ReactNode } from "react";
 

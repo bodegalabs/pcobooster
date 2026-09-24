@@ -1,5 +1,3 @@
-"use client";
-
 import type { SongCatalogEntry } from "@pcobooster/planning-center-models/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";

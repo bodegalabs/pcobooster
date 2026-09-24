@@ -1,19 +1,11 @@
-"use client";
-
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   TeamPosition,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import {
-  startTransition,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-} from "react";
+import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import type { SlotRef } from "@/components/schedule/types";
 import { useCollapsedTeams } from "@/hooks/use-collapsed-teams";
@@ -26,20 +18,24 @@ import { useTeamPositions } from "@/hooks/use-team-positions";
 import { queryKeys } from "@/lib/query-keys";
 import type {
   DashboardView,
-  NavigationSelectionIds,
+  PlanSlotSelection,
 } from "@/lib/schedule-navigation";
 import {
   buildPlanMemberPositionId,
-  buildScheduleUrl,
-  parseSearchSelection,
-  updatePlanWorkspaceUrl,
+  planSlotLink,
 } from "@/lib/schedule-navigation";
+
+interface RouteSelectionIds {
+  teamId: string | null;
+  positionId: string | null;
+  view: DashboardView;
+}
 
 const SLOT_PEOPLE_PREFETCH_DELAY_MS = 180;
 
 const resolveSelectedSlot = (
   teamPositionGroups: TeamPositionGroup[] | undefined,
-  routeIds: ReturnType<typeof parseSearchSelection>
+  routeIds: RouteSelectionIds
 ) => {
   const selectedTeamGroup =
     teamPositionGroups?.find((group) => group.teamId === routeIds.teamId) ??
@@ -60,7 +56,7 @@ const resolveSelectedSlot = (
 const usePlanWorkspaceData = (
   serviceTypeId: string,
   planId: string,
-  routeIds: ReturnType<typeof parseSearchSelection>
+  routeIds: RouteSelectionIds
 ) => {
   const { data: serviceTypes, isLoading: serviceTypesLoading } =
     useServiceTypes();
@@ -125,8 +121,10 @@ export const useDashboardController = ({
   view: DashboardView;
 }) => {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const navigate = useNavigate();
+  const search = useSearch({
+    from: "/_app/services/$serviceTypeId/plans/$planId/$view",
+  });
   const queryClient = useQueryClient();
   const slotPrefetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
@@ -136,35 +134,29 @@ export const useDashboardController = ({
 
   const [collapsedTeamsByPlan, setCollapsedTeamsByPlan] = useCollapsedTeams();
 
-  const routeIds = useMemo(
-    () => parseSearchSelection(searchParams, view),
-    [searchParams, view]
+  const routeIds = useMemo<RouteSelectionIds>(
+    () => ({
+      teamId: search.teamId ?? null,
+      positionId: search.positionId ?? null,
+      view,
+    }),
+    [search.teamId, search.positionId, view]
   );
-  const currentUrl = useMemo(() => {
-    const query = searchParams.toString();
-    return query ? `${pathname}?${query}` : pathname;
-  }, [pathname, searchParams]);
 
   const navigateTo = useCallback(
-    (nextIds: NavigationSelectionIds, method: "push" | "replace" = "push") => {
-      const nextUrl = buildScheduleUrl(nextIds);
-      if (nextUrl === currentUrl) {
+    (next: PlanSlotSelection, method: "push" | "replace" = "push") => {
+      if (
+        next.serviceTypeId === serviceTypeId &&
+        next.planId === planId &&
+        next.view === routeIds.view &&
+        (next.teamId ?? "") === (routeIds.teamId ?? "") &&
+        (next.positionId ?? "") === (routeIds.positionId ?? "")
+      ) {
         return;
       }
-
-      if (updatePlanWorkspaceUrl(pathname, nextUrl, method)) {
-        return;
-      }
-
-      startTransition(() => {
-        if (method === "replace") {
-          router.replace(nextUrl);
-          return;
-        }
-        router.push(nextUrl);
-      });
+      void navigate({ ...planSlotLink(next), replace: method === "replace" });
     },
-    [currentUrl, pathname, router]
+    [navigate, planId, routeIds, serviceTypeId]
   );
 
   const {
@@ -198,18 +190,19 @@ export const useDashboardController = ({
     ) {
       return;
     }
-    navigateTo(
-      {
+    // The URL named a slot this plan doesn't have; show the resolved selection instead.
+    void navigate({
+      ...planSlotLink({
         serviceTypeId,
         planId,
         view,
         teamId: selectedTeam,
         positionId: selectedPosition,
-      },
-      "replace"
-    );
+      }),
+      replace: true,
+    });
   }, [
-    navigateTo,
+    navigate,
     planId,
     routeIds,
     selectedPosition,
@@ -337,7 +330,7 @@ export const useDashboardController = ({
   const handleSlotClear = () => {
     if (openedSlotFromListRef.current) {
       openedSlotFromListRef.current = false;
-      router.back();
+      router.history.back();
       return;
     }
     navigateTo(

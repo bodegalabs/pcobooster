@@ -1,5 +1,3 @@
-"use client";
-
 import { Clock01Icon, UnfoldMoreIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type {

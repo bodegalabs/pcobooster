@@ -1,4 +1,3 @@
-"use client";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   FilledPositionPerson,

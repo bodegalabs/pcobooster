@@ -19,7 +19,7 @@ Each user page links to the matching PostHog person. The product identifies Post
 - `src/server/admin.functions.ts`: server functions. They read the `API` service binding and `PRODUCT_ORIGIN` from `cloudflare:workers` (typed in `src/worker-env.d.ts`) and forward the request's cookie.
 - `src/server/admin-rpc.ts`: the oRPC client and the status mapping. A 401 redirects to product sign-in, and a 403 or 404 renders the not-found page.
 - `src/start.ts`: request middleware for CSRF protection on server functions and the private response headers.
-- `src/server.ts`: Worker entry. It serves the bare mount path (`/admin`) as the index, because the product's Next.js route redirects `/admin/` to `/admin`.
+- `src/server.ts`: Worker entry. It serves the bare mount path (`/admin`) as the index instead of redirecting to `/admin/`. The product forwards both `/admin` and `/admin/` unchanged, and links point at `/admin`.
 
 ## Development and deployment
 

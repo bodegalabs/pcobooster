@@ -82,7 +82,7 @@ Product operations are served through the typed oRPC transport at `/api/rpc`; it
 
 ```text
 apps/
-  web/                       # Next.js product UI
+  web/                       # TanStack Start product UI
   server/                    # Bun/Hono transport and oRPC entrypoint
   marketing/                 # Prerendered TanStack Start marketing site
 packages/

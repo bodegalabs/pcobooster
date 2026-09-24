@@ -1,5 +1,3 @@
-"use client";
-
 import { formatWallTimeInTimeZone } from "@pcobooster/planning-center-models/calendar";
 import type {
   FilledPositionPerson,

@@ -161,6 +161,7 @@ export default Alchemy.Stack(
         exclude: [
           "node_modules/**",
           "dist/**",
+          ".tanstack/**",
           ".turbo/**",
           ".wrangler/**",
           "*.tsbuildinfo",
@@ -172,22 +173,26 @@ export default Alchemy.Stack(
         PRODUCT_ORIGIN: publicOrigin,
       },
     });
-    const web = yield* Cloudflare.Website.Nextjs("Web", {
+    // TanStack Start. Its build stages the marketing site into `public/marketing` first.
+    const web = yield* Cloudflare.Website.Vite("Web", {
       name: `pcobooster-${stage}-web`,
       rootDir: path.join(import.meta.dirname, "apps/web"),
       domain: attachDomains
         ? { name: "pcobooster.com", aliases: ["www.pcobooster.com"], zone }
         : undefined,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
-      dev: { mode: "hmr", port: 3001 },
+      dev: { host: "127.0.0.1", port: 3001, strictPort: true },
       memo: {
+        // Explicit globs also hash the gitignored cloudflare-build-inputs.json stamp, which
+        // carries build-time variables and the marketing sources into the rebuild key.
         include: ["**/*"],
         exclude: [
           "node_modules/**",
           "dist/**",
-          ".next/**",
-          ".open-next/**",
+          "public/marketing/**",
+          ".tanstack/**",
           ".turbo/**",
+          ".wrangler/**",
           "*.tsbuildinfo",
         ],
         lockfile: true,
@@ -195,8 +200,9 @@ export default Alchemy.Stack(
       env: {
         API: api,
         ADMIN: admin,
-        NODE_ENV: "production",
         PRODUCT_ORIGIN: publicOrigin,
+        // Local stage only, like the API's; production builds ignore it regardless.
+        DEV_AUTH_BYPASS: developmentSecrets(local).DEV_AUTH_BYPASS,
       },
     });
     return {

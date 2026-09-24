@@ -50,7 +50,8 @@ const hashDirectory = async (directory: string): Promise<string[]> => {
 
 /**
  * Alchemy's memo hashes files, not the environment: record the stage (which sets the admin
- * base path) and public build variables, plus the workspaces Next.js memoization misses.
+ * base path) and the variables the web build inlines, plus the marketing site the web build
+ * stages, which it does not import.
  */
 export const prepareCloudflareBuild = async (stage: string): Promise<void> => {
   const directories = await Promise.all(
@@ -65,7 +66,9 @@ export const prepareCloudflareBuild = async (stage: string): Promise<void> => {
     Object.entries(process.env)
       .filter(
         ([key]) =>
-          key.startsWith("NEXT_PUBLIC_") || key === "PEOPLE_PAGE_ENABLED"
+          key.startsWith("VITE_") ||
+          key.startsWith("NEXT_PUBLIC_") ||
+          key === "PEOPLE_PAGE_ENABLED"
       )
       .toSorted(([a], [b]) => a.localeCompare(b))
   );

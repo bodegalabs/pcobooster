@@ -1,5 +1,3 @@
-"use client";
-
 import { LoaderCircle, Music4, Plus, Type } from "lucide-react";
 
 import { Button } from "@/components/ui/button";

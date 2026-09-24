@@ -1,7 +1,8 @@
+import { isNotFound } from "@tanstack/react-router";
 import { describe, expect, it } from "vitest";
 
 import {
-  buildPlanViewUrl,
+  assertPlanView,
   getAppSection,
   parseDetailRoute,
   parsePlanRoute,
@@ -16,6 +17,15 @@ describe(parsePlanRoute, () => {
     });
   });
 
+  it("decodes path segments into route params", () => {
+    expect(parsePlanRoute("/services/a%2Fb/plans/34/assign")).toStrictEqual({
+      serviceTypeId: "a/b",
+      planId: "34",
+      view: "assign",
+    });
+    expect(parsePlanRoute("/services/%E0%A4%A/plans/34/assign")).toBeNull();
+  });
+
   it("rejects unknown views and other routes", () => {
     expect(parsePlanRoute("/services/12/plans/34/unknown")).toBeNull();
     expect(parsePlanRoute("/services")).toBeNull();
@@ -23,21 +33,19 @@ describe(parsePlanRoute, () => {
   });
 });
 
-describe(buildPlanViewUrl, () => {
-  it("keeps the slot query when switching views", () => {
-    expect(
-      buildPlanViewUrl(
-        "/services/12/plans/34/assign",
-        new URLSearchParams("teamId=1&positionId=2"),
-        "times"
-      )
-    ).toBe("/services/12/plans/34/times?teamId=1&positionId=2");
+describe(assertPlanView, () => {
+  it("accepts every plan view", () => {
+    for (const view of ["assign", "lineup", "plan", "times"]) {
+      expect(() => {
+        assertPlanView(view);
+      }).not.toThrow();
+    }
   });
 
-  it("falls back to services outside a plan", () => {
-    expect(buildPlanViewUrl("/people", new URLSearchParams(), "plan")).toBe(
-      "/services"
-    );
+  it("renders not-found for unknown views", () => {
+    expect(() => {
+      assertPlanView("unknown");
+    }).toThrow(expect.toSatisfy(isNotFound));
   });
 });
 

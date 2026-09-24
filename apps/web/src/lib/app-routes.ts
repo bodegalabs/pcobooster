@@ -1,3 +1,5 @@
+import { notFound } from "@tanstack/react-router";
+
 export type PlanView = "assign" | "lineup" | "plan" | "times";
 
 export const planViews: readonly PlanView[] = [
@@ -20,6 +22,15 @@ export const getPlanViewLabel = (view: PlanView): string =>
 export const isPlanView = (value: string): value is PlanView =>
   planViews.some((view) => view === value);
 
+type AssertPlanView = (value: string) => asserts value is PlanView;
+
+/** Unknown views render the not-found page, as the route never existed. */
+export const assertPlanView: AssertPlanView = (value) => {
+  if (!isPlanView(value)) {
+    notFound({ throw: true });
+  }
+};
+
 export interface PlanRoute {
   serviceTypeId: string;
   planId: string;
@@ -29,31 +40,27 @@ export interface PlanRoute {
 const planRoutePattern =
   /^\/services\/(?<serviceTypeId>[^/]+)\/plans\/(?<planId>[^/]+)\/(?<view>[^/]+)$/u;
 
+const decodeSegment = (segment: string): string | null => {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return null;
+  }
+};
+
+/** Reads a plan workspace path, such as a `planUrl` from the API, into route params. */
 export const parsePlanRoute = (pathname: string): PlanRoute | null => {
   const match = planRoutePattern.exec(pathname);
   if (!match) {
     return null;
   }
-  const [, serviceTypeId, planId, view] = match;
-  if (!isPlanView(view)) {
+  const [, encodedServiceTypeId, encodedPlanId, view] = match;
+  const serviceTypeId = decodeSegment(encodedServiceTypeId);
+  const planId = decodeSegment(encodedPlanId);
+  if (serviceTypeId === null || planId === null || !isPlanView(view)) {
     return null;
   }
   return { serviceTypeId, planId, view };
-};
-
-/** Switches the plan workspace view while keeping the selected slot query. */
-export const buildPlanViewUrl = (
-  pathname: string,
-  searchParams: Pick<URLSearchParams, "toString">,
-  view: PlanView
-): string => {
-  const route = parsePlanRoute(pathname);
-  if (!route) {
-    return "/services";
-  }
-  const query = searchParams.toString();
-  const path = `/services/${route.serviceTypeId}/plans/${route.planId}/${view}`;
-  return query ? `${path}?${query}` : path;
 };
 
 export type AppSection = "services" | "people";
@@ -74,7 +81,7 @@ export const getAppSectionLabel = (section: AppSection): string =>
   appSectionLabels[section];
 
 export interface DetailRoute {
-  parentHref: string;
+  parentHref: "/people";
   parentLabel: string;
   label: string;
 }

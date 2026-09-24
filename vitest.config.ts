@@ -42,11 +42,6 @@ export default defineConfig({
         find: "@",
         replacement: `${rootDir}/apps/web/src`,
       },
-      // Use the marker's published server entry without selecting React's RSC runtime.
-      {
-        find: "server-only",
-        replacement: `${rootDir}/node_modules/server-only/empty.js`,
-      },
     ],
   },
 });

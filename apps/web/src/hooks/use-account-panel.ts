@@ -1,5 +1,3 @@
-"use client";
-
 import {
   initializeAnalytics,
   resetAnalytics,
@@ -7,8 +5,8 @@ import {
 import type { PlanningCenterAccountsResponse } from "@pcobooster/contracts/accounts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { startTransition, useState } from "react";
+import { useNavigate, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
 
 import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import {
@@ -31,8 +29,8 @@ export const fetchAccounts = async ({
     resetAnalytics();
   } else {
     initializeAnalytics(
-      process.env.NEXT_PUBLIC_POSTHOG_KEY,
-      process.env.NODE_ENV === "production",
+      import.meta.env.VITE_POSTHOG_KEY,
+      import.meta.env.PROD,
       response.session.userId
     );
   }
@@ -71,6 +69,7 @@ export const useAccountPanel = ({
   onAccountSwitched?: () => void;
 } = {}) => {
   const router = useRouter();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const accountsQuery = useAccountsQuery();
   const data = accountsQuery.data ?? null;
@@ -98,7 +97,7 @@ export const useAccountPanel = ({
       clearAccountScopedCaches();
       await accountsQuery.refetch();
       await queryClient.invalidateQueries();
-      router.refresh();
+      await router.invalidate();
       onAccountSwitched?.();
     } catch (error) {
       setActionError(
@@ -124,10 +123,7 @@ export const useAccountPanel = ({
         window.location.assign("/");
         return;
       }
-      startTransition(() => {
-        router.replace("/auth");
-        router.refresh();
-      });
+      await navigate({ to: "/auth", replace: true });
     } catch (error) {
       setActionError(
         error instanceof Error ? error.message : "Unable to sign out"

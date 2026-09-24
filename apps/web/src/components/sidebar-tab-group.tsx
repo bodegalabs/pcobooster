@@ -1,8 +1,5 @@
-"use client";
-
 import type { IconSvgElement } from "@hugeicons/react";
-import Link from "next/link";
-import type { ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
 import {
@@ -15,10 +12,9 @@ import {
 export interface SidebarTabGroupItem<Key extends string = string> {
   key: Key;
   label: string;
-  href: string;
+  /** A router `<Link>`; the menu button renders through it. */
+  link: ReactElement;
   icon: IconSvgElement;
-  /** Lets a tab handle client-side navigation itself, e.g. in place. */
-  handleNavigate?: (event: { preventDefault: () => void }) => void;
 }
 
 interface SidebarTabGroupProps<Key extends string = string> {
@@ -37,7 +33,7 @@ export const SidebarTabGroup = <Key extends string>({
   if (!isGrouped) {
     return (
       <SidebarMenuButton
-        render={<Link href={fallbackItem.href} />}
+        render={fallbackItem.link}
         isActive={activeKey === fallbackItem.key}
         tooltip={fallbackItem.label}
       >
@@ -55,7 +51,7 @@ export const SidebarTabGroup = <Key extends string>({
     groupedItems.push(
       <SidebarMenuSubItem key={item.key}>
         <SidebarMenuSubButton
-          render={<Link href={item.href} onNavigate={item.handleNavigate} />}
+          render={item.link}
           isActive={activeKey === item.key}
         >
           <SidebarNavIcon icon={item.icon} />
@@ -68,7 +64,7 @@ export const SidebarTabGroup = <Key extends string>({
   return (
     <div className="group/tab-group flex flex-col">
       <SidebarMenuButton
-        render={<Link href={fallbackItem.href} />}
+        render={fallbackItem.link}
         isActive={activeKey === fallbackItem.key}
         tooltip={fallbackItem.label}
       >

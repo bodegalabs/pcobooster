@@ -1,4 +1,3 @@
-"use client";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 
@@ -40,8 +39,6 @@ export const useOrganizationTimeZone = (): string => {
     return tz;
   }
 
-  return (
-    process.env.NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE?.trim() ??
-    "America/Los_Angeles"
-  );
+  const configured = import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE.trim();
+  return configured === "" ? "America/Los_Angeles" : configured;
 };

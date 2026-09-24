@@ -1,5 +1,3 @@
-"use client";
-
 import {
   getScheduleContextHalfRangeWeekOptions,
   SCHEDULE_CONTEXT_DEFAULT_HALF_RANGE_WEEKS,

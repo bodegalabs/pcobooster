@@ -233,10 +233,10 @@ describe("monorepo architecture boundaries", () => {
       }
     }
 
-    const nextConfigPath = join(repositoryRoot, "apps/web/next.config.ts");
-    if (readFileSync(nextConfigPath, "utf8").includes("@pcobooster/api")) {
+    const viteConfigPath = join(repositoryRoot, "apps/web/vite.config.ts");
+    if (readFileSync(viteConfigPath, "utf8").includes("@pcobooster/api")) {
       violations.push(
-        "apps/web/next.config.ts transpiles or otherwise references @pcobooster/api"
+        "apps/web/vite.config.ts bundles or otherwise references @pcobooster/api"
       );
     }
 

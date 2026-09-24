@@ -1,6 +1,6 @@
 # CI/CD
 
-The Cloudflare workflow separates secretless validation from deployment: pull request previews wait for Jake's approval, and merges to `main` deploy production. `ci` runs dependency review, strict linting, typechecks, and tests. `cloudflare-build` builds the product's OpenNext Worker bundle and the admin app's Vite build without credentials. Both run for pull requests and merge queue commits; deployment jobs never run for `merge_group`.
+The Cloudflare workflow separates secretless validation from deployment: pull request previews wait for Jake's approval, and merges to `main` deploy production. `ci` runs dependency review, strict linting, typechecks, and tests. `cloudflare-build` runs the product's and the admin app's Vite Worker builds (with the prerendered marketing site staged into the product) without credentials. Both run for pull requests and merge queue commits; deployment jobs never run for `merge_group`.
 
 Run the local gates before opening a pull request:
 
@@ -10,12 +10,11 @@ bun run build
 bun run build:cloudflare
 ```
 
-Use Node 24 and the pinned Bun version. Stop local development before production builds because Next.js shares its output directory between those modes. Actions are pinned to immutable commits and installs use the frozen Bun lockfile. There is no Vercel remote-cache credential in CI.
+Use Node 24 and the pinned Bun version. Actions are pinned to immutable commits and installs use the frozen Bun lockfile. There is no Vercel remote-cache credential in CI.
 
 Shared steps live in composite actions:
 
 - `.github/actions/setup` pins Node and Bun, restores the Bun package cache, and installs. Change toolchain versions there only.
-- `.github/actions/next-cache` restores the product's Next.js compiler cache for builds and deploys.
 - `.github/actions/infisical` exchanges the job's OIDC token for one environment's secrets.
 
 The `ci` job also runs checksum-verified `actionlint`. Run it locally when you edit workflows.
@@ -28,7 +27,7 @@ Concurrency is set per job. A new push to a pull request cancels that PR's older
 
 Previews deploy only on request. Add the `preview` label to a same-repository pull request; adding the label, and every later push while it is present, requests a deployment once validation passes. Each deployment still waits for Jake's approval in the `cloudflare-preview` GitHub environment, because anyone with write access can add a label. Pull requests without the label get checks only, with no waiting deployment.
 
-Labeled pull requests reuse the build. `cloudflare-build` packages its `.next` outputs (tarred to keep `.next/standalone` symlinks) with a fingerprint of the build-time environment (`scripts/cloudflare/build-fingerprint.ts`: every `NEXT_PUBLIC_*` plus the server variables the product reads while building). The preview job restores them and sets `PCOBOOSTER_PREBUILT_NEXT=1` only when its own fingerprint matches. The product's `open-next.config.ts` then skips `next build`, and OpenNext only bundles. The admin app is not reused; Alchemy runs its Vite build during the deploy. On a mismatch the job logs a notice and builds from source. `cloudflare-build` sets `PEOPLE_PAGE_ENABLED=false` to match the preview environment; keep the two aligned. Fork PRs receive secretless checks only. Approval grants the checked-out revision access to preview app secrets and an account-scoped Cloudflare token, so review workflow/dependency changes before approving.
+Deploys build from source: Alchemy runs each Vite app's build itself and skips an app whose inputs are unchanged, so `cloudflare-build` outputs are validation only. `cloudflare-build` sets `PEOPLE_PAGE_ENABLED=false` to build the product as previews do; keep the two aligned. Fork PRs receive secretless checks only. Approval grants the checked-out revision access to preview app secrets and an account-scoped Cloudflare token, so review workflow/dependency changes before approving.
 
 An approved job authenticates to Infisical using GitHub OIDC, checks the PR is still open at the expected head, and runs `bun alchemy deploy --stage pr-<number>`. Alchemy owns a separate D1 database and API/web/admin Workers for each PR. The preview URL is exposed in GitHub's deployment environment. Production data is never copied into these databases.
 

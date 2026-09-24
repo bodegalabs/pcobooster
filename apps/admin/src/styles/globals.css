@@ -34,7 +34,7 @@
   --font-heading: var(--font-sans);
 }
 
-/* Theme tokens mirror apps/web/src/app/globals.css. */
+/* Theme tokens mirror apps/web/src/styles/globals.css. */
 :root {
   /* Fontsource family imported by the root route. */
   --font-inter: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
