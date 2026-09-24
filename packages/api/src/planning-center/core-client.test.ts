@@ -2,15 +2,23 @@ import { createHash } from "node:crypto";
 import { once } from "node:events";
 import { setTimeout as delay } from "node:timers/promises";
 
+import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import {
   PlanningCenterCoreClient,
   createBasicPlanningCenterClient,
 } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import { PlanningCenterPacing } from "@pcobooster/api/planning-center/pacing";
+import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
+import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
+import type {
+  PlanningCenterLogFields,
+  PlanningCenterLogger,
+} from "@pcobooster/api/planning-center/request-accounting";
 import { httpClientFor } from "@pcobooster/api/testing/http-client";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
-import { Cause, Effect, Exit, Fiber } from "effect";
+import { Cause, Clock, Effect, Exit, Fiber } from "effect";
 import { TestClock } from "effect/testing";
 import { describe, expect, it, vi } from "vitest";
 
@@ -459,30 +467,342 @@ describe(PlanningCenterCoreClient, () => {
     expect(isInterrupted(exit)).toBeTruthy();
     expect(fetch).toHaveBeenCalledOnce();
   });
+});
 
-  it("stops a near-rate-limit pause when interrupted", async () => {
-    const controller = new AbortController();
-    const fetch = fetchMock().mockImplementationOnce(async () => {
-      controller.abort();
-      return await Promise.resolve(
-        jsonResponse(
-          { data: person },
-          {
-            headers: {
-              "x-pco-api-request-rate-limit": "100",
-              "x-pco-api-request-rate-count": "90",
-            },
-          }
-        )
-      );
-    });
-    const startedAt = performance.now();
-    const exit = await Effect.runPromiseExit(
-      basicClient(fetch).fetch("/services/v2/people/1"),
-      { signal: controller.signal }
+interface LoggedLine {
+  readonly level: "info" | "warn";
+  readonly message: string;
+  readonly fields: PlanningCenterLogFields;
+}
+
+const recordingLogger = () => {
+  const lines: LoggedLine[] = [];
+  const logger: PlanningCenterLogger = {
+    info: (fields, message) => {
+      lines.push({ level: "info", message, fields });
+    },
+    warn: (fields, message) => {
+      lines.push({ level: "warn", message, fields });
+    },
+  };
+  return { lines, logger };
+};
+
+const rateLimitedResponse = (count: number): Response =>
+  jsonResponse(
+    { data: person },
+    {
+      headers: {
+        "x-pco-api-request-rate-limit": "100",
+        "x-pco-api-request-rate-count": String(count),
+        "x-pco-api-request-rate-period": "20 seconds",
+      },
+    }
+  );
+
+interface Limits {
+  readonly pacer: PlanningCenterRatePacer;
+  readonly accounting: PlanningCenterRequestAccounting;
+}
+
+const limits = (
+  accounting = new PlanningCenterRequestAccounting(),
+  pacer = new PlanningCenterRatePacer()
+): Limits => ({ pacer, accounting });
+
+const withLimits =
+  ({ pacer, accounting }: Limits) =>
+  <Value, Failure>(
+    effect: Effect.Effect<Value, Failure>
+  ): Effect.Effect<Value, Failure> =>
+    effect.pipe(
+      Effect.provideService(PlanningCenterPacing, pacer),
+      Effect.provideService(PlanningCenterAccounting, accounting)
     );
-    expect(isInterrupted(exit)).toBeTruthy();
-    expect(performance.now() - startedAt).toBeLessThan(900);
+
+const pacedClient = (
+  fetch: FetchMock,
+  logger: PlanningCenterLogger
+): PlanningCenterCoreClient =>
+  new PlanningCenterCoreClient(
+    { kind: "bearer", accessToken: "paced-account-token" },
+    { httpClient: httpClientFor(fetch), logger }
+  );
+
+describe("Planning Center pacing and accounting", () => {
+  it("spreads concurrent reads over the rest of the reported window", async () => {
+    const fetch = fetchMock().mockImplementation(
+      async () => await Promise.resolve(rateLimitedResponse(80))
+    );
+    const { lines, logger } = recordingLogger();
+    const scope = limits();
+    const client = pacedClient(fetch, logger);
+    await Effect.runPromise(
+      Effect.gen(function* paceConcurrentReads() {
+        yield* client.fetch("/services/v2/people/1");
+        const fiber = yield* Effect.forkChild(
+          Effect.all(
+            [
+              client.fetch("/services/v2/people/2"),
+              client.fetch("/services/v2/people/3"),
+            ],
+            { concurrency: "unbounded" }
+          )
+        );
+        yield* settle;
+        expect(fetch).toHaveBeenCalledTimes(2);
+        // 20 requests left over 20 s: the next slot opens a second later.
+        yield* TestClock.adjust("999 millis");
+        yield* settle;
+        expect(fetch).toHaveBeenCalledTimes(2);
+        yield* TestClock.adjust("1 millis");
+        yield* Fiber.join(fiber);
+      }).pipe(withLimits(scope), Effect.provide(TestClock.layer()))
+    );
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(scope.accounting.totals).toStrictEqual({
+      requests: 3,
+      pacedRequests: 1,
+      pacedWaitMs: 1000,
+      rateLimited: 0,
+      rateLimitRejections: 0,
+      subrequestLimitHits: 0,
+    });
+    expect(lines).toStrictEqual([
+      {
+        level: "info",
+        message: "Planning Center request paced",
+        fields: {
+          endpoint: { path: "/services/v2/people/3", queryKeys: [] },
+          method: "GET",
+          attempt: 1,
+          waitMs: 1000,
+          // In flight before this request: the other concurrent read.
+          rateLimit: { limit: 100, count: 80, periodMs: 20_000, inFlight: 1 },
+        },
+      },
+    ]);
+  });
+
+  it("fails fast on a 429 whose Retry-After exceeds the wait cap", async () => {
+    const fetch = fetchMock().mockResolvedValue(
+      jsonResponse(
+        { error: "Rate limited" },
+        {
+          status: 429,
+          headers: {
+            "retry-after": "30",
+            "x-pco-api-request-rate-limit": "100",
+            "x-pco-api-request-rate-count": "100",
+            "x-pco-api-request-rate-period": "20 seconds",
+          },
+        }
+      )
+    );
+    const { lines, logger } = recordingLogger();
+    const scope = limits();
+    const client = pacedClient(fetch, logger);
+
+    await expect(
+      failureOf(
+        client.fetch("/services/v2/people?where[id]=1").pipe(withLimits(scope))
+      )
+    ).resolves.toMatchObject({
+      _tag: "PlanningCenterApiError",
+      status: 429,
+      retryAfterSeconds: 30,
+    });
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(lines).toStrictEqual([
+      {
+        level: "info",
+        message: "Planning Center rate limited a request",
+        fields: {
+          endpoint: { path: "/services/v2/people", queryKeys: ["where[id]"] },
+          method: "GET",
+          attempt: 1,
+          retryAfterSeconds: 30,
+          rateLimit: {
+            limit: 100,
+            count: 100,
+            period: "20 seconds",
+            retryAfterSeconds: 30,
+          },
+          willRetry: false,
+        },
+      },
+    ]);
+
+    // The credential stays blocked, so the next read is refused without a request.
+    await expect(
+      failureOf(client.fetch("/services/v2/people/2").pipe(withLimits(scope)))
+    ).resolves.toMatchObject({
+      _tag: "PlanningCenterRateLimitError",
+      retryAfterSeconds: 30,
+    });
+    expect({
+      fetches: fetch.mock.calls.length,
+      totals: scope.accounting.totals,
+      lastLine: lines.at(-1)?.message,
+    }).toMatchObject({
+      fetches: 1,
+      totals: { requests: 1, rateLimited: 1, rateLimitRejections: 1 },
+      lastLine: "Planning Center request rejected: rate limit budget is spent",
+    });
+  });
+
+  it("retries a short Retry-After once, without pacing the retry again", async () => {
+    const fetch = fetchMock()
+      .mockResolvedValueOnce(
+        jsonResponse(
+          { error: "Rate limited" },
+          { status: 429, headers: { "retry-after": "2" } }
+        )
+      )
+      .mockResolvedValueOnce(jsonResponse({ data: person }));
+    const { lines, logger } = recordingLogger();
+    const scope = limits();
+    await Effect.runPromise(
+      Effect.gen(function* retryShortRateLimit() {
+        const fiber = yield* Effect.forkChild(
+          pacedClient(fetch, logger).fetch("/services/v2/people/1")
+        );
+        yield* settle;
+        yield* TestClock.adjust("2 seconds");
+        yield* settle;
+        expect(fetch).toHaveBeenCalledTimes(2);
+        yield* Fiber.join(fiber);
+      }).pipe(withLimits(scope), Effect.provide(TestClock.layer()))
+    );
+    expect(lines).toMatchObject([
+      {
+        message: "Planning Center rate limited a request",
+        fields: { willRetry: true },
+      },
+    ]);
+    expect(scope.accounting.totals).toMatchObject({
+      requests: 2,
+      rateLimited: 1,
+      pacedRequests: 0,
+    });
+  });
+
+  it("stops at the invocation's request budget", async () => {
+    const fetch = fetchMock().mockImplementation(
+      async () => await Promise.resolve(jsonResponse({ data: person }))
+    );
+    const { lines, logger } = recordingLogger();
+    const scope = limits(
+      new PlanningCenterRequestAccounting({ requestBudget: 1 })
+    );
+    const client = pacedClient(fetch, logger);
+
+    await Effect.runPromise(
+      client.fetch("/services/v2/people/1").pipe(withLimits(scope))
+    );
+    expect(scope.accounting.remainingBudget).toBe(0);
+    await expect(
+      failureOf(client.fetch("/services/v2/people/2").pipe(withLimits(scope)))
+    ).resolves.toMatchObject({
+      _tag: "PlanningCenterSubrequestLimitError",
+      source: "budget",
+      requests: 1,
+      limit: 1,
+    });
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(lines).toStrictEqual([
+      {
+        level: "info",
+        message: "Planning Center request budget for this invocation is spent",
+        fields: {
+          endpoint: { path: "/services/v2/people/2", queryKeys: [] },
+          method: "GET",
+          requests: 1,
+          requestBudget: 1,
+        },
+      },
+    ]);
+  });
+
+  it("reports Cloudflare's subrequest cap distinctly and stops sending", async () => {
+    const fetch = fetchMock().mockRejectedValue(
+      new Error("Too many subrequests.")
+    );
+    const { lines, logger } = recordingLogger();
+    const scope = limits();
+    const client = pacedClient(fetch, logger);
+
+    await expect(
+      failureOf(client.fetch("/services/v2/people/1").pipe(withLimits(scope)))
+    ).resolves.toMatchObject({
+      _tag: "PlanningCenterSubrequestLimitError",
+      source: "worker",
+      requests: 1,
+    });
+    await expect(
+      failureOf(client.fetch("/services/v2/people/2").pipe(withLimits(scope)))
+    ).resolves.toMatchObject({
+      _tag: "PlanningCenterSubrequestLimitError",
+      source: "worker",
+    });
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(lines).toStrictEqual([
+      {
+        level: "warn",
+        message:
+          "Cloudflare refused a Planning Center request: too many subrequests",
+        fields: {
+          endpoint: { path: "/services/v2/people/1", queryKeys: [] },
+          method: "GET",
+          requests: 1,
+        },
+      },
+    ]);
+    expect({
+      reached: scope.accounting.subrequestLimitReached,
+      hits: scope.accounting.totals.subrequestLimitHits,
+    }).toStrictEqual({ reached: true, hits: 1 });
+  });
+
+  it("sends writes without pacing even when the budget is spent", async () => {
+    const fetch = fetchMock()
+      .mockResolvedValueOnce(rateLimitedResponse(100))
+      .mockResolvedValueOnce(jsonResponse({ data: person }));
+    const { logger } = recordingLogger();
+    const scope = limits();
+    const client = pacedClient(fetch, logger);
+    await Effect.runPromise(
+      client.fetch("/services/v2/people/1").pipe(withLimits(scope))
+    );
+    await Effect.runPromise(
+      client
+        .fetch("/services/v2/people", { method: "POST", body: {} })
+        .pipe(withLimits(scope))
+    );
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(scope.accounting.totals.pacedRequests).toBe(0);
+  });
+
+  it("releases a paced reservation when the wait is interrupted", async () => {
+    const fetch = fetchMock().mockResolvedValue(rateLimitedResponse(100));
+    const { logger } = recordingLogger();
+    const pacer = new PlanningCenterRatePacer({ maxWaitMs: 60_000 });
+    const scope = limits(new PlanningCenterRequestAccounting(), pacer);
+    const client = pacedClient(fetch, logger);
+    await Effect.runPromise(
+      Effect.gen(function* interruptPacedRead() {
+        yield* client.fetch("/services/v2/people/1");
+        const fiber = yield* Effect.forkChild(
+          client.fetch("/services/v2/people/2")
+        );
+        yield* settle;
+        yield* Fiber.interrupt(fiber);
+        const now = yield* Clock.currentTimeMillis;
+        expect(
+          pacer.reserve(client.getCacheScope(), now, "write").window.inFlight
+        ).toBe(0);
+      }).pipe(withLimits(scope), Effect.provide(TestClock.layer()))
+    );
     expect(fetch).toHaveBeenCalledOnce();
   });
 });

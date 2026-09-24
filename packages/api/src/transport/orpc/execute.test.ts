@@ -1,6 +1,8 @@
 import { RequestContext } from "@pcobooster/api/application/context";
 import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
 import { createApplicationRuntime } from "@pcobooster/api/application/runtime";
+import { currentPlanningCenterRequestCount } from "@pcobooster/api/planning-center/accounting";
+import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testServer } from "@pcobooster/api/testing/server";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
@@ -31,6 +33,32 @@ describe(executeApplicationEffect, () => {
           createRpcContext()
         )
       ).resolves.toBe("request-1");
+    } finally {
+      await runtime.dispose();
+    }
+  });
+
+  it("shares the procedure's Planning Center accounting with the program", async () => {
+    const runtime = createApplicationRuntime(
+      Layer.succeed(HttpClient.HttpClient, unreachableHttpClient)
+    );
+    const accounting = new PlanningCenterRequestAccounting();
+    accounting.recordRequest();
+
+    try {
+      await expect(
+        executeApplicationEffect(runtime, currentPlanningCenterRequestCount, {
+          ...createRpcContext(),
+          planningCenterAccounting: accounting,
+        })
+      ).resolves.toBe(1);
+      await expect(
+        executeApplicationEffect(
+          runtime,
+          currentPlanningCenterRequestCount,
+          createRpcContext()
+        )
+      ).resolves.toBeUndefined();
     } finally {
       await runtime.dispose();
     }

@@ -1,14 +1,28 @@
 import { createHash } from "node:crypto";
 
-import { logger } from "@pcobooster/api/logger";
+import { logger as apiLogger } from "@pcobooster/api/logger";
+import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterRateLimitInfo } from "@pcobooster/api/planning-center/api-error";
 import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
+import { PlanningCenterPacing } from "@pcobooster/api/planning-center/pacing";
+import { PlanningCenterRateLimitError } from "@pcobooster/api/planning-center/rate-limit-error";
+import { DEFAULT_MAX_RATE_LIMIT_WAIT_MS } from "@pcobooster/api/planning-center/rate-pacer";
+import type { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
 import { PlanningCenterReadOnlyError } from "@pcobooster/api/planning-center/read-only-error";
+import type {
+  PlanningCenterEndpoint,
+  PlanningCenterLogger,
+  PlanningCenterRequestAccounting,
+} from "@pcobooster/api/planning-center/request-accounting";
 import {
   pcCollectionResponseSchema,
   pcResourceResponseSchema,
 } from "@pcobooster/api/planning-center/resource-schemas";
+import {
+  PlanningCenterSubrequestLimitError,
+  isTooManySubrequestsError,
+} from "@pcobooster/api/planning-center/subrequest-limit-error";
 import {
   isNonEmptyString,
   isString,
@@ -22,7 +36,7 @@ import type {
   PCApiResponse,
   PCResource,
 } from "@pcobooster/planning-center-models/types";
-import { Clock, Duration, Effect, Schedule } from "effect";
+import { Clock, Duration, Effect, Exit, Option, Schedule } from "effect";
 import * as HttpClient from "effect/unstable/http/HttpClient";
 import type { HttpClientError } from "effect/unstable/http/HttpClientError";
 import * as HttpClientRequest from "effect/unstable/http/HttpClientRequest";
@@ -30,31 +44,38 @@ import type { HttpClientResponse } from "effect/unstable/http/HttpClientResponse
 import type { HttpMethod } from "effect/unstable/http/HttpMethod";
 import { z } from "zod";
 
-const log = logger.for("planning-center/core");
+const log = apiLogger.for("planning-center/core");
 const PC_BASE_URL = "https://api.planningcenteronline.com";
 /** Each attempt (request, error body, and rate-limit pause) and its JSON body share this budget. */
 const ATTEMPT_TIMEOUT_MS = 15_000;
 const MAX_RETRIES = 2;
 const RETRYABLE_STATUS_CODES = new Set([408, 429, 500, 502, 503, 504]);
-const PROACTIVE_RATE_LIMIT_THRESHOLD = 0.8;
-const PROACTIVE_RATE_LIMIT_DELAY = Duration.seconds(1);
+const MS_PER_SECOND = 1000;
 const errorBodySchema = z.record(z.string(), z.json());
 
 /** Every expected Planning Center failure; anything else is a defect. */
 export type PlanningCenterError =
   | PlanningCenterApiError
   | PlanningCenterNetworkError
-  | PlanningCenterReadOnlyError;
+  | PlanningCenterRateLimitError
+  | PlanningCenterReadOnlyError
+  | PlanningCenterSubrequestLimitError;
 
-/** Failures that can come from one attempt and may be retried. */
-type AttemptError = PlanningCenterApiError | PlanningCenterNetworkError;
+/** Failures that can come from one attempt; only some are retried. */
+type AttemptError =
+  | PlanningCenterApiError
+  | PlanningCenterNetworkError
+  | PlanningCenterRateLimitError
+  | PlanningCenterSubrequestLimitError;
 
 export const isPlanningCenterError = (
   value: unknown
 ): value is PlanningCenterError =>
   value instanceof PlanningCenterApiError ||
   value instanceof PlanningCenterNetworkError ||
-  value instanceof PlanningCenterReadOnlyError;
+  value instanceof PlanningCenterRateLimitError ||
+  value instanceof PlanningCenterReadOnlyError ||
+  value instanceof PlanningCenterSubrequestLimitError;
 
 type ResponseHeaders = HttpClientResponse["headers"];
 
@@ -88,6 +109,15 @@ const attemptTimedOut = (): PlanningCenterNetworkError =>
 const networkFailure = (error: HttpClientError): PlanningCenterNetworkError =>
   new PlanningCenterNetworkError({ cause: error.cause ?? error });
 
+/** What one attempt knows about its request and invocation. */
+interface AttemptContext {
+  readonly accounting: PlanningCenterRequestAccounting | undefined;
+  readonly pacer: PlanningCenterRatePacer | undefined;
+  readonly endpoint: PlanningCenterEndpoint;
+  /** 1 for the first attempt. */
+  readonly attempt: number;
+}
+
 export const buildPlanningCenterUrl = (
   endpoint: string,
   params: Record<string, string> = {}
@@ -102,9 +132,20 @@ export const buildPlanningCenterUrl = (
 const isReadMethod = (method: HttpMethod): boolean =>
   method === "GET" || method === "HEAD";
 
+/** A Retry-After longer than an interactive request should wait. */
+const exceedsRetryAfterCap = (retryAfterSeconds: number | undefined): boolean =>
+  retryAfterSeconds !== undefined &&
+  retryAfterSeconds * MS_PER_SECOND > DEFAULT_MAX_RATE_LIMIT_WAIT_MS;
+
 const isRetryableError = (error: AttemptError): boolean => {
   if (error instanceof PlanningCenterApiError) {
-    return RETRYABLE_STATUS_CODES.has(error.status);
+    return (
+      RETRYABLE_STATUS_CODES.has(error.status) &&
+      !(error.status === 429 && exceedsRetryAfterCap(error.retryAfterSeconds))
+    );
+  }
+  if (!(error instanceof PlanningCenterNetworkError)) {
+    return false;
   }
   const { cause } = error;
   return (
@@ -119,12 +160,14 @@ const retryDelayMs = (retry: number, error: AttemptError): number => {
     return retry * 300;
   }
   if (error.status === 429 && error.retryAfterSeconds !== undefined) {
-    return Math.max(error.retryAfterSeconds, 1) * 1000;
+    return Math.max(error.retryAfterSeconds, 1) * MS_PER_SECOND;
   }
   return retry * 500;
 };
 
-const describePlanningCenterEndpoint = (value: string) => {
+const describePlanningCenterEndpoint = (
+  value: string
+): PlanningCenterEndpoint => {
   const url = new URL(value, PC_BASE_URL);
   return {
     path: url.pathname,
@@ -132,23 +175,37 @@ const describePlanningCenterEndpoint = (value: string) => {
   };
 };
 
-/** Idempotent reads retry transient failures; writes never do. */
-const transientReadRetries = (url: string) =>
+const isRateLimitedResponse = (error: AttemptError): boolean =>
+  error instanceof PlanningCenterApiError && error.status === 429;
+
+/**
+ * Idempotent reads retry transient failures; writes never do. A 429 is
+ * retried only when its Retry-After fits the interactive wait cap; its
+ * `info` line comes from the attempt.
+ */
+const transientReadRetries = (
+  endpoint: PlanningCenterEndpoint,
+  method: HttpMethod,
+  logger: PlanningCenterLogger
+) =>
   Schedule.recurs(MAX_RETRIES).pipe(
     Schedule.setInputType<AttemptError>(),
     Schedule.while(({ input }) => isRetryableError(input)),
     Schedule.addDelay(({ attempt, input }) =>
       Effect.sync(() => {
         const delayMs = retryDelayMs(attempt, input);
-        log.warn(
-          {
-            attempt,
-            retryDelayMs: delayMs,
-            endpoint: describePlanningCenterEndpoint(url),
-            error: input.message.slice(0, 100),
-          },
-          "Planning Center request failed, retrying"
-        );
+        if (!isRateLimitedResponse(input)) {
+          logger.warn(
+            {
+              endpoint,
+              method,
+              attempt,
+              retryDelayMs: delayMs,
+              error: input.message.slice(0, 100),
+            },
+            "Planning Center request failed, retrying"
+          );
+        }
         return Duration.millis(delayMs);
       })
     )
@@ -233,23 +290,6 @@ const readResponseText = (
 ): Effect.Effect<string, PlanningCenterNetworkError> =>
   Effect.mapError(response.text, networkFailure);
 
-const pauseNearRateLimit = (headers: ResponseHeaders): Effect.Effect<void> => {
-  const rateLimit = readRateLimitInfo(headers);
-  if (
-    rateLimit.limit === undefined ||
-    rateLimit.count === undefined ||
-    rateLimit.count < rateLimit.limit * PROACTIVE_RATE_LIMIT_THRESHOLD
-  ) {
-    return Effect.void;
-  }
-  return Effect.sync(() => {
-    log.debug(
-      { rateLimit },
-      "Planning Center API rate limit threshold reached; pausing briefly"
-    );
-  }).pipe(Effect.andThen(Effect.sleep(PROACTIVE_RATE_LIMIT_DELAY)));
-};
-
 const decodeResponse = <Output>(
   schema: z.ZodType<Output>,
   json: JsonValue
@@ -290,6 +330,115 @@ const readJsonBody = ({
     });
   });
 
+/** Fails before sending when this invocation may not make another request. */
+const ensureSubrequestAvailable = (
+  { accounting, endpoint }: AttemptContext,
+  method: HttpMethod,
+  logger: PlanningCenterLogger
+): Effect.Effect<void, PlanningCenterSubrequestLimitError> =>
+  Effect.suspend(() => {
+    if (accounting === undefined) {
+      return Effect.void;
+    }
+    const requests = accounting.requestCount;
+    if (accounting.subrequestLimitReached) {
+      return Effect.fail(
+        new PlanningCenterSubrequestLimitError({ source: "worker", requests })
+      );
+    }
+    const limit = accounting.requestBudget;
+    if (limit === undefined || requests < limit) {
+      return Effect.void;
+    }
+    accounting.recordSubrequestLimit("budget");
+    logger.info(
+      { endpoint, method, requests, requestBudget: limit },
+      "Planning Center request budget for this invocation is spent"
+    );
+    return Effect.fail(
+      new PlanningCenterSubrequestLimitError({
+        source: "budget",
+        requests,
+        limit,
+      })
+    );
+  });
+
+/** Cloudflare's subrequest cap is final for the invocation, so it is not a network error. */
+const transportFailure = (
+  error: HttpClientError,
+  { accounting, endpoint }: AttemptContext,
+  method: HttpMethod,
+  logger: PlanningCenterLogger
+): PlanningCenterNetworkError | PlanningCenterSubrequestLimitError => {
+  const cause = error.cause ?? error;
+  if (!isTooManySubrequestsError(cause)) {
+    return networkFailure(error);
+  }
+  accounting?.recordSubrequestLimit("worker");
+  const requests = accounting?.requestCount ?? 0;
+  logger.warn(
+    { endpoint, method, requests },
+    "Cloudflare refused a Planning Center request: too many subrequests"
+  );
+  return new PlanningCenterSubrequestLimitError({
+    source: "worker",
+    requests,
+    cause,
+  });
+};
+
+/** Waits for the pacer's slot, or fails fast when the wait is too long. */
+const waitForSlot = (
+  pacer: PlanningCenterRatePacer,
+  scope: string,
+  { accounting, endpoint, attempt }: AttemptContext,
+  method: HttpMethod,
+  logger: PlanningCenterLogger
+): Effect.Effect<void, PlanningCenterRateLimitError> =>
+  Clock.currentTimeMillis.pipe(
+    Effect.flatMap((now) => {
+      const decision = pacer.reserve(
+        scope,
+        now,
+        isReadMethod(method) ? "read" : "write"
+      );
+      if (decision.kind === "reject") {
+        accounting?.recordRateLimitRejection();
+        logger.info(
+          {
+            endpoint,
+            method,
+            attempt,
+            retryAfterMs: decision.retryAfterMs,
+            rateLimit: decision.window,
+          },
+          "Planning Center request rejected: rate limit budget is spent"
+        );
+        return Effect.fail(
+          new PlanningCenterRateLimitError({
+            retryAfterSeconds: Math.ceil(decision.retryAfterMs / MS_PER_SECOND),
+          })
+        );
+      }
+      if (decision.waitMs === 0) {
+        return Effect.void;
+      }
+      accounting?.recordPaced(decision.waitMs);
+      logger.info(
+        {
+          endpoint,
+          method,
+          attempt,
+          waitMs: decision.waitMs,
+          rateLimit: decision.window,
+        },
+        "Planning Center request paced"
+      );
+      return Effect.sleep(Duration.millis(decision.waitMs));
+    })
+  );
+
 /** A Planning Center personal access token: application ID plus secret. */
 export interface PlanningCenterPersonalAccessToken {
   readonly applicationId: string;
@@ -305,6 +454,8 @@ export interface PlanningCenterCoreClientOptions {
   readonly httpClient: HttpClient.HttpClient;
   /** Rejects every non-read request before it reaches Planning Center. */
   readonly readOnly?: boolean;
+  /** Receives pacing, 429, and subrequest-limit lines; defaults to the module logger. */
+  readonly logger?: PlanningCenterLogger;
 }
 
 export interface PlanningCenterRequestOptions {
@@ -316,12 +467,18 @@ export interface PlanningCenterRequestOptions {
 /**
  * Binds one credential to its Authorization header and cache scope for its entire lifetime.
  * Interrupting a returned Effect aborts its in-flight fetch.
+ *
+ * Requests read two optional services from the Effect context: the isolate's
+ * `PlanningCenterPacing`, which paces this credential's requests by cache
+ * scope, and the procedure's `PlanningCenterAccounting`, which counts them and
+ * may cap them. Without either, requests are sent unpaced and uncounted.
  */
 export class PlanningCenterCoreClient {
   private readonly authorization: string;
   private readonly cacheScope: string;
   private readonly httpClient: HttpClient.HttpClient;
   private readonly readOnly: boolean;
+  private readonly logger: PlanningCenterLogger;
 
   constructor(
     auth: PlanningCenterAuthentication,
@@ -357,6 +514,7 @@ export class PlanningCenterCoreClient {
       Effect.provideService(effect, HttpClient.TracerPropagationEnabled, false)
     );
     this.readOnly = options.readOnly ?? false;
+    this.logger = options.logger ?? log;
   }
 
   getCacheScope(): string {
@@ -364,24 +522,82 @@ export class PlanningCenterCoreClient {
   }
 
   private attempt(
-    request: HttpClientRequest.HttpClientRequest
+    request: HttpClientRequest.HttpClientRequest,
+    context: AttemptContext
   ): Effect.Effect<SentResponse, AttemptError> {
-    const { httpClient } = this;
-    return Effect.gen(function* attemptRequest() {
+    const { cacheScope, httpClient, logger } = this;
+    const { method } = request;
+    const { accounting, endpoint, pacer } = context;
+    const execute = Effect.gen(function* sendRequest() {
+      if (pacer !== undefined) {
+        yield* waitForSlot(pacer, cacheScope, context, method, logger);
+      }
+      accounting?.recordRequest();
       const startedAt = yield* Clock.currentTimeMillis;
       const response = yield* httpClient
         .execute(request)
-        .pipe(Effect.mapError(networkFailure));
-      if (response.status < 200 || response.status >= 300) {
-        const responseBody = yield* readResponseText(response);
-        return yield* Effect.fail(
-          buildApiError(response.status, responseBody, response.headers)
+        .pipe(
+          Effect.mapError((error) =>
+            transportFailure(error, context, method, logger)
+          )
+        );
+      return { response, startedAt };
+    });
+    const paced =
+      pacer === undefined
+        ? execute
+        : execute.pipe(
+            // Every reservation is released, including after a rejection,
+            // failure, or interruption; responses also report the window.
+            Effect.onExit((exit) =>
+              Effect.gen(function* releaseSlot() {
+                const now = yield* Clock.currentTimeMillis;
+                pacer.complete(
+                  cacheScope,
+                  now,
+                  Exit.isSuccess(exit)
+                    ? {
+                        status: exit.value.response.status,
+                        rateLimit: readRateLimitInfo(
+                          exit.value.response.headers
+                        ),
+                      }
+                    : undefined
+                );
+              })
+            )
+          );
+    return Effect.gen(function* attemptRequest() {
+      yield* ensureSubrequestAvailable(context, method, logger);
+      const sent = yield* paced;
+      const { response } = sent;
+      if (response.status >= 200 && response.status < 300) {
+        return sent;
+      }
+      const responseBody = yield* readResponseText(response);
+      const error = buildApiError(
+        response.status,
+        responseBody,
+        response.headers
+      );
+      if (error.status === 429) {
+        accounting?.recordRateLimited();
+        logger.info(
+          {
+            endpoint,
+            method,
+            attempt: context.attempt,
+            retryAfterSeconds: error.retryAfterSeconds,
+            rateLimit: error.rateLimit,
+            willRetry:
+              isReadMethod(method) &&
+              context.attempt <= MAX_RETRIES &&
+              isRetryableError(error),
+          },
+          "Planning Center rate limited a request"
         );
       }
-      if (isReadMethod(request.method)) {
-        yield* pauseNearRateLimit(response.headers);
-      }
-      return { response, startedAt };
+      return yield* Effect.fail(error);
     }).pipe(
       Effect.timeoutOrElse({
         duration: Duration.millis(ATTEMPT_TIMEOUT_MS),
@@ -396,12 +612,10 @@ export class PlanningCenterCoreClient {
   ): Effect.Effect<SentResponse, PlanningCenterError> {
     const method = options.method ?? "GET";
     const url = endpointUrl(endpoint);
+    const description = describePlanningCenterEndpoint(url);
     if (this.readOnly && !isReadMethod(method)) {
       return Effect.fail(
-        new PlanningCenterReadOnlyError({
-          method,
-          path: describePlanningCenterEndpoint(url).path,
-        })
+        new PlanningCenterReadOnlyError({ method, path: description.path })
       );
     }
     const headers = HttpClientRequest.setHeaders({
@@ -416,10 +630,33 @@ export class PlanningCenterCoreClient {
             JSON.stringify(options.body),
             "application/json"
           );
-    const attempt = this.attempt(request);
-    return isReadMethod(method)
-      ? Effect.retry(attempt, transientReadRetries(url))
-      : attempt;
+    const { logger } = this;
+    const attemptRequest = (context: AttemptContext) =>
+      this.attempt(request, context);
+    return Effect.gen(function* sendWithRetries() {
+      const pacer = Option.getOrUndefined(
+        yield* Effect.serviceOption(PlanningCenterPacing)
+      );
+      const accounting = Option.getOrUndefined(
+        yield* Effect.serviceOption(PlanningCenterAccounting)
+      );
+      let attempt = 0;
+      const nextAttempt = Effect.suspend(() => {
+        attempt += 1;
+        return attemptRequest({
+          accounting,
+          pacer,
+          endpoint: description,
+          attempt,
+        });
+      });
+      return yield* isReadMethod(method)
+        ? Effect.retry(
+            nextAttempt,
+            transientReadRetries(description, method, logger)
+          )
+        : nextAttempt;
+    });
   }
 
   /** Sends a request whose body is not needed, such as a DELETE. */
