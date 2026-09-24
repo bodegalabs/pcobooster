@@ -19,7 +19,6 @@ Each user page links to the matching PostHog person. The product identifies Post
 - `src/server/admin.functions.ts`: server functions. They read the `API` service binding and `PRODUCT_ORIGIN` from `cloudflare:workers` (typed in `src/worker-env.d.ts`) and forward the request's cookie.
 - `src/server/admin-rpc.ts`: the oRPC client and the status mapping. A 401 redirects to product sign-in, and a 403 or 404 renders the not-found page.
 - `src/start.ts`: request middleware for CSRF protection on server functions and the private response headers.
-- `src/server.ts`: Worker entry. It serves the bare mount path (`/admin`) as the index instead of redirecting to `/admin/`. The product forwards both `/admin` and `/admin/` unchanged, and links point at `/admin`.
 
 ## Development and deployment
 
@@ -27,6 +26,6 @@ Each user page links to the matching PostHog person. The product identifies Post
 
 Alchemy deploys a dedicated admin Worker (`Cloudflare.Website.Vite`) with a private API service binding. Production uses `admin.pcobooster.com` and the preserved parent-domain session cookie. Each preview serves its admin Worker through the product's `/admin` route, using only that preview's host-only cookie and D1 database. The admin Worker has no public workers.dev endpoint in preview stages.
 
-The mount path is Vite's `base`, from `ADMIN_BASE_PATH`: `/admin` for local and preview stages and empty for production. Without the variable, the dev server defaults to `/admin` and builds default to the root. The router basepath, server-function URLs, and uploaded asset paths all follow `base`. Alchemy's memo hashes files but not the environment, so the stage stamp in `cloudflare-build-inputs.json` is part of the rebuild key.
+The mount path is Vite's `base`, from `ADMIN_BASE_PATH`: `/admin` for local and preview stages and empty for production. Without the variable, the dev server defaults to `/admin` and builds default to the root. The router basepath, server-function URLs, and uploaded asset paths all follow `base`. The product forwards `/admin` and `/admin/*` unchanged, and Start redirects the bare mount path to its canonical `/admin/`. Alchemy's memo hashes files but not the environment, so the stage stamp in `cloudflare-build-inputs.json` is part of the rebuild key.
 
 `bun run --cwd apps/admin build` is a standalone validation build that CI runs in `cloudflare-build`. It uses `@cloudflare/vite-plugin` with inline Worker config. Under Alchemy that plugin stands down (`ALCHEMY_CLOUDFLARE_VITE_INJECTED`), and Alchemy builds and uploads the Worker itself.

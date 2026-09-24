@@ -1,6 +1,6 @@
 # Analytics
 
-pcobooster.com uses one US PostHog project for marketing and product analytics. Vercel remains the feature-flag provider. The previous Vercel Analytics script and dependency are removed.
+pcobooster.com uses one US PostHog project for marketing and product analytics. Feature settings stay in configuration (`PEOPLE_PAGE_ENABLED`); PostHog feature flags are unused.
 
 ## Dashboards
 
@@ -8,7 +8,7 @@ pcobooster.com uses one US PostHog project for marketing and product analytics. 
 - [Product usage & health](https://us.posthog.com/project/614621/dashboard/2127633): daily/weekly/monthly active users, feature adoption, weekly retention, completed workflows, failure reasons, and sign-in conversion. This is the project's default dashboard.
 - [Web Analytics](https://us.posthog.com/project/614621/web): built-in traffic exploration; filter `surface = marketing` for public traffic.
 
-Reporting uses America/Los_Angeles. Dashboards are saved ahead of deployment and remain empty until production events arrive. Retention cohorts require several weeks to mature. No historical Vercel data is imported.
+Reporting uses America/Los_Angeles. Dashboards are saved ahead of deployment and remain empty until production events arrive. Retention cohorts require several weeks to mature.
 
 ### Dashboards as code
 
@@ -51,7 +51,7 @@ Active users are distinct authenticated application users with pageviews. Market
 
 ### Server activity and person profiles
 
-The API mirrors every `activity_events` audit row to PostHog, keyed by the same Better Auth user ID the browser identifies with, so one PostHog person shows both browser usage and server-side auth and scheduling activity. Delivery is best effort: the database row is written first and remains the full audit log, and a PostHog failure is logged without affecting sign-in or writes. Only Vercel Production (`VERCEL_ENV=production`) with `NEXT_PUBLIC_POSTHOG_KEY` forwards events.
+The API mirrors every `activity_events` audit row to PostHog, keyed by the same Better Auth user ID the browser identifies with, so one PostHog person shows both browser usage and server-side auth and scheduling activity. Delivery is best effort: the database row is written first and remains the full audit log, and a PostHog failure is logged without affecting sign-in or writes. Only the production API Worker (`APP_ENV=production`) with `POSTHOG_PROJECT_KEY` forwards events.
 
 | Event | Source row | Properties |
 | --- | --- | --- |
@@ -67,7 +67,7 @@ Every server event also carries `source: server`, `success`, and `status_code`. 
 ## Privacy and cost boundaries
 
 - No marketing, auth, or demo recordings. No heatmaps, automatic click/form capture, rage clicks, console logs, surveys, web experiments, web-vitals capture, or automatic exception capture.
-- PostHog feature flag evaluation is disabled; no Vercel flag configuration changes. The web app fetches PostHog remote configuration and the recorder asset for replay; marketing disables both external dependency loading and remote configuration.
+- PostHog feature flag evaluation is disabled. The web app fetches PostHog remote configuration and the recorder asset for replay; marketing disables both external dependency loading and remote configuration.
 - Analytics event names and property keys are allowlisted. Replay snapshots are separately accepted only on authenticated product routes; rrweb masks their contents before transmission. Both ordinary event properties and the SDK's top-level person `$set`/`$set_once` fields are scrubbed in the browser; only the server sets identifying person properties.
 - URLs lose queries/fragments; external referrers retain only their origin. Product URLs use route placeholders for plan, service-type, and person IDs. Unknown and private routes become `/other`; demo-entry events are rejected entirely.
 - Campaign attribution retains `utm_source`, `utm_medium`, and `utm_campaign`. Do not put personal information in campaign labels.
@@ -85,9 +85,9 @@ Replay masks all page text and inputs, blocks media/iframes, removes document me
 
 ## Configuration and release
 
-`NEXT_PUBLIC_POSTHOG_KEY` belongs in **Infisical Production `/`**, which syncs to Vercel Production. It is a public ingestion token, not a personal API key. Leave it absent from Development and Staging. Both app build tasks include it in the Turborepo environment/cache key so the independently prerendered marketing assets receive the correct value. Both apps' `vite.config.ts` inline it as `import.meta.env.VITE_POSTHOG_KEY`.
+`POSTHOG_PROJECT_KEY` belongs in **Infisical Production `/`** of the `pcobooster-production` project, which Alchemy reads at deploy time. It is a public ingestion token, not a personal API key. Leave it absent from Development and Staging. The API binds it at runtime, and both apps' `vite.config.ts` inline it as `import.meta.env.VITE_POSTHOG_KEY`. Turborepo and the Alchemy build stamp (`scripts/cloudflare/prepare.ts`) include it in their cache keys, so a changed key rebuilds the independently prerendered marketing assets.
 
-The host is fixed to `https://us.i.posthog.com`, matching project 614621. Traffic goes directly to PostHog; there is no added proxy or domain cost. A production deployment is required after changing the key. Reverting the analytics PR restores Vercel Analytics; removing the PostHog key and rebuilding disables PostHog capture.
+The host is fixed to `https://us.i.posthog.com`, matching project 614621. Traffic goes directly to PostHog; there is no added proxy or domain cost. A production deployment is required after changing the key. Removing the PostHog key and redeploying disables PostHog capture.
 
 After deployment, open marketing, follow Open app, sign in, and navigate the product. In PostHog's live events, confirm marketing/auth/app pageviews share the expected merged identity and `app opened` appears once per document. Confirm recordings appear only for sampled authenticated app sessions, and that marketing/auth/demo remain unrecorded. Check masked replay content and the absence of feature flag requests. Inspect property payloads for scrubbed URLs. Use only read-only product navigation for verification; verify writes through synthetic tests rather than changing live Planning Center data.
 

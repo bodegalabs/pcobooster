@@ -11,7 +11,6 @@
     "dev": "infisical run --env=dev --path=/ --path=/local -- bun run scripts/cloudflare/dev.ts",
     "dev:present": "infisical run --env=dev --path=/ --path=/local -- env PRESENTATION_MODE=1 bun run scripts/cloudflare/dev.ts",
     "build": "turbo run build",
-    "start": "bun run dev",
     "lint": "bun run check",
     "lint:fix": "bun run fix",
     "lint:ci": "bun run check --format github",

@@ -83,7 +83,8 @@ Product operations are served through the typed oRPC transport at `/api/rpc`; it
 ```text
 apps/
   web/                       # TanStack Start product UI
-  server/                    # Bun/Hono transport and oRPC entrypoint
+  admin/                     # TanStack Start admin app
+  server/                    # Hono API Worker and oRPC entrypoint
   marketing/                 # Prerendered TanStack Start marketing site
 packages/
   api/                       # Server-only application, auth, DB, adapters, oRPC
@@ -97,7 +98,6 @@ packages/
 
 - `bun run dev`
 - `bun run build`
-- `bun run start`
 - `bun run check`: strict Ultracite lint and formatting checks
 - `bun run fix`: auto-fix and format
 - `bun run ci`: the local CI gate (check, typecheck, and tests)
@@ -113,15 +113,15 @@ bun run ci
 bun run build
 ```
 
-Tests are colocated under `packages/*/src`, `apps/server/src`, and `apps/web/src`. Feature modules accept narrow typed dependencies so tests can exercise behavior without replacing modules. oRPC inputs and outputs, provider responses, and persisted browser caches are validated with Zod at their respective boundaries.
+Tests are colocated under `packages/*/src` and `apps/*/src`. Feature modules accept narrow typed dependencies so tests can exercise behavior without replacing modules. oRPC inputs and outputs, provider responses, and persisted browser caches are validated with Zod at their respective boundaries.
 
-Pull requests must pass both the GitHub `ci` check and the Vercel deployment check. See [CI/CD](docs/ci-cd.md) for the merge gates, Turborepo remote-cache setup, deployment flow, dependency update policy, and rollback procedure.
+Pull requests must pass the GitHub `ci` and `cloudflare-build` checks. See [CI/CD](docs/ci-cd.md) for the merge gates, deployment flow, dependency update policy, and rollback procedure.
 
 For visible or high-risk changes, follow [Proofed delivery](docs/proofed-delivery.md). The repo-local skills under `.agents/skills/` cover setup, app-specific browser verification, verification-skill generation, and independent PR proof.
 
 ## Code Quality
 
-Ultracite uses Oxlint and Oxfmt with the strict core, React, Next.js, TanStack, Vitest, shadcn, anti-slop, and React Doctor presets. `oxlint.config.ts` and `oxfmt.config.ts` are the configuration sources. GitHub CI rejects warnings as well as errors, then runs TypeScript and tests. Vercel separately performs the production-shaped build and publishes the preview required for merge. Tests use explicit dummy credentials from `vitest.config.ts`; neither gate receives production secrets. Generated Next.js declarations, database migrations, and scraped API documentation are excluded from formatting.
+Ultracite uses Oxlint and Oxfmt with the strict core, React, TanStack, Vitest, shadcn, anti-slop, and React Doctor presets. `oxlint.config.ts` and `oxfmt.config.ts` are the configuration sources. GitHub CI rejects warnings as well as errors, then runs TypeScript and tests; `cloudflare-build` separately builds the Workers without credentials. Tests use explicit dummy credentials from `vitest.config.ts`; neither gate receives production secrets. Generated route trees, database migrations, and scraped API documentation are excluded from formatting.
 
 The OXC VS Code extension is recommended in `.vscode/extensions.json`; workspace settings enable formatting and explicit fixes on save. `bun install` installs the Lefthook pre-commit hook, which fixes and re-stages supported staged files. Run `bun run ci` before submitting changes and `bun x ultracite doctor` when diagnosing the toolchain.
 

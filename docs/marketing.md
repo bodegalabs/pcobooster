@@ -4,13 +4,13 @@ The public site is a separate TanStack Start app at `apps/marketing`, prerendere
 
 ## Development
 
-- `bun run dev`: API on port 3000, product on port 3001, and marketing on port 3002.
-- `bun run dev:present`: both apps, with anonymized Planning Center people in the product.
+- `bun run dev`: API on port 3000, product on port 3001, marketing on port 3002, and admin on port 3003.
+- `bun run dev:present`: the same, with anonymized Planning Center people in the product.
 - `bun run dev:marketing`: marketing only, with no database, Infisical, OAuth, or session requirement.
 
-Use port 3001 to test the whole journey, including Open app. In development, the product rewrites `/api/*` to port 3000 and `/`, `/about`, and `/marketing/*` to port 3002. Marketing uses full document navigation so it never asks the product router to load a marketing page (or vice versa).
+Use port 3001 to test the whole journey, including Open app. In development, the product forwards `/api/*` to the local API Worker through its service binding and proxies `/`, `/about`, and `/marketing/*` to port 3002. Marketing uses full document navigation so it never asks the product router to load a marketing page (or vice versa).
 
-The marketing dev server is Vite. Its assets are served under `/marketing/` while its pages route at `/` and `/about`; Start rewrites the page requests internally. Vite's HMR websocket may not survive the product's rewrite, so open port 3002 directly for hot reload. Styling is isolated in CSS modules; marketing does not import product UI, authentication, or providers.
+The marketing dev server is Vite. Its assets are served under `/marketing/` while its pages route at `/` and `/about`; Start rewrites the page requests internally. Vite's HMR websocket may not survive the product's proxy, so open port 3002 directly for hot reload. Styling is isolated in CSS modules; marketing does not import product UI, authentication, or providers.
 
 ## Build and deployment
 
