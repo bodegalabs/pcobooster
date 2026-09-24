@@ -10,6 +10,7 @@ Production moved to Cloudflare on September 23, 2026. The deployed application r
 - Retained D1 database: `pcobooster-prod`, ID `781f72d7-22ad-4ece-a41d-e71ac4b6b427`.
 - Cloudflare zone: `a43fafd2bb6e6fb47f0233e6168e622e`, nameservers `aaron.ns.cloudflare.com` and `pam.ns.cloudflare.com`.
 - Production GitHub environment has `CLOUDFLARE_CUSTOM_DOMAINS=1`; preserve it for subsequent deployments.
+- Former domain: `worshipadmin.com` and `www.worshipadmin.com` (the product's name until the September 18 rename) redirect to `https://pcobooster.com` with HTTP 308, preserving paths and query strings. The domain's DNS and the redirect live on Vercel (nameservers `ns1`/`ns2.vercel-dns.com`), not in Alchemy. Move the redirect before retiring the Vercel projects or letting that registration lapse.
 
 ## Data preservation
 
