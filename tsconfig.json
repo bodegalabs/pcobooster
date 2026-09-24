@@ -12,6 +12,7 @@
     "scripts/**/*.ts",
     "vitest.config.ts",
     "alchemy.run.ts",
+    "alchemy.cleanup.ts",
     "packages/api/src/cloudflare.d.ts"
   ]
 }

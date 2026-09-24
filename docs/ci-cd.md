@@ -12,13 +12,34 @@ bun run build:cloudflare
 
 Use Node 24 and the pinned Bun version. Stop local development before production builds because Next.js shares its output directory between those modes. Actions are pinned to immutable commits and installs use the frozen Bun lockfile. There is no Vercel remote-cache credential in CI.
 
+Shared steps live in composite actions:
+
+- `.github/actions/setup` pins Node and Bun, restores the Bun package cache, and installs. Change toolchain versions there only.
+- `.github/actions/next-cache` restores the Next.js compiler caches for builds and deploys.
+- `.github/actions/infisical` exchanges the job's OIDC token for one environment's secrets.
+
+The `ci` job also runs checksum-verified `actionlint`. Run it locally when you edit workflows.
+
+Concurrency is set per job. A new push to a pull request cancels that PR's older `ci` and `cloudflare-build` jobs. Deploy and cleanup jobs share a per-stage group that never cancels, so an Alchemy state update is never interrupted.
+
+`scripts/check-patches.test.ts` runs in `bun run test`. It fails if any installed copy of a patched dependency is missing a line the patch adds, for example after a stale Bun cache.
+
 ## Preview lifecycle
 
 Same-repository pull requests request a deployment only after validation passes. Each deployment waits for Jake's approval in the `cloudflare-preview` GitHub environment. Fork PRs receive secretless checks only. Approval grants the checked-out revision access to preview app secrets and an account-scoped Cloudflare token, so review workflow/dependency changes before approving.
 
 An approved job authenticates to Infisical using GitHub OIDC, checks the PR is still open at the expected head, and runs `bun alchemy deploy --stage pr-<number>`. Alchemy owns a separate D1 database and API/web/admin Workers for each PR. The preview URL is exposed in GitHub's deployment environment. Production data is never copied into these databases.
 
-Closing a same-repository PR requests cleanup through the same approval gate. That job uses `pull_request_target` only to check out trusted `main`; it never executes PR code. It verifies the PR is still closed before `bun alchemy destroy --stage pr-<number>`. Deployment and cleanup share a per-stage concurrency group and do not interrupt an active state update. Reopening the PR creates a fresh deployment request.
+Every deploy then runs `scripts/cloudflare/verify-deployment.ts`. The API reports `PCOBOOSTER_VERSION`, which is the deployed `GITHUB_SHA`, from `health`. The script polls `POST /api/rpc/health` through the web Worker until that version matches the commit, then checks that `/` returns 200. A deploy that finishes without the new code live, or with a broken web → API binding, fails the job.
+
+Teardown uses `alchemy.cleanup.ts`. It has the application stack's name and state but declares no resources. That lets `alchemy destroy alchemy.cleanup.ts --stage pr-<number>` remove everything a stage recorded, without app secrets, a build, or configuration that `main` added after the PR opened. It refuses any stage that isn't `pr-<number>`.
+
+Cleanup runs in the `cloudflare-preview-cleanup` environment. That environment is restricted to `main` and needs no approval, because it only ever runs trusted `main` code:
+
+- Closing a same-repository PR triggers `pull_request_target`, which checks out `main` (never PR code), confirms the PR is still closed, and destroys its stage.
+- A nightly sweep (`scripts/cloudflare/sweep-previews.ts`, also available through `workflow_dispatch`) lists `pcobooster-pr-*` Workers and D1 databases, then destroys every stage whose PR is no longer open. Use `--dry-run` locally to see what it would destroy.
+
+Deployment and cleanup share a per-stage concurrency group. Reopening the PR creates a fresh deployment request.
 
 ## Production
 
@@ -34,7 +55,7 @@ GitHub environment variables are `INFISICAL_PROJECT_ID`, `INFISICAL_IDENTITY_ID`
 
 The issuer/discovery URL is `https://token.actions.githubusercontent.com`; audience is `https://github.com/bodegalabs/pcobooster`. This repository uses immutable OIDC subjects:
 
-- Preview: `repo:bodegalabs@305914027/pcobooster@1125110564:environment:cloudflare-preview`
+- Preview and cleanup: `repo:bodegalabs@305914027/pcobooster@1125110564:environment:cloudflare-preview{,-cleanup}`. This is an Infisical glob that matches exactly those two environments.
 - Production: `repo:bodegalabs@305914027/pcobooster@1125110564:environment:cloudflare-production`
 
 Access tokens have a one-hour TTL and maximum TTL. The preview identity is Viewer only in `pcobooster-preview`. Its Cloudflare token permits Workers Scripts Write, D1 Write, and Secrets Store Write in the current account and expires September 23, 2027. It has no DNS, registrar, R2, or token-administration permission. These account-level permissions can affect other resources in that account; project separation does not create resource-level Cloudflare isolation. Only trusted, explicitly approved revisions may deploy.
