@@ -1,4 +1,4 @@
-/** The key and values `next-themes` used, so saved preferences carry over. */
+/** Saved preferences use this key and these values; changing them resets every visitor's theme. */
 export const THEME_STORAGE_KEY = "theme";
 
 export const themePreferences = ["light", "dark", "system"] as const;

@@ -1,4 +1,4 @@
-/** Public marketing routes and the generated static export, never product APIs. */
+/** Public marketing pages and their prerendered assets, never product APIs. */
 export const isPublicPath = (pathname: string): boolean =>
   pathname === "/" ||
   pathname === "/about" ||

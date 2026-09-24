@@ -4,7 +4,7 @@
  * every link and every demo session at once. Demo requests use the demo
  * organization's personal access token through a read-only client.
  *
- * This file MUST stay server-only — never import from client components.
+ * It runs only in the API Worker; browser apps never import `packages/api`.
  */
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 

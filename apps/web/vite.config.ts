@@ -75,7 +75,7 @@ export default defineConfig(({ command, isPreview }) => {
     define: publicDefines(devServer),
     resolve: { tsconfigPaths: true },
     server: {
-      // Next.js used dev rewrites for these; the marketing dev server owns them locally.
+      // The marketing dev server owns these pages locally; builds stage them instead.
       proxy: {
         "^/(?:about/?)?(?:\\?.*)?$": marketingDevOrigin,
         "^/marketing/": marketingDevOrigin,

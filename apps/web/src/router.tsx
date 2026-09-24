@@ -36,7 +36,7 @@ export const getRouter = () => {
     defaultPreload: "intent",
     // Query owns data freshness; preloading only warms route code.
     defaultPreloadStaleTime: 0,
-    // Show route skeletons as soon as a navigation waits, like Next.js `loading.tsx`.
+    // Show route skeletons as soon as a navigation waits.
     defaultPendingMs: 0,
     defaultPendingMinMs: 0,
     scrollRestoration: true,

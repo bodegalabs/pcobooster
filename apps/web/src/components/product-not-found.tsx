@@ -15,7 +15,7 @@ const NotFoundContent = () => (
   </main>
 );
 
-/** Unknown product URLs keep the app's navigation, as they did under Next.js. */
+/** Unknown product URLs keep the app's navigation. */
 export const ProductNotFound = () => (
   <AppShell>
     <NotFoundContent />

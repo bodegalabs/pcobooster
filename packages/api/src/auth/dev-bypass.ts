@@ -6,7 +6,7 @@
  * The synthesized identity is hydrated from /people/v2/me and /services/v2 so the
  * sidebar shows your actual name/org rather than a fake stub.
  *
- * This file MUST stay server-only — never import from client components.
+ * It runs only in the API Worker; browser apps never import `packages/api`.
  */
 import { logger } from "@pcobooster/api/logger";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
