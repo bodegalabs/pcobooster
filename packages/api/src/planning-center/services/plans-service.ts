@@ -1,9 +1,9 @@
 import { logger } from "@pcobooster/api/logger";
-import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type {
   PlanningCenterCoreClient,
   PlanningCenterError,
 } from "@pcobooster/api/planning-center/core-client";
+import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import {
   PlanningCenterReadCache,
@@ -87,12 +87,12 @@ const isInOrganizationDayRange = (
 
 export class PlanningCenterPlansService {
   private readonly core: PlanningCenterCoreClient;
-  private readonly resolveTimeZone: Effect.Effect<string>;
+  private readonly resolveTimeZone: Effect.Effect<string, PlanningCenterError>;
   private readonly caches: PlanningCenterPlansServiceCaches;
 
   constructor(
     core: PlanningCenterCoreClient,
-    resolveTimeZone: Effect.Effect<string>,
+    resolveTimeZone: Effect.Effect<string, PlanningCenterError>,
     caches: PlanningCenterPlansServiceCaches = createPlanningCenterPlansServiceCaches()
   ) {
     this.core = core;
@@ -315,12 +315,13 @@ export class PlanningCenterPlansService {
         { method: "DELETE" }
       )
       .pipe(
+        recoverPlanningCenterFailure({
+          kinds: ["not-found"],
+          reason: "Plan time not found; it is already deleted",
+          details: { planId, planTimeId },
+          fallback: () => null,
+        }),
         Effect.asVoid,
-        Effect.catchIf(
-          (error) =>
-            error instanceof PlanningCenterApiError && error.status === 404,
-          () => Effect.void
-        ),
         Effect.tap(() =>
           Effect.sync(() => {
             this.invalidatePlanTimesCache(serviceTypeId, planId);

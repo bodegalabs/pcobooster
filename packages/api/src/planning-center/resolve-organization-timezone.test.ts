@@ -1,9 +1,10 @@
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
 import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
+import { planningCenterBudgetFailures } from "@pcobooster/api/testing/planning-center-failures";
 import { testServerConfig } from "@pcobooster/api/testing/server";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { Effect } from "effect";
+import { Cause, Effect, Exit } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 type GetOrganization = () => Effect.Effect<PCResource, PlanningCenterError>;
@@ -78,6 +79,46 @@ describe(resolveOrganizationTimeZone, () => {
       ).resolves.toBe(expected);
     }
   );
+
+  it.each(planningCenterBudgetFailures())(
+    "fails with %s instead of caching the configured zone",
+    async (failure) => {
+      const getOrganization = vi
+        .fn<GetOrganization>()
+        .mockReturnValueOnce(Effect.fail(failure))
+        .mockReturnValueOnce(Effect.succeed(organization("America/Chicago")));
+      const dependencies = {
+        catalogService: { getOrganization },
+        cacheScope: `budget-${failure._tag}-${crypto.randomUUID()}`,
+        fallbackTimeZone: "America/Los_Angeles",
+      };
+
+      await expect(
+        Effect.runPromiseExit(resolveOrganizationTimeZone(dependencies))
+      ).resolves.toStrictEqual(Exit.fail(failure));
+      await expect(
+        Effect.runPromise(resolveOrganizationTimeZone(dependencies))
+      ).resolves.toBe("America/Chicago");
+    }
+  );
+
+  it("stops when interrupted", async () => {
+    const exit = await Effect.runPromiseExit(
+      resolveOrganizationTimeZone({
+        catalogService: {
+          getOrganization: vi
+            .fn<GetOrganization>()
+            .mockReturnValue(Effect.interrupt),
+        },
+        cacheScope: `interrupted-${crypto.randomUUID()}`,
+        fallbackTimeZone: "America/Los_Angeles",
+      })
+    );
+
+    expect(
+      Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause)
+    ).toBeTruthy();
+  });
 
   it("falls back when the organization response is unusable", async () => {
     const catalogService = {

@@ -1,9 +1,9 @@
 import { logger } from "@pcobooster/api/logger";
-import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type {
   PlanningCenterCoreClient,
   PlanningCenterError,
 } from "@pcobooster/api/planning-center/core-client";
+import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
@@ -136,11 +136,13 @@ export class PlanningCenterSongsService {
           data: response.data,
           included: response.included ?? [],
         })),
-        Effect.catchIf(
-          (error) =>
-            error instanceof PlanningCenterApiError && error.status === 404,
-          () => Effect.succeed({ data: null, included: [] })
-        )
+        recoverPlanningCenterFailure({
+          kinds: ["not-found"],
+          reason:
+            "Song has no last scheduled item for the service type; reading none",
+          details: { songId, serviceTypeId },
+          fallback: (): LastScheduledItem => ({ data: null, included: [] }),
+        })
       );
   }
 

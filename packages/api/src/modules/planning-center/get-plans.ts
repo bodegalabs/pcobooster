@@ -16,7 +16,7 @@ import { Effect } from "effect";
 
 export interface GetPlansDependencies {
   plansService: Pick<PlanningCenterPlansService, "getPlansInDateRange">;
-  resolveTimeZone: Effect.Effect<string>;
+  resolveTimeZone: Effect.Effect<string, PlanningCenterError>;
 }
 
 const toPlans = (rawPlans: PCResource[]): Plan[] => {

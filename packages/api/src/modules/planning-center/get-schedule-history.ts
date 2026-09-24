@@ -21,7 +21,7 @@ export interface ScheduleHistoryResult {
 
 export interface ScheduleHistoryDependencies {
   peopleService: Pick<PlanningCenterPeopleService, "getPersonSchedules">;
-  resolveTimeZone: Effect.Effect<string>;
+  resolveTimeZone: Effect.Effect<string, PlanningCenterError>;
 }
 
 const isConfirmedStatus = (status: string | undefined): boolean => {

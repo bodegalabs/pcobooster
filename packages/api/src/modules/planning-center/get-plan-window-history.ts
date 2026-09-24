@@ -101,7 +101,7 @@ export interface PlanWindowHistoryDependencies {
     PlanningCenterPlansService,
     "getPlansWithIncludedInDateRange"
   >;
-  readonly resolveTimeZone: Effect.Effect<string>;
+  readonly resolveTimeZone: Effect.Effect<string, PlanningCenterError>;
 }
 
 /**

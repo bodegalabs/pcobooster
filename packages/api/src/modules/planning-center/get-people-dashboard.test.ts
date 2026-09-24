@@ -8,9 +8,10 @@ import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-erro
 import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
+import { planningCenterBudgetFailures } from "@pcobooster/api/testing/planning-center-failures";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { Effect } from "effect";
+import { Effect, Exit } from "effect";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const person = (
@@ -424,6 +425,32 @@ describe(getPeopleDashboardActivity, () => {
       thirtyDayCount: 1,
     });
   });
+
+  it.each(planningCenterBudgetFailures())(
+    "fails the batch when a plan-range read fails with %s",
+    async (failure) => {
+      vi.useFakeTimers({ now: new Date("2026-05-23T12:00:00.000Z") });
+      const { dependencies, getPlansWithIncludedInDateRange } =
+        activityDependencies({
+          schedulesByPerson: {
+            "person-1": {
+              data: [
+                schedule("a", "2026-05-17T17:00:00.000Z", {
+                  timeIds: ["rehearsal-a"],
+                }),
+              ],
+            },
+          },
+        });
+      getPlansWithIncludedInDateRange.mockReturnValue(Effect.fail(failure));
+
+      await expect(
+        Effect.runPromiseExit(
+          getPeopleDashboardActivity({ personIds: ["person-1"], dependencies })
+        )
+      ).resolves.toStrictEqual(Exit.fail(failure));
+    }
+  );
 
   it("fails the batch instead of reporting a person as unscheduled when a read fails", async () => {
     const failure = new PlanningCenterNetworkError({
