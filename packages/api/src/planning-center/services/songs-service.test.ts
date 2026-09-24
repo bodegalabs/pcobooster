@@ -1,11 +1,11 @@
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
-import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
+import { createBasicPlanningCenterPromiseClient } from "@pcobooster/api/planning-center/promise-client";
 import { PlanningCenterSongsService } from "@pcobooster/api/planning-center/services/songs-service";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import { describe, expect, it, vi } from "vitest";
 
 const createCoreClientMock = () => {
-  const core = createBasicPlanningCenterClient(testPlanningCenterToken);
+  const core = createBasicPlanningCenterPromiseClient(testPlanningCenterToken);
   const fetchMock = vi.spyOn(core, "fetch");
   const fetchAllMock = vi.spyOn(core, "fetchAll");
   const fetchAllWithIncludedMock = vi.spyOn(core, "fetchAllWithIncluded");

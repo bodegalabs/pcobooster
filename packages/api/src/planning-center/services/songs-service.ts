@@ -1,6 +1,6 @@
 import { logger } from "@pcobooster/api/logger";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
-import type { PlanningCenterCoreClient } from "@pcobooster/api/planning-center/core-client";
+import type { PlanningCenterPromiseClient } from "@pcobooster/api/planning-center/promise-client";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 
@@ -31,11 +31,11 @@ export const planningCenterSongsServiceCaches =
   createPlanningCenterSongsServiceCaches();
 
 export class PlanningCenterSongsService {
-  private readonly core: PlanningCenterCoreClient;
+  private readonly core: PlanningCenterPromiseClient;
   private readonly caches: PlanningCenterSongsServiceCaches;
 
   constructor(
-    core: PlanningCenterCoreClient,
+    core: PlanningCenterPromiseClient,
     caches: PlanningCenterSongsServiceCaches = createPlanningCenterSongsServiceCaches()
   ) {
     this.core = core;

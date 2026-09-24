@@ -1,8 +1,11 @@
-/** A failed fetch before Planning Center returned an HTTP response. */
-export class PlanningCenterNetworkError extends Error {
-  override readonly name = "PlanningCenterNetworkError";
+import { Data } from "effect";
 
-  constructor(cause: Error) {
-    super("Planning Center request could not reach the provider", { cause });
-  }
+/** A request that produced no usable response: fetch, body stream, or attempt timeout. */
+export class PlanningCenterNetworkError extends Data.TaggedError(
+  "PlanningCenterNetworkError"
+)<{
+  readonly cause: unknown;
+}> {
+  override readonly message =
+    "Planning Center request could not reach the provider";
 }

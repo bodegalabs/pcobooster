@@ -1,5 +1,5 @@
 import { logger } from "@pcobooster/api/logger";
-import type { PlanningCenterCoreClient } from "@pcobooster/api/planning-center/core-client";
+import type { PlanningCenterPromiseClient } from "@pcobooster/api/planning-center/promise-client";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
@@ -37,11 +37,11 @@ const cloneResourceResponse = (response: {
 });
 
 export class PlanningCenterCatalogService {
-  private readonly core: PlanningCenterCoreClient;
+  private readonly core: PlanningCenterPromiseClient;
   private readonly caches: PlanningCenterCatalogServiceCaches;
 
   constructor(
-    core: PlanningCenterCoreClient,
+    core: PlanningCenterPromiseClient,
     caches: PlanningCenterCatalogServiceCaches = createPlanningCenterCatalogServiceCaches()
   ) {
     this.core = core;
@@ -196,10 +196,7 @@ export class PlanningCenterCatalogService {
       `/services/v2/service_types/${serviceTypeId}/plans/${planId}/needed_positions/${neededPositionId}`,
       {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: {
           data: {
             type: "NeededPosition",
             id: neededPositionId,
@@ -211,7 +208,7 @@ export class PlanningCenterCatalogService {
               },
             },
           },
-        }),
+        },
       }
     );
     this.invalidateNeededPositionsCache(serviceTypeId, planId);

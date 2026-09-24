@@ -1,4 +1,4 @@
-import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
+import { createBasicPlanningCenterPromiseClient } from "@pcobooster/api/planning-center/promise-client";
 import { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
@@ -18,7 +18,9 @@ const resource = (
 describe("PlanningCenterPeopleService.getAllPeople", () => {
   it("loads every directory page, caches by account, and returns independent copies", async () => {
     let scope = "account-a";
-    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
+    const core = createBasicPlanningCenterPromiseClient(
+      testPlanningCenterToken
+    );
     const fetchAll = vi
       .spyOn(core, "fetchAll")
       .mockResolvedValue([
@@ -44,7 +46,9 @@ describe("PlanningCenterPeopleService.getAllPeople", () => {
 
 describe("PlanningCenterPeopleService.getPlanTeamMembers", () => {
   it("uses fetchAllWithIncluded so large rosters are not truncated to the first page", async () => {
-    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
+    const core = createBasicPlanningCenterPromiseClient(
+      testPlanningCenterToken
+    );
     const fetchAllWithIncluded = vi
       .spyOn(core, "fetchAllWithIncluded")
       .mockResolvedValue({ data: [], included: [] });
@@ -63,7 +67,9 @@ describe("PlanningCenterPeopleService.getPlanTeamMembers", () => {
 
 describe("PlanningCenterPeopleService.getPersonTeamPositionAssignments", () => {
   it("caches assignment validation reads used by schedule POST", async () => {
-    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
+    const core = createBasicPlanningCenterPromiseClient(
+      testPlanningCenterToken
+    );
     const fetch = vi.spyOn(core, "fetchCollection").mockResolvedValue({
       data: [],
       included: [],
@@ -83,7 +89,9 @@ describe("PlanningCenterPeopleService.getPersonTeamPositionAssignments", () => {
 
 describe("PlanningCenterPeopleService.searchPeopleByName", () => {
   it("caches normalized people search reads and returns mutation-safe copies", async () => {
-    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
+    const core = createBasicPlanningCenterPromiseClient(
+      testPlanningCenterToken
+    );
     const fetch = vi.spyOn(core, "fetchCollection").mockResolvedValue({
       data: [resource("person-1", "Person", { first_name: "Andrew" })],
     });
@@ -107,7 +115,9 @@ describe("PlanningCenterPeopleService.searchPeopleByName", () => {
 
 describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
   it("caches team roster reads and returns mutation-safe copies", async () => {
-    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
+    const core = createBasicPlanningCenterPromiseClient(
+      testPlanningCenterToken
+    );
     const fetchAll = vi
       .spyOn(core, "fetchAll")
       .mockResolvedValue([
@@ -180,7 +190,9 @@ describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
 
 describe("PlanningCenterPeopleService.updatePlanPersonStatus", () => {
   it("invalidates cached plan team members when plan context is available", async () => {
-    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
+    const core = createBasicPlanningCenterPromiseClient(
+      testPlanningCenterToken
+    );
     const fetchAllWithIncluded = vi
       .spyOn(core, "fetchAllWithIncluded")
       .mockResolvedValue({ data: [], included: [] });
@@ -203,10 +215,7 @@ describe("PlanningCenterPeopleService.updatePlanPersonStatus", () => {
     expect(fetchAllWithIncluded).toHaveBeenCalledTimes(2);
     expect(fetch).toHaveBeenCalledWith("/services/v2/plan_people/pp-123", {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+      body: {
         data: {
           type: "PlanPerson",
           id: "pp-123",
@@ -214,14 +223,16 @@ describe("PlanningCenterPeopleService.updatePlanPersonStatus", () => {
             status: "C",
           },
         },
-      }),
+      },
     });
   });
 });
 
 describe("PlanningCenterPeopleService.updatePlanPersonTimes", () => {
   it("patches PlanPerson time relationships and invalidates cached plan members", async () => {
-    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
+    const core = createBasicPlanningCenterPromiseClient(
+      testPlanningCenterToken
+    );
     const fetchAllWithIncluded = vi
       .spyOn(core, "fetchAllWithIncluded")
       .mockResolvedValue({ data: [], included: [] });
@@ -248,10 +259,7 @@ describe("PlanningCenterPeopleService.updatePlanPersonTimes", () => {
       "/services/v2/people/person-456/plan_people/pp-123",
       {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: {
           data: {
             type: "PlanPerson",
             id: "pp-123",
@@ -264,7 +272,7 @@ describe("PlanningCenterPeopleService.updatePlanPersonTimes", () => {
               },
             },
           },
-        }),
+        },
       }
     );
   });
@@ -272,7 +280,9 @@ describe("PlanningCenterPeopleService.updatePlanPersonTimes", () => {
 
 describe("PlanningCenterPeopleService.invalidateScheduleReadCaches", () => {
   it("clears cached plan team members and person schedules for conflict reconciliation", async () => {
-    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
+    const core = createBasicPlanningCenterPromiseClient(
+      testPlanningCenterToken
+    );
     const fetchAllWithIncluded = vi
       .spyOn(core, "fetchAllWithIncluded")
       .mockResolvedValue({ data: [], included: [] });
@@ -307,7 +317,9 @@ describe("PlanningCenterPeopleService.invalidateScheduleReadCaches", () => {
 
 describe("PlanningCenterPeopleService.getPlanPlanTimes", () => {
   it("fetches all plan times through the shared cache-backed endpoint", async () => {
-    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
+    const core = createBasicPlanningCenterPromiseClient(
+      testPlanningCenterToken
+    );
     const fetchAll = vi.spyOn(core, "fetchAll").mockResolvedValue([]);
     const service = new PlanningCenterPeopleService(core);
 
@@ -324,7 +336,9 @@ describe("PlanningCenterPeopleService.getPlanPlanTimes", () => {
 
 describe("PlanningCenterPeopleService.deletePlanPerson", () => {
   it("uses the plan team_members endpoint when plan context is available", async () => {
-    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
+    const core = createBasicPlanningCenterPromiseClient(
+      testPlanningCenterToken
+    );
     const request = vi
       .spyOn(core, "request")
       .mockResolvedValue(new Response(null, { status: 204 }));
@@ -343,7 +357,9 @@ describe("PlanningCenterPeopleService.deletePlanPerson", () => {
   });
 
   it("falls back to the person-scoped plan_people endpoint without plan context", async () => {
-    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
+    const core = createBasicPlanningCenterPromiseClient(
+      testPlanningCenterToken
+    );
     const request = vi
       .spyOn(core, "request")
       .mockResolvedValue(new Response(null, { status: 204 }));

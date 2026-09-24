@@ -1,8 +1,8 @@
-import {
-  PlanningCenterCoreClient,
-  createBasicPlanningCenterClient,
-} from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterPersonalAccessToken } from "@pcobooster/api/planning-center/core-client";
+import {
+  PlanningCenterPromiseClient,
+  createBasicPlanningCenterPromiseClient,
+} from "@pcobooster/api/planning-center/promise-client";
 import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
 import {
   planningCenterCatalogServiceCaches,
@@ -26,7 +26,7 @@ import {
 } from "@pcobooster/api/planning-center/services/songs-service";
 
 const createServicesForClient = (
-  core: PlanningCenterCoreClient,
+  core: PlanningCenterPromiseClient,
   fallbackTimeZone: string
 ) => {
   const catalog = new PlanningCenterCatalogService(
@@ -68,7 +68,7 @@ export const createPlanningCenterServices = (
   fallbackTimeZone: string
 ) =>
   createServicesForClient(
-    new PlanningCenterCoreClient({ kind: "bearer", accessToken }),
+    new PlanningCenterPromiseClient({ kind: "bearer", accessToken }),
     fallbackTimeZone
   );
 
@@ -77,7 +77,7 @@ export const createBasicPlanningCenterServices = (
   fallbackTimeZone: string
 ) =>
   createServicesForClient(
-    createBasicPlanningCenterClient(token),
+    createBasicPlanningCenterPromiseClient(token),
     fallbackTimeZone
   );
 
@@ -87,7 +87,7 @@ export const createReadOnlyPlanningCenterServices = (
   fallbackTimeZone: string
 ) =>
   createServicesForClient(
-    new PlanningCenterCoreClient(
+    new PlanningCenterPromiseClient(
       { kind: "basic", ...token },
       { readOnly: true }
     ),

@@ -1,5 +1,5 @@
 import { logger } from "@pcobooster/api/logger";
-import type { PlanningCenterCoreClient } from "@pcobooster/api/planning-center/core-client";
+import type { PlanningCenterPromiseClient } from "@pcobooster/api/planning-center/promise-client";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
@@ -39,11 +39,11 @@ const clonePlanItemsResponse = (response: PlanItemsResponse) => ({
 });
 
 export class PlanningCenterPlanItemsService {
-  private readonly core: PlanningCenterCoreClient;
+  private readonly core: PlanningCenterPromiseClient;
   private readonly caches: PlanningCenterPlanItemsServiceCaches;
 
   constructor(
-    core: PlanningCenterCoreClient,
+    core: PlanningCenterPromiseClient,
     caches: PlanningCenterPlanItemsServiceCaches = createPlanningCenterPlanItemsServiceCaches()
   ) {
     this.core = core;
@@ -107,10 +107,7 @@ export class PlanningCenterPlanItemsService {
       `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items?include=song,arrangement,key`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(buildItemPayload(attributes)),
+        body: buildItemPayload(attributes),
       }
     );
     this.invalidatePlanItemsCache(serviceTypeId, planId);
@@ -131,10 +128,7 @@ export class PlanningCenterPlanItemsService {
       `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items/${itemId}?include=song,arrangement,key`,
       {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(buildItemPayload(attributes, itemId)),
+        body: buildItemPayload(attributes, itemId),
       }
     );
     this.invalidatePlanItemsCache(serviceTypeId, planId);
@@ -168,17 +162,14 @@ export class PlanningCenterPlanItemsService {
       `/services/v2/service_types/${serviceTypeId}/plans/${planId}/item_reorder`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: {
           data: {
             type: "PlanItemReorder",
             attributes: {
               sequence,
             },
           },
-        }),
+        },
       }
     );
     this.invalidatePlanItemsCache(serviceTypeId, planId);

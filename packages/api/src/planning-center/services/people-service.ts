@@ -1,5 +1,5 @@
-import type { PlanningCenterCoreClient } from "@pcobooster/api/planning-center/core-client";
 import { buildPlanningCenterUrl } from "@pcobooster/api/planning-center/core-client";
+import type { PlanningCenterPromiseClient } from "@pcobooster/api/planning-center/promise-client";
 import {
   PlanningCenterReadCache,
   stableParams,
@@ -121,11 +121,11 @@ const cloneResourceCollectionResponse = (
 });
 
 export class PlanningCenterPeopleService {
-  private readonly core: PlanningCenterCoreClient;
+  private readonly core: PlanningCenterPromiseClient;
   private readonly caches: PlanningCenterPeopleServiceCaches;
 
   constructor(
-    core: PlanningCenterCoreClient,
+    core: PlanningCenterPromiseClient,
     caches: PlanningCenterPeopleServiceCaches = createPlanningCenterPeopleServiceCaches()
   ) {
     this.core = core;
@@ -488,10 +488,7 @@ export class PlanningCenterPeopleService {
       `/services/v2/plan_people/${planPersonId}`,
       {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: {
           data: {
             type: "PlanPerson",
             id: planPersonId,
@@ -499,7 +496,7 @@ export class PlanningCenterPeopleService {
               status,
             },
           },
-        }),
+        },
       }
     );
     if (
@@ -532,10 +529,7 @@ export class PlanningCenterPeopleService {
       `/services/v2/people/${personId}/plan_people/${planPersonId}`,
       {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: {
           data: {
             type: "PlanPerson",
             id: planPersonId,
@@ -545,7 +539,7 @@ export class PlanningCenterPeopleService {
               },
             },
           },
-        }),
+        },
       }
     );
     this.invalidateScheduleReadCaches({ personId, serviceTypeId, planId });
@@ -595,10 +589,7 @@ export class PlanningCenterPeopleService {
       `/services/v2/service_types/${serviceTypeId}/plans/${planId}/team_members`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: {
           data: {
             type: "PlanPerson",
             attributes: {
@@ -608,7 +599,7 @@ export class PlanningCenterPeopleService {
               team_position_name: teamPositionName,
             },
           },
-        }),
+        },
       }
     );
     this.invalidateScheduleReadCaches({ personId, serviceTypeId, planId });

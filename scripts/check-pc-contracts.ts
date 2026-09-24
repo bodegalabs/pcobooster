@@ -4,7 +4,7 @@ import {
   rosterPersonSchema,
   scheduleResourceSchema,
 } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
-import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
+import { createBasicPlanningCenterPromiseClient } from "@pcobooster/api/planning-center/promise-client";
 import {
   isNonEmptyString,
   isString,
@@ -73,7 +73,10 @@ const secret = process.env.PLANNING_CENTER_PAT;
 if (!isNonEmptyString(applicationId) || !isNonEmptyString(secret)) {
   throw new Error("Set PLANNING_CENTER_CLIENT and PLANNING_CENTER_PAT");
 }
-const client = createBasicPlanningCenterClient({ applicationId, secret });
+const client = createBasicPlanningCenterPromiseClient({
+  applicationId,
+  secret,
+});
 const serviceTypes = await client.fetchAll("/services/v2/service_types", {
   per_page: "100",
 });

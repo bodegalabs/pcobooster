@@ -1,6 +1,6 @@
 import { logger } from "@pcobooster/api/logger";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
-import type { PlanningCenterCoreClient } from "@pcobooster/api/planning-center/core-client";
+import type { PlanningCenterPromiseClient } from "@pcobooster/api/planning-center/promise-client";
 import {
   PlanningCenterReadCache,
   stableParams,
@@ -68,12 +68,12 @@ const buildPlanTimeAssignmentRelationships = (
 };
 
 export class PlanningCenterPlansService {
-  private readonly core: PlanningCenterCoreClient;
+  private readonly core: PlanningCenterPromiseClient;
   private readonly resolveTimeZone: (signal?: AbortSignal) => Promise<string>;
   private readonly caches: PlanningCenterPlansServiceCaches;
 
   constructor(
-    core: PlanningCenterCoreClient,
+    core: PlanningCenterPromiseClient,
     resolveTimeZone: (signal?: AbortSignal) => Promise<string>,
     caches: PlanningCenterPlansServiceCaches = createPlanningCenterPlansServiceCaches()
   ) {
@@ -248,17 +248,14 @@ export class PlanningCenterPlansService {
       `/services/v2/service_types/${serviceTypeId}/plan_times/${planTimeId}`,
       {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: {
           data: {
             type: "PlanTime",
             id: planTimeId,
             attributes,
             ...(relationships ? { relationships } : undefined),
           },
-        }),
+        },
       }
     );
     this.invalidatePlanTimesCache(serviceTypeId, planId);
@@ -280,16 +277,13 @@ export class PlanningCenterPlansService {
       `/services/v2/service_types/${serviceTypeId}/plans/${planId}/plan_times`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: {
           data: {
             type: "PlanTime",
             attributes,
             ...(relationships ? { relationships } : undefined),
           },
-        }),
+        },
       }
     );
     this.invalidatePlanTimesCache(serviceTypeId, planId);

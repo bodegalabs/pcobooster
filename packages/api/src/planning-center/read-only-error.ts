@@ -1,14 +1,11 @@
+import { Data } from "effect";
+
 /** A write attempted through a read-only client; nothing was sent. */
-export class PlanningCenterReadOnlyError extends Error {
-  override readonly name = "PlanningCenterReadOnlyError";
+export class PlanningCenterReadOnlyError extends Data.TaggedError(
+  "PlanningCenterReadOnlyError"
+)<{
   readonly method: string;
   readonly path: string;
-
-  constructor(options: { method: string; path: string }) {
-    super(
-      `Planning Center ${options.method} ${options.path} blocked by a read-only client`
-    );
-    this.method = options.method;
-    this.path = options.path;
-  }
+}> {
+  override readonly message = `Planning Center ${this.method} ${this.path} blocked by a read-only client`;
 }

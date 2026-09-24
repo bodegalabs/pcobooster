@@ -178,7 +178,7 @@ describe("PlanningCenterAccess", () => {
   it("maps provider network errors to a tagged fault", () => {
     expect(
       toApplicationFault(
-        new PlanningCenterNetworkError(new TypeError("offline"))
+        new PlanningCenterNetworkError({ cause: new TypeError("offline") })
       )
     ).toMatchObject({
       _tag: "ExternalServiceFailure",
