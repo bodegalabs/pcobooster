@@ -1,19 +1,15 @@
-import { orgCalendarDaysBetween } from "@pcobooster/planning-center-models/calendar";
+import {
+  formatCalendarDateLabel,
+  orgCalendarDaysBetween,
+} from "@pcobooster/planning-center-models/calendar";
 import { formatPlanHistoryHalfRangeWeeksLabel } from "@pcobooster/planning-center-models/schedule-constants";
 import type {
   PersonWithAvailability,
   ScheduleFrequency,
 } from "@pcobooster/planning-center-models/types";
 
-const recommendationDateFormatter = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
-
-const formatDate = (date: Date): string =>
-  recommendationDateFormatter.format(date);
+const formatDate = (date: Date, orgTimeZone: string): string =>
+  formatCalendarDateLabel(date, orgTimeZone, "weekdayMonthDayYear");
 
 const proximityPenalty = (
   nextDate: Date | undefined,
@@ -42,6 +38,7 @@ const proximityPenalty = (
 const appendLastServiceReasoning = (
   frequency: ScheduleFrequency,
   daysSinceLastServed: number,
+  orgTimeZone: string,
   reasoning: string[]
 ): void => {
   if (frequency.lastServedDate === undefined && frequency.totalServed === 0) {
@@ -51,7 +48,7 @@ const appendLastServiceReasoning = (
   if (frequency.lastServedDate === undefined) {
     return;
   }
-  const lastServedStr = formatDate(frequency.lastServedDate);
+  const lastServedStr = formatDate(frequency.lastServedDate, orgTimeZone);
   if (daysSinceLastServed === 0) {
     reasoning.push(`Last served on the same date (${lastServedStr})`);
   } else if (daysSinceLastServed === 1) {
@@ -75,7 +72,7 @@ const appendUpcomingServiceReasoning = (
   ) {
     return;
   }
-  const nextDateStr = formatDate(frequency.nextUpcomingDate);
+  const nextDateStr = formatDate(frequency.nextUpcomingDate, orgTimeZone);
   const daysUntilNext = orgCalendarDaysBetween(
     referenceDate,
     frequency.nextUpcomingDate,
@@ -117,7 +114,7 @@ const appendUpcomingRehearsalReasoning = (
   ) {
     return;
   }
-  const nextRehearsalStr = formatDate(frequency.nextRehearsalDate);
+  const nextRehearsalStr = formatDate(frequency.nextRehearsalDate, orgTimeZone);
   const daysUntilRehearsal = orgCalendarDaysBetween(
     referenceDate,
     frequency.nextRehearsalDate,
@@ -212,7 +209,12 @@ const calculateRecommendationScore = (
     upcomingRehearsalPenalty -
     rehearsalProximityPenalty;
 
-  appendLastServiceReasoning(frequency, daysSinceLastServed, reasoning);
+  appendLastServiceReasoning(
+    frequency,
+    daysSinceLastServed,
+    orgTimeZone,
+    reasoning
+  );
   appendUpcomingServiceReasoning(
     frequency,
     referenceDate,

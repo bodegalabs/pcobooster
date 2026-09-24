@@ -66,14 +66,19 @@ import type {
 import { Effect } from "effect";
 
 /**
- * These are outbound Planning Center read requests. Keep them well below the 100 rps API window,
- * but high enough that independent plan/person reads do not serialize the page load.
+ * These are outbound Planning Center read requests. A Worker keeps at most 6 connections waiting
+ * for response headers, so more concurrency only queues. Planning Center allows 100 requests per
+ * 20 seconds per user; caching, not concurrency, keeps a page load inside that budget.
  */
-const PEOPLE_HYDRATION_CONCURRENCY = 8;
+const PEOPLE_HYDRATION_CONCURRENCY = 6;
 const SERVICE_TYPE_HISTORY_CONCURRENCY = 6;
-const PLAN_HISTORY_CONCURRENCY = 8;
+const PLAN_HISTORY_CONCURRENCY = 6;
 const CANDIDATE_HISTORY_CACHE_TTL_MS = 60 * 1000;
-const PLAN_WINDOW_HISTORY_CACHE_TTL_MS = 60 * 1000;
+/**
+ * The window snapshot feeds candidate history only; the selected plan's roster is read fresh on
+ * every load. This app's schedule writes clear the snapshot.
+ */
+const PLAN_WINDOW_HISTORY_CACHE_TTL_MS = 5 * 60 * 1000;
 /**
  * Candidate history needs enough headroom for dense upcoming schedules; otherwise recent past
  * services can fall out of the fetched pages before the local ±21 day window is applied.
@@ -123,7 +128,11 @@ export interface PeopleForPositionDependencies {
   resolveTimeZone: Effect.Effect<string>;
 }
 
-/** A roster we cannot read leaves the selected plan without roster context. */
+/**
+ * The selected plan's roster drives the statuses the scheduler acts on, so it is read through the
+ * roster's own short cache rather than the longer-lived window snapshot. When that read fails, the
+ * snapshot's copy is used; without either the plan has no roster context.
+ */
 const getSelectedPlanSchedulingContext = ({
   serviceTypeId,
   planId,
@@ -139,29 +148,58 @@ const getSelectedPlanSchedulingContext = ({
     return Effect.succeed(emptyPlanSchedulingContext(serviceTypeId, ""));
   }
 
-  if (
-    sharedPlanWindowHistory !== null &&
-    sharedPlanWindowHistory.planMembersByPlanId.has(planId)
-  ) {
-    return Effect.succeed(
-      buildPlanSchedulingContext({
-        serviceTypeId,
-        planId,
-        planTeamMembers:
-          sharedPlanWindowHistory.planMembersByPlanId.get(planId) ?? [],
-        included: sharedPlanWindowHistory.includedByPlanId.get(planId) ?? [],
-      })
-    );
-  }
-
+  const snapshotMembers =
+    sharedPlanWindowHistory?.planMembersByPlanId.get(planId);
   return getPlanSchedulingContext(
     { serviceTypeId, planId },
     peopleService
   ).pipe(
     recoverUnlessInterrupted(() =>
-      emptyPlanSchedulingContext(serviceTypeId, planId)
+      snapshotMembers === undefined
+        ? emptyPlanSchedulingContext(serviceTypeId, planId)
+        : buildPlanSchedulingContext({
+            serviceTypeId,
+            planId,
+            planTeamMembers: snapshotMembers,
+            included:
+              sharedPlanWindowHistory?.includedByPlanId.get(planId) ?? [],
+          })
     )
   );
+};
+
+/**
+ * A plan is settled once its sort date and every one of its times fall before today in the
+ * organization's time zone; its roster then rarely changes.
+ */
+export const isSettledPlan = (
+  plan: PCResource,
+  planTimes: RawPlanTime[],
+  todayDayKey: string,
+  orgTimeZone: string
+): boolean => {
+  const instants = [
+    plan.attributes.sort_date,
+    ...planTimes.flatMap((planTime) => [
+      planTime.attributes.starts_at,
+      planTime.attributes.ends_at,
+    ]),
+  ];
+  let sawDay = false;
+  for (const value of instants) {
+    if (!isNonEmptyString(value)) {
+      continue;
+    }
+    const instant = new Date(value);
+    if (Number.isNaN(instant.getTime())) {
+      continue;
+    }
+    if (formatCalendarDayInTimeZone(instant, orgTimeZone) >= todayDayKey) {
+      return false;
+    }
+    sawDay = true;
+  }
+  return sawDay;
 };
 
 const getIncludedPlanTimesForPlan = (
@@ -326,7 +364,15 @@ const loadPlanWindowMembers = (
     included,
     plan,
     serviceTypeId,
-  }: { included: PCResource[]; plan: PCResource; serviceTypeId: string },
+    todayDayKey,
+    orgTimeZone,
+  }: {
+    included: PCResource[];
+    plan: PCResource;
+    serviceTypeId: string;
+    todayDayKey: string;
+    orgTimeZone: string;
+  },
   people: PeopleForPositionDependencies["people"]
 ): Effect.Effect<LoadedPlan, PlanningCenterError> => {
   const planTimes = getIncludedPlanTimesForPlan(plan, included);
@@ -336,7 +382,9 @@ const loadPlanWindowMembers = (
   const teamMembers =
     planPeopleCount === 0
       ? Effect.succeed({ data: [], included: [] })
-      : people.getPlanTeamMembers(serviceTypeId, plan.id);
+      : people.getPlanTeamMembers(serviceTypeId, plan.id, {
+          settled: isSettledPlan(plan, planTimes, todayDayKey, orgTimeZone),
+        });
   return teamMembers.pipe(
     Effect.map((teamMembersResponse) => ({
       included: mergeIncludedResources(
@@ -442,6 +490,7 @@ const getSharedPlanWindowHistorySnapshot = (
         ),
       { concurrency: SERVICE_TYPE_HISTORY_CONCURRENCY }
     );
+    const todayDayKey = formatCalendarDayInTimeZone(new Date(), orgTimeZone);
     const loadedPlans = yield* Effect.forEach(
       plansByServiceType.flatMap(
         ({ included, plans, serviceTypeId: currentServiceTypeId }) =>
@@ -449,6 +498,8 @@ const getSharedPlanWindowHistorySnapshot = (
             included,
             plan,
             serviceTypeId: currentServiceTypeId,
+            todayDayKey,
+            orgTimeZone,
           }))
       ),
       (planToLoad) => loadPlanWindowMembers(planToLoad, dependencies.people),

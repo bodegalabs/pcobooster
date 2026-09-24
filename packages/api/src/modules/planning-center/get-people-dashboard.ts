@@ -14,6 +14,7 @@ import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-cente
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import {
+  formatCalendarDateLabel,
   formatCalendarDayInTimeZone,
   orgCalendarDaysRefMinusItem,
 } from "@pcobooster/planning-center-models/calendar";
@@ -70,16 +71,6 @@ export interface PeopleDashboardActivityDependencies {
   >;
   readonly resolveTimeZone: Effect.Effect<string>;
 }
-
-const monthLabelFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "long",
-  year: "numeric",
-  timeZone: "UTC",
-});
-const shortDateFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-});
 
 export interface ScheduleItem {
   id: string;
@@ -277,12 +268,13 @@ export const getMonthInfo = (date: Date, orgTimeZone: string) => {
   const year = Number(dayKey.slice(0, 4));
   const month = Number(dayKey.slice(5, 7));
   const monthIndex = month - 1;
+  // UTC noon on the org month's first day: a civil-date carrier, so read it in UTC.
   const first = new Date(Date.UTC(year, monthIndex, 1, 12));
   const daysInMonth = new Date(Date.UTC(year, month, 0, 12)).getUTCDate();
   return {
     year,
     monthIndex,
-    label: monthLabelFormatter.format(first),
+    label: formatCalendarDateLabel(first, "UTC", "monthYear"),
     daysInMonth,
     startsOnWeekday: first.getUTCDay(),
   };
@@ -373,11 +365,16 @@ export const getMostCommonRoles = (items: ScheduleItem[]) => {
   return roles.length > 0 ? roles.join(", ") : "No recent role";
 };
 
-export const formatShortDate = (date: Date | undefined, fallback = "-") => {
+/** "Sep 9" for the org calendar day `date` falls on; `fallback` when there is no date. */
+export const formatShortDate = (
+  date: Date | undefined,
+  orgTimeZone: string,
+  fallback = "-"
+) => {
   if (!date || Number.isNaN(date.getTime())) {
     return fallback;
   }
-  return shortDateFormatter.format(date);
+  return formatCalendarDateLabel(date, orgTimeZone, "monthDay");
 };
 
 export const countServiceDaysInWindow = (
@@ -464,11 +461,16 @@ const buildPersonActivity = (
       frequency.nextUpcomingDate
     ),
     load,
-    lastServed: formatShortDate(frequency.lastServedDate),
-    lastRehearsal: formatShortDate(frequency.lastRehearsalDate),
-    nextScheduled: formatShortDate(frequency.nextUpcomingDate, "Not scheduled"),
+    lastServed: formatShortDate(frequency.lastServedDate, orgTimeZone),
+    lastRehearsal: formatShortDate(frequency.lastRehearsalDate, orgTimeZone),
+    nextScheduled: formatShortDate(
+      frequency.nextUpcomingDate,
+      orgTimeZone,
+      "Not scheduled"
+    ),
     nextRehearsal: formatShortDate(
       frequency.nextRehearsalDate,
+      orgTimeZone,
       "Not scheduled"
     ),
     monthCount: serviceDaysThisMonth.size,

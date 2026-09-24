@@ -158,7 +158,44 @@ export const toBlockout = (
   };
 };
 
-/** Blockouts only matter for a selected plan; unreadable blockouts mean none. */
+const DAY_MS = 24 * 60 * 60 * 1000;
+/** Covers any blockout time zone offset around a date-only `repeat_until`. */
+const REPEAT_UNTIL_MARGIN_MS = 2 * DAY_MS;
+
+/**
+ * A repeating blockout's last occurrence starts on `repeat_until` (a date in the blockout's own
+ * zone) and lasts as long as the first occurrence, so it cannot touch a plan more than that long
+ * after `repeat_until`. Anything unreadable is treated as possibly covering.
+ */
+export const repeatingBlockoutMayCover = (
+  parent: PCResource,
+  planSortAt: Date
+): boolean => {
+  const repeatUntil = parent.attributes.repeat_until;
+  if (!isNonEmptyString(repeatUntil)) {
+    return true;
+  }
+  const untilMs = Date.parse(`${repeatUntil.slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(untilMs)) {
+    return true;
+  }
+  const { starts_at: startsAt, ends_at: endsAt } = parent.attributes;
+  const occurrenceMs =
+    isString(startsAt) && isString(endsAt)
+      ? Date.parse(endsAt) - Date.parse(startsAt)
+      : 0;
+  const lengthMs =
+    Number.isNaN(occurrenceMs) || occurrenceMs < 0 ? 0 : occurrenceMs;
+  return (
+    planSortAt.getTime() <= untilMs + DAY_MS + lengthMs + REPEAT_UNTIL_MARGIN_MS
+  );
+};
+
+/**
+ * Blockouts only matter for a selected plan; unreadable blockouts mean none. Every blockout is
+ * read (Planning Center's `future` filter is not verified for repeating blockouts), but dates of
+ * repeating blockouts that ended before the plan are not.
+ */
 export const loadPersonBlockouts = (
   personId: string,
   planSortAt: Date | null,
@@ -179,6 +216,9 @@ export const loadPersonBlockouts = (
           const frequency = parent.attributes.repeat_frequency;
           if (frequency === undefined || frequency === "no_repeat") {
             return Effect.succeed([{ date: parent, parent }]);
+          }
+          if (!repeatingBlockoutMayCover(parent, planSortAt)) {
+            return Effect.succeed([]);
           }
           return Effect.map(
             peopleService.getPersonBlockoutDates(personId, parent.id),

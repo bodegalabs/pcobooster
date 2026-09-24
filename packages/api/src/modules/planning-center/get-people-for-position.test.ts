@@ -1,9 +1,16 @@
-import { getPeopleForPosition } from "@pcobooster/api/modules/planning-center/get-people-for-position";
+import {
+  getPeopleForPosition,
+  isSettledPlan,
+} from "@pcobooster/api/modules/planning-center/get-people-for-position";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
-import type { PCResource } from "@pcobooster/planning-center-models/types";
+import type {
+  PCResource,
+  RawPlanTime,
+} from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -197,6 +204,39 @@ const recurringWeeklyBlockout = (
     repeat_frequency: "every_1",
     repeat_period: "weekly",
   },
+});
+
+/** A blockout entered in Los Angeles; Planning Center reports its instants in UTC. */
+const laBlockout = (
+  id: string,
+  startsAt: string,
+  endsAt: string,
+  extra: Record<string, string> = {}
+): PCResource => ({
+  type: "Blockout",
+  id,
+  attributes: {
+    reason: "Away",
+    starts_at: startsAt,
+    ends_at: endsAt,
+    description: "",
+    share: true,
+    time_zone: "America/Los_Angeles",
+    repeat_frequency: "no_repeat",
+    ...extra,
+  },
+});
+
+const servicePlanTime = (startsAt: string): RawPlanTime => ({
+  type: "PlanTime",
+  id: startsAt,
+  attributes: { starts_at: startsAt, time_type: "service" },
+});
+
+const planSortedAt = (sortDate: string | null): PCResource => ({
+  type: "Plan",
+  id: "plan-1",
+  attributes: { sort_date: sortDate },
 });
 
 describe(getPeopleForPosition, () => {
@@ -560,7 +600,11 @@ describe(getPeopleForPosition, () => {
     );
 
     expect(mocks.getPersonSchedules).not.toHaveBeenCalled();
-    expect(mocks.getPlanTeamMembers).toHaveBeenCalledTimes(2);
+    expect(mocks.getPlanTeamMembers.mock.calls).toStrictEqual([
+      [serviceTypeId, previousPlanId, { settled: true }],
+      [serviceTypeId, planId, { settled: true }],
+      [serviceTypeId, planId],
+    ]);
     expect({
       result,
       servedRecently: (result[0]?.frequency?.recentServedDays ?? 0) >= 1,
@@ -1174,5 +1218,213 @@ describe(getPeopleForPosition, () => {
     );
 
     expect(result[0]).toMatchObject({ isBlockedForDate: true });
+  });
+
+  const singleCandidate = (personId = "p1") => {
+    mocks.getPeopleForTeamPosition.mockReturnValue(
+      Effect.succeed({
+        data: [assignment("a1", personId)],
+        included: [
+          person(personId, "Pat", "Person"),
+          teamPosition("pos-1", "Vocals", "team-1"),
+          team("team-1", "Band"),
+        ],
+      })
+    );
+  };
+
+  const readCandidates = async (date: string, planId = "plan-target") =>
+    await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId: "st-1",
+          positionId: "pos-1",
+          teamId: "team-1",
+          planId,
+          date,
+        },
+        dependencies
+      )
+    );
+
+  it("compares blockouts by calendar day in the blockout's own time zone", async () => {
+    singleCandidate();
+    mocks.resolveTimeZone.mockReturnValue("America/Los_Angeles");
+    // Saturday Sept 26 all day in Los Angeles; it ends at 06:59 UTC on the 27th.
+    mocks.getPersonBlockouts.mockReturnValue(
+      Effect.succeed([
+        laBlockout(
+          "b-saturday",
+          "2026-09-26T07:00:00Z",
+          "2026-09-27T06:59:59Z"
+        ),
+      ])
+    );
+
+    const saturdayEvening = await readCandidates("2026-09-27T01:00:00Z");
+    const sundayMorning = await readCandidates("2026-09-27T17:00:00Z");
+
+    expect(saturdayEvening[0]).toMatchObject({
+      isBlockedForDate: true,
+      availability: "blocked",
+    });
+    expect(sundayMorning[0]).toMatchObject({
+      isBlockedForDate: false,
+      availability: "available",
+    });
+  });
+
+  it("skips dates of repeating blockouts that ended before the plan and keeps the rest", async () => {
+    singleCandidate();
+    mocks.resolveTimeZone.mockReturnValue("America/Los_Angeles");
+    const weekly = { repeat_frequency: "every_1", repeat_period: "weekly" };
+    mocks.getPersonBlockouts.mockReturnValue(
+      Effect.succeed([
+        laBlockout("b-ended", "2021-02-04T08:00:00Z", "2021-02-05T07:59:59Z", {
+          ...weekly,
+          repeat_until: "2021-05-20",
+        }),
+        laBlockout(
+          "b-last-day",
+          "2026-09-05T07:00:00Z",
+          "2026-09-06T06:59:59Z",
+          {
+            ...weekly,
+            repeat_until: "2026-09-26",
+          }
+        ),
+        laBlockout("b-open", "2026-01-03T08:00:00Z", "2026-01-04T07:59:59Z", {
+          ...weekly,
+        }),
+      ])
+    );
+    mocks.getPersonBlockoutDates.mockImplementation(
+      (_personId: string, blockoutId: string) =>
+        Effect.succeed(
+          blockoutId === "b-last-day"
+            ? [
+                laBlockout(
+                  "d-sep-26",
+                  "2026-09-26T07:00:00Z",
+                  "2026-09-27T06:59:59Z"
+                ),
+              ]
+            : []
+        )
+    );
+
+    const result = await readCandidates("2026-09-27T01:00:00Z");
+
+    expect(
+      mocks.getPersonBlockoutDates.mock.calls.map(([, id]) => id).toSorted()
+    ).toStrictEqual(["b-last-day", "b-open"]);
+    expect(result[0]).toMatchObject({ isBlockedForDate: true });
+  });
+
+  it("reads the selected plan's roster fresh while reusing the window snapshot", async () => {
+    singleCandidate();
+    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+      Effect.succeed({
+        data: [planEntry("plan-target", "2026-02-22")],
+        included: [],
+      })
+    );
+    const rosterWith = (status: string) => ({
+      data: [
+        planMemberEntry({
+          id: "pp-target",
+          personId: "p1",
+          planId: "plan-target",
+          teamId: "team-1",
+          status,
+          teamPositionName: "Band - Vocals",
+        }),
+      ],
+      included: [person("p1", "Pat", "Person"), team("team-1", "Band")],
+    });
+    mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
+    mocks.getPlanTeamMembers.mockReturnValue(Effect.succeed(rosterWith("U")));
+
+    const before = await readCandidates("2026-02-22");
+    mocks.getPlanTeamMembers.mockReturnValue(Effect.succeed(rosterWith("C")));
+    const after = await readCandidates("2026-02-22");
+
+    expect(mocks.getPlansWithIncludedInDateRange).toHaveBeenCalledOnce();
+    expect(before[0]).toMatchObject({
+      isScheduledForSelectedPlanPosition: true,
+      isConfirmedForSelectedPlanPosition: false,
+    });
+    expect(after[0]).toMatchObject({
+      isScheduledForSelectedPlanPosition: true,
+      isConfirmedForSelectedPlanPosition: true,
+    });
+  });
+
+  it("falls back to the snapshot's roster when the fresh selected-plan read fails", async () => {
+    singleCandidate();
+    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+      Effect.succeed({
+        data: [planEntry("plan-target", "2026-02-22")],
+        included: [],
+      })
+    );
+    mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
+    mocks.getPlanTeamMembers
+      .mockReturnValueOnce(
+        Effect.succeed({
+          data: [
+            planMemberEntry({
+              id: "pp-target",
+              personId: "p1",
+              planId: "plan-target",
+              teamId: "team-1",
+              status: "D",
+              teamPositionName: "Band - Vocals",
+            }),
+          ],
+          included: [person("p1", "Pat", "Person"), team("team-1", "Band")],
+        })
+      )
+      .mockReturnValue(
+        Effect.fail(
+          new PlanningCenterApiError({
+            message: "Unavailable",
+            status: 503,
+            code: "UPSTREAM",
+          })
+        )
+      );
+
+    const result = await readCandidates("2026-02-22");
+
+    expect(result[0]).toMatchObject({
+      isScheduledForSelectedPlanPosition: true,
+      isDeclinedForSelectedPlanPosition: true,
+    });
+  });
+});
+
+describe(isSettledPlan, () => {
+  const la = "America/Los_Angeles";
+  const plan = planSortedAt;
+  const planTime = servicePlanTime;
+
+  it("settles a plan only after its last time's org calendar day", () => {
+    // 2026-09-24T02:00Z is still Sept 23 in Los Angeles.
+    expect(
+      isSettledPlan(plan("2026-09-24T02:00:00Z"), [], "2026-09-24", la)
+    ).toBeTruthy();
+    expect(
+      isSettledPlan(plan("2026-09-24T08:00:00Z"), [], "2026-09-24", la)
+    ).toBeFalsy();
+    expect(
+      isSettledPlan(
+        plan("2026-09-20T17:00:00Z"),
+        [planTime("2026-09-24T17:00:00Z")],
+        "2026-09-24",
+        la
+      )
+    ).toBeFalsy();
+    expect(isSettledPlan(plan(null), [], "2026-09-24", la)).toBeFalsy();
   });
 });

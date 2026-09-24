@@ -24,6 +24,13 @@ import { Effect } from "effect";
 const ASSIGNMENTS_CACHE_TTL_MS = 5 * 60 * 1000;
 const PERSON_READ_CACHE_TTL_MS = 60 * 1000;
 const PLAN_TEAM_MEMBERS_CACHE_TTL_MS = 30 * 1000;
+/**
+ * Rosters of plans that already happened rarely change; this app's own schedule writes still
+ * clear them through `invalidateScheduleReadCaches`.
+ */
+const SETTLED_PLAN_TEAM_MEMBERS_CACHE_TTL_MS = 30 * 60 * 1000;
+/** Volunteers add blockouts rarely; this app never writes them. */
+const PERSON_BLOCKOUTS_CACHE_TTL_MS = 5 * 60 * 1000;
 const PLAN_TIMES_CACHE_TTL_MS = 5 * 60 * 1000;
 const PERSON_TEAM_POSITION_ASSIGNMENTS_CACHE_TTL_MS = 5 * 60 * 1000;
 const ALL_TEAM_PEOPLE_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -275,7 +282,7 @@ export class PlanningCenterPeopleService {
     return cachedRead(
       this.caches.resourceLists,
       this.buildCacheKey("person-blockouts", personId, stableParams(params)),
-      PERSON_READ_CACHE_TTL_MS,
+      PERSON_BLOCKOUTS_CACHE_TTL_MS,
       () =>
         this.core.fetchAll(
           `/services/v2/people/${personId}/blockouts`,
@@ -292,7 +299,7 @@ export class PlanningCenterPeopleService {
     return cachedRead(
       this.caches.resourceLists,
       this.buildCacheKey("person-blockout-dates", personId, blockoutId),
-      PERSON_READ_CACHE_TTL_MS,
+      PERSON_BLOCKOUTS_CACHE_TTL_MS,
       () =>
         this.core.fetchAll(
           `/services/v2/people/${personId}/blockouts/${blockoutId}/blockout_dates`,
@@ -336,37 +343,62 @@ export class PlanningCenterPeopleService {
   }
 
   /**
-   * A person's schedules on or after `afterDayKey` (YYYY-MM-DD), past and
-   * future; without a filter Planning Center returns only upcoming ones.
-   * Unlike `getPersonSchedules`, rehearsal PlanTimes that `include=plan_times`
-   * leaves out are not fetched per plan here: callers resolve them within
-   * their own request budget.
+   * Schedules from `after` (a YYYY-MM-DD day or an ISO instant) onward, with service PlanTimes sideloaded. Unlike
+   * `getPersonSchedules`, this does not fetch rehearsal PlanTimes plan by plan; callers resolve
+   * them in bulk. Planning Center's default scope returns only future schedules, so the explicit
+   * `after` filter is what makes past schedules visible. Declined schedules stay excluded.
    */
   getPersonSchedulesAfter(
     personId: string,
-    afterDayKey: string,
-    maxPages: number
+    after: string,
+    maxPages = 3
   ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
     const params = {
-      include: "plan_times",
       filter: "after",
-      after: afterDayKey,
+      after,
+      include: "plan_times",
+      order: "starts_at",
     };
     return cachedRead(
       this.caches.collections,
       this.buildCacheKey(
         "person-schedules",
         personId,
+        "after",
         stableParams(params),
         String(maxPages)
       ),
       PERSON_READ_CACHE_TTL_MS,
       () =>
-        this.core.fetchAllWithIncluded(
-          `/services/v2/people/${personId}/schedules`,
-          params,
-          maxPages
-        )
+        this.core
+          .fetchAllWithIncluded(
+            `/services/v2/people/${personId}/schedules`,
+            params,
+            maxPages
+          )
+          .pipe(Effect.map(toResourceCollection))
+    ).pipe(Effect.map(cloneResourceCollectionResponse));
+  }
+
+  /**
+   * The person's upcoming plan people with their plans and teams. Unlike schedules, these include
+   * requests that were prepared but not sent yet.
+   */
+  getPersonPlanPeople(
+    personId: string
+  ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
+    return cachedRead(
+      this.caches.collections,
+      this.buildCacheKey("person-schedules", personId, "plan-people"),
+      PERSON_READ_CACHE_TTL_MS,
+      () =>
+        this.core
+          .fetchAllWithIncluded(
+            `/services/v2/people/${personId}/plan_people`,
+            { include: "plan,team" },
+            3
+          )
+          .pipe(Effect.map(toResourceCollection))
     ).pipe(Effect.map(cloneResourceCollectionResponse));
   }
 
@@ -441,14 +473,21 @@ export class PlanningCenterPeopleService {
     ).pipe(Effect.map(cloneResourceCollectionResponse));
   }
 
+  /**
+   * A `settled` roster belongs to a plan that already happened, so it is kept longer. Either way
+   * the entry shares one key, so schedule writes clear it.
+   */
   getPlanTeamMembers(
     serviceTypeId: string,
-    planId: string
+    planId: string,
+    options: { readonly settled?: boolean } = {}
   ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
     return cachedRead(
       this.caches.collections,
       this.buildCacheKey("plan-team-members", serviceTypeId, planId),
-      PLAN_TEAM_MEMBERS_CACHE_TTL_MS,
+      options.settled === true
+        ? SETTLED_PLAN_TEAM_MEMBERS_CACHE_TTL_MS
+        : PLAN_TEAM_MEMBERS_CACHE_TTL_MS,
       () =>
         this.core
           .fetchAllWithIncluded(

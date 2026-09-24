@@ -1,5 +1,12 @@
 import { defineConfig } from "vitest/config";
 
+/**
+ * Run every test in UTC, the zone Cloudflare Workers and CI use, whatever the developer's
+ * machine zone is. Set before any test worker starts so the workers inherit it; code that
+ * formats in the host zone instead of the org zone then fails the same way everywhere.
+ */
+process.env.TZ = "UTC";
+
 const rootDir = import.meta.dirname;
 
 export default defineConfig({

@@ -43,6 +43,58 @@ export const orgCalendarDaysBetween = (
     formatCalendarDayInTimeZone(b, orgTimeZone)
   );
 
+const calendarDateLabelOptions = {
+  /** "Sep 9" */
+  monthDay: { month: "short", day: "numeric" },
+  /** "Sep 9, 2026" */
+  monthDayYear: { month: "short", day: "numeric", year: "numeric" },
+  /** "Wed, Sep 9" */
+  weekdayMonthDay: { weekday: "short", month: "short", day: "numeric" },
+  /** "Wed, Sep 9, 2026" */
+  weekdayMonthDayYear: {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  },
+  /** "September 2026" */
+  monthYear: { month: "long", year: "numeric" },
+  /** "Sep" */
+  monthShort: { month: "short" },
+  /** "Wed" */
+  weekday: { weekday: "short" },
+  /** "9" */
+  dayOfMonth: { day: "numeric" },
+} as const satisfies Record<string, Intl.DateTimeFormatOptions>;
+
+export type CalendarDateLabelStyle = keyof typeof calendarDateLabelOptions;
+
+/** Formatters are pure and keyed by zone and style, so sharing them across requests is safe. */
+const calendarDateLabelFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * English label for the calendar day an instant falls on in `timeZone` (the org IANA zone for
+ * congregation dates). Never formats in the host zone: Workers and CI run in UTC, so a
+ * late-evening Pacific service would otherwise show the next day.
+ */
+export const formatCalendarDateLabel = (
+  instant: Date,
+  timeZone: string,
+  style: CalendarDateLabelStyle
+): string => {
+  const tz = timeZone === "" ? "UTC" : timeZone;
+  const key = `${style} ${tz}`;
+  let formatter = calendarDateLabelFormatters.get(key);
+  if (formatter === undefined) {
+    formatter = new Intl.DateTimeFormat("en-US", {
+      ...calendarDateLabelOptions[style],
+      timeZone: tz,
+    });
+    calendarDateLabelFormatters.set(key, formatter);
+  }
+  return formatter.format(instant);
+};
+
 export interface ZonedWallTime {
   dateKey: string;
   timeValue: string;
