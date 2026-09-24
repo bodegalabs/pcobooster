@@ -31,7 +31,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { LoadingBar } from "@/components/ui/loading-bar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -254,18 +253,13 @@ const SchedulePeopleList = ({
     >
       <section className="flex flex-col gap-2">
         {candidateList === null ? null : (
-          <>
-            <LoadingBar
-              active={candidateList.isFetching}
-              className="-my-1 shrink-0"
-            />
-            <CandidateListProgress
-              progress={candidateList.progress}
-              isEnriching={candidateList.isEnriching}
-              failedPartCount={candidateList.failedPartCount}
-              onRetry={handleRetryCandidateList}
-            />
-          </>
+          <CandidateListProgress
+            progress={candidateList.progress}
+            isFetching={candidateList.isFetching}
+            isEnriching={candidateList.isEnriching}
+            failedPartCount={candidateList.failedPartCount}
+            onRetry={handleRetryCandidateList}
+          />
         )}
         <div className="border-border/40 bg-card/30 divide-border/25 divide-y overflow-hidden rounded-xl border">
           {filteredActionable.map((person) => (
