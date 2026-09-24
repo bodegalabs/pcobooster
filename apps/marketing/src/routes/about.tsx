@@ -1,83 +1,66 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowUpRight } from "lucide-react";
 
-import { SiteLink, ActionLink } from "../components/site";
+import { TeamSpotlight } from "../components/graphics/illustrations";
+import { LoopWhenVisible } from "../components/graphics/loop-when-visible";
+import { ActionLink, CONTACT_URL, TextLink } from "../components/site";
 import { pageHead } from "../lib/site-head";
 
-import styles from "../styles/site.module.css";
-
 const AboutPage = () => (
-  <main id="main" className={`${styles["about-page"]} ${styles.wrap}`}>
-    <div className={styles["about-title"]}>
-      <h1>
-        It started with
+  <main id="main" className="wrap pt-page-top max-w-[680px]">
+    <div className="text-center">
+      <LoopWhenVisible className="mb-10">
+        <TeamSpotlight />
+      </LoopWhenVisible>
+      <h1 className="text-display">
+        I built this for
         <br />
         <em>my own team.</em>
       </h1>
-      <p className={styles["about-byline"]}>
+      <p className="text-muted-foreground mt-6 text-sm">
         Jake Bodea · Creator of PCOBooster
       </p>
     </div>
-    <article className={styles["about-letter"]}>
-      <p className={styles["letter-lead"]}>
-        I wanted better visibility into how my team was doing.
+    <article className="text-muted-foreground [&_h2]:text-foreground leading-letter md:text-lede md:leading-letter [&_p]:leading-letter mt-12 text-base md:mt-[72px] [&_h2]:mt-12 [&_h2]:mb-[18px] [&_h2]:text-2xl [&_h2]:leading-tight [&_h2]:tracking-tight [&_p]:mb-[22px]">
+      <p className="text-foreground text-xl leading-snug! tracking-tight md:text-2xl">
+        I wanted a better view of how my team was doing.
       </p>
       <p>
-        Planning Center already held the plans, the people, and the scheduling
-        history. What I wanted was a way to bring those pieces together around
-        the decisions I was making.
+        Planning Center already had everything: plans, positions, blockouts, and
+        who served when. It just wasn’t laid out around the question I kept
+        asking while scheduling, which is who I should ask this week.
       </p>
       <p>
-        Who’s available? Who’s been serving a lot lately? Who could be a good
-        fit for this position? Those are simple questions, but seeing the
-        answers together makes a difference.
+        So I built a view that puts availability and recent serving history next
+        to each open spot. When I pick someone, the assignment goes back to
+        Planning Center like it always has.
       </p>
-      <h2>So I started building.</h2>
+      <h2>It’s early.</h2>
       <p>
-        PCOBooster uses the Planning Center API to turn that information into a
-        focused scheduling workspace. It helps you look at availability and
-        recent serving history, build a lineup, and write assignments back to
-        Planning Center Services.
+        PCOBooster is in beta. It works, and it still has rough edges. If you
+        put together a schedule for your team, I’d like to hear what would help.
+        The feedback button in the app comes straight to me, or you can reach me
+        here.
       </p>
-      <p>
-        The idea is straightforward: give the person planning a clearer picture
-        of the people they’re asking to serve.
-      </p>
-      <h2>Still taking shape. Open to your input.</h2>
-      <p>
-        This started with a need I had. I’m interested in hearing where it could
-        help you, too. If you’re the person who puts your team’s schedule
-        together, I’d love to hear what you wish you could see more clearly.
-      </p>
-      <p className={styles.signature}>Jake</p>
-      <SiteLink
-        className={styles["text-link"]}
-        href="https://jakebodea.com/contact"
-      >
-        Get in touch <ArrowUpRight aria-hidden="true" size={15} />
-      </SiteLink>
+      <p className="text-brand mt-8 mb-6 text-xl font-medium">Jake</p>
+      <TextLink href={CONTACT_URL}>Get in touch</TextLink>
     </article>
     <aside
-      className={styles["about-independence"]}
       aria-label="Planning Center relationship"
+      className="bg-stage mt-14 rounded-2xl px-6 py-6 md:px-8 md:py-7"
     >
-      <p>
+      <p className="text-muted-foreground mb-3 text-sm">
         PCOBooster is independently built and operated. We connect through the
         Planning Center API. We are not affiliated with, sponsored by, or
         endorsed by Planning Center.
       </p>
-      <SiteLink
-        className={styles["text-link"]}
-        href="https://www.planningcenter.com/developers"
-      >
-        About Planning Center’s API{" "}
-        <ArrowUpRight aria-hidden="true" size={15} />
-      </SiteLink>
+      <TextLink href="https://www.planningcenter.com/developers">
+        About Planning Center’s API
+      </TextLink>
     </aside>
-    <div className={styles["about-cta"]}>
-      <ActionLink>Explore PCOBooster</ActionLink>
-      <ActionLink href="/" secondary>
-        Back to the product
+    <div className="mt-14 flex flex-wrap justify-center gap-3">
+      <ActionLink>Open PCOBooster</ActionLink>
+      <ActionLink href="/#how-it-works" secondary>
+        See how it works
       </ActionLink>
     </div>
   </main>

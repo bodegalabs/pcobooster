@@ -1,0 +1,446 @@
+/*
+ * Decorative SVG motion. Only `transform` and `opacity` animate, so every loop stays on the
+ * compositor. Each element's resting style is the finished frame: with reduced motion (or
+ * when a loop never starts) the graphic still reads as a complete picture.
+ */
+
+/* Rocket mark */
+
+.flight,
+.exhaust,
+.particles > * {
+  transform-box: fill-box;
+}
+.exhaust {
+  transform-origin: 100% 50%;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  [data-motion="hover"] .flight,
+  [data-motion="hover"] .exhaust {
+    transition: transform 260ms var(--ease-snappy);
+  }
+  :global([data-rocket-hover]):hover [data-motion="hover"] .flight {
+    transform: translate(1.5px, -1.5px);
+  }
+  :global([data-rocket-hover]):hover [data-motion="hover"] .exhaust {
+    transform: scaleX(1.14);
+  }
+}
+
+[data-motion="cruise"] .flight {
+  animation: cruise-bob 3.2s var(--ease-glide) infinite alternate;
+}
+[data-motion="cruise"] .exhaust {
+  animation: exhaust-flicker 0.9s ease-in-out infinite alternate;
+}
+.particles > * {
+  opacity: 0;
+  transform-origin: center;
+  animation: particle-trail 1.8s linear infinite;
+}
+.particles > :nth-child(2) {
+  animation-delay: -0.6s;
+}
+.particles > :nth-child(3) {
+  animation-delay: -1.2s;
+}
+.particles > :nth-child(4) {
+  animation-delay: -0.3s;
+  animation-duration: 1.4s;
+}
+.particles > :nth-child(5) {
+  animation-delay: -0.9s;
+  animation-duration: 1.4s;
+}
+
+@keyframes cruise-bob {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(4px, -4px);
+  }
+}
+@keyframes exhaust-flicker {
+  from {
+    transform: scaleX(0.9);
+  }
+  to {
+    transform: scaleX(1.04);
+  }
+}
+@keyframes particle-trail {
+  0% {
+    opacity: 0.7;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-46px) scale(0.35);
+  }
+}
+
+/* Star field behind the sage bands */
+
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.stars > * {
+  fill: #fff;
+  opacity: 0.75;
+  animation: twinkle 3.6s ease-in-out infinite alternate;
+}
+.stars > :nth-child(3n + 1) {
+  animation-duration: 4.4s;
+  animation-delay: -1.3s;
+}
+.stars > :nth-child(3n + 2) {
+  animation-duration: 2.9s;
+  animation-delay: -2.1s;
+}
+.stars > :nth-child(4n) {
+  animation-delay: -0.6s;
+}
+
+@keyframes twinkle {
+  from {
+    opacity: 0.2;
+  }
+  to {
+    opacity: 0.8;
+  }
+}
+
+/*
+ * Each shooting star streaks for the first slice of a long cycle, then waits offscreen. The
+ * resting frame is hidden, so reduced motion shows only the still stars.
+ */
+.meteor {
+  fill: #fff;
+  opacity: 0;
+  animation: meteor 9s var(--ease-snappy) 1.5s infinite;
+}
+.meteors > :nth-child(2) .meteor {
+  animation-duration: 13s;
+  animation-delay: 5s;
+}
+.meteors > :nth-child(3) .meteor {
+  animation-duration: 17s;
+  animation-delay: 10s;
+}
+
+@keyframes meteor {
+  0% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  1.5% {
+    opacity: 1;
+  }
+  9% {
+    opacity: 0;
+    transform: translateX(340px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(340px);
+  }
+}
+
+/* Step scenes */
+
+.scene {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.paper {
+  fill: var(--card);
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.faint {
+  fill: var(--muted);
+}
+.ink {
+  fill: color-mix(in oklch, var(--muted-foreground) 55%, var(--card));
+}
+.brand {
+  fill: var(--brand);
+}
+.soft {
+  fill: var(--brand-soft);
+}
+.caption {
+  fill: var(--muted-foreground);
+  font-size: 10.5px;
+  font-weight: 500;
+}
+.logo {
+  color: var(--logo);
+}
+.wire {
+  stroke: color-mix(in oklch, var(--muted-foreground) 40%, transparent);
+  stroke-width: 1.5;
+  stroke-dasharray: 1 6;
+  stroke-linecap: round;
+}
+
+.packets > *,
+.packet-out {
+  fill: var(--brand);
+}
+.packets > * {
+  transform: translateX(4px);
+  animation: packet-in 2.4s linear infinite;
+}
+.packets > :nth-child(2) {
+  transform: translateX(28px);
+  animation-delay: -0.8s;
+}
+.packets > :nth-child(3) {
+  transform: translateX(52px);
+  animation-delay: -1.6s;
+}
+.packet-out {
+  fill: var(--card);
+  stroke: var(--brand);
+  stroke-width: 2;
+  transform: translateX(-30px);
+  animation: packet-out 3.2s linear -1s infinite;
+}
+
+@keyframes packet-in {
+  0% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  15%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(60px);
+  }
+}
+@keyframes packet-out {
+  0% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  15%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+}
+
+.open-slot {
+  fill: none;
+  stroke: var(--destructive);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+  opacity: 0;
+  animation: open-slot 6s ease-in-out infinite;
+}
+.slot-fill {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: slot-fill 6s var(--ease-snappy) infinite;
+}
+.cursor {
+  fill: var(--foreground);
+  stroke: var(--card);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  opacity: 0;
+  transform-box: fill-box;
+  transform: translate(292px, 186px);
+  animation: cursor-pick 6s var(--ease-glide) infinite;
+}
+
+@keyframes open-slot {
+  0%,
+  36%,
+  46% {
+    opacity: 0.9;
+  }
+  20% {
+    opacity: 0.35;
+  }
+  52%,
+  94% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0.9;
+  }
+}
+@keyframes slot-fill {
+  0%,
+  46% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  54%,
+  88% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  96%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+@keyframes cursor-pick {
+  0% {
+    opacity: 0;
+    transform: translate(292px, 186px);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(282px, 178px);
+  }
+  42% {
+    transform: translate(164px, 98px) scale(1);
+  }
+  46% {
+    transform: translate(164px, 98px) scale(0.84);
+  }
+  52% {
+    transform: translate(164px, 98px) scale(1);
+  }
+  78% {
+    opacity: 1;
+    transform: translate(170px, 104px);
+  }
+  90%,
+  100% {
+    opacity: 0;
+    transform: translate(292px, 186px);
+  }
+}
+
+.weeks > * {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: week-pop 7s var(--ease-snappy) infinite;
+}
+.weeks > :nth-child(2) {
+  animation-delay: 70ms;
+}
+.weeks > :nth-child(3) {
+  animation-delay: 140ms;
+}
+.weeks > :nth-child(4) {
+  animation-delay: 210ms;
+}
+.weeks > :nth-child(5) {
+  animation-delay: 280ms;
+}
+.weeks > :nth-child(6) {
+  animation-delay: 350ms;
+}
+.weeks > :nth-child(7) {
+  animation-delay: 420ms;
+}
+.weeks > :nth-child(8) {
+  animation-delay: 490ms;
+}
+.pick {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 2;
+  animation: pick 7s ease-in-out infinite;
+}
+.ok {
+  fill: color-mix(in oklch, var(--status-confirmed) 16%, var(--card));
+}
+.no {
+  fill: color-mix(in oklch, var(--status-declined) 12%, var(--card));
+}
+.tick,
+.cross {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tick {
+  stroke: var(--status-confirmed);
+}
+.cross {
+  stroke: var(--status-declined);
+}
+
+@keyframes week-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  7%,
+  88% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  95%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+@keyframes pick {
+  0%,
+  48% {
+    opacity: 0;
+  }
+  56%,
+  88% {
+    opacity: 1;
+  }
+  95%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* About page */
+
+.team {
+  display: block;
+  width: min(100%, 320px);
+  height: auto;
+  margin-inline: auto;
+  overflow: visible;
+}
+.person {
+  fill: color-mix(in oklch, var(--muted-foreground) 22%, var(--background));
+}
+.person-lit {
+  fill: var(--brand);
+}
+.spotlight {
+  animation: spotlight 8s var(--ease-glide) infinite alternate;
+}
+
+@keyframes spotlight {
+  from {
+    transform: translateX(-130px);
+  }
+  to {
+    transform: translateX(130px);
+  }
+}

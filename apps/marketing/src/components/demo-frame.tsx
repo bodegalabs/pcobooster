@@ -1,30 +1,24 @@
+import { cn } from "cn";
 import type { ReactNode } from "react";
 
-import styles from "../styles/site.module.css";
-
+/** A lifted card around the product replica. */
 export const DemoFrame = ({
   children,
   label,
-  chrome = false,
+  overflow = "hidden",
 }: {
   children: ReactNode;
   label: string;
-  chrome?: boolean;
+  /** `visible` lets popovers inside the replica extend past the frame. */
+  overflow?: "hidden" | "visible";
 }) => (
-  <figure className={styles["demo-frame"]} aria-label={label}>
-    {chrome ? (
-      <div className={styles["shot-chrome"]} aria-hidden="true">
-        <span className={styles["window-dots"]}>
-          <i />
-          <i />
-          <i />
-        </span>
-        <span className={styles["window-address"]}>
-          pcobooster.com/services
-        </span>
-        <span className={styles["window-dots"]} />
-      </div>
-    ) : null}
+  <figure
+    aria-label={label}
+    className={cn(
+      "shadow-frame min-w-0 rounded-xl bg-white md:rounded-2xl",
+      overflow === "hidden" && "overflow-hidden"
+    )}
+  >
     {children}
   </figure>
 );

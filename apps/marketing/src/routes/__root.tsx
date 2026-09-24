@@ -4,16 +4,9 @@ import "@fontsource-variable/inter/wght.css";
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
-import {
-  ActionLink,
-  SiteLink,
-  SiteFooter,
-  SiteHeader,
-} from "../components/site";
+import { ActionLink, SiteFooter, SiteHeader } from "../components/site";
 import { siteHead } from "../lib/site-head";
 
-import styles from "../styles/site.module.css";
-import "@pcobooster/design-tokens/tokens.css";
 import "../styles/globals.css";
 
 const RootDocument = ({ children }: { children: ReactNode }) => (
@@ -22,9 +15,12 @@ const RootDocument = ({ children }: { children: ReactNode }) => (
       <HeadContent />
     </head>
     <body>
-      <SiteLink className={styles["skip-link"]} href="#main">
+      <a
+        href="#main"
+        className="bg-primary text-primary-foreground fixed top-3 left-3 z-30 -translate-y-[160%] rounded-lg px-4 py-2.5 text-sm focus:translate-y-0"
+      >
         Skip to content
-      </SiteLink>
+      </a>
       <SiteHeader />
       {children}
       <SiteFooter />
@@ -35,10 +31,11 @@ const RootDocument = ({ children }: { children: ReactNode }) => (
 
 /** Only reachable on the marketing dev server; the product owns every other public URL. */
 const NotFound = () => (
-  <main id="main" className={`${styles["about-page"]} ${styles.wrap}`}>
-    <div className={styles["about-title"]}>
-      <h1>Page not found.</h1>
-    </div>
+  <main
+    id="main"
+    className="wrap pt-page-top grid max-w-[680px] justify-items-center gap-10 text-center"
+  >
+    <h1 className="text-headline">Page not found.</h1>
     <ActionLink href="/" secondary>
       Back to the home page
     </ActionLink>

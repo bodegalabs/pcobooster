@@ -1,122 +1,211 @@
+@import "tailwindcss";
+@import "shadcn/tailwind.css";
+@import "@pcobooster/design-tokens/tokens.css";
+
+/*
+ * The marketing site wears the product's own tokens (from @pcobooster/design-tokens) so the
+ * interactive replica sits naturally on the page. Only a few marketing-only surfaces are added.
+ */
 :root {
-  /* Fontsource family, imported in the root route. */
-  --font-inter: "Inter Variable";
-  --paper: #faf9f6;
-  --surface: #f2f1ec;
-  --stage: #ecebe4;
-  --ink: #242823;
-  --ink-soft: #676b63;
-  --faint: #8b8f86;
-  --line: #e2e2d9;
-  --line-strong: #d4d5ca;
-  --brand: #354e43;
-  --brand-hover: #283f35;
-  --sage: #dfe5d8;
-  --sage-soft: #eaeee5;
-  --white: #fff;
-
-  --text-xs: 12px;
-  --text-sm: 13px;
-  --text-base: 15px;
-  --text-lg: 17px;
-
-  --corner-sm: 8px;
-  --corner: 12px;
-  --corner-lg: 18px;
-
-  --section-space: clamp(96px, 11vw, 152px);
-  --header-height: 68px;
-  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-}
-* {
-  box-sizing: border-box;
-}
-html {
-  scroll-padding-top: calc(var(--header-height) + 24px);
-  scroll-behavior: smooth;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  color-scheme: light;
-  background: var(--paper);
-}
-body {
-  margin: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-inter), system-ui, sans-serif;
-  font-size: var(--text-base);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-}
-::selection {
-  background: var(--sage);
-  color: var(--ink);
-}
-a {
-  color: inherit;
-  text-decoration: none;
-}
-button,
-a,
-summary {
-  -webkit-tap-highlight-color: transparent;
-}
-a:focus-visible,
-summary:focus-visible {
-  outline: 2px solid var(--brand);
-  outline-offset: 4px;
-  border-radius: 4px;
-}
-p,
-h1,
-h2,
-h3,
-figure,
-blockquote {
-  margin: 0;
-}
-p {
-  line-height: 1.7;
-  text-wrap: pretty;
-}
-h1,
-h2,
-h3 {
-  font-weight: 450;
-  text-wrap: balance;
-}
-h1,
-h2 {
-  letter-spacing: -0.035em;
-  line-height: 1.05;
-}
-h1 {
-  font-size: clamp(50px, 6.4vw, 88px);
-  letter-spacing: -0.045em;
-}
-h2 {
-  font-size: clamp(34px, 3.9vw, 52px);
-}
-em {
-  font-style: normal;
-  color: var(--brand);
+  --font-inter: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  /* The rocket mark's sage, shared with the logo files in `public/`. */
+  --logo: #73866d;
+  /* A clearer green for emphasis in headlines and small accents. */
+  --brand: oklch(0.47 0.075 150);
+  --brand-soft: oklch(0.905 0.035 146);
+  --stage: oklch(0.925 0.018 142);
+  --header-height: 64px;
 }
 
-@media (max-width: 760px) {
-  /* The header scrolls away on phones, so anchors only need a little air. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-sidebar: var(--sidebar);
+  --color-status-confirmed: var(--status-confirmed);
+  --color-status-declined: var(--status-declined);
+  --color-chart-2: var(--chart-2);
+  --color-logo: var(--logo);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-stage: var(--stage);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-mask-visible: #fff;
+  --color-mask-hidden: #000;
+  --ease-snappy: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-glide: cubic-bezier(0.77, 0, 0.175, 1);
+
+  /* Marketing type scale: fluid display sizes, then body sizes between the defaults. */
+  --text-display: clamp(48px, 6.4vw, 88px);
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.045em;
+  --text-headline: clamp(34px, 3.9vw, 52px);
+  --text-headline--line-height: 1.05;
+  --text-headline--letter-spacing: -0.035em;
+  --text-closing: clamp(34px, 4.2vw, 56px);
+  --text-closing--line-height: 1.05;
+  --text-closing--letter-spacing: -0.035em;
+  --text-quote: clamp(28px, 3vw, 40px);
+  --text-quote--line-height: 1.2;
+  --text-quote--letter-spacing: -0.03em;
+  --text-lede: 1.0625rem;
+  --text-lede--line-height: 1.7;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.7;
+  --font-weight-book: 450;
+  --leading-letter: 1.75;
+  --shadow-frame:
+    0 0 0 1px rgb(29 48 40 / 0.07), 0 2px 4px rgb(29 48 40 / 0.04),
+    0 12px 32px -12px rgb(29 48 40 / 0.22),
+    0 40px 80px -48px rgb(29 48 40 / 0.35);
+
+  /* Fluid page rhythm. */
+  --spacing-section: clamp(96px, 11vw, 152px);
+  --spacing-hero-top: clamp(72px, 9vw, 128px);
+  --spacing-hero-bottom: clamp(48px, 5vw, 72px);
+  --spacing-page-top: clamp(56px, 8vw, 104px);
+  --spacing-stage: clamp(14px, 3.6vw, 48px);
+  --spacing-band: clamp(48px, 7vw, 96px);
+  /* Room under the history replica for its open popover. */
+  --spacing-popover-room: clamp(120px, 14vw, 180px);
+}
+
+@layer base {
   html {
-    scroll-padding-top: 16px;
+    scroll-padding-top: calc(var(--header-height) + 24px);
+    scroll-behavior: smooth;
+    text-size-adjust: 100%;
+    color-scheme: light;
+    background: var(--background);
   }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-size: var(--text-body);
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--brand-soft);
+    color: var(--foreground);
+  }
+  a,
+  button,
+  summary {
+    -webkit-tap-highlight-color: transparent;
+  }
+  :where(a):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  p {
+    line-height: 1.7;
+    text-wrap: pretty;
+  }
+  h1,
+  h2,
+  h3 {
+    font-weight: 450;
+    text-wrap: balance;
+  }
+  em {
+    font-style: normal;
+    color: var(--brand);
+  }
+}
+
+@utility wrap {
+  width: calc(100% - 40px);
+  max-width: 1200px;
+  margin-inline: auto;
+  @media (width >= 48rem) {
+    width: calc(100% - 64px);
+  }
+  @media (width >= 64rem) {
+    width: calc(100% - 112px);
+  }
+}
+
+/* Fades and slides without animating colors, which snap instantly across the site. */
+@utility transition-fade {
+  transition-property: opacity, transform;
+}
+
+/*
+ * Motion. Everything here is decorative and progressive: content is fully visible in the
+ * prerendered HTML, without JavaScript, and in browsers without scroll-driven animations.
+ */
+
+/* Scroll reveal, driven by the compositor instead of an observer. */
+@utility reveal {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation: reveal-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}
+
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The hero stage rises in on load. Transform only, so it never delays a paint. */
+@utility stage-rise {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: stage-rise 900ms var(--ease-snappy) 120ms both;
+  }
+}
+
+@keyframes stage-rise {
+  from {
+    transform: translateY(32px);
+  }
+}
+
+/* Loops live inside `LoopWhenVisible`, which pauses them offscreen. */
+[data-loop="paused"] *,
+[data-loop="paused"] *::before,
+[data-loop="paused"] *::after {
+  animation-play-state: paused !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-  *,
-  *::before,
-  *::after {
-    transition: none !important;
+  [data-loop] *,
+  [data-loop] *::before,
+  [data-loop] *::after {
+    animation: none !important;
   }
 }
