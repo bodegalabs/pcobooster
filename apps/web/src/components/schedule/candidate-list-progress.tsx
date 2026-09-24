@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
+import { HoverLabel } from "@/components/ui/hover-card";
+import { LoadingBar } from "@/components/ui/loading-bar";
 import type { CandidateListProgress as Progress } from "@/lib/position-candidates";
 
 interface CandidateListProgressProps {
   progress: Progress | undefined;
+  isFetching: boolean;
   isEnriching: boolean;
   failedPartCount: number;
   onRetry: () => void;
@@ -17,34 +20,49 @@ const describeProgress = ({
   return `${history}; availability for ${detailedCount} of ${candidateCount} people.`;
 };
 
-/** How much of the candidate list's history and availability has arrived, with retry. */
+/**
+ * The candidate list's loading line. While history and availability arrive it is only the thin
+ * loading bar, so the list never shifts; hovering the bar shows how much has loaded. A failed part
+ * is the one case worth interrupting for, so it adds a visible Retry row.
+ */
 export const CandidateListProgress = ({
   progress,
+  isFetching,
   isEnriching,
   failedPartCount,
   onRetry,
 }: CandidateListProgressProps) => {
-  if (!progress || (!isEnriching && failedPartCount === 0)) {
-    return null;
-  }
+  const loading = isFetching || isEnriching;
+  const description =
+    progress !== undefined && isEnriching ? describeProgress(progress) : null;
   return (
-    <div
-      className="text-muted-foreground flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs"
-      aria-live="polite"
-    >
-      {isEnriching ? (
-        <span className="tabular-nums">{describeProgress(progress)}</span>
-      ) : null}
+    <>
+      <div className="relative -my-1 shrink-0">
+        <LoadingBar active={loading} />
+        {description === null ? null : (
+          <HoverLabel
+            label={description}
+            side="bottom"
+            align="start"
+            render={
+              <div className="absolute inset-x-0 -inset-y-1.5 cursor-default" />
+            }
+          />
+        )}
+        <span className="sr-only" aria-live="polite">
+          {description ?? ""}
+        </span>
+      </div>
       {failedPartCount > 0 ? (
-        <>
+        <div className="text-muted-foreground flex shrink-0 items-center gap-3 text-xs">
           <span className="text-destructive">
             Some history or availability failed to load.
           </span>
           <Button variant="outline" size="xs" onClick={onRetry}>
             Retry
           </Button>
-        </>
+        </div>
       ) : null}
-    </div>
+    </>
   );
 };
