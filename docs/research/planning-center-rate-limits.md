@@ -4,6 +4,8 @@ Research date: September 23, 2026. Branch base: `alchemy-config-checks-and-sessi
 
 **Status: audit and recommendation.** No application code changed. Request counts below come from reading the code, not from production logs: the proactive pause logs at `debug` and pino runs at `info` (`packages/api/src/logger.ts:4`), so Workers Logs currently cannot show how often it happens. Treat every count as an estimate to confirm with the observability change in recommendation 1.
 
+**Update (`pco-observability-and-pacing`):** recommendations 1 and 6 are implemented in the core client and oRPC transport; see [API architecture](../api-architecture.md#planning-center-adapters). Section 3 describes the fixed pause that recommendation 6 replaced.
+
 ## Summary
 
 The app does hit Planning Center's limit, and it can do so from a single page load. Several oRPC procedures fan out into 50 to 300 Planning Center requests on a cold or partly warm cache. The documented budget is 100 requests per 20 seconds per user. The worst paths:
@@ -201,7 +203,7 @@ KV keys use the same credential-hash scope, so they also go cold on every 2-hour
 
 Ranked by expected benefit for the effort. "After rewrite" marks changes to `core-client.ts` or the service classes, which `effect-native-planning-center` is rewriting. Land those after it merges so they do not conflict. Changes to feature modules in `modules/planning-center/*` and to `apps/web` do not conflict. Service-level TTL constants and endpoint parameters are small edits that rebase easily, but coordinate them with that branch.
 
-1. **Make rate limiting visible.** Low effort. **After rewrite** for the core-client part.
+1. **Make rate limiting visible.** Low effort. **After rewrite** for the core-client part. **Implemented.** Pacing waits, pacing rejections, and 429s log at `info` (429s at `info` rather than `warn`, so every one reaches Workers Logs alongside the pauses); each procedure that calls Planning Center logs one `info` summary from a root oRPC middleware; the client raises a typed `PlanningCenterSubrequestLimitError` for "Too many subrequests" and logs it at `warn`. Pages and cache hit/miss counts are not in the summary yet. The fan-out sites that fall back to empty data (all through `recoverUnlessInterrupted`: `people-service.ts`, `transforms.ts`, `get-people-dashboard.ts`, `get-people-dashboard-person.ts`, `get-people-for-position.ts`, `resolve-organization-timezone.ts`) still fall back, but now log a `warn` line when the failure was a rate or subrequest limit, and the procedure summary counts it. Making them return partial data or fail is left to the module owners.
    - Log the proactive pause at `info`, with endpoint path, rate count, limit, and period.
    - Log each 429 at `warn`, with `Retry-After` and the attempt number.
    - Add one `info` summary per oRPC procedure: procedure name, Planning Center request count, pages, pauses, total pause ms, 429s, and cache hit/miss counts. Emit it from `transport/orpc/execute.ts`, which does not conflict, using a request-scoped counter that the client increments.
@@ -230,7 +232,7 @@ Ranked by expected benefit for the effort. "After rewrite" marks changes to `cor
    - Also merge the two unbounded schedule reads (`:70-83`) into one bounded `filter=after` query.
    - Expected: about 50 to 70 cold drops to about 5 to 10.
 
-6. **Replace the fixed 1 s pause with pacing based on the headers, shared per credential.** Medium effort. **After rewrite.**
+6. **Replace the fixed 1 s pause with pacing based on the headers, shared per credential.** Medium effort. **After rewrite.** **Implemented** for pacing, the 5 s cap, and the typed fail-fast (`PlanningCenterRateLimitError`, mapped to `RateLimited`). Pacing starts at half the reported limit. Not implemented: marking optional work (prefetch, `people.warmup`) to fail earlier than required reads, and serving stale cache entries when the budget is low.
    - Keep one in-isolate limiter per cache scope. Seed it from the last seen `Rate-Count`, `Rate-Limit`, and `Rate-Period`, and let concurrent procedures for that user take tokens from it before they send.
    - When the budget runs low:
      - Spread required reads across the time left in the window: wait about `remaining window / remaining budget` per request. Do not wait after the response.
