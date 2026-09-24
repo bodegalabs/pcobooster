@@ -3,6 +3,8 @@
 @import "shadcn/tailwind.css";
 @import "@pcobooster/design-tokens/tokens.css";
 
+@source "../../../../packages/mobile-menu/src";
+
 @utility font-inherit {
   font: inherit;
 }

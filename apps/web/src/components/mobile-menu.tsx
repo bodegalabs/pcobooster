@@ -1,28 +1,22 @@
 import { useRender } from "@base-ui/react/use-render";
 import {
-  Calendar04Icon,
-  Clock01Icon,
   LaptopIcon,
-  Layout3ColumnIcon,
-  ListMusicIcon,
   Logout01Icon,
   Moon02Icon,
   Sun01Icon,
   Tick02Icon,
-  UserAdd01Icon,
-  UsersIcon,
 } from "@hugeicons/core-free-icons";
-import type { IconSvgElement } from "@hugeicons/react";
+import {
+  MobileMenuIcon,
+  MobileMenuItem,
+  MobileMenuOverlay,
+  useMobileMenu,
+} from "@pcobooster/mobile-menu";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useRouter } from "@tanstack/react-router";
-import type {
-  CSSProperties,
-  ComponentProps,
-  ReactElement,
-  ReactNode,
-} from "react";
-import { useEffect, useId, useRef, useState } from "react";
+import type { ComponentProps, ReactElement, ReactNode } from "react";
+import { useEffect, useId } from "react";
 
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
 import { useTheme } from "@/components/theme-provider";
@@ -32,28 +26,15 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Spinner } from "@/components/ui/spinner";
 import { signOutLabel, useAccountPanel } from "@/hooks/use-account-panel";
 import { usePlanRoute } from "@/hooks/use-plan-route";
-import type { PlanView } from "@/lib/app-routes";
 import { getAppSection, getPlanViewLabel, planViews } from "@/lib/app-routes";
 import { getInitials } from "@/lib/format/initials";
 import { peopleFeatureQueryOptions } from "@/lib/people-route";
 import { cn } from "@/lib/utils";
 
-const planViewIcons: Record<PlanView, IconSvgElement> = {
-  assign: UserAdd01Icon,
-  lineup: Layout3ColumnIcon,
-  plan: ListMusicIcon,
-  times: Clock01Icon,
-};
+const MOBILE_MENU_ID = "mobile-menu";
 
 const themeOptions = [
   { value: "light", label: "Light", icon: Sun01Icon },
@@ -61,61 +42,31 @@ const themeOptions = [
   { value: "system", label: "System", icon: LaptopIcon },
 ] as const;
 
-/** One plain menu row; `render` is a router `<Link>` or a bare `<button />`. */
-const MenuRow = ({
-  render,
-  active = false,
-  nested = false,
-  children,
-  ...props
-}: {
-  render: ReactElement;
-  active?: boolean;
-  nested?: boolean;
-  children: ReactNode;
-} & Pick<
-  ComponentProps<"button">,
-  "aria-current" | "aria-label" | "disabled" | "onClick"
->) =>
-  useRender({
-    render,
-    props: {
-      ...props,
-      className: cn(
-        "focus-visible:ring-ring/50 flex h-14 w-full items-center gap-4 rounded-lg text-left text-xl outline-none focus-visible:ring-2 disabled:opacity-50 [&_svg]:size-6",
-        nested && "h-12 pl-10 text-lg [&_svg]:size-5",
-        active ? "text-foreground font-medium" : "text-muted-foreground"
-      ),
-      children,
-    },
-  });
-
+/** A large menu link, set like the marketing menu; `nested` marks plan views. */
 const MenuLink = ({
   link,
-  icon,
   label,
   active,
   nested = false,
 }: {
-  /** A router `<Link>`; the row renders through it. */
+  /** A router `<Link>`; the entry renders through it. */
   link: ReactElement;
-  icon: IconSvgElement;
   label: string;
   active: boolean;
   nested?: boolean;
-}) => (
-  <li>
-    <MenuRow
-      render={link}
-      active={active}
-      nested={nested}
-      aria-current={active ? "page" : undefined}
-    >
-      <SidebarNavIcon icon={icon} />
-      {label}
-    </MenuRow>
-  </li>
-);
+}) =>
+  useRender({
+    render: link,
+    props: {
+      "aria-current": active ? "page" : undefined,
+      className: cn(
+        "block tracking-tight outline-none focus-visible:underline",
+        nested ? "py-1.5 pl-5 text-2xl" : "py-2.5 text-4xl",
+        active ? "text-foreground" : "text-muted-foreground"
+      ),
+      children: label,
+    },
+  });
 
 const MenuNav = () => {
   const pathname = useLocation({ select: (location) => location.pathname });
@@ -123,48 +74,86 @@ const MenuNav = () => {
   const planRoute = usePlanRoute();
   const peopleEnabled =
     useQuery(peopleFeatureQueryOptions).data?.enabled ?? false;
+  const entries: {
+    key: string;
+    link: ReactElement;
+    label: string;
+    active: boolean;
+    nested?: boolean;
+  }[] = [
+    {
+      key: "services",
+      link: <Link to="/services" />,
+      label: "Services",
+      active: pathname === "/services",
+    },
+  ];
+  if (planRoute !== null) {
+    for (const view of planViews) {
+      entries.push({
+        key: view,
+        // Keeps the selected slot across views.
+        link: (
+          <Link
+            to="/services/$serviceTypeId/plans/$planId/$view"
+            params={{ ...planRoute, view }}
+            search
+            replace
+          />
+        ),
+        label: getPlanViewLabel(view),
+        active: view === planRoute.view,
+        nested: true,
+      });
+    }
+  }
+  if (peopleEnabled) {
+    entries.push({
+      key: "people",
+      link: <Link to="/people" />,
+      label: "People",
+      active: section === "people",
+    });
+  }
 
   return (
-    <nav aria-label="Primary">
-      <ul className="flex flex-col">
-        <MenuLink
-          link={<Link to="/services" />}
-          icon={Calendar04Icon}
-          label="Services"
-          active={pathname === "/services"}
-        />
-        {planRoute === null
-          ? null
-          : planViews.map((view) => (
-              <MenuLink
-                key={view}
-                nested
-                // Keeps the selected slot across views.
-                link={
-                  <Link
-                    to="/services/$serviceTypeId/plans/$planId/$view"
-                    params={{ ...planRoute, view }}
-                    search
-                    replace
-                  />
-                }
-                icon={planViewIcons[view]}
-                label={getPlanViewLabel(view)}
-                active={view === planRoute.view}
-              />
-            ))}
-        {peopleEnabled ? (
+    <ul>
+      {entries.map((entry, index) => (
+        <MobileMenuItem key={entry.key} index={index}>
           <MenuLink
-            link={<Link to="/people" />}
-            icon={UsersIcon}
-            label="People"
-            active={section === "people"}
+            link={entry.link}
+            label={entry.label}
+            active={entry.active}
+            nested={entry.nested}
           />
-        ) : null}
-      </ul>
-    </nav>
+        </MobileMenuItem>
+      ))}
+    </ul>
   );
 };
+
+/** A quiet account row; `render` is a bare `<button />`. */
+const AccountRow = ({
+  render,
+  active = false,
+  children,
+  ...props
+}: {
+  render: ReactElement;
+  active?: boolean;
+  children: ReactNode;
+} & Pick<ComponentProps<"button">, "disabled" | "onClick">) =>
+  useRender({
+    render,
+    props: {
+      ...props,
+      className: cn(
+        "focus-visible:ring-ring/50 flex h-11 w-full items-center gap-3 rounded-lg text-left text-base outline-none focus-visible:ring-2 disabled:opacity-50",
+        active ? "text-foreground" : "text-muted-foreground"
+      ),
+      children,
+    },
+  });
 
 const MenuAccount = ({
   onAccountSwitched,
@@ -193,34 +182,26 @@ const MenuAccount = ({
       {accounts.length > 1
         ? accounts.map((account) => {
             const isSelected = account.id === data?.selectedAccountId;
+            const orgName =
+              account.identity?.organizationName ?? "Unknown organization";
             return (
-              <MenuRow
+              <AccountRow
                 key={account.id}
-                render={
-                  <button
-                    type="button"
-                    aria-label={
-                      account.identity?.organizationName ??
-                      "Unknown organization"
-                    }
-                  />
-                }
+                render={<button type="button" aria-label={orgName} />}
                 active={isSelected}
                 disabled={busy}
                 onClick={() => {
                   void selectAccount(account.id);
                 }}
               >
-                <span className="min-w-0 flex-1 truncate">
-                  {account.identity?.organizationName ?? "Unknown organization"}
-                </span>
+                <span className="min-w-0 flex-1 truncate">{orgName}</span>
                 {switchingAccountId === account.id ? <Spinner /> : null}
                 {isSelected ? <SidebarNavIcon icon={Tick02Icon} /> : null}
-              </MenuRow>
+              </AccountRow>
             );
           })
         : null}
-      <div className="text-muted-foreground flex h-14 items-center gap-4 text-xl [&_svg]:size-6">
+      <div className="text-muted-foreground flex h-11 items-center gap-3 text-base">
         <SidebarNavIcon icon={themeOption.icon} />
         <label htmlFor={themeSelectId} className="flex-1">
           Theme
@@ -244,7 +225,7 @@ const MenuAccount = ({
           ))}
         </NativeSelect>
       </div>
-      <MenuRow
+      <AccountRow
         render={
           <button type="button" aria-label={signOutLabel(demo, isSigningOut)} />
         }
@@ -255,12 +236,12 @@ const MenuAccount = ({
       >
         {isSigningOut ? <Spinner /> : <SidebarNavIcon icon={Logout01Icon} />}
         {signOutLabel(demo, isSigningOut)}
-      </MenuRow>
+      </AccountRow>
       {panelError ? (
         <p className="text-destructive text-sm">{panelError}</p>
       ) : null}
-      <div className="border-border/50 mt-4 flex items-center gap-3 border-t pt-5">
-        <Avatar className="size-11">
+      <div className="border-border/50 mt-3 flex items-center gap-3 border-t pt-4">
+        <Avatar className="size-9">
           {isNonEmptyString(summary.image) ? (
             <AvatarImage src={summary.image} alt="" />
           ) : null}
@@ -269,10 +250,10 @@ const MenuAccount = ({
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0">
-          <p className="truncate text-base font-medium">
+          <p className="truncate text-sm font-medium">
             {data?.session.name ?? summary.avatarName ?? "Account"}
           </p>
-          <p className="text-muted-foreground truncate text-sm">
+          <p className="text-muted-foreground truncate text-xs">
             {demo ? "Read-only demo" : summary.organizationName}
           </p>
         </div>
@@ -281,127 +262,65 @@ const MenuAccount = ({
   );
 };
 
-/** Three bars that fold into an X; `open` picks the resting shape. */
-const MenuToggleIcon = ({ open }: { open: boolean }) => (
-  <span aria-hidden className="relative block size-5">
-    <span
-      className={cn(
-        "absolute top-1/2 left-0.5 h-0.5 w-4 rounded-full bg-current transition-transform duration-200 ease-out",
-        open
-          ? "rotate-45 in-data-ending-style:-translate-y-[6px] in-data-ending-style:rotate-0 in-data-starting-style:-translate-y-[6px] in-data-starting-style:rotate-0"
-          : "-translate-y-[6px]"
-      )}
-    />
-    <span
-      className={cn(
-        "absolute top-1/2 left-0.5 h-0.5 w-4 rounded-full bg-current transition-opacity duration-200",
-        open &&
-          "opacity-0 in-data-ending-style:opacity-100 in-data-starting-style:opacity-100"
-      )}
-    />
-    <span
-      className={cn(
-        "absolute top-1/2 left-0.5 h-0.5 w-4 rounded-full bg-current transition-transform duration-200 ease-out",
-        open
-          ? "-rotate-45 in-data-ending-style:translate-y-[6px] in-data-ending-style:rotate-0 in-data-starting-style:translate-y-[6px] in-data-starting-style:rotate-0"
-          : "translate-y-[6px]"
-      )}
-    />
-  </span>
-);
-
-type TriggerPositionStyle = CSSProperties & {
-  "--menu-trigger-top": string;
-  "--menu-trigger-left": string;
-};
-
-interface TriggerPosition {
-  top: number;
-  left: number;
-}
-
 /**
- * Phone navigation: a header menu button that opens a full-screen menu. The
- * close button sits exactly over the trigger, so the bars appear to fold into
- * an X in place.
+ * The phone header: a pinned bar with the menu button on the right and the
+ * shared full-screen menu (`@pcobooster/mobile-menu`) beneath it. The bar
+ * blurs content scrolling under it; the header itself stays filter-free so the
+ * fixed overlay is not trapped. `className` places the header (for example,
+ * `-mx-4` inside padded pages).
  */
-export const MobileMenu = ({ className }: { className?: string }) => {
-  const [open, setOpen] = useState(false);
-  const [triggerPosition, setTriggerPosition] =
-    useState<TriggerPosition | null>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
+export const MobileHeader = ({
+  className,
+  children,
+}: {
+  className?: string;
+  children: ReactNode;
+}) => {
+  const menu = useMobileMenu();
   const router = useRouter();
+  const { handleClose } = menu;
 
   useEffect(
-    () =>
-      router.subscribe("onBeforeNavigate", () => {
-        setOpen(false);
-      }),
-    [router]
+    () => router.subscribe("onBeforeNavigate", handleClose),
+    [router, handleClose]
   );
 
-  const closeButtonStyle: TriggerPositionStyle | undefined = triggerPosition
-    ? {
-        "--menu-trigger-top": `${triggerPosition.top}px`,
-        "--menu-trigger-left": `${triggerPosition.left}px`,
-      }
-    : undefined;
-
   return (
-    <>
-      <Button
-        ref={triggerRef}
-        type="button"
-        variant="ghost"
-        size="icon-lg"
-        aria-label="Open menu"
-        aria-expanded={open}
-        className={cn("shrink-0 md:hidden", className)}
-        onClick={() => {
-          const rect = triggerRef.current?.getBoundingClientRect();
-          setTriggerPosition(rect ? { top: rect.top, left: rect.left } : null);
-          setOpen(true);
-        }}
-      >
-        <MenuToggleIcon open={false} />
-      </Button>
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="full" showCloseButton={false}>
-          <SheetTitle className="sr-only">Menu</SheetTitle>
-          <SheetDescription className="sr-only">
-            Navigate pcobooster.com and manage your account.
-          </SheetDescription>
-          <SheetClose
-            render={
-              <Button
-                variant="ghost"
-                size="icon-lg"
-                aria-label="Close menu"
-                className={cn(
-                  "fixed z-10",
-                  triggerPosition
-                    ? "top-(--menu-trigger-top) left-(--menu-trigger-left)"
-                    : "top-[env(safe-area-inset-top)] right-2"
-                )}
-                style={closeButtonStyle}
-              />
-            }
-          >
-            <MenuToggleIcon open />
-          </SheetClose>
-          <div className="pt-safe flex h-full min-h-0 flex-col">
-            <div className="h-12 shrink-0" />
-            <div className="pb-safe-4 flex min-h-0 flex-1 flex-col justify-between gap-8 overflow-y-auto overscroll-contain px-6 pt-4">
-              <MenuNav />
-              <MenuAccount
-                onAccountSwitched={() => {
-                  setOpen(false);
-                }}
-              />
-            </div>
+    <header
+      data-open={menu.open ? "" : undefined}
+      className={cn(
+        "group/menu sticky top-0 z-30 shrink-0 md:hidden",
+        className
+      )}
+    >
+      <div className="bg-background/80 relative z-10 backdrop-blur-xl group-data-open/menu:bg-transparent group-data-open/menu:backdrop-blur-none">
+        <div className="flex h-14 items-center gap-1 px-4">
+          <div className="flex min-w-0 flex-1 items-center gap-1">
+            {children}
           </div>
-        </SheetContent>
-      </Sheet>
-    </>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-lg"
+            aria-label={menu.open ? "Close menu" : "Open menu"}
+            aria-expanded={menu.open}
+            aria-controls={MOBILE_MENU_ID}
+            className="-mr-2 shrink-0"
+            onClick={menu.handleToggle}
+          >
+            <MobileMenuIcon open={menu.open} />
+          </Button>
+        </div>
+      </div>
+      <MobileMenuOverlay id={MOBILE_MENU_ID} open={menu.open} className="pt-14">
+        <nav
+          aria-label="Mobile navigation"
+          className="pb-safe-4 flex h-full flex-col justify-between gap-8 overflow-y-auto overscroll-contain px-4 pt-4"
+        >
+          <MenuNav />
+          <MenuAccount onAccountSwitched={handleClose} />
+        </nav>
+      </MobileMenuOverlay>
+    </header>
   );
 };

@@ -1,5 +1,10 @@
-import { ArrowRight, ArrowUpRight, Menu, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  MobileMenuIcon,
+  MobileMenuItem,
+  MobileMenuOverlay,
+  useMobileMenu,
+} from "@pcobooster/mobile-menu";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
 import { RocketMark } from "./graphics/rocket-mark";
@@ -88,40 +93,16 @@ const OpenAppLink = () => (
   </LinkButton>
 );
 
-// Short cascade for the menu links as the overlay fades in.
-const MENU_LINK_DELAYS = ["delay-0", "delay-75", "delay-150"] as const;
-
 /**
  * The header stays pinned at every width. Desktop shows the links inline; phones get a menu
- * button that fades in a full-screen blurred overlay under the header. The overlay stays in the
- * DOM (inert while closed), locks page scroll while open, and closes on Escape or any link.
+ * button that opens the shared full-screen menu (`@pcobooster/mobile-menu`) under the header.
  */
 export const SiteHeader = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const closeMenu = () => {
-    setMenuOpen(false);
-  };
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setMenuOpen(false);
-      }
-    };
-    if (menuOpen) {
-      root.style.overflow = "hidden";
-      document.addEventListener("keydown", closeOnEscape);
-    }
-    return () => {
-      root.style.overflow = "";
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [menuOpen]);
+  const menu = useMobileMenu();
 
   return (
     <header
-      data-open={menuOpen ? "" : undefined}
+      data-open={menu.open ? "" : undefined}
       className="group/menu sticky top-0 z-20"
     >
       <div className="bg-background relative z-10 group-data-[open]/menu:bg-transparent">
@@ -153,46 +134,33 @@ export const SiteHeader = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label={menuOpen ? "Close menu" : "Open menu"}
-                aria-expanded={menuOpen}
+                aria-label={menu.open ? "Close menu" : "Open menu"}
+                aria-expanded={menu.open}
                 aria-controls="mobile-menu"
-                onClick={() => {
-                  setMenuOpen((open) => !open);
-                }}
+                onClick={menu.handleToggle}
               >
-                {menuOpen ? (
-                  <X aria-hidden="true" />
-                ) : (
-                  <Menu aria-hidden="true" />
-                )}
+                <MobileMenuIcon open={menu.open} />
               </Button>
             </span>
           </div>
         </div>
       </div>
-      <div
-        id="mobile-menu"
-        inert={!menuOpen}
-        className="bg-background/70 ease-snappy pointer-events-none fixed inset-0 pt-14 opacity-0 backdrop-blur-lg backdrop-saturate-150 transition-opacity duration-200 group-data-[open]/menu:pointer-events-auto group-data-[open]/menu:opacity-100 motion-reduce:duration-0 md:hidden"
-      >
+      <MobileMenuOverlay id="mobile-menu" open={menu.open} className="pt-14">
         <nav
           aria-label="Mobile navigation"
           className="wrap flex h-full flex-col pt-6 pb-8"
         >
           <ul>
             {NAV_LINKS.map((link, index) => (
-              <li
-                key={link.href}
-                className={`ease-snappy transition-fade translate-y-2 opacity-0 duration-300 group-data-[open]/menu:translate-y-0 group-data-[open]/menu:opacity-100 motion-reduce:translate-y-0 ${MENU_LINK_DELAYS[index] ?? ""}`}
-              >
+              <MobileMenuItem key={link.href} index={index}>
                 <a
                   href={link.href}
-                  onClick={closeMenu}
+                  onClick={menu.handleClose}
                   className="font-book block py-3 text-4xl tracking-tight"
                 >
                   {link.label}
                 </a>
-              </li>
+              </MobileMenuItem>
             ))}
           </ul>
           <p className="text-muted-foreground mt-auto flex items-center gap-2 text-sm">
@@ -200,7 +168,7 @@ export const SiteHeader = () => {
             Early, and still taking shape.
           </p>
         </nav>
-      </div>
+      </MobileMenuOverlay>
     </header>
   );
 };

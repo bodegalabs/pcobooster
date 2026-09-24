@@ -26,6 +26,7 @@
     "@pcobooster/contracts": "workspace:*",
     "@pcobooster/design-tokens": "workspace:*",
     "@pcobooster/marketing": "workspace:*",
+    "@pcobooster/mobile-menu": "workspace:*",
     "@pcobooster/planning-center-models": "workspace:*",
     "@tanstack/react-hotkeys": "^0.10.0",
     "@tanstack/react-query": "^5.103.1",
