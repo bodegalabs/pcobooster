@@ -172,6 +172,8 @@ export interface ScheduleCandidateTileProps {
   teamName?: string | null;
   positionName?: string | null;
   oneOff?: boolean;
+  /** History or availability is still loading, so no score exists yet. */
+  scorePending?: boolean;
   onScheduleSuccess?: () => void;
   onScheduleError?: (message: string) => void;
 }
@@ -238,6 +240,7 @@ export const ScheduleCandidateTile = ({
   teamName,
   positionName,
   oneOff = false,
+  scorePending = false,
   onScheduleSuccess,
   onScheduleError,
 }: ScheduleCandidateTileProps) => {
@@ -330,6 +333,7 @@ export const ScheduleCandidateTile = ({
         <ScheduleCandidateScore
           person={person}
           percentage={recommendationPercentage}
+          pending={scorePending && !isBlocked}
         />
       </div>
 

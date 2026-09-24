@@ -10,22 +10,23 @@ export const queryKeys = {
     planId: string | null,
     _seriesId: string | null
   ) => ["team-positions", serviceTypeId, planId] as const,
-  people: (
-    serviceTypeId: string | null,
-    teamId: string | null,
-    positionId: string | null,
-    planId: string | null,
-    dateKey: string | null
-  ) => ["people", serviceTypeId, teamId, positionId, planId, dateKey] as const,
-  peopleForSlot: (
+  /** Candidates for one slot, with the selected plan's roster; schedule writes patch these. */
+  positionCandidates: (
     serviceTypeId: string | null,
     teamId: string | null,
     positionId: string | null,
     planId: string | null
   ) => ["people", serviceTypeId, teamId, positionId, planId] as const,
+  planWindowHistory: (dateKey: string) =>
+    ["people-plan-window-history", dateKey] as const,
+  /** `historyPlanId` is set only when the details carry schedule history for that plan. */
+  candidateDetails: (
+    dateKey: string,
+    historyPlanId: string | null,
+    personIds: readonly string[]
+  ) =>
+    ["people-candidate-details", dateKey, historyPlanId, ...personIds] as const,
   peopleSearch: (query: string) => ["people-search", query] as const,
-  peopleHistoryWarmup: (serviceTypeId: string | null, dateKey: string | null) =>
-    ["people-history-warmup", serviceTypeId, dateKey] as const,
   peopleDashboardRoster: () => ["people-dashboard-roster"] as const,
   peopleDashboardActivity: (personIds: readonly string[]) =>
     ["people-dashboard-activity", ...personIds] as const,

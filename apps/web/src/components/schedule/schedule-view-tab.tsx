@@ -6,6 +6,7 @@ import type {
 import { CalendarDays } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 
+import { CandidateListProgress } from "@/components/schedule/candidate-list-progress";
 import { PlanPersonStatusMenu } from "@/components/schedule/plan-person-status-menu";
 import type { PlanPersonStatusValue } from "@/components/schedule/plan-person-status-menu";
 import { PositionPickerList } from "@/components/schedule/position-picker-list";
@@ -30,9 +31,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { LoadingBar } from "@/components/ui/loading-bar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import type { PositionCandidateList } from "@/hooks/use-position-candidates";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { getInitials } from "@/lib/format/initials";
 import { partitionPeopleForRecommendationStrip } from "@/lib/people/recommendation-strip-order";
@@ -44,8 +47,8 @@ interface ScheduleViewTabProps {
   collapsedTeams: Record<string, boolean>;
   selectedTeam: string | null;
   selectedPosition: string | null;
-  people: PersonWithAvailability[] | undefined;
-  peopleLoading: boolean;
+  /** Null for positions without a roster (custom or plan-member positions). */
+  candidateList: PositionCandidateList | null;
   selectedServiceTypeId: string | null;
   selectedPlanId: string | null;
   planReferenceDate?: Date | null;
@@ -143,8 +146,7 @@ const TemporaryFilledPersonRow = ({
 };
 
 interface SchedulePeopleListProps {
-  people: PersonWithAvailability[] | undefined;
-  peopleLoading: boolean;
+  candidateList: PositionCandidateList | null;
   selectedSlotUsesCustomPosition: boolean;
   selectedFilledPeople: FilledPositionPerson[];
   filteredActionable: PersonWithAvailability[];
@@ -161,8 +163,7 @@ interface SchedulePeopleListProps {
 }
 
 const SchedulePeopleList = ({
-  people,
-  peopleLoading,
+  candidateList,
   selectedSlotUsesCustomPosition,
   selectedFilledPeople,
   filteredActionable,
@@ -177,7 +178,16 @@ const SchedulePeopleList = ({
   onScheduleSuccess,
   onScheduleError,
 }: SchedulePeopleListProps) => {
+  const people = candidateList?.people;
+  const peopleLoading = candidateList?.isLoading ?? false;
+  const scorePending =
+    candidateList !== null &&
+    !candidateList.complete &&
+    candidateList.failedPartCount === 0;
   const revealClassName = useRevealOnLoad(peopleLoading);
+  const handleRetryCandidateList = () => {
+    candidateList?.retryFailed();
+  };
   const personTileKey = (person: PersonWithAvailability) =>
     [
       person.id,
@@ -243,6 +253,20 @@ const SchedulePeopleList = ({
       )}
     >
       <section className="flex flex-col gap-2">
+        {candidateList === null ? null : (
+          <>
+            <LoadingBar
+              active={candidateList.isFetching}
+              className="-my-1 shrink-0"
+            />
+            <CandidateListProgress
+              progress={candidateList.progress}
+              isEnriching={candidateList.isEnriching}
+              failedPartCount={candidateList.failedPartCount}
+              onRetry={handleRetryCandidateList}
+            />
+          </>
+        )}
         <div className="border-border/40 bg-card/30 divide-border/25 divide-y overflow-hidden rounded-xl border">
           {filteredActionable.map((person) => (
             <ScheduleCandidateTile
@@ -256,6 +280,7 @@ const SchedulePeopleList = ({
               teamName={teamName}
               positionName={positionName}
               oneOff={selectedSlotUsesCustomPosition}
+              scorePending={scorePending}
               onScheduleSuccess={onScheduleSuccess}
               onScheduleError={onScheduleError}
             />
@@ -289,6 +314,7 @@ const SchedulePeopleList = ({
                 teamName={teamName}
                 positionName={positionName}
                 oneOff={selectedSlotUsesCustomPosition}
+                scorePending={scorePending}
                 onScheduleSuccess={onScheduleSuccess}
                 onScheduleError={onScheduleError}
               />
@@ -306,8 +332,7 @@ const ScheduleViewContent = ({
   collapsedTeams,
   selectedTeam,
   selectedPosition,
-  people,
-  peopleLoading,
+  candidateList,
   selectedServiceTypeId,
   selectedPlanId,
   planReferenceDate = null,
@@ -350,9 +375,11 @@ const ScheduleViewContent = ({
     }
   };
 
+  const people = candidateList?.people;
+  const settled = candidateList?.complete ?? true;
   const { actionable, exceptions } = useMemo(
-    () => partitionPeopleForRecommendationStrip(people ?? []),
-    [people]
+    () => partitionPeopleForRecommendationStrip(people ?? [], { settled }),
+    [people, settled]
   );
 
   const normalizedFilter = deferredFilter.trim().toLowerCase();
@@ -416,8 +443,7 @@ const ScheduleViewContent = ({
             <ScrollArea className="-mx-4 min-h-0 w-auto flex-1 lg:mx-0 lg:h-full lg:w-full">
               <div className="pb-tab-bar px-4 md:pb-0 lg:px-0">
                 <SchedulePeopleList
-                  people={people}
-                  peopleLoading={peopleLoading}
+                  candidateList={candidateList}
                   selectedSlotUsesCustomPosition={
                     selectedSlotUsesCustomPosition
                   }

@@ -16,6 +16,7 @@ import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import { useMyScheduledPlans } from "@/hooks/use-my-scheduled-plans";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
+import { createPlanWindowHistoryQueryOptions } from "@/hooks/use-position-candidates";
 import { useServiceTypes } from "@/hooks/use-service-types";
 import { createTeamPositionsQueryOptions } from "@/hooks/use-team-positions";
 import { isQueryFresh } from "@/lib/intent-prefetch";
@@ -35,7 +36,6 @@ import {
   formatDate,
   isInDateWindow,
   parsePlanDate,
-  PEOPLE_HISTORY_WARMUP_STALE_TIME_MS,
   readStoredServiceTypeIds,
   SERVICE_TYPE_FILTER_STORAGE_KEY,
 } from "@/lib/service-plan-selection";
@@ -319,26 +319,18 @@ export const useServicePlanSelection = ({
       prefetch: prefetchPlanData,
     });
   /**
-   * Builds the server's plan-window history (about 37 Planning Center requests) that the
-   * Assign view's candidate list reads. It runs only when a plan is opened, never on hover,
-   * so the first candidate list after opening finds the history already built.
+   * Loads the plan-window history (up to about 40 Planning Center requests cold) that the
+   * Assign view scores candidates with, and that every position on the plan shares. It runs
+   * only when a plan is opened, never on hover.
    */
   const warmPeopleHistory = useCallback(
     async (row: ServicePlanRow) => {
-      const dateKey = row.sortDate.toISOString();
-
       try {
-        await queryClient.query({
-          queryKey: queryKeys.peopleHistoryWarmup(row.serviceTypeId, dateKey),
-          queryFn: async ({ signal }: QueryFunctionContext) =>
-            await orpc.people.warmup(
-              { serviceTypeId: row.serviceTypeId, date: dateKey },
-              { signal }
-            ),
-          staleTime: PEOPLE_HISTORY_WARMUP_STALE_TIME_MS,
-        });
+        await queryClient.query(
+          createPlanWindowHistoryQueryOptions(row.sortDate.toISOString())
+        );
       } catch {
-        /* Warming history is optional. */
+        /* The Assign view's own query owns any visible loading error. */
       }
     },
     [queryClient]

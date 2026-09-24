@@ -71,4 +71,29 @@ describe(partitionPeopleForRecommendationStrip, () => {
     expect(actionable.map((p) => p.id)).toStrictEqual(["o"]);
     expect(exceptions.map((p) => p.id)).toStrictEqual(["b", "d"]);
   });
+
+  it("keeps blocked people in place and orders by name while scores are pending", () => {
+    const people = [
+      basePerson("1", "Cara Blocked", {
+        isBlockedForDate: true,
+        availability: "blocked",
+      }),
+      basePerson("2", "Ben Pending", { availability: "unknown" }),
+      basePerson("3", "Ann Declined", {
+        isScheduledForSelectedPlanPosition: true,
+        isDeclinedForSelectedPlanPosition: true,
+      }),
+      basePerson("4", "Dee Scheduled", {
+        isScheduledForSelectedPlanPosition: true,
+      }),
+    ];
+    const { actionable, exceptions } = partitionPeopleForRecommendationStrip(
+      people,
+      { settled: false }
+    );
+    expect({
+      actionable: actionable.map((p) => p.id),
+      exceptions: exceptions.map((p) => p.id),
+    }).toStrictEqual({ actionable: ["4", "2", "1"], exceptions: ["3"] });
+  });
 });

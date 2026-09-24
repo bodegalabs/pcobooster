@@ -1,7 +1,4 @@
-import type {
-  PersonWithAvailability,
-  Plan,
-} from "@pcobooster/planning-center-models/types";
+import type { Plan } from "@pcobooster/planning-center-models/types";
 import { z } from "zod";
 
 import type {
@@ -28,98 +25,6 @@ export const persistedPlanSchema = z.object({
   createdAt: hydratedDateSchema,
   sortDate: hydratedDateSchema.optional(),
 }) satisfies z.ZodType<Plan>;
-
-const persistedBlockoutSchema = z.object({
-  id: z.string(),
-  reason: z.string(),
-  startsAt: hydratedDateSchema,
-  endsAt: hydratedDateSchema,
-  description: z.string(),
-  share: z.boolean(),
-  timeZone: z.string().nullable().optional(),
-});
-
-const persistedScheduleFrequencySchema = z.object({
-  recentServedDays: z.number(),
-  last60Days: z.number(),
-  last90Days: z.number(),
-  lastServedDate: hydratedDateSchema.optional(),
-  totalServed: z.number(),
-  recentRehearsalOnlyDays: z.number(),
-  rehearsalLast60Days: z.number(),
-  rehearsalLast90Days: z.number(),
-  lastRehearsalDate: hydratedDateSchema.optional(),
-  totalRehearsals: z.number(),
-  upcomingServices: z.number(),
-  nextUpcomingDate: hydratedDateSchema.optional(),
-  upcomingRehearsals: z.number(),
-  nextRehearsalDate: hydratedDateSchema.optional(),
-});
-
-const persistedServiceHistoryItemSchema = z.object({
-  id: z.string(),
-  sourceScheduleId: z.string(),
-  date: hydratedDateSchema,
-  teamPositionName: z.string(),
-  teamName: z.string().optional(),
-  serviceTypeName: z.string().optional(),
-  planTitle: z.string().optional(),
-  status: z.string(),
-  timeType: z.enum(["service", "rehearsal", "other"]).optional(),
-});
-
-const filledPositionPersonSchema = z.object({
-  id: z.string(),
-  planPersonId: z.string(),
-  personId: z.string().nullable().optional(),
-  name: z.string(),
-  status: z.enum(["pending", "confirmed"]),
-  rawStatus: z.string(),
-  photoThumbnailUrl: z.string().nullable().optional(),
-  assignedTimeIds: z.array(z.string()).optional(),
-  serviceTimeIds: z.array(z.string()).optional(),
-});
-
-const teamPositionSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  teamId: z.string(),
-  teamName: z.string().optional(),
-  source: z
-    .enum(["team_position", "needed_position", "plan_member", "custom"])
-    .optional(),
-  neededPositionId: z.string().optional(),
-  timeId: z.string().nullable().optional(),
-  timePreferenceOptionId: z.string().nullable().optional(),
-  neededCount: z.number().optional(),
-  filledPendingCount: z.number().optional(),
-  filledConfirmedCount: z.number().optional(),
-  filledPeople: z.array(filledPositionPersonSchema).optional(),
-});
-
-export const persistedPersonWithAvailabilitySchema = z.object({
-  availability: z.enum(["available", "blocked", "unknown"]).optional(),
-  frequency: persistedScheduleFrequencySchema.optional(),
-  blockouts: z.array(persistedBlockoutSchema).optional(),
-  serviceHistory: z.array(persistedServiceHistoryItemSchema).optional(),
-  isBlockedForDate: z.boolean().optional(),
-  isScheduledForSelectedPlanPosition: z.boolean().optional(),
-  isConfirmedForSelectedPlanPosition: z.boolean().optional(),
-  isDeclinedForSelectedPlanPosition: z.boolean().optional(),
-  selectedPlanDeclineReason: z.string().nullable().optional(),
-  selectedPlanAssignmentLabels: z.array(z.string()).optional(),
-  scheduledPlanPersonId: z.string().optional(),
-  recommendationScore: z.number().optional(),
-  recommendationReasoning: z.array(z.string()).optional(),
-  id: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  fullName: z.string(),
-  photoUrl: z.string().nullable(),
-  photoThumbnailUrl: z.string().nullable(),
-  archived: z.boolean(),
-  positions: z.array(teamPositionSchema),
-}) satisfies z.ZodType<PersonWithAvailability>;
 
 const serializedPlanItemSongSchema = z.object({
   lastScheduledAt: serializedDateSchema.nullable(),

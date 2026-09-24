@@ -1,7 +1,9 @@
 import type {
-  PersonWithAvailability,
-  TeamPositionGroup,
-} from "@pcobooster/planning-center-models/types";
+  PlanWindowHistoryBatch,
+  PositionCandidates,
+} from "@pcobooster/contracts/people-schemas";
+import type { PositionCandidate } from "@pcobooster/planning-center-models/position-candidates";
+import type { TeamPositionGroup } from "@pcobooster/planning-center-models/types";
 import { QueryClient } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -19,7 +21,12 @@ import {
   readCachedMyScheduledPlans,
   writeCachedMyScheduledPlans,
 } from "@/lib/my-scheduled-plans-cache";
-import { readCachedPeople, writeCachedPeople } from "@/lib/people-cache";
+import {
+  readCachedCandidateAvailability,
+  readCachedPositionCandidates,
+  writeCachedCandidateAvailability,
+  writeCachedPositionCandidates,
+} from "@/lib/position-candidates-cache";
 import { queryKeys } from "@/lib/query-keys";
 import {
   readCachedTeamPositions,
@@ -35,8 +42,8 @@ const createQueryClient = () =>
   });
 
 const person = (
-  overrides: Partial<PersonWithAvailability> = {}
-): PersonWithAvailability => ({
+  overrides: Partial<PositionCandidate> = {}
+): PositionCandidate => ({
   id: "person-1",
   firstName: "Andrew",
   lastName: "Hinea",
@@ -44,9 +51,65 @@ const person = (
   photoUrl: null,
   photoThumbnailUrl: null,
   archived: false,
-  positions: [],
+  selectedPlanRosterLabels: [],
+  selectedPlanSlot: null,
   ...overrides,
 });
+
+const candidates = (people: PositionCandidate[]): PositionCandidates => ({
+  generatedAt: "2026-05-20T00:00:00.000Z",
+  timeZone: "America/Los_Angeles",
+  match: { planId: "plan-1", teamId: "team-1" },
+  candidates: people,
+});
+
+const peopleKey = queryKeys.positionCandidates(
+  "service-type-1",
+  "team-1",
+  "position-1",
+  "plan-1"
+);
+
+const firstCandidate = (queryClient: QueryClient) =>
+  queryClient.getQueryData<PositionCandidates>(peopleKey)?.candidates[0];
+
+const windowRow = (id: string, planId: string) => ({
+  id,
+  planId,
+  teamId: "team-1",
+  teamPositionName: "Acoustic Guitar",
+  status: "C",
+  createdAt: "2026-05-01T00:00:00.000Z",
+  timeIds: [],
+  serviceTimeIds: [],
+  declineReason: null,
+});
+
+const windowHistory = (): PlanWindowHistoryBatch[] => [
+  {
+    generatedAt: "2026-05-20T00:00:00.000Z",
+    loadedPlanCount: 2,
+    plans: [],
+    planTimes: [],
+    people: [
+      {
+        personId: "person-1",
+        rows: [
+          windowRow("plan-person-earlier", "plan-0"),
+          windowRow("plan-person-1", "plan-1"),
+        ],
+      },
+    ],
+    deferredPlans: [],
+    deferredServiceTypeIds: [],
+    requestBudget: {
+      limit: 40,
+      planningCenterRequests: 3,
+      planRangeRequests: 1,
+      rosterRequests: 2,
+    },
+  },
+];
 
 const teamGroups = (): TeamPositionGroup[] => [
   {
@@ -94,19 +157,12 @@ describe("schedule cache optimism", () => {
 
   it("marks a scheduled person and slot immediately, then reconciles the real plan person id", () => {
     const queryClient = createQueryClient();
-    const peopleKey = queryKeys.people(
-      "service-type-1",
-      "team-1",
-      "position-1",
-      "plan-1",
-      "2026-05-24T10:00:00.000Z"
-    );
     const teamPositionsKey = queryKeys.teamPositions(
       "service-type-1",
       "plan-1",
       "series-1"
     );
-    queryClient.setQueryData<PersonWithAvailability[]>(peopleKey, [person()]);
+    queryClient.setQueryData(peopleKey, candidates([person()]));
     queryClient.setQueryData<TeamPositionGroup[]>(
       teamPositionsKey,
       teamGroups()
@@ -124,13 +180,10 @@ describe("schedule cache optimism", () => {
       "optimistic-plan-person"
     );
 
-    expect(
-      queryClient.getQueryData<PersonWithAvailability[]>(peopleKey)?.[0]
-    ).toMatchObject({
-      isScheduledForSelectedPlanPosition: true,
-      isConfirmedForSelectedPlanPosition: false,
-      isDeclinedForSelectedPlanPosition: false,
-      scheduledPlanPersonId: "optimistic-plan-person",
+    expect(firstCandidate(queryClient)?.selectedPlanSlot).toStrictEqual({
+      planPersonId: "optimistic-plan-person",
+      status: "pending",
+      declineReason: null,
     });
     expect(
       queryClient.getQueryData<TeamPositionGroup[]>(teamPositionsKey)?.[0]
@@ -154,10 +207,8 @@ describe("schedule cache optimism", () => {
       "plan-person-1"
     );
 
-    expect(
-      queryClient.getQueryData<PersonWithAvailability[]>(peopleKey)?.[0]
-    ).toMatchObject({
-      scheduledPlanPersonId: "plan-person-1",
+    expect(firstCandidate(queryClient)?.selectedPlanSlot).toMatchObject({
+      planPersonId: "plan-person-1",
     });
     expect(
       queryClient.getQueryData<TeamPositionGroup[]>(teamPositionsKey)?.[0]
@@ -167,19 +218,12 @@ describe("schedule cache optimism", () => {
 
   it("inserts a one-off scheduled person into the selected people cache immediately", () => {
     const queryClient = createQueryClient();
-    const peopleKey = queryKeys.people(
-      "service-type-1",
-      "team-1",
-      "position-1",
-      "plan-1",
-      "2026-05-24T10:00:00.000Z"
-    );
     const teamPositionsKey = queryKeys.teamPositions(
       "service-type-1",
       "plan-1",
       "series-1"
     );
-    queryClient.setQueryData<PersonWithAvailability[]>(peopleKey, [person()]);
+    queryClient.setQueryData(peopleKey, candidates([person()]));
     queryClient.setQueryData<TeamPositionGroup[]>(
       teamPositionsKey,
       teamGroups()
@@ -203,20 +247,21 @@ describe("schedule cache optimism", () => {
       "optimistic-plan-person-2"
     );
 
-    expect(
-      queryClient.getQueryData<PersonWithAvailability[]>(peopleKey)?.[0]
-    ).toMatchObject({
+    const cached =
+      queryClient.getQueryData<PositionCandidates>(peopleKey)?.candidates;
+    // Appended, so the detail batches before it keep their keys.
+    expect(cached?.map(({ id }) => id)).toStrictEqual(["person-1", "person-2"]);
+    expect(cached?.[1]).toMatchObject({
       id: "person-2",
       firstName: "Samuel",
       lastName: "Stefan",
       fullName: "Samuel Stefan",
       photoThumbnailUrl: "https://example.com/samuel.jpg",
-      isScheduledForSelectedPlanPosition: true,
-      scheduledPlanPersonId: "optimistic-plan-person-2",
+      selectedPlanSlot: {
+        planPersonId: "optimistic-plan-person-2",
+        status: "pending",
+      },
     });
-    expect(
-      queryClient.getQueryData<PersonWithAvailability[]>(peopleKey)
-    ).toHaveLength(2);
     expect(
       queryClient.getQueryData<TeamPositionGroup[]>(teamPositionsKey)?.[0]
         ?.positions[0]?.filledPeople?.[0]
@@ -230,26 +275,23 @@ describe("schedule cache optimism", () => {
 
   it("updates status, removes declined people from filled slot counts, and restores snapshots", () => {
     const queryClient = createQueryClient();
-    const peopleKey = queryKeys.people(
-      "service-type-1",
-      "team-1",
-      "position-1",
-      "plan-1",
-      "2026-05-24T10:00:00.000Z"
-    );
     const teamPositionsKey = queryKeys.teamPositions(
       "service-type-1",
       "plan-1",
       "series-1"
     );
-    queryClient.setQueryData<PersonWithAvailability[]>(peopleKey, [
-      person({
-        isScheduledForSelectedPlanPosition: true,
-        isConfirmedForSelectedPlanPosition: false,
-        isDeclinedForSelectedPlanPosition: false,
-        scheduledPlanPersonId: "plan-person-1",
-      }),
-    ]);
+    queryClient.setQueryData(
+      peopleKey,
+      candidates([
+        person({
+          selectedPlanSlot: {
+            planPersonId: "plan-person-1",
+            status: "pending",
+            declineReason: null,
+          },
+        }),
+      ])
+    );
     queryClient.setQueryData<TeamPositionGroup[]>(teamPositionsKey, [
       {
         teamId: "team-1",
@@ -281,34 +323,24 @@ describe("schedule cache optimism", () => {
     );
 
     expect({
-      person:
-        queryClient.getQueryData<PersonWithAvailability[]>(peopleKey)?.[0],
+      slot: firstCandidate(queryClient)?.selectedPlanSlot,
       position:
         queryClient.getQueryData<TeamPositionGroup[]>(teamPositionsKey)?.[0]
           ?.positions[0],
     }).toMatchObject({
-      person: {
-        isScheduledForSelectedPlanPosition: true,
-        isConfirmedForSelectedPlanPosition: true,
-        isDeclinedForSelectedPlanPosition: false,
-      },
+      slot: { planPersonId: "plan-person-1", status: "confirmed" },
       position: { filledPendingCount: 0, filledConfirmedCount: 1 },
     });
 
     optimisticallyUpdatePlanPersonStatus(queryClient, "plan-person-1", "D");
 
     expect({
-      person:
-        queryClient.getQueryData<PersonWithAvailability[]>(peopleKey)?.[0],
+      slot: firstCandidate(queryClient)?.selectedPlanSlot,
       position:
         queryClient.getQueryData<TeamPositionGroup[]>(teamPositionsKey)?.[0]
           ?.positions[0],
     }).toMatchObject({
-      person: {
-        isScheduledForSelectedPlanPosition: true,
-        isConfirmedForSelectedPlanPosition: false,
-        isDeclinedForSelectedPlanPosition: true,
-      },
+      slot: { planPersonId: "plan-person-1", status: "declined" },
       position: {
         filledPendingCount: 0,
         filledConfirmedCount: 0,
@@ -319,42 +351,37 @@ describe("schedule cache optimism", () => {
     restoreScheduleCaches(queryClient, snapshot);
 
     expect({
-      person:
-        queryClient.getQueryData<PersonWithAvailability[]>(peopleKey)?.[0],
+      slot: firstCandidate(queryClient)?.selectedPlanSlot,
       position:
         queryClient.getQueryData<TeamPositionGroup[]>(teamPositionsKey)?.[0]
           ?.positions[0],
     }).toMatchObject({
-      person: {
-        isScheduledForSelectedPlanPosition: true,
-        isConfirmedForSelectedPlanPosition: false,
-        scheduledPlanPersonId: "plan-person-1",
-      },
+      slot: { planPersonId: "plan-person-1", status: "pending" },
       position: { filledPendingCount: 1, filledConfirmedCount: 0 },
     });
   });
 
   it("clears schedule state when a plan person is unscheduled", () => {
+    const historyKey = queryKeys.planWindowHistory("2026-05-24T10:00:00.000Z");
     const queryClient = createQueryClient();
-    const peopleKey = queryKeys.people(
-      "service-type-1",
-      "team-1",
-      "position-1",
-      "plan-1",
-      "2026-05-24T10:00:00.000Z"
-    );
     const teamPositionsKey = queryKeys.teamPositions(
       "service-type-1",
       "plan-1",
       "series-1"
     );
-    queryClient.setQueryData<PersonWithAvailability[]>(peopleKey, [
-      person({
-        isScheduledForSelectedPlanPosition: true,
-        isConfirmedForSelectedPlanPosition: true,
-        scheduledPlanPersonId: "plan-person-1",
-      }),
-    ]);
+    queryClient.setQueryData(
+      peopleKey,
+      candidates([
+        person({
+          selectedPlanSlot: {
+            planPersonId: "plan-person-1",
+            status: "confirmed",
+            declineReason: null,
+          },
+        }),
+      ])
+    );
+    queryClient.setQueryData(historyKey, windowHistory());
     queryClient.setQueryData<TeamPositionGroup[]>(teamPositionsKey, [
       {
         teamId: "team-1",
@@ -385,13 +412,15 @@ describe("schedule cache optimism", () => {
       "person-1"
     );
 
-    expect(
-      queryClient.getQueryData<PersonWithAvailability[]>(peopleKey)?.[0]
-    ).toMatchObject({
-      isScheduledForSelectedPlanPosition: false,
-      isConfirmedForSelectedPlanPosition: false,
-      isDeclinedForSelectedPlanPosition: false,
-      scheduledPlanPersonId: undefined,
+    expect({
+      slot: firstCandidate(queryClient)?.selectedPlanSlot,
+      windowRows: queryClient
+        .getQueryData<PlanWindowHistoryBatch[]>(historyKey)?.[0]
+        ?.people[0]?.rows.map(({ id }) => id),
+    }).toStrictEqual({
+      slot: null,
+      // History's copy of the plan must not put the person back on the slot.
+      windowRows: ["plan-person-earlier"],
     });
     expect(
       queryClient.getQueryData<TeamPositionGroup[]>(teamPositionsKey)?.[0]
@@ -416,21 +445,28 @@ describe("schedule cache optimism", () => {
       positionId: "position-1",
     });
 
-    expect(cancelQueries).toHaveBeenCalledWith({
-      queryKey: ["my-scheduled-plans"],
-    });
-    expect(cancelQueries).toHaveBeenCalledWith({
-      queryKey: ["team-positions", "service-type-1", "plan-1"],
-    });
-    expect(cancelQueries).toHaveBeenCalledWith({
-      queryKey: queryKeys.peopleForSlot(
-        "service-type-1",
-        "team-1",
-        "position-1",
-        "plan-1"
-      ),
-    });
-    expect(cancelQueries).toHaveBeenCalledTimes(3);
+    const slotKey = queryKeys.positionCandidates(
+      "service-type-1",
+      "team-1",
+      "position-1",
+      "plan-1"
+    );
+    expect(
+      cancelQueries.mock.calls.map(([filters]) => ({
+        queryKey: filters?.queryKey,
+        filtered: filters?.predicate !== undefined,
+      }))
+    ).toStrictEqual([
+      { queryKey: ["my-scheduled-plans"], filtered: false },
+      {
+        queryKey: ["team-positions", "service-type-1", "plan-1"],
+        filtered: false,
+      },
+      { queryKey: slotKey, filtered: false },
+      { queryKey: ["people-plan-window-history"], filtered: false },
+      // Only details that carry schedule history; blockouts are untouched.
+      { queryKey: ["people-candidate-details"], filtered: true },
+    ]);
   });
 
   it("settles optimistic mutations without immediately refetching the active view", () => {
@@ -456,51 +492,39 @@ describe("schedule cache optimism", () => {
       positionId: "position-1",
     });
 
-    expect(invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["my-scheduled-plans"],
-      refetchType: "inactive",
-    });
-    expect(invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["team-positions", "service-type-1", "plan-1"],
-      refetchType: "inactive",
-    });
-    expect(invalidateQueries).toHaveBeenCalledWith({
-      queryKey: queryKeys.peopleForSlot(
-        "service-type-1",
-        "team-1",
-        "position-1",
-        "plan-1"
-      ),
-      refetchType: "inactive",
-    });
+    const slotKey = queryKeys.positionCandidates(
+      "service-type-1",
+      "team-1",
+      "position-1",
+      "plan-1"
+    );
+    expect(
+      invalidateQueries.mock.calls
+        .slice(0, 5)
+        .map(([filters]) => [filters?.queryKey, filters?.refetchType])
+    ).toStrictEqual([
+      [["my-scheduled-plans"], "inactive"],
+      [["team-positions", "service-type-1", "plan-1"], "inactive"],
+      [slotKey, "inactive"],
+      // Window histories cost up to 40 requests; only the one on screen refetches.
+      [["people-plan-window-history"], "none"],
+      [["people-candidate-details"], "none"],
+    ]);
     expect(refetchQueries).not.toHaveBeenCalled();
 
     vi.advanceTimersByTime(SCHEDULE_MUTATION_RECONCILE_DELAY_MS);
 
-    expect(refetchQueries.mock.calls).toStrictEqual([
-      [
-        {
-          queryKey: ["my-scheduled-plans"],
-          type: "active",
-        },
-      ],
-      [
-        {
-          queryKey: ["team-positions", "service-type-1", "plan-1"],
-          type: "active",
-        },
-      ],
-      [
-        {
-          queryKey: queryKeys.peopleForSlot(
-            "service-type-1",
-            "team-1",
-            "position-1",
-            "plan-1"
-          ),
-          type: "active",
-        },
-      ],
+    expect(
+      refetchQueries.mock.calls.map(([filters]) => [
+        filters?.queryKey,
+        filters?.type,
+      ])
+    ).toStrictEqual([
+      [["my-scheduled-plans"], "active"],
+      [["team-positions", "service-type-1", "plan-1"], "active"],
+      [slotKey, "active"],
+      [["people-plan-window-history"], "active"],
+      [["people-candidate-details"], "active"],
     ]);
   });
 
@@ -509,14 +533,16 @@ describe("schedule cache optimism", () => {
     const queryClient = createQueryClient();
     const dateKey = "2026-05-24T10:00:00.000Z";
     writeCachedMyScheduledPlans("plan-1,plan-2", { planIds: ["plan-2"] });
-    writeCachedPeople(
+    writeCachedPositionCandidates(
       "service-type-1",
       "team-1",
       "position-1",
       "plan-1",
-      dateKey,
-      [person()]
+      candidates([person()])
     );
+    writeCachedCandidateAvailability(dateKey, [
+      { personId: "person-1", isBlockedForDate: true },
+    ]);
     writeCachedTeamPositions(
       "service-type-1",
       "plan-1",
@@ -533,14 +559,17 @@ describe("schedule cache optimism", () => {
 
     expect(readCachedMyScheduledPlans("plan-1,plan-2")).toBeUndefined();
     expect(
-      readCachedPeople(
+      readCachedPositionCandidates(
         "service-type-1",
         "team-1",
         "position-1",
-        "plan-1",
-        dateKey
+        "plan-1"
       )
     ).toBeUndefined();
+    // Blockouts do not change when someone is scheduled.
+    expect(
+      readCachedCandidateAvailability(dateKey, ["person-1"])?.data
+    ).toStrictEqual([{ personId: "person-1", isBlockedForDate: true }]);
     expect(
       readCachedTeamPositions("service-type-1", "plan-1", "series-1")
     ).toBeUndefined();

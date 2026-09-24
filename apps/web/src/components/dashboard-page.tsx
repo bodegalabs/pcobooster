@@ -282,8 +282,7 @@ export const DashboardPage = ({
     selectedTeam,
     selectedPosition,
     selectedPositionUsesRoster,
-    people,
-    peopleLoading,
+    candidateList,
     routeServiceTypeId,
     routePlanId,
     toggleTeamCollapsed,
@@ -328,9 +327,8 @@ export const DashboardPage = ({
                 collapsedTeams={collapsedTeams}
                 selectedTeam={selectedTeam}
                 selectedPosition={selectedPosition}
-                people={selectedPositionUsesRoster ? people : []}
-                peopleLoading={
-                  selectedPositionUsesRoster ? peopleLoading : false
+                candidateList={
+                  selectedPositionUsesRoster ? candidateList : null
                 }
                 selectedServiceTypeId={routeServiceTypeId}
                 selectedPlanId={routePlanId}
