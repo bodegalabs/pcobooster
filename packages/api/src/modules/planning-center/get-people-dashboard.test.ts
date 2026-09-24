@@ -1,14 +1,19 @@
 import {
   getPeopleDashboardActivity,
   getPeopleDashboardRoster,
-  PEOPLE_DASHBOARD_REQUEST_BUDGET,
 } from "@pcobooster/api/modules/planning-center/get-people-dashboard";
 import type { PeopleDashboardActivityDependencies } from "@pcobooster/api/modules/planning-center/get-people-dashboard";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
+import {
+  pagesFor,
+  PLANNING_CENTER_REQUEST_CAP,
+  PROGRESSIVE_REQUEST_BUDGET,
+} from "@pcobooster/api/planning-center/request-budget";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import { planningCenterBudgetFailures } from "@pcobooster/api/testing/planning-center-failures";
+import { countedRead } from "@pcobooster/api/testing/planning-center-requests";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect, Exit } from "effect";
@@ -89,23 +94,22 @@ const activityDependencies = ({
 }) => {
   const getPersonSchedulesAfter = vi.fn<
     PlanningCenterPeopleService["getPersonSchedulesAfter"]
-  >((personId) =>
-    Effect.succeed({
-      data: schedulesByPerson[personId]?.data ?? [],
-      included: schedulesByPerson[personId]?.included ?? [],
-    })
-  );
+  >((personId) => {
+    const data = schedulesByPerson[personId]?.data ?? [];
+    return countedRead(
+      { data, included: schedulesByPerson[personId]?.included ?? [] },
+      pagesFor(data.length)
+    );
+  });
   const getPlansWithIncludedInDateRange = vi.fn<
     PlanningCenterPlansService["getPlansWithIncludedInDateRange"]
   >((serviceTypeId) =>
-    Effect.succeed(
-      plansByServiceType[serviceTypeId] ?? { data: [], included: [] }
-    )
+    countedRead(plansByServiceType[serviceTypeId] ?? { data: [], included: [] })
   );
   const dependencies: PeopleDashboardActivityDependencies = {
     peopleService: { getPersonSchedulesAfter },
     plansService: { getPlansWithIncludedInDateRange },
-    resolveTimeZone: Effect.succeed(orgTimeZone),
+    resolveTimeZone: countedRead(orgTimeZone),
   };
   return {
     dependencies,
@@ -240,7 +244,7 @@ describe(getPeopleDashboardActivity, () => {
       10, 31,
     ]);
     expect(batch.requestBudget).toStrictEqual({
-      limit: PEOPLE_DASHBOARD_REQUEST_BUDGET,
+      limit: PROGRESSIVE_REQUEST_BUDGET,
       planningCenterRequests: 2,
       scheduleRequests: 1,
       planTimeRequests: 0,
@@ -340,7 +344,7 @@ describe(getPeopleDashboardActivity, () => {
       (_, index) => `person-${index}`
     );
     // Every person fills two schedule pages (1 + 32 requests), which leaves
-    // room for two plan-range reads; the third service type has to wait.
+    // room for one plan-range read; the other service types have to wait.
     const heavySchedules = (serviceTypeId: string) => ({
       data: Array.from({ length: 150 }, (_, index) =>
         schedule(`${serviceTypeId}-${index}`, "2026-05-17T17:00:00.000Z", {
@@ -366,16 +370,63 @@ describe(getPeopleDashboardActivity, () => {
 
     expect(
       getPlansWithIncludedInDateRange.mock.calls.map(([id]) => id)
-    ).toStrictEqual(["st-a", "st-b"]);
-    expect(batch.deferredPersonIds).toStrictEqual(["person-2"]);
+    ).toStrictEqual(["st-a"]);
+    expect(batch.deferredPersonIds).toStrictEqual(["person-1", "person-2"]);
     expect(batch.people.map(({ id }) => id)).toStrictEqual(
-      personIds.filter((id) => id !== "person-2")
+      personIds.filter((id) => id !== "person-1" && id !== "person-2")
     );
     expect(batch.requestBudget).toStrictEqual({
-      limit: PEOPLE_DASHBOARD_REQUEST_BUDGET,
-      planningCenterRequests: 35,
+      limit: PROGRESSIVE_REQUEST_BUDGET,
+      planningCenterRequests: 34,
       scheduleRequests: 32,
-      planTimeRequests: 2,
+      planTimeRequests: 1,
+    });
+  });
+
+  it("finishes the first person even when their service types need more ranges than the budget leaves", async () => {
+    vi.useFakeTimers({ now: new Date("2026-05-23T12:00:00.000Z") });
+    const personIds = Array.from(
+      { length: 16 },
+      (_, index) => `person-${index}`
+    );
+    const serviceTypes = ["st-0", "st-1", "st-2", "st-3", "st-4"];
+    const heavySchedules = (types: readonly string[]) => ({
+      data: Array.from({ length: 150 }, (_, index) => {
+        const serviceTypeId = types[index % types.length] ?? "st-0";
+        return schedule(
+          `${serviceTypeId}-${index}`,
+          "2026-05-17T17:00:00.000Z",
+          {
+            serviceTypeId,
+            timeIds: [`rehearsal-${serviceTypeId}`],
+          }
+        );
+      }),
+    });
+    const { dependencies, getPlansWithIncludedInDateRange } =
+      activityDependencies({
+        schedulesByPerson: {
+          ...Object.fromEntries(
+            personIds.map((id) => [id, heavySchedules(["st-9"])])
+          ),
+          "person-0": heavySchedules(serviceTypes),
+        },
+      });
+
+    const batch = await Effect.runPromise(
+      getPeopleDashboardActivity({ personIds, dependencies })
+    );
+
+    expect({
+      firstPerson: batch.people[0]?.id,
+      ranges: getPlansWithIncludedInDateRange.mock.calls.map(([id]) => id),
+      underCap:
+        batch.requestBudget.planningCenterRequests <=
+        PLANNING_CENTER_REQUEST_CAP,
+    }).toStrictEqual({
+      firstPerson: "person-0",
+      ranges: ["st-0", "st-1"],
+      underCap: true,
     });
   });
 
@@ -390,9 +441,9 @@ describe(getPeopleDashboardActivity, () => {
       getPeopleDashboardActivity({ personIds, dependencies })
     );
 
-    expect(getPersonSchedulesAfter).toHaveBeenCalledTimes(19);
-    expect(batch.people).toHaveLength(19);
-    expect(batch.deferredPersonIds).toStrictEqual(personIds.slice(19));
+    expect(getPersonSchedulesAfter).toHaveBeenCalledTimes(16);
+    expect(batch.people).toHaveLength(16);
+    expect(batch.deferredPersonIds).toStrictEqual(personIds.slice(16));
   });
 
   it("still counts schedules in another organization whose plan times it cannot read", async () => {
