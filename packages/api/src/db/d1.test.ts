@@ -9,7 +9,6 @@ import {
 } from "@pcobooster/api/db/schema";
 import { getAccountActivity } from "@pcobooster/api/modules/admin/get-account-activity";
 import { makeSignature } from "better-auth/crypto";
-import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createLocalD1 } from "../../../../scripts/database/local-d1";
@@ -77,7 +76,7 @@ describe("D1 persistence", () => {
     const storedUser = await database.query.user.findFirst();
     const storedAccount = await database.query.account.findFirst();
     const event = await database.query.activityEvents.findFirst({
-      where: eq(activityEvents.id, 42),
+      where: { id: 42 },
     });
     expect(storedUser).toMatchObject({ createdAt, emailVerified: false });
     expect(storedAccount).toMatchObject({

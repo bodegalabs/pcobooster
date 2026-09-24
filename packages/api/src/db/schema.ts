@@ -1,27 +1,43 @@
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
-import { desc, relations, sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { desc, sql } from "drizzle-orm";
+import {
+  index,
+  integer,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 
-export const user = sqliteTable("user", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  emailVerified: integer("emailVerified", { mode: "boolean" }).notNull(),
-  image: text("image"),
-  createdAt: integer("createdAt", { mode: "timestamp_ms" })
-    .default(sql`(cast((julianday('now') - 2440587.5) * 86400000 as integer))`)
-    .notNull(),
-  updatedAt: integer("updatedAt", { mode: "timestamp_ms" })
-    .default(sql`(cast((julianday('now') - 2440587.5) * 86400000 as integer))`)
-    .notNull(),
-});
+export const user = sqliteTable(
+  "user",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    emailVerified: integer("emailVerified", { mode: "boolean" }).notNull(),
+    image: text("image"),
+    createdAt: integer("createdAt", { mode: "timestamp_ms" })
+      .default(
+        sql`(cast((julianday('now') - 2440587.5) * 86400000 as integer))`
+      )
+      .notNull(),
+    updatedAt: integer("updatedAt", { mode: "timestamp_ms" })
+      .default(
+        sql`(cast((julianday('now') - 2440587.5) * 86400000 as integer))`
+      )
+      .notNull(),
+  },
+  // Named indexes rather than `.unique()`, which drizzle-kit v1 renders as inline constraints and
+  // would rebuild the table to add.
+  (table) => [uniqueIndex("user_email_unique").on(table.email)]
+);
 
 export const session = sqliteTable(
   "session",
   {
     id: text("id").primaryKey(),
     expiresAt: integer("expiresAt", { mode: "timestamp_ms" }).notNull(),
-    token: text("token").notNull().unique(),
+    token: text("token").notNull(),
     createdAt: integer("createdAt", { mode: "timestamp_ms" })
       .default(
         sql`(cast((julianday('now') - 2440587.5) * 86400000 as integer))`
@@ -34,7 +50,10 @@ export const session = sqliteTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
   },
-  (table) => [index("session_userId_idx").on(table.userId)]
+  (table) => [
+    uniqueIndex("session_token_unique").on(table.token),
+    index("session_userId_idx").on(table.userId),
+  ]
 );
 
 export const account = sqliteTable(
@@ -183,50 +202,4 @@ export const planningCenterAccountIdentities = sqliteTable(
       table.organizationId
     ),
   ]
-);
-
-export const userRelations = relations(user, ({ many }) => ({
-  sessions: many(session),
-  accounts: many(account),
-  activityEvents: many(activityEvents),
-}));
-
-export const sessionRelations = relations(session, ({ one }) => ({
-  user: one(user, {
-    fields: [session.userId],
-    references: [user.id],
-  }),
-}));
-
-export const accountRelations = relations(account, ({ one, many }) => ({
-  user: one(user, {
-    fields: [account.userId],
-    references: [user.id],
-  }),
-  planningCenterIdentity: one(planningCenterAccountIdentities, {
-    fields: [account.id],
-    references: [planningCenterAccountIdentities.accountId],
-  }),
-  activityEvents: many(activityEvents),
-}));
-
-export const activityEventsRelations = relations(activityEvents, ({ one }) => ({
-  actorUser: one(user, {
-    fields: [activityEvents.actorUserId],
-    references: [user.id],
-  }),
-  actorAccount: one(account, {
-    fields: [activityEvents.actorAccountId],
-    references: [account.id],
-  }),
-}));
-
-export const planningCenterAccountIdentitiesRelations = relations(
-  planningCenterAccountIdentities,
-  ({ one }) => ({
-    account: one(account, {
-      fields: [planningCenterAccountIdentities.accountId],
-      references: [account.id],
-    }),
-  })
 );

@@ -20,7 +20,7 @@ The production deployment project is `pcobooster-production` (`2eca20e1-20ac-4f0
 | Key | Owner and purpose |
 | --- | --- |
 | `DB` | Alchemy D1 binding; replaces runtime `DATABASE_URL`. |
-| `BETTER_AUTH_SECRET` | Infisical signing secret. Production retains its existing value to preserve sessions. Alchemy derives a separate signing key for each preview stage from the preview master. |
+| `BETTER_AUTH_SECRET` | Infisical signing secret. Production retains its existing value to preserve sessions. Each preview stage uses its own `Alchemy.Random` key instead, kept in Alchemy state and discarded with the stage; previews do not read this secret. |
 | `OAUTH_PROXY_SECRET` | Shared production/preview broker secret. Preview callbacks use production only to finish the provider exchange; preview accounts and sessions stay in preview D1. |
 | `PLANNING_CENTER_OAUTH_CLIENT_ID`, `PLANNING_CENTER_OAUTH_CLIENT_SECRET` | Planning Center application credentials from Infisical. |
 | `PCOBOOSTER_ADMIN_EMAILS` | Comma-separated admin allowlist. |

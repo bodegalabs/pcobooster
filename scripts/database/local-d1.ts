@@ -32,12 +32,20 @@ export const createLocalD1 = async (name: string) => {
       "../../packages/api/migrations/",
       import.meta.url
     );
-    const files = await readdir(directory);
+    // drizzle-kit v1 layout: one `<timestamp>_<name>/migration.sql` per migration.
+    const entries = await readdir(directory, { withFileTypes: true });
     const migrations = await Promise.all(
-      files
-        .filter((file) => file.endsWith(".sql"))
+      entries
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
         .toSorted()
-        .map(async (file) => await readFile(new URL(file, directory), "utf-8"))
+        .map(
+          async (migration) =>
+            await readFile(
+              new URL(`${migration}/migration.sql`, directory),
+              "utf-8"
+            )
+        )
     );
     const statements = migrations.flatMap((sql) =>
       sql

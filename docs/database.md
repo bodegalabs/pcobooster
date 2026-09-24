@@ -4,7 +4,11 @@ The app uses Drizzle with Cloudflare D1 (SQLite). `alchemy.run.ts` owns one data
 
 ## Schema changes
 
-Edit `packages/api/src/db/schema.ts`, run `bun run db:generate`, and review the generated SQL. Alchemy applies migrations on local startup and deployment. Canonical SQL and Drizzle metadata live in `packages/api/migrations`; `scripts/cloudflare/prepare.ts` stages SQL alone for Alchemy because its migration loader does not accept the Drizzle 0.x journal format. Never edit an already-applied migration.
+Edit `packages/api/src/db/schema.ts`, then run `bun run dev` (or `bun run db:generate`). `alchemy.run.ts` declares the schema as a `Drizzle.Schema` resource, so every deploy, local startup included, generates a migration when the schema has drifted and the `Database` resource applies it. Review and commit the generated `packages/api/migrations/<timestamp>_<name>/` directory; a test fails CI while any schema change lacks its committed migration. drizzle-kit names migrations randomly unless told otherwise, so prefer generating them yourself with a descriptive name before starting the dev stack: `bun run --cwd packages/api db:generate --name add_feedback_table`. Changes drizzle-kit must ask about (renames, possible data loss) fail non-interactive deploys: run `bun run db:generate` in a terminal to answer them, then commit the result.
+
+Alchemy records applied migrations by directory name in `__alchemy_migrations`. Never edit an already-applied migration. The one exception is the two migrations that predate the drizzle-kit v1 layout (the baseline and `feedback`). They are written with `IF NOT EXISTS` so databases that recorded them under their old flat names (`0000_high_black_tarantula.sql`, `0001_feedback.sql`) replay them harmlessly.
+
+Declare unique constraints with named `uniqueIndex(...)`s, not `.unique()`. drizzle-kit renders `.unique()` inline, and adding one to an existing table rebuilds it; on D1 that means dropping a parent table, which cascades to its children.
 
 ### Migrations must keep the running app online
 

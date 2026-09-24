@@ -1,8 +1,8 @@
-import { createHmac } from "node:crypto";
 import path from "node:path";
 
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
+import * as Drizzle from "alchemy/Drizzle";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
 import * as State from "alchemy/State";
 import { Config, Effect, Layer, Redacted } from "effect";
@@ -41,7 +41,7 @@ const developmentSecrets = (local: boolean) => ({
 export default Alchemy.Stack(
   "pcobooster",
   {
-    providers: Cloudflare.providers(),
+    providers: Layer.mergeAll(Cloudflare.providers(), Drizzle.providers()),
     state: Layer.unwrap(
       Alchemy.Stage.pipe(
         Effect.map((stage) =>
@@ -91,19 +91,22 @@ export default Alchemy.Stack(
         });
       }
     }
-    const authSecret = yield* Config.Redacted("BETTER_AUTH_SECRET");
-    const stageAuthSecret =
+    // Production keeps its Infisical secret so existing sessions stay valid; each preview mints
+    // its own, stored in Alchemy state and discarded with the stage.
+    const authSecret =
       production || local
-        ? authSecret
-        : Redacted.make(
-            createHmac("sha256", Redacted.value(authSecret))
-              .update(stage)
-              .digest("hex")
-          );
+        ? yield* Config.Redacted("BETTER_AUTH_SECRET")
+        : yield* Alchemy.makeRandom("BetterAuthSecret");
+    // Regenerates migration SQL when the schema drifts; the database applies it on deploy.
+    const schema = yield* Drizzle.Schema("Schema", {
+      schema: "./packages/api/src/db/schema.ts",
+      out: "./packages/api/migrations",
+      dialect: "sqlite",
+    });
     const database = yield* Cloudflare.D1.Database("Database", {
       name: `pcobooster-${stage}`,
       primaryLocationHint: "wnam",
-      migrations: "./.alchemy/d1-migrations",
+      migrations: schema,
     }).pipe(RemovalPolicy.retain(production));
 
     const api = yield* Cloudflare.Worker("Api", {
@@ -126,7 +129,7 @@ export default Alchemy.Stack(
         OAUTH_PROXY_SECRET: local ? "" : optionalSecret("OAUTH_PROXY_SECRET"),
         OAUTH_PROXY_PRODUCTION_URL: local ? "" : "https://pcobooster.com",
         OAUTH_PREVIEW_ORIGIN_PATTERN: `https://pcobooster-*-web.${workersSubdomain}.workers.dev`,
-        BETTER_AUTH_SECRET: stageAuthSecret,
+        BETTER_AUTH_SECRET: authSecret,
         PLANNING_CENTER_OAUTH_CLIENT_ID: Config.Redacted(
           "PLANNING_CENTER_OAUTH_CLIENT_ID"
         ),

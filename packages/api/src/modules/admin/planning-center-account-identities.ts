@@ -2,7 +2,6 @@ import type { PlanningCenterIdentity } from "@pcobooster/api/auth/planning-cente
 import { db } from "@pcobooster/api/db";
 import type { Db } from "@pcobooster/api/db/client";
 import { planningCenterAccountIdentities } from "@pcobooster/api/db/schema";
-import { eq } from "drizzle-orm";
 
 export type StoredPlanningCenterAccountIdentity = PlanningCenterIdentity & {
   accountId: string;
@@ -55,7 +54,7 @@ export const getPlanningCenterAccountIdentity = async (
   database: Db = db
 ): Promise<StoredPlanningCenterAccountIdentity | null> => {
   const row = await database.query.planningCenterAccountIdentities.findFirst({
-    where: eq(planningCenterAccountIdentities.accountId, accountId),
+    where: { accountId },
   });
   if (!row) {
     return null;

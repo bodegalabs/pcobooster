@@ -1,12 +1,5 @@
 import { createHash } from "node:crypto";
-import {
-  copyFile,
-  mkdir,
-  readFile,
-  readdir,
-  rm,
-  writeFile,
-} from "node:fs/promises";
+import { readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const ignoredDirectories = new Set([
@@ -80,27 +73,6 @@ export const prepareCloudflareBuild = async (stage: string): Promise<void> => {
         `apps/${app}/${buildStampName}`,
         `${JSON.stringify({ sha256 })}\n`
       );
-    })
-  );
-
-  // Alchemy accepts plain SQL but rejects Drizzle 0.x's journal layout.
-  // The SQL files stay canonical in packages/api/migrations; this is a build output.
-  const source = "packages/api/migrations";
-  const destination = ".alchemy/d1-migrations";
-  await mkdir(destination, { recursive: true });
-  const sourceFiles = await readdir(source);
-  const files = sourceFiles.filter((name) => name.endsWith(".sql"));
-  const existingFiles = await readdir(destination);
-  await Promise.all(
-    existingFiles
-      .filter((file) => !files.includes(file))
-      .map(async (file) => {
-        await rm(path.join(destination, file));
-      })
-  );
-  await Promise.all(
-    files.map(async (file) => {
-      await copyFile(path.join(source, file), path.join(destination, file));
     })
   );
 };
