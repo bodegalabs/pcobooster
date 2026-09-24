@@ -7,7 +7,6 @@ import type {
   PeopleDashboardRoster,
   PeopleDashboardRosterPerson,
 } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
-import { buildFrequencyFromServiceHistory } from "@pcobooster/api/modules/planning-center/people/history";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
@@ -18,6 +17,7 @@ import {
   formatCalendarDayInTimeZone,
   orgCalendarDaysRefMinusItem,
 } from "@pcobooster/planning-center-models/calendar";
+import { buildFrequencyFromServiceHistory } from "@pcobooster/planning-center-models/candidate-frequency";
 import {
   isNonEmptyString,
   isString,

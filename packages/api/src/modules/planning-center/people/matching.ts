@@ -1,4 +1,5 @@
 import type { SelectedPlanMatchContext } from "@pcobooster/api/modules/planning-center/people/types";
+import { isDeclinedAssignmentStatus } from "@pcobooster/planning-center-models/candidate-frequency";
 import {
   isNonEmptyString,
   isString,
@@ -53,15 +54,6 @@ const readScheduleTeamPositionParts = (
     ...parsed,
     teamName: (parsed.teamName ?? explicitTeamName) || undefined,
   };
-};
-
-/** Planning Center Services: status `D` / "declined". Excluded from schedule history and load algorithms; matching still uses raw rows so the UI can show "Declined" for the selected plan. */
-export const isDeclinedAssignmentStatus = (
-  status: string | undefined
-): boolean => {
-  const s = (status ?? "").trim();
-  const n = s.toLowerCase();
-  return s === "D" || n === "declined";
 };
 
 export const findMatchingScheduleForSelectedPosition = <

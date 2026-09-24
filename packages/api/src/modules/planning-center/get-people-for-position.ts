@@ -19,10 +19,6 @@ import {
   mergeAssignmentLabels,
 } from "@pcobooster/api/modules/planning-center/people/roster-overlay";
 import {
-  scoreAndNormalizePeople,
-  sortPeopleForSelection,
-} from "@pcobooster/api/modules/planning-center/people/scoring";
-import {
   applyAvailability,
   buildSelectedPlanMatchContext,
   createBasePerson,
@@ -48,6 +44,10 @@ import {
   addCalendarDaysToDayKey,
   formatCalendarDayInTimeZone,
 } from "@pcobooster/planning-center-models/calendar";
+import {
+  scoreAndNormalizePeople,
+  sortPeopleForSelection,
+} from "@pcobooster/planning-center-models/candidate-scoring";
 import {
   isNonEmptyString,
   isNumber,

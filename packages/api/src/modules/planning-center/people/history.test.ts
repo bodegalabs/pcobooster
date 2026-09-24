@@ -1,9 +1,9 @@
 import {
-  buildFrequencyFromServiceHistory,
   buildHistoryAndFrequencyForPerson,
   buildHistoryAndFrequencyForPlanPeople,
 } from "@pcobooster/api/modules/planning-center/people/history";
 import { scheduleResourceSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
+import { buildFrequencyFromServiceHistory } from "@pcobooster/planning-center-models/candidate-frequency";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   PCResource,

@@ -6,7 +6,10 @@
   "exports": {
     "./calendar": "./src/calendar.ts",
     "./calendar-day": "./src/calendar-day.ts",
+    "./candidate-frequency": "./src/candidate-frequency.ts",
+    "./candidate-scoring": "./src/candidate-scoring.ts",
     "./json": "./src/json.ts",
+    "./position-candidates": "./src/position-candidates.ts",
     "./schedule-constants": "./src/schedule-constants.ts",
     "./types": "./src/types.ts"
   },
