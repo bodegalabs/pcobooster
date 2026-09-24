@@ -14,8 +14,10 @@ import type { PlanningCenterAccessDependencies } from "@pcobooster/api/applicati
 import { demoSessionToken } from "@pcobooster/api/auth/demo-access";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
+import { PlanningCenterRateLimitError } from "@pcobooster/api/planning-center/rate-limit-error";
 import { PlanningCenterReadOnlyError } from "@pcobooster/api/planning-center/read-only-error";
 import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import { PlanningCenterSubrequestLimitError } from "@pcobooster/api/planning-center/subrequest-limit-error";
 import { Server } from "@pcobooster/api/server";
 import {
   httpClientFor,
@@ -193,6 +195,31 @@ describe("PlanningCenterAccess", () => {
     ).toMatchObject({
       _tag: "ExternalServiceFailure",
       service: "planning-center",
+    });
+  });
+
+  it("maps paced rate-limit rejections and subrequest limits to tagged faults", () => {
+    expect(
+      toApplicationFault(
+        new PlanningCenterRateLimitError({ retryAfterSeconds: 12 })
+      )
+    ).toMatchObject({
+      _tag: "RateLimited",
+      service: "planning-center",
+      retryAfterSeconds: 12,
+    });
+    expect(
+      toApplicationFault(
+        new PlanningCenterSubrequestLimitError({
+          source: "worker",
+          requests: 50,
+        })
+      )
+    ).toMatchObject({
+      _tag: "ExternalServiceFailure",
+      service: "planning-center",
+      message:
+        "This request needed more Planning Center calls than one request allows.",
     });
   });
 

@@ -158,6 +158,22 @@ export const planningCenterFault = (
         cause: error,
       });
     }
+    case "PlanningCenterRateLimitError": {
+      return new RateLimited({
+        message:
+          "Planning Center rate limit exceeded. Please wait and try again.",
+        service: "planning-center",
+        retryAfterSeconds: error.retryAfterSeconds,
+      });
+    }
+    case "PlanningCenterSubrequestLimitError": {
+      return new ExternalServiceFailure({
+        message:
+          "This request needed more Planning Center calls than one request allows.",
+        service: "planning-center",
+        cause: error,
+      });
+    }
     case "PlanningCenterNetworkError": {
       return new ExternalServiceFailure({
         message: "Planning Center request failed.",

@@ -3,6 +3,7 @@ import { createRequestContext } from "@pcobooster/api/application/context";
 import type { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import type { ApplicationRuntime } from "@pcobooster/api/application/runtime";
+import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import { Server } from "@pcobooster/api/server";
 import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
 import { Cause, Effect, Exit } from "effect";
@@ -107,8 +108,16 @@ export const executeApplicationEffect = async <Value>(
     options.interruptOnAbort === false
       ? new AbortController().signal
       : requestSignal;
+  const withServer = Effect.provideService(program, Server, rpcContext.server);
+  const { planningCenterAccounting } = rpcContext;
   const result = await runtime.execute(
-    Effect.provideService(program, Server, rpcContext.server),
+    planningCenterAccounting === undefined
+      ? withServer
+      : Effect.provideService(
+          withServer,
+          PlanningCenterAccounting,
+          planningCenterAccounting
+        ),
     {
       ...baseContext,
       requestId: rpcContext.requestId,
