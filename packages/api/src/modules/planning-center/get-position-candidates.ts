@@ -40,7 +40,7 @@ export interface PositionCandidatesDependencies {
     PlanningCenterPeopleService,
     "getPeopleForTeamPosition" | "getPlanTeamMembers"
   >;
-  readonly resolveTimeZone: Effect.Effect<string>;
+  readonly resolveTimeZone: Effect.Effect<string, PlanningCenterError>;
 }
 
 /**

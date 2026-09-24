@@ -4,10 +4,14 @@ import {
   noContentResponse,
   unreachableHttpClient,
 } from "@pcobooster/api/testing/http-client";
+import {
+  planningCenterBudgetFailures,
+  planningCenterNotFound,
+} from "@pcobooster/api/testing/planning-center-failures";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { Effect } from "effect";
+import { Effect, Exit } from "effect";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const resource = (
@@ -399,6 +403,44 @@ describe("PlanningCenterPeopleService.getPlanPlanTimes", () => {
       10
     );
   });
+
+  it("reads a plan Planning Center does not find as having no times", async () => {
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
+    );
+    vi.spyOn(core, "fetchAll").mockReturnValue(
+      Effect.fail(planningCenterNotFound())
+    );
+    const service = new PlanningCenterPeopleService(core);
+
+    await expect(
+      Effect.runPromise(service.getPlanPlanTimes("plan-456"))
+    ).resolves.toStrictEqual([]);
+  });
+
+  it.each(planningCenterBudgetFailures())(
+    "fails with %s instead of caching no times",
+    async (failure) => {
+      const core = createBasicPlanningCenterClient(
+        testPlanningCenterToken,
+        unreachableHttpClient
+      );
+      const fetchAll = vi
+        .spyOn(core, "fetchAll")
+        .mockReturnValueOnce(Effect.fail(failure))
+        .mockReturnValueOnce(Effect.succeed([resource("time-1", "PlanTime")]));
+      const service = new PlanningCenterPeopleService(core);
+
+      await expect(
+        Effect.runPromiseExit(service.getPlanPlanTimes("plan-456"))
+      ).resolves.toStrictEqual(Exit.fail(failure));
+      await expect(
+        Effect.runPromise(service.getPlanPlanTimes("plan-456"))
+      ).resolves.toStrictEqual([resource("time-1", "PlanTime")]);
+      expect(fetchAll).toHaveBeenCalledTimes(2);
+    }
+  );
 });
 
 describe("PlanningCenterPeopleService.deletePlanPerson", () => {

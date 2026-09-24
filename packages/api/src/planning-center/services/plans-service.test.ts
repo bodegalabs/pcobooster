@@ -5,9 +5,10 @@ import {
   noContentResponse,
   unreachableHttpClient,
 } from "@pcobooster/api/testing/http-client";
+import { planningCenterBudgetFailures } from "@pcobooster/api/testing/planning-center-failures";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { Effect } from "effect";
+import { Effect, Exit } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 const resolveTimeZone = Effect.succeed("America/Los_Angeles");
@@ -254,4 +255,22 @@ describe("PlanningCenterPlansService plan times", () => {
     ).resolves.toBeUndefined();
     expect(request).toHaveBeenCalledOnce();
   });
+
+  it.each(planningCenterBudgetFailures())(
+    "fails a delete with %s instead of treating it as done",
+    async (failure) => {
+      const core = createBasicPlanningCenterClient(
+        testPlanningCenterToken,
+        unreachableHttpClient
+      );
+      vi.spyOn(core, "request").mockReturnValue(Effect.fail(failure));
+      const service = new PlanningCenterPlansService(core, resolveTimeZone);
+
+      await expect(
+        Effect.runPromiseExit(
+          service.deletePlanTime("st-1", "plan-1", "time-1")
+        )
+      ).resolves.toStrictEqual(Exit.fail(failure));
+    }
+  );
 });

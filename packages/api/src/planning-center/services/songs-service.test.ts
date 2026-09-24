@@ -2,8 +2,9 @@ import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-erro
 import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterSongsService } from "@pcobooster/api/planning-center/services/songs-service";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
+import { planningCenterBudgetFailures } from "@pcobooster/api/testing/planning-center-failures";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
-import { Effect } from "effect";
+import { Effect, Exit } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 const createCoreClientMock = () => {
@@ -189,4 +190,20 @@ describe("PlanningCenterSongsService.getSongLastScheduledItem", () => {
       )
     ).resolves.toBe(error);
   });
+
+  it.each(planningCenterBudgetFailures())(
+    "fails with %s instead of reading no last item",
+    async (failure) => {
+      const { core, fetchMock } = createCoreClientMock();
+      fetchMock.mockReturnValueOnce(Effect.fail(failure));
+
+      const service = new PlanningCenterSongsService(core);
+
+      await expect(
+        Effect.runPromiseExit(
+          service.getSongLastScheduledItem("song-1", "service-1")
+        )
+      ).resolves.toStrictEqual(Exit.fail(failure));
+    }
+  );
 });

@@ -3,7 +3,7 @@ import type {
   PlanningCenterCoreClient,
   PlanningCenterError,
 } from "@pcobooster/api/planning-center/core-client";
-import { recoverUnlessInterrupted } from "@pcobooster/api/planning-center/recover-unless-interrupted";
+import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import {
   PlanningCenterReadCache,
@@ -410,7 +410,7 @@ export class PlanningCenterPeopleService {
   private enrichSchedulesWithRehearsalTimes(
     schedules: PCResource[],
     included: PCResource[]
-  ): Effect.Effect<PCResource[]> {
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
     const missingByPlan = findMissingPlanTimes(schedules, included);
     if (missingByPlan.size === 0) {
       return Effect.succeed(included);
@@ -429,9 +429,12 @@ export class PlanningCenterPeopleService {
   /**
    * Cached fetch of all PlanTimes for a plan. Shared across candidates so a position page with
    * 30 candidates serving on the same Sunday plan triggers one fetch, not 30. PlanTimes rarely
-   * change, so the TTL is longer than per-person caches. A plan we cannot read has no times.
+   * change, so the TTL is longer than per-person caches. A plan Planning Center does not find
+   * (deleted, or in another organization) has no times; every other failure fails the read.
    */
-  getPlanPlanTimes(planId: string): Effect.Effect<PCResource[]> {
+  getPlanPlanTimes(
+    planId: string
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
     return cachedRead(
       this.caches.resourceLists,
       this.buildCacheKey("plan-plan-times", planId),
@@ -443,11 +446,15 @@ export class PlanningCenterPeopleService {
             { per_page: "200" },
             10
           )
-          .pipe(recoverUnlessInterrupted((): PCResource[] => []))
-    ).pipe(
-      Effect.map((planTimes) => structuredClone(planTimes)),
-      Effect.orDie
-    );
+          .pipe(
+            recoverPlanningCenterFailure({
+              kinds: ["not-found"],
+              reason: "Plan not found; reading it as having no plan times",
+              details: { planId },
+              fallback: (): PCResource[] => [],
+            })
+          )
+    ).pipe(Effect.map((planTimes) => structuredClone(planTimes)));
   }
 
   getPeopleForTeamPosition(

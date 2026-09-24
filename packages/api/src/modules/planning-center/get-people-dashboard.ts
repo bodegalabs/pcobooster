@@ -7,8 +7,8 @@ import type {
   PeopleDashboardRoster,
   PeopleDashboardRosterPerson,
 } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
-import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
@@ -57,7 +57,7 @@ export interface PeopleDashboardRosterDependencies {
     PlanningCenterPeopleService,
     "getAllPeopleFromTeams"
   >;
-  readonly resolveTimeZone: Effect.Effect<string>;
+  readonly resolveTimeZone: Effect.Effect<string, PlanningCenterError>;
 }
 
 export interface PeopleDashboardActivityDependencies {
@@ -69,7 +69,7 @@ export interface PeopleDashboardActivityDependencies {
     PlanningCenterPlansService,
     "getPlansWithIncludedInDateRange"
   >;
-  readonly resolveTimeZone: Effect.Effect<string>;
+  readonly resolveTimeZone: Effect.Effect<string, PlanningCenterError>;
 }
 
 export interface ScheduleItem {
@@ -696,11 +696,13 @@ export const getPeopleDashboardActivity = ({
             // A schedule in another organization names a service type this
             // one cannot read; those schedules keep their plan date and
             // still count, without rehearsal or month-day detail.
-            Effect.catchIf(
-              (error) =>
-                error instanceof PlanningCenterApiError && error.status === 404,
-              () => Effect.succeed({ data: [], included: [] })
-            )
+            recoverPlanningCenterFailure({
+              kinds: ["not-found"],
+              reason:
+                "Service type not found; its schedules keep their plan dates without rehearsal times",
+              details: { serviceTypeId },
+              fallback: () => ({ data: [], included: [] }),
+            })
           ),
       { concurrency: READ_CONCURRENCY }
     );

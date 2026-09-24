@@ -46,6 +46,7 @@ import {
 } from "@pcobooster/api/modules/planning-center/presentation";
 import { searchPeople } from "@pcobooster/api/modules/planning-center/search-people";
 import type { PeopleSearchResult } from "@pcobooster/api/modules/planning-center/search-people";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
 import { Server } from "@pcobooster/api/server";
 import type { Blockout } from "@pcobooster/planning-center-models/types";
@@ -53,7 +54,7 @@ import { Effect } from "effect";
 
 const resolveRequestTimeZone = (
   access: PlanningCenterRequestAccess
-): Effect.Effect<string> =>
+): Effect.Effect<string, PlanningCenterError> =>
   resolveOrganizationTimeZone({
     cacheScope: access.cacheScope,
     catalogService: access.services.catalog,

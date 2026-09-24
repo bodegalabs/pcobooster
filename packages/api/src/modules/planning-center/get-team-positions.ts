@@ -6,6 +6,10 @@ import {
 } from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
 import type { PlanRosterEntry } from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import {
+  describePlanningCenterCause,
+  isRecoverablePlanningCenterCause,
+} from "@pcobooster/api/planning-center/recover-failure";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
@@ -24,7 +28,7 @@ import type {
   TeamPosition,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
-import { Cause, Effect } from "effect";
+import { Effect } from "effect";
 
 const log = logger.for("module/get-team-positions");
 
@@ -326,16 +330,11 @@ const getSeriesIdForPlan = (
     }
   );
 
-const describeFailure = (cause: Cause.Cause<unknown>): string => {
-  const error = Cause.squash(cause);
-  return error instanceof Error
-    ? error.message.slice(0, 280)
-    : String(error).slice(0, 280);
-};
-
 /**
- * Prefers the service-type endpoint; when it fails, retries through the plan's
- * series and reports the original failure if the plan has no series.
+ * Prefers the service-type endpoint; when it fails with a provider error or an
+ * unusable response, retries through the plan's series and reports the original
+ * failure if the plan has no series. Rate-limit and subrequest-limit failures
+ * and cancellation propagate at once, without spending more requests.
  */
 const resolveNeededPositions = (
   serviceTypeId: string,
@@ -368,11 +367,17 @@ const resolveNeededPositions = (
         usedSeriesFallback: false,
       })),
       Effect.catchCause((cause) => {
-        if (Cause.hasInterruptsOnly(cause)) {
+        if (
+          !isRecoverablePlanningCenterCause(cause, [
+            "not-found",
+            "provider-failure",
+            "unusable-response",
+          ])
+        ) {
           return Effect.failCause(cause);
         }
         log.warn(
-          { serviceTypeId, planId, error: describeFailure(cause) },
+          { serviceTypeId, planId, error: describePlanningCenterCause(cause) },
           "Service-type needed positions fetch failed, trying series lookup fallback"
         );
         return Effect.flatMap(

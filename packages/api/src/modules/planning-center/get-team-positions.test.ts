@@ -1,9 +1,10 @@
 import { getNeededTeamPositionsForPlan } from "@pcobooster/api/modules/planning-center/get-team-positions";
 import type { TeamPositionDependencies } from "@pcobooster/api/modules/planning-center/get-team-positions";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import { planningCenterBudgetFailures } from "@pcobooster/api/testing/planning-center-failures";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { Effect } from "effect";
+import { Effect, Exit } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const createFixture = () => {
@@ -346,6 +347,30 @@ describe(getNeededTeamPositionsForPlan, () => {
     expect(result).toHaveLength(1);
     expect(result[0]?.positions[0]?.name).toBe("Drums");
   });
+
+  it.each(planningCenterBudgetFailures())(
+    "fails with %s without trying the series fallback",
+    async (failure) => {
+      mocks.getServiceTypeTeamPositionsWithTeams.mockReturnValue(
+        Effect.succeed({ data: [], included: [] })
+      );
+      mocks.getServiceTypePlanNeededPositionsWithTeams.mockReturnValue(
+        Effect.fail(failure)
+      );
+
+      await expect(
+        Effect.runPromiseExit(
+          getNeededTeamPositionsForPlan(
+            "st-1",
+            "plan-1",
+            undefined,
+            dependencies
+          )
+        )
+      ).resolves.toStrictEqual(Exit.fail(failure));
+      expect(mocks.getPlanForServiceTypeWithSeries).not.toHaveBeenCalled();
+    }
+  );
 
   it("adds confirmed and pending fill summaries with people names", async () => {
     mocks.getServiceTypeTeamPositionsWithTeams.mockReturnValue(

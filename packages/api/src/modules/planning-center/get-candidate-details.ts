@@ -77,7 +77,7 @@ export interface CandidateDetailsDependencies {
     PlanningCenterPeopleService,
     "getPersonBlockoutDates" | "getPersonBlockouts" | "getPersonSchedules"
   >;
-  readonly resolveTimeZone: Effect.Effect<string>;
+  readonly resolveTimeZone: Effect.Effect<string, PlanningCenterError>;
 }
 
 type PersonSchedules = Effect.Success<

@@ -10,6 +10,7 @@ import { getServiceTypes } from "@pcobooster/api/modules/planning-center/get-ser
 import { getNeededTeamPositionsForPlan } from "@pcobooster/api/modules/planning-center/get-team-positions";
 import type { TeamPositionDependencies } from "@pcobooster/api/modules/planning-center/get-team-positions";
 import { presentTeamPositions } from "@pcobooster/api/modules/planning-center/presentation";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
 import type {
   Plan,
@@ -20,7 +21,7 @@ import { Effect } from "effect";
 
 const resolveRequestTimeZone = (
   access: PlanningCenterRequestAccess
-): Effect.Effect<string> =>
+): Effect.Effect<string, PlanningCenterError> =>
   resolveOrganizationTimeZone({
     cacheScope: access.cacheScope,
     catalogService: access.services.catalog,
@@ -61,7 +62,9 @@ export const getCatalogOrganization: Effect.Effect<
   PlanningCenterAccess | RequestContext
 > = Effect.gen(function* getOrganization() {
   const access = yield* PlanningCenterAccess;
-  return { timeZone: yield* resolveRequestTimeZone(access) };
+  return {
+    timeZone: yield* withPlanningCenterFaults(resolveRequestTimeZone(access)),
+  };
 });
 
 export const getCatalogTeamPositions = (input: {

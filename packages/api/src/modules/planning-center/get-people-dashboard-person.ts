@@ -14,7 +14,7 @@ import type {
   PeopleDashboardPersonDetail,
 } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
-import { recoverUnlessInterrupted } from "@pcobooster/api/planning-center/recover-unless-interrupted";
+import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
@@ -50,9 +50,9 @@ const CADENCE_WINDOW_DAYS = 90;
 const SCHEDULE_AFTER_MARGIN_DAYS = 1;
 const MISSING_PLAN_TIMES_CONCURRENCY = 4;
 /**
- * Plan-by-plan time reads are a fallback for plans the ranges missed. The cap keeps a failed range
- * read from turning back into one request per plan; times left unresolved date the assignment by
- * its plan, as before.
+ * Plan-by-plan time reads are a fallback for plans the ranges missed, such as plans of another
+ * organization's service type. The cap keeps those from turning into one request per plan; times
+ * left unresolved date the assignment by its plan.
  */
 const MAX_DIRECT_PLAN_TIME_READS = 5;
 const PEOPLE_DASHBOARD_PERSON_CACHE_TTL_MS = 2 * 60 * 1000;
@@ -79,7 +79,7 @@ export interface PeopleDashboardPersonDependencies {
     PlanningCenterPlansService,
     "getPlansWithIncludedInDateRange"
   >;
-  readonly resolveTimeZone: Effect.Effect<string>;
+  readonly resolveTimeZone: Effect.Effect<string, PlanningCenterError>;
 }
 
 type ScheduleReaders = Pick<
@@ -238,14 +238,15 @@ const planIdsWithUnresolvedTimes = (
 /**
  * Resolves rehearsal PlanTimes with one cached plan-range read per service type (shared by every
  * person and month in that range) and reads a plan's own times only when the range lacks them.
- * Plans we cannot read contribute no times, as before.
+ * A service type or plan Planning Center does not find contributes no times; any other failure
+ * fails the read.
  */
 const resolveMissingPlanTimes = (
   schedules: PCResource[],
   included: PCResource[],
   window: PersonScheduleWindow,
   dependencies: ScheduleReaders
-): Effect.Effect<PCResource[]> => {
+): Effect.Effect<PCResource[], PlanningCenterError> => {
   const { byServiceType, missingTimeIds } = findMissingPlanTimes(
     schedules,
     included,
@@ -270,7 +271,13 @@ const resolveMissingPlanTimes = (
           )
           .pipe(
             Effect.map((response) => response.included),
-            recoverUnlessInterrupted((): PCResource[] => [])
+            recoverPlanningCenterFailure({
+              kinds: ["not-found"],
+              reason:
+                "Service type not found; its schedules keep their plan dates without rehearsal times",
+              details: { serviceTypeId },
+              fallback: (): PCResource[] => [],
+            })
           ),
       { concurrency: MISSING_PLAN_TIMES_CONCURRENCY }
     );
@@ -318,8 +325,6 @@ type ResourceCollection = Effect.Success<
   ReturnType<PeopleDashboardPersonReader["getPersonPlanPeople"]>
 >;
 
-const emptyCollection = (): ResourceCollection => ({ data: [], included: [] });
-
 /**
  * Planning Center leaves requests that were prepared but not sent out of a person's schedules,
  * while plan rosters (and so candidate scoring) count them. The person's plan people list the
@@ -329,7 +334,7 @@ const getPendingRequestSchedules = (
   planPeople: ResourceCollection,
   schedules: PCResource[],
   catalogService: ScheduleReaders["catalogService"]
-): Effect.Effect<PCResource[]> => {
+): Effect.Effect<PCResource[], PlanningCenterError> => {
   const scheduledPlanPersonIds = new Set(
     schedules.map(
       (schedule) =>
@@ -346,7 +351,6 @@ const getPendingRequestSchedules = (
     return Effect.succeed([]);
   }
   return catalogService.getServiceTypesCached().pipe(
-    recoverUnlessInterrupted((): PCResource[] => []),
     Effect.map((serviceTypes) =>
       pending.map((planPerson): PCResource => {
         const { attributes, relationships } = planPerson;
@@ -406,9 +410,7 @@ export const getPersonScheduleItems = (
           ),
           PERSON_SCHEDULE_MAX_PAGES
         ),
-        dependencies.peopleService
-          .getPersonPlanPeople(personId)
-          .pipe(recoverUnlessInterrupted(emptyCollection)),
+        dependencies.peopleService.getPersonPlanPeople(personId),
       ],
       { concurrency: "unbounded" }
     );

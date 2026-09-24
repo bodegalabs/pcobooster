@@ -3,9 +3,15 @@ import {
   getPersonScheduleWindow,
 } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
 import type { PeopleDashboardPersonDependencies } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import {
+  planningCenterBudgetFailures,
+  planningCenterNotFound,
+} from "@pcobooster/api/testing/planning-center-failures";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { Effect } from "effect";
+import { Effect, Exit } from "effect";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const LOS_ANGELES = "America/Los_Angeles";
@@ -465,5 +471,129 @@ describe(getPeopleDashboardPerson, () => {
     expect(fixture.getPlanPlanTimes).toHaveBeenCalledExactlyOnceWith("plan-1");
     expect(detail.person.lastRehearsal).toBe("Sep 12");
     expect(detail.trend.at(-1)?.rehearsals).toBe(1);
+  });
+});
+
+type FailingRead =
+  | "getPersonPlanPeople"
+  | "getServiceTypesCached"
+  | "getPlansWithIncludedInDateRange"
+  | "getPlanPlanTimes";
+
+/** Reaches every read: a pending request, and a rehearsal time no plan range holds. */
+const everyReadFixture = () =>
+  dependenciesFor({
+    schedules: {
+      data: [
+        schedule({
+          id: "schedule-sep",
+          planId: "plan-1",
+          sortDate: "2026-09-13T17:00:00Z",
+          timeIds: ["time-sep-rehearsal", "time-sep-service"],
+        }),
+      ],
+      included: [
+        planTime("time-sep-service", "2026-09-13T17:00:00Z", "service"),
+      ],
+    },
+    planPeople: {
+      data: [
+        planPerson({
+          id: "plan-person-pending",
+          planId: "plan-2",
+          status: "U",
+          timeIds: [],
+        }),
+      ],
+      included: [],
+    },
+  });
+
+const failRead = (
+  fixture: ReturnType<typeof everyReadFixture>,
+  read: FailingRead,
+  error: PlanningCenterError
+) => {
+  if (read === "getPersonPlanPeople") {
+    fixture.getPersonPlanPeople.mockReturnValue(Effect.fail(error));
+  } else if (read === "getServiceTypesCached") {
+    fixture.getServiceTypesCached.mockReturnValue(Effect.fail(error));
+  } else if (read === "getPlansWithIncludedInDateRange") {
+    fixture.getPlansWithIncludedInDateRange.mockReturnValue(Effect.fail(error));
+  } else {
+    fixture.getPlanPlanTimes.mockReturnValue(Effect.fail(error));
+  }
+};
+
+const readDetailExit = async (
+  dependencies: PeopleDashboardPersonDependencies
+) =>
+  await Effect.runPromiseExit(
+    getPeopleDashboardPerson({
+      personId: "person-1",
+      month: "2026-09",
+      dependencies,
+    })
+  );
+
+const failingReads: readonly FailingRead[] = [
+  "getPersonPlanPeople",
+  "getServiceTypesCached",
+  "getPlansWithIncludedInDateRange",
+  "getPlanPlanTimes",
+];
+
+describe("getPeopleDashboardPerson Planning Center failures", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it.each(
+    failingReads.flatMap((read) =>
+      planningCenterBudgetFailures().map((error) => ({ read, error }))
+    )
+  )("fails when $read fails with $error._tag", async ({ read, error }) => {
+    vi.useFakeTimers({ now: NOW });
+    const fixture = everyReadFixture();
+    failRead(fixture, read, error);
+
+    await expect(readDetailExit(fixture.dependencies)).resolves.toStrictEqual(
+      Exit.fail(error)
+    );
+  });
+
+  it.each(failingReads)(
+    "fails when %s fails with a provider error",
+    async (read) => {
+      vi.useFakeTimers({ now: NOW });
+      const fixture = everyReadFixture();
+      const error = new PlanningCenterApiError({
+        message: "Server error",
+        status: 500,
+      });
+      failRead(fixture, read, error);
+
+      await expect(readDetailExit(fixture.dependencies)).resolves.toStrictEqual(
+        Exit.fail(error)
+      );
+    }
+  );
+
+  it("keeps a schedule's plan date when its service type is not found", async () => {
+    vi.useFakeTimers({ now: NOW });
+    const fixture = everyReadFixture();
+    failRead(
+      fixture,
+      "getPlansWithIncludedInDateRange",
+      planningCenterNotFound()
+    );
+
+    const detail = await readDetail(fixture.dependencies);
+
+    expect(fixture.getPlanPlanTimes).toHaveBeenCalledExactlyOnceWith("plan-1");
+    expect(detail.person.monthDays).toContainEqual(
+      expect.objectContaining({ day: 13, kind: "service" })
+    );
+    expect(detail.trend.at(-1)?.rehearsals).toBe(0);
   });
 });

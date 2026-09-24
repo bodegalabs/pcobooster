@@ -55,6 +55,32 @@ const forbiddenNodeBuiltins = new Set([
   "zlib",
 ]);
 
+/** Effect combinators that can turn a failure into a value. */
+const effectRecoveryPattern =
+  /Effect\.(?:catch\w*|orElse\w*|ignore\w*|option|either|result|exit|match\w*)\b/gu;
+/**
+ * Planning Center code that may use those combinators directly, and why each
+ * one still lets rate limits, subrequest limits, and interruption through.
+ */
+const planningCenterRecoveryExceptions = new Map([
+  [
+    "packages/api/src/planning-center/recover-failure.ts",
+    "the shared recovery helper itself",
+  ],
+  [
+    "packages/api/src/planning-center/services/cached-read.ts",
+    "turns cache rejections back into typed failures or defects; recovers nothing",
+  ],
+  [
+    "packages/api/src/modules/planning-center/get-team-positions.ts",
+    "tries the series fallback only when isRecoverablePlanningCenterCause allows it",
+  ],
+  [
+    "packages/api/src/modules/planning-center/plan-times.ts",
+    "runs every write to completion, then fails with the first failure",
+  ],
+]);
+
 type SourceFile = {
   path: string;
   relativePath: string;
@@ -393,5 +419,45 @@ describe("monorepo architecture boundaries", () => {
     }
 
     expectNoViolations("REST route inventory", violations);
+  });
+
+  it("recovers Planning Center failures only through recoverPlanningCenterFailure", () => {
+    const violations: string[] = [];
+    const matchedExceptions = new Set<string>();
+    const roots = [
+      join(repositoryRoot, "packages/api/src/planning-center"),
+      join(repositoryRoot, "packages/api/src/modules"),
+    ];
+
+    for (const root of roots) {
+      for (const file of sourceFiles(root)) {
+        if (file.relativePath.endsWith(".test.ts")) {
+          continue;
+        }
+        const recoveries = [...file.contents.matchAll(effectRecoveryPattern)];
+        if (recoveries.length === 0) {
+          continue;
+        }
+        if (planningCenterRecoveryExceptions.has(file.relativePath)) {
+          matchedExceptions.add(file.relativePath);
+          continue;
+        }
+        for (const [recovery] of recoveries) {
+          violations.push(
+            `${file.relativePath} uses ${recovery}; recover with recoverPlanningCenterFailure so rate and subrequest limits always propagate`
+          );
+        }
+      }
+    }
+
+    for (const exception of planningCenterRecoveryExceptions.keys()) {
+      if (!matchedExceptions.has(exception)) {
+        violations.push(
+          `${exception} no longer recovers failures; remove its exception`
+        );
+      }
+    }
+
+    expectNoViolations("Planning Center failure recovery", violations);
   });
 });
