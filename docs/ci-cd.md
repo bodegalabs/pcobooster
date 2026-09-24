@@ -37,7 +37,7 @@ Teardown uses `alchemy.cleanup.ts`. It has the application stack's name and stat
 Cleanup runs in the `cloudflare-preview-cleanup` environment. That environment is restricted to `main` and needs no approval, because it only ever runs trusted `main` code:
 
 - Closing a same-repository PR triggers `pull_request_target`, which checks out `main` (never PR code), confirms the PR is still closed, and destroys its stage.
-- A nightly sweep (`scripts/cloudflare/sweep-previews.ts`, also available through `workflow_dispatch`) lists `pcobooster-pr-*` Workers and D1 databases, then destroys every stage whose PR is no longer open. It also destroys an open PR's stage once it has gone 7 days without a deploy, measured by the newest Worker upload; the next approved push recreates it. Previews therefore expire even when a PR stays open. Use `--dry-run` locally to see what it would destroy.
+- A nightly sweep (`scripts/cloudflare/sweep-previews.ts`, also available through `workflow_dispatch`) lists `pcobooster-pr-*` Workers and D1 databases, then destroys every stage whose PR is no longer open. It also destroys an open PR's stage once it has gone 3 days without a deploy, measured by the newest Worker upload; the next approved push recreates it. Previews therefore expire even when a PR stays open. Use `--dry-run` locally to see what it would destroy.
 
 Deployment and cleanup share a per-stage concurrency group. Reopening the PR creates a fresh deployment request.
 

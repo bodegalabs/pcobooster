@@ -4,7 +4,7 @@ const previewResourcePattern =
 const dayMs = 24 * 60 * 60 * 1000;
 
 /** An open pull request's preview is destroyed after this long without a deploy. */
-export const previewIdleLimitMs = 7 * dayMs;
+export const previewIdleLimitMs = 3 * dayMs;
 
 /** Pull request stages are the only stages CI may create or destroy without approval. */
 export const isPreviewStage = (stage: string): boolean =>

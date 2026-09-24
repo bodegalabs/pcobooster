@@ -1,6 +1,6 @@
 /**
  * Destroy pull request stages whose pull request is no longer open, and stages of open pull
- * requests that have gone a week without a deploy (the next push redeploys them). The close-time
+ * requests that have gone 3 days without a deploy (the next push redeploys them). The close-time
  * cleanup job is the normal path; this sweep catches cancelled runs, failed teardowns, and idle
  * previews.
  *
