@@ -164,7 +164,7 @@ jobs:
           identity-id: ${{ vars.INFISICAL_IDENTITY_ID }}
           project-id: ${{ vars.INFISICAL_PROJECT_ID }}
           env-slug: ${{ vars.INFISICAL_ENV_SLUG }}
-      - name: Deploy approved production revision
+      - name: Deploy production revision
         run: bun alchemy deploy --stage prod --no-input --yes
       - name: Verify production serves this commit
         run: bun scripts/cloudflare/verify-deployment.ts https://pcobooster.com "$GITHUB_SHA"
