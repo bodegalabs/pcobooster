@@ -1,3 +1,4 @@
+import { adopt } from "alchemy/AdoptPolicy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
 import { Effect } from "effect";
@@ -27,8 +28,30 @@ export const allowUniversalSslIssuers = Effect.fn("allowUniversalSslIssuers")(
   }
 );
 
+/**
+ * The id of a zone that must already exist in the account. The deploy tokens may not create
+ * zones, so a missing zone stops the deploy here instead of failing on a permission error.
+ */
+export const existingZoneId = Effect.fn("existingZoneId")(
+  function* existingZoneId(accountId: string, name: string) {
+    const match = yield* Cloudflare.Zone.findZoneByName({
+      accountId,
+      name,
+    }).pipe(Effect.orDie);
+    if (match === undefined) {
+      return yield* Effect.die(
+        new Error(
+          `Cloudflare zone ${name} does not exist in account ${accountId}. Add it by hand in ` +
+            "the Cloudflare dashboard first; see docs/cloudflare-cutover.md#former-domain-cutover."
+        )
+      );
+    }
+    return match.id;
+  }
+);
+
 /** The product's name until the September 18, 2026 rename; it only redirects now. */
-const formerDomain = "worshipadmin.com";
+export const formerDomain = "worshipadmin.com";
 const formerHostnames = [formerDomain, `www.${formerDomain}`] as const;
 
 /**
@@ -57,13 +80,18 @@ export const formerDomainRedirectRule = (
  * The former domain's zone, answered entirely at Cloudflare's edge: proxied placeholder records
  * give the apex and www Universal SSL certificates, and a redirect rule answers every request
  * before any origin is consulted. The zone serves nothing until its nameservers point here.
+ *
+ * The zone is created by hand and adopted, never created here: creating a zone needs Zone Write
+ * on every zone in the account, which the production deploy token deliberately lacks.
  */
 export const formerDomainRedirect = Effect.fn("formerDomainRedirect")(
   function* formerDomainRedirect(canonicalOrigin: string) {
+    const { accountId } = yield* yield* Cloudflare.CloudflareEnvironment;
+    yield* existingZoneId(accountId, formerDomain);
     const zone = yield* Cloudflare.Zone.Zone("FormerZone", {
       name: formerDomain,
       type: "full",
-    }).pipe(RemovalPolicy.retain());
+    }).pipe(adopt(true), RemovalPolicy.retain());
     yield* allowUniversalSslIssuers("Former", zone, formerDomain);
     for (const [id, hostname] of [
       ["FormerApex", formerHostnames[0]],

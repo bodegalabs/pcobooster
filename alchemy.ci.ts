@@ -14,6 +14,7 @@ import * as GitHub from "alchemy/GitHub";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
 import { Effect, Layer } from "effect";
 
+import { existingZoneId, formerDomain } from "./scripts/cloudflare/zones";
 import { accountApiTokenProvider } from "./scripts/infra/cloudflare";
 import { gitHubProviders, GitHubRuleset } from "./scripts/infra/github";
 import {
@@ -93,25 +94,31 @@ const production: DeployTarget = {
       permissionGroups: deployPermissions,
       resources: accountScope,
     },
-    {
-      effect: "allow",
-      // `alchemy.run.ts` owns the account's zones in the `prod` stage: pcobooster.com and the
-      // former worshipadmin.com, which it creates (creating a zone needs Zone Write on every
-      // zone in the account) and answers with a redirect rule (Dynamic URL Redirects Write).
-      permissionGroups: [
-        "Zone Write",
-        "DNS Write",
-        "Dynamic URL Redirects Write",
-      ],
-      // Zone grants on an account-owned token nest under the account resource.
-      resources: {
-        [`com.cloudflare.api.account.${accountId}`]: {
-          "com.cloudflare.api.account.zone.*": "*",
-        },
-      },
-    },
   ],
 };
+
+/**
+ * Zones `alchemy.run.ts` manages in the `prod` stage: its DNS records and the former domain's
+ * redirect rule. The token cannot create zones (that needs Zone Write on every zone in the
+ * account), so each is created by hand and must exist before this stack resolves its id by name.
+ */
+const productionZones = ["pcobooster.com", formerDomain] as const;
+
+const productionZonePolicy = (
+  zoneIds: readonly string[]
+): Cloudflare.ApiToken.Policy => ({
+  effect: "allow",
+  permissionGroups: ["Zone Read", "DNS Write", "Dynamic URL Redirects Write"],
+  // Zone grants on an account-owned token nest under the account resource.
+  resources: {
+    [`com.cloudflare.api.account.${accountId}`]: Object.fromEntries(
+      zoneIds.map((zoneId) => [
+        `com.cloudflare.api.account.zone.${zoneId}`,
+        "*",
+      ])
+    ),
+  },
+});
 
 /**
  * GitHub deployment environments. Variables name the environment as a string so their props stay
@@ -260,7 +267,17 @@ export default Alchemy.Stack(
     }
 
     const previewTokenId = yield* deployTarget(preview);
-    const productionTokenId = yield* deployTarget(production);
+    const productionZoneIds: string[] = [];
+    for (const name of productionZones) {
+      productionZoneIds.push(yield* existingZoneId(accountId, name));
+    }
+    const productionTokenId = yield* deployTarget({
+      ...production,
+      policies: [
+        ...production.policies,
+        productionZonePolicy(productionZoneIds),
+      ],
+    });
 
     return {
       rulesetId: ruleset.rulesetId,
