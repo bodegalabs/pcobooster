@@ -26,9 +26,8 @@ The production deployment project is `pcobooster-production` (`2eca20e1-20ac-4f0
 | `PCOBOOSTER_ADMIN_EMAILS` | Comma-separated admin allowlist. |
 | `PEOPLE_PAGE_ENABLED` | Strict `true` or `false` feature setting. The API reads it at runtime; the product build inlines it to gate the People routes. |
 | `DEMO_ACCESS_KEY`, `DEMO_PLANNING_CENTER_CLIENT`, `DEMO_PLANNING_CENTER_PAT` | Optional production-only read-only demo. |
-| `NEXT_PUBLIC_POSTHOG_KEY` | Optional production analytics key, bound to the API. The product's `vite.config.ts` inlines it as `import.meta.env.VITE_POSTHOG_KEY`, as marketing's does; a `VITE_POSTHOG_KEY` value takes precedence. |
-| `PLANNING_CENTER_TIME_ZONE` | Server fallback, default `America/Los_Angeles`. |
-| `NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE` | Optional browser fallback during organization loading, inlined as `import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE` (a `VITE_*` value takes precedence). |
+| `POSTHOG_PROJECT_KEY` | Optional production analytics key (a public ingestion token), bound to the API. The product's and marketing's `vite.config.ts` inline it as `import.meta.env.VITE_POSTHOG_KEY`. |
+| `PLANNING_CENTER_TIME_ZONE` | Fallback when Planning Center returns no organization zone. The API defaults it to `America/Los_Angeles`; the product build inlines it as `import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE` for the browser while the organization loads. |
 
 Alchemy owns stage origins, `BETTER_AUTH_URL`, `CORS_ORIGIN`, cookie domain, OAuth receiver allowlist, `NODE_ENV`, and service bindings. Production uses parent-domain cookies for `admin.pcobooster.com`; previews use host-only cookies and serve admin at `/admin` on the preview origin. Do not override these derived values in Infisical.
 

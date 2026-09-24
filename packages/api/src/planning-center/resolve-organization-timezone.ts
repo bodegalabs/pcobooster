@@ -20,10 +20,10 @@ export interface OrganizationTimeZoneDependencies {
 }
 
 /** When Planning Center does not return a zone (or the request fails). */
-const configuredFallbackTimeZone = (): string =>
-  process.env.PLANNING_CENTER_TIME_ZONE?.trim() ??
-  process.env.NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE?.trim() ??
-  "America/Los_Angeles";
+const configuredFallbackTimeZone = (): string => {
+  const configured = process.env.PLANNING_CENTER_TIME_ZONE?.trim();
+  return isNonEmptyString(configured) ? configured : "America/Los_Angeles";
+};
 
 const readTimeZoneFromOrganization = (org: PCResource): string | null => {
   const raw = org.attributes.time_zone;

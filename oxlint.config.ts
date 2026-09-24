@@ -2,8 +2,6 @@ import { defineConfig } from "oxlint";
 import antiSlop from "ultracite/oxlint/anti-slop";
 import core from "ultracite/oxlint/core";
 import { jsPluginSettings, selectJsPlugins } from "ultracite/oxlint/js-plugins";
-import next from "ultracite/oxlint/next";
-import nextJsPlugins from "ultracite/oxlint/next/js-plugins";
 import react from "ultracite/oxlint/react";
 import shadcn from "ultracite/oxlint/shadcn";
 import tanstack from "ultracite/oxlint/tanstack";
@@ -12,29 +10,18 @@ import vitest from "ultracite/oxlint/vitest";
 
 const jsPlugins = selectJsPlugins(["react-doctor"]);
 
-/** Apps on TanStack Start; the Next.js presets still govern the rest. */
-const tanstackStartApps = ["apps/admin/**", "apps/marketing/**", "apps/web/**"];
-const nextRulesOff = Object.fromEntries(
-  Object.keys({ ...next.rules, ...nextJsPlugins.rules }).map(
-    (rule) => [rule, "off"] as const
-  )
-);
-
 export default defineConfig({
   extends: [
     core,
     react,
     tanstack,
-    next,
     vitest,
-    nextJsPlugins,
     tanstackJsPlugins,
     shadcn,
     antiSlop,
     jsPlugins,
   ],
   ignorePatterns: [...(core.ignorePatterns ?? []), ".artifacts/**", "lint/**"],
-  overrides: [{ files: tanstackStartApps, rules: nextRulesOff }],
   options: { typeAware: true },
   jsPlugins: [
     ...(jsPlugins.jsPlugins ?? []),

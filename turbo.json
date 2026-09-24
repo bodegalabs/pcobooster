@@ -11,7 +11,7 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": ["dist/**"],
-      "env": ["NEXT_PUBLIC_POSTHOG_KEY"]
+      "env": ["POSTHOG_PROJECT_KEY"]
     },
     "@pcobooster/admin#build": {
       "dependsOn": ["^build"],
@@ -28,12 +28,10 @@
     "@pcobooster/web#build": {
       "dependsOn": ["^build"],
       "env": [
-        "NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE",
-        "NEXT_PUBLIC_POSTHOG_KEY",
         "NODE_ENV",
         "PEOPLE_PAGE_ENABLED",
-        "VITE_PLANNING_CENTER_TIME_ZONE",
-        "VITE_POSTHOG_KEY"
+        "PLANNING_CENTER_TIME_ZONE",
+        "POSTHOG_PROJECT_KEY"
       ],
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/scripts/stage-marketing.ts"],
       "outputs": ["dist/**", "public/marketing/**"]
@@ -76,36 +74,6 @@
         "packages/analytics/src/privacy.ts"
       ],
       "outputs": []
-    },
-    "dev": {
-      "cache": false,
-      "passThroughEnv": [
-        "AUTH_COOKIE_DOMAIN",
-        "BETTER_AUTH_SECRET",
-        "BETTER_AUTH_URL",
-        "CORS_ORIGIN",
-        "DEMO_ACCESS_KEY",
-        "DEMO_PLANNING_CENTER_CLIENT",
-        "DEMO_PLANNING_CENTER_PAT",
-        "DEV_AUTH_BYPASS",
-        "LOG_LEVEL",
-        "LOG_PLANNING_CENTER_TIMINGS",
-        "NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE",
-        "NODE_ENV",
-        "PEOPLE_PAGE_ENABLED",
-        "PLANNING_CENTER_CLIENT",
-        "PLANNING_CENTER_OAUTH_CLIENT_ID",
-        "PLANNING_CENTER_OAUTH_CLIENT_SECRET",
-        "PLANNING_CENTER_PAT",
-        "PLANNING_CENTER_TIME_ZONE",
-        "PRESENTATION_MODE",
-        "PRESENTATION_SEED",
-        "PCOBOOSTER_ADMIN_EMAILS",
-        "NEXT_PUBLIC_POSTHOG_KEY",
-        "VITE_PLANNING_CENTER_TIME_ZONE",
-        "VITE_POSTHOG_KEY"
-      ],
-      "persistent": true
     },
     "db:generate": {
       "cache": false

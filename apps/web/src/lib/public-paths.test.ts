@@ -7,7 +7,7 @@ describe("public marketing routes", () => {
     "/",
     "/about",
     "/about/",
-    "/marketing/_next/static/site.js",
+    "/marketing/assets/index.js",
     "/marketing/screenshots/assign.webp",
   ])("allows %s without a session", (pathname) => {
     expect(isPublicPath(pathname)).toBeTruthy();

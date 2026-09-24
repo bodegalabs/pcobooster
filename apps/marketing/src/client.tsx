@@ -4,7 +4,7 @@ import { hydrateRoot } from "react-dom/client";
 
 import { startMarketingAnalytics } from "./lib/analytics";
 
-// Start's default client entry, preceded by analytics (Next.js's `instrumentation-client.ts`).
+// Start's default client entry, preceded by analytics.
 startMarketingAnalytics();
 
 startTransition(() => {

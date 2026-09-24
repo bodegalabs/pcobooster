@@ -53,7 +53,7 @@ const isSignedOutPath = (pathname: string): boolean =>
   pathname.startsWith("/api/rpc/") ||
   pathname === "/auth";
 
-/** Same-origin and relative, as the Next.js proxy sent it. */
+/** Same-origin and relative. */
 const signInPath = (url: URL): string => {
   const returnPath = sanitizeReturnPath(`${url.pathname}${url.search}`);
   if (returnPath === DEFAULT_SIGN_IN_RETURN_PATH) {

@@ -27,9 +27,9 @@ const previewPagesOutsideBase = (): Plugin => ({
 export default defineConfig({
   base: MARKETING_BASE,
   define: {
-    // The product still reads the shared PostHog key under its Next.js name.
+    // The same public ingestion key as the product's.
     "import.meta.env.VITE_POSTHOG_KEY": JSON.stringify(
-      process.env.NEXT_PUBLIC_POSTHOG_KEY ?? ""
+      process.env.POSTHOG_PROJECT_KEY ?? ""
     ),
   },
   plugins: [

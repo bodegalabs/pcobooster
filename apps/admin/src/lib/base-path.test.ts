@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  productSignInUrl,
-  resolveAdminBase,
-  withMountTrailingSlash,
-} from "./base-path";
+import { productSignInUrl, resolveAdminBase } from "./base-path";
 
 describe(resolveAdminBase, () => {
   it.each([
@@ -33,22 +29,5 @@ describe(productSignInUrl, () => {
     expect(productSignInUrl("https://pcobooster.com", "/")).toBe(
       "https://pcobooster.com/auth"
     );
-  });
-});
-
-describe(withMountTrailingSlash, () => {
-  it.each([
-    ["/admin", "/admin/"],
-    ["/admin?tab=1", "/admin/?tab=1"],
-    ["/admin/", "/admin/"],
-    ["/admin/users/abc", "/admin/users/abc"],
-    ["/administrator", "/administrator"],
-    ["/admin/_serverFn/abc", "/admin/_serverFn/abc"],
-  ])("serves %s as %s under /admin/", (path, expected) => {
-    expect(withMountTrailingSlash(path, "/admin/")).toBe(expected);
-  });
-
-  it("leaves root-mounted paths alone", () => {
-    expect(withMountTrailingSlash("/users/abc", "/")).toBe("/users/abc");
   });
 });

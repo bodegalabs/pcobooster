@@ -33,7 +33,7 @@ export interface PageHead {
 export const marketingAssetUrl = (assetPath: string): string =>
   `${MARKETING_BASE}${assetPath}`;
 
-/** The home canonical is the bare origin, matching what the site has always published. */
+/** The home canonical is the bare origin, without a trailing slash. */
 export const canonicalUrl = (pathname: string): string =>
   pathname === "/" ? SITE_ORIGIN : `${SITE_ORIGIN}${pathname}`;
 

@@ -11,12 +11,16 @@ import path from "node:path";
 
 const ignoredDirectories = new Set([
   "node_modules",
-  ".next",
-  ".open-next",
   ".tanstack",
   ".turbo",
   "dist",
 ]);
+/** Variables the product and marketing builds inline (see their `vite.config.ts`). */
+const inlinedVariables = [
+  "PEOPLE_PAGE_ENABLED",
+  "PLANNING_CENTER_TIME_ZONE",
+  "POSTHOG_PROJECT_KEY",
+] as const;
 const buildStampName = "cloudflare-build-inputs.json";
 
 const hashDirectory = async (directory: string): Promise<string[]> => {
@@ -63,14 +67,7 @@ export const prepareCloudflareBuild = async (stage: string): Promise<void> => {
     )
   );
   const publicEnvironment = Object.fromEntries(
-    Object.entries(process.env)
-      .filter(
-        ([key]) =>
-          key.startsWith("VITE_") ||
-          key.startsWith("NEXT_PUBLIC_") ||
-          key === "PEOPLE_PAGE_ENABLED"
-      )
-      .toSorted(([a], [b]) => a.localeCompare(b))
+    inlinedVariables.map((key) => [key, process.env[key] ?? null])
   );
   const sha256 = createHash("sha256")
     .update(

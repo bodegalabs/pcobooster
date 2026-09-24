@@ -149,7 +149,11 @@ describe("analytics privacy boundary", () => {
   it("keeps local, preview, and unconfigured environments out of production", () => {
     expect(canInitializeAnalytics("key", "pcobooster.com", true)).toBeTruthy();
     expect(
-      canInitializeAnalytics("key", "preview.vercel.app", true)
+      canInitializeAnalytics(
+        "key",
+        "pcobooster-pr-1-web.jakebodea.workers.dev",
+        true
+      )
     ).toBeFalsy();
     expect(canInitializeAnalytics("key", "127.0.0.1", true)).toBeFalsy();
     expect(canInitializeAnalytics("key", "pcobooster.com", false)).toBeFalsy();

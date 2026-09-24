@@ -21,14 +21,13 @@
 - `packages/api/src/planning-center/services/`: Planning Center API service wrappers (raw API access only).
 - `packages/api/src/db/` and `packages/api/migrations/`: Drizzle client, schema, and migrations.
 - `packages/config/`: shared TypeScript configuration.
-- Tests stay colocated under `packages/api/src/**/*.test.ts` and `apps/web/src/**/*.test.ts`.
+- Tests stay colocated beside source (`packages/*/src/**/*.test.ts`, `apps/*/src/**/*.test.ts`).
 
 ## Build, Test, and Development Commands
 
 - Use Bun for dependency management and scripts. `bun.lock` is the only committed lockfile; do not add `package-lock.json` or run npm-based install workflows for this repo.
 - `bun run dev`: start API, product, and admin through Alchemy, plus the marketing dev server (ports 3000, 3001, 3002, and 3003).
 - `bun run build`: build the Hono service and the Vite apps through Turborepo.
-- `bun run start`: run built app.
 - `bun run check` (also `lint`): run Ultracite formatting and type-aware lint checks; warnings fail the check. All selected presets in `oxlint.config.ts` remain strict.
 - `bun run lint:ci`: same as `lint` with `--format github` for Action annotations (used by CI).
 - `bun run fix` (also `lint:fix`): apply Ultracite fixes and formatting. Review fixes and run validation afterward.
@@ -90,7 +89,7 @@
 ## Learned Workspace Facts
 
 - People availability and blockouts: compare the plan `sort_date` instant to blockouts using each blockout’s Planning Center `time_zone` (calendar-day logic); pass the full ISO `date` through the `people.list` oRPC input. Naive UTC-midnight or date-only string overlap checks can mislabel people near timezone boundaries.
-- Congregation-local business dates (plan windows, schedule history frequency, calendar-day deltas) use the org IANA zone from `VITE_PLANNING_CENTER_TIME_ZONE` (inlined from `NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE` until renamed) / `PLANNING_CENTER_TIME_ZONE` with shared helpers in `packages/planning-center-models/src/calendar.ts`.
+- Congregation-local business dates (plan windows, schedule history frequency, calendar-day deltas) use the org IANA zone from Planning Center, falling back to `PLANNING_CENTER_TIME_ZONE` (inlined into the product build as `import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE`), with shared helpers in `packages/planning-center-models/src/calendar.ts`.
 - Person card frequency labels should align with recommendation scoring: distinct calendar service/rehearsal days in org TZ, not raw plan-time row counts or grouped-card counts.
 
 # Ultracite Code Standards
@@ -178,15 +177,18 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 - Use top-level regex literals instead of creating them in loops
 - Prefer specific imports over namespace imports
 - Avoid barrel files (index files that re-export everything)
-- Use proper image components (e.g., Next.js `<Image>`) over `<img>` tags
+- Give images explicit `width` and `height` and serve them as static assets from `public/`
 
 ### Framework-Specific Guidance
 
-**Next.js:**
+**TanStack Start (web, admin, marketing):**
 
-- Use Next.js `<Image>` component for images
-- Use `next/head` or App Router metadata API for head elements
-- Use Server Components for async data fetching instead of async Client Components
+- Add pages as file routes under `src/routes`, and commit the regenerated `src/routeTree.gen.ts` (`vite dev` or `vite build` rewrites it).
+- Keep server functions (`*.functions.ts`) as SSR glue; product operations go through oRPC to the Hono API Worker.
+- Read Worker bindings with `import { env } from "cloudflare:workers"` inside handlers and middleware; browser code reads build-time `import.meta.env.VITE_*` values defined in `vite.config.ts`.
+- Put request-wide behavior (sign-in gate, response headers) in request middleware registered in `src/start.ts`, after the explicit CSRF middleware.
+- Set document metadata with route `head()`.
+- Throw router control flow as `redirect({ ..., throw: true })` and `notFound({ throw: true })`.
 
 **React 19+:**
 
@@ -219,13 +221,3 @@ Oxlint + Oxfmt's linter will catch most issues automatically. Focus your attenti
 ---
 
 Most formatting and common issues are automatically fixed by Oxlint + Oxfmt. Run `bun x ultracite fix` before committing to ensure compliance.
-
-<!-- BEGIN:nextjs-agent-rules -->
-
-# This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
-
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
-
-<!-- END:nextjs-agent-rules -->

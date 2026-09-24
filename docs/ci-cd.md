@@ -10,7 +10,7 @@ bun run build
 bun run build:cloudflare
 ```
 
-Use Node 24 and the pinned Bun version. Actions are pinned to immutable commits and installs use the frozen Bun lockfile. There is no Vercel remote-cache credential in CI.
+Use Node 24 and the pinned Bun version. Actions are pinned to immutable commits and installs use the frozen Bun lockfile. CI has no Turborepo remote-cache credential.
 
 Shared steps live in composite actions:
 

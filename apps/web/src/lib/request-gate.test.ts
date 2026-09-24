@@ -71,7 +71,7 @@ describe(decideRequestGate, () => {
   it.each([
     "/api/auth/get-session",
     "/api/auth/callback/planning-center?code=1",
-    // A prefix match, as in the Next.js proxy; the API rejects unknown auth routes.
+    // A prefix match; the API rejects unknown auth routes.
     "/api/authz",
     "/api/rpc",
     "/api/rpc/session/status",

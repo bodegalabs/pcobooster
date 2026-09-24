@@ -24,25 +24,3 @@ export const productSignInUrl = (
   }
   return destination.toString();
 };
-
-/**
- * The product's Next.js route redirects `/admin/` to `/admin`, while the router's canonical
- * index URL is `/admin/`; redirecting back would loop. Serve the bare mount path as the
- * index instead. Returns the path (with query) to handle, unchanged unless it is the mount.
- */
-export const withMountTrailingSlash = (
-  pathWithQuery: string,
-  adminBase: string
-): string => {
-  const mountPath = adminBase.replace(/\/$/u, "");
-  if (mountPath === "") {
-    return pathWithQuery;
-  }
-  const queryStart = pathWithQuery.search(/[?#]/u);
-  const pathname =
-    queryStart === -1 ? pathWithQuery : pathWithQuery.slice(0, queryStart);
-  if (pathname !== mountPath) {
-    return pathWithQuery;
-  }
-  return `${adminBase}${pathWithQuery.slice(pathname.length)}`;
-};

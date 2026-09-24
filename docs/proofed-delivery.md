@@ -44,7 +44,7 @@ Fetch the base branch immediately before proving. A bottom PR uses `origin/main`
 
 ## Merge gates
 
-The Cloudflare merge gates are `ci` and `cloudflare-build`; inspect the live ruleset during the [migration transition](ci-cd.md#merge-gates-and-migration-status). These checks establish deterministic correctness and valid Worker bundles; they do not replace product-flow evidence or independent verification. Humans remain the merge authority until the proof workflow has a track record strong enough to justify a separately reviewed policy change.
+The Cloudflare merge gates are `ci` and `cloudflare-build` (see [merge gates](ci-cd.md#merge-gates)). These checks establish deterministic correctness and valid Worker bundles; they do not replace product-flow evidence or independent verification. Humans remain the merge authority until the proof workflow has a track record strong enough to justify a separately reviewed policy change.
 
 ## Current boundary
 
