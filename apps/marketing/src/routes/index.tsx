@@ -60,6 +60,14 @@ const checks = [
 
 const HomePage = () => (
   <main id="main">
+    <script type="application/ld+json">
+      {JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "PCOBooster",
+        url: "https://pcobooster.com/",
+      })}
+    </script>
     <section className={`${styles.hero} ${styles.wrap}`}>
       <h1>
         Your team,
@@ -232,7 +240,7 @@ export const Route = createFileRoute("/")({
   head: () =>
     pageHead({
       description:
-        "A thoughtful scheduling workspace for Planning Center Services. See availability, understand recent serving history, and build your next lineup with context.",
+        "Plan your next team in PCOBooster. See availability, open positions, and recent serving history in one scheduling workspace for Planning Center Services.",
       pathname: "/",
     }),
   component: HomePage,
