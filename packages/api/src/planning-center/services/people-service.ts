@@ -23,12 +23,12 @@ import { Effect } from "effect";
 
 const ASSIGNMENTS_CACHE_TTL_MS = 5 * 60 * 1000;
 const PERSON_READ_CACHE_TTL_MS = 60 * 1000;
+/** The selected plan's roster, whose statuses a scheduler acts on. */
 const PLAN_TEAM_MEMBERS_CACHE_TTL_MS = 30 * 1000;
-/**
- * Rosters of plans that already happened rarely change; this app's own schedule writes still
- * clear them through `invalidateScheduleReadCaches`.
- */
-const SETTLED_PLAN_TEAM_MEMBERS_CACHE_TTL_MS = 30 * 60 * 1000;
+/** Rosters around a plan date feed history only, so they may lag a little. */
+const PLAN_WINDOW_ROSTER_CACHE_TTL_MS = 5 * 60 * 1000;
+/** Rosters of plans that already happened rarely change. */
+const SETTLED_PLAN_WINDOW_ROSTER_CACHE_TTL_MS = 30 * 60 * 1000;
 /** Volunteers add blockouts rarely; this app never writes them. */
 const PERSON_BLOCKOUTS_CACHE_TTL_MS = 5 * 60 * 1000;
 const PLAN_TIMES_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -56,6 +56,8 @@ export interface PlanningCenterPeopleServiceCaches {
   readonly resourceLists: PlanningCenterReadCache<PCResource[]>;
   readonly collections: PlanningCenterReadCache<ResourceCollectionResponse>;
   readonly allTeamPeople: PlanningCenterReadCache<AllTeamPeopleResponse>;
+  /** Rosters of the plans around a plan date, read for candidate history. */
+  readonly planWindowRosters: PlanningCenterReadCache<ResourceCollectionResponse>;
 }
 
 export const createPlanningCenterPeopleServiceCaches =
@@ -64,6 +66,8 @@ export const createPlanningCenterPeopleServiceCaches =
     resourceLists: new PlanningCenterReadCache<PCResource[]>(),
     collections: new PlanningCenterReadCache<ResourceCollectionResponse>(),
     allTeamPeople: new PlanningCenterReadCache<AllTeamPeopleResponse>(),
+    planWindowRosters:
+      new PlanningCenterReadCache<ResourceCollectionResponse>(),
   });
 
 const getRelationshipIdentifiers = (
@@ -420,30 +424,51 @@ export class PlanningCenterPeopleService {
     ).pipe(Effect.map(cloneResourceCollectionResponse));
   }
 
-  /**
-   * A `settled` roster belongs to a plan that already happened, so it is kept longer. Either way
-   * the entry shares one key, so schedule writes clear it.
-   */
+  /** A plan's roster, cached 30 seconds so the statuses a scheduler acts on are fresh. */
   getPlanTeamMembers(
     serviceTypeId: string,
-    planId: string,
-    options: { readonly settled?: boolean } = {}
+    planId: string
   ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
     return cachedRead(
       this.caches.collections,
       this.buildCacheKey("plan-team-members", serviceTypeId, planId),
-      options.settled === true
-        ? SETTLED_PLAN_TEAM_MEMBERS_CACHE_TTL_MS
-        : PLAN_TEAM_MEMBERS_CACHE_TTL_MS,
-      () =>
-        this.core
-          .fetchAllWithIncluded(
-            `/services/v2/service_types/${serviceTypeId}/plans/${planId}/team_members`,
-            { include: "person,team,plan", per_page: "100" },
-            PLAN_ROSTER_MAX_PAGES
-          )
-          .pipe(Effect.map(toResourceCollection))
+      PLAN_TEAM_MEMBERS_CACHE_TTL_MS,
+      () => this.loadPlanTeamMembers(serviceTypeId, planId)
     ).pipe(Effect.map(cloneResourceCollectionResponse));
+  }
+
+  /**
+   * A roster read for history around a plan date: cached 5 minutes, or 30 when the plan already
+   * happened (`settled`). Its own key keeps it from standing in for the fresh selected-plan read.
+   * Schedule writes clear the plan's copy, and plan time writes clear them all through
+   * `invalidatePlanWindowRosters`.
+   */
+  getPlanWindowRoster(
+    serviceTypeId: string,
+    planId: string,
+    { settled }: { readonly settled: boolean }
+  ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
+    return cachedRead(
+      this.caches.planWindowRosters,
+      this.buildCacheKey("plan-window-roster", serviceTypeId, planId),
+      settled
+        ? SETTLED_PLAN_WINDOW_ROSTER_CACHE_TTL_MS
+        : PLAN_WINDOW_ROSTER_CACHE_TTL_MS,
+      () => this.loadPlanTeamMembers(serviceTypeId, planId)
+    ).pipe(Effect.map(cloneResourceCollectionResponse));
+  }
+
+  private loadPlanTeamMembers(
+    serviceTypeId: string,
+    planId: string
+  ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
+    return this.core
+      .fetchAllWithIncluded(
+        `/services/v2/service_types/${serviceTypeId}/plans/${planId}/team_members`,
+        { include: "person,team,plan", per_page: "100" },
+        PLAN_ROSTER_MAX_PAGES
+      )
+      .pipe(Effect.map(toResourceCollection));
   }
 
   getPersonTeamPositionAssignments(
@@ -626,6 +651,11 @@ export class PlanningCenterPeopleService {
       serviceTypeId,
       planId
     );
+    const planWindowRosterKey = this.buildCacheKey(
+      "plan-window-roster",
+      serviceTypeId,
+      planId
+    );
 
     this.caches.collections.deleteWhere(
       (key) =>
@@ -633,6 +663,17 @@ export class PlanningCenterPeopleService {
           ? key.startsWith(personSchedulesPrefix)
           : false) || key === planTeamMembersKey
     );
+    this.caches.planWindowRosters.deleteWhere(
+      (key) => key === planWindowRosterKey
+    );
+  }
+
+  /** Schedule and plan time writes change rosters, so this account's window copies go. */
+  invalidatePlanWindowRosters() {
+    const prefix = [this.core.getCacheScope(), "plan-window-roster", ""].join(
+      ":"
+    );
+    this.caches.planWindowRosters.deleteWhere((key) => key.startsWith(prefix));
   }
 
   invalidatePlanTimeSensitiveReadCaches(planId: string) {

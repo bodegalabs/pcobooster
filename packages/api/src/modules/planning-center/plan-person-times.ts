@@ -16,9 +16,8 @@ export interface UpdatePlanPersonTimesDependencies {
     PlanningCenterPeopleService,
     | "updatePlanPersonTimes"
     | "invalidatePlanTimeSensitiveReadCaches"
-    | "getCacheScope"
+    | "invalidatePlanWindowRosters"
   >;
-  invalidateHistory: (cacheScope: string) => void;
 }
 
 export const updatePlanPersonTimes = (
@@ -45,9 +44,7 @@ export const updatePlanPersonTimes = (
           dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
             planId
           );
-          dependencies.invalidateHistory(
-            dependencies.peopleService.getCacheScope()
-          );
+          dependencies.peopleService.invalidatePlanWindowRosters();
         })
       )
     );

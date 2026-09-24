@@ -7,7 +7,6 @@ import {
   planningCenterFault,
   withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
-import { invalidatePlanWindowHistory } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
 import {
   matchesScheduleTarget,
   resolveScheduleTarget,
@@ -22,11 +21,6 @@ import { Effect } from "effect";
 
 import type { RequestContext } from "./context";
 
-export interface ScheduleApplicationDependencies {
-  /** Drops the plan window's cached rosters, which history is built from. */
-  readonly invalidateHistory: typeof invalidatePlanWindowHistory;
-}
-
 export interface ScheduleAssignmentPreparation {
   readonly target: {
     readonly teamName: string;
@@ -34,14 +28,9 @@ export interface ScheduleAssignmentPreparation {
   };
 }
 
-const defaultDependencies: ScheduleApplicationDependencies = {
-  invalidateHistory: invalidatePlanWindowHistory,
-};
-
 /** Read-only validation remains in the request's interruptible phase. */
 export const prepareScheduledPerson = (
-  input: ScheduleAssignInput,
-  _dependencies: ScheduleApplicationDependencies = defaultDependencies
+  input: ScheduleAssignInput
 ): Effect.Effect<
   ScheduleAssignmentPreparation,
   ApplicationFault,
@@ -63,8 +52,7 @@ export const prepareScheduledPerson = (
  */
 export const commitScheduledPerson = (
   input: ScheduleAssignInput,
-  preparation: ScheduleAssignmentPreparation,
-  dependencies: ScheduleApplicationDependencies = defaultDependencies
+  preparation: ScheduleAssignmentPreparation
 ): Effect.Effect<
   { readonly success: true; readonly data: { readonly id: string } },
   ApplicationFault,
@@ -91,7 +79,7 @@ export const commitScheduledPerson = (
             )
           ) {
             access.services.people.invalidateScheduleReadCaches(input);
-            dependencies.invalidateHistory(access.cacheScope);
+            access.services.people.invalidatePlanWindowRosters();
             return Effect.fail(
               new AlreadyScheduled({
                 message:
@@ -105,7 +93,7 @@ export const commitScheduledPerson = (
       );
 
     access.services.people.invalidateScheduleReadCaches(input);
-    dependencies.invalidateHistory(access.cacheScope);
+    access.services.people.invalidatePlanWindowRosters();
     const name = created.attributes.team_position_name;
     const createdPositionName = isString(name) ? name : "";
 
@@ -134,8 +122,7 @@ export const commitScheduledPerson = (
   });
 
 export const removeScheduledPerson = (
-  input: ScheduleRemoveInput,
-  dependencies: ScheduleApplicationDependencies = defaultDependencies
+  input: ScheduleRemoveInput
 ): Effect.Effect<
   { readonly success: true },
   ApplicationFault,
@@ -145,13 +132,12 @@ export const removeScheduledPerson = (
     const access = yield* PlanningCenterAccess;
     yield* ensureRequestIsOpen;
     yield* access.services.people.deletePlanPerson(input.planPersonId, input);
-    dependencies.invalidateHistory(access.cacheScope);
+    access.services.people.invalidatePlanWindowRosters();
     return { success: true as const };
   }).pipe(withPlanningCenterFaults);
 
 export const updateScheduledPersonStatus = (
-  input: ScheduleUpdateStatusInput,
-  dependencies: ScheduleApplicationDependencies = defaultDependencies
+  input: ScheduleUpdateStatusInput
 ): Effect.Effect<
   { readonly success: true },
   ApplicationFault,
@@ -165,6 +151,6 @@ export const updateScheduledPersonStatus = (
       input.status,
       input
     );
-    dependencies.invalidateHistory(access.cacheScope);
+    access.services.people.invalidatePlanWindowRosters();
     return { success: true as const };
   }).pipe(withPlanningCenterFaults);

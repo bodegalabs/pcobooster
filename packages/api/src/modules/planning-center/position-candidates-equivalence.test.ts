@@ -629,7 +629,6 @@ interface OrgFixture {
 }
 
 const createOrg = ({ emptyWindow = false }: OrgFixture = {}) => {
-  const cacheScope = `equivalence-${crypto.randomUUID()}`;
   const catalog = {
     getServiceTypesCached: () => Effect.succeed(structuredClone(serviceTypes)),
   };
@@ -645,7 +644,6 @@ const createOrg = ({ emptyWindow = false }: OrgFixture = {}) => {
     },
   };
   const people = {
-    getCacheScope: () => cacheScope,
     getPeopleForTeamPosition: () =>
       Effect.succeed({
         data: ["ana", "ben", "cy", "dee", "eve", "fay", "gus"].map((key) => ({
@@ -664,21 +662,21 @@ const createOrg = ({ emptyWindow = false }: OrgFixture = {}) => {
           ...teams,
         ],
       }),
-    getPlanTeamMembers: (
-      _serviceTypeId: string,
-      planId: string,
-      options?: { readonly settled?: boolean }
-    ) => {
-      // Only the window passes options; the fresh selected-plan read does not.
-      const members =
-        options === undefined && planId === PLAN_ID
-          ? selectedRoster
-          : (windowRosters.get(planId) ?? []);
-      return Effect.succeed({
-        data: structuredClone(members),
+    // The fresh selected-plan read sees the current roster; the window's copy may lag.
+    getPlanTeamMembers: (_serviceTypeId: string, planId: string) =>
+      Effect.succeed({
+        data: structuredClone(
+          planId === PLAN_ID
+            ? selectedRoster
+            : (windowRosters.get(planId) ?? [])
+        ),
         included: rosterIncluded(planId),
-      });
-    },
+      }),
+    getPlanWindowRoster: (_serviceTypeId: string, planId: string) =>
+      Effect.succeed({
+        data: structuredClone(windowRosters.get(planId) ?? []),
+        included: rosterIncluded(planId),
+      }),
     getPersonBlockouts: (personId: string) =>
       Effect.succeed(structuredClone(blockoutsByPerson.get(personId) ?? [])),
     getPersonBlockoutDates: (_personId: string, blockoutId: string) =>

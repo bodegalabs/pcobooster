@@ -13,7 +13,6 @@ import {
 import type { PreparedCreatePlanItem } from "@pcobooster/api/modules/planning-center/create-plan-item";
 import { deletePlanItem } from "@pcobooster/api/modules/planning-center/delete-plan-item";
 import { getPlanItems } from "@pcobooster/api/modules/planning-center/get-plan-items";
-import { invalidatePlanWindowHistory } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
 import { getSongOptions } from "@pcobooster/api/modules/planning-center/get-song-options";
 import type { LoadSongOptions } from "@pcobooster/api/modules/planning-center/plan-item-payload";
 import { updatePlanPersonTimes } from "@pcobooster/api/modules/planning-center/plan-person-times";
@@ -64,12 +63,6 @@ const planTimeDependenciesFor = (
   peopleService: access.services.people,
   catalogService: access.services.catalog,
 });
-
-const invalidateRequestPlanHistory =
-  (access: PlanningCenterRequestAccess): (() => void) =>
-  () => {
-    invalidatePlanWindowHistory(access.cacheScope);
-  };
 
 const loadRequestSongOptions =
   (access: PlanningCenterRequestAccess): LoadSongOptions =>
@@ -222,11 +215,7 @@ export const createRunSheetTime = (
   Effect.gen(function* createTime() {
     const access = yield* PlanningCenterAccess;
     yield* ensureRequestIsOpen;
-    return yield* createPlanTime(
-      input,
-      invalidateRequestPlanHistory(access),
-      planTimeDependenciesFor(access)
-    );
+    return yield* createPlanTime(input, planTimeDependenciesFor(access));
   }).pipe(withPlanningCenterFaults);
 
 export const updateRunSheetTime = (
@@ -239,11 +228,7 @@ export const updateRunSheetTime = (
   Effect.gen(function* updateTime() {
     const access = yield* PlanningCenterAccess;
     yield* ensureRequestIsOpen;
-    return yield* updatePlanTime(
-      input,
-      invalidateRequestPlanHistory(access),
-      planTimeDependenciesFor(access)
-    );
+    return yield* updatePlanTime(input, planTimeDependenciesFor(access));
   }).pipe(withPlanningCenterFaults);
 
 export const deleteRunSheetTime = (
@@ -256,11 +241,7 @@ export const deleteRunSheetTime = (
   Effect.gen(function* deleteTime() {
     const access = yield* PlanningCenterAccess;
     yield* ensureRequestIsOpen;
-    yield* deletePlanTime(
-      input,
-      invalidateRequestPlanHistory(access),
-      planTimeDependenciesFor(access)
-    );
+    yield* deletePlanTime(input, planTimeDependenciesFor(access));
   }).pipe(withPlanningCenterFaults);
 
 export const updateRunSheetPersonTimes = (
@@ -275,7 +256,6 @@ export const updateRunSheetPersonTimes = (
     yield* ensureRequestIsOpen;
     yield* updatePlanPersonTimes(input, {
       peopleService: access.services.people,
-      invalidateHistory: invalidatePlanWindowHistory,
     });
     return { ok: true as const };
   }).pipe(withPlanningCenterFaults);

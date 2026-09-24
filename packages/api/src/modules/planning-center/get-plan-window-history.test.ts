@@ -66,8 +66,7 @@ const createOrg = ({
         ),
     },
     people: {
-      getCacheScope: () => `window-${crypto.randomUUID()}`,
-      getPlanTeamMembers: (serviceTypeId: string, planId: string) =>
+      getPlanWindowRoster: (serviceTypeId: string, planId: string) =>
         countedRead(
           {
             data: [

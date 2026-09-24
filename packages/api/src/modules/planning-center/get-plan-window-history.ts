@@ -11,13 +11,11 @@ import {
   PROGRESSIVE_REQUEST_BUDGET,
   withPlanningCenterRequestCount,
 } from "@pcobooster/api/planning-center/request-budget";
-import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import { PLAN_ROSTER_MAX_PAGES } from "@pcobooster/api/planning-center/services/people-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { PLAN_RANGE_MAX_PAGES } from "@pcobooster/api/planning-center/services/plans-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
-import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import {
   addCalendarDaysToDayKey,
   formatCalendarDayInTimeZone,
@@ -44,21 +42,6 @@ const log = logger.for("planning-center/plan-window-history");
 
 /** A Worker keeps at most 6 connections waiting for response headers. */
 const READ_CONCURRENCY = 6;
-/**
- * Window rosters feed history only; the candidate list reads the selected plan's roster fresh.
- * Rosters of plans that already happened are also kept 30 minutes by the people service. This
- * app's schedule writes clear both.
- */
-const PLAN_WINDOW_ROSTER_CACHE_TTL_MS = 5 * 60 * 1000;
-const PLAN_WINDOW_ROSTER_CACHE_KEY = "plan-window-roster";
-
-interface PlanRoster {
-  readonly data: PCResource[];
-  readonly included: PCResource[];
-}
-
-const planWindowRosterCache = new PlanningCenterReadCache<PlanRoster>();
-
 export interface WindowPlanRef {
   readonly serviceTypeId: string;
   readonly planId: string;
@@ -95,10 +78,7 @@ export interface PlanWindowHistoryInput {
 
 export interface PlanWindowHistoryDependencies {
   readonly catalog: Pick<PlanningCenterCatalogService, "getServiceTypesCached">;
-  readonly people: Pick<
-    PlanningCenterPeopleService,
-    "getCacheScope" | "getPlanTeamMembers"
-  >;
+  readonly people: Pick<PlanningCenterPeopleService, "getPlanWindowRoster">;
   readonly plans: Pick<
     PlanningCenterPlansService,
     "getPlansWithIncludedInDateRange"
@@ -218,18 +198,8 @@ const loadWindowRoster = (
   if (rosterRequestsFor(plan) === 0) {
     return Effect.succeed({ planTimes, included: [...planTimes], members: [] });
   }
-  const cacheKey = [
-    people.getCacheScope(),
-    PLAN_WINDOW_ROSTER_CACHE_KEY,
-    encodeURIComponent(serviceTypeId),
-    encodeURIComponent(plan.id),
-  ].join(":");
-  return cachedRead(
-    planWindowRosterCache,
-    cacheKey,
-    PLAN_WINDOW_ROSTER_CACHE_TTL_MS,
-    () => people.getPlanTeamMembers(serviceTypeId, plan.id, { settled })
-  ).pipe(
+  // Window rosters feed history only; the candidate list reads the selected plan's roster fresh.
+  return people.getPlanWindowRoster(serviceTypeId, plan.id, { settled }).pipe(
     Effect.map(({ data, included }) => {
       const merged: PCResource[] = [];
       const seen = new Set<string>();
@@ -531,9 +501,3 @@ export const getPlanWindowHistory = (
     );
     return batch;
   }).pipe(withPlanningCenterRequestCount);
-
-/** Schedule and plan time writes change rosters, so the window's copies are dropped. */
-export const invalidatePlanWindowHistory = (cacheScope: string) => {
-  const prefix = [cacheScope, PLAN_WINDOW_ROSTER_CACHE_KEY, ""].join(":");
-  planWindowRosterCache.deleteWhere((key) => key.startsWith(prefix));
-};
