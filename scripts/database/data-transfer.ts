@@ -18,6 +18,15 @@ export interface MigrationTarget {
   query: (sql: string, params?: SqlValue[]) => Promise<SqlRow[]>;
 }
 
+/** Drizzle column data types in this schema, mapped to their value conversion. */
+const columnKinds = {
+  "object date": "date",
+  boolean: "boolean",
+  "object json": "json",
+  "number int53": "number",
+  string: "string",
+} as const;
+
 // Parents precede their children. Activity history deliberately retains deleted actors.
 export const migrationTables = [
   user,
@@ -32,9 +41,17 @@ export const migrationTables = [
     name: config.name,
     columns: config.columns.map((column) => ({
       name: column.name,
-      kind: z
-        .enum(["date", "boolean", "json", "number", "string"])
-        .parse(column.dataType),
+      kind: columnKinds[
+        z
+          .enum([
+            "object date",
+            "boolean",
+            "object json",
+            "number int53",
+            "string",
+          ])
+          .parse(column.dataType)
+      ],
     })),
     primaryKey: config.columns.find((column) => column.primary)?.name ?? "id",
   };

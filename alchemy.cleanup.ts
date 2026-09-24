@@ -5,6 +5,7 @@
  */
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
+import * as Drizzle from "alchemy/Drizzle";
 import { Effect, Layer } from "effect";
 
 import { isPreviewStage } from "./scripts/cloudflare/stages";
@@ -23,6 +24,10 @@ const previewState = Layer.unwrap(
 
 export default Alchemy.Stack(
   "pcobooster",
-  { providers: Cloudflare.providers(), state: previewState },
+  {
+    // Every resource type the application stack declares needs its provider to be destroyed.
+    providers: Layer.mergeAll(Cloudflare.providers(), Drizzle.providers()),
+    state: previewState,
+  },
   Effect.succeed({})
 );

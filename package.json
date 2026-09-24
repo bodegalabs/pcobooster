@@ -46,7 +46,7 @@
     "build:cloudflare": "turbo run build --filter=@pcobooster/web --filter=@pcobooster/admin"
   },
   "dependencies": {
-    "drizzle-orm": "^0.45.2",
+    "drizzle-orm": "1.0.0-rc.5-ab785fc",
     "zod": "^4.6.5"
   },
   "devDependencies": {
@@ -60,7 +60,7 @@
     "@types/node": "^24.13.5",
     "@types/pg": "^8.23.1",
     "alchemy": "2.0.0-beta.79",
-    "drizzle-kit": "^0.31.10",
+    "drizzle-kit": "1.0.0-rc.5-ab785fc",
     "effect": "4.0.0-rc.117",
     "lefthook": "^2.1.14",
     "miniflare": "5.20260921.0-alpha",
