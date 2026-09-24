@@ -2,6 +2,8 @@ name: CI
 
 on:
   pull_request:
+    # `labeled` lets adding the `preview` label request a deploy for the current head.
+    types: [opened, synchronize, reopened, labeled]
   merge_group:
   push:
     branches: [main]
@@ -65,6 +67,9 @@ jobs:
       cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     env:
       ADMIN_BASE_PATH: /admin
+      # Matches the preview environment so its deploy can reuse these outputs.
+      PEOPLE_PAGE_ENABLED: "false"
+      PACKAGE_PREBUILT: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'preview') }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -76,11 +81,27 @@ jobs:
         uses: ./.github/actions/next-cache
       - name: Build Cloudflare bundles without credentials
         run: bun run build:cloudflare
+      # tar keeps the symlinks in `.next/standalone`; the Next.js compiler cache stays in actions/cache.
+      - name: Package Next.js outputs for the preview deploy
+        if: env.PACKAGE_PREBUILT == 'true'
+        run: |
+          bun scripts/cloudflare/build-fingerprint.ts > next-build-fingerprint.txt
+          tar -czf "$RUNNER_TEMP/next-prebuilt.tgz" --exclude='apps/*/.next/cache' \
+            next-build-fingerprint.txt apps/web/.next apps/web/public/marketing apps/admin/.next
+      - name: Upload Next.js outputs
+        if: env.PACKAGE_PREBUILT == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: next-prebuilt
+          path: ${{ runner.temp }}/next-prebuilt.tgz
+          retention-days: 1
+          compression-level: 0
 
   preview:
     needs: [ci, cloudflare-build]
+    # Previews deploy only on request: add the `preview` label, then approve the deployment.
     if: >-
-      github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+      github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'preview')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -96,6 +117,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
       PREVIEW_STAGE: pr-${{ github.event.pull_request.number }}
       PREVIEW_ORIGIN: https://pcobooster-pr-${{ github.event.pull_request.number }}-web.jakebodea.workers.dev
+      ADMIN_BASE_PATH: /admin
     steps:
       - name: Checkout verified merge commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -120,6 +142,23 @@ jobs:
           project-id: ${{ vars.INFISICAL_PROJECT_ID }}
           env-slug: ${{ vars.INFISICAL_ENV_SLUG }}
       # The protected GitHub environment requires Jake's approval for each run.
+      - name: Download Next.js outputs from cloudflare-build
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: next-prebuilt
+          path: ${{ runner.temp }}
+      # Reuse the outputs only when this job would build with the same environment.
+      - name: Reuse Next.js outputs when the build environment matches
+        run: |
+          tar -xzf "$RUNNER_TEMP/next-prebuilt.tgz"
+          if [ "$(bun scripts/cloudflare/build-fingerprint.ts)" = "$(cat next-build-fingerprint.txt)" ]; then
+            echo "PCOBOOSTER_PREBUILT_NEXT=1" >> "$GITHUB_ENV"
+            echo "Reusing cloudflare-build's Next.js outputs."
+          else
+            rm -rf apps/web/.next apps/web/public/marketing apps/admin/.next
+            echo "::notice::Build environment differs from cloudflare-build; building from source."
+          fi
+          rm next-build-fingerprint.txt
       - name: Deploy approved preview
         run: bun alchemy deploy --stage "$PREVIEW_STAGE" --no-input --yes
       - name: Verify preview serves this commit
