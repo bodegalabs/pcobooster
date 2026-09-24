@@ -1,8 +1,6 @@
-"use client";
-
 import type { AdminAccountActivity } from "@pcobooster/contracts/admin";
+import { useNavigate } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import type { KeyboardEvent } from "react";
 
@@ -20,12 +18,12 @@ export const AdminAccountRow = ({
   createdLabel,
   lastLoginLabel,
 }: AdminAccountRowProps) => {
-  const router = useRouter();
-  const href = `/users/${account.userId}`;
+  const navigate = useNavigate();
+  const { userId } = account;
 
   const openAccount = useCallback(() => {
-    router.push(href);
-  }, [href, router]);
+    void navigate({ to: "/users/$userId", params: { userId } });
+  }, [navigate, userId]);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLTableRowElement>) => {

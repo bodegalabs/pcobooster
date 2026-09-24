@@ -1,4 +1,5 @@
 import type { AdminAccountActivity } from "@pcobooster/contracts/admin";
+import { createFileRoute } from "@tanstack/react-router";
 import {
   Activity,
   CalendarClock,
@@ -7,7 +8,8 @@ import {
   Users,
 } from "lucide-react";
 
-import { AdminAccountRow } from "@/app/account-row";
+import { AdminAccountRow } from "@/components/admin/account-row";
+import { AdminPageSkeleton } from "@/components/admin/admin-page-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -18,9 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDate, formatDateTime } from "@/lib/format-date";
-import { getAdminAccounts } from "@/server/api";
-
-export const dynamic = "force-dynamic";
+import { getAdminAccounts } from "@/server/admin.functions";
 
 const StatCard = ({
   label,
@@ -55,8 +55,8 @@ const getTotals = (accounts: AdminAccountActivity[]) => {
   return totals;
 };
 
-const AdminPage = async () => {
-  const { accounts, email } = await getAdminAccounts();
+const AdminPage = () => {
+  const { accounts, email } = Route.useLoaderData();
   const totals = getTotals(accounts);
 
   return (
@@ -137,4 +137,10 @@ const AdminPage = async () => {
   );
 };
 
-export default AdminPage;
+const AdminLoading = () => <AdminPageSkeleton label="Loading admin" />;
+
+export const Route = createFileRoute("/")({
+  loader: async () => await getAdminAccounts(),
+  pendingComponent: AdminLoading,
+  component: AdminPage,
+});

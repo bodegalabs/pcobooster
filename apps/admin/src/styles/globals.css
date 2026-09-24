@@ -36,6 +36,8 @@
 
 /* Theme tokens mirror apps/web/src/app/globals.css. */
 :root {
+  /* Fontsource family imported by the root route. */
+  --font-inter: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --radius: 0.625rem;
   --card: oklch(0.972 0.006 142);
   --card-foreground: oklch(0.27 0.018 142);

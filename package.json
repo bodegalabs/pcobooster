@@ -45,7 +45,7 @@
     "posthog:deploy": "infisical run --env=prod --path=/ --path=/posthog --projectId=2eca20e1-20ac-4f06-a086-99ea5c590483 -- env CLOUDFLARE_ACCOUNT_ID=984b82870acd18daf8bda97bad966b38 bun alchemy deploy alchemy.posthog.ts --stage prod",
     "db:rehearse": "infisical run --env=prod --path=/ -- bun run scripts/database/migrate-from-postgres.ts --local",
     "alchemy": "node --import ./node_modules/alchemy/bin/register-oxc.js ./node_modules/alchemy/bin/alchemy.js",
-    "build:cloudflare": "bun run --cwd apps/web build:cloudflare && bun run --cwd apps/admin build:cloudflare"
+    "build:cloudflare": "bun run --cwd apps/web build:cloudflare && bun run --cwd apps/admin build"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
