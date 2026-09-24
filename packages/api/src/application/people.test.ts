@@ -13,6 +13,7 @@ import type {
 } from "@pcobooster/api/application/planning-center-access";
 import { createBasicPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
 import { Server } from "@pcobooster/api/server";
+import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import {
   testFeatureFlags,
   testPlanningCenterToken,
@@ -36,7 +37,8 @@ const access = (
   // No request reaches Planning Center: the flag rejects before any read.
   const services = createBasicPlanningCenterServices(
     testPlanningCenterToken,
-    "UTC"
+    "UTC",
+    unreachableHttpClient
   );
   return {
     authentication,

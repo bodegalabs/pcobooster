@@ -1,3 +1,4 @@
+import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import type {
@@ -11,6 +12,7 @@ import {
   isPresentationMode,
 } from "@pcobooster/presentation-mode";
 import type { PresentationEnvironment } from "@pcobooster/presentation-mode";
+import { Effect } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
@@ -38,11 +40,13 @@ const createDependencies = () => {
   const catalog = {
     getOrganization: vi
       .fn<PlanningCenterCatalogService["getOrganization"]>()
-      .mockResolvedValue({
-        id: "org-1",
-        type: "Organization",
-        attributes: { name: "My Organization" },
-      }),
+      .mockReturnValue(
+        Effect.succeed({
+          id: "org-1",
+          type: "Organization",
+          attributes: { name: "My Organization" },
+        })
+      ),
   };
   const people = {
     getCacheScope: () => "presentation-test",
@@ -58,8 +62,7 @@ const createDependencies = () => {
   };
   const search = {
     people,
-    getIdentityMapper: async () =>
-      await getPresentationIdentityMapper(presentation),
+    getIdentityMapper: getPresentationIdentityMapper(presentation),
   };
   return { catalog, people, presentation, search };
 };
@@ -183,7 +186,7 @@ describe("presentation mode", () => {
     expect(isPresentationMode(environment)).toBeFalsy();
     expect(getPresentationCacheScope(environment)).toBe("live");
     await expect(
-      presentPeople(people, dependencies.presentation)
+      Effect.runPromise(presentPeople(people, dependencies.presentation))
     ).resolves.toBe(people);
     expect(dependencies.catalog.getOrganization).not.toHaveBeenCalled();
   });
@@ -223,15 +226,22 @@ describe("presentation mode", () => {
 
   it("isolates organization caches for independent services sharing a scope", async () => {
     const otherDependencies = createDependencies();
-    otherDependencies.catalog.getOrganization.mockResolvedValue({
-      id: "org-2",
-      type: "Organization",
-      attributes: { name: "Another Organization" },
-    });
-    const [first, second] = await Promise.all([
-      presentPeople(people, dependencies.presentation),
-      presentPeople(people, otherDependencies.presentation),
-    ]);
+    otherDependencies.catalog.getOrganization.mockReturnValue(
+      Effect.succeed({
+        id: "org-2",
+        type: "Organization",
+        attributes: { name: "Another Organization" },
+      })
+    );
+    const [first, second] = await Effect.runPromise(
+      Effect.all(
+        [
+          presentPeople(people, dependencies.presentation),
+          presentPeople(people, otherDependencies.presentation),
+        ],
+        { concurrency: "unbounded" }
+      )
+    );
     expect(first[0]).toMatchObject(
       presentationIdentity("org-1", "person-1", "test-seed")
     );
@@ -248,12 +258,18 @@ describe("presentation mode", () => {
       detail,
       blockout,
     });
-    const [candidates, roster, overview, personDetail] = await Promise.all([
-      presentPeople(people, dependencies.presentation),
-      presentTeamPositions(groups, dependencies.presentation),
-      presentDashboard(dashboard, dependencies.presentation),
-      presentDashboardPerson(detail, dependencies.presentation),
-    ]);
+    const [candidates, roster, overview, personDetail] =
+      await Effect.runPromise(
+        Effect.all(
+          [
+            presentPeople(people, dependencies.presentation),
+            presentTeamPositions(groups, dependencies.presentation),
+            presentDashboard(dashboard, dependencies.presentation),
+            presentDashboardPerson(detail, dependencies.presentation),
+          ],
+          { concurrency: "unbounded" }
+        )
+      );
     const alias = candidates[0].fullName;
     expect({
       names: [
@@ -298,9 +314,8 @@ describe("presentation mode", () => {
       throw new Error("Expected a filled guest position");
     }
     guest.personId = null;
-    const result = await presentTeamPositions(
-      guests,
-      dependencies.presentation
+    const result = await Effect.runPromise(
+      presentTeamPositions(guests, dependencies.presentation)
     );
     expect(result[0].positions[0].filledPeople?.[0]).toMatchObject({
       name: "Guest volunteer",
@@ -309,27 +324,33 @@ describe("presentation mode", () => {
   });
 
   it("fails closed when organization identity cannot be resolved", async () => {
-    dependencies.catalog.getOrganization.mockRejectedValueOnce(
-      new Error("Unavailable")
+    dependencies.catalog.getOrganization.mockReturnValueOnce(
+      Effect.fail(
+        new PlanningCenterNetworkError({ cause: new Error("Unavailable") })
+      )
     );
     await expect(
-      presentPeople(people, dependencies.presentation)
-    ).rejects.toThrow("Unavailable");
+      Effect.runPromise(
+        Effect.flip(presentPeople(people, dependencies.presentation))
+      )
+    ).resolves.toMatchObject({ _tag: "PlanningCenterNetworkError" });
   });
 
   it("preserves normal-mode data, including notes and photos", async () => {
     setEnvironment("PRESENTATION_MODE", "0");
     await expect(
-      presentPeople(people, dependencies.presentation)
+      Effect.runPromise(presentPeople(people, dependencies.presentation))
     ).resolves.toBe(people);
     await expect(
-      presentTeamPositions(groups, dependencies.presentation)
+      Effect.runPromise(presentTeamPositions(groups, dependencies.presentation))
     ).resolves.toBe(groups);
     await expect(
-      presentDashboard(dashboard, dependencies.presentation)
+      Effect.runPromise(presentDashboard(dashboard, dependencies.presentation))
     ).resolves.toBe(dashboard);
     await expect(
-      presentDashboardPerson(detail, dependencies.presentation)
+      Effect.runPromise(
+        presentDashboardPerson(detail, dependencies.presentation)
+      )
     ).resolves.toBe(detail);
     const blockouts = [blockout];
     expect(presentBlockouts(blockouts, false)).toBe(blockouts);
@@ -351,16 +372,13 @@ describe("people search", () => {
   ];
 
   it("searches the displayed aliases, never real names or upstream name search", async () => {
-    dependencies.people.getAllPeople.mockResolvedValue(resources);
-    const presentedPeople = await presentPeople(
-      people,
-      dependencies.presentation
+    dependencies.people.getAllPeople.mockReturnValue(Effect.succeed(resources));
+    const presentedPeople = await Effect.runPromise(
+      presentPeople(people, dependencies.presentation)
     );
     const alias = presentedPeople[0].fullName;
-    const results = await searchPeople(
-      alias.toLowerCase(),
-      15,
-      dependencies.search
+    const results = await Effect.runPromise(
+      searchPeople(alias.toLowerCase(), 15, dependencies.search)
     );
     expect(results).toHaveLength(1);
     expect(results[0]).toMatchObject({
@@ -369,7 +387,7 @@ describe("people search", () => {
       photoThumbnailUrl: null,
     });
     await expect(
-      searchPeople("Private Name", 15, dependencies.search)
+      Effect.runPromise(searchPeople("Private Name", 15, dependencies.search))
     ).resolves.toStrictEqual([]);
     expect(dependencies.people.searchPeopleByName).not.toHaveBeenCalled();
     expect(JSON.stringify(results)).not.toContain("Private");
@@ -377,9 +395,11 @@ describe("people search", () => {
 
   it("keeps the existing upstream search and real avatar in normal mode", async () => {
     setEnvironment("PRESENTATION_MODE", "0");
-    dependencies.people.searchPeopleByName.mockResolvedValue(resources);
+    dependencies.people.searchPeopleByName.mockReturnValue(
+      Effect.succeed(resources)
+    );
     await expect(
-      searchPeople("Private", 15, dependencies.search)
+      Effect.runPromise(searchPeople("Private", 15, dependencies.search))
     ).resolves.toStrictEqual([
       {
         id: "person-1",
@@ -391,8 +411,7 @@ describe("people search", () => {
     ]);
     expect(dependencies.people.searchPeopleByName).toHaveBeenCalledWith(
       "Private",
-      15,
-      undefined
+      15
     );
     expect(dependencies.people.getAllPeople).not.toHaveBeenCalled();
   });
@@ -401,16 +420,14 @@ describe("people search", () => {
 describe(getPresentationIdentityMapper, () => {
   beforeEach(setupPresentationEnvironment);
 
-  it("passes its request signal through the organization cache loader", async () => {
-    const controller = new AbortController();
+  it("reads the organization once through the organization cache", async () => {
+    const mapper = getPresentationIdentityMapper(dependencies.presentation);
 
-    await getPresentationIdentityMapper(
-      dependencies.presentation,
-      controller.signal
+    const [first, second] = await Effect.runPromise(
+      Effect.all([mapper, mapper], { concurrency: "unbounded" })
     );
 
-    expect(dependencies.catalog.getOrganization).toHaveBeenCalledWith(
-      expect.any(AbortSignal)
-    );
+    expect(first?.("person-1")).toStrictEqual(second?.("person-1"));
+    expect(dependencies.catalog.getOrganization).toHaveBeenCalledOnce();
   });
 });

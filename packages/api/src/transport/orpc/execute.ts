@@ -6,6 +6,7 @@ import type { ApplicationRuntime } from "@pcobooster/api/application/runtime";
 import { Server } from "@pcobooster/api/server";
 import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
 import { Cause, Effect, Exit } from "effect";
+import type { HttpClient } from "effect/unstable/http/HttpClient";
 
 export interface ExecuteApplicationEffectOptions {
   /**
@@ -90,8 +91,12 @@ export const toORPCError = (
 };
 
 export const executeApplicationEffect = async <Value>(
-  runtime: ApplicationRuntime<never>,
-  program: Effect.Effect<Value, ApplicationFault, RequestContext | Server>,
+  runtime: ApplicationRuntime<HttpClient>,
+  program: Effect.Effect<
+    Value,
+    ApplicationFault,
+    RequestContext | Server | HttpClient
+  >,
   rpcContext: RpcContext,
   signal?: AbortSignal,
   options: ExecuteApplicationEffectOptions = {}

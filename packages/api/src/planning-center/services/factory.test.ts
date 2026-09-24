@@ -2,8 +2,10 @@ import {
   createPlanningCenterServices,
   createBasicPlanningCenterServices,
 } from "@pcobooster/api/planning-center/services/factory";
+import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 const TIME_ZONE = "America/Los_Angeles";
@@ -14,35 +16,38 @@ const resource = (id: string, type: string): PCResource => ({
   attributes: { name: id },
 });
 
+const servicesFor = (accessToken: string) =>
+  createPlanningCenterServices(accessToken, TIME_ZONE, unreachableHttpClient);
+
 describe("createPlanningCenterServices shared caches", () => {
   it("rejects empty request credentials and scopes Basic services by credential", () => {
-    expect(() => createPlanningCenterServices("", TIME_ZONE)).toThrow(
-      "requires a non-empty access token"
-    );
+    expect(() => servicesFor("")).toThrow("requires a non-empty access token");
     expect(
       createBasicPlanningCenterServices(
         testPlanningCenterToken,
-        TIME_ZONE
+        TIME_ZONE,
+        unreachableHttpClient
       ).core.getCacheScope()
     ).toMatch(/^basic:/u);
   });
 
   it("reuses cached reads for the same credential without leaking mutations", async () => {
-    const first = createPlanningCenterServices("shared-cache-token", TIME_ZONE);
-    const second = createPlanningCenterServices(
-      "shared-cache-token",
-      TIME_ZONE
-    );
+    const first = servicesFor("shared-cache-token");
+    const second = servicesFor("shared-cache-token");
     const firstLoad = vi
       .spyOn(first.catalog, "getServiceTypes")
-      .mockResolvedValue([resource("first", "ServiceType")]);
+      .mockReturnValue(Effect.succeed([resource("first", "ServiceType")]));
     const secondLoad = vi
       .spyOn(second.catalog, "getServiceTypes")
-      .mockResolvedValue([resource("second", "ServiceType")]);
+      .mockReturnValue(Effect.succeed([resource("second", "ServiceType")]));
 
-    const firstResult = await first.catalog.getServiceTypesCached();
+    const firstResult = await Effect.runPromise(
+      first.catalog.getServiceTypesCached()
+    );
     firstResult[0].attributes.name = "mutated";
-    const secondResult = await second.catalog.getServiceTypesCached();
+    const secondResult = await Effect.runPromise(
+      second.catalog.getServiceTypesCached()
+    );
 
     expect(firstLoad).toHaveBeenCalledOnce();
     expect(secondLoad).not.toHaveBeenCalled();
@@ -50,25 +55,24 @@ describe("createPlanningCenterServices shared caches", () => {
   });
 
   it("isolates shared caches by credential scope", async () => {
-    const first = createPlanningCenterServices(
-      "isolated-cache-token-a",
-      TIME_ZONE
-    );
-    const second = createPlanningCenterServices(
-      "isolated-cache-token-b",
-      TIME_ZONE
-    );
+    const first = servicesFor("isolated-cache-token-a");
+    const second = servicesFor("isolated-cache-token-b");
     const firstLoad = vi
       .spyOn(first.catalog, "getServiceTypes")
-      .mockResolvedValue([resource("first", "ServiceType")]);
+      .mockReturnValue(Effect.succeed([resource("first", "ServiceType")]));
     const secondLoad = vi
       .spyOn(second.catalog, "getServiceTypes")
-      .mockResolvedValue([resource("second", "ServiceType")]);
+      .mockReturnValue(Effect.succeed([resource("second", "ServiceType")]));
 
-    const [firstResult, secondResult] = await Promise.all([
-      first.catalog.getServiceTypesCached(),
-      second.catalog.getServiceTypesCached(),
-    ]);
+    const [firstResult, secondResult] = await Effect.runPromise(
+      Effect.all(
+        [
+          first.catalog.getServiceTypesCached(),
+          second.catalog.getServiceTypesCached(),
+        ],
+        { concurrency: "unbounded" }
+      )
+    );
 
     expect(firstLoad).toHaveBeenCalledOnce();
     expect(secondLoad).toHaveBeenCalledOnce();
@@ -77,59 +81,68 @@ describe("createPlanningCenterServices shared caches", () => {
   });
 
   it("invalidates another request service instance after a mutation", async () => {
-    const first = createPlanningCenterServices(
-      "mutation-cache-token",
-      TIME_ZONE
-    );
-    const second = createPlanningCenterServices(
-      "mutation-cache-token",
-      TIME_ZONE
-    );
-    const load = vi
-      .spyOn(first.core, "fetchAllWithIncluded")
-      .mockResolvedValue({
+    const first = servicesFor("mutation-cache-token");
+    const second = servicesFor("mutation-cache-token");
+    const load = vi.spyOn(first.core, "fetchAllWithIncluded").mockReturnValue(
+      Effect.succeed({
         data: [resource("item-1", "Item")],
         included: [],
-      });
-    vi.spyOn(second.core, "fetchAllWithIncluded").mockResolvedValue({
-      data: [resource("item-2", "Item")],
-      included: [],
-    });
-    vi.spyOn(second.core, "fetch").mockResolvedValue({
-      data: resource("item-2", "Item"),
-      included: [],
-    });
+      })
+    );
+    vi.spyOn(second.core, "fetchAllWithIncluded").mockReturnValue(
+      Effect.succeed({
+        data: [resource("item-2", "Item")],
+        included: [],
+      })
+    );
+    vi.spyOn(second.core, "fetch").mockReturnValue(
+      Effect.succeed({
+        data: resource("item-2", "Item"),
+        included: [],
+      })
+    );
 
-    await first.planItems.getPlanItems("service-type", "plan");
-    await second.planItems.getPlanItems("service-type", "plan");
-    await second.planItems.createPlanItem("service-type", "plan", {
-      title: "New item",
-    });
-    await first.planItems.getPlanItems("service-type", "plan");
+    await Effect.runPromise(
+      first.planItems.getPlanItems("service-type", "plan")
+    );
+    await Effect.runPromise(
+      second.planItems.getPlanItems("service-type", "plan")
+    );
+    await Effect.runPromise(
+      second.planItems.createPlanItem("service-type", "plan", {
+        title: "New item",
+      })
+    );
+    await Effect.runPromise(
+      first.planItems.getPlanItems("service-type", "plan")
+    );
 
     expect(load).toHaveBeenCalledTimes(2);
   });
 
   it("shares schedule invalidation across request-owned services", async () => {
     const accessToken = "schedule-invalidation-token";
-    const services = createPlanningCenterServices(accessToken, TIME_ZONE);
-    const mutationServices = createPlanningCenterServices(
-      accessToken,
-      TIME_ZONE
-    );
+    const services = servicesFor(accessToken);
+    const mutationServices = servicesFor(accessToken);
     const load = vi
       .spyOn(services.core, "fetchAllWithIncluded")
-      .mockResolvedValue({
-        data: [resource("plan-person", "PlanPerson")],
-        included: [],
-      });
+      .mockReturnValue(
+        Effect.succeed({
+          data: [resource("plan-person", "PlanPerson")],
+          included: [],
+        })
+      );
 
-    await services.people.getPlanTeamMembers("service-type", "plan");
+    await Effect.runPromise(
+      services.people.getPlanTeamMembers("service-type", "plan")
+    );
     mutationServices.people.invalidateScheduleReadCaches({
       serviceTypeId: "service-type",
       planId: "plan",
     });
-    await services.people.getPlanTeamMembers("service-type", "plan");
+    await Effect.runPromise(
+      services.people.getPlanTeamMembers("service-type", "plan")
+    );
 
     expect(load).toHaveBeenCalledTimes(2);
   });

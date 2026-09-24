@@ -2,6 +2,7 @@ import {
   buildPlanSchedulingContext,
   isDeclinedRosterStatus,
 } from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
@@ -19,6 +20,7 @@ import type {
   PlanTime,
   PlanTimeType,
 } from "@pcobooster/planning-center-models/types";
+import { Effect, Exit } from "effect";
 
 interface UpdatePlanTimeInput {
   serviceTypeId: string;
@@ -54,7 +56,6 @@ interface DeletePlanTimeInput {
 }
 
 export interface PlanTimeDependencies {
-  readonly signal?: AbortSignal;
   plansService: Pick<
     PlanningCenterPlansService,
     "getPlanTimes" | "createPlanTime" | "updatePlanTime" | "deletePlanTime"
@@ -71,98 +72,102 @@ export interface PlanTimeDependencies {
   >;
 }
 
-const awaitAllWrites = async <Value>(
-  writes: Promise<Value>[],
-  failureMessage: string
-): Promise<void> => {
-  const results = await Promise.allSettled(writes);
-  for (const result of results) {
-    if (result.status === "rejected") {
-      throw result.reason instanceof Error
-        ? result.reason
-        : new Error(failureMessage, { cause: result.reason });
-    }
-  }
-};
+/** Every write runs to completion; the first failure is reported afterward. */
+const awaitAllWrites = <Value>(
+  writes: Effect.Effect<Value, PlanningCenterError>[]
+): Effect.Effect<void, PlanningCenterError> =>
+  Effect.forEach(writes, (write) => Effect.exit(write), {
+    concurrency: "unbounded",
+  }).pipe(
+    Effect.flatMap((exits) => {
+      const failed = exits.find(Exit.isFailure);
+      return failed === undefined
+        ? Effect.void
+        : Effect.failCause(failed.cause);
+    })
+  );
 
-export const deletePlanTime = async (
+export const deletePlanTime = (
   input: DeletePlanTimeInput,
   invalidateHistory: () => void,
   dependencies: PlanTimeDependencies
-): Promise<void> => {
-  await dependencies.plansService.deletePlanTime(
-    input.serviceTypeId,
-    input.planId,
-    input.planTimeId
-  );
-  dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
-    input.planId
-  );
-  invalidateHistory();
-};
-
-const updateIndividualTimeAssignments = async (
-  input: UpdatePlanTimeInput,
-  dependencies: PlanTimeDependencies
-) => {
-  const assignIds = input.assignedPlanPersonIds ?? [];
-  const clearIds = input.clearedPlanPersonIds ?? [];
-  if (assignIds.length === 0 && clearIds.length === 0) {
-    return;
-  }
-
-  const response = await dependencies.peopleService.getPlanTeamMembers(
-    input.serviceTypeId,
-    input.planId
-  );
-  const context = buildPlanSchedulingContext({
-    serviceTypeId: input.serviceTypeId,
-    planId: input.planId,
-    planTeamMembers: response.data,
-    included: response.included ?? [],
-  });
-  const targetIds = new Set([...assignIds, ...clearIds]);
-  const assignSet = new Set(assignIds);
-
-  const updates: Promise<PCResource>[] = [];
-  for (const entry of context.rosterEntries) {
-    if (
-      !targetIds.has(entry.planPersonId) ||
-      !isNonEmptyString(entry.personId) ||
-      isDeclinedRosterStatus(entry.status)
-    ) {
-      continue;
-    }
-    const current = new Set(entry.assignedTimeIds);
-    if (assignSet.has(entry.planPersonId)) {
-      current.add(input.planTimeId);
-    } else {
-      current.delete(input.planTimeId);
-    }
-    updates.push(
-      dependencies.peopleService.updatePlanPersonTimes({
-        personId: entry.personId,
-        planPersonId: entry.planPersonId,
-        serviceTypeId: input.serviceTypeId,
-        planId: input.planId,
-        planTimeIds: [...current],
-      })
+): Effect.Effect<void, PlanningCenterError> =>
+  dependencies.plansService
+    .deletePlanTime(input.serviceTypeId, input.planId, input.planTimeId)
+    .pipe(
+      Effect.tap(() =>
+        Effect.sync(() => {
+          dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
+            input.planId
+          );
+          invalidateHistory();
+        })
+      )
     );
-  }
-  await awaitAllWrites(updates, "A plan person time update failed");
-};
 
-const updateNeededPositionAssignments = async (
+const updateIndividualTimeAssignments = (
   input: UpdatePlanTimeInput,
   dependencies: PlanTimeDependencies
-) => {
+): Effect.Effect<void, PlanningCenterError> =>
+  Effect.gen(function* updateIndividualTimes() {
+    const assignIds = input.assignedPlanPersonIds ?? [];
+    const clearIds = input.clearedPlanPersonIds ?? [];
+    if (assignIds.length === 0 && clearIds.length === 0) {
+      return;
+    }
+
+    const response = yield* dependencies.peopleService.getPlanTeamMembers(
+      input.serviceTypeId,
+      input.planId
+    );
+    const context = buildPlanSchedulingContext({
+      serviceTypeId: input.serviceTypeId,
+      planId: input.planId,
+      planTeamMembers: response.data,
+      included: response.included ?? [],
+    });
+    const targetIds = new Set([...assignIds, ...clearIds]);
+    const assignSet = new Set(assignIds);
+
+    const updates: Effect.Effect<PCResource, PlanningCenterError>[] = [];
+    for (const entry of context.rosterEntries) {
+      if (
+        !targetIds.has(entry.planPersonId) ||
+        !isNonEmptyString(entry.personId) ||
+        isDeclinedRosterStatus(entry.status)
+      ) {
+        continue;
+      }
+      const current = new Set(entry.assignedTimeIds);
+      if (assignSet.has(entry.planPersonId)) {
+        current.add(input.planTimeId);
+      } else {
+        current.delete(input.planTimeId);
+      }
+      updates.push(
+        dependencies.peopleService.updatePlanPersonTimes({
+          personId: entry.personId,
+          planPersonId: entry.planPersonId,
+          serviceTypeId: input.serviceTypeId,
+          planId: input.planId,
+          planTimeIds: [...current],
+        })
+      );
+    }
+    yield* awaitAllWrites(updates);
+  });
+
+const updateNeededPositionAssignments = (
+  input: UpdatePlanTimeInput,
+  dependencies: PlanTimeDependencies
+): Effect.Effect<void, PlanningCenterError> => {
   const assignIds = input.assignedNeededPositionIds ?? [];
   const clearIds = input.clearedNeededPositionIds ?? [];
   if (assignIds.length === 0 && clearIds.length === 0) {
-    return;
+    return Effect.void;
   }
 
-  const writes: Promise<PCResource>[] = [];
+  const writes: Effect.Effect<PCResource, PlanningCenterError>[] = [];
   for (const id of assignIds) {
     writes.push(
       dependencies.catalogService.updateServiceTypePlanNeededPositionTime(
@@ -183,7 +188,7 @@ const updateNeededPositionAssignments = async (
       )
     );
   }
-  await awaitAllWrites(writes, "A needed position time update failed");
+  return awaitAllWrites(writes);
 };
 
 const getRelationshipIds = (data: PCRelationship["data"]): string[] => {
@@ -248,97 +253,96 @@ const normalizePlanTime = (raw: PCResource): PlanTime | null => {
   };
 };
 
-export const getPlanTimes = async (
+const invalidPlanTime = () =>
+  Effect.die(new Error("Planning Center returned an invalid plan time"));
+
+export const getPlanTimes = (
   serviceTypeId: string,
   planId: string,
   dependencies: PlanTimeDependencies
-): Promise<PlanTime[]> => {
-  const rawPlanTimes = await dependencies.plansService.getPlanTimes(
-    serviceTypeId,
-    planId,
-    dependencies.signal
+): Effect.Effect<PlanTime[], PlanningCenterError> =>
+  Effect.map(
+    dependencies.plansService.getPlanTimes(serviceTypeId, planId),
+    (rawPlanTimes) =>
+      rawPlanTimes
+        .map((raw) => normalizePlanTime(raw))
+        .filter((planTime): planTime is PlanTime => planTime !== null)
+        .toSorted((a, b) => a.startsAt.getTime() - b.startsAt.getTime())
   );
-  return rawPlanTimes
-    .map((raw) => normalizePlanTime(raw))
-    .filter((planTime): planTime is PlanTime => planTime !== null)
-    .toSorted((a, b) => a.startsAt.getTime() - b.startsAt.getTime());
-};
 
-export const updatePlanTime = async (
+export const updatePlanTime = (
   input: UpdatePlanTimeInput,
   invalidateHistory: () => void,
   dependencies: PlanTimeDependencies
-): Promise<PlanTime> => {
-  const attributes: JsonObject = {};
-  if (input.name !== undefined) {
-    attributes.name = input.name;
-  }
-  if (input.startsAt !== undefined) {
-    attributes.starts_at = input.startsAt;
-  }
-  if (input.endsAt !== undefined) {
-    attributes.ends_at = input.endsAt;
-  }
-  if (input.timeType !== undefined) {
-    attributes.time_type = input.timeType;
-  }
+): Effect.Effect<PlanTime, PlanningCenterError> =>
+  Effect.gen(function* updateTime() {
+    const attributes: JsonObject = {};
+    if (input.name !== undefined) {
+      attributes.name = input.name;
+    }
+    if (input.startsAt !== undefined) {
+      attributes.starts_at = input.startsAt;
+    }
+    if (input.endsAt !== undefined) {
+      attributes.ends_at = input.endsAt;
+    }
+    if (input.timeType !== undefined) {
+      attributes.time_type = input.timeType;
+    }
 
-  const rawPlanTime = await dependencies.plansService.updatePlanTime(
-    input.serviceTypeId,
-    input.planId,
-    input.planTimeId,
-    attributes,
-    input.assignedTeamIds,
-    input.assignedPositionIds
-  );
-  try {
-    await updateNeededPositionAssignments(input, dependencies);
-    await updateIndividualTimeAssignments(input, dependencies);
-  } finally {
+    const rawPlanTime = yield* dependencies.plansService.updatePlanTime(
+      input.serviceTypeId,
+      input.planId,
+      input.planTimeId,
+      attributes,
+      input.assignedTeamIds,
+      input.assignedPositionIds
+    );
+    yield* updateNeededPositionAssignments(input, dependencies).pipe(
+      Effect.andThen(updateIndividualTimeAssignments(input, dependencies)),
+      Effect.ensuring(
+        Effect.sync(() => {
+          dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
+            input.planId
+          );
+          invalidateHistory();
+        })
+      )
+    );
+
+    const planTime = normalizePlanTime(rawPlanTime);
+    return planTime ?? (yield* invalidPlanTime());
+  });
+
+export const createPlanTime = (
+  input: CreatePlanTimeInput,
+  invalidateHistory: () => void,
+  dependencies: PlanTimeDependencies
+): Effect.Effect<PlanTime, PlanningCenterError> =>
+  Effect.gen(function* createTime() {
+    const attributes: JsonObject = {
+      starts_at: input.startsAt,
+      time_type: input.timeType,
+    };
+    if (input.name !== undefined) {
+      attributes.name = input.name;
+    }
+    if (input.endsAt !== undefined) {
+      attributes.ends_at = input.endsAt;
+    }
+
+    const rawPlanTime = yield* dependencies.plansService.createPlanTime(
+      input.serviceTypeId,
+      input.planId,
+      attributes,
+      input.assignedTeamIds,
+      input.assignedPositionIds
+    );
     dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
       input.planId
     );
     invalidateHistory();
-  }
 
-  const planTime = normalizePlanTime(rawPlanTime);
-  if (!planTime) {
-    throw new Error("Planning Center returned an invalid plan time");
-  }
-  return planTime;
-};
-
-export const createPlanTime = async (
-  input: CreatePlanTimeInput,
-  invalidateHistory: () => void,
-  dependencies: PlanTimeDependencies
-): Promise<PlanTime> => {
-  const attributes: JsonObject = {
-    starts_at: input.startsAt,
-    time_type: input.timeType,
-  };
-  if (input.name !== undefined) {
-    attributes.name = input.name;
-  }
-  if (input.endsAt !== undefined) {
-    attributes.ends_at = input.endsAt;
-  }
-
-  const rawPlanTime = await dependencies.plansService.createPlanTime(
-    input.serviceTypeId,
-    input.planId,
-    attributes,
-    input.assignedTeamIds,
-    input.assignedPositionIds
-  );
-  dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
-    input.planId
-  );
-  invalidateHistory();
-
-  const planTime = normalizePlanTime(rawPlanTime);
-  if (!planTime) {
-    throw new Error("Planning Center returned an invalid plan time");
-  }
-  return planTime;
-};
+    const planTime = normalizePlanTime(rawPlanTime);
+    return planTime ?? (yield* invalidPlanTime());
+  });

@@ -5,6 +5,7 @@ import {
   isDeclinedRosterStatus,
 } from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
 import type { PlanRosterEntry } from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
@@ -23,6 +24,7 @@ import type {
   TeamPosition,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
+import { Cause, Effect } from "effect";
 
 const log = logger.for("module/get-team-positions");
 
@@ -285,111 +287,114 @@ const extractSeriesIdFromPlanResource = (plan: PCResource): string | null => {
   return null;
 };
 
-const getSeriesIdForPlan = async (
+const getSeriesIdForPlan = (
   serviceTypeId: string,
   planId: string,
-  dependencies: TeamPositionDependencies,
-  signal?: AbortSignal
-): Promise<string | null> => {
-  const scopedPlan =
-    await dependencies.plansService.getPlanForServiceTypeWithSeries(
+  dependencies: TeamPositionDependencies
+): Effect.Effect<string | null, PlanningCenterError> =>
+  Effect.map(
+    dependencies.plansService.getPlanForServiceTypeWithSeries(
       serviceTypeId,
-      planId,
-      signal
-    );
-  const resolvedSeriesId =
-    extractSeriesIdFromPlanResource(scopedPlan.data) ??
-    extractSeriesIdFromIncluded(scopedPlan.included);
+      planId
+    ),
+    (scopedPlan) => {
+      const resolvedSeriesId =
+        extractSeriesIdFromPlanResource(scopedPlan.data) ??
+        extractSeriesIdFromIncluded(scopedPlan.included);
 
-  if (isNonEmptyString(resolvedSeriesId)) {
-    log.info(
-      { planId, serviceTypeId, resolvedSeriesId },
-      "Resolved series ID for fallback"
-    );
-  } else {
-    log.warn(
-      {
-        planId,
-        serviceTypeId,
-        hasSeriesRelationshipData: hasSeriesRelationshipData(scopedPlan.data),
-        seriesRelationshipLink: getSeriesRelationshipLink(scopedPlan.data),
-        includedTypes: scopedPlan.included.map((r) => r.type),
-      },
-      "Unable to resolve series ID for needed positions fallback"
-    );
-  }
+      if (isNonEmptyString(resolvedSeriesId)) {
+        log.info(
+          { planId, serviceTypeId, resolvedSeriesId },
+          "Resolved series ID for fallback"
+        );
+      } else {
+        log.warn(
+          {
+            planId,
+            serviceTypeId,
+            hasSeriesRelationshipData: hasSeriesRelationshipData(
+              scopedPlan.data
+            ),
+            seriesRelationshipLink: getSeriesRelationshipLink(scopedPlan.data),
+            includedTypes: scopedPlan.included.map((r) => r.type),
+          },
+          "Unable to resolve series ID for needed positions fallback"
+        );
+      }
 
-  return resolvedSeriesId;
+      return resolvedSeriesId;
+    }
+  );
+
+const describeFailure = (cause: Cause.Cause<unknown>): string => {
+  const error = Cause.squash(cause);
+  return error instanceof Error
+    ? error.message.slice(0, 280)
+    : String(error).slice(0, 280);
 };
 
-const resolveNeededPositions = async (
+/**
+ * Prefers the service-type endpoint; when it fails, retries through the plan's
+ * series and reports the original failure if the plan has no series.
+ */
+const resolveNeededPositions = (
   serviceTypeId: string,
   planId: string,
   seriesId: string | null,
-  dependencies: TeamPositionDependencies,
-  signal?: AbortSignal
-): Promise<NeededPositionsResolution> => {
+  dependencies: TeamPositionDependencies
+): Effect.Effect<NeededPositionsResolution, PlanningCenterError> => {
   if (isNonEmptyString(seriesId)) {
-    return {
-      response:
-        await dependencies.catalogService.getPlanNeededPositionsWithTeams(
-          seriesId,
-          planId,
-          signal
-        ),
-      resolvedSeriesId: seriesId,
-      neededPositionSource: "series-plan",
-      usedSeriesFallback: false,
-    };
+    return Effect.map(
+      dependencies.catalogService.getPlanNeededPositionsWithTeams(
+        seriesId,
+        planId
+      ),
+      (response): NeededPositionsResolution => ({
+        response,
+        resolvedSeriesId: seriesId,
+        neededPositionSource: "series-plan",
+        usedSeriesFallback: false,
+      })
+    );
   }
 
-  try {
-    return {
-      response:
-        await dependencies.catalogService.getServiceTypePlanNeededPositionsWithTeams(
-          serviceTypeId,
-          planId,
-          signal
-        ),
-      resolvedSeriesId: null,
-      neededPositionSource: "service-type-plan",
-      usedSeriesFallback: false,
-    };
-  } catch (error) {
-    log.warn(
-      {
-        serviceTypeId,
-        planId,
-        error:
-          error instanceof Error
-            ? error.message.slice(0, 280)
-            : String(error).slice(0, 280),
-      },
-      "Service-type needed positions fetch failed, trying series lookup fallback"
+  return dependencies.catalogService
+    .getServiceTypePlanNeededPositionsWithTeams(serviceTypeId, planId)
+    .pipe(
+      Effect.map((response): NeededPositionsResolution => ({
+        response,
+        resolvedSeriesId: null,
+        neededPositionSource: "service-type-plan",
+        usedSeriesFallback: false,
+      })),
+      Effect.catchCause((cause) => {
+        if (Cause.hasInterruptsOnly(cause)) {
+          return Effect.failCause(cause);
+        }
+        log.warn(
+          { serviceTypeId, planId, error: describeFailure(cause) },
+          "Service-type needed positions fetch failed, trying series lookup fallback"
+        );
+        return Effect.flatMap(
+          getSeriesIdForPlan(serviceTypeId, planId, dependencies),
+          (resolvedSeriesId) =>
+            isNonEmptyString(resolvedSeriesId)
+              ? Effect.map(
+                  dependencies.catalogService.getPlanNeededPositionsWithTeams(
+                    resolvedSeriesId,
+                    planId
+                  ),
+                  (response): NeededPositionsResolution => ({
+                    response,
+                    resolvedSeriesId,
+                    neededPositionSource: "series-plan",
+                    usedSeriesFallback: true,
+                  })
+                )
+              : Effect.failCause(cause)
+        );
+      })
     );
-
-    const resolvedSeriesId = await getSeriesIdForPlan(
-      serviceTypeId,
-      planId,
-      dependencies,
-      signal
-    );
-    if (!isNonEmptyString(resolvedSeriesId)) {
-      throw error;
-    }
-
-    return {
-      response:
-        await dependencies.catalogService.getPlanNeededPositionsWithTeams(
-          resolvedSeriesId,
-          planId,
-          signal
-        ),
-      resolvedSeriesId,
-      neededPositionSource: "series-plan",
-      usedSeriesFallback: true,
-    };
-  }
 };
 
 const indexTeamPositions = (
@@ -538,40 +543,19 @@ const applyNeededPosition = (
   );
 };
 
-export const getNeededTeamPositionsForPlan = async (
+const groupNeededTeamPositions = (
   serviceTypeId: string,
   planId: string,
-  seriesId: string | null | undefined,
-  dependencies: TeamPositionDependencies,
-  signal?: AbortSignal
-): Promise<TeamPositionGroup[]> => {
-  log.info(
-    { serviceTypeId, planId, providedSeriesId: seriesId ?? null },
-    "Fetching needed team positions for plan"
-  );
-
-  const [
+  {
     teamPositionResponse,
     neededPositionsResolution,
     planTeamMembersResponse,
-  ] = await Promise.all([
-    dependencies.catalogService.getServiceTypeTeamPositionsWithTeams(
-      serviceTypeId,
-      signal
-    ),
-    resolveNeededPositions(
-      serviceTypeId,
-      planId,
-      seriesId ?? null,
-      dependencies,
-      signal
-    ),
-    dependencies.peopleService.getPlanTeamMembers(
-      serviceTypeId,
-      planId,
-      signal
-    ),
-  ]);
+  }: {
+    teamPositionResponse: { data: PCResource[]; included: PCResource[] };
+    neededPositionsResolution: NeededPositionsResolution;
+    planTeamMembersResponse: { data: PCResource[]; included: PCResource[] };
+  }
+): TeamPositionGroup[] => {
   const {
     response: neededPositionResponse,
     resolvedSeriesId,
@@ -664,3 +648,44 @@ export const getNeededTeamPositionsForPlan = async (
 
   return groupedPositions;
 };
+
+export const getNeededTeamPositionsForPlan = (
+  serviceTypeId: string,
+  planId: string,
+  seriesId: string | null | undefined,
+  dependencies: TeamPositionDependencies
+): Effect.Effect<TeamPositionGroup[], PlanningCenterError> =>
+  Effect.suspend(() => {
+    log.info(
+      { serviceTypeId, planId, providedSeriesId: seriesId ?? null },
+      "Fetching needed team positions for plan"
+    );
+
+    return Effect.map(
+      Effect.all(
+        [
+          dependencies.catalogService.getServiceTypeTeamPositionsWithTeams(
+            serviceTypeId
+          ),
+          resolveNeededPositions(
+            serviceTypeId,
+            planId,
+            seriesId ?? null,
+            dependencies
+          ),
+          dependencies.peopleService.getPlanTeamMembers(serviceTypeId, planId),
+        ],
+        { concurrency: "unbounded" }
+      ),
+      ([
+        teamPositionResponse,
+        neededPositionsResolution,
+        planTeamMembersResponse,
+      ]) =>
+        groupNeededTeamPositions(serviceTypeId, planId, {
+          teamPositionResponse,
+          neededPositionsResolution,
+          planTeamMembersResponse,
+        })
+    );
+  });

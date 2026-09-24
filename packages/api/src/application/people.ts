@@ -4,7 +4,7 @@ import { NotFound } from "@pcobooster/api/application/errors/not-found";
 import { featureFlagSubjectFor } from "@pcobooster/api/application/feature-flags";
 import {
   PlanningCenterAccess,
-  tryPlanningCenter,
+  withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/planning-center-access";
 import { loadDevBypassIdentity } from "@pcobooster/api/auth/dev-bypass";
@@ -42,15 +42,13 @@ import type {
 } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
-const resolveRequestTimeZone = async (
-  access: PlanningCenterRequestAccess,
-  signal?: AbortSignal
-): Promise<string> =>
-  await resolveOrganizationTimeZone({
+const resolveRequestTimeZone = (
+  access: PlanningCenterRequestAccess
+): Effect.Effect<string> =>
+  resolveOrganizationTimeZone({
     cacheScope: access.cacheScope,
     catalogService: access.services.catalog,
     fallbackTimeZone: access.fallbackTimeZone,
-    signal,
   });
 
 const requestPresentationDependencies = (
@@ -63,15 +61,12 @@ const requestPresentationDependencies = (
 });
 
 const requestPeopleForPositionDependencies = (
-  access: PlanningCenterRequestAccess,
-  signal?: AbortSignal
+  access: PlanningCenterRequestAccess
 ): PeopleForPositionDependencies => ({
   catalog: access.services.catalog,
   people: access.services.people,
   plans: access.services.plans,
-  resolveTimeZone: async (timeZoneSignal) =>
-    await resolveRequestTimeZone(access, timeZoneSignal),
-  signal,
+  resolveTimeZone: resolveRequestTimeZone(access),
 });
 
 /** The People dashboard exists only where the `people` flag is on for this caller. */
@@ -105,22 +100,15 @@ export const getPeopleList = (input: {
 > =>
   Effect.gen(function* listPeople() {
     const access = yield* PlanningCenterAccess;
-    const people = yield* tryPlanningCenter(
-      async (signal) =>
-        await getPeopleForPosition(
-          input,
-          requestPeopleForPositionDependencies(access, signal)
-        )
+    const people = yield* getPeopleForPosition(
+      input,
+      requestPeopleForPositionDependencies(access)
     );
-    return yield* tryPlanningCenter(
-      async (signal) =>
-        await presentPeople(
-          people,
-          requestPresentationDependencies(access),
-          signal
-        )
+    return yield* presentPeople(
+      people,
+      requestPresentationDependencies(access)
     );
-  });
+  }).pipe(withPlanningCenterFaults);
 
 export const getPeopleSearch = (input: {
   readonly query: string;
@@ -131,23 +119,13 @@ export const getPeopleSearch = (input: {
 > =>
   Effect.gen(function* searchDirectory() {
     const access = yield* PlanningCenterAccess;
-    return yield* tryPlanningCenter(
-      async (signal) =>
-        await searchPeople(
-          input.query,
-          15,
-          {
-            people: access.services.people,
-            getIdentityMapper: async (mapperSignal) =>
-              await getPresentationIdentityMapper(
-                requestPresentationDependencies(access),
-                mapperSignal
-              ),
-          },
-          signal
-        )
-    );
-  });
+    return yield* searchPeople(input.query, 15, {
+      people: access.services.people,
+      getIdentityMapper: getPresentationIdentityMapper(
+        requestPresentationDependencies(access)
+      ),
+    });
+  }).pipe(withPlanningCenterFaults);
 
 export const warmPeople = (input: {
   readonly serviceTypeId: string;
@@ -159,14 +137,12 @@ export const warmPeople = (input: {
 > =>
   Effect.gen(function* warmPeopleHistory() {
     const access = yield* PlanningCenterAccess;
-    yield* tryPlanningCenter(async (signal) => {
-      await warmPeopleHistoryForPlan(
-        input,
-        requestPeopleForPositionDependencies(access, signal)
-      );
-    });
-    return { warmed: true };
-  });
+    yield* warmPeopleHistoryForPlan(
+      input,
+      requestPeopleForPositionDependencies(access)
+    );
+    return { warmed: true as const };
+  }).pipe(withPlanningCenterFaults);
 
 export const getPeopleBlockouts = (input: {
   readonly personId: string;
@@ -177,18 +153,11 @@ export const getPeopleBlockouts = (input: {
 > =>
   Effect.gen(function* listPeopleBlockouts() {
     const access = yield* PlanningCenterAccess;
-    const blockouts = yield* tryPlanningCenter(
-      async (signal) =>
-        await getFutureBlockoutsForPerson(
-          input.personId,
-          {
-            peopleService: access.services.people,
-          },
-          signal
-        )
-    );
+    const blockouts = yield* getFutureBlockoutsForPerson(input.personId, {
+      peopleService: access.services.people,
+    });
     return presentBlockouts(blockouts, access.presentation);
-  });
+  }).pipe(withPlanningCenterFaults);
 
 export const getPeopleDashboard = (input: {
   readonly range: PeopleDashboardRange;
@@ -200,27 +169,16 @@ export const getPeopleDashboard = (input: {
   Effect.gen(function* readPeopleDashboard() {
     const access = yield* PlanningCenterAccess;
     yield* requirePeopleDashboard(access);
-    const dashboard = yield* tryPlanningCenter(
-      async (signal) =>
-        await getPeopleDashboardData(
-          {
-            range: input.range,
-            peopleService: access.services.people,
-            resolveTimeZone: async (timeZoneSignal) =>
-              await resolveRequestTimeZone(access, timeZoneSignal),
-          },
-          signal
-        )
+    const dashboard = yield* getPeopleDashboardData({
+      range: input.range,
+      peopleService: access.services.people,
+      resolveTimeZone: resolveRequestTimeZone(access),
+    });
+    return yield* presentDashboard(
+      dashboard,
+      requestPresentationDependencies(access)
     );
-    return yield* tryPlanningCenter(
-      async (signal) =>
-        await presentDashboard(
-          dashboard,
-          requestPresentationDependencies(access),
-          signal
-        )
-    );
-  });
+  }).pipe(withPlanningCenterFaults);
 
 export const getPeopleDashboardPerson = (input: {
   readonly personId: string;
@@ -233,32 +191,21 @@ export const getPeopleDashboardPerson = (input: {
   Effect.gen(function* readPeopleDashboardPerson() {
     const access = yield* PlanningCenterAccess;
     yield* requirePeopleDashboard(access);
-    const detail = yield* tryPlanningCenter(
-      async (signal) =>
-        await getPeopleDashboardPersonDetail(
-          {
-            personId: input.personId,
-            month: input.month,
-            dependencies: {
-              peopleService: access.services.people,
-              catalogService: access.services.catalog,
-              plansService: access.services.plans,
-              resolveTimeZone: async (timeZoneSignal) =>
-                await resolveRequestTimeZone(access, timeZoneSignal),
-            },
-          },
-          signal
-        )
+    const detail = yield* getPeopleDashboardPersonDetail({
+      personId: input.personId,
+      month: input.month,
+      dependencies: {
+        peopleService: access.services.people,
+        catalogService: access.services.catalog,
+        plansService: access.services.plans,
+        resolveTimeZone: resolveRequestTimeZone(access),
+      },
+    });
+    return yield* presentDashboardPerson(
+      detail,
+      requestPresentationDependencies(access)
     );
-    return yield* tryPlanningCenter(
-      async (signal) =>
-        await presentDashboardPerson(
-          detail,
-          requestPresentationDependencies(access),
-          signal
-        )
-    );
-  });
+  }).pipe(withPlanningCenterFaults);
 
 export const getPeopleScheduleHistory = (input: {
   readonly personId: string;
@@ -270,20 +217,11 @@ export const getPeopleScheduleHistory = (input: {
 > =>
   Effect.gen(function* readPeopleScheduleHistory() {
     const access = yield* PlanningCenterAccess;
-    return yield* tryPlanningCenter(
-      async (signal) =>
-        await getScheduleHistory(
-          input.personId,
-          input.days,
-          {
-            peopleService: access.services.people,
-            resolveTimeZone: async (timeZoneSignal) =>
-              await resolveRequestTimeZone(access, timeZoneSignal),
-          },
-          signal
-        )
-    );
-  });
+    return yield* getScheduleHistory(input.personId, input.days, {
+      peopleService: access.services.people,
+      resolveTimeZone: resolveRequestTimeZone(access),
+    });
+  }).pipe(withPlanningCenterFaults);
 
 export const getMyScheduledPlans = (input: {
   readonly planIds: readonly string[];
@@ -302,29 +240,25 @@ export const getMyScheduledPlans = (input: {
     }
     const { account } = access.authentication;
     const uniquePlanIds = [...new Set(input.planIds)];
-    const planIds = yield* tryPlanningCenter(
-      async (signal) =>
-        await getCurrentUserScheduledPlanIds(
-          request,
-          account,
-          uniquePlanIds,
-          {
-            peopleService: access.services.people,
-            isDevAuthBypassEnabled: () => config.devAuthBypass,
-            loadDevBypassIdentity: async () =>
-              await loadDevBypassIdentity(config.localPlanningCenterToken),
-            getPlanningCenterIdentityForAccount: async (
-              identityRequest,
-              identityAccount
-            ) =>
-              await getPlanningCenterIdentityForAccount(
-                auth,
-                identityRequest,
-                identityAccount
-              ),
-          },
-          signal
-        )
+    const planIds = yield* getCurrentUserScheduledPlanIds(
+      request,
+      account,
+      uniquePlanIds,
+      {
+        peopleService: access.services.people,
+        isDevAuthBypassEnabled: () => config.devAuthBypass,
+        loadDevBypassIdentity: async () =>
+          await loadDevBypassIdentity(config.localPlanningCenterToken),
+        getPlanningCenterIdentityForAccount: async (
+          identityRequest,
+          identityAccount
+        ) =>
+          await getPlanningCenterIdentityForAccount(
+            auth,
+            identityRequest,
+            identityAccount
+          ),
+      }
     );
     return { planIds };
-  });
+  }).pipe(withPlanningCenterFaults);

@@ -16,26 +16,31 @@ import {
   loadDevBypassIdentity,
 } from "@pcobooster/api/auth/dev-bypass";
 import { Server } from "@pcobooster/api/server";
+import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testFeatureFlags, testServer } from "@pcobooster/api/testing/server";
 import { Cause, Effect, Exit, Option } from "effect";
+import * as HttpClient from "effect/unstable/http/HttpClient";
 import { describe, expect, it, vi } from "vitest";
 
 const request = new Request("https://pcobooster.com/api/rpc/accounts");
 
+type IdentityRequirements = RequestContext | Server | HttpClient.HttpClient;
+
 const provide = <Value, Failure>(
-  program: Effect.Effect<Value, Failure, RequestContext | Server>
+  program: Effect.Effect<Value, Failure, IdentityRequirements>
 ) =>
   program.pipe(
     Effect.provideService(RequestContext, createRequestContext(request)),
-    Effect.provideService(Server, testServer())
+    Effect.provideService(Server, testServer()),
+    Effect.provideService(HttpClient.HttpClient, unreachableHttpClient)
   );
 
 const run = async <Value>(
-  program: Effect.Effect<Value, unknown, RequestContext | Server>
+  program: Effect.Effect<Value, unknown, IdentityRequirements>
 ) => await Effect.runPromise(provide(program));
 
 const runExit = async <Value, Failure extends { readonly _tag: string }>(
-  program: Effect.Effect<Value, Failure, RequestContext | Server>
+  program: Effect.Effect<Value, Failure, IdentityRequirements>
 ) => await Effect.runPromiseExit(provide(program));
 
 const failureTag = (exit: Exit.Exit<unknown, { readonly _tag: string }>) => {
@@ -47,7 +52,7 @@ const unauthenticatedDependencies = (): IdentityDependencies => ({
   resolveDemoSession: () => null,
   loadDemoOrganization: vi
     .fn<IdentityDependencies["loadDemoOrganization"]>()
-    .mockRejectedValue(new Error("Demo is not configured")),
+    .mockReturnValue(Effect.die(new Error("Demo is not configured"))),
   isDevAuthBypassEnabled: () => false,
   loadDevBypassIdentity: async () => await loadDevBypassIdentity(null),
   getDevBypassSession,
@@ -107,7 +112,9 @@ const demoConfiguration: DemoConfiguration = {
 const demoDependencies = () => {
   const loadDemoOrganization = vi
     .fn<IdentityDependencies["loadDemoOrganization"]>()
-    .mockResolvedValue({ id: "org-1", name: "Grace Demo Church" });
+    .mockReturnValue(
+      Effect.succeed({ id: "org-1", name: "Grace Demo Church" })
+    );
   const dependencies: IdentityDependencies = {
     ...authenticatedDependencies(),
     resolveDemoSession: () => demoConfiguration,
@@ -200,10 +207,7 @@ describe("identity application programs", () => {
         },
       ],
     });
-    expect(loadDemoOrganization).toHaveBeenCalledWith(
-      demoConfiguration,
-      expect.any(AbortSignal)
-    );
+    expect(loadDemoOrganization).toHaveBeenCalledWith(demoConfiguration);
     expect(dependencies.getSession).not.toHaveBeenCalled();
   });
 

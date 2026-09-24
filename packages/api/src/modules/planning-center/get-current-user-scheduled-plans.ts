@@ -1,11 +1,15 @@
 import type { DevBypassIdentity } from "@pcobooster/api/auth/dev-bypass";
 import type { PlanningCenterIdentity } from "@pcobooster/api/auth/planning-center-identity";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import {
   isNonEmptyString,
   isString,
 } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
+
+const PERSON_ID_PATTERN = /^[A-Za-z0-9_-]+$/u;
 
 const extractPersonIdFromIdentitySub = (sub: string | null): string | null => {
   if (!isNonEmptyString(sub)) {
@@ -16,7 +20,7 @@ const extractPersonIdFromIdentitySub = (sub: string | null): string | null => {
     return null;
   }
 
-  if (/^[A-Za-z0-9_-]+$/u.test(trimmed)) {
+  if (PERSON_ID_PATTERN.test(trimmed)) {
     return trimmed;
   }
 
@@ -56,43 +60,13 @@ export interface CurrentUserScheduledPlansDependencies {
   >;
 }
 
-export const getCurrentUserScheduledPlanIds = async (
-  request: Request,
-  account: { id: string; accountId: string },
-  planIds: string[],
-  dependencies: CurrentUserScheduledPlansDependencies,
-  signal?: AbortSignal
-): Promise<string[]> => {
-  if (planIds.length === 0) {
-    return [];
-  }
-
-  const requestedPlanIds = new Set(planIds);
-  let personId: string | null;
-  if (dependencies.isDevAuthBypassEnabled()) {
-    const identity = await dependencies.loadDevBypassIdentity();
-    ({ personId } = identity);
-  } else {
-    const identity = await dependencies.getPlanningCenterIdentityForAccount(
-      request,
-      account
-    );
-    personId = extractPersonIdFromIdentitySub(identity?.sub ?? null);
-  }
-  if (!isNonEmptyString(personId)) {
-    return [];
-  }
-
-  const response = await dependencies.peopleService.getPersonSchedules(
-    personId,
-    { order: "-starts_at" },
-    5,
-    signal
-  );
-
+const collectScheduledPlanIds = (
+  schedules: PCResource[],
+  requestedPlanIds: Set<string>
+): string[] => {
   const matchedPlanIds = new Set<string>();
 
-  for (const schedule of response.data) {
+  for (const schedule of schedules) {
     if (
       !isScheduledStatus(
         isString(schedule.attributes.status)
@@ -116,3 +90,42 @@ export const getCurrentUserScheduledPlanIds = async (
 
   return [...matchedPlanIds];
 };
+
+export const getCurrentUserScheduledPlanIds = (
+  request: Request,
+  account: { id: string; accountId: string },
+  planIds: string[],
+  dependencies: CurrentUserScheduledPlansDependencies
+): Effect.Effect<string[], PlanningCenterError> =>
+  Effect.gen(function* readCurrentUserScheduledPlanIds() {
+    if (planIds.length === 0) {
+      return [];
+    }
+
+    let personId: string | null;
+    if (dependencies.isDevAuthBypassEnabled()) {
+      const identity = yield* Effect.promise(
+        async () => await dependencies.loadDevBypassIdentity()
+      );
+      ({ personId } = identity);
+    } else {
+      const identity = yield* Effect.promise(
+        async () =>
+          await dependencies.getPlanningCenterIdentityForAccount(
+            request,
+            account
+          )
+      );
+      personId = extractPersonIdFromIdentitySub(identity?.sub ?? null);
+    }
+    if (!isNonEmptyString(personId)) {
+      return [];
+    }
+
+    const response = yield* dependencies.peopleService.getPersonSchedules(
+      personId,
+      { order: "-starts_at" },
+      5
+    );
+    return collectScheduledPlanIds(response.data, new Set(planIds));
+  });

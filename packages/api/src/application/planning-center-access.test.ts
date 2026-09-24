@@ -8,7 +8,7 @@ import { Unauthenticated } from "@pcobooster/api/application/errors/unauthentica
 import {
   resolvePlanningCenterAccess,
   toApplicationFault,
-  tryPlanningCenter,
+  withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
 import { demoSessionToken } from "@pcobooster/api/auth/demo-access";
@@ -17,9 +17,14 @@ import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/netw
 import { PlanningCenterReadOnlyError } from "@pcobooster/api/planning-center/read-only-error";
 import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
 import { Server } from "@pcobooster/api/server";
+import {
+  httpClientFor,
+  unreachableHttpClient,
+} from "@pcobooster/api/testing/http-client";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { DEMO_SESSION_COOKIE } from "@pcobooster/contracts/demo";
 import { Cause, Effect, Exit } from "effect";
+import * as HttpClient from "effect/unstable/http/HttpClient";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const requestFor = (accountId: string): Request =>
@@ -38,10 +43,11 @@ const dependenciesFor = (
       accountId,
       account: { id: accountId, accountId: `provider-${accountId}` },
     }),
-  createServices: (authentication) =>
+  createServices: (authentication, httpClient) =>
     createPlanningCenterServices(
       authentication.kind === "account" ? authentication.accessToken : "",
-      "America/Los_Angeles"
+      "America/Los_Angeles",
+      httpClient
     ),
   presentationMode: () => false,
   presentationSeed: "test-seed",
@@ -53,7 +59,8 @@ const resolveFor = async (accountId: string) => {
   return await Effect.runPromise(
     resolvePlanningCenterAccess(dependenciesFor(accountId)).pipe(
       Effect.provideService(RequestContext, createRequestContext(request)),
-      Effect.provideService(Server, testServer())
+      Effect.provideService(Server, testServer()),
+      Effect.provideService(HttpClient.HttpClient, unreachableHttpClient)
     )
   );
 };
@@ -106,7 +113,7 @@ describe("PlanningCenterAccess", () => {
     if (configuration === null) {
       throw new Error("Expected a demo configuration");
     }
-    const fetchMock = vi.spyOn(globalThis, "fetch");
+    const fetchMock = vi.fn<typeof globalThis.fetch>();
     const request = new Request("https://pcobooster.com/api/rpc/schedule", {
       headers: {
         cookie: `${DEMO_SESSION_COOKIE}=${demoSessionToken(configuration)}`,
@@ -116,7 +123,8 @@ describe("PlanningCenterAccess", () => {
     const access = await Effect.runPromise(
       resolvePlanningCenterAccess().pipe(
         Effect.provideService(RequestContext, createRequestContext(request)),
-        Effect.provideService(Server, testServer({ config }))
+        Effect.provideService(Server, testServer({ config })),
+        Effect.provideService(HttpClient.HttpClient, httpClientFor(fetchMock))
       )
     );
 
@@ -127,8 +135,10 @@ describe("PlanningCenterAccess", () => {
     expect(access.cacheScope).toMatch(/^basic:/u);
     expect(access.presentation).toBeTruthy();
     await expect(
-      access.services.people.deletePlanPerson("plan-person-1")
-    ).rejects.toMatchObject({ name: "PlanningCenterReadOnlyError" });
+      Effect.runPromise(
+        Effect.flip(access.services.people.deletePlanPerson("plan-person-1"))
+      )
+    ).resolves.toMatchObject({ _tag: "PlanningCenterReadOnlyError" });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -178,7 +188,7 @@ describe("PlanningCenterAccess", () => {
   it("maps provider network errors to a tagged fault", () => {
     expect(
       toApplicationFault(
-        new PlanningCenterNetworkError(new TypeError("offline"))
+        new PlanningCenterNetworkError({ cause: new TypeError("offline") })
       )
     ).toMatchObject({
       _tag: "ExternalServiceFailure",
@@ -207,17 +217,32 @@ describe("PlanningCenterAccess", () => {
     expect(toApplicationFault(invalid)).toBe(invalid);
   });
 
-  it("keeps unexpected Promise adapter errors as defects", async () => {
+  it("reports Planning Center failures from Effect programs as faults", async () => {
+    const result = await Effect.runPromise(
+      Effect.flip(
+        withPlanningCenterFaults(
+          Effect.fail(
+            new PlanningCenterApiError({
+              message: "Too many requests",
+              status: 429,
+              retryAfterSeconds: 3,
+            })
+          )
+        )
+      )
+    );
+
+    expect(result).toMatchObject({
+      _tag: "RateLimited",
+      service: "planning-center",
+      retryAfterSeconds: 3,
+    });
+  });
+
+  it("keeps unexpected adapter errors as defects", async () => {
     const unexpected = new TypeError("broken response transform");
     const result = await Effect.runPromiseExit(
-      Effect.provideService(
-        tryPlanningCenter(async () => {
-          await Promise.resolve();
-          throw unexpected;
-        }),
-        RequestContext,
-        createRequestContext(requestFor("first"))
-      )
+      withPlanningCenterFaults(Effect.die(unexpected))
     );
 
     expect(toApplicationFault(unexpected)).toBeNull();

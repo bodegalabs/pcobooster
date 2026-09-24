@@ -15,6 +15,8 @@ import type { ScheduleApplicationDependencies } from "@pcobooster/api/applicatio
 import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import type { SuccessOf } from "@pcobooster/api/testing/effect";
+import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testServer } from "@pcobooster/api/testing/server";
 import { createScheduleRouter } from "@pcobooster/api/transport/orpc/schedule";
 import type { ScheduleAssignInput } from "@pcobooster/contracts/schedule";
@@ -29,57 +31,63 @@ const input: ScheduleAssignInput = {
   positionId: "position-1",
 };
 
+const teamPositions = () => ({
+  data: [
+    {
+      id: "position-1",
+      type: "TeamPosition",
+      attributes: { name: "Vocals" },
+      relationships: { team: { data: { id: "team-1", type: "Team" } } },
+    },
+  ],
+  included: [{ id: "team-1", type: "Team", attributes: { name: "Band" } }],
+});
+
 const setup = () => {
   const services = createPlanningCenterServices(
     "schedule-test-token",
-    "America/Los_Angeles"
+    "America/Los_Angeles",
+    unreachableHttpClient
   );
   const getTeamPositions = vi
     .spyOn(services.catalog, "getServiceTypeTeamPositionsWithTeams")
-    .mockResolvedValue({
+    .mockReturnValue(Effect.succeed(teamPositions()));
+  vi.spyOn(services.people, "getPersonTeamPositionAssignments").mockReturnValue(
+    Effect.succeed({
       data: [
         {
-          id: "position-1",
-          type: "TeamPosition",
-          attributes: { name: "Vocals" },
-          relationships: { team: { data: { id: "team-1", type: "Team" } } },
+          id: "assignment-1",
+          type: "PersonTeamPositionAssignment",
+          attributes: {},
+          relationships: {
+            team_position: {
+              data: { id: "position-1", type: "TeamPosition" },
+            },
+          },
         },
       ],
-      included: [{ id: "team-1", type: "Team", attributes: { name: "Band" } }],
-    });
-  vi.spyOn(
-    services.people,
-    "getPersonTeamPositionAssignments"
-  ).mockResolvedValue({
-    data: [
-      {
-        id: "assignment-1",
-        type: "PersonTeamPositionAssignment",
-        attributes: {},
-        relationships: {
-          team_position: { data: { id: "position-1", type: "TeamPosition" } },
-        },
-      },
-    ],
-    included: [],
-  });
-  const create = vi
-    .spyOn(services.people, "createPlanPerson")
-    .mockResolvedValue({
+      included: [],
+    })
+  );
+  const create = vi.spyOn(services.people, "createPlanPerson").mockReturnValue(
+    Effect.succeed({
       id: "plan-person-1",
       type: "PlanPerson",
       attributes: { team_position_name: "Band - Vocals" },
-    });
+    })
+  );
   const remove = vi
     .spyOn(services.people, "deletePlanPerson")
-    .mockResolvedValue();
+    .mockReturnValue(Effect.void);
   const update = vi
     .spyOn(services.people, "updatePlanPersonStatus")
-    .mockResolvedValue({
-      id: "plan-person-1",
-      type: "PlanPerson",
-      attributes: { status: "C" },
-    });
+    .mockReturnValue(
+      Effect.succeed({
+        id: "plan-person-1",
+        type: "PlanPerson",
+        attributes: { status: "C" },
+      })
+    );
   const invalidate = vi.spyOn(services.people, "invalidateScheduleReadCaches");
   const authorize = vi
     .fn<PlanningCenterAccessDependencies["authorize"]>()
@@ -203,8 +211,13 @@ describe("scheduling oRPC transport", () => {
         )
       )
     );
-    create.mockRejectedValueOnce(
-      new Error("Person has already been scheduled for this position")
+    create.mockReturnValueOnce(
+      Effect.fail(
+        new PlanningCenterApiError({
+          status: 422,
+          message: "Person has already been scheduled for this position",
+        })
+      )
     );
     const duplicatePreparation = await prepareAssignment();
     const duplicate = await Effect.runPromise(
@@ -296,11 +309,13 @@ describe("scheduling oRPC transport", () => {
 
   it("preserves the already-scheduled conflict and refreshes scoped reads", async () => {
     const { router, context, recordActivity, create, invalidate } = setup();
-    create.mockRejectedValue(
-      new PlanningCenterApiError({
-        status: 422,
-        message: "Person has already been scheduled for this position",
-      })
+    create.mockReturnValue(
+      Effect.fail(
+        new PlanningCenterApiError({
+          status: 422,
+          message: "Person has already been scheduled for this position",
+        })
+      )
     );
     await expect(call(router.assign, input, { context })).rejects.toMatchObject(
       {
@@ -326,11 +341,13 @@ describe("scheduling oRPC transport", () => {
 
   it("returns the created assignment and selected position on a partial-success mismatch", async () => {
     const { router, context, recordActivity, create } = setup();
-    create.mockResolvedValue({
-      id: "created-mismatch",
-      type: "PlanPerson",
-      attributes: { team_position_name: "Band - Drums" },
-    });
+    create.mockReturnValue(
+      Effect.succeed({
+        id: "created-mismatch",
+        type: "PlanPerson",
+        attributes: { team_position_name: "Band - Drums" },
+      })
+    );
     await expect(call(router.assign, input, { context })).rejects.toMatchObject(
       {
         code: "POSITION_MISMATCH",
@@ -412,12 +429,14 @@ describe("scheduling oRPC transport", () => {
 
   it("maps provider failure and keeps audit persistence failure from changing a successful mutation", async () => {
     const { router, context, recordActivity, create } = setup();
-    create.mockRejectedValueOnce(
-      new PlanningCenterApiError({
-        status: 429,
-        message: "Rate limited",
-        retryAfterSeconds: 5,
-      })
+    create.mockReturnValueOnce(
+      Effect.fail(
+        new PlanningCenterApiError({
+          status: 429,
+          message: "Rate limited",
+          retryAfterSeconds: 5,
+        })
+      )
     );
     await expect(call(router.assign, input, { context })).rejects.toMatchObject(
       { code: "TOO_MANY_REQUESTS", data: { retryAfterSeconds: 5 } }
@@ -442,8 +461,10 @@ describe("scheduling oRPC transport", () => {
       setup();
     const controller = new AbortController();
     const preflight =
-      Promise.withResolvers<Awaited<ReturnType<typeof getTeamPositions>>>();
-    getTeamPositions.mockReturnValueOnce(preflight.promise);
+      Promise.withResolvers<SuccessOf<typeof getTeamPositions>>();
+    getTeamPositions.mockReturnValueOnce(
+      Effect.promise(async () => await preflight.promise)
+    );
 
     const pending = call(router.assign, input, {
       context,
@@ -465,17 +486,7 @@ describe("scheduling oRPC transport", () => {
         })
       );
     });
-    preflight.resolve({
-      data: [
-        {
-          id: "position-1",
-          type: "TeamPosition",
-          attributes: { name: "Vocals" },
-          relationships: { team: { data: { id: "team-1", type: "Team" } } },
-        },
-      ],
-      included: [{ id: "team-1", type: "Team", attributes: { name: "Band" } }],
-    });
+    preflight.resolve(teamPositions());
     await Promise.resolve();
     expect(create).not.toHaveBeenCalled();
   });
@@ -483,12 +494,13 @@ describe("scheduling oRPC transport", () => {
   it("waits for an in-flight assignment write before recording success after disconnect", async () => {
     const { router, context, recordActivity, create } = setup();
     const controller = new AbortController();
-    const completion =
-      Promise.withResolvers<Awaited<ReturnType<typeof create>>>();
-    create.mockImplementationOnce(async () => {
-      controller.abort();
-      return await completion.promise;
-    });
+    const completion = Promise.withResolvers<SuccessOf<typeof create>>();
+    create.mockReturnValueOnce(
+      Effect.promise(async () => {
+        controller.abort();
+        return await completion.promise;
+      })
+    );
 
     const pending = call(router.assign, input, {
       context,
@@ -517,10 +529,12 @@ describe("scheduling oRPC transport", () => {
     const { router, context, recordActivity, remove } = setup();
     const controller = new AbortController();
     const completion = Promise.withResolvers<null>();
-    remove.mockImplementationOnce(async () => {
-      controller.abort();
-      await completion.promise;
-    });
+    remove.mockReturnValueOnce(
+      Effect.promise(async () => {
+        controller.abort();
+        await completion.promise;
+      })
+    );
     const removalInput = {
       planPersonId: "plan-person-1",
       personId: "person-1",
@@ -547,12 +561,13 @@ describe("scheduling oRPC transport", () => {
   it("waits for an in-flight status update before recording success after disconnect", async () => {
     const { router, context, recordActivity, update } = setup();
     const controller = new AbortController();
-    const completion =
-      Promise.withResolvers<Awaited<ReturnType<typeof update>>>();
-    update.mockImplementationOnce(async () => {
-      controller.abort();
-      return await completion.promise;
-    });
+    const completion = Promise.withResolvers<SuccessOf<typeof update>>();
+    update.mockReturnValueOnce(
+      Effect.promise(async () => {
+        controller.abort();
+        return await completion.promise;
+      })
+    );
     const updateInput = {
       planPersonId: "plan-person-1",
       personId: "person-1",

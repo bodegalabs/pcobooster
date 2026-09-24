@@ -5,7 +5,11 @@ import {
   updatePlanTime,
 } from "@pcobooster/api/modules/planning-center/plan-times";
 import type { PlanTimeDependencies } from "@pcobooster/api/modules/planning-center/plan-times";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import type { SuccessOf } from "@pcobooster/api/testing/effect";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const createFixture = () => {
@@ -17,21 +21,25 @@ const createFixture = () => {
     vi.fn<PlanTimeDependencies["plansService"]["updatePlanTime"]>();
   const deletePlanTimeMock = vi
     .fn<PlanTimeDependencies["plansService"]["deletePlanTime"]>()
-    .mockResolvedValue();
+    .mockReturnValue(Effect.void);
   const updateServiceTypePlanNeededPositionTimeMock = vi
     .fn<
       PlanTimeDependencies["catalogService"]["updateServiceTypePlanNeededPositionTime"]
     >()
-    .mockResolvedValue({
-      id: "needed-1",
-      type: "NeededPosition",
-      attributes: {},
-    });
+    .mockReturnValue(
+      Effect.succeed({
+        id: "needed-1",
+        type: "NeededPosition",
+        attributes: {},
+      })
+    );
   const getPlanTeamMembersMock =
     vi.fn<PlanTimeDependencies["peopleService"]["getPlanTeamMembers"]>();
   const updatePlanPersonTimesMock = vi
     .fn<PlanTimeDependencies["peopleService"]["updatePlanPersonTimes"]>()
-    .mockResolvedValue({ id: "pp-1", type: "PlanPerson", attributes: {} });
+    .mockReturnValue(
+      Effect.succeed({ id: "pp-1", type: "PlanPerson", attributes: {} })
+    );
   const invalidatePlanTimeSensitiveReadCachesMock =
     vi.fn<
       PlanTimeDependencies["peopleService"]["invalidatePlanTimeSensitiveReadCaches"]
@@ -168,40 +176,44 @@ describe("plan-times module", () => {
   });
 
   it("normalizes and sorts plan times", async () => {
-    getPlanTimesMock.mockResolvedValue([
-      {
-        id: "time-2",
-        type: "PlanTime",
-        attributes: {
-          name: "Service",
-          starts_at: "2026-05-24T18:00:00.000Z",
-          ends_at: "2026-05-24T19:00:00.000Z",
-          time_type: "service",
-        },
-      },
-      {
-        id: "time-1",
-        type: "PlanTime",
-        attributes: {
-          name: "Rehearsal",
-          starts_at: "2026-05-24T16:00:00.000Z",
-          time_type: "rehearsal",
-        },
-        relationships: {
-          assigned_teams: {
-            data: [{ type: "Team", id: "team-1" }],
-          },
-          assigned_positions: {
-            data: [{ type: "TeamPosition", id: "position-1" }],
-          },
-          split_team_rehearsal_assignments: {
-            data: [{ type: "SplitTeamRehearsalAssignment", id: "split-1" }],
+    getPlanTimesMock.mockReturnValue(
+      Effect.succeed<SuccessOf<typeof getPlanTimesMock>>([
+        {
+          id: "time-2",
+          type: "PlanTime",
+          attributes: {
+            name: "Service",
+            starts_at: "2026-05-24T18:00:00.000Z",
+            ends_at: "2026-05-24T19:00:00.000Z",
+            time_type: "service",
           },
         },
-      },
-    ]);
+        {
+          id: "time-1",
+          type: "PlanTime",
+          attributes: {
+            name: "Rehearsal",
+            starts_at: "2026-05-24T16:00:00.000Z",
+            time_type: "rehearsal",
+          },
+          relationships: {
+            assigned_teams: {
+              data: [{ type: "Team", id: "team-1" }],
+            },
+            assigned_positions: {
+              data: [{ type: "TeamPosition", id: "position-1" }],
+            },
+            split_team_rehearsal_assignments: {
+              data: [{ type: "SplitTeamRehearsalAssignment", id: "split-1" }],
+            },
+          },
+        },
+      ])
+    );
 
-    const planTimes = await getPlanTimes("st-1", "plan-1", dependencies);
+    const planTimes = await Effect.runPromise(
+      getPlanTimes("st-1", "plan-1", dependencies)
+    );
 
     expect(planTimes.map((planTime) => planTime.id)).toStrictEqual([
       "time-1",
@@ -218,30 +230,34 @@ describe("plan-times module", () => {
   });
 
   it("updates mutable attributes and invalidates time-sensitive caches", async () => {
-    updatePlanTimeMock.mockResolvedValue({
-      id: "time-1",
-      type: "PlanTime",
-      attributes: {
-        name: "Updated",
-        starts_at: "2026-05-24T16:30:00.000Z",
-        ends_at: "2026-05-24T17:30:00.000Z",
-        time_type: "service",
-      },
-    });
+    updatePlanTimeMock.mockReturnValue(
+      Effect.succeed<SuccessOf<typeof updatePlanTimeMock>>({
+        id: "time-1",
+        type: "PlanTime",
+        attributes: {
+          name: "Updated",
+          starts_at: "2026-05-24T16:30:00.000Z",
+          ends_at: "2026-05-24T17:30:00.000Z",
+          time_type: "service",
+        },
+      })
+    );
 
-    const planTime = await updatePlanTime(
-      {
-        serviceTypeId: "st-1",
-        planId: "plan-1",
-        planTimeId: "time-1",
-        name: "Updated",
-        startsAt: "2026-05-24T16:30:00.000Z",
-        endsAt: "2026-05-24T17:30:00.000Z",
-        timeType: "service",
-        assignedTeamIds: ["team-1", "team-2"],
-      },
-      invalidatePlanWindowHistoryMock,
-      dependencies
+    const planTime = await Effect.runPromise(
+      updatePlanTime(
+        {
+          serviceTypeId: "st-1",
+          planId: "plan-1",
+          planTimeId: "time-1",
+          name: "Updated",
+          startsAt: "2026-05-24T16:30:00.000Z",
+          endsAt: "2026-05-24T17:30:00.000Z",
+          timeType: "service",
+          assignedTeamIds: ["team-1", "team-2"],
+        },
+        invalidatePlanWindowHistoryMock,
+        dependencies
+      )
     );
 
     expect(updatePlanTimeMock).toHaveBeenCalledWith(
@@ -265,30 +281,34 @@ describe("plan-times module", () => {
   });
 
   it("creates plan times and invalidates time-sensitive caches", async () => {
-    createPlanTimeMock.mockResolvedValue({
-      id: "time-new",
-      type: "PlanTime",
-      attributes: {
-        name: "New service",
-        starts_at: "2026-05-24T18:00:00.000Z",
-        ends_at: null,
-        time_type: "service",
-      },
-    });
+    createPlanTimeMock.mockReturnValue(
+      Effect.succeed<SuccessOf<typeof createPlanTimeMock>>({
+        id: "time-new",
+        type: "PlanTime",
+        attributes: {
+          name: "New service",
+          starts_at: "2026-05-24T18:00:00.000Z",
+          ends_at: null,
+          time_type: "service",
+        },
+      })
+    );
 
-    const planTime = await createPlanTime(
-      {
-        serviceTypeId: "st-1",
-        planId: "plan-1",
-        name: "New service",
-        startsAt: "2026-05-24T18:00:00.000Z",
-        endsAt: null,
-        timeType: "service",
-        assignedTeamIds: ["team-1"],
-        assignedPositionIds: ["position-1"],
-      },
-      invalidatePlanWindowHistoryMock,
-      dependencies
+    const planTime = await Effect.runPromise(
+      createPlanTime(
+        {
+          serviceTypeId: "st-1",
+          planId: "plan-1",
+          name: "New service",
+          startsAt: "2026-05-24T18:00:00.000Z",
+          endsAt: null,
+          timeType: "service",
+          assignedTeamIds: ["team-1"],
+          assignedPositionIds: ["position-1"],
+        },
+        invalidatePlanWindowHistoryMock,
+        dependencies
+      )
     );
 
     expect(createPlanTimeMock).toHaveBeenCalledWith(
@@ -311,14 +331,16 @@ describe("plan-times module", () => {
   });
 
   it("deletes plan times and invalidates time-sensitive caches", async () => {
-    await deletePlanTime(
-      {
-        serviceTypeId: "st-1",
-        planId: "plan-1",
-        planTimeId: "time-1",
-      },
-      invalidatePlanWindowHistoryMock,
-      dependencies
+    await Effect.runPromise(
+      deletePlanTime(
+        {
+          serviceTypeId: "st-1",
+          planId: "plan-1",
+          planTimeId: "time-1",
+        },
+        invalidatePlanWindowHistoryMock,
+        dependencies
+      )
     );
 
     expect(deletePlanTimeMock).toHaveBeenCalledWith("st-1", "plan-1", "time-1");
@@ -329,26 +351,30 @@ describe("plan-times module", () => {
   });
 
   it("patches plan-level needed position time overrides", async () => {
-    updatePlanTimeMock.mockResolvedValue({
-      id: "time-1",
-      type: "PlanTime",
-      attributes: {
-        name: "Updated",
-        starts_at: "2026-05-24T16:30:00.000Z",
-        time_type: "rehearsal",
-      },
-    });
+    updatePlanTimeMock.mockReturnValue(
+      Effect.succeed<SuccessOf<typeof updatePlanTimeMock>>({
+        id: "time-1",
+        type: "PlanTime",
+        attributes: {
+          name: "Updated",
+          starts_at: "2026-05-24T16:30:00.000Z",
+          time_type: "rehearsal",
+        },
+      })
+    );
 
-    await updatePlanTime(
-      {
-        serviceTypeId: "st-1",
-        planId: "plan-1",
-        planTimeId: "time-1",
-        assignedNeededPositionIds: ["needed-1"],
-        clearedNeededPositionIds: ["needed-2"],
-      },
-      invalidatePlanWindowHistoryMock,
-      dependencies
+    await Effect.runPromise(
+      updatePlanTime(
+        {
+          serviceTypeId: "st-1",
+          planId: "plan-1",
+          planTimeId: "time-1",
+          assignedNeededPositionIds: ["needed-1"],
+          clearedNeededPositionIds: ["needed-2"],
+        },
+        invalidatePlanWindowHistoryMock,
+        dependencies
+      )
     );
 
     expect(updateServiceTypePlanNeededPositionTimeMock).toHaveBeenCalledWith(
@@ -366,33 +392,42 @@ describe("plan-times module", () => {
   });
 
   it("waits for sibling writes before invalidating after a partial failure", async () => {
-    updatePlanTimeMock.mockResolvedValue({
-      id: "time-1",
-      type: "PlanTime",
-      attributes: {
-        name: "Updated",
-        starts_at: "2026-05-24T16:30:00.000Z",
-        time_type: "rehearsal",
-      },
-    });
-    const lateWrite = Promise.withResolvers<{
-      id: string;
-      type: string;
-      attributes: Record<string, never>;
-    }>();
+    updatePlanTimeMock.mockReturnValue(
+      Effect.succeed<SuccessOf<typeof updatePlanTimeMock>>({
+        id: "time-1",
+        type: "PlanTime",
+        attributes: {
+          name: "Updated",
+          starts_at: "2026-05-24T16:30:00.000Z",
+          time_type: "rehearsal",
+        },
+      })
+    );
+    const lateWrite = Promise.withResolvers<PCResource>();
     updateServiceTypePlanNeededPositionTimeMock
-      .mockRejectedValueOnce(new Error("assignment failed"))
-      .mockImplementationOnce(async () => await lateWrite.promise);
+      .mockReturnValueOnce(
+        Effect.fail(
+          new PlanningCenterApiError({
+            message: "assignment failed",
+            status: 422,
+          })
+        )
+      )
+      .mockReturnValueOnce(Effect.promise(async () => await lateWrite.promise));
 
-    const update = updatePlanTime(
-      {
-        serviceTypeId: "st-1",
-        planId: "plan-1",
-        planTimeId: "time-1",
-        assignedNeededPositionIds: ["needed-1", "needed-2"],
-      },
-      invalidatePlanWindowHistoryMock,
-      dependencies
+    const update = Effect.runPromise(
+      Effect.flip(
+        updatePlanTime(
+          {
+            serviceTypeId: "st-1",
+            planId: "plan-1",
+            planTimeId: "time-1",
+            assignedNeededPositionIds: ["needed-1", "needed-2"],
+          },
+          invalidatePlanWindowHistoryMock,
+          dependencies
+        )
+      )
     );
     await vi.waitFor(() => {
       expect(updateServiceTypePlanNeededPositionTimeMock).toHaveBeenCalledTimes(
@@ -408,7 +443,9 @@ describe("plan-times module", () => {
       attributes: {},
     });
 
-    await expect(update).rejects.toThrow("assignment failed");
+    await expect(update).resolves.toMatchObject({
+      message: "assignment failed",
+    });
 
     expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith(
       "plan-1"
@@ -417,45 +454,53 @@ describe("plan-times module", () => {
   });
 
   it("patches individual plan person time overrides from roster relationships", async () => {
-    updatePlanTimeMock.mockResolvedValue({
-      id: "time-2",
-      type: "PlanTime",
-      attributes: {
-        name: "Service",
-        starts_at: "2026-05-24T18:00:00.000Z",
-        time_type: "service",
-      },
-    });
-    getPlanTeamMembersMock.mockResolvedValue({
-      data: [
-        planPerson("pp-add", "person-add", "team-1", "Vocal", "U", ["time-1"]),
-        planPerson("pp-clear", "person-clear", "team-1", "Guitar", "C", [
-          "time-2",
-          "time-3",
-        ]),
-        planPerson("pp-declined", "person-declined", "team-1", "Drums", "D", [
-          "time-2",
-        ]),
-        planPerson("pp-no-person", null, "team-1", "Keys", "U", ["time-2"]),
-      ],
-      included: [
-        team("team-1", "Band"),
-        person("person-add", "Alex", "Add"),
-        person("person-clear", "Casey", "Clear"),
-        person("person-declined", "Devon", "Declined"),
-      ],
-    });
+    updatePlanTimeMock.mockReturnValue(
+      Effect.succeed<SuccessOf<typeof updatePlanTimeMock>>({
+        id: "time-2",
+        type: "PlanTime",
+        attributes: {
+          name: "Service",
+          starts_at: "2026-05-24T18:00:00.000Z",
+          time_type: "service",
+        },
+      })
+    );
+    getPlanTeamMembersMock.mockReturnValue(
+      Effect.succeed<SuccessOf<typeof getPlanTeamMembersMock>>({
+        data: [
+          planPerson("pp-add", "person-add", "team-1", "Vocal", "U", [
+            "time-1",
+          ]),
+          planPerson("pp-clear", "person-clear", "team-1", "Guitar", "C", [
+            "time-2",
+            "time-3",
+          ]),
+          planPerson("pp-declined", "person-declined", "team-1", "Drums", "D", [
+            "time-2",
+          ]),
+          planPerson("pp-no-person", null, "team-1", "Keys", "U", ["time-2"]),
+        ],
+        included: [
+          team("team-1", "Band"),
+          person("person-add", "Alex", "Add"),
+          person("person-clear", "Casey", "Clear"),
+          person("person-declined", "Devon", "Declined"),
+        ],
+      })
+    );
 
-    await updatePlanTime(
-      {
-        serviceTypeId: "st-1",
-        planId: "plan-1",
-        planTimeId: "time-2",
-        assignedPlanPersonIds: ["pp-add"],
-        clearedPlanPersonIds: ["pp-clear", "pp-declined", "pp-no-person"],
-      },
-      invalidatePlanWindowHistoryMock,
-      dependencies
+    await Effect.runPromise(
+      updatePlanTime(
+        {
+          serviceTypeId: "st-1",
+          planId: "plan-1",
+          planTimeId: "time-2",
+          assignedPlanPersonIds: ["pp-add"],
+          clearedPlanPersonIds: ["pp-clear", "pp-declined", "pp-no-person"],
+        },
+        invalidatePlanWindowHistoryMock,
+        dependencies
+      )
     );
 
     expect(getPlanTeamMembersMock).toHaveBeenCalledWith("st-1", "plan-1");

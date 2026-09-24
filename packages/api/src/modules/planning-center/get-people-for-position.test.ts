@@ -4,6 +4,7 @@ import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-cente
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const createFixture = () => {
@@ -23,7 +24,7 @@ const createFixture = () => {
     getPlansWithIncludedInDateRange:
       vi.fn<PlanningCenterPlansService["getPlansWithIncludedInDateRange"]>(),
     getCacheScope: vi.fn<PlanningCenterPeopleService["getCacheScope"]>(),
-    resolveTimeZone: vi.fn<() => Promise<string>>(),
+    resolveTimeZone: vi.fn<() => string>(),
   };
   const dependencies = {
     catalog: { getServiceTypesCached: mocks.getServiceTypesCached },
@@ -38,7 +39,7 @@ const createFixture = () => {
     plans: {
       getPlansWithIncludedInDateRange: mocks.getPlansWithIncludedInDateRange,
     },
-    resolveTimeZone: mocks.resolveTimeZone,
+    resolveTimeZone: Effect.sync(() => mocks.resolveTimeZone()),
   } satisfies NonNullable<Parameters<typeof getPeopleForPosition>[1]>;
   return { mocks, dependencies };
 };
@@ -209,20 +210,28 @@ describe(getPeopleForPosition, () => {
     mocks.getCacheScope.mockImplementation(
       () => `test-scope-${cacheScopeIndex}`
     );
-    mocks.getServiceTypesCached.mockResolvedValue([
-      {
-        type: "ServiceType",
-        id: "st-1",
-        attributes: { archived_at: null, sequence: 1, name: "Primary" },
-      },
-    ]);
-    mocks.getPersonSchedules.mockResolvedValue({ data: [], included: [] });
-    mocks.getPlanTeamMembers.mockResolvedValue({ data: [], included: [] });
-    mocks.getPlansWithIncludedInDateRange.mockResolvedValue({
-      data: [],
-      included: [],
-    });
-    mocks.resolveTimeZone.mockResolvedValue("UTC");
+    mocks.getServiceTypesCached.mockReturnValue(
+      Effect.succeed([
+        {
+          type: "ServiceType",
+          id: "st-1",
+          attributes: { archived_at: null, sequence: 1, name: "Primary" },
+        },
+      ])
+    );
+    mocks.getPersonSchedules.mockReturnValue(
+      Effect.succeed({ data: [], included: [] })
+    );
+    mocks.getPlanTeamMembers.mockReturnValue(
+      Effect.succeed({ data: [], included: [] })
+    );
+    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+      Effect.succeed({
+        data: [],
+        included: [],
+      })
+    );
+    mocks.resolveTimeZone.mockReturnValue("UTC");
   });
 
   it("marks selected plan scheduled/confirmed flags and sorts confirmed/scheduled before available/blocked", async () => {
@@ -232,22 +241,24 @@ describe(getPeopleForPosition, () => {
     const planId = "plan-target";
     const date = "2026-02-22";
 
-    mocks.getPeopleForTeamPosition.mockResolvedValue({
-      data: [
-        assignment("a1", "p-confirmed"),
-        assignment("a2", "p-scheduled"),
-        assignment("a3", "p-available"),
-        assignment("a4", "p-blocked"),
-      ],
-      included: [
-        person("p-confirmed", "Alice", "Confirmed"),
-        person("p-scheduled", "Bob", "Scheduled"),
-        person("p-available", "Cara", "Available"),
-        person("p-blocked", "Dan", "Blocked"),
-        teamPosition(positionId, "Vocals", teamId),
-        team(teamId, "Band"),
-      ],
-    });
+    mocks.getPeopleForTeamPosition.mockReturnValue(
+      Effect.succeed({
+        data: [
+          assignment("a1", "p-confirmed"),
+          assignment("a2", "p-scheduled"),
+          assignment("a3", "p-available"),
+          assignment("a4", "p-blocked"),
+        ],
+        included: [
+          person("p-confirmed", "Alice", "Confirmed"),
+          person("p-scheduled", "Bob", "Scheduled"),
+          person("p-available", "Cara", "Available"),
+          person("p-blocked", "Dan", "Blocked"),
+          teamPosition(positionId, "Vocals", teamId),
+          team(teamId, "Band"),
+        ],
+      })
+    );
 
     const scheduleResponseForPerson = (personId: string) => {
       if (personId === "p-confirmed") {
@@ -285,29 +296,30 @@ describe(getPeopleForPosition, () => {
         included: [],
       };
     };
-    mocks.getPersonSchedules.mockImplementation(
-      async (personId: string) =>
-        await Promise.resolve(scheduleResponseForPerson(personId))
+    mocks.getPersonSchedules.mockImplementation((personId: string) =>
+      Effect.succeed(scheduleResponseForPerson(personId))
     );
 
-    mocks.getPersonBlockouts.mockImplementation(async (personId: string) => {
+    mocks.getPersonBlockouts.mockImplementation((personId: string) => {
       if (personId === "p-blocked") {
-        return await Promise.resolve([
+        return Effect.succeed([
           blockout("b1", "2026-02-22T00:00:00Z", "2026-02-22T23:59:59Z"),
         ]);
       }
-      return await Promise.resolve([]);
+      return Effect.succeed([]);
     });
 
-    const result = await getPeopleForPosition(
-      {
-        serviceTypeId,
-        positionId,
-        teamId,
-        planId,
-        date,
-      },
-      dependencies
+    const result = await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId,
+          positionId,
+          teamId,
+          planId,
+          date,
+        },
+        dependencies
+      )
     );
 
     expect(result).toMatchObject([
@@ -340,38 +352,44 @@ describe(getPeopleForPosition, () => {
     const positionId = "pos-guitar";
     const planId = "plan-target";
 
-    mocks.getPeopleForTeamPosition.mockResolvedValue({
-      data: [assignment("a1", "p1")],
-      included: [
-        person("p1", "Casey", "Elsewhere"),
-        teamPosition(positionId, "Guitar", teamId),
-        team(teamId, "Band"),
-      ],
-    });
-    mocks.getPersonBlockouts.mockResolvedValue([]);
-    mocks.getPersonSchedules.mockResolvedValue({
-      data: [
-        scheduleEntry({
-          id: "pp1",
-          planId,
-          teamId,
-          status: "U",
-          teamName: "Band",
-          teamPositionName: "Keys",
-        }),
-      ],
-      included: [],
-    });
+    mocks.getPeopleForTeamPosition.mockReturnValue(
+      Effect.succeed({
+        data: [assignment("a1", "p1")],
+        included: [
+          person("p1", "Casey", "Elsewhere"),
+          teamPosition(positionId, "Guitar", teamId),
+          team(teamId, "Band"),
+        ],
+      })
+    );
+    mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
+    mocks.getPersonSchedules.mockReturnValue(
+      Effect.succeed({
+        data: [
+          scheduleEntry({
+            id: "pp1",
+            planId,
+            teamId,
+            status: "U",
+            teamName: "Band",
+            teamPositionName: "Keys",
+          }),
+        ],
+        included: [],
+      })
+    );
 
-    const result = await getPeopleForPosition(
-      {
-        serviceTypeId,
-        positionId,
-        teamId,
-        planId,
-        date: "2026-02-22",
-      },
-      dependencies
+    const result = await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId,
+          positionId,
+          teamId,
+          planId,
+          date: "2026-02-22",
+        },
+        dependencies
+      )
     );
 
     expect(result).toHaveLength(1);
@@ -389,8 +407,8 @@ describe(getPeopleForPosition, () => {
     const personId = "p-shared";
 
     mocks.getPeopleForTeamPosition.mockImplementation(
-      async (_serviceTypeId: string, positionId: string) =>
-        await Promise.resolve({
+      (_serviceTypeId: string, positionId: string) =>
+        Effect.succeed({
           data: [assignment(`a-${positionId}`, personId)],
           included: [
             person(personId, "Shared", "Candidate"),
@@ -403,40 +421,46 @@ describe(getPeopleForPosition, () => {
           ],
         })
     );
-    mocks.getPersonBlockouts.mockResolvedValue([]);
-    mocks.getPersonSchedules.mockResolvedValue({
-      data: [
-        scheduleEntry({
-          id: "pp-keys",
-          planId,
-          teamId,
-          status: "U",
-          teamName: "Band",
-          teamPositionName: "Keys",
-        }),
-      ],
-      included: [],
-    });
-
-    const vocalsResult = await getPeopleForPosition(
-      {
-        serviceTypeId,
-        positionId: "pos-vocals",
-        teamId,
-        planId,
-        date: "2026-02-22",
-      },
-      dependencies
+    mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
+    mocks.getPersonSchedules.mockReturnValue(
+      Effect.succeed({
+        data: [
+          scheduleEntry({
+            id: "pp-keys",
+            planId,
+            teamId,
+            status: "U",
+            teamName: "Band",
+            teamPositionName: "Keys",
+          }),
+        ],
+        included: [],
+      })
     );
-    const keysResult = await getPeopleForPosition(
-      {
-        serviceTypeId,
-        positionId: "pos-keys",
-        teamId,
-        planId,
-        date: "2026-02-22",
-      },
-      dependencies
+
+    const vocalsResult = await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId,
+          positionId: "pos-vocals",
+          teamId,
+          planId,
+          date: "2026-02-22",
+        },
+        dependencies
+      )
+    );
+    const keysResult = await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId,
+          positionId: "pos-keys",
+          teamId,
+          planId,
+          date: "2026-02-22",
+        },
+        dependencies
+      )
     );
 
     expect(mocks.getPersonSchedules).toHaveBeenCalledOnce();
@@ -458,21 +482,25 @@ describe(getPeopleForPosition, () => {
     const previousPlanId = "plan-prev";
     const personId = "p-shared-window";
 
-    mocks.getPeopleForTeamPosition.mockResolvedValue({
-      data: [assignment("a1", personId)],
-      included: [
-        person(personId, "Window", "Candidate"),
-        teamPosition(positionId, "Vocals", teamId),
-        team(teamId, "Band"),
-      ],
-    });
-    mocks.getPlansWithIncludedInDateRange.mockResolvedValue({
-      data: [
-        planEntry(previousPlanId, "2026-02-15"),
-        planEntry(planId, "2026-02-22"),
-      ],
-      included: [],
-    });
+    mocks.getPeopleForTeamPosition.mockReturnValue(
+      Effect.succeed({
+        data: [assignment("a1", personId)],
+        included: [
+          person(personId, "Window", "Candidate"),
+          teamPosition(positionId, "Vocals", teamId),
+          team(teamId, "Band"),
+        ],
+      })
+    );
+    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+      Effect.succeed({
+        data: [
+          planEntry(previousPlanId, "2026-02-15"),
+          planEntry(planId, "2026-02-22"),
+        ],
+        included: [],
+      })
+    );
     const planMembersForPlan = (requestedPlanId: string) => {
       if (requestedPlanId === previousPlanId) {
         return {
@@ -513,20 +541,22 @@ describe(getPeopleForPosition, () => {
       };
     };
     mocks.getPlanTeamMembers.mockImplementation(
-      async (_serviceTypeId: string, requestedPlanId: string) =>
-        await Promise.resolve(planMembersForPlan(requestedPlanId))
+      (_serviceTypeId: string, requestedPlanId: string) =>
+        Effect.succeed(planMembersForPlan(requestedPlanId))
     );
-    mocks.getPersonBlockouts.mockResolvedValue([]);
+    mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
 
-    const result = await getPeopleForPosition(
-      {
-        serviceTypeId,
-        positionId,
-        teamId,
-        planId,
-        date: "2026-02-22",
-      },
-      dependencies
+    const result = await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId,
+          positionId,
+          teamId,
+          planId,
+          date: "2026-02-22",
+        },
+        dependencies
+      )
     );
 
     expect(mocks.getPersonSchedules).not.toHaveBeenCalled();
@@ -558,29 +588,33 @@ describe(getPeopleForPosition, () => {
     const recentPersonId = "p-recent";
     const unusedPersonId = "p-unused";
 
-    mocks.getPeopleForTeamPosition.mockResolvedValue({
-      data: [
-        assignment("a-recent", recentPersonId),
-        assignment("a-unused", unusedPersonId),
-      ],
-      included: [
-        person(recentPersonId, "Recent", "Player"),
-        person(unusedPersonId, "Unused", "Player"),
-        teamPosition(positionId, "Bass Guitar", teamId),
-        team(teamId, "Band"),
-      ],
-    });
-    mocks.getPlansWithIncludedInDateRange.mockResolvedValue({
-      data: [
-        planEntry(previousPlanId, "2026-02-15"),
-        planEntry(planId, "2026-02-22"),
-      ],
-      included: [],
-    });
+    mocks.getPeopleForTeamPosition.mockReturnValue(
+      Effect.succeed({
+        data: [
+          assignment("a-recent", recentPersonId),
+          assignment("a-unused", unusedPersonId),
+        ],
+        included: [
+          person(recentPersonId, "Recent", "Player"),
+          person(unusedPersonId, "Unused", "Player"),
+          teamPosition(positionId, "Bass Guitar", teamId),
+          team(teamId, "Band"),
+        ],
+      })
+    );
+    mocks.getPlansWithIncludedInDateRange.mockReturnValue(
+      Effect.succeed({
+        data: [
+          planEntry(previousPlanId, "2026-02-15"),
+          planEntry(planId, "2026-02-22"),
+        ],
+        included: [],
+      })
+    );
     mocks.getPlanTeamMembers.mockImplementation(
-      async (_serviceTypeId: string, requestedPlanId: string) => {
+      (_serviceTypeId: string, requestedPlanId: string) => {
         if (requestedPlanId === previousPlanId) {
-          return await Promise.resolve({
+          return Effect.succeed({
             data: [
               planMemberEntry({
                 id: "pp-prev",
@@ -599,20 +633,22 @@ describe(getPeopleForPosition, () => {
           });
         }
 
-        return await Promise.resolve({ data: [], included: [] });
+        return Effect.succeed({ data: [], included: [] });
       }
     );
-    mocks.getPersonBlockouts.mockResolvedValue([]);
+    mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
 
-    const result = await getPeopleForPosition(
-      {
-        serviceTypeId,
-        positionId,
-        teamId,
-        planId,
-        date: "2026-02-22",
-      },
-      dependencies
+    const result = await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId,
+          positionId,
+          teamId,
+          planId,
+          date: "2026-02-22",
+        },
+        dependencies
+      )
     );
 
     const recent = result.find((row) => row.id === recentPersonId);
@@ -631,26 +667,30 @@ describe(getPeopleForPosition, () => {
     const adjacentPlanId = "plan-may-3";
     const personId = "p-michael";
 
-    mocks.getServiceTypesCached.mockResolvedValue([
-      {
-        type: "ServiceType",
-        id: serviceTypeId,
-        attributes: { archived_at: null, sequence: 1, name: "Youth" },
-      },
-      {
-        type: "ServiceType",
-        id: otherServiceTypeId,
-        attributes: { archived_at: null, sequence: 2, name: "Sunday" },
-      },
-    ]);
-    mocks.getPeopleForTeamPosition.mockResolvedValue({
-      data: [assignment("a1", personId)],
-      included: [
-        person(personId, "Michael", "Bortis"),
-        teamPosition(positionId, "Lead Electric Guitar", teamId),
-        team(teamId, "Band"),
-      ],
-    });
+    mocks.getServiceTypesCached.mockReturnValue(
+      Effect.succeed([
+        {
+          type: "ServiceType",
+          id: serviceTypeId,
+          attributes: { archived_at: null, sequence: 1, name: "Youth" },
+        },
+        {
+          type: "ServiceType",
+          id: otherServiceTypeId,
+          attributes: { archived_at: null, sequence: 2, name: "Sunday" },
+        },
+      ])
+    );
+    mocks.getPeopleForTeamPosition.mockReturnValue(
+      Effect.succeed({
+        data: [assignment("a1", personId)],
+        included: [
+          person(personId, "Michael", "Bortis"),
+          teamPosition(positionId, "Lead Electric Guitar", teamId),
+          team(teamId, "Band"),
+        ],
+      })
+    );
     const plansForServiceType = (requestedServiceTypeId: string) => {
       if (requestedServiceTypeId === serviceTypeId) {
         return {
@@ -669,8 +709,8 @@ describe(getPeopleForPosition, () => {
       return { data: [], included: [] };
     };
     mocks.getPlansWithIncludedInDateRange.mockImplementation(
-      async (requestedServiceTypeId: string) =>
-        await Promise.resolve(plansForServiceType(requestedServiceTypeId))
+      (requestedServiceTypeId: string) =>
+        Effect.succeed(plansForServiceType(requestedServiceTypeId))
     );
     const planMembersForServiceType = (
       requestedServiceTypeId: string,
@@ -716,22 +756,24 @@ describe(getPeopleForPosition, () => {
       return { data: [], included: [] };
     };
     mocks.getPlanTeamMembers.mockImplementation(
-      async (requestedServiceTypeId: string, requestedPlanId: string) =>
-        await Promise.resolve(
+      (requestedServiceTypeId: string, requestedPlanId: string) =>
+        Effect.succeed(
           planMembersForServiceType(requestedServiceTypeId, requestedPlanId)
         )
     );
-    mocks.getPersonBlockouts.mockResolvedValue([]);
+    mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
 
-    const result = await getPeopleForPosition(
-      {
-        serviceTypeId,
-        positionId,
-        teamId,
-        planId: selectedPlanId,
-        date: "2026-05-04",
-      },
-      dependencies
+    const result = await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId,
+          positionId,
+          teamId,
+          planId: selectedPlanId,
+          date: "2026-05-04",
+        },
+        dependencies
+      )
     );
 
     expect(mocks.getPersonSchedules).not.toHaveBeenCalled();
@@ -748,38 +790,46 @@ describe(getPeopleForPosition, () => {
     const planId = "plan-target";
     const personId = "p-pending";
 
-    mocks.getPeopleForTeamPosition.mockResolvedValue({
-      data: [],
-      included: [
-        teamPosition(positionId, "Vocals", teamId),
-        team(teamId, "Band"),
-      ],
-    });
-    mocks.getPlanTeamMembers.mockResolvedValue({
-      data: [
-        planMemberEntry({
-          id: "pp-pending",
-          personId,
-          planId,
-          teamId,
-          status: "U",
-          teamPositionName: "Vocals",
-        }),
-      ],
-      included: [person(personId, "Pending", "Singer"), team(teamId, "Band")],
-    });
-    mocks.getPersonBlockouts.mockResolvedValue([]);
-    mocks.getPersonSchedules.mockResolvedValue({ data: [], included: [] });
+    mocks.getPeopleForTeamPosition.mockReturnValue(
+      Effect.succeed({
+        data: [],
+        included: [
+          teamPosition(positionId, "Vocals", teamId),
+          team(teamId, "Band"),
+        ],
+      })
+    );
+    mocks.getPlanTeamMembers.mockReturnValue(
+      Effect.succeed({
+        data: [
+          planMemberEntry({
+            id: "pp-pending",
+            personId,
+            planId,
+            teamId,
+            status: "U",
+            teamPositionName: "Vocals",
+          }),
+        ],
+        included: [person(personId, "Pending", "Singer"), team(teamId, "Band")],
+      })
+    );
+    mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
+    mocks.getPersonSchedules.mockReturnValue(
+      Effect.succeed({ data: [], included: [] })
+    );
 
-    const result = await getPeopleForPosition(
-      {
-        serviceTypeId,
-        positionId,
-        teamId,
-        planId,
-        date: "2026-02-22",
-      },
-      dependencies
+    const result = await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId,
+          positionId,
+          teamId,
+          planId,
+          date: "2026-02-22",
+        },
+        dependencies
+      )
     );
 
     expect(result.map((row) => row.id)).toStrictEqual([personId]);
@@ -797,39 +847,47 @@ describe(getPeopleForPosition, () => {
     const positionId = "pos-lead-guitar";
     const planId = "plan-target";
 
-    mocks.getPeopleForTeamPosition.mockResolvedValue({
-      data: [assignment("a-lead", "p-lead")],
-      included: [
-        person("p-lead", "Lead", "Candidate"),
-        teamPosition(positionId, "Lead Guitar", teamId),
-        team(teamId, "Band"),
-      ],
-    });
-    mocks.getPlanTeamMembers.mockResolvedValue({
-      data: [
-        planMemberEntry({
-          id: "pp-vocals",
-          personId: "p-vocals",
-          planId,
-          teamId,
-          status: "U",
-          teamPositionName: "Vocals",
-        }),
-      ],
-      included: [person("p-vocals", "Vocal", "Only"), team(teamId, "Band")],
-    });
-    mocks.getPersonBlockouts.mockResolvedValue([]);
-    mocks.getPersonSchedules.mockResolvedValue({ data: [], included: [] });
+    mocks.getPeopleForTeamPosition.mockReturnValue(
+      Effect.succeed({
+        data: [assignment("a-lead", "p-lead")],
+        included: [
+          person("p-lead", "Lead", "Candidate"),
+          teamPosition(positionId, "Lead Guitar", teamId),
+          team(teamId, "Band"),
+        ],
+      })
+    );
+    mocks.getPlanTeamMembers.mockReturnValue(
+      Effect.succeed({
+        data: [
+          planMemberEntry({
+            id: "pp-vocals",
+            personId: "p-vocals",
+            planId,
+            teamId,
+            status: "U",
+            teamPositionName: "Vocals",
+          }),
+        ],
+        included: [person("p-vocals", "Vocal", "Only"), team(teamId, "Band")],
+      })
+    );
+    mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
+    mocks.getPersonSchedules.mockReturnValue(
+      Effect.succeed({ data: [], included: [] })
+    );
 
-    const result = await getPeopleForPosition(
-      {
-        serviceTypeId,
-        positionId,
-        teamId,
-        planId,
-        date: "2026-02-22",
-      },
-      dependencies
+    const result = await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId,
+          positionId,
+          teamId,
+          planId,
+          date: "2026-02-22",
+        },
+        dependencies
+      )
     );
 
     expect(result.map((row) => row.id)).toStrictEqual(["p-lead"]);
@@ -841,37 +899,43 @@ describe(getPeopleForPosition, () => {
     const positionId = "pos-1";
     const planId = "plan-target";
 
-    mocks.getPeopleForTeamPosition.mockResolvedValue({
-      data: [assignment("a1", "p1")],
-      included: [
-        person("p1", "Una", "Prefixed"),
-        teamPosition(positionId, "Vocals", teamId),
-        team(teamId, "Band"),
-      ],
-    });
-    mocks.getPersonBlockouts.mockResolvedValue([]);
-    mocks.getPersonSchedules.mockResolvedValue({
-      data: [
-        scheduleEntry({
-          id: "pp1",
-          planId,
-          teamId,
-          status: "U",
-          teamPositionName: "Vocals",
-        }),
-      ],
-      included: [],
-    });
+    mocks.getPeopleForTeamPosition.mockReturnValue(
+      Effect.succeed({
+        data: [assignment("a1", "p1")],
+        included: [
+          person("p1", "Una", "Prefixed"),
+          teamPosition(positionId, "Vocals", teamId),
+          team(teamId, "Band"),
+        ],
+      })
+    );
+    mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
+    mocks.getPersonSchedules.mockReturnValue(
+      Effect.succeed({
+        data: [
+          scheduleEntry({
+            id: "pp1",
+            planId,
+            teamId,
+            status: "U",
+            teamPositionName: "Vocals",
+          }),
+        ],
+        included: [],
+      })
+    );
 
-    const result = await getPeopleForPosition(
-      {
-        serviceTypeId,
-        positionId,
-        teamId,
-        planId,
-        date: "2026-02-22",
-      },
-      dependencies
+    const result = await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId,
+          positionId,
+          teamId,
+          planId,
+          date: "2026-02-22",
+        },
+        dependencies
+      )
     );
 
     expect(result).toHaveLength(1);
@@ -888,39 +952,45 @@ describe(getPeopleForPosition, () => {
     const positionId = "pos-1";
     const planId = "plan-target";
 
-    mocks.getPeopleForTeamPosition.mockResolvedValue({
-      data: [assignment("a1", "p1")],
-      included: [
-        person("p1", "Team", "Mismatch"),
-        teamPosition(positionId, "Vocals", teamId),
-        team(teamId, "Band"),
-        team(otherTeamId, "Choir"),
-      ],
-    });
-    mocks.getPersonBlockouts.mockResolvedValue([]);
-    mocks.getPersonSchedules.mockResolvedValue({
-      data: [
-        scheduleEntry({
-          id: "pp1",
-          planId,
-          teamId,
-          status: "U",
-          teamName: "Choir",
-          teamPositionName: "Vocals",
-        }),
-      ],
-      included: [],
-    });
+    mocks.getPeopleForTeamPosition.mockReturnValue(
+      Effect.succeed({
+        data: [assignment("a1", "p1")],
+        included: [
+          person("p1", "Team", "Mismatch"),
+          teamPosition(positionId, "Vocals", teamId),
+          team(teamId, "Band"),
+          team(otherTeamId, "Choir"),
+        ],
+      })
+    );
+    mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
+    mocks.getPersonSchedules.mockReturnValue(
+      Effect.succeed({
+        data: [
+          scheduleEntry({
+            id: "pp1",
+            planId,
+            teamId,
+            status: "U",
+            teamName: "Choir",
+            teamPositionName: "Vocals",
+          }),
+        ],
+        included: [],
+      })
+    );
 
-    const result = await getPeopleForPosition(
-      {
-        serviceTypeId,
-        positionId,
-        teamId,
-        planId,
-        date: "2026-02-22",
-      },
-      dependencies
+    const result = await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId,
+          positionId,
+          teamId,
+          planId,
+          date: "2026-02-22",
+        },
+        dependencies
+      )
     );
 
     expect(result[0]).toMatchObject({
@@ -937,38 +1007,44 @@ describe(getPeopleForPosition, () => {
     const personId = "p-michael";
     const easterSortDay = "2026-04-05";
 
-    mocks.getPeopleForTeamPosition.mockResolvedValue({
-      data: [assignment("a-michael", personId)],
-      included: [
-        person(personId, "Michael", "Bortis"),
-        teamPosition(positionId, "Bass Guitar", teamId),
-        team(teamId, "Band"),
-      ],
-    });
-    mocks.getPersonBlockouts.mockResolvedValue([]);
-    mocks.getPersonSchedules.mockResolvedValue({
-      data: [
-        scheduleEntry({
-          id: "pp-from-schedules",
-          planId: planEasterId,
-          teamId,
-          status: "C",
-          teamPositionName: "Band - Bass Guitar",
-          sortDate: easterSortDay,
-        }),
-      ],
-      included: [],
-    });
+    mocks.getPeopleForTeamPosition.mockReturnValue(
+      Effect.succeed({
+        data: [assignment("a-michael", personId)],
+        included: [
+          person(personId, "Michael", "Bortis"),
+          teamPosition(positionId, "Bass Guitar", teamId),
+          team(teamId, "Band"),
+        ],
+      })
+    );
+    mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
+    mocks.getPersonSchedules.mockReturnValue(
+      Effect.succeed({
+        data: [
+          scheduleEntry({
+            id: "pp-from-schedules",
+            planId: planEasterId,
+            teamId,
+            status: "C",
+            teamPositionName: "Band - Bass Guitar",
+            sortDate: easterSortDay,
+          }),
+        ],
+        included: [],
+      })
+    );
 
-    const result = await getPeopleForPosition(
-      {
-        serviceTypeId,
-        positionId,
-        teamId,
-        planId: planEasterId,
-        date: easterSortDay,
-      },
-      dependencies
+    const result = await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId,
+          positionId,
+          teamId,
+          planId: planEasterId,
+          date: easterSortDay,
+        },
+        dependencies
+      )
     );
 
     expect(mocks.getPersonSchedules).toHaveBeenCalledOnce();
@@ -977,9 +1053,6 @@ describe(getPeopleForPosition, () => {
       { order: "-starts_at" },
       5,
     ]);
-    expect(mocks.getPersonSchedules.mock.calls[0]?.[3]).toBeInstanceOf(
-      AbortSignal
-    );
     const [personRow] = result;
     if (!personRow?.serviceHistory || !personRow.frequency) {
       throw new Error("Expected service history and frequency");
@@ -1007,83 +1080,97 @@ describe(getPeopleForPosition, () => {
     const planId = "plan-target";
     const planSortDay = "2026-04-13";
 
-    mocks.getPeopleForTeamPosition.mockResolvedValue({
-      data: [assignment("a1", "p1")],
-      included: [
-        person("p1", "Pat", "Person"),
-        teamPosition(positionId, "Vocals", teamId),
-        team(teamId, "Band"),
-      ],
-    });
-    mocks.getPersonBlockouts.mockResolvedValue([
-      recurringWeeklyBlockout(
-        "b-weekly",
-        "2026-01-01T00:00:00.000Z",
-        "2026-12-31T23:59:59.000Z"
-      ),
-    ]);
-    mocks.getPersonBlockoutDates.mockResolvedValue([]);
-    mocks.getPersonSchedules.mockResolvedValue({
-      data: [],
-      included: [],
-    });
+    mocks.getPeopleForTeamPosition.mockReturnValue(
+      Effect.succeed({
+        data: [assignment("a1", "p1")],
+        included: [
+          person("p1", "Pat", "Person"),
+          teamPosition(positionId, "Vocals", teamId),
+          team(teamId, "Band"),
+        ],
+      })
+    );
+    mocks.getPersonBlockouts.mockReturnValue(
+      Effect.succeed([
+        recurringWeeklyBlockout(
+          "b-weekly",
+          "2026-01-01T00:00:00.000Z",
+          "2026-12-31T23:59:59.000Z"
+        ),
+      ])
+    );
+    mocks.getPersonBlockoutDates.mockReturnValue(Effect.succeed([]));
+    mocks.getPersonSchedules.mockReturnValue(
+      Effect.succeed({
+        data: [],
+        included: [],
+      })
+    );
 
-    const result = await getPeopleForPosition(
-      {
-        serviceTypeId,
-        positionId,
-        teamId,
-        planId,
-        date: planSortDay,
-      },
-      dependencies
+    const result = await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId,
+          positionId,
+          teamId,
+          planId,
+          date: planSortDay,
+        },
+        dependencies
+      )
     );
 
     expect(result).toHaveLength(1);
-    expect(mocks.getPersonBlockoutDates).toHaveBeenCalledWith(
-      "p1",
-      "b-weekly",
-      undefined
-    );
+    expect(mocks.getPersonBlockoutDates).toHaveBeenCalledWith("p1", "b-weekly");
     expect(result[0]).toMatchObject({ isBlockedForDate: false });
   });
 
   it("marks a recurring blockout only on its generated date", async () => {
     const teamId = "team-1";
     const positionId = "pos-1";
-    mocks.getPeopleForTeamPosition.mockResolvedValue({
-      data: [assignment("a1", "p1")],
-      included: [
-        person("p1", "Pat", "Person"),
-        teamPosition(positionId, "Vocals", teamId),
-        team(teamId, "Band"),
-      ],
-    });
-    mocks.getPersonBlockouts.mockResolvedValue([
-      recurringWeeklyBlockout(
-        "b-weekly",
-        "2026-01-01T00:00:00.000Z",
-        "2026-12-31T23:59:59.000Z"
-      ),
-    ]);
-    mocks.getPersonBlockoutDates.mockResolvedValue([
-      blockout(
-        "d-apr-13",
-        "2026-04-13T00:00:00.000Z",
-        "2026-04-13T23:59:59.000Z"
-      ),
-    ]);
-    mocks.getPersonSchedules.mockResolvedValue({ data: [], included: [] });
+    mocks.getPeopleForTeamPosition.mockReturnValue(
+      Effect.succeed({
+        data: [assignment("a1", "p1")],
+        included: [
+          person("p1", "Pat", "Person"),
+          teamPosition(positionId, "Vocals", teamId),
+          team(teamId, "Band"),
+        ],
+      })
+    );
+    mocks.getPersonBlockouts.mockReturnValue(
+      Effect.succeed([
+        recurringWeeklyBlockout(
+          "b-weekly",
+          "2026-01-01T00:00:00.000Z",
+          "2026-12-31T23:59:59.000Z"
+        ),
+      ])
+    );
+    mocks.getPersonBlockoutDates.mockReturnValue(
+      Effect.succeed([
+        blockout(
+          "d-apr-13",
+          "2026-04-13T00:00:00.000Z",
+          "2026-04-13T23:59:59.000Z"
+        ),
+      ])
+    );
+    mocks.getPersonSchedules.mockReturnValue(
+      Effect.succeed({ data: [], included: [] })
+    );
 
-    const result = await getPeopleForPosition(
-      {
-        serviceTypeId: "st-1",
-        positionId,
-        teamId,
-        planId: "plan-target",
-        date: "2026-04-13",
-      },
-      dependencies
+    const result = await Effect.runPromise(
+      getPeopleForPosition(
+        {
+          serviceTypeId: "st-1",
+          positionId,
+          teamId,
+          planId: "plan-target",
+          date: "2026-04-13",
+        },
+        dependencies
+      )
     );
 
     expect(result[0]).toMatchObject({ isBlockedForDate: true });

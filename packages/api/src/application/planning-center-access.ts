@@ -7,10 +7,11 @@ import { RateLimited } from "@pcobooster/api/application/errors/rate-limited";
 import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
 import { resolveDemoSession } from "@pcobooster/api/auth/demo-access";
 import { requirePlanningCenterAccessToken } from "@pcobooster/api/auth/planning-center-session";
-import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
-import type { PlanningCenterPersonalAccessToken } from "@pcobooster/api/planning-center/core-client";
-import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
-import { PlanningCenterReadOnlyError } from "@pcobooster/api/planning-center/read-only-error";
+import { isPlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import type {
+  PlanningCenterError,
+  PlanningCenterPersonalAccessToken,
+} from "@pcobooster/api/planning-center/core-client";
 import {
   createPlanningCenterServices,
   createBasicPlanningCenterServices,
@@ -23,6 +24,7 @@ import {
   isPresentationMode,
 } from "@pcobooster/presentation-mode";
 import { Context, Effect } from "effect";
+import * as HttpClient from "effect/unstable/http/HttpClient";
 
 /** A signed-in user acting through their linked Planning Center account. */
 export interface AccountAuthentication {
@@ -69,7 +71,8 @@ export class PlanningCenterAccess extends Context.Service<
 export interface PlanningCenterAccessDependencies {
   readonly authorize: (request: Request) => Promise<RequestAuthentication>;
   readonly createServices: (
-    authentication: RequestAuthentication
+    authentication: RequestAuthentication,
+    httpClient: HttpClient.HttpClient
   ) => RequestPlanningCenterServices;
   /** Local presentation mode; demo sessions are always presented. */
   readonly presentationMode: () => boolean;
@@ -98,12 +101,13 @@ export const createPlanningCenterAccessDependencies = (
       account: authenticated.account,
     };
   },
-  createServices: (authentication) => {
+  createServices: (authentication, httpClient) => {
     const { fallbackTimeZone, localPlanningCenterToken } = server.config;
     if (authentication.kind === "demo") {
       return createReadOnlyPlanningCenterServices(
         authentication.planningCenter,
-        fallbackTimeZone
+        fallbackTimeZone,
+        httpClient
       );
     }
     if (server.config.devAuthBypass) {
@@ -114,12 +118,14 @@ export const createPlanningCenterAccessDependencies = (
       }
       return createBasicPlanningCenterServices(
         localPlanningCenterToken,
-        fallbackTimeZone
+        fallbackTimeZone,
+        httpClient
       );
     }
     return createPlanningCenterServices(
       authentication.accessToken,
-      fallbackTimeZone
+      fallbackTimeZone,
+      httpClient
     );
   },
   presentationMode: () => isPresentationMode(server.config.presentation),
@@ -127,6 +133,61 @@ export const createPlanningCenterAccessDependencies = (
   fallbackTimeZone: server.config.fallbackTimeZone,
 });
 
+/** The fault reported for each expected Planning Center failure. */
+export const planningCenterFault = (
+  error: PlanningCenterError
+): ApplicationFault => {
+  switch (error._tag) {
+    case "PlanningCenterReadOnlyError": {
+      return new Forbidden({
+        message: "This demo is read-only, so changes aren't saved.",
+      });
+    }
+    case "PlanningCenterApiError": {
+      if (error.status === 429) {
+        return new RateLimited({
+          message:
+            "Planning Center rate limit exceeded. Please wait and try again.",
+          service: "planning-center",
+          retryAfterSeconds: error.retryAfterSeconds,
+        });
+      }
+      return new ExternalServiceFailure({
+        message: "Planning Center request failed.",
+        service: "planning-center",
+        cause: error,
+      });
+    }
+    case "PlanningCenterNetworkError": {
+      return new ExternalServiceFailure({
+        message: "Planning Center request failed.",
+        service: "planning-center",
+        cause: error,
+      });
+    }
+    default: {
+      const exhaustiveError: never = error;
+      return exhaustiveError;
+    }
+  }
+};
+
+const toFault = (
+  error: PlanningCenterError | ApplicationFault
+): ApplicationFault =>
+  isPlanningCenterError(error) ? planningCenterFault(error) : error;
+
+/** Reports Planning Center failures as application faults; defects stay defects. */
+export const withPlanningCenterFaults = <Value, Requirements>(
+  effect: Effect.Effect<
+    Value,
+    PlanningCenterError | ApplicationFault,
+    Requirements
+  >
+): Effect.Effect<Value, ApplicationFault, Requirements> =>
+  Effect.mapError(effect, toFault);
+
+/** Classifies an authorization rejection; anything unexpected is a defect. */
 export const toApplicationFault = (error: Error): ApplicationFault | null => {
   if (
     error instanceof Unauthenticated ||
@@ -135,41 +196,10 @@ export const toApplicationFault = (error: Error): ApplicationFault | null => {
   ) {
     return error;
   }
-
-  if (error instanceof PlanningCenterReadOnlyError) {
-    return new Forbidden({
-      message: "This demo is read-only, so changes aren't saved.",
-    });
-  }
-
-  if (error instanceof PlanningCenterApiError) {
-    if (error.status === 429) {
-      return new RateLimited({
-        message:
-          "Planning Center rate limit exceeded. Please wait and try again.",
-        service: "planning-center",
-        retryAfterSeconds: error.retryAfterSeconds,
-      });
-    }
-    return new ExternalServiceFailure({
-      message: "Planning Center request failed.",
-      service: "planning-center",
-      cause: error,
-    });
-  }
-
-  if (error instanceof PlanningCenterNetworkError) {
-    return new ExternalServiceFailure({
-      message: "Planning Center request failed.",
-      service: "planning-center",
-      cause: error,
-    });
-  }
-
-  return null;
+  return isPlanningCenterError(error) ? planningCenterFault(error) : null;
 };
 
-export const failPlanningCenter = (
+const failAuthorization = (
   error: Error
 ): Effect.Effect<never, ApplicationFault> => {
   const fault = toApplicationFault(error);
@@ -185,7 +215,7 @@ export const resolvePlanningCenterAccess = (
 ): Effect.Effect<
   PlanningCenterRequestAccess,
   ApplicationFault,
-  RequestContext | Server
+  RequestContext | Server | HttpClient.HttpClient
 > =>
   Effect.gen(function* resolveAccess() {
     const { request } = yield* RequestContext;
@@ -197,9 +227,10 @@ export const resolvePlanningCenterAccess = (
         error instanceof Error
           ? error
           : new Error("Planning Center authorization failed", { cause: error }),
-    }).pipe(Effect.catch(failPlanningCenter));
+    }).pipe(Effect.catch(failAuthorization));
+    const httpClient = yield* HttpClient.HttpClient;
     const services = yield* Effect.sync(() =>
-      dependencies.createServices(authentication)
+      dependencies.createServices(authentication, httpClient)
     );
 
     return {
@@ -219,23 +250,11 @@ export const withPlanningCenterAccess = <Value, Failure, Requirements>(
 ): Effect.Effect<
   Value,
   Failure | ApplicationFault,
-  Exclude<Requirements, PlanningCenterAccess> | RequestContext | Server
+  | Exclude<Requirements, PlanningCenterAccess>
+  | RequestContext
+  | Server
+  | HttpClient.HttpClient
 > =>
   Effect.flatMap(resolvePlanningCenterAccess(dependencies), (access) =>
     Effect.provideService(program, PlanningCenterAccess, access)
   );
-
-export const tryPlanningCenter = <Value>(
-  operation: (signal: AbortSignal) => Promise<Value>
-): Effect.Effect<Value, ApplicationFault, RequestContext> =>
-  Effect.gen(function* tryOperation() {
-    const { signal: requestSignal } = yield* RequestContext;
-    return yield* Effect.tryPromise({
-      try: async (fiberSignal) =>
-        await operation(AbortSignal.any([requestSignal, fiberSignal])),
-      catch: (error) =>
-        error instanceof Error
-          ? error
-          : new Error("Planning Center operation failed", { cause: error }),
-    }).pipe(Effect.catch(failPlanningCenter));
-  });

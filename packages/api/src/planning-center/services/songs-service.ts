@@ -1,13 +1,23 @@
 import { logger } from "@pcobooster/api/logger";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
-import type { PlanningCenterCoreClient } from "@pcobooster/api/planning-center/core-client";
+import type {
+  PlanningCenterCoreClient,
+  PlanningCenterError,
+} from "@pcobooster/api/planning-center/core-client";
+import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 const log = logger.for("planning-center/songs");
 const DEFAULT_CATALOG_TTL_MS = 15 * 60 * 1000;
 const DEFAULT_CATALOG_MAX_PAGES = 15;
 const SONG_DETAILS_CACHE_TTL_MS = 5 * 60 * 1000;
+
+interface LastScheduledItem {
+  data: PCResource | null;
+  included: PCResource[];
+}
 
 interface SongArrangementsResponse {
   data: PCResource[];
@@ -42,21 +52,19 @@ export class PlanningCenterSongsService {
     this.caches = caches;
   }
 
-  async getSongsPage(
-    params: Record<string, string> = {},
-    signal?: AbortSignal
-  ): Promise<PCResource[]> {
-    return await this.core.fetchAll("/services/v2/songs", params, 1, signal);
+  getSongsPage(
+    params: Record<string, string> = {}
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
+    return this.core.fetchAll("/services/v2/songs", params, 1);
   }
 
-  async getSongsCatalogCached(
+  getSongsCatalogCached(
     cacheKey: string,
     options?: {
       ttlMs?: number;
       maxPages?: number;
-    },
-    signal?: AbortSignal
-  ): Promise<PCResource[]> {
+    }
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
     const ttlMs = options?.ttlMs ?? DEFAULT_CATALOG_TTL_MS;
     const maxPages = options?.maxPages ?? DEFAULT_CATALOG_MAX_PAGES;
     const scopedCacheKey = this.buildSongCacheKey(
@@ -64,90 +72,78 @@ export class PlanningCenterSongsService {
       cacheKey,
       String(maxPages)
     );
-    const data = await this.caches.catalogs.get(
-      scopedCacheKey,
-      ttlMs,
-      async (loadSignal) => {
-        const songs = await this.core.fetchAll(
-          "/services/v2/songs",
-          { order: "title" },
-          maxPages,
-          loadSignal
+    const load = () =>
+      this.core
+        .fetchAll("/services/v2/songs", { order: "title" }, maxPages)
+        .pipe(
+          Effect.tap((songs) =>
+            Effect.sync(() => {
+              log.info(
+                { cacheKey: scopedCacheKey, songCount: songs.length },
+                "Songs catalog cached"
+              );
+            })
+          )
         );
-        log.info(
-          { cacheKey: scopedCacheKey, songCount: songs.length },
-          "Songs catalog cached"
-        );
-        return songs;
-      },
-      signal
+    return cachedRead(this.caches.catalogs, scopedCacheKey, ttlMs, load).pipe(
+      Effect.map((data) => structuredClone(data))
     );
-    return structuredClone(data);
   }
 
-  async getSong(songId: string, signal?: AbortSignal): Promise<PCResource> {
-    const resource = await this.caches.songs.get(
+  getSong(songId: string): Effect.Effect<PCResource, PlanningCenterError> {
+    return cachedRead(
+      this.caches.songs,
       this.buildSongCacheKey("song", songId),
       SONG_DETAILS_CACHE_TTL_MS,
-      async (loadSignal) => {
-        const response = await this.core.fetch(`/services/v2/songs/${songId}`, {
-          signal: loadSignal,
-        });
-        return response.data;
-      },
-      signal
-    );
-
-    return structuredClone(resource);
+      () =>
+        Effect.map(
+          this.core.fetch(`/services/v2/songs/${songId}`),
+          (response) => response.data
+        )
+    ).pipe(Effect.map((resource) => structuredClone(resource)));
   }
 
-  async getSongArrangementsWithKeys(
-    songId: string,
-    signal?: AbortSignal
-  ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const response = await this.caches.arrangements.get(
+  getSongArrangementsWithKeys(
+    songId: string
+  ): Effect.Effect<SongArrangementsResponse, PlanningCenterError> {
+    return cachedRead(
+      this.caches.arrangements,
       this.buildSongCacheKey("arrangements", songId),
       SONG_DETAILS_CACHE_TTL_MS,
-      async (loadSignal) =>
-        await this.core.fetchAllWithIncluded(
+      () =>
+        this.core.fetchAllWithIncluded(
           `/services/v2/songs/${songId}/arrangements`,
           { include: "keys" },
-          5,
-          loadSignal
-        ),
-      signal
+          5
+        )
+    ).pipe(
+      Effect.map((response) => ({
+        data: structuredClone(response.data),
+        included: structuredClone(response.included),
+      }))
     );
-
-    return {
-      data: structuredClone(response.data),
-      included: structuredClone(response.included),
-    };
   }
 
-  async getSongLastScheduledItem(
+  /** A song never scheduled for the service type has no last item. */
+  getSongLastScheduledItem(
     songId: string,
-    serviceTypeId: string,
-    signal?: AbortSignal
-  ): Promise<{ data: PCResource | null; included: PCResource[] }> {
-    try {
-      const response = await this.core.fetch(
-        `/services/v2/songs/${songId}/last_scheduled_item?service_type=${serviceTypeId}&include=arrangement,key`,
-        { signal }
+    serviceTypeId: string
+  ): Effect.Effect<LastScheduledItem, PlanningCenterError> {
+    return this.core
+      .fetch(
+        `/services/v2/songs/${songId}/last_scheduled_item?service_type=${serviceTypeId}&include=arrangement,key`
+      )
+      .pipe(
+        Effect.map((response): LastScheduledItem => ({
+          data: response.data,
+          included: response.included ?? [],
+        })),
+        Effect.catchIf(
+          (error) =>
+            error instanceof PlanningCenterApiError && error.status === 404,
+          () => Effect.succeed({ data: null, included: [] })
+        )
       );
-
-      return {
-        data: response.data,
-        included: response.included ?? [],
-      };
-    } catch (error) {
-      if (error instanceof PlanningCenterApiError && error.status === 404) {
-        return {
-          data: null,
-          included: [],
-        };
-      }
-      throw error;
-    }
   }
 
   private buildSongCacheKey(

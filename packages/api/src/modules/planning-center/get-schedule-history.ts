@@ -3,6 +3,7 @@ import {
   buildHistoryAndFrequencyForPerson,
 } from "@pcobooster/api/modules/planning-center/people/history";
 import { scheduleResourceSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import {
   addCalendarDaysToDayKey,
@@ -13,6 +14,7 @@ import type {
   RawSchedule,
   ScheduleFrequency,
 } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 export interface ScheduleHistoryResult {
   planPeople: PlanPerson[];
@@ -21,7 +23,7 @@ export interface ScheduleHistoryResult {
 
 export interface ScheduleHistoryDependencies {
   peopleService: Pick<PlanningCenterPeopleService, "getPersonSchedules">;
-  resolveTimeZone: (signal?: AbortSignal) => Promise<string>;
+  resolveTimeZone: Effect.Effect<string>;
 }
 
 const isConfirmedStatus = (status: string | undefined): boolean => {
@@ -29,74 +31,70 @@ const isConfirmedStatus = (status: string | undefined): boolean => {
   return normalized === "confirmed" || normalized === "c";
 };
 
-export const getScheduleHistory = async (
+export const getScheduleHistory = (
   personId: string,
   lookbackDays: number,
-  dependencies: ScheduleHistoryDependencies,
-  signal?: AbortSignal
-): Promise<ScheduleHistoryResult> => {
-  const now = new Date();
-  const orgTz = await dependencies.resolveTimeZone(signal);
-  const refDayKey = formatCalendarDayInTimeZone(now, orgTz);
-  const earliestDayKey = addCalendarDaysToDayKey(
-    refDayKey,
-    -lookbackDays,
-    orgTz
-  );
+  dependencies: ScheduleHistoryDependencies
+): Effect.Effect<ScheduleHistoryResult, PlanningCenterError> =>
+  Effect.gen(function* readScheduleHistory() {
+    const now = new Date();
+    const orgTz = yield* dependencies.resolveTimeZone;
+    const refDayKey = formatCalendarDayInTimeZone(now, orgTz);
+    const earliestDayKey = addCalendarDaysToDayKey(
+      refDayKey,
+      -lookbackDays,
+      orgTz
+    );
 
-  const historyResponse = await dependencies.peopleService.getPersonSchedules(
-    personId,
-    {},
-    3,
-    signal
-  );
-  const schedules: RawSchedule[] = [];
-  for (const resource of historyResponse.data) {
-    const parsed = scheduleResourceSchema.safeParse(resource);
-    if (parsed.success) {
-      schedules.push(parsed.data);
+    const historyResponse =
+      yield* dependencies.peopleService.getPersonSchedules(personId, {}, 3);
+    const schedules: RawSchedule[] = [];
+    for (const resource of historyResponse.data) {
+      const parsed = scheduleResourceSchema.safeParse(resource);
+      if (parsed.success) {
+        schedules.push(parsed.data);
+      }
     }
-  }
-  const historyIncluded = historyResponse.included ?? [];
+    const historyIncluded = historyResponse.included ?? [];
 
-  const historyResult = buildHistoryAndFrequencyForPerson(
-    schedules,
-    historyIncluded,
-    now,
-    {},
-    Number.POSITIVE_INFINITY,
-    orgTz
-  );
+    const historyResult = buildHistoryAndFrequencyForPerson(
+      schedules,
+      historyIncluded,
+      now,
+      {},
+      Number.POSITIVE_INFINITY,
+      orgTz
+    );
 
-  const confirmedHistory = historyResult.serviceHistory.filter((item) =>
-    isConfirmedStatus(item.status)
-  );
+    const confirmedHistory = historyResult.serviceHistory.filter((item) =>
+      isConfirmedStatus(item.status)
+    );
 
-  const planPeople: PlanPerson[] = [];
-  for (const item of confirmedHistory) {
-    if (formatCalendarDayInTimeZone(item.date, orgTz) < earliestDayKey) {
-      continue;
+    const planPeople: PlanPerson[] = [];
+    for (const item of confirmedHistory) {
+      if (formatCalendarDayInTimeZone(item.date, orgTz) < earliestDayKey) {
+        continue;
+      }
+      planPeople.push({
+        id: item.id,
+        status: item.status,
+        createdAt: item.date,
+        teamPositionName: item.teamPositionName,
+        planTitle: item.planTitle,
+        planDate: item.date,
+        declineReason: undefined,
+      });
     }
-    planPeople.push({
-      id: item.id,
-      status: item.status,
-      createdAt: item.date,
-      teamPositionName: item.teamPositionName,
-      planTitle: item.planTitle,
-      planDate: item.date,
-      declineReason: undefined,
-    });
-  }
-  planPeople.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    planPeople.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-  const frequency = buildFrequencyFromServiceHistory(
-    confirmedHistory,
-    now,
-    orgTz
-  );
+    const frequency = buildFrequencyFromServiceHistory(
+      confirmedHistory,
+      now,
+      orgTz
+    );
 
-  return {
-    planPeople: planPeople.slice(0, 20),
-    frequency,
-  };
-};
+    return {
+      planPeople: planPeople.slice(0, 20),
+      frequency,
+    };
+  });

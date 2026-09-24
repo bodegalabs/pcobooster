@@ -2,7 +2,7 @@
 
 Reviewed against the declared `effect@3.22.2` dependency and the current API structure on 2026-09-22. The guidance below uses Effect v3 documentation and oRPC's official documentation. Repository observations are from the checked-out source; they describe the current implementation, not a proposed migration requirement.
 
-**Implementation update:** The four numbered findings below describe the code before the follow-up change. In the current worktree, known Planning Center HTTP, network, and malformed-response failures become typed faults; unexpected adapter errors remain Effect defects. Plan-item preparation and commit share one resolved request credential. Request-bound provider work requires `RequestContext` and receives the request and fiber abort signals. The near-rate-limit pause now honors cancellation. Server error logs include the request ID, method, and path. `bun run ci` and `bun run build` passed after these changes.
+**Implementation update:** The four numbered findings below describe the code before the follow-up change. In the current worktree, known Planning Center HTTP, network, and malformed-response failures become typed faults; unexpected adapter errors remain Effect defects. Plan-item preparation and commit share one resolved request credential. Request-bound provider work requires `RequestContext` and receives the request and fiber abort signals. The near-rate-limit pause now honors cancellation. Server error logs include the request ID, method, and path. `bun run ci` and `bun run build` passed after these changes. Planning Center adapters have since become Effect-native; see [API architecture](api-architecture.md#planning-center-adapters).
 
 ## Assessment
 

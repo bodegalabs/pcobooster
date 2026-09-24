@@ -1,4 +1,7 @@
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 export interface UpdatePlanPersonTimesInput {
   serviceTypeId: string;
@@ -18,7 +21,7 @@ export interface UpdatePlanPersonTimesDependencies {
   invalidateHistory: (cacheScope: string) => void;
 }
 
-export const updatePlanPersonTimes = async (
+export const updatePlanPersonTimes = (
   {
     serviceTypeId,
     planId,
@@ -27,15 +30,24 @@ export const updatePlanPersonTimes = async (
     planTimeIds,
   }: UpdatePlanPersonTimesInput,
   dependencies: UpdatePlanPersonTimesDependencies
-) => {
-  const result = await dependencies.peopleService.updatePlanPersonTimes({
-    serviceTypeId,
-    planId,
-    personId,
-    planPersonId,
-    planTimeIds,
-  });
-  dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(planId);
-  dependencies.invalidateHistory(dependencies.peopleService.getCacheScope());
-  return result;
-};
+): Effect.Effect<PCResource, PlanningCenterError> =>
+  dependencies.peopleService
+    .updatePlanPersonTimes({
+      serviceTypeId,
+      planId,
+      personId,
+      planPersonId,
+      planTimeIds,
+    })
+    .pipe(
+      Effect.tap(() =>
+        Effect.sync(() => {
+          dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
+            planId
+          );
+          dependencies.invalidateHistory(
+            dependencies.peopleService.getCacheScope()
+          );
+        })
+      )
+    );

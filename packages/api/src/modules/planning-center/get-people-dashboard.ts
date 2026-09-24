@@ -7,7 +7,9 @@ import type {
   PeopleDashboardRange,
 } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
 import { buildFrequencyFromServiceHistory } from "@pcobooster/api/modules/planning-center/people/history";
-import { mapWithConcurrency } from "@pcobooster/api/modules/planning-center/shared";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import { recoverUnlessInterrupted } from "@pcobooster/api/planning-center/recover-unless-interrupted";
+import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
@@ -20,12 +22,18 @@ import {
   isString,
 } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 const SCHEDULE_CONCURRENCY = 4;
 const SCHEDULE_MAX_PAGES = 6;
 const PEOPLE_DASHBOARD_HYDRATION_LIMIT = 48;
 const PEOPLE_DASHBOARD_CACHE_TTL_MS = 2 * 60 * 1000;
 const PEOPLE_DASHBOARD_CACHE_VERSION = "v5";
+
+interface ScheduleResources {
+  data: PCResource[];
+  included: PCResource[];
+}
 export type PeopleDashboardReader = Pick<
   PlanningCenterPeopleService,
   "getCacheScope" | "getAllPeopleFromTeams" | "getPersonSchedules"
@@ -635,122 +643,124 @@ const buildRosterPeople = (
   });
 };
 
-const buildPeopleDashboard = async ({
+/** A person whose schedule we cannot read counts as unscheduled. */
+const buildPeopleDashboard = ({
   range,
   peopleService,
   maxHydratedPeople,
   orgTimeZone,
-  signal,
 }: {
   range: PeopleDashboardRange;
   peopleService: PeopleDashboardReader;
   maxHydratedPeople: number;
   orgTimeZone: string;
-  signal?: AbortSignal;
-}): Promise<PeopleDashboardData> => {
-  const now = new Date();
-  const monthInfo = getMonthInfo(now, orgTimeZone);
-  const rosterResponse = await peopleService.getAllPeopleFromTeams(signal);
-  const rosterPeople = buildRosterPeople(
-    rosterResponse.people,
-    rosterResponse.included,
-    rosterResponse.teamNamesByPersonId
-  );
-  const hydrationLimit = normalizeHydrationLimit(maxHydratedPeople);
-  const hydratedRoster = rosterPeople.slice(0, hydrationLimit);
+}): Effect.Effect<PeopleDashboardData, PlanningCenterError> =>
+  Effect.gen(function* buildDashboard() {
+    const now = new Date();
+    const monthInfo = getMonthInfo(now, orgTimeZone);
+    const rosterResponse = yield* peopleService.getAllPeopleFromTeams();
+    const rosterPeople = buildRosterPeople(
+      rosterResponse.people,
+      rosterResponse.included,
+      rosterResponse.teamNamesByPersonId
+    );
+    const hydrationLimit = normalizeHydrationLimit(maxHydratedPeople);
+    const hydratedRoster = rosterPeople.slice(0, hydrationLimit);
 
-  const hydratedPeople = await mapWithConcurrency(
-    hydratedRoster,
-    SCHEDULE_CONCURRENCY,
-    async (person) => {
-      const schedulesResponse = await peopleService
-        .getPersonSchedules(person.id, {}, SCHEDULE_MAX_PAGES, signal)
-        .catch(() => {
-          signal?.throwIfAborted();
-          return { data: [], included: [] };
-        });
-      return buildDashboardPerson(
-        person,
-        schedulesResponse.data,
-        schedulesResponse.included,
-        now,
-        orgTimeZone
-      );
-    }
-  );
+    const hydratedPeople = yield* Effect.forEach(
+      hydratedRoster,
+      (person) =>
+        peopleService
+          .getPersonSchedules(person.id, {}, SCHEDULE_MAX_PAGES)
+          .pipe(
+            recoverUnlessInterrupted((): ScheduleResources => ({
+              data: [],
+              included: [],
+            })),
+            Effect.map((schedulesResponse) =>
+              buildDashboardPerson(
+                person,
+                schedulesResponse.data,
+                schedulesResponse.included,
+                now,
+                orgTimeZone
+              )
+            )
+          ),
+      { concurrency: SCHEDULE_CONCURRENCY }
+    );
 
-  hydratedPeople.sort((a, b) => {
-    const byLoad = loadRank(b.load) - loadRank(a.load);
-    if (byLoad !== 0) {
-      return byLoad;
-    }
-    return b.monthCount - a.monthCount;
+    hydratedPeople.sort((a, b) => {
+      const byLoad = loadRank(b.load) - loadRank(a.load);
+      if (byLoad !== 0) {
+        return byLoad;
+      }
+      return b.monthCount - a.monthCount;
+    });
+
+    const monthDays = buildMonthDays(hydratedPeople);
+
+    return {
+      range,
+      generatedAt: now.toISOString(),
+      month: monthInfo,
+      people: hydratedPeople,
+      stats: {
+        scheduledPeople: hydratedPeople.filter(
+          (person) => person.monthCount > 0
+        ).length,
+        highLoadPeople: hydratedPeople.filter(
+          (person) => person.load === "high" || person.load === "rest"
+        ).length,
+        availableSoonPeople: hydratedPeople.filter(
+          (person) =>
+            person.load === "low" || person.nextScheduled === "Not scheduled"
+        ).length,
+      },
+      monthDays,
+      matrixDays: getServiceMatrixDays(monthDays),
+      requestBudget: {
+        teamRequests: countKnownTeamRequests(rosterPeople),
+        scheduleRequests: hydratedRoster.length,
+        blockoutRequests: 0,
+        rosterPeopleCount: rosterPeople.length,
+        hydratedPeopleCount: hydratedPeople.length,
+        sampled: hydratedPeople.length < rosterPeople.length,
+      },
+    };
   });
 
-  const monthDays = buildMonthDays(hydratedPeople);
-
-  return {
-    range,
-    generatedAt: now.toISOString(),
-    month: monthInfo,
-    people: hydratedPeople,
-    stats: {
-      scheduledPeople: hydratedPeople.filter((person) => person.monthCount > 0)
-        .length,
-      highLoadPeople: hydratedPeople.filter(
-        (person) => person.load === "high" || person.load === "rest"
-      ).length,
-      availableSoonPeople: hydratedPeople.filter(
-        (person) =>
-          person.load === "low" || person.nextScheduled === "Not scheduled"
-      ).length,
-    },
-    monthDays,
-    matrixDays: getServiceMatrixDays(monthDays),
-    requestBudget: {
-      teamRequests: countKnownTeamRequests(rosterPeople),
-      scheduleRequests: hydratedRoster.length,
-      blockoutRequests: 0,
-      rosterPeopleCount: rosterPeople.length,
-      hydratedPeopleCount: hydratedPeople.length,
-      sampled: hydratedPeople.length < rosterPeople.length,
-    },
-  };
-};
-
-export const getPeopleDashboard = async (
-  {
-    range = "month",
-    peopleService,
-    maxHydratedPeople = PEOPLE_DASHBOARD_HYDRATION_LIMIT,
-    resolveTimeZone,
-  }: {
-    range?: PeopleDashboardRange;
-    peopleService: PeopleDashboardReader;
-    maxHydratedPeople?: number;
-    resolveTimeZone: (signal?: AbortSignal) => Promise<string>;
-  },
-  signal?: AbortSignal
-): Promise<PeopleDashboardData> => {
-  const orgTimeZone = await resolveTimeZone(signal);
-  return await peopleDashboardCache.get(
-    [
-      peopleService.getCacheScope(),
-      PEOPLE_DASHBOARD_CACHE_VERSION,
-      "people-dashboard",
-      orgTimeZone,
-      range,
-      `limit:${normalizeHydrationLimit(maxHydratedPeople)}`,
-    ].join(":"),
-    PEOPLE_DASHBOARD_CACHE_TTL_MS,
-    async (loadSignal) =>
-      await buildPeopleDashboard({
-        range,
-        peopleService,
-        maxHydratedPeople,
-        orgTimeZone,
-        signal: loadSignal,
-      }),
-    signal
+export const getPeopleDashboard = ({
+  range = "month",
+  peopleService,
+  maxHydratedPeople = PEOPLE_DASHBOARD_HYDRATION_LIMIT,
+  resolveTimeZone,
+}: {
+  range?: PeopleDashboardRange;
+  peopleService: PeopleDashboardReader;
+  maxHydratedPeople?: number;
+  resolveTimeZone: Effect.Effect<string>;
+}): Effect.Effect<PeopleDashboardData, PlanningCenterError> =>
+  resolveTimeZone.pipe(
+    Effect.flatMap((orgTimeZone) =>
+      cachedRead(
+        peopleDashboardCache,
+        [
+          peopleService.getCacheScope(),
+          PEOPLE_DASHBOARD_CACHE_VERSION,
+          "people-dashboard",
+          orgTimeZone,
+          range,
+          `limit:${normalizeHydrationLimit(maxHydratedPeople)}`,
+        ].join(":"),
+        PEOPLE_DASHBOARD_CACHE_TTL_MS,
+        () =>
+          buildPeopleDashboard({
+            range,
+            peopleService,
+            maxHydratedPeople,
+            orgTimeZone,
+          })
+      )
+    )
   );
-};

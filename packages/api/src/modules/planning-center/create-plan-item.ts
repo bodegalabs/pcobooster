@@ -4,6 +4,7 @@ import {
 } from "@pcobooster/api/modules/planning-center/plan-item-payload";
 import type { LoadSongOptions } from "@pcobooster/api/modules/planning-center/plan-item-payload";
 import { normalizePlanItem } from "@pcobooster/api/modules/planning-center/plan-items-shared";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterPlanItemsService } from "@pcobooster/api/planning-center/services/plan-items-service";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type {
@@ -11,6 +12,7 @@ import type {
   PlanItemServicePosition,
   PlanItemType,
 } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 export interface CreatePlanItemInput {
   serviceTypeId: string;
@@ -34,38 +36,39 @@ export interface PreparedCreatePlanItem {
   readonly attributes: JsonObject;
 }
 
-export const prepareCreatePlanItem = async (
+export const prepareCreatePlanItem = (
   input: CreatePlanItemInput,
   loadSongOptions: LoadSongOptions
-): Promise<PreparedCreatePlanItem> => {
-  const resolvedInput = await resolvePlanItemSongDefaults(
-    {
-      ...input,
-      itemType:
-        input.itemType === "header" || input.itemType === "item"
-          ? input.itemType
-          : undefined,
-    },
-    loadSongOptions
+): Effect.Effect<PreparedCreatePlanItem, PlanningCenterError> =>
+  Effect.map(
+    resolvePlanItemSongDefaults(
+      {
+        ...input,
+        itemType:
+          input.itemType === "header" || input.itemType === "item"
+            ? input.itemType
+            : undefined,
+      },
+      loadSongOptions
+    ),
+    (resolvedInput) => ({
+      serviceTypeId: input.serviceTypeId,
+      planId: input.planId,
+      attributes: buildPlanItemAttributes(resolvedInput, {
+        defaultServicePosition: "during",
+      }),
+    })
   );
-  return {
-    serviceTypeId: input.serviceTypeId,
-    planId: input.planId,
-    attributes: buildPlanItemAttributes(resolvedInput, {
-      defaultServicePosition: "during",
-    }),
-  };
-};
 
-export const commitCreatePlanItem = async (
+export const commitCreatePlanItem = (
   prepared: PreparedCreatePlanItem,
   planItemsService: Pick<PlanningCenterPlanItemsService, "createPlanItem">
-): Promise<PlanItem> => {
-  const response = await planItemsService.createPlanItem(
-    prepared.serviceTypeId,
-    prepared.planId,
-    prepared.attributes
+): Effect.Effect<PlanItem, PlanningCenterError> =>
+  Effect.map(
+    planItemsService.createPlanItem(
+      prepared.serviceTypeId,
+      prepared.planId,
+      prepared.attributes
+    ),
+    (response) => normalizePlanItem(response.data, response.included)
   );
-
-  return normalizePlanItem(response.data, response.included);
-};

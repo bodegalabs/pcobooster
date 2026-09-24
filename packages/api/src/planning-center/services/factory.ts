@@ -24,6 +24,7 @@ import {
   planningCenterSongsServiceCaches,
   PlanningCenterSongsService,
 } from "@pcobooster/api/planning-center/services/songs-service";
+import type { HttpClient } from "effect/unstable/http/HttpClient";
 
 const createServicesForClient = (
   core: PlanningCenterCoreClient,
@@ -47,13 +48,11 @@ const createServicesForClient = (
     ),
     plans: new PlanningCenterPlansService(
       core,
-      async (signal) =>
-        await resolveOrganizationTimeZone({
-          cacheScope: core.getCacheScope(),
-          catalogService: catalog,
-          fallbackTimeZone,
-          signal,
-        }),
+      resolveOrganizationTimeZone({
+        cacheScope: core.getCacheScope(),
+        catalogService: catalog,
+        fallbackTimeZone,
+      }),
       planningCenterPlansServiceCaches
     ),
     songs: new PlanningCenterSongsService(
@@ -65,31 +64,37 @@ const createServicesForClient = (
 
 export const createPlanningCenterServices = (
   accessToken: string,
-  fallbackTimeZone: string
+  fallbackTimeZone: string,
+  httpClient: HttpClient
 ) =>
   createServicesForClient(
-    new PlanningCenterCoreClient({ kind: "bearer", accessToken }),
+    new PlanningCenterCoreClient(
+      { kind: "bearer", accessToken },
+      { httpClient }
+    ),
     fallbackTimeZone
   );
 
 export const createBasicPlanningCenterServices = (
   token: PlanningCenterPersonalAccessToken,
-  fallbackTimeZone: string
+  fallbackTimeZone: string,
+  httpClient: HttpClient
 ) =>
   createServicesForClient(
-    createBasicPlanningCenterClient(token),
+    createBasicPlanningCenterClient(token, httpClient),
     fallbackTimeZone
   );
 
 /** Demo services can read the demo organization but never write to it. */
 export const createReadOnlyPlanningCenterServices = (
   token: PlanningCenterPersonalAccessToken,
-  fallbackTimeZone: string
+  fallbackTimeZone: string,
+  httpClient: HttpClient
 ) =>
   createServicesForClient(
     new PlanningCenterCoreClient(
       { kind: "basic", ...token },
-      { readOnly: true }
+      { httpClient, readOnly: true }
     ),
     fallbackTimeZone
   );

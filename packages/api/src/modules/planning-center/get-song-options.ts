@@ -3,11 +3,13 @@ import {
   normalizePlanItem,
   normalizeSongCatalogEntry,
 } from "@pcobooster/api/modules/planning-center/plan-items-shared";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterSongsService } from "@pcobooster/api/planning-center/services/songs-service";
 import type {
   ArrangementOption,
   SongOptionSet,
 } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 const chooseSuggestedArrangement = (
   arrangements: ArrangementOption[]
@@ -23,7 +25,7 @@ export interface SongOptionsReader {
 }
 
 const normalizeArrangements = (
-  response: Awaited<
+  response: Effect.Success<
     ReturnType<SongOptionsReader["getSongArrangementsWithKeys"]>
   >
 ): ArrangementOption[] =>
@@ -51,19 +53,15 @@ const getSuggestedKeyId = (
   return (lastScheduledKey ?? arrangement?.keys[0])?.id ?? null;
 };
 
-export const getSongOptions = async (
-  songId: string,
-  serviceTypeId: string,
-  songsReader: SongOptionsReader,
-  signal?: AbortSignal
-): Promise<SongOptionSet> => {
-  const [song, arrangementsResponse, lastScheduledItemResponse] =
-    await Promise.all([
-      songsReader.getSong(songId, signal),
-      songsReader.getSongArrangementsWithKeys(songId, signal),
-      songsReader.getSongLastScheduledItem(songId, serviceTypeId, signal),
-    ]);
-
+const toSongOptionSet = (
+  song: Effect.Success<ReturnType<SongOptionsReader["getSong"]>>,
+  arrangementsResponse: Effect.Success<
+    ReturnType<SongOptionsReader["getSongArrangementsWithKeys"]>
+  >,
+  lastScheduledItemResponse: Effect.Success<
+    ReturnType<SongOptionsReader["getSongLastScheduledItem"]>
+  >
+): SongOptionSet => {
   const arrangements = normalizeArrangements(arrangementsResponse);
 
   const lastScheduledItem = lastScheduledItemResponse.data
@@ -96,3 +94,21 @@ export const getSongOptions = async (
     layoutMode: currentLayout ? "existing-only" : "unavailable",
   };
 };
+
+export const getSongOptions = (
+  songId: string,
+  serviceTypeId: string,
+  songsReader: SongOptionsReader
+): Effect.Effect<SongOptionSet, PlanningCenterError> =>
+  Effect.map(
+    Effect.all(
+      [
+        songsReader.getSong(songId),
+        songsReader.getSongArrangementsWithKeys(songId),
+        songsReader.getSongLastScheduledItem(songId, serviceTypeId),
+      ],
+      { concurrency: "unbounded" }
+    ),
+    ([song, arrangementsResponse, lastScheduledItemResponse]) =>
+      toSongOptionSet(song, arrangementsResponse, lastScheduledItemResponse)
+  );

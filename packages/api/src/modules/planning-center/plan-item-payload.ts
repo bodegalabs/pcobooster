@@ -1,3 +1,4 @@
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   JsonObject,
@@ -7,6 +8,7 @@ import type {
   PlanItemServicePosition,
   SongOptionSet,
 } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 export interface PlanItemPayloadInput {
   serviceTypeId: string;
@@ -26,7 +28,7 @@ export interface PlanItemPayloadInput {
 export type LoadSongOptions = (
   songId: string,
   serviceTypeId: string
-) => Promise<SongOptionSet>;
+) => Effect.Effect<SongOptionSet, PlanningCenterError>;
 
 const omitUndefined = (
   record: Record<string, JsonValue | undefined>
@@ -45,39 +47,40 @@ const toOptionalTrimmedText = (value?: string): string | undefined => {
   return trimmed ?? undefined;
 };
 
-export const resolvePlanItemSongDefaults = async (
+export const resolvePlanItemSongDefaults = (
   input: PlanItemPayloadInput,
   loadSongOptions: LoadSongOptions
-): Promise<PlanItemPayloadInput> => {
-  let title = input.title?.trim();
-  let arrangementId = input.arrangementId ?? undefined;
-  let keyId = input.keyId ?? undefined;
-  let selectedLayoutId = input.selectedLayoutId ?? undefined;
+): Effect.Effect<PlanItemPayloadInput, PlanningCenterError> =>
+  Effect.gen(function* resolveSongDefaults() {
+    let title = input.title?.trim();
+    let arrangementId = input.arrangementId ?? undefined;
+    let keyId = input.keyId ?? undefined;
+    let selectedLayoutId = input.selectedLayoutId ?? undefined;
 
-  if (
-    isNonEmptyString(input.songId) &&
-    (!isNonEmptyString(arrangementId) ||
-      !isNonEmptyString(keyId) ||
-      !isNonEmptyString(title))
-  ) {
-    const options = await loadSongOptions(input.songId, input.serviceTypeId);
-    if (title === "" || title === undefined) {
-      const { title: songTitle } = options.song;
-      title = songTitle;
+    if (
+      isNonEmptyString(input.songId) &&
+      (!isNonEmptyString(arrangementId) ||
+        !isNonEmptyString(keyId) ||
+        !isNonEmptyString(title))
+    ) {
+      const options = yield* loadSongOptions(input.songId, input.serviceTypeId);
+      if (title === "" || title === undefined) {
+        const { title: songTitle } = options.song;
+        title = songTitle;
+      }
+      arrangementId ??= options.suggestedArrangementId ?? undefined;
+      keyId ??= options.suggestedKeyId ?? undefined;
+      selectedLayoutId ??= options.suggestedLayoutId ?? undefined;
     }
-    arrangementId ??= options.suggestedArrangementId ?? undefined;
-    keyId ??= options.suggestedKeyId ?? undefined;
-    selectedLayoutId ??= options.suggestedLayoutId ?? undefined;
-  }
 
-  return {
-    ...input,
-    title,
-    arrangementId,
-    keyId,
-    selectedLayoutId,
-  };
-};
+    return {
+      ...input,
+      title,
+      arrangementId,
+      keyId,
+      selectedLayoutId,
+    };
+  });
 
 export const buildPlanItemAttributes = (
   input: PlanItemPayloadInput,

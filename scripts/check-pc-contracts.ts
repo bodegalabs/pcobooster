@@ -10,6 +10,9 @@ import {
   isString,
 } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
+import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
+import * as HttpClient from "effect/unstable/http/HttpClient";
 import type { z } from "zod";
 
 const summarizeIssues = (
@@ -73,52 +76,72 @@ const secret = process.env.PLANNING_CENTER_PAT;
 if (!isNonEmptyString(applicationId) || !isNonEmptyString(secret)) {
   throw new Error("Set PLANNING_CENTER_CLIENT and PLANNING_CENTER_PAT");
 }
-const client = createBasicPlanningCenterClient({ applicationId, secret });
-const serviceTypes = await client.fetchAll("/services/v2/service_types", {
-  per_page: "100",
+const readContractSamples = Effect.gen(function* readContractSamples() {
+  const client = createBasicPlanningCenterClient(
+    { applicationId, secret },
+    yield* HttpClient.HttpClient
+  );
+  const serviceTypes = yield* client.fetchAll("/services/v2/service_types", {
+    per_page: "100",
+  });
+  const youth =
+    serviceTypes.find((serviceType) => resourceName(serviceType) === "Youth") ??
+    serviceTypes[0];
+  if (youth === undefined) {
+    return yield* Effect.die(
+      new Error("No Planning Center service types were returned")
+    );
+  }
+
+  const plans = yield* client.fetchAll(
+    `/services/v2/service_types/${youth.id}/plans`,
+    {
+      filter: "after",
+      after: "2026-09-14",
+      order: "sort_date",
+      per_page: "25",
+    },
+    1
+  );
+  const targetPlan =
+    plans.find(
+      (plan) => resourceSortDate(plan)?.startsWith("2026-09-21") === true
+    ) ?? plans[0];
+  if (targetPlan === undefined) {
+    return yield* Effect.die(
+      new Error("No Planning Center plans were returned")
+    );
+  }
+
+  const teamMembers = yield* client.fetchAllWithIncluded(
+    `/services/v2/service_types/${youth.id}/plans/${targetPlan.id}/team_members`,
+    { include: "person,team,plan", per_page: "100" },
+    3
+  );
+  const planTimes = yield* client.fetchAll(
+    `/services/v2/plans/${targetPlan.id}/plan_times`,
+    { per_page: "100" },
+    1
+  );
+  const firstPersonId = teamMembers.data
+    .map((resource) => relationshipId(resource, "person"))
+    .find((id) => isNonEmptyString(id));
+
+  const emptyResources: PCResource[] = [];
+  const schedules = isNonEmptyString(firstPersonId)
+    ? yield* client.fetchAllWithIncluded(
+        `/services/v2/people/${firstPersonId}/schedules`,
+        { include: "plan_times", order: "-starts_at", per_page: "50" },
+        2
+      )
+    : { data: emptyResources, included: emptyResources };
+
+  return { teamMembers, planTimes, schedules };
 });
-const youth =
-  serviceTypes.find((serviceType) => resourceName(serviceType) === "Youth") ??
-  serviceTypes[0];
-if (youth === undefined) {
-  throw new Error("No Planning Center service types were returned");
-}
 
-const plans = await client.fetchAll(
-  `/services/v2/service_types/${youth.id}/plans`,
-  { filter: "after", after: "2026-09-14", order: "sort_date", per_page: "25" },
-  1
+const { teamMembers, planTimes, schedules } = await Effect.runPromise(
+  readContractSamples.pipe(Effect.provide(FetchHttpClient.layer))
 );
-const targetPlan =
-  plans.find(
-    (plan) => resourceSortDate(plan)?.startsWith("2026-09-21") === true
-  ) ?? plans[0];
-if (targetPlan === undefined) {
-  throw new Error("No Planning Center plans were returned");
-}
-
-const teamMembers = await client.fetchAllWithIncluded(
-  `/services/v2/service_types/${youth.id}/plans/${targetPlan.id}/team_members`,
-  { include: "person,team,plan", per_page: "100" },
-  3
-);
-const planTimes = await client.fetchAll(
-  `/services/v2/plans/${targetPlan.id}/plan_times`,
-  { per_page: "100" },
-  1
-);
-const firstPersonId = teamMembers.data
-  .map((resource) => relationshipId(resource, "person"))
-  .find((id) => isNonEmptyString(id));
-
-const emptyResources: PCResource[] = [];
-const schedules = isNonEmptyString(firstPersonId)
-  ? await client.fetchAllWithIncluded(
-      `/services/v2/people/${firstPersonId}/schedules`,
-      { include: "plan_times", order: "-starts_at", per_page: "50" },
-      2
-    )
-  : { data: emptyResources, included: emptyResources };
 
 const allResources = [
   ...teamMembers.data,

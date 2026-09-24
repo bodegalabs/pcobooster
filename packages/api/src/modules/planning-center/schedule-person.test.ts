@@ -7,6 +7,7 @@ import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-cent
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { scheduleAssignInputSchema as schedulePersonSchema } from "@pcobooster/contracts/schedule";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 const team = (id: string, name: string): PCResource => ({
@@ -55,15 +56,17 @@ const makeDependencies = (catalogResponse?: {
     vi.fn<
       PlanningCenterCatalogService["getServiceTypeTeamPositionsWithTeams"]
     >();
-  getServiceTypeTeamPositionsWithTeamsMock.mockResolvedValue(
-    resolvedCatalogResponse
+  getServiceTypeTeamPositionsWithTeamsMock.mockReturnValue(
+    Effect.succeed(resolvedCatalogResponse)
   );
   const getPersonTeamPositionAssignmentsMock =
     vi.fn<PlanningCenterPeopleService["getPersonTeamPositionAssignments"]>();
-  getPersonTeamPositionAssignmentsMock.mockResolvedValue({
-    data: [assignment("position-1")],
-    included: [],
-  });
+  getPersonTeamPositionAssignmentsMock.mockReturnValue(
+    Effect.succeed({
+      data: [assignment("position-1")],
+      included: [],
+    })
+  );
   const dependencies = {
     catalog: {
       getServiceTypeTeamPositionsWithTeams:
@@ -85,19 +88,30 @@ describe(resolveScheduleTarget, () => {
     const { dependencies } = makeDependencies();
 
     await expect(
-      resolveScheduleTarget(
-        makeInput({ positionId: "missing-position" }),
-        dependencies
+      Effect.runPromise(
+        Effect.flip(
+          resolveScheduleTarget(
+            makeInput({ positionId: "missing-position" }),
+            dependencies
+          )
+        )
       )
-    ).rejects.toMatchObject({ _tag: "InvalidInput" });
+    ).resolves.toMatchObject({ _tag: "InvalidInput" });
   });
 
   it("rejects a position from another team", async () => {
     const { dependencies } = makeDependencies();
 
     await expect(
-      resolveScheduleTarget(makeInput({ teamId: "other-team" }), dependencies)
-    ).rejects.toMatchObject({ _tag: "InvalidInput" });
+      Effect.runPromise(
+        Effect.flip(
+          resolveScheduleTarget(
+            makeInput({ teamId: "other-team" }),
+            dependencies
+          )
+        )
+      )
+    ).resolves.toMatchObject({ _tag: "InvalidInput" });
   });
 
   it("allows a one-off position without checking the person's assignments", async () => {
@@ -107,13 +121,15 @@ describe(resolveScheduleTarget, () => {
         included: [team("team-1", "Band")],
       });
 
-    const target = await resolveScheduleTarget(
-      makeInput({
-        positionId: "custom-position",
-        positionName: "Keys",
-        oneOff: true,
-      }),
-      dependencies
+    const target = await Effect.runPromise(
+      resolveScheduleTarget(
+        makeInput({
+          positionId: "custom-position",
+          positionName: "Keys",
+          oneOff: true,
+        }),
+        dependencies
+      )
     );
 
     expect(getPersonTeamPositionAssignmentsMock).not.toHaveBeenCalled();

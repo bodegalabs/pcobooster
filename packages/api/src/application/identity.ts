@@ -23,11 +23,13 @@ import { getDemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organ
 import type { DemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
 import { anonymousFeatureFlagSubject } from "@pcobooster/api/modules/feature-flags/feature-flags";
 import type { FeatureFlagSubject } from "@pcobooster/api/modules/feature-flags/feature-flags";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { createReadOnlyPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
 import { Server } from "@pcobooster/api/server";
 import type { ServerDependencies } from "@pcobooster/api/server";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
-import { Effect } from "effect";
+import { Cause, Effect } from "effect";
+import * as HttpClient from "effect/unstable/http/HttpClient";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
 const DEMO_ACCOUNT_ID = "demo";
@@ -61,9 +63,12 @@ export interface PlanningCenterAccountsSummary {
 export interface IdentityDependencies {
   readonly resolveDemoSession: (request: Request) => DemoConfiguration | null;
   readonly loadDemoOrganization: (
-    configuration: DemoConfiguration,
-    signal: AbortSignal
-  ) => Promise<DemoOrganization>;
+    configuration: DemoConfiguration
+  ) => Effect.Effect<
+    DemoOrganization,
+    PlanningCenterError,
+    HttpClient.HttpClient
+  >;
   readonly isDevAuthBypassEnabled: () => boolean;
   readonly loadDevBypassIdentity: () => ReturnType<
     typeof loadDevBypassIdentity
@@ -84,13 +89,17 @@ export const createIdentityDependencies = ({
   config,
 }: ServerDependencies): IdentityDependencies => ({
   resolveDemoSession: (request) => resolveDemoSession(request, config.demo),
-  loadDemoOrganization: async (configuration, signal) =>
-    await getDemoOrganization(
-      createReadOnlyPlanningCenterServices(
-        configuration.planningCenter,
-        config.fallbackTimeZone
-      ),
-      signal
+  loadDemoOrganization: (configuration) =>
+    HttpClient.HttpClient.pipe(
+      Effect.flatMap((httpClient) =>
+        getDemoOrganization(
+          createReadOnlyPlanningCenterServices(
+            configuration.planningCenter,
+            config.fallbackTimeZone,
+            httpClient
+          )
+        )
+      )
     ),
   isDevAuthBypassEnabled: () => config.devAuthBypass,
   loadDevBypassIdentity: async () =>
@@ -133,6 +142,23 @@ const tryIdentity = <Value>(
         operationName
       ),
   });
+
+/** Any failure to read account data is reported the same way; cancellation still stops. */
+const identityFaultFromCause =
+  (operation: string) => (cause: Cause.Cause<unknown>) => {
+    if (Cause.hasInterruptsOnly(cause)) {
+      return Effect.interrupt;
+    }
+    const error = Cause.squash(cause);
+    return Effect.fail(
+      toIdentityFault(
+        error instanceof Error
+          ? error
+          : new Error("Account data request failed"),
+        operation
+      )
+    );
+  };
 
 const toSessionSummary = (
   session: NonNullable<AuthSession>
@@ -237,17 +263,16 @@ export const getPlanningCenterAccounts = (
 ): Effect.Effect<
   PlanningCenterAccountsSummary,
   ApplicationFault,
-  RequestContext | Server
+  RequestContext | Server | HttpClient.HttpClient
 > =>
   Effect.gen(function* listPlanningCenterAccounts() {
     const dependencies = yield* resolveIdentityDependencies(overrides);
-    const { request, headers, signal } = yield* RequestContext;
+    const { request, headers } = yield* RequestContext;
     const demo = dependencies.resolveDemoSession(request);
     if (demo) {
-      const organization = yield* tryIdentity(
-        async () => await dependencies.loadDemoOrganization(demo, signal),
-        "demo-organization"
-      );
+      const organization = yield* dependencies
+        .loadDemoOrganization(demo)
+        .pipe(Effect.catchCause(identityFaultFromCause("demo-organization")));
       return demoAccountsSummary(organization);
     }
     if (dependencies.isDevAuthBypassEnabled()) {

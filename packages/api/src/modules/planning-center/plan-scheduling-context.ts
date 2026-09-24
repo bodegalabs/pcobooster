@@ -1,4 +1,5 @@
 import { rosterPersonSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import {
@@ -11,6 +12,7 @@ import type {
   RawPerson,
   RawPlanPerson,
 } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 export type PlanRosterStatus = "confirmed" | "pending" | "declined";
 
@@ -294,20 +296,17 @@ export const buildPlanSchedulingContext = ({
   };
 };
 
-export const getPlanSchedulingContext = async (
+export const getPlanSchedulingContext = (
   { serviceTypeId, planId }: Params,
-  peopleService: Pick<PlanningCenterPeopleService, "getPlanTeamMembers">,
-  signal?: AbortSignal
-): Promise<PlanSchedulingContext> => {
-  const response = await peopleService.getPlanTeamMembers(
-    serviceTypeId,
-    planId,
-    signal
+  peopleService: Pick<PlanningCenterPeopleService, "getPlanTeamMembers">
+): Effect.Effect<PlanSchedulingContext, PlanningCenterError> =>
+  Effect.map(
+    peopleService.getPlanTeamMembers(serviceTypeId, planId),
+    (response) =>
+      buildPlanSchedulingContext({
+        serviceTypeId,
+        planId,
+        planTeamMembers: response.data,
+        included: response.included ?? [],
+      })
   );
-  return buildPlanSchedulingContext({
-    serviceTypeId,
-    planId,
-    planTeamMembers: response.data,
-    included: response.included ?? [],
-  });
-};

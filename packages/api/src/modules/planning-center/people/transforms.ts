@@ -1,5 +1,6 @@
 import { rosterPersonSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import type { SelectedPlanMatchContext } from "@pcobooster/api/modules/planning-center/people/types";
+import { recoverUnlessInterrupted } from "@pcobooster/api/planning-center/recover-unless-interrupted";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import { blockoutCoversPlanSortInstant } from "@pcobooster/planning-center-models/calendar-day";
@@ -14,6 +15,7 @@ import type {
   RawPerson,
   ScheduleFrequency,
 } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 export const getDefaultFrequency = (): ScheduleFrequency => ({
   recentServedDays: 0,
@@ -156,53 +158,50 @@ export const toBlockout = (
   };
 };
 
-export const buildBlockoutsPromise = async (
+/** Blockouts only matter for a selected plan; unreadable blockouts mean none. */
+export const loadPersonBlockouts = (
   personId: string,
   planSortAt: Date | null,
   peopleService: Pick<
     PlanningCenterPeopleService,
     "getPersonBlockouts" | "getPersonBlockoutDates"
-  >,
-  signal?: AbortSignal
-): Promise<Blockout[]> => {
+  >
+): Effect.Effect<Blockout[]> => {
   if (!planSortAt) {
-    return [];
+    return Effect.succeed([]);
   }
 
-  try {
-    const rawBlockouts = await peopleService.getPersonBlockouts(
-      personId,
-      {},
-      signal
-    );
-    const blockoutGroups = await Promise.all(
-      rawBlockouts.map(async (parent) => {
-        const frequency = parent.attributes.repeat_frequency;
-        if (frequency === undefined || frequency === "no_repeat") {
-          return [{ date: parent, parent }];
-        }
-        const dates = await peopleService.getPersonBlockoutDates(
-          personId,
-          parent.id,
-          signal
-        );
-        return dates.map((date) => ({ date, parent }));
-      })
-    );
-
-    const blockouts: Blockout[] = [];
-    for (const group of blockoutGroups) {
-      for (const { date, parent } of group) {
-        const blockout = toBlockout(date, parent);
-        if (blockout !== null) {
-          blockouts.push(blockout);
+  return peopleService.getPersonBlockouts(personId, {}).pipe(
+    Effect.flatMap((rawBlockouts) =>
+      Effect.forEach(
+        rawBlockouts,
+        (parent) => {
+          const frequency = parent.attributes.repeat_frequency;
+          if (frequency === undefined || frequency === "no_repeat") {
+            return Effect.succeed([{ date: parent, parent }]);
+          }
+          return Effect.map(
+            peopleService.getPersonBlockoutDates(personId, parent.id),
+            (dates) => dates.map((date) => ({ date, parent }))
+          );
+        },
+        { concurrency: "unbounded" }
+      )
+    ),
+    Effect.map((blockoutGroups) => {
+      const blockouts: Blockout[] = [];
+      for (const group of blockoutGroups) {
+        for (const { date, parent } of group) {
+          const blockout = toBlockout(date, parent);
+          if (blockout !== null) {
+            blockouts.push(blockout);
+          }
         }
       }
-    }
-    return blockouts;
-  } catch {
-    return [];
-  }
+      return blockouts;
+    }),
+    recoverUnlessInterrupted((): Blockout[] => [])
+  );
 };
 
 export const applyAvailability = (
