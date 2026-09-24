@@ -31,6 +31,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { cn } from "@/lib/utils";
 
 export const TeamSlotsCollapsible = ({
@@ -40,7 +41,7 @@ export const TeamSlotsCollapsible = ({
   selectedPosition,
   onToggle,
   onSelect,
-  onPreview,
+  getSlotIntentProps,
   onAddPosition,
 }: {
   group: TeamPositionGroup;
@@ -49,7 +50,7 @@ export const TeamSlotsCollapsible = ({
   selectedPosition: string | null;
   onToggle: (teamId: string) => void;
   onSelect: (slot: SlotRef) => void;
-  onPreview?: (slot: SlotRef) => void;
+  getSlotIntentProps?: GetIntentPrefetchProps<SlotRef>;
   onAddPosition?: (
     team: { teamId: string; teamName: string },
     positionName: string
@@ -88,8 +89,7 @@ export const TeamSlotsCollapsible = ({
           onClick={() => {
             onSelect(slot);
           }}
-          onMouseEnter={() => onPreview?.(slot)}
-          onFocus={() => onPreview?.(slot)}
+          {...getSlotIntentProps?.(slot)}
         >
           <PositionPickerIcon
             positionName={position.name}

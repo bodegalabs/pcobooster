@@ -28,7 +28,7 @@ export const PlanTab = ({ serviceTypeId, planId }: PlanTabProps) => {
     addSongToPlan,
     deleteItem,
     reorderItems,
-    prefetchItemSongOptions,
+    getItemIntentProps,
     saveItem,
   } = usePlanTabController({
     serviceTypeId,
@@ -135,7 +135,7 @@ export const PlanTab = ({ serviceTypeId, planId }: PlanTabProps) => {
             });
           }}
           onEditItem={setEditingItemId}
-          onPreviewItem={prefetchItemSongOptions}
+          getItemIntentProps={getItemIntentProps}
           onRequestDelete={setItemIdPendingDelete}
           onReorderItems={reorderItems}
         />

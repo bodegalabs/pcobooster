@@ -2,6 +2,7 @@ import { QueryClient, hashKey } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 
+import { INTENT_PREFETCH_DWELL_MS } from "@/lib/intent-prefetch";
 import { parseSearch, stringifySearch } from "@/lib/search-params";
 import { routeTree } from "@/routeTree.gen";
 
@@ -34,6 +35,9 @@ export const getRouter = () => {
     parseSearch,
     stringifySearch,
     defaultPreload: "intent",
+    // Links preload after the same dwell as row prefetches, so passing the pointer over
+    // a link never preloads it. Route loaders fetch no Planning Center data today.
+    defaultPreloadDelay: INTENT_PREFETCH_DWELL_MS,
     // Query owns data freshness; preloading only warms route code.
     defaultPreloadStaleTime: 0,
     // Show route skeletons as soon as a navigation waits.

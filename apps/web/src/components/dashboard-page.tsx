@@ -289,7 +289,7 @@ export const DashboardPage = ({
     toggleTeamCollapsed,
     handleSlotSelect,
     handleSlotClear,
-    handleSlotPreview,
+    getSlotIntentProps,
     handleAddCustomPosition,
     planTimes,
   } = useDashboardController({ serviceTypeId, planId, view });
@@ -338,7 +338,7 @@ export const DashboardPage = ({
                 onToggleTeam={toggleTeamCollapsed}
                 onSelectSlot={handleSlotSelect}
                 onClearSlot={handleSlotClear}
-                onPreviewSlot={handleSlotPreview}
+                getSlotIntentProps={getSlotIntentProps}
                 onAddPosition={handleAddCustomPosition}
                 onScheduleError={handleScheduleError}
               />
@@ -356,7 +356,7 @@ export const DashboardPage = ({
                 seriesId={selectedPlan?.seriesId ?? null}
                 planTimes={planTimes ?? []}
                 onSelectPosition={handleSlotSelect}
-                onPreviewPosition={handleSlotPreview}
+                getSlotIntentProps={getSlotIntentProps}
               />
             </TabsContent>
 

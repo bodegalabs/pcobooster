@@ -12,11 +12,13 @@ import {
 } from "react";
 
 import { useBrowserStorage } from "@/hooks/use-browser-storage";
+import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import { useMyScheduledPlans } from "@/hooks/use-my-scheduled-plans";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
 import { useServiceTypes } from "@/hooks/use-service-types";
 import { createTeamPositionsQueryOptions } from "@/hooks/use-team-positions";
+import { isQueryFresh } from "@/lib/intent-prefetch";
 import { hydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
 import {
@@ -36,7 +38,6 @@ import {
   PEOPLE_HISTORY_WARMUP_STALE_TIME_MS,
   readStoredServiceTypeIds,
   SERVICE_TYPE_FILTER_STORAGE_KEY,
-  TEAM_POSITIONS_PREFETCH_DELAY_MS,
 } from "@/lib/service-plan-selection";
 import { orpc } from "@/orpc-client";
 
@@ -46,7 +47,6 @@ export const useServicePlanSelection = ({
 }: ServicePlanTableSelectorProps) => {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const prefetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cachedPlanWritesRef = useRef(new Map<string, number>());
   const orgTimeZone = useOrganizationTimeZone();
   const { data: serviceTypes, isLoading: serviceTypesLoading } =
@@ -270,34 +270,59 @@ export const useServicePlanSelection = ({
     }
   }, [planQueries, serviceTypes]);
 
-  const prefetchTeamPositions = useCallback(
+  const prefetchPlanData = useCallback(
     async (row: ServicePlanRow) => {
-      try {
-        await queryClient.query(
+      // Warm the route too, so its code is ready before the click.
+      void router.preloadRoute(
+        planWorkspaceLink(row.serviceTypeId, row.planId)
+      );
+      await Promise.allSettled([
+        queryClient.query(
           createTeamPositionsQueryOptions(
             row.serviceTypeId,
             row.planId,
             row.seriesId
           )
-        );
-      } catch {
-        /* The destination query displays its own errors. */
-      }
-    },
-    [queryClient]
-  );
-  const prefetchPlanItems = useCallback(
-    async (row: ServicePlanRow) => {
-      try {
-        await queryClient.query(
+        ),
+        queryClient.query(
           createPlanItemsQueryOptions(row.serviceTypeId, row.planId)
-        );
-      } catch {
-        // The destination query displays its own errors.
-      }
+        ),
+      ]);
+    },
+    [queryClient, router]
+  );
+  const isPlanDataFresh = useCallback(
+    (row: ServicePlanRow) => {
+      const teamPositions = createTeamPositionsQueryOptions(
+        row.serviceTypeId,
+        row.planId,
+        row.seriesId
+      );
+      const planItems = createPlanItemsQueryOptions(
+        row.serviceTypeId,
+        row.planId
+      );
+      return (
+        isQueryFresh(
+          queryClient,
+          teamPositions.queryKey,
+          teamPositions.staleTime
+        ) && isQueryFresh(queryClient, planItems.queryKey, planItems.staleTime)
+      );
     },
     [queryClient]
   );
+  const { getIntentProps: getPlanIntentProps, cancelIntent } =
+    useIntentPrefetch<ServicePlanRow>({
+      keyOf: (row) => `${row.serviceTypeId}:${row.planId}`,
+      isFresh: isPlanDataFresh,
+      prefetch: prefetchPlanData,
+    });
+  /**
+   * Builds the server's plan-window history (about 37 Planning Center requests) that the
+   * Assign view's candidate list reads. It runs only when a plan is opened, never on hover,
+   * so the first candidate list after opening finds the history already built.
+   */
   const warmPeopleHistory = useCallback(
     async (row: ServicePlanRow) => {
       const dateKey = row.sortDate.toISOString();
@@ -318,57 +343,19 @@ export const useServicePlanSelection = ({
     },
     [queryClient]
   );
-  const prefetchPlanData = useCallback(
-    (row: ServicePlanRow) => {
-      // Warm the route too, so its code is ready before the click.
-      void router.preloadRoute(
-        planWorkspaceLink(row.serviceTypeId, row.planId)
-      );
-      void prefetchTeamPositions(row);
-      void prefetchPlanItems(row);
-      void warmPeopleHistory(row);
-    },
-    [prefetchPlanItems, prefetchTeamPositions, router, warmPeopleHistory]
-  );
-  const cancelDelayedPrefetch = useCallback(() => {
-    if (!prefetchTimeoutRef.current) {
-      return;
-    }
-    clearTimeout(prefetchTimeoutRef.current);
-    prefetchTimeoutRef.current = null;
-  }, []);
-  const scheduleDelayedPrefetch = useCallback(
-    (row: ServicePlanRow) => {
-      cancelDelayedPrefetch();
-      prefetchTimeoutRef.current = setTimeout(() => {
-        prefetchTimeoutRef.current = null;
-        prefetchPlanData(row);
-      }, TEAM_POSITIONS_PREFETCH_DELAY_MS);
-    },
-    [cancelDelayedPrefetch, prefetchPlanData]
-  );
 
   const handleSelectRow = useCallback(
     (row: ServicePlanRow) => {
-      cancelDelayedPrefetch();
-      prefetchPlanData(row);
+      cancelIntent();
+      void prefetchPlanData(row);
+      void warmPeopleHistory(row);
       onSelect({
         serviceTypeId: row.serviceTypeId,
         planId: row.planId,
       });
     },
-    [cancelDelayedPrefetch, onSelect, prefetchPlanData]
+    [cancelIntent, onSelect, prefetchPlanData, warmPeopleHistory]
   );
-
-  useEffect(() => cancelDelayedPrefetch, [cancelDelayedPrefetch]);
-
-  const firstVisibleRow = visibleRows.at(0) ?? null;
-  useEffect(() => {
-    if (!firstVisibleRow) {
-      return;
-    }
-    void warmPeopleHistory(firstVisibleRow);
-  }, [firstVisibleRow, warmPeopleHistory]);
 
   return {
     searchValue,
@@ -385,8 +372,6 @@ export const useServicePlanSelection = ({
     myScheduledRows,
     myScheduledPlanIdSet,
     handleSelectRow,
-    scheduleDelayedPrefetch,
-    cancelDelayedPrefetch,
-    prefetchPlanData,
+    getPlanIntentProps,
   };
 };

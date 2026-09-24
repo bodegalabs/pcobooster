@@ -33,6 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useServicePlanSelection } from "@/hooks/use-service-plan-selection";
 import type {
   ServicePlanRow,
@@ -48,9 +49,7 @@ interface PlanListProps {
   selectedPlanId: string | null;
   myScheduledPlanIdSet: Set<string>;
   handleSelectRow: (row: ServicePlanRow) => void;
-  scheduleDelayedPrefetch: (row: ServicePlanRow) => void;
-  cancelDelayedPrefetch: () => void;
-  prefetchPlanData: (row: ServicePlanRow) => void;
+  getPlanIntentProps: GetIntentPrefetchProps<ServicePlanRow>;
 }
 
 const DesktopPlanRows = ({
@@ -60,8 +59,7 @@ const DesktopPlanRows = ({
   selectedPlanId,
   myScheduledPlanIdSet,
   handleSelectRow,
-  scheduleDelayedPrefetch,
-  cancelDelayedPrefetch,
+  getPlanIntentProps,
 }: PlanListProps) => {
   if (isInitialLoading) {
     return Array.from({ length: 8 }).map((_, index) => (
@@ -134,13 +132,10 @@ const DesktopPlanRows = ({
             ? `${row.serviceTypeName}: you are scheduled`
             : undefined
         }
+        {...getPlanIntentProps(row)}
         onClick={() => {
           handleSelectRow(row);
         }}
-        onMouseEnter={() => {
-          scheduleDelayedPrefetch(row);
-        }}
-        onMouseLeave={cancelDelayedPrefetch}
         onKeyDown={(event) => {
           if (event.key !== "Enter" && event.key !== " ") {
             return;
@@ -210,13 +205,13 @@ const MobilePlanRow = ({
   isActive,
   isScheduledForCurrentUser,
   onSelect,
-  onPrefetch,
+  getPlanIntentProps,
 }: {
   row: ServicePlanRow;
   isActive: boolean;
   isScheduledForCurrentUser: boolean;
   onSelect: (row: ServicePlanRow) => void;
-  onPrefetch: (row: ServicePlanRow) => void;
+  getPlanIntentProps: GetIntentPrefetchProps<ServicePlanRow>;
 }) => (
   <Item
     size="xs"
@@ -232,11 +227,9 @@ const MobilePlanRow = ({
         }
       />
     }
+    {...getPlanIntentProps(row)}
     onClick={() => {
       onSelect(row);
-    }}
-    onTouchStart={() => {
-      onPrefetch(row);
     }}
   >
     <PlanDateTile date={row.sortDate} highlighted={isScheduledForCurrentUser} />
@@ -267,7 +260,7 @@ const MobilePlanRows = ({
   selectedPlanId,
   myScheduledPlanIdSet,
   handleSelectRow,
-  prefetchPlanData,
+  getPlanIntentProps,
 }: PlanListProps) => {
   if (isInitialLoading) {
     return Array.from({ length: 8 }).map((_, index) => (
@@ -337,7 +330,7 @@ const MobilePlanRows = ({
         isActive={row.planId === selectedPlanId}
         isScheduledForCurrentUser={myScheduledPlanIdSet.has(row.planId)}
         onSelect={handleSelectRow}
-        onPrefetch={prefetchPlanData}
+        getPlanIntentProps={getPlanIntentProps}
       />
     );
   }
@@ -348,8 +341,7 @@ interface MyScheduledServiceCardsProps {
   rows: ServicePlanRow[];
   isLoading: boolean;
   onSelect: (row: ServicePlanRow) => void;
-  onPrefetch: (row: ServicePlanRow) => void;
-  onCancelPrefetch: () => void;
+  getPlanIntentProps: GetIntentPrefetchProps<ServicePlanRow>;
 }
 
 const myScheduledServiceCardClass =
@@ -359,8 +351,7 @@ const MyScheduledServiceCards = ({
   rows,
   isLoading,
   onSelect,
-  onPrefetch,
-  onCancelPrefetch,
+  getPlanIntentProps,
 }: MyScheduledServiceCardsProps) => {
   if (!isLoading && rows.length === 0) {
     return null;
@@ -388,13 +379,10 @@ const MyScheduledServiceCards = ({
                     aria-label={`${row.serviceTypeName}, ${formatDate(row.sortDate)}`}
                   />
                 }
+                {...getPlanIntentProps(row)}
                 onClick={() => {
                   onSelect(row);
                 }}
-                onMouseEnter={() => {
-                  onPrefetch(row);
-                }}
-                onMouseLeave={onCancelPrefetch}
               >
                 <span className="w-full truncate text-base font-medium">
                   {formatDate(row.sortDate)}
@@ -437,9 +425,7 @@ export const ServicePlanTableSelector = ({
     myScheduledRows,
     myScheduledPlanIdSet,
     handleSelectRow,
-    scheduleDelayedPrefetch,
-    cancelDelayedPrefetch,
-    prefetchPlanData,
+    getPlanIntentProps,
   } = useServicePlanSelection({
     selectedServiceTypeId,
     selectedPlanId,
@@ -452,9 +438,7 @@ export const ServicePlanTableSelector = ({
     selectedPlanId,
     myScheduledPlanIdSet,
     handleSelectRow,
-    scheduleDelayedPrefetch,
-    cancelDelayedPrefetch,
-    prefetchPlanData,
+    getPlanIntentProps,
   };
   return (
     <div className="flex flex-col gap-3 md:h-full md:min-h-0">
@@ -462,8 +446,7 @@ export const ServicePlanTableSelector = ({
         rows={myScheduledRows}
         isLoading={isInitialLoading || myScheduledPlansLoading}
         onSelect={handleSelectRow}
-        onPrefetch={scheduleDelayedPrefetch}
-        onCancelPrefetch={cancelDelayedPrefetch}
+        getPlanIntentProps={getPlanIntentProps}
       />
 
       <div className="bg-background/90 supports-backdrop-filter:bg-background/75 sticky top-0 z-10 -mx-4 grid shrink-0 grid-cols-2 gap-2 px-4 py-2 backdrop-blur-md md:static md:mx-0 md:grid-cols-[minmax(0,1fr)_180px_160px] md:bg-transparent md:p-0 md:backdrop-blur-none">

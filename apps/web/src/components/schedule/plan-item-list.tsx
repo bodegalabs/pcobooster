@@ -30,6 +30,10 @@ import { DragHandle } from "@/components/ui/drag-handle";
 import { Item } from "@/components/ui/item";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import type {
+  GetIntentPrefetchProps,
+  IntentPrefetchProps,
+} from "@/hooks/use-intent-prefetch";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { reorderPlanItems } from "@/lib/plan-items-query-state";
 import { cn } from "@/lib/utils";
@@ -42,7 +46,7 @@ interface PlanItemListProps {
   onAddHeader: () => void;
   onAddItem: () => void;
   onEditItem: (itemId: string) => void;
-  onPreviewItem?: (itemId: string) => void;
+  getItemIntentProps?: GetIntentPrefetchProps<string>;
   onRequestDelete: (itemId: string) => void;
   onReorderItems: (items: PlanItem[]) => Promise<void> | void;
 }
@@ -53,7 +57,7 @@ interface SortablePlanItemProps {
   isDragging: boolean;
   reorderDisabled: boolean;
   onEdit: () => void;
-  onPreview: () => void;
+  intentProps?: IntentPrefetchProps;
   onDelete: () => void;
 }
 
@@ -97,7 +101,7 @@ interface PlanItemCardProps {
   dragAttributes?: ReturnType<typeof useSortable>["attributes"];
   dragListeners?: ReturnType<typeof useSortable>["listeners"];
   onEdit: () => void;
-  onPreview: () => void;
+  intentProps?: IntentPrefetchProps;
   onDelete: () => void;
 }
 
@@ -108,7 +112,7 @@ const PlanItemCard = ({
   dragAttributes,
   dragListeners,
   onEdit,
-  onPreview,
+  intentProps,
   onDelete,
 }: PlanItemCardProps) => {
   const tone = getItemTone(item);
@@ -143,8 +147,7 @@ const PlanItemCard = ({
           render={
             <button type="button" aria-label={`Edit ${itemActionLabel}`} />
           }
-          onFocus={onPreview}
-          onPointerEnter={onPreview}
+          {...intentProps}
           onClick={onEdit}
         >
           <div className="flex min-w-0 flex-1 items-center gap-3 text-left">
@@ -208,8 +211,7 @@ const PlanItemCard = ({
           render={
             <button type="button" aria-label={`Edit ${itemActionLabel}`} />
           }
-          onFocus={onPreview}
-          onPointerEnter={onPreview}
+          {...intentProps}
           onClick={onEdit}
         >
           <div className="min-w-0 flex-1 text-left">
@@ -254,7 +256,7 @@ const SortablePlanItem = ({
   isDragging,
   reorderDisabled,
   onEdit,
-  onPreview,
+  intentProps,
   onDelete,
 }: SortablePlanItemProps) => {
   const {
@@ -303,7 +305,7 @@ const SortablePlanItem = ({
         dragAttributes={attributes}
         dragListeners={listeners}
         onEdit={onEdit}
-        onPreview={onPreview}
+        intentProps={intentProps}
         onDelete={onDelete}
       />
     </div>
@@ -318,7 +320,7 @@ export const PlanItemList = ({
   onAddHeader,
   onAddItem,
   onEditItem,
-  onPreviewItem,
+  getItemIntentProps,
   onRequestDelete,
   onReorderItems,
 }: PlanItemListProps) => {
@@ -431,7 +433,7 @@ export const PlanItemList = ({
                       onEdit={() => {
                         onEditItem(item.id);
                       }}
-                      onPreview={() => onPreviewItem?.(item.id)}
+                      intentProps={getItemIntentProps?.(item.id)}
                       onDelete={() => {
                         onRequestDelete(item.id);
                       }}
@@ -450,7 +452,6 @@ export const PlanItemList = ({
                     onEdit={() => {
                       onEditItem(activeItem.id);
                     }}
-                    onPreview={() => onPreviewItem?.(activeItem.id)}
                     onDelete={() => {
                       onRequestDelete(activeItem.id);
                     }}
