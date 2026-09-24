@@ -1,6 +1,9 @@
 import {
   getMyScheduledPlans,
   getPeopleBlockouts,
+  getPeopleCandidateDetails,
+  getPeoplePlanWindowHistory,
+  getPeoplePositionCandidates,
   getPeopleDashboardActivity,
   getPeopleDashboardPerson,
   getPeopleDashboardRoster,
@@ -21,6 +24,36 @@ const list = rpc.people.list.handler(
     await executeApplicationEffect(
       applicationRuntime,
       withPlanningCenterAccess(getPeopleList(input)),
+      context,
+      signal
+    )
+);
+
+const positionCandidates = rpc.people.positionCandidates.handler(
+  async ({ input, context, signal }) =>
+    await executeApplicationEffect(
+      applicationRuntime,
+      withPlanningCenterAccess(getPeoplePositionCandidates(input)),
+      context,
+      signal
+    )
+);
+
+const planWindowHistory = rpc.people.planWindowHistory.handler(
+  async ({ input, context, signal }) =>
+    await executeApplicationEffect(
+      applicationRuntime,
+      withPlanningCenterAccess(getPeoplePlanWindowHistory(input)),
+      context,
+      signal
+    )
+);
+
+const candidateDetails = rpc.people.candidateDetails.handler(
+  async ({ input, context, signal }) =>
+    await executeApplicationEffect(
+      applicationRuntime,
+      withPlanningCenterAccess(getPeopleCandidateDetails(input)),
       context,
       signal
     )
@@ -108,6 +141,9 @@ const myScheduledPlans = rpc.people.myScheduledPlans.handler(
 
 export const peopleRouter = {
   list,
+  positionCandidates,
+  planWindowHistory,
+  candidateDetails,
   search,
   warmup,
   blockouts,

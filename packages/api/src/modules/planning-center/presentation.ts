@@ -1,11 +1,15 @@
 import { createHmac } from "node:crypto";
 
+import type { CandidateDetailsBatch } from "@pcobooster/api/modules/planning-center/get-candidate-details";
+import type { PlanWindowHistoryBatch } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
+import type { PositionCandidatesResult } from "@pcobooster/api/modules/planning-center/get-position-candidates";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import type { CandidateHistory } from "@pcobooster/planning-center-models/position-candidates";
 import type {
   Blockout,
   FilledPositionPerson,
@@ -172,6 +176,77 @@ export const presentPeople = (
   Effect.map(getPresentationIdentityMapper(dependencies), (identity) =>
     identity ? maskPeople(people, identity) : people
   );
+
+const maskDeclineReason = (reason: string | null): string | null =>
+  reason === null ? null : "Unavailable";
+
+export const presentPositionCandidates = (
+  result: PositionCandidatesResult,
+  dependencies: PresentationDependencies
+): Effect.Effect<PositionCandidatesResult, PlanningCenterError> =>
+  Effect.map(getPresentationIdentityMapper(dependencies), (identity) =>
+    identity
+      ? {
+          ...result,
+          candidates: result.candidates.map((candidate) => {
+            const alias = identity(candidate.id);
+            return {
+              ...candidate,
+              firstName: alias.firstName,
+              lastName: alias.lastName,
+              fullName: alias.fullName,
+              photoUrl: alias.photoUrl,
+              photoThumbnailUrl: alias.photoThumbnailUrl,
+              selectedPlanSlot:
+                candidate.selectedPlanSlot === null
+                  ? null
+                  : {
+                      ...candidate.selectedPlanSlot,
+                      declineReason: maskDeclineReason(
+                        candidate.selectedPlanSlot.declineReason
+                      ),
+                    },
+            };
+          }),
+        }
+      : result
+  );
+
+const maskCandidateHistory = <History extends CandidateHistory>(
+  history: History
+): History => ({
+  ...history,
+  selectedPlanAssignments: history.selectedPlanAssignments.map(
+    (assignment) => ({
+      ...assignment,
+      declineReason: maskDeclineReason(assignment.declineReason),
+    })
+  ),
+});
+
+/** History carries no names or photos; only decline reasons are masked. */
+export const presentPlanWindowHistory = (
+  batch: PlanWindowHistoryBatch,
+  presentationMode: boolean
+): PlanWindowHistoryBatch =>
+  presentationMode
+    ? { ...batch, people: batch.people.map(maskCandidateHistory) }
+    : batch;
+
+export const presentCandidateDetails = (
+  batch: CandidateDetailsBatch,
+  presentationMode: boolean
+): CandidateDetailsBatch =>
+  presentationMode
+    ? {
+        ...batch,
+        people: batch.people.map((detail) =>
+          detail.history === undefined
+            ? detail
+            : { ...detail, history: maskCandidateHistory(detail.history) }
+        ),
+      }
+    : batch;
 
 export const presentTeamPositions = (
   groups: TeamPositionGroup[],

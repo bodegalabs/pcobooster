@@ -9,6 +9,11 @@ import {
 import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/planning-center-access";
 import { loadDevBypassIdentity } from "@pcobooster/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
+import { getCandidateDetails } from "@pcobooster/api/modules/planning-center/get-candidate-details";
+import type {
+  CandidateDetailsBatch,
+  CandidateDetailsInput,
+} from "@pcobooster/api/modules/planning-center/get-candidate-details";
 import { getCurrentUserScheduledPlanIds } from "@pcobooster/api/modules/planning-center/get-current-user-scheduled-plans";
 import {
   getPeopleDashboardActivity as getPeopleDashboardActivityData,
@@ -21,6 +26,13 @@ import {
 } from "@pcobooster/api/modules/planning-center/get-people-for-position";
 import type { PeopleForPositionDependencies } from "@pcobooster/api/modules/planning-center/get-people-for-position";
 import { getFutureBlockoutsForPerson } from "@pcobooster/api/modules/planning-center/get-person-blockouts";
+import { getPlanWindowHistory } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
+import type {
+  PlanWindowHistoryBatch,
+  PlanWindowHistoryInput,
+} from "@pcobooster/api/modules/planning-center/get-plan-window-history";
+import { getPositionCandidates } from "@pcobooster/api/modules/planning-center/get-position-candidates";
+import type { PositionCandidatesResult } from "@pcobooster/api/modules/planning-center/get-position-candidates";
 import { getScheduleHistory } from "@pcobooster/api/modules/planning-center/get-schedule-history";
 import type { ScheduleHistoryResult } from "@pcobooster/api/modules/planning-center/get-schedule-history";
 import type {
@@ -30,9 +42,12 @@ import type {
 } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
 import {
   presentBlockouts,
+  presentCandidateDetails,
   presentDashboardRoster,
   presentDashboardPerson,
   presentPeople,
+  presentPlanWindowHistory,
+  presentPositionCandidates,
   getPresentationIdentityMapper,
 } from "@pcobooster/api/modules/planning-center/presentation";
 import { searchPeople } from "@pcobooster/api/modules/planning-center/search-people";
@@ -111,6 +126,62 @@ export const getPeopleList = (input: {
       people,
       requestPresentationDependencies(access)
     );
+  }).pipe(withPlanningCenterFaults);
+
+export const getPeoplePositionCandidates = (input: {
+  readonly serviceTypeId: string;
+  readonly positionId: string;
+  readonly teamId?: string;
+  readonly planId: string;
+}): Effect.Effect<
+  PositionCandidatesResult,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext | Server
+> =>
+  Effect.gen(function* listPositionCandidates() {
+    const access = yield* PlanningCenterAccess;
+    const result = yield* getPositionCandidates(input, {
+      people: access.services.people,
+      resolveTimeZone: resolveRequestTimeZone(access),
+    });
+    return yield* presentPositionCandidates(
+      result,
+      requestPresentationDependencies(access)
+    );
+  }).pipe(withPlanningCenterFaults);
+
+export const getPeoplePlanWindowHistory = (
+  input: PlanWindowHistoryInput
+): Effect.Effect<
+  PlanWindowHistoryBatch,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext | Server
+> =>
+  Effect.gen(function* readPlanWindowHistory() {
+    const access = yield* PlanningCenterAccess;
+    const batch = yield* getPlanWindowHistory(input, {
+      catalog: access.services.catalog,
+      people: access.services.people,
+      plans: access.services.plans,
+      resolveTimeZone: resolveRequestTimeZone(access),
+    });
+    return presentPlanWindowHistory(batch, access.presentation);
+  }).pipe(withPlanningCenterFaults);
+
+export const getPeopleCandidateDetails = (
+  input: CandidateDetailsInput
+): Effect.Effect<
+  CandidateDetailsBatch,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext | Server
+> =>
+  Effect.gen(function* readCandidateDetails() {
+    const access = yield* PlanningCenterAccess;
+    const batch = yield* getCandidateDetails(input, {
+      people: access.services.people,
+      resolveTimeZone: resolveRequestTimeZone(access),
+    });
+    return presentCandidateDetails(batch, access.presentation);
   }).pipe(withPlanningCenterFaults);
 
 export const getPeopleSearch = (input: {
