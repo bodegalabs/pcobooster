@@ -7,7 +7,7 @@ const DemoPage = () => {
   return <DemoEntry demoKey={key} />;
 };
 
-/** A private link: `src/start.ts` also sends matching response headers. */
+/** A private link: the request gate (`lib/request-gate.ts`) also sends matching response headers. */
 export const Route = createFileRoute("/demo/$key")({
   head: () => ({
     meta: [

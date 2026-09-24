@@ -59,11 +59,11 @@ const publicDefines = (devServer: boolean) => ({
   "import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE": JSON.stringify(
     process.env.PLANNING_CENTER_TIME_ZONE ?? ""
   ),
-  // `bun run dev:present` sets presentation mode for the dev server; deployed builds are
-  // always live.
   "import.meta.env.VITE_PEOPLE_PAGE_ENABLED": JSON.stringify(
     resolvePeoplePageAvailability(process.env.PEOPLE_PAGE_ENABLED, devServer)
   ),
+  // `bun run dev:present` sets presentation mode for the dev server; deployed builds are
+  // always live.
   "import.meta.env.VITE_PRESENTATION_SCOPE": JSON.stringify(
     devServer ? getPresentationCacheScope() : "live"
   ),

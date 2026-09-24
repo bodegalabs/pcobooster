@@ -15,7 +15,7 @@ export const SchedulePlansPage = () => {
       return;
     }
 
-    // Services takes no query; drop stale ones from old links.
+    // Services takes no query; drop any a link carried.
     void navigate({ to: "/services", replace: true });
   }, [navigate, searchQuery]);
 
