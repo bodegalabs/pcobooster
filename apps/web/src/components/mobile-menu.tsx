@@ -1,13 +1,11 @@
 import { useRender } from "@base-ui/react/use-render";
 import {
   Calendar04Icon,
-  Cancel01Icon,
   Clock01Icon,
   LaptopIcon,
   Layout3ColumnIcon,
   ListMusicIcon,
   Logout01Icon,
-  Menu01Icon,
   Moon02Icon,
   Sun01Icon,
   Tick02Icon,
@@ -15,17 +13,25 @@ import {
   UsersIcon,
 } from "@hugeicons/core-free-icons";
 import type { IconSvgElement } from "@hugeicons/react";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useRouter } from "@tanstack/react-router";
-import type { ComponentProps, ReactElement, ReactNode } from "react";
-import { useEffect, useState } from "react";
+import type {
+  CSSProperties,
+  ComponentProps,
+  ReactElement,
+  ReactNode,
+} from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
 import { useTheme } from "@/components/theme-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
 import {
   Sheet,
   SheetClose,
@@ -76,8 +82,8 @@ const MenuRow = ({
     props: {
       ...props,
       className: cn(
-        "focus-visible:ring-ring/50 flex h-12 w-full items-center gap-4 rounded-lg text-left text-base outline-none focus-visible:ring-2 disabled:opacity-50",
-        nested && "h-10 pl-9 text-sm",
+        "focus-visible:ring-ring/50 flex h-14 w-full items-center gap-4 rounded-lg text-left text-xl outline-none focus-visible:ring-2 disabled:opacity-50 [&_svg]:size-6",
+        nested && "h-12 pl-10 text-lg [&_svg]:size-5",
         active ? "text-foreground font-medium" : "text-muted-foreground"
       ),
       children,
@@ -160,12 +166,6 @@ const MenuNav = () => {
   );
 };
 
-const themeCycle = {
-  light: "dark",
-  dark: "system",
-  system: "light",
-} as const;
-
 const MenuAccount = ({
   onAccountSwitched,
 }: {
@@ -186,6 +186,7 @@ const MenuAccount = ({
   const themeOption =
     themeOptions.find((option) => option.value === theme) ?? themeOptions[2];
   const busy = isSigningOut || Boolean(switchingAccountId);
+  const themeSelectId = useId();
 
   return (
     <div className="flex flex-col gap-1">
@@ -219,20 +220,30 @@ const MenuAccount = ({
             );
           })
         : null}
-      <MenuRow
-        render={
-          <button
-            type="button"
-            aria-label={`Theme: ${themeOption.label}. Switch theme`}
-          />
-        }
-        onClick={() => {
-          setTheme(themeCycle[themeOption.value]);
-        }}
-      >
+      <div className="text-muted-foreground flex h-14 items-center gap-4 text-xl [&_svg]:size-6">
         <SidebarNavIcon icon={themeOption.icon} />
-        {themeOption.label}
-      </MenuRow>
+        <label htmlFor={themeSelectId} className="flex-1">
+          Theme
+        </label>
+        <NativeSelect
+          id={themeSelectId}
+          value={themeOption.value}
+          onChange={(event) => {
+            const option = themeOptions.find(
+              (candidate) => candidate.value === event.target.value
+            );
+            if (option) {
+              setTheme(option.value);
+            }
+          }}
+        >
+          {themeOptions.map((option) => (
+            <NativeSelectOption key={option.value} value={option.value}>
+              {option.label}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
+      </div>
       <MenuRow
         render={
           <button type="button" aria-label={signOutLabel(demo, isSigningOut)} />
@@ -249,7 +260,7 @@ const MenuAccount = ({
         <p className="text-destructive text-sm">{panelError}</p>
       ) : null}
       <div className="border-border/50 mt-4 flex items-center gap-3 border-t pt-5">
-        <Avatar className="size-9">
+        <Avatar className="size-11">
           {isNonEmptyString(summary.image) ? (
             <AvatarImage src={summary.image} alt="" />
           ) : null}
@@ -258,10 +269,10 @@ const MenuAccount = ({
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium">
+          <p className="truncate text-base font-medium">
             {data?.session.name ?? summary.avatarName ?? "Account"}
           </p>
-          <p className="text-muted-foreground truncate text-xs">
+          <p className="text-muted-foreground truncate text-sm">
             {demo ? "Read-only demo" : summary.organizationName}
           </p>
         </div>
@@ -270,9 +281,55 @@ const MenuAccount = ({
   );
 };
 
-/** Phone navigation: a header menu button that opens a full-screen menu. */
+/** Three bars that fold into an X; `open` picks the resting shape. */
+const MenuToggleIcon = ({ open }: { open: boolean }) => (
+  <span aria-hidden className="relative block size-5">
+    <span
+      className={cn(
+        "absolute top-1/2 left-0.5 h-0.5 w-4 rounded-full bg-current transition-transform duration-200 ease-out",
+        open
+          ? "rotate-45 in-data-ending-style:-translate-y-[6px] in-data-ending-style:rotate-0 in-data-starting-style:-translate-y-[6px] in-data-starting-style:rotate-0"
+          : "-translate-y-[6px]"
+      )}
+    />
+    <span
+      className={cn(
+        "absolute top-1/2 left-0.5 h-0.5 w-4 rounded-full bg-current transition-opacity duration-200",
+        open &&
+          "opacity-0 in-data-ending-style:opacity-100 in-data-starting-style:opacity-100"
+      )}
+    />
+    <span
+      className={cn(
+        "absolute top-1/2 left-0.5 h-0.5 w-4 rounded-full bg-current transition-transform duration-200 ease-out",
+        open
+          ? "-rotate-45 in-data-ending-style:translate-y-[6px] in-data-ending-style:rotate-0 in-data-starting-style:translate-y-[6px] in-data-starting-style:rotate-0"
+          : "translate-y-[6px]"
+      )}
+    />
+  </span>
+);
+
+type TriggerPositionStyle = CSSProperties & {
+  "--menu-trigger-top": string;
+  "--menu-trigger-left": string;
+};
+
+interface TriggerPosition {
+  top: number;
+  left: number;
+}
+
+/**
+ * Phone navigation: a header menu button that opens a full-screen menu. The
+ * close button sits exactly over the trigger, so the bars appear to fold into
+ * an X in place.
+ */
 export const MobileMenu = ({ className }: { className?: string }) => {
   const [open, setOpen] = useState(false);
+  const [triggerPosition, setTriggerPosition] =
+    useState<TriggerPosition | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const router = useRouter();
 
   useEffect(
@@ -283,9 +340,17 @@ export const MobileMenu = ({ className }: { className?: string }) => {
     [router]
   );
 
+  const closeButtonStyle: TriggerPositionStyle | undefined = triggerPosition
+    ? {
+        "--menu-trigger-top": `${triggerPosition.top}px`,
+        "--menu-trigger-left": `${triggerPosition.left}px`,
+      }
+    : undefined;
+
   return (
     <>
       <Button
+        ref={triggerRef}
         type="button"
         variant="ghost"
         size="icon-lg"
@@ -293,37 +358,40 @@ export const MobileMenu = ({ className }: { className?: string }) => {
         aria-expanded={open}
         className={cn("shrink-0 md:hidden", className)}
         onClick={() => {
+          const rect = triggerRef.current?.getBoundingClientRect();
+          setTriggerPosition(rect ? { top: rect.top, left: rect.left } : null);
           setOpen(true);
         }}
       >
-        <HugeiconsIcon icon={Menu01Icon} strokeWidth={2} className="size-5" />
+        <MenuToggleIcon open={false} />
       </Button>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="full" showCloseButton={false}>
+          <SheetTitle className="sr-only">Menu</SheetTitle>
+          <SheetDescription className="sr-only">
+            Navigate pcobooster.com and manage your account.
+          </SheetDescription>
+          <SheetClose
+            render={
+              <Button
+                variant="ghost"
+                size="icon-lg"
+                aria-label="Close menu"
+                className={cn(
+                  "fixed z-10",
+                  triggerPosition
+                    ? "top-(--menu-trigger-top) left-(--menu-trigger-left)"
+                    : "top-[env(safe-area-inset-top)] right-2"
+                )}
+                style={closeButtonStyle}
+              />
+            }
+          >
+            <MenuToggleIcon open />
+          </SheetClose>
           <div className="pt-safe flex h-full min-h-0 flex-col">
-            <div className="flex h-12 shrink-0 items-center gap-2 px-2">
-              <SheetTitle className="sr-only">Menu</SheetTitle>
-              <SheetDescription className="sr-only">
-                Navigate pcobooster.com and manage your account.
-              </SheetDescription>
-              <SheetClose
-                render={
-                  <Button
-                    variant="ghost"
-                    size="icon-lg"
-                    aria-label="Close menu"
-                    className="ml-auto"
-                  />
-                }
-              >
-                <HugeiconsIcon
-                  icon={Cancel01Icon}
-                  strokeWidth={2}
-                  className="size-5"
-                />
-              </SheetClose>
-            </div>
-            <div className="pb-safe-4 flex min-h-0 flex-1 flex-col justify-between gap-8 overflow-y-auto overscroll-contain px-6 pt-4">
+            <div className="h-12 shrink-0" />
+            <div className="pb-page-end flex min-h-0 flex-1 flex-col justify-between gap-8 overflow-y-auto overscroll-contain px-6 pt-4">
               <MenuNav />
               <MenuAccount
                 onAccountSwitched={() => {

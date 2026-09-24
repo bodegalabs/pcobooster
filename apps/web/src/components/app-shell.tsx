@@ -676,7 +676,7 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
     <SidebarProvider
       open={sidebarOpen}
       onOpenChange={handleSidebarOpenChange}
-      className="h-dvh min-h-0 overflow-hidden"
+      className="h-lvh min-h-0 overflow-hidden"
     >
       <SidebarToggleHotkey />
       <AppSidebar peopleNavEnabled={peopleNavEnabled} />

@@ -93,7 +93,7 @@ export const PositionPickerList = ({
       <div
         className={cn(
           "flex flex-col py-1",
-          clearSafeArea && "pb-safe-4 md:pb-1"
+          clearSafeArea && "pb-page-end md:pb-1"
         )}
       >
         {body}

@@ -652,6 +652,17 @@
   padding-bottom: max(--spacing(2), env(safe-area-inset-bottom));
 }
 
+/*
+ * End padding for page scroll areas. The shell fills the large viewport so
+ * content can pass under Safari's floating toolbar; 100lvh - 100dvh is the
+ * height that toolbar currently covers.
+ */
+@utility pb-page-end {
+  padding-bottom: calc(
+    --spacing(4) + max(env(safe-area-inset-bottom), 100lvh - 100dvh)
+  );
+}
+
 @utility no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
