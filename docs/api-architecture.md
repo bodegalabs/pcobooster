@@ -7,9 +7,9 @@ The product API is a contract-first oRPC service running on Hono and Bun. Effect
 - `packages/contracts` contains browser-safe oRPC contracts, transport DTO schemas, and safe error payload schemas. It must not import database, auth, Hono, framework, or Effect modules.
 - `packages/planning-center-models` contains shared Planning Center data shapes plus pure calendar and scheduling rules. It is browser-safe and framework-independent.
 - `packages/presentation-mode` contains the server-side presentation-mode guard, seed, and cache namespace shared by the API and the web build, which inlines the namespace.
-- `packages/api` contains server-only application programs, typed faults, explicit feature modules, Better Auth and database integration, Planning Center adapters, and the oRPC implementation of the contracts.
+- `packages/api` contains server-side application programs, typed faults, explicit feature modules, Better Auth and database integration, Planning Center adapters, and the oRPC implementation of the contracts.
 - `apps/server` mounts Better Auth and the oRPC handlers, supplies raw request context, and configures cross-origin and response-header behavior.
-- `apps/web` consumes `packages/contracts` through the oRPC client and owns browser caches, hydration, navigation, and presentation helpers under `src/lib`. It must not import server-only modules from `packages/api`.
+- `apps/web` consumes `packages/contracts` through the oRPC client and owns browser caches, hydration, navigation, and presentation helpers under `src/lib`. It must not import server-side modules from `packages/api`.
 
 ## Request flow
 

@@ -87,7 +87,7 @@ apps/
   server/                    # Hono API Worker and oRPC entrypoint
   marketing/                 # Prerendered TanStack Start marketing site
 packages/
-  api/                       # Server-only application, auth, DB, adapters, oRPC
+  api/                       # Server-side application, auth, DB, adapters, oRPC
   contracts/                 # Browser-safe oRPC contracts and DTO schemas
   planning-center-models/    # Shared Planning Center shapes and calendar rules
   presentation-mode/         # Shared server-side presentation configuration
