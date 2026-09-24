@@ -1,7 +1,10 @@
 import { PlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
 import { createApplicationRuntime } from "@pcobooster/api/application/runtime";
-import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import {
+  createPlanningCenterServices,
+  createPlanningCenterReadCaches,
+} from "@pcobooster/api/planning-center/services/factory";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testServer } from "@pcobooster/api/testing/server";
 import { executePreparedPlanningCenterWrite } from "@pcobooster/api/transport/orpc/planning-center-write";
@@ -30,7 +33,8 @@ describe(executePreparedPlanningCenterWrite, () => {
         createPlanningCenterServices(
           authentication.kind === "account" ? authentication.accessToken : "",
           "America/Los_Angeles",
-          httpClient
+          httpClient,
+          createPlanningCenterReadCaches(null)
         ),
       presentationMode: () => false,
       presentationSeed: "test-seed",

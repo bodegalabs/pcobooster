@@ -29,7 +29,7 @@ Previews deploy only on request. Add the `preview` label to a same-repository pu
 
 Deploys build from source: Alchemy runs each Vite app's build itself and skips an app whose inputs are unchanged, so `cloudflare-build` outputs are validation only. Feature flags are evaluated at runtime, so every stage builds the same product bundle. Fork PRs receive secretless checks only. A labeled revision gets preview app secrets and an account-scoped Cloudflare token, so review workflow/dependency changes before they land on a labeled PR.
 
-A preview job authenticates to Infisical using GitHub OIDC, checks the PR is still open at the expected head, and runs `bun alchemy deploy --stage pr-<number>`. Alchemy owns a separate D1 database and API/web/admin Workers for each PR. The preview URL is exposed in GitHub's deployment environment. Production data is never copied into these databases.
+A preview job authenticates to Infisical using GitHub OIDC, checks the PR is still open at the expected head, and runs `bun alchemy deploy --stage pr-<number>`. Alchemy owns a separate D1 database, Planning Center cache KV namespace, and API/web/admin Workers for each PR. The preview URL is exposed in GitHub's deployment environment. Production data is never copied into these databases.
 
 Every deploy then runs `scripts/cloudflare/verify-deployment.ts`. The API reports `PCOBOOSTER_VERSION`, which is the deployed `GITHUB_SHA`, from `health`. The script polls `POST /api/rpc/health` through the web Worker until that version matches the commit, then checks that `/` returns 200. A deploy that finishes without the new code live, or with a broken web → API binding, fails the job.
 

@@ -61,9 +61,6 @@ export const createPlanningCenterPeopleServiceCaches =
     allTeamPeople: new PlanningCenterReadCache<AllTeamPeopleResponse>(),
   });
 
-export const planningCenterPeopleServiceCaches =
-  createPlanningCenterPeopleServiceCaches();
-
 const getRelationshipIdentifiers = (
   data: PCRelationship["data"]
 ): PCResourceIdentifier[] => {

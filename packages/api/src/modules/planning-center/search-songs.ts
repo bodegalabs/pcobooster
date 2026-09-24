@@ -50,9 +50,12 @@ const rankSongs = (
   return normalized.slice(0, MAX_RESULTS);
 };
 
+/**
+ * The song catalog belongs to the organization, not a service type, so one cached catalog
+ * per credential serves every service type's search.
+ */
 export const searchSongs = (
   cacheKey: string,
-  serviceTypeId: string,
   query: string,
   songCatalogReader: SongCatalogReader
 ): Effect.Effect<SongCatalogEntry[], PlanningCenterError> =>
@@ -62,7 +65,7 @@ export const searchSongs = (
       return Effect.succeed([]);
     }
 
-    const resultCacheKey = [cacheKey, serviceTypeId, normalizedQuery].join(":");
+    const resultCacheKey = [cacheKey, normalizedQuery].join(":");
     const now = Date.now();
     const cached = songSearchResultCache.get(resultCacheKey);
     if (cached && cached.expiresAt > now) {
@@ -70,7 +73,7 @@ export const searchSongs = (
     }
 
     return Effect.map(
-      songCatalogReader.getSongsCatalogCached(`${cacheKey}:${serviceTypeId}`),
+      songCatalogReader.getSongsCatalogCached(cacheKey),
       (catalog) => {
         const results = rankSongs(catalog, normalizedQuery);
         songSearchResultCache.set(resultCacheKey, {

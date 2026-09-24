@@ -291,7 +291,6 @@ export const searchRunSheetSongs = (
     const access = yield* PlanningCenterAccess;
     return yield* searchSongs(
       access.cacheScope,
-      input.serviceTypeId,
       input.query,
       access.services.songs
     );

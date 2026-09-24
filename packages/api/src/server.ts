@@ -15,6 +15,9 @@ import type {
   FeatureFlags,
   FlagshipBinding,
 } from "@pcobooster/api/modules/feature-flags/feature-flags";
+import { createPlanningCenterReadCaches } from "@pcobooster/api/planning-center/services/factory";
+import type { PlanningCenterReadCaches } from "@pcobooster/api/planning-center/services/factory";
+import type { SharedReadStore } from "@pcobooster/api/planning-center/services/shared-read-store";
 import { Context } from "effect";
 
 /** Built once per Worker isolate and shared by every request it serves. */
@@ -23,6 +26,7 @@ export interface ServerDependencies {
   readonly database: Db;
   readonly auth: Auth;
   readonly featureFlags: FeatureFlags;
+  readonly planningCenterReadCaches: PlanningCenterReadCaches;
 }
 
 export class Server extends Context.Service<Server, ServerDependencies>()(
@@ -38,6 +42,7 @@ export type FeatureFlagSource =
   | { readonly kind: "registry"; readonly tier: DeploymentTier };
 
 const featureFlagLog = logger.for("feature-flags");
+const readCacheLog = logger.for("planning-center-cache");
 
 const createFeatureFlags = (
   source: FeatureFlagSource,
@@ -65,7 +70,9 @@ const createFeatureFlags = (
 export const createServerDependencies = (
   config: ServerConfig,
   binding: D1Database,
-  featureFlagSource: FeatureFlagSource
+  featureFlagSource: FeatureFlagSource,
+  /** The shared Planning Center read tier every isolate reads through. */
+  planningCenterReadStore: SharedReadStore
 ): ServerDependencies => {
   const database = createDatabase(binding);
   return {
@@ -73,5 +80,11 @@ export const createServerDependencies = (
     database,
     auth: createAuth(config, database),
     featureFlags: createFeatureFlags(featureFlagSource, database),
+    planningCenterReadCaches: createPlanningCenterReadCaches({
+      store: planningCenterReadStore,
+      reportError: (message, error) => {
+        readCacheLog.warn({ err: error }, message);
+      },
+    }),
   };
 };

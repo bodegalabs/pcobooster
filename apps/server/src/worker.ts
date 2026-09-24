@@ -3,6 +3,7 @@ import type { ServerEnvironment } from "@pcobooster/api/config/server-config";
 import { resolveServerConfig } from "@pcobooster/api/config/server-config";
 import { logger } from "@pcobooster/api/logger";
 import { appRouter } from "@pcobooster/api/orpc";
+import type { SharedReadStore } from "@pcobooster/api/planning-center/services/shared-read-store";
 import { createServerDependencies } from "@pcobooster/api/server";
 import type { FeatureFlagSource } from "@pcobooster/api/server";
 import * as Alchemy from "alchemy";
@@ -14,6 +15,7 @@ import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import { createServerApp } from "./app";
 import { Database } from "./database";
 import { FeatureFlagApp } from "./feature-flags";
+import { PlanningCenterCache } from "./planning-center-cache";
 import { currentStageSettings } from "./stage";
 
 const PREVIEW_SECRET_PLACEHOLDER = "minted-by-alchemy-random-at-runtime";
@@ -122,6 +124,9 @@ export default class Api extends Cloudflare.Worker<Api>()(
   }),
   Effect.gen(function* api() {
     const database = yield* Cloudflare.D1.QueryDatabase(yield* Database);
+    const planningCenterCache = yield* Cloudflare.KV.ReadWriteNamespace(
+      yield* PlanningCenterCache
+    );
     const tier = deploymentTier(yield* currentStageSettings);
     // `alchemy dev` has no local Flagship: its binding would proxy to a live app, which needs
     // Cloudflare credentials and cloud resources. The local stage serves registry values.
@@ -130,7 +135,7 @@ export default class Api extends Cloudflare.Worker<Api>()(
         ? undefined
         : yield* Cloudflare.Flagship.ReadFlags(yield* FeatureFlagApp(tier));
     const resolveEnvironment = yield* readEnvironment;
-    // The D1 and Flagship bindings and a runtime-minted secret are only readable inside a
+    // The D1, KV, and Flagship bindings and a runtime-minted secret are only readable inside a
     // request, so the app is built by the first one and shared by the rest of the isolate's
     // lifetime.
     const app = yield* Effect.cached(
@@ -141,10 +146,18 @@ export default class Api extends Cloudflare.Worker<Api>()(
           flags === undefined
             ? { kind: "registry", tier: "local" }
             : { kind: "flagship", binding: yield* flags.raw };
+        const namespace = yield* planningCenterCache.raw;
+        const planningCenterReadStore: SharedReadStore = {
+          get: async (key) => await namespace.get(key, "text"),
+          put: async (key, value, { expirationTtl }) => {
+            await namespace.put(key, value, { expirationTtl });
+          },
+        };
         const server = createServerDependencies(
           config,
           binding,
-          featureFlagSource
+          featureFlagSource,
+          planningCenterReadStore
         );
         // Better Auth starts initializing (including OIDC discovery) when created. workerd ties
         // that I/O to the current request, so it must settle before this request ends or every
@@ -173,6 +186,7 @@ export default class Api extends Cloudflare.Worker<Api>()(
     };
   }).pipe(
     Effect.provide(Cloudflare.D1.QueryDatabaseBinding),
+    Effect.provide(Cloudflare.KV.ReadWriteNamespaceBinding),
     Effect.provide(Cloudflare.Flagship.ReadFlagsBinding)
   )
 ) {}

@@ -30,9 +30,6 @@ export const createPlanningCenterCatalogServiceCaches =
     reads: new PlanningCenterReadCache<ResourceCollection>(),
   });
 
-export const planningCenterCatalogServiceCaches =
-  createPlanningCenterCatalogServiceCaches();
-
 const cloneResourceResponse = (
   response: ResourceCollection
 ): ResourceCollection => ({

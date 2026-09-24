@@ -4,7 +4,10 @@ import {
   prepareRunSheetItemCreate,
   updateRunSheetTime,
 } from "@pcobooster/api/application/run-sheet";
-import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import {
+  createPlanningCenterServices,
+  createPlanningCenterReadCaches,
+} from "@pcobooster/api/planning-center/services/factory";
 import type { SuccessOf } from "@pcobooster/api/testing/effect";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testServer } from "@pcobooster/api/testing/server";
@@ -26,7 +29,8 @@ const setup = () => {
   const services = createPlanningCenterServices(
     "run-sheet-test-token",
     "America/Los_Angeles",
-    unreachableHttpClient
+    unreachableHttpClient,
+    createPlanningCenterReadCaches(null)
   );
   const access = {
     authentication: {

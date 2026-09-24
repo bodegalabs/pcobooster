@@ -10,7 +10,8 @@ import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
 const log = logger.for("planning-center/songs");
-const DEFAULT_CATALOG_TTL_MS = 15 * 60 * 1000;
+/** Songs change rarely and this app never writes them. */
+const DEFAULT_CATALOG_TTL_MS = 60 * 60 * 1000;
 const DEFAULT_CATALOG_MAX_PAGES = 15;
 const SONG_DETAILS_CACHE_TTL_MS = 5 * 60 * 1000;
 
@@ -36,9 +37,6 @@ export const createPlanningCenterSongsServiceCaches =
     songs: new PlanningCenterReadCache<PCResource>(),
     arrangements: new PlanningCenterReadCache<SongArrangementsResponse>(),
   });
-
-export const planningCenterSongsServiceCaches =
-  createPlanningCenterSongsServiceCaches();
 
 export class PlanningCenterSongsService {
   private readonly core: PlanningCenterCoreClient;

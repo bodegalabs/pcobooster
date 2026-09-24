@@ -23,9 +23,6 @@ export const createPlanningCenterPlanItemsServiceCaches =
     items: new PlanningCenterReadCache<PlanItemsResponse>(),
   });
 
-export const planningCenterPlanItemsServiceCaches =
-  createPlanningCenterPlanItemsServiceCaches();
-
 interface PlanItemsResponse {
   data: PCResource[];
   included: PCResource[];

@@ -60,7 +60,7 @@ describe(searchSongs, () => {
     );
 
     const songs = await Effect.runPromise(
-      searchSongs("account-1", "service-1", "lord", songCatalogReader)
+      searchSongs("account-1", "lord", songCatalogReader)
     );
 
     expect(songs.map((song) => song.id)).toStrictEqual([
@@ -69,9 +69,7 @@ describe(searchSongs, () => {
       "song-1",
     ]);
     expect(songs.some((song) => song.id === "song-3")).toBeFalsy();
-    expect(getSongsCatalogCachedMock).toHaveBeenCalledWith(
-      "account-1:service-1"
-    );
+    expect(getSongsCatalogCachedMock).toHaveBeenCalledWith("account-1");
   });
 
   it("caches normalized result sets and returns mutation-safe copies", async () => {
@@ -90,11 +88,11 @@ describe(searchSongs, () => {
     );
 
     const first = await Effect.runPromise(
-      searchSongs("account-2", "service-1", "  BUILD  ", songCatalogReader)
+      searchSongs("account-2", "  BUILD  ", songCatalogReader)
     );
     first[0].title = "Changed locally";
     const second = await Effect.runPromise(
-      searchSongs("account-2", "service-1", "build", songCatalogReader)
+      searchSongs("account-2", "build", songCatalogReader)
     );
 
     expect(getSongsCatalogCachedMock).toHaveBeenCalledOnce();
