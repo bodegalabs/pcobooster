@@ -1,6 +1,6 @@
 # CI/CD
 
-The Cloudflare workflow separates secretless validation from approved deployment. `ci` runs dependency review, strict linting, typechecks, and tests. `cloudflare-build` builds both Next.js apps into OpenNext Worker bundles without credentials. Both run for pull requests and merge queue commits; deployment jobs never run for `merge_group`.
+The Cloudflare workflow separates secretless validation from deployment: pull request previews wait for Jake's approval, and merges to `main` deploy production. `ci` runs dependency review, strict linting, typechecks, and tests. `cloudflare-build` builds both Next.js apps into OpenNext Worker bundles without credentials. Both run for pull requests and merge queue commits; deployment jobs never run for `merge_group`.
 
 Run the local gates before opening a pull request:
 
@@ -45,27 +45,67 @@ Deployment and cleanup share a per-stage concurrency group. Reopening the PR cre
 
 Merge equals deploy. A push to `main` deploys production after `ci` and `cloudflare-build` pass. So does a manual CI run on `main` with `deploy_production`. `cloudflare-production` accepts only the `main` branch and has no approval gate. The job rejects a revision superseded by newer `main` before reading production secrets. Post-deploy verification then fails the run unless pcobooster.com serves the merged commit. The merge queue and its required checks are the only gate before production, so keep them strict.
 
-Infisical's production OIDC identity must bind the environment subject and the `ref=refs/heads/main` claim. The production project contains production app secrets and its own Cloudflare token; it excludes development PATs and migration-only `DATABASE_URL`.
+Infisical's production OIDC identity binds the environment subject and the `ref=refs/heads/main` claim. The production project contains production app secrets and its own Cloudflare token; it excludes development PATs and migration-only `DATABASE_URL`.
 
 `CLOUDFLARE_CUSTOM_DOMAINS=1` in the production GitHub environment attaches pcobooster.com, www, and admin to the production Workers.
 
 To roll back, revert the change on `main`; the revert deploys like any other merge. Schema changes follow [database migrations](database.md#migrations-must-keep-the-running-app-online), so the previous code stays compatible with the migrated database.
 
+A deploy you run yourself (`bun run deploy:production`, `bun run infra:deploy`) is still a manual production change: confirm it with Jake first.
+
 ## OIDC and token scope
 
-GitHub environment variables are `INFISICAL_PROJECT_ID`, `INFISICAL_IDENTITY_ID`, `INFISICAL_ENV_SLUG`, and `CLOUDFLARE_ACCOUNT_ID`. Infisical supplies `CLOUDFLARE_API_TOKEN`; no long-lived Infisical credential is stored in GitHub.
+GitHub environment variables are `INFISICAL_PROJECT_ID`, `INFISICAL_IDENTITY_ID`, `INFISICAL_ENV_SLUG`, and `CLOUDFLARE_ACCOUNT_ID`. Infisical supplies `CLOUDFLARE_API_TOKEN`; no long-lived Infisical or Cloudflare credential is stored in GitHub.
 
 The issuer/discovery URL is `https://token.actions.githubusercontent.com`; audience is `https://github.com/bodegalabs/pcobooster`. This repository uses immutable OIDC subjects:
 
 - Preview and cleanup: `repo:bodegalabs@305914027/pcobooster@1125110564:environment:cloudflare-preview{,-cleanup}`. This is an Infisical glob that matches exactly those two environments.
 - Production: `repo:bodegalabs@305914027/pcobooster@1125110564:environment:cloudflare-production`
 
-Access tokens have a one-hour TTL and maximum TTL. The preview identity is Viewer only in `pcobooster-preview`. Its Cloudflare token permits Workers Scripts Write, D1 Write, and Secrets Store Write in the current account and expires September 23, 2027. It has no DNS, registrar, R2, or token-administration permission. These account-level permissions can affect other resources in that account; project separation does not create resource-level Cloudflare isolation. Only trusted, explicitly approved revisions may deploy.
+Access tokens have a one-hour TTL and maximum TTL. The preview identity is Viewer only in `pcobooster-preview`. Its Cloudflare token permits Workers Scripts Write, D1 Write, and Secrets Store Write in the current account. It has no DNS, registrar, R2, or token-administration permission. These account-level permissions can affect other resources in that account; project separation does not create resource-level Cloudflare isolation. Only trusted, explicitly approved revisions may deploy previews.
 
-The production token has the same account-level deployment permissions, plus DNS Write and Zone Read scoped to `pcobooster.com`; it also expires September 23, 2027. It is stored only in the production Infisical project. `Cloudflare.state()` shares the bootstrapped Alchemy state Worker and Secrets Store across stages. Keep their credentials out of application bindings, artifacts, and logs.
+The production token has the same account-level deployment permissions, plus DNS Write and Zone Read scoped to `pcobooster.com`. It is stored only in the production Infisical project. `Cloudflare.state()` shares the bootstrapped Alchemy state Worker and Secrets Store across stages. Keep their credentials out of application bindings, artifacts, and logs.
 
-## Merge gates and migration status
+## Control plane as code
 
-The target `main` ruleset requires `ci` and `cloudflare-build`. The pre-migration ruleset required `ci` and `Vercel – pcobooster`; switch the latter requirement only after `cloudflare-build` succeeds on the migration PR. Inspect the live ruleset to establish whether that transition has completed. Preserve the merge queue, squash-only merging, and absence of bypass actors. Never remove the old gate merely to bypass a red or missing replacement.
+`alchemy.ci.ts` (stack `pcobooster-ci`, stage `ci`, state in the shared `Cloudflare.state()` store) owns the CI/deploy control plane. Change these settings there, not in the GitHub, Cloudflare, or Infisical dashboards:
+
+- Repository merge settings on `bodegalabs/pcobooster`: squash on, merge commits off, auto-merge on, delete branches on merge. `allowRebaseMerge` is deliberately unmanaged; the ruleset alone keeps `main` squash-only.
+- The `main` ruleset "Protect main via pull requests" (`scripts/infra/main-ruleset.ts`): required checks `ci` and `cloudflare-build` from GitHub Actions, the squash merge queue, squash-only merges, linear history, no deletion or force pushes, and no bypass actors. `main-ruleset.test.ts` compares it with a snapshot of the live ruleset.
+- The `cloudflare-preview` (Jake as required reviewer, any branch), `cloudflare-preview-cleanup` (`main` only), and `cloudflare-production` (`main` only, no reviewers) environments and their variables. The repository is public, so GitHub accepts environment protection rules on the Free plan.
+- The preview and production Cloudflare deploy tokens, as account-owned API tokens.
+- `CLOUDFLARE_API_TOKEN` in each Infisical deployment project (preview `staging`, production `prod`, path `/`), written from the token Alchemy just created.
+- Both Infisical identities' GitHub OIDC bindings.
+
+Alchemy has no Infisical provider and its GitHub ruleset cannot express merge queues, so `scripts/infra/` adds small providers for the Infisical secret, the OIDC binding, and the ruleset. It also gives Alchemy's GitHub Repository, Environment, and Variable providers a lookup by name. Everything that already existed is adopted: the plan shows it as `adopted`, and the first deploy writes only differences. The ruleset is found by name and adopted explicitly (`adopt(true)`); it is updated in place, never recreated. All adopted GitHub and Infisical objects are retained if their declaration is removed.
+
+### Credentials
+
+| Credential | Used for | Source |
+| --- | --- | --- |
+| GitHub | Repository, ruleset, environments, variables | `GITHUB_TOKEN=$(gh auth token)`; needs repository admin |
+| Infisical | Secrets and OIDC bindings | `INFISICAL_API_TOKEN=$(infisical user get token --plain)`; needs admin on both deployment projects |
+| Cloudflare | The shared state store | Your default Alchemy OAuth profile (`bun alchemy profile edit` to connect, `bun alchemy profile refresh` to renew). The scripts unset `CLOUDFLARE_API_TOKEN` so a stray deploy token is never used. |
+| Cloudflare token admin | Creating, updating, reading, or revoking deploy tokens | `CLOUDFLARE_TOKEN_ADMIN_API_TOKEN`, only when a token changes |
+
+Neither the Alchemy OAuth scopes nor the deploy tokens can mint API tokens; that needs `Account API Tokens Write`. Only `AccountApiToken` calls use the token-admin credential (`scripts/infra/cloudflare.ts`), so the rest of the stack never runs with it. Create it when you need it: Cloudflare dashboard → Manage Account → Account API Tokens → Create Token → Custom token, permission Account · Account API Tokens · Edit on this account, expiring the same day. Delete it after the deploy. Do not store it in Infisical: both CI identities can read their whole project.
+
+`bun run infra:plan` is a dry run with drift detection and needs no token-admin credential; without one it trusts the recorded token state. `bun run infra:deploy` applies. Review the plan first and confirm with Jake before applying.
+
+### Rotating the deploy tokens
+
+The tokens expire on `deployTokens.expiresOn` in `alchemy.ci.ts`. To rotate, bump `deployTokens.generation` (and move `expiresOn` a year out), then:
+
+1. `bun run infra:plan`, and check that it creates only the two new tokens, updates the two Infisical secrets, and deletes the previous generation.
+2. `CLOUDFLARE_TOKEN_ADMIN_API_TOKEN=<short-lived admin token> bun run infra:deploy`. Alchemy creates the new tokens, writes them to Infisical, and then revokes the previous generation.
+3. Deploy a preview (re-run a pull request's `preview` job) and production (run CI on `main` with `deploy_production`). Both must pass `verify-deployment.ts`.
+
+A job already running when step 2 revokes the old token fails; re-run it.
+
+The first `infra:deploy` replaces the hand-made tokens rather than rotating Alchemy's. It creates generation 1 and overwrites `CLOUDFLARE_API_TOKEN` in both projects, but the hand-made tokens stay valid because Alchemy never managed them. After a preview and a production deploy succeed on the new tokens, delete the hand-made ones in the Cloudflare dashboard (Manage Account → Account API Tokens): preview `fb50d1add65f36b1376ba24b8de59b56` and production `8241ade77e46e28393c7d7ffa4dd1793`.
+
+## Merge gates
+
+The `main` ruleset requires `ci` and `cloudflare-build` and is managed by `alchemy.ci.ts`. Preserve the merge queue, squash-only merging, and absence of bypass actors. Never remove a gate merely to bypass a red or missing check.
 
 Cloudflare/D1 became the live production system on September 23, 2026; see the [cutover record](cloudflare-cutover.md). Vercel temporarily forwards cached DNS traffic to Cloudflare, and Neon is retained as the source snapshot. Follow [database migration and rollback](database.md): after D1 accepts new writes, routing back to the old PostgreSQL snapshot alone is not a safe rollback.
