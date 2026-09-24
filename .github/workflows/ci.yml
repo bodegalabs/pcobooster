@@ -66,6 +66,7 @@ jobs:
       group: cloudflare-build-${{ github.event.pull_request.number || github.sha }}
       cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     env:
+      # Validates admin's Vite build with the preview stages' base path.
       ADMIN_BASE_PATH: /admin
       # Matches the preview environment so its deploy can reuse these outputs.
       PEOPLE_PAGE_ENABLED: "false"
@@ -87,7 +88,7 @@ jobs:
         run: |
           bun scripts/cloudflare/build-fingerprint.ts > next-build-fingerprint.txt
           tar -czf "$RUNNER_TEMP/next-prebuilt.tgz" --exclude='apps/*/.next/cache' \
-            next-build-fingerprint.txt apps/web/.next apps/web/public/marketing apps/admin/.next
+            next-build-fingerprint.txt apps/web/.next apps/web/public/marketing
       - name: Upload Next.js outputs
         if: env.PACKAGE_PREBUILT == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -155,7 +156,7 @@ jobs:
             echo "PCOBOOSTER_PREBUILT_NEXT=1" >> "$GITHUB_ENV"
             echo "Reusing cloudflare-build's Next.js outputs."
           else
-            rm -rf apps/web/.next apps/web/public/marketing apps/admin/.next
+            rm -rf apps/web/.next apps/web/public/marketing
             echo "::notice::Build environment differs from cloudflare-build; building from source."
           fi
           rm next-build-fingerprint.txt

@@ -1,16 +1,15 @@
 /**
- * Fingerprint the environment that `next build` inlines or reads while building the web and
- * admin apps. `cloudflare-build` stores it with the `.next` outputs it uploads; the preview job
- * reuses those outputs only when its own fingerprint matches, and otherwise builds from scratch.
+ * Fingerprint the environment that `next build` inlines or reads while building the web app.
+ * `cloudflare-build` stores it with the `.next` outputs it uploads; the preview job reuses
+ * those outputs only when its own fingerprint matches, and otherwise builds from scratch.
  * Values are hashed, never printed.
  *
  *   bun scripts/cloudflare/build-fingerprint.ts
  */
 import { createHash } from "node:crypto";
 
-/** Server-side variables the apps read at build time, in addition to every `NEXT_PUBLIC_*`. */
+/** Server-side variables the web app reads at build time, in addition to every `NEXT_PUBLIC_*`. */
 const buildVariables = [
-  "ADMIN_BASE_PATH",
   "DEV_AUTH_BYPASS",
   "NODE_ENV",
   "PEOPLE_PAGE_ENABLED",

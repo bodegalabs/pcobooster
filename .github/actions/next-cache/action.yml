@@ -1,5 +1,5 @@
 name: Restore Next.js build cache
-description: Reuse incremental Next.js compiler caches for the product and admin apps.
+description: Reuse the incremental Next.js compiler cache for the product app.
 
 runs:
   using: composite
@@ -8,10 +8,8 @@ runs:
     - name: Restore Next.js build cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
-        path: |
-          apps/web/.next/cache
-          apps/admin/.next/cache
-        key: ${{ runner.os }}-next-${{ hashFiles('bun.lock') }}-${{ hashFiles('apps/web/src/**', 'apps/admin/src/**', 'packages/*/src/**') }}
+        path: apps/web/.next/cache
+        key: ${{ runner.os }}-next-${{ hashFiles('bun.lock') }}-${{ hashFiles('apps/web/src/**', 'packages/*/src/**') }}
         restore-keys: |
           ${{ runner.os }}-next-${{ hashFiles('bun.lock') }}-
           ${{ runner.os }}-next-

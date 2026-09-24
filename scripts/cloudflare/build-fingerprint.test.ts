@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildFingerprint } from "./build-fingerprint";
 
-const base = { ADMIN_BASE_PATH: "/admin", PEOPLE_PAGE_ENABLED: "false" };
+const base = { PEOPLE_PAGE_ENABLED: "false" };
 
 describe(buildFingerprint, () => {
   it("ignores runtime-only variables such as deploy credentials", () => {
@@ -23,7 +23,6 @@ describe(buildFingerprint, () => {
 
   it.each([
     ["a build-time flag", { ...base, PEOPLE_PAGE_ENABLED: "true" }],
-    ["the admin base path", { ...base, ADMIN_BASE_PATH: "" }],
     ["a public variable", { ...base, NEXT_PUBLIC_POSTHOG_KEY: "phc_x" }],
   ])("changes when %s changes", (_label, environment) => {
     expect(buildFingerprint(environment)).not.toBe(buildFingerprint(base));
