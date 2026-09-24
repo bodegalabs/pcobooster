@@ -40,8 +40,8 @@ Development `/local` may contain `DEV_AUTH_BYPASS`, `PLANNING_CENTER_CLIENT`, `P
 
 ## Deployment credentials
 
-Local deployment uses the saved Alchemy profile. Use `bun alchemy profile edit` to sign in or adjust it; credentials do not belong in shell history or repo files. The `deploy:preview` wrapper removes CI credential overrides so the local profile remains authoritative.
+Local deployment uses the saved Alchemy profile. Use `bun alchemy profile edit` to sign in or adjust it; credentials do not belong in shell history or repo files.
 
-GitHub Actions retrieves a narrowly scoped Cloudflare token from Infisical using OIDC after the environment approval gate. Account, project, and identity IDs are GitHub environment variables, not secrets. Tokens never become app Worker bindings. See [CI/CD](ci-cd.md) for permissions and trust boundaries.
+GitHub Actions retrieves a narrowly scoped Cloudflare token from Infisical using OIDC. Preview deploys wait for approval; production deploys run on every merge to `main`. Account, project, and identity IDs are GitHub environment variables, not secrets. Tokens never become app Worker bindings. See [CI/CD](ci-cd.md) for permissions and trust boundaries.
 
 `DATABASE_URL` remains only in the original Infisical project for read-only migration/reconciliation and rollback evidence. The deployed app cannot connect to Neon.

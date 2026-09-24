@@ -56,7 +56,7 @@ export default Alchemy.Stack(
     const stage = yield* Alchemy.Stage;
     const production = stage === "prod";
     const local = stage === "local";
-    if (!/^(?:prod|staging|migration|local|pr-\d+)$/u.test(stage)) {
+    if (!/^(?:prod|local|pr-\d+)$/u.test(stage)) {
       return yield* Effect.die(
         new Error(`Unsupported deployment stage: ${stage}`)
       );

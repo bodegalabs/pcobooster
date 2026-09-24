@@ -38,7 +38,6 @@
     "cloud:dev": "bash scripts/codex-cloud/with-infisical.sh bun run scripts/cloudflare/dev.ts",
     "cloud:build": "bash scripts/codex-cloud/with-infisical.sh bun run build",
     "deploy": "bun alchemy deploy --no-input",
-    "deploy:preview": "infisical run --env=staging --path=/ --projectId=586fd830-7861-4b84-a8a6-d05c9bf7a14a -- env -u CLOUDFLARE_API_TOKEN -u CLOUDFLARE_ACCOUNT_ID bun alchemy deploy --stage migration",
     "deploy:production": "infisical run --env=prod --path=/ --projectId=2eca20e1-20ac-4f06-a086-99ea5c590483 -- env -u CLOUDFLARE_API_TOKEN -u CLOUDFLARE_ACCOUNT_ID bun alchemy deploy --stage prod",
     "db:rehearse": "infisical run --env=prod --path=/ -- bun run scripts/database/migrate-from-postgres.ts --local",
     "alchemy": "node --import ./node_modules/alchemy/bin/register-oxc.js ./node_modules/alchemy/bin/alchemy.js",

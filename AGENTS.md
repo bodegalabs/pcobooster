@@ -37,7 +37,7 @@
 - `bun run test`: run Vitest test suite once.
 - `bun run test:watch`: run Vitest in watch mode.
 - `bun run db:generate`: generate committed SQLite migrations from the Drizzle schema. Alchemy applies them at startup/deploy. Migrations must keep the deployed code working (expand, then contract); see [docs/database.md](docs/database.md#migrations-must-keep-the-running-app-online).
-- Deployment and rollback changes: read [docs/ci-cd.md](docs/ci-cd.md) and [docs/database.md](docs/database.md). Confirm each deployment with the user before executing it.
+- Deployment and rollback changes: read [docs/ci-cd.md](docs/ci-cd.md) and [docs/database.md](docs/database.md). Merging to `main` deploys production automatically through CI. Confirm any manual or local deployment with the user before executing it.
 
 ### Codex cloud sessions
 

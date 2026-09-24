@@ -37,17 +37,19 @@ Teardown uses `alchemy.cleanup.ts`. It has the application stack's name and stat
 Cleanup runs in the `cloudflare-preview-cleanup` environment. That environment is restricted to `main` and needs no approval, because it only ever runs trusted `main` code:
 
 - Closing a same-repository PR triggers `pull_request_target`, which checks out `main` (never PR code), confirms the PR is still closed, and destroys its stage.
-- A nightly sweep (`scripts/cloudflare/sweep-previews.ts`, also available through `workflow_dispatch`) lists `pcobooster-pr-*` Workers and D1 databases, then destroys every stage whose PR is no longer open. Use `--dry-run` locally to see what it would destroy.
+- A nightly sweep (`scripts/cloudflare/sweep-previews.ts`, also available through `workflow_dispatch`) lists `pcobooster-pr-*` Workers and D1 databases, then destroys every stage whose PR is no longer open. It also destroys an open PR's stage once it has gone 7 days without a deploy, measured by the newest Worker upload; the next approved push recreates it. Previews therefore expire even when a PR stays open. Use `--dry-run` locally to see what it would destroy.
 
 Deployment and cleanup share a per-stage concurrency group. Reopening the PR creates a fresh deployment request.
 
 ## Production
 
-A push to `main`, or a manual CI run on `main` with `deploy_production`, requests production deployment after checks. `cloudflare-production` accepts only the `main` branch and requires Jake's approval. The job rejects a revision superseded by newer `main` before reading production secrets.
+Merge equals deploy. A push to `main` deploys production after `ci` and `cloudflare-build` pass. So does a manual CI run on `main` with `deploy_production`. `cloudflare-production` accepts only the `main` branch and has no approval gate. The job rejects a revision superseded by newer `main` before reading production secrets. Post-deploy verification then fails the run unless pcobooster.com serves the merged commit. The merge queue and its required checks are the only gate before production, so keep them strict.
 
 Infisical's production OIDC identity must bind the environment subject and the `ref=refs/heads/main` claim. The production project contains production app secrets and its own Cloudflare token; it excludes development PATs and migration-only `DATABASE_URL`.
 
-Set `CLOUDFLARE_CUSTOM_DOMAINS=1` in the production GitHub environment only after the data migration and DNS cutover preparation are complete. Before that, Alchemy provisions a production candidate without attaching the live domains. Do not approve CI production deploys until the production project, identity, token, and initial data import have been verified.
+`CLOUDFLARE_CUSTOM_DOMAINS=1` in the production GitHub environment attaches pcobooster.com, www, and admin to the production Workers.
+
+To roll back, revert the change on `main`; the revert deploys like any other merge. Schema changes follow [database migrations](database.md#migrations-must-keep-the-running-app-online), so the previous code stays compatible with the migrated database.
 
 ## OIDC and token scope
 
