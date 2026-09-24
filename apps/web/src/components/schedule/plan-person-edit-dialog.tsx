@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/selection-picker";
 import { selectionPickerSectionTitleClass } from "@/components/ui/selection-picker-styles";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
+import { invalidateCandidateHistoryQueries } from "@/hooks/use-schedule-cache-optimism";
 import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cache-optimism";
 import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
 import { useUpdatePlanPersonStatus } from "@/hooks/use-update-plan-person-status";
@@ -260,11 +261,7 @@ const PlanPersonEditDialogBody = ({
         predicate: (query) =>
           query.queryKey[0] === "people" && query.queryKey.includes(planId),
       }),
-      queryClient.invalidateQueries({
-        predicate: (query) =>
-          query.queryKey[0] === "people-history-warmup" &&
-          query.queryKey[1] === serviceTypeId,
-      }),
+      invalidateCandidateHistoryQueries(queryClient),
     ]);
   };
 

@@ -16,7 +16,8 @@ import { presentationCacheKey } from "@/lib/presentation-cache";
  */
 /** Every version's entries; clearing also drops the single-call list's `v1` entries. */
 const STORAGE_PREFIX = "pcobooster:people:";
-const CACHE_VERSION = "v2";
+/** v3: deferred window plans carry their roster pages. */
+const CACHE_VERSION = "v3";
 const KEY_PREFIX = `${STORAGE_PREFIX}${CACHE_VERSION}:`;
 const CANDIDATES_KEY_PREFIX = `${KEY_PREFIX}candidates:`;
 const WINDOW_HISTORY_KEY = `${KEY_PREFIX}window-history`;

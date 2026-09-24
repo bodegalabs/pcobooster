@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   cancelScheduleMutationQueries,
+  invalidateCandidateHistoryQueries,
   optimisticallySchedulePerson,
   optimisticallyUnschedulePlanPerson,
   optimisticallyUpdatePlanPersonStatus,
@@ -573,5 +574,62 @@ describe("schedule cache optimism", () => {
     expect(
       readCachedTeamPositions("service-type-1", "plan-1", "series-1")
     ).toBeUndefined();
+  });
+
+  it("marks candidate history stale after plan time writes and leaves blockouts alone", async () => {
+    installLocalStorageMock();
+    const queryClient = createQueryClient();
+    const dateKey = "2026-05-24T10:00:00.000Z";
+    const windowKey = queryKeys.planWindowHistory(dateKey);
+    const historyDetailsKey = queryKeys.candidateDetails(dateKey, "plan-1", [
+      "person-1",
+    ]);
+    const blockoutDetailsKey = queryKeys.candidateDetails(dateKey, null, [
+      "person-1",
+    ]);
+    const slotKey = queryKeys.positionCandidates(
+      "service-type-1",
+      "team-1",
+      "position-1",
+      "plan-1"
+    );
+    for (const key of [windowKey, historyDetailsKey, blockoutDetailsKey]) {
+      queryClient.setQueryData(key, []);
+    }
+    queryClient.setQueryData(slotKey, candidates([person()]));
+    writeCachedPositionCandidates(
+      "service-type-1",
+      "team-1",
+      "position-1",
+      "plan-1",
+      candidates([person()])
+    );
+    writeCachedCandidateAvailability(dateKey, [
+      { personId: "person-1", isBlockedForDate: false },
+    ]);
+
+    await invalidateCandidateHistoryQueries(queryClient);
+
+    const invalidated = (key: readonly unknown[]) =>
+      queryClient.getQueryState(key)?.isInvalidated;
+    expect({
+      window: invalidated(windowKey),
+      historyDetails: invalidated(historyDetailsKey),
+      blockoutDetails: invalidated(blockoutDetailsKey),
+      savedCandidates: readCachedPositionCandidates(
+        "service-type-1",
+        "team-1",
+        "position-1",
+        "plan-1"
+      ),
+      savedAvailability: readCachedCandidateAvailability(dateKey, ["person-1"])
+        ?.data,
+    }).toStrictEqual({
+      window: true,
+      historyDetails: true,
+      blockoutDetails: false,
+      savedCandidates: undefined,
+      savedAvailability: [{ personId: "person-1", isBlockedForDate: false }],
+    });
   });
 });
