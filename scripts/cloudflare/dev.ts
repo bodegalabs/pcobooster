@@ -3,7 +3,8 @@ import { once } from "node:events";
 
 import { z } from "zod";
 
-// Alchemy supplies Workers bindings to Next's HMR server and applies local D1 migrations.
+// Alchemy runs the product and admin Vite dev servers with their Workers bindings and applies
+// local D1 migrations. The product proxies `/`, `/about`, and `/marketing/*` to marketing.
 const processes = [
   spawn("bun", ["run", "dev:marketing"], { stdio: "inherit" }),
   spawn("bun", ["run", "alchemy", "dev", "--stage", "local", "--no-input"], {
