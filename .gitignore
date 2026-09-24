@@ -15,9 +15,6 @@ package-lock.json
 /coverage
 /.artifacts/
 
-# next.js
-**/.next/
-
 # turborepo
 .turbo/
 
@@ -44,12 +41,8 @@ yarn-error.log*
 # Historical Codex cloud state
 /.codex-cloud/
 
-# vercel
-.vercel
-
 # typescript
 *.tsbuildinfo
-next-env.d.ts
 
 # Generated marketing prerender staged into the product app
 /apps/web/public/marketing/
@@ -58,4 +51,3 @@ next-env.d.ts
 .alchemy/
 **/cloudflare-build-inputs.json
 .wrangler/
-**/.open-next/

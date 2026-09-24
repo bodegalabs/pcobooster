@@ -5,14 +5,8 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
 const sourceExtensions = new Set([".js", ".jsx", ".ts", ".tsx"]);
-const ignoredDirectories = new Set([
-  ".git",
-  ".next",
-  ".turbo",
-  "dist",
-  "node_modules",
-  "out",
-]);
+/** Build outputs and dependencies; dot-directories (tool state, worktrees) are skipped too. */
+const ignoredDirectories = new Set(["dist", "node_modules"]);
 const routeExceptions = new Set(["auth", "health", "reference", "rpc"]);
 const replacedRouteNames = new Set([
   "blockouts",
@@ -35,7 +29,6 @@ const forbiddenBrowserPackageDependencies = new Set([
   "better-auth",
   "drizzle-orm",
   "hono",
-  "next",
   "pg",
   "react",
 ]);
@@ -96,7 +89,10 @@ const walkFiles = (root: string): string[] => {
   const files: string[] = [];
 
   for (const entry of readdirSync(root, { withFileTypes: true })) {
-    if (entry.isDirectory() && ignoredDirectories.has(entry.name)) {
+    if (
+      entry.isDirectory() &&
+      (entry.name.startsWith(".") || ignoredDirectories.has(entry.name))
+    ) {
       continue;
     }
 
@@ -368,7 +364,7 @@ describe("monorepo architecture boundaries", () => {
   it("contains no replaced REST route or obsolete server registry", () => {
     const violations: string[] = [];
     const routeRoots = [
-      join(repositoryRoot, "apps/web/src/app/api"),
+      join(repositoryRoot, "apps/web/src/routes/api"),
       join(repositoryRoot, "apps/server/src/routes"),
       join(repositoryRoot, "packages/api/src/http-routes"),
     ];
