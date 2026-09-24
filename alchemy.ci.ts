@@ -26,8 +26,6 @@ import { mainRuleset } from "./scripts/infra/main-ruleset";
 const owner = "bodegalabs";
 const repository = "pcobooster";
 const accountId = "984b82870acd18daf8bda97bad966b38";
-/** The pcobooster.com zone. `alchemy.run.ts` owns the zone itself in the `prod` stage. */
-const zoneId = "a43fafd2bb6e6fb47f0233e6168e622e";
 
 /**
  * Deploy tokens are minted per generation. Bumping `generation` mints fresh tokens, writes them
@@ -97,11 +95,18 @@ const production: DeployTarget = {
     },
     {
       effect: "allow",
-      permissionGroups: ["DNS Write", "Zone Read"],
+      // `alchemy.run.ts` owns the account's zones in the `prod` stage: pcobooster.com and the
+      // former worshipadmin.com, which it creates (creating a zone needs Zone Write on every
+      // zone in the account) and answers with a redirect rule (Dynamic URL Redirects Write).
+      permissionGroups: [
+        "Zone Write",
+        "DNS Write",
+        "Dynamic URL Redirects Write",
+      ],
       // Zone grants on an account-owned token nest under the account resource.
       resources: {
         [`com.cloudflare.api.account.${accountId}`]: {
-          [`com.cloudflare.api.account.zone.${zoneId}`]: "*",
+          "com.cloudflare.api.account.zone.*": "*",
         },
       },
     },

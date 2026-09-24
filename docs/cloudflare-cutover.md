@@ -10,7 +10,7 @@ Production moved to Cloudflare on September 23, 2026. The deployed application r
 - Retained D1 database: `pcobooster-prod`, ID `781f72d7-22ad-4ece-a41d-e71ac4b6b427`.
 - Cloudflare zone: `a43fafd2bb6e6fb47f0233e6168e622e`, nameservers `aaron.ns.cloudflare.com` and `pam.ns.cloudflare.com`.
 - Production GitHub environment has `CLOUDFLARE_CUSTOM_DOMAINS=1`; preserve it for subsequent deployments.
-- Former domain: `worshipadmin.com` and `www.worshipadmin.com` (the product's name until the September 18 rename) redirect to `https://pcobooster.com` with HTTP 308, preserving paths and query strings. The domain's DNS and the redirect live on Vercel (nameservers `ns1`/`ns2.vercel-dns.com`), not in Alchemy. Move the redirect before retiring the Vercel projects or letting that registration lapse.
+- Former domain: `worshipadmin.com` and `www.worshipadmin.com` (the product's name until the September 18 rename) redirect to `https://pcobooster.com` with HTTP 308, preserving paths and query strings. The redirect is still served by Vercel (nameservers `ns1`/`ns2.vercel-dns.com`). The `prod` stage declares its Cloudflare replacement (`scripts/cloudflare/zones.ts`): a `worshipadmin.com` zone, CAA records, proxied placeholder records for the apex and www, and a Single Redirect rule. It takes over only after the [former domain cutover](#former-domain-cutover) changes the nameservers. Registration stays with Name.com through Vercel and expires February 28, 2027; renew or transfer it before then.
 
 ## Data preservation
 
@@ -41,6 +41,32 @@ Cloudflare custom domains were attached at 22:22 UTC. Public resolvers returned 
 Do not remove these rewrites while the old runtime can receive traffic. After DNS propagation is verified, re-enable the freeze rules before disabling the bridges, or keep the bridges until the legacy projects are retired. Preserve existing Vercel deployment protection. Never re-enable the legacy application's Neon write path as a casual rollback: D1 now accepts application writes.
 
 Both Vercel projects have been disconnected from GitHub to stop automatic legacy deployments. Independent checks verified nested paths and encoded/duplicate query values through the bridge, anonymous session rejection, admin API HTTP 401, and Cloudflare execution for old immutable deployment URLs. Some cached admin requests still encounter Vercel's existing SSO protection before forwarding; direct Cloudflare requests use the app's own auth boundary.
+
+## Former domain cutover
+
+The Cloudflare zone for `worshipadmin.com` answers every request at the edge: a rule in the zone's `http_request_dynamic_redirect` phase returns HTTP 308 to `https://pcobooster.com` plus the request path, and keeps the query string. No Worker or origin runs; the apex and www are proxied `AAAA 100::` placeholders so Cloudflare issues their Universal SSL certificate. Plain HTTP requests redirect straight to the HTTPS canonical URL in one hop. Alchemy's Worker `domain.redirects` is not used because it always answers with HTTP 301.
+
+Until the registrar delegates the domain to Cloudflare, the zone stays `pending` and serves nothing, so steps 1 and 2 change nothing visitors see. Cloudflare may delete a zone that stays pending for weeks, so finish step 3 within a few days of step 2. Run the steps in order:
+
+1. **Grant the production deploy token zone access (before merging).** Creating a zone needs Zone Write on every zone in the account, and the redirect rule needs Dynamic URL Redirects Write, so the token's zone policy moves from `pcobooster.com` only to all zones in the account (see [token scope](ci-cd.md#oidc-and-token-scope)). From this change's branch run `bun run infra:plan` and check that the plan updates only `ProductionDeployToken1` and `ProductionCloudflareApiToken`, plus any drift the plan reports. Then confirm with Jake and run `CLOUDFLARE_TOKEN_ADMIN_API_TOKEN=<short-lived admin token> bun run infra:deploy`. The token is updated in place and keeps its value, so the Infisical secret is rewritten unchanged and running jobs are unaffected. If the change merges first, the production deploy fails when it creates the zone, before pcobooster.com is affected; rerun it after this step.
+2. **Merge.** The production deploy creates the pending zone, its records, and the redirect rule, and prints the assigned nameservers as the `formerDomainNameServers` stack output (also shown on the zone's Overview in the Cloudflare dashboard). Check the dashboard: DNS lists the proxied apex and `www` AAAA records and three CAA records; Rules lists the redirect rule.
+3. **Change the nameservers.** In the Vercel dashboard (Domains, `worshipadmin.com`, Nameservers), replace `ns1.vercel-dns.com` and `ns2.vercel-dns.com` with the two Cloudflare nameservers. The domain is not DNSSEC-signed, so no DS record needs removing first. Leave the Vercel project's `worshipadmin.com` and `www.worshipadmin.com` domains and their redirect in place: resolvers holding the old delegation (the `.com` NS TTL is 48 hours) keep reaching Vercel and still get the 308.
+4. **Activate and verify.** On the zone's Overview, use "Check nameservers now". Once the zone is `active`, Universal SSL is issued, usually within 15 minutes; until then, HTTPS requests that reach Cloudflare fail TLS, so run step 3 at a quiet time. Verify:
+
+   ```sh
+   dig +short NS worshipadmin.com @a.gtld-servers.net   # the two Cloudflare nameservers
+   curl -sI "https://worshipadmin.com/some/path?x=1&y=2"      # 308, location: https://pcobooster.com/some/path?x=1&y=2
+   curl -sI "https://www.worshipadmin.com/some/path?x=1&y=2"  # same location
+   curl -sI "http://worshipadmin.com/some/path?x=1"           # 308 straight to https://pcobooster.com/some/path?x=1
+   echo | openssl s_client -connect worshipadmin.com:443 -servername worshipadmin.com 2>/dev/null \
+     | openssl x509 -noout -issuer -ext subjectAltName          # covers worshipadmin.com and *.worshipadmin.com
+   ```
+
+   Each `curl` response must show `server: cloudflare`; `server: Vercel` means that resolver still has the old delegation.
+
+5. **Retire the Vercel redirect after 48 hours.** Remove `worshipadmin.com` and `www.worshipadmin.com` from the Vercel project's domain settings. Keep the domain registered in the Vercel account; removing the registration is a separate decision. Then update the live-resources entry above to say the redirect is served by Cloudflare.
+
+To roll back before step 5, set the nameservers back to `ns1.vercel-dns.com` and `ns2.vercel-dns.com`; Vercel still serves the same redirect. Keep the zone's declaration: removing it from `alchemy.run.ts` deletes the records and rule (the zone itself is retained) and breaks the redirect once Cloudflare is authoritative.
 
 ## Remaining external verification
 

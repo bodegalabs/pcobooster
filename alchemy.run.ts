@@ -11,6 +11,10 @@ import { Database } from "./apps/server/src/database";
 import { currentStageSettings } from "./apps/server/src/stage";
 import Api from "./apps/server/src/worker";
 import { prepareCloudflareBuild } from "./scripts/cloudflare/prepare";
+import {
+  allowUniversalSslIssuers,
+  formerDomainRedirect,
+} from "./scripts/cloudflare/zones";
 
 const canAttachDomains = (production: boolean) =>
   production && process.env.CLOUDFLARE_CUSTOM_DOMAINS === "1";
@@ -42,19 +46,12 @@ export default Alchemy.Stack(
         }).pipe(RemovalPolicy.retain())
       : undefined;
     if (zone !== undefined) {
-      for (const [id, issuer] of [
-        ["Google", "pki.goog"],
-        ["Sectigo", "sectigo.com"],
-        ["LetsEncrypt", "letsencrypt.org"],
-      ]) {
-        yield* Cloudflare.DNS.Record(`CAA${id}`, {
-          zoneId: zone.zoneId,
-          name: "pcobooster.com",
-          type: "CAA",
-          content: { flags: 0, tag: "issue", value: issuer },
-        });
-      }
+      yield* allowUniversalSslIssuers("", zone, "pcobooster.com");
     }
+    // Serves nothing until the registrar delegates the domain to this zone's nameservers.
+    const formerZone = production
+      ? yield* formerDomainRedirect(publicOrigin)
+      : undefined;
     const database = yield* Database;
     // Effect-native: it reads its own settings and binds the database (`apps/server/src/worker.ts`).
     const api = yield* Api;
@@ -126,6 +123,7 @@ export default Alchemy.Stack(
       admin: production ? admin.url : `${publicOrigin}/admin`,
       databaseId: database.databaseId,
       nameServers: zone?.nameServers,
+      formerDomainNameServers: formerZone?.nameServers,
     };
   })
 );
