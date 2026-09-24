@@ -1,4 +1,4 @@
-import { scoreAndNormalizePeople } from "@pcobooster/api/modules/planning-center/people/scoring";
+import { scoreAndNormalizePeople } from "@pcobooster/planning-center-models/candidate-scoring";
 import { formatPlanHistoryHalfRangeWeeksLabel } from "@pcobooster/planning-center-models/schedule-constants";
 import type {
   PersonWithAvailability,

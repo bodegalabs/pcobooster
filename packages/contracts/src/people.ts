@@ -2,31 +2,60 @@ import { oc } from "@orpc/contract";
 import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import {
   blockoutSchema,
+  candidateDetailsBatchSchema,
   myScheduledPlansDataSchema,
   peopleDashboardActivityBatchSchema,
   peopleDashboardPersonDetailSchema,
   peopleDashboardRosterSchema,
   peopleSearchResultSchema,
-  personWithAvailabilitySchema,
+  planWindowHistoryBatchSchema,
+  positionCandidatesSchema,
   scheduleHistoryResponseSchema,
+  windowPlanRefSchema,
 } from "@pcobooster/contracts/people-schemas";
 import { z } from "zod";
 
-export const peopleListInputSchema = z.object({
+export const peoplePositionCandidatesInputSchema = z.object({
   serviceTypeId: z.string().trim().min(1),
   positionId: z.string().trim().min(1),
   teamId: z.string().trim().min(1).optional(),
-  planId: z.string().trim().min(1).optional(),
-  date: z.string().min(1).optional(),
+  planId: z.string().trim().min(1),
+});
+
+/** The selected plan's sort instant, as an ISO date-time. */
+const planDateSchema = z.iso.datetime({ offset: true });
+
+export const peoplePlanWindowHistoryInputSchema = z.object({
+  date: planDateSchema,
+  /** Where the previous call stopped; omit on the first call. */
+  continuation: z
+    .object({
+      plans: z.array(windowPlanRefSchema).max(1000),
+      serviceTypeIds: z.array(z.string().trim().min(1)).max(200),
+    })
+    .optional(),
+});
+
+/**
+ * Candidates per `people.candidateDetails` call. Each costs one blockout page
+ * plus one read per repeating blockout near the plan date, so a full batch
+ * stays well under the per-call budget.
+ */
+export const PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE = 16;
+
+export const peopleCandidateDetailsInputSchema = z.object({
+  personIds: z
+    .array(z.string().trim().min(1))
+    .min(1)
+    .max(PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE),
+  planId: z.string().trim().min(1),
+  date: planDateSchema,
+  /** Also read each person's own schedules; only when the plan window is empty. */
+  scheduleHistory: z.boolean(),
 });
 
 export const peopleSearchInputSchema = z.object({
   query: z.string().trim().min(2).max(80),
-});
-
-export const peopleWarmupInputSchema = z.object({
-  serviceTypeId: z.string().trim().min(1),
-  date: z.string().min(1),
 });
 
 export const peopleBlockoutsInputSchema = z.object({
@@ -63,9 +92,7 @@ export const peopleMyScheduledPlansInputSchema = z.object({
   planIds: z.array(z.string().min(1)).max(500),
 });
 
-export const peopleListOutputSchema = z.array(personWithAvailabilitySchema);
 export const peopleSearchOutputSchema = z.array(peopleSearchResultSchema);
-export const peopleWarmupOutputSchema = z.object({ warmed: z.literal(true) });
 export const peopleBlockoutsOutputSchema = z.array(blockoutSchema);
 
 const peopleProcedure = oc.errors({
@@ -81,14 +108,30 @@ const dashboardProcedure = peopleProcedure.errors({
 });
 
 export const peopleContract = {
-  list: peopleProcedure
+  positionCandidates: peopleProcedure
     .route({
       method: "GET",
-      path: "/people",
-      summary: "List people available for a team position",
+      path: "/people/position-candidates",
+      summary: "List candidates for a team position on a plan",
     })
-    .input(peopleListInputSchema)
-    .output(peopleListOutputSchema),
+    .input(peoplePositionCandidatesInputSchema)
+    .output(positionCandidatesSchema),
+  planWindowHistory: peopleProcedure
+    .route({
+      method: "POST",
+      path: "/people/plan-window-history",
+      summary: "Read serving history from rosters around a plan date",
+    })
+    .input(peoplePlanWindowHistoryInputSchema)
+    .output(planWindowHistoryBatchSchema),
+  candidateDetails: peopleProcedure
+    .route({
+      method: "POST",
+      path: "/people/candidate-details",
+      summary: "Read availability for a batch of candidates",
+    })
+    .input(peopleCandidateDetailsInputSchema)
+    .output(candidateDetailsBatchSchema),
   search: peopleProcedure
     .route({
       method: "GET",
@@ -97,14 +140,6 @@ export const peopleContract = {
     })
     .input(peopleSearchInputSchema)
     .output(peopleSearchOutputSchema),
-  warmup: peopleProcedure
-    .route({
-      method: "POST",
-      path: "/people/warmup",
-      summary: "Warm people history for a plan date",
-    })
-    .input(peopleWarmupInputSchema)
-    .output(peopleWarmupOutputSchema),
   blockouts: peopleProcedure
     .route({
       method: "GET",
@@ -154,9 +189,16 @@ export const peopleContract = {
     .output(myScheduledPlansDataSchema),
 };
 
-export type PeopleListInput = z.input<typeof peopleListInputSchema>;
+export type PeoplePositionCandidatesInput = z.input<
+  typeof peoplePositionCandidatesInputSchema
+>;
+export type PeoplePlanWindowHistoryInput = z.input<
+  typeof peoplePlanWindowHistoryInputSchema
+>;
+export type PeopleCandidateDetailsInput = z.input<
+  typeof peopleCandidateDetailsInputSchema
+>;
 export type PeopleSearchInput = z.input<typeof peopleSearchInputSchema>;
-export type PeopleWarmupInput = z.input<typeof peopleWarmupInputSchema>;
 export type PeopleBlockoutsInput = z.input<typeof peopleBlockoutsInputSchema>;
 export type PeopleDashboardActivityInput = z.input<
   typeof peopleDashboardActivityInputSchema

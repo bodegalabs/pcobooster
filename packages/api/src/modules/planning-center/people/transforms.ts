@@ -1,52 +1,16 @@
 import { rosterPersonSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
-import type { SelectedPlanMatchContext } from "@pcobooster/api/modules/planning-center/people/types";
-import { recoverUnlessInterrupted } from "@pcobooster/api/planning-center/recover-unless-interrupted";
-import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import { blockoutCoversPlanSortInstant } from "@pcobooster/planning-center-models/calendar-day";
 import {
   isNonEmptyString,
   isString,
 } from "@pcobooster/planning-center-models/json";
+import type { SelectedPlanMatchContext } from "@pcobooster/planning-center-models/position-candidates";
 import type {
   Blockout,
   PCResource,
-  PersonWithAvailability,
   RawPerson,
-  ScheduleFrequency,
 } from "@pcobooster/planning-center-models/types";
-import { Effect } from "effect";
-
-export const getDefaultFrequency = (): ScheduleFrequency => ({
-  recentServedDays: 0,
-  last60Days: 0,
-  last90Days: 0,
-  recentRehearsalOnlyDays: 0,
-  rehearsalLast60Days: 0,
-  rehearsalLast90Days: 0,
-  totalServed: 0,
-  totalRehearsals: 0,
-  upcomingServices: 0,
-  upcomingRehearsals: 0,
-});
-
-export const createBasePerson = (
-  rawPerson: RawPerson
-): PersonWithAvailability => ({
-  id: rawPerson.id,
-  firstName: rawPerson.attributes.first_name,
-  lastName: rawPerson.attributes.last_name,
-  fullName:
-    `${rawPerson.attributes.first_name} ${rawPerson.attributes.last_name}`.trim(),
-  photoUrl: rawPerson.attributes.photo_url,
-  photoThumbnailUrl: rawPerson.attributes.photo_thumbnail_url,
-  archived: isNonEmptyString(rawPerson.attributes.archived_at),
-  positions: [],
-  isScheduledForSelectedPlanPosition: false,
-  isConfirmedForSelectedPlanPosition: false,
-  isDeclinedForSelectedPlanPosition: false,
-  selectedPlanAssignmentLabels: [],
-});
 
 export const getAssignedPeopleFromAssignments = (
   assignmentsData: PCResource[],
@@ -191,70 +155,39 @@ export const repeatingBlockoutMayCover = (
   );
 };
 
-/**
- * Blockouts only matter for a selected plan; unreadable blockouts mean none. Every blockout is
- * read (Planning Center's `future` filter is not verified for repeating blockouts), but dates of
- * repeating blockouts that ended before the plan are not.
- */
-export const loadPersonBlockouts = (
-  personId: string,
-  planSortAt: Date | null,
-  peopleService: Pick<
-    PlanningCenterPeopleService,
-    "getPersonBlockouts" | "getPersonBlockoutDates"
-  >
-): Effect.Effect<Blockout[]> => {
-  if (!planSortAt) {
-    return Effect.succeed([]);
-  }
+const isRepeatingBlockout = (parent: PCResource): boolean => {
+  const frequency = parent.attributes.repeat_frequency;
+  return frequency !== undefined && frequency !== "no_repeat";
+};
 
-  return peopleService.getPersonBlockouts(personId, {}).pipe(
-    Effect.flatMap((rawBlockouts) =>
-      Effect.forEach(
-        rawBlockouts,
-        (parent) => {
-          const frequency = parent.attributes.repeat_frequency;
-          if (frequency === undefined || frequency === "no_repeat") {
-            return Effect.succeed([{ date: parent, parent }]);
-          }
-          if (!repeatingBlockoutMayCover(parent, planSortAt)) {
-            return Effect.succeed([]);
-          }
-          return Effect.map(
-            peopleService.getPersonBlockoutDates(personId, parent.id),
-            (dates) => dates.map((date) => ({ date, parent }))
-          );
-        },
-        { concurrency: "unbounded" }
-      )
-    ),
-    Effect.map((blockoutGroups) => {
-      const blockouts: Blockout[] = [];
-      for (const group of blockoutGroups) {
-        for (const { date, parent } of group) {
-          const blockout = toBlockout(date, parent);
-          if (blockout !== null) {
-            blockouts.push(blockout);
-          }
-        }
-      }
-      return blockouts;
-    }),
-    recoverUnlessInterrupted((): Blockout[] => [])
+/** Repeating blockouts whose generated dates must be read to judge the plan date. */
+export const repeatingBlockoutsToRead = (
+  parents: readonly PCResource[],
+  planSortAt: Date
+): PCResource[] =>
+  parents.filter(
+    (parent) =>
+      isRepeatingBlockout(parent) &&
+      repeatingBlockoutMayCover(parent, planSortAt)
   );
-};
 
-export const applyAvailability = (
-  person: PersonWithAvailability,
-  blockouts: Blockout[],
-  planSortAt: Date | null
-) => {
-  const isBlocked = planSortAt
-    ? blockouts.some((blockout) =>
-        blockoutCoversPlanSortInstant(planSortAt, blockout)
-      )
-    : false;
-
-  person.isBlockedForDate = isBlocked;
-  person.availability = isBlocked ? "blocked" : "available";
-};
+/**
+ * Whether any blockout touches the plan's calendar day in the blockout's own time zone. A
+ * one-time blockout is its own date; a repeating one counts only through its generated dates.
+ */
+export const isBlockedOnPlanDate = (
+  parents: readonly PCResource[],
+  datesByBlockoutId: ReadonlyMap<string, readonly PCResource[]>,
+  planSortAt: Date
+): boolean =>
+  parents.some((parent) => {
+    const dates = isRepeatingBlockout(parent)
+      ? (datesByBlockoutId.get(parent.id) ?? [])
+      : [parent];
+    return dates.some((date) => {
+      const blockout = toBlockout(date, parent);
+      return (
+        blockout !== null && blockoutCoversPlanSortInstant(planSortAt, blockout)
+      );
+    });
+  });

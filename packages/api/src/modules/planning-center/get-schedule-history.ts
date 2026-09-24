@@ -1,7 +1,4 @@
-import {
-  buildFrequencyFromServiceHistory,
-  buildHistoryAndFrequencyForPerson,
-} from "@pcobooster/api/modules/planning-center/people/history";
+import { buildHistoryAndFrequencyForPerson } from "@pcobooster/api/modules/planning-center/people/history";
 import { scheduleResourceSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
@@ -9,6 +6,7 @@ import {
   addCalendarDaysToDayKey,
   formatCalendarDayInTimeZone,
 } from "@pcobooster/planning-center-models/calendar";
+import { buildFrequencyFromServiceHistory } from "@pcobooster/planning-center-models/candidate-frequency";
 import type {
   PlanPerson,
   RawSchedule,
@@ -61,7 +59,6 @@ export const getScheduleHistory = (
       schedules,
       historyIncluded,
       now,
-      {},
       Number.POSITIVE_INFINITY,
       orgTz
     );

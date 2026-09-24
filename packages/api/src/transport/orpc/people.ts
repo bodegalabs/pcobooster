@@ -1,13 +1,14 @@
 import {
   getMyScheduledPlans,
   getPeopleBlockouts,
+  getPeopleCandidateDetails,
+  getPeoplePlanWindowHistory,
+  getPeoplePositionCandidates,
   getPeopleDashboardActivity,
   getPeopleDashboardPerson,
   getPeopleDashboardRoster,
-  getPeopleList,
   getPeopleScheduleHistory,
   getPeopleSearch,
-  warmPeople,
 } from "@pcobooster/api/application/people";
 import { withPlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
@@ -16,11 +17,31 @@ import {
   rpc,
 } from "@pcobooster/api/transport/orpc/implementation";
 
-const list = rpc.people.list.handler(
+const positionCandidates = rpc.people.positionCandidates.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
       applicationRuntime,
-      withPlanningCenterAccess(getPeopleList(input)),
+      withPlanningCenterAccess(getPeoplePositionCandidates(input)),
+      context,
+      signal
+    )
+);
+
+const planWindowHistory = rpc.people.planWindowHistory.handler(
+  async ({ input, context, signal }) =>
+    await executeApplicationEffect(
+      applicationRuntime,
+      withPlanningCenterAccess(getPeoplePlanWindowHistory(input)),
+      context,
+      signal
+    )
+);
+
+const candidateDetails = rpc.people.candidateDetails.handler(
+  async ({ input, context, signal }) =>
+    await executeApplicationEffect(
+      applicationRuntime,
+      withPlanningCenterAccess(getPeopleCandidateDetails(input)),
       context,
       signal
     )
@@ -31,16 +52,6 @@ const search = rpc.people.search.handler(
     await executeApplicationEffect(
       applicationRuntime,
       withPlanningCenterAccess(getPeopleSearch(input)),
-      context,
-      signal
-    )
-);
-
-const warmup = rpc.people.warmup.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(warmPeople(input)),
       context,
       signal
     )
@@ -107,9 +118,10 @@ const myScheduledPlans = rpc.people.myScheduledPlans.handler(
 );
 
 export const peopleRouter = {
-  list,
+  positionCandidates,
+  planWindowHistory,
+  candidateDetails,
   search,
-  warmup,
   blockouts,
   dashboardRoster,
   dashboardActivity,

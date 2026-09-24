@@ -1,18 +1,13 @@
 import {
-  applySelectedPlanRosterStatus,
   getSelectedPlanRosterOverlay,
   mergeAssignedAndSelectedPlanSlotPeople,
-  mergeAssignmentLabels,
 } from "@pcobooster/api/modules/planning-center/people/roster-overlay";
 import type {
   PlanRosterEntry,
   PlanSchedulingContext,
 } from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
-import type {
-  PersonWithAvailability,
-  RawPerson,
-} from "@pcobooster/planning-center-models/types";
+import type { RawPerson } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 const rawPerson = (id: string, firstName = id): RawPerson => ({
@@ -25,21 +20,6 @@ const rawPerson = (id: string, firstName = id): RawPerson => ({
     photo_thumbnail_url: null,
     archived_at: null,
   },
-});
-
-const personWithAvailability = (id: string): PersonWithAvailability => ({
-  id,
-  firstName: id,
-  lastName: "Person",
-  fullName: `${id} Person`,
-  photoUrl: null,
-  photoThumbnailUrl: null,
-  archived: false,
-  positions: [],
-  isScheduledForSelectedPlanPosition: false,
-  isConfirmedForSelectedPlanPosition: false,
-  isDeclinedForSelectedPlanPosition: false,
-  selectedPlanAssignmentLabels: [],
 });
 
 const rosterEntry = (
@@ -166,41 +146,5 @@ describe("selected plan roster overlay", () => {
       "Band - Vocals",
       "Band - Keys",
     ]);
-  });
-
-  it("applies selected slot status and preserves merged labels", () => {
-    const person = personWithAvailability("person-1");
-    const overlay = {
-      selectedSlotEntry: rosterEntry({
-        planPersonId: "pp-selected",
-        personId: "person-1",
-        status: "confirmed",
-        rawStatus: "C",
-      }),
-      assignmentLabels: ["Band - Vocals"],
-    };
-    const labels = mergeAssignmentLabels(overlay.assignmentLabels, [
-      "Band - Vocals",
-      "Band - Keys",
-    ]);
-
-    applySelectedPlanRosterStatus(person, overlay, labels);
-
-    expect(person).toMatchObject({
-      isScheduledForSelectedPlanPosition: true,
-      isConfirmedForSelectedPlanPosition: true,
-      isDeclinedForSelectedPlanPosition: false,
-      scheduledPlanPersonId: "pp-selected",
-      selectedPlanAssignmentLabels: ["Band - Vocals", "Band - Keys"],
-    });
-  });
-
-  it("only dedupes exact labels so hyphenated position names stay intact", () => {
-    const labels = mergeAssignmentLabels(
-      ["Band - Bass Guitar"],
-      ["Bass Guitar", "Band - Bass Guitar"]
-    );
-
-    expect(labels).toStrictEqual(["Band - Bass Guitar", "Bass Guitar"]);
   });
 });

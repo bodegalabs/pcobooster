@@ -32,14 +32,25 @@ export interface RecommendationStripPartition {
   exceptions: PersonWithAvailability[];
 }
 
+/**
+ * `settled: false` while history or availability is still arriving. Scores do not exist yet
+ * (people sort by slot status, then name), and blocked people stay in place with their label
+ * instead of moving to the tail, so the list reorders once, when everything has arrived.
+ * People who declined the slot are known from the first response and go to the tail at once.
+ */
 export const partitionPeopleForRecommendationStrip = (
-  people: PersonWithAvailability[]
+  people: PersonWithAvailability[],
+  { settled = true }: { settled?: boolean } = {}
 ): RecommendationStripPartition => {
   const actionable: PersonWithAvailability[] = [];
   const exceptions: PersonWithAvailability[] = [];
+  const belongsInTail = (person: PersonWithAvailability) =>
+    settled
+      ? isStripTail(person)
+      : person.isDeclinedForSelectedPlanPosition === true;
 
   for (const p of people) {
-    if (isStripTail(p)) {
+    if (belongsInTail(p)) {
       exceptions.push(p);
     } else {
       actionable.push(p);

@@ -3,7 +3,6 @@ import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-cent
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import type {
   Blockout,
-  PersonWithAvailability,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
 import {
@@ -15,6 +14,9 @@ import type { PresentationEnvironment } from "@pcobooster/presentation-mode";
 import { Effect } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { CandidateDetailsBatch } from "./get-candidate-details";
+import type { PlanWindowHistoryBatch } from "./get-plan-window-history";
+import type { PositionCandidatesResult } from "./get-position-candidates";
 import type {
   PeopleDashboardRoster,
   PeopleDashboardPerson,
@@ -25,7 +27,9 @@ import {
   presentBlockouts,
   presentDashboardRoster,
   presentDashboardPerson,
-  presentPeople,
+  presentCandidateDetails,
+  presentPlanWindowHistory,
+  presentPositionCandidates,
   presentTeamPositions,
   presentationIdentity,
 } from "./presentation";
@@ -101,22 +105,92 @@ const groups: TeamPositionGroup[] = [
     ],
   },
 ];
-const people: PersonWithAvailability[] = [
-  {
-    id: "person-1",
-    firstName: "Private",
-    lastName: "Name",
-    fullName: "Private Name",
-    photoUrl: "https://private/full",
-    photoThumbnailUrl: "https://private/photo",
-    archived: false,
-    positions: groups[0].positions,
-    blockouts: [blockout],
-    selectedPlanDeclineReason: "Private Reason",
-    availability: "blocked",
-    recommendationScore: 42,
+const people: PositionCandidatesResult = {
+  generatedAt: "2026-09-16",
+  timeZone: "America/Los_Angeles",
+  match: { planId: "plan-1", teamId: "band", selectedPositionName: "Vocals" },
+  candidates: [
+    {
+      id: "person-1",
+      firstName: "Private",
+      lastName: "Name",
+      fullName: "Private Name",
+      photoUrl: "https://private/full",
+      photoThumbnailUrl: "https://private/photo",
+      archived: false,
+      selectedPlanRosterLabels: ["Band - Vocals"],
+      selectedPlanSlot: {
+        planPersonId: "plan-person-1",
+        status: "declined",
+        declineReason: "Private Reason",
+      },
+    },
+  ],
+};
+const windowHistory: PlanWindowHistoryBatch = {
+  generatedAt: "2026-09-16",
+  loadedPlanCount: 1,
+  plans: [],
+  planTimes: [],
+  people: [
+    {
+      personId: "person-1",
+      rows: [
+        {
+          id: "plan-person-1",
+          planId: "plan-1",
+          teamId: "band",
+          teamPositionName: "Vocals",
+          status: "D",
+          createdAt: "2026-09-01",
+          timeIds: [],
+          serviceTimeIds: [],
+          declineReason: "Private Reason",
+        },
+      ],
+    },
+  ],
+  deferredPlans: [],
+  deferredServiceTypeIds: [],
+  requestBudget: {
+    limit: 40,
+    planningCenterRequests: 1,
+    planRangeRequests: 0,
+    rosterRequests: 1,
   },
-];
+};
+const candidateDetails: CandidateDetailsBatch = {
+  generatedAt: "2026-09-16",
+  people: [
+    {
+      personId: "person-1",
+      isBlockedForDate: true,
+      history: {
+        serviceHistory: [],
+        selectedPlanAssignments: [
+          {
+            source: "schedule",
+            id: "schedule-1",
+            planId: "plan-1",
+            teamId: "band",
+            teamName: "Band",
+            teamPositionName: "Vocals",
+            status: "D",
+            planPersonId: "plan-person-1",
+            declineReason: "Private Reason",
+          },
+        ],
+      },
+    },
+  ],
+  deferredPersonIds: [],
+  requestBudget: {
+    limit: 40,
+    planningCenterRequests: 1,
+    blockoutRequests: 1,
+    scheduleRequests: 0,
+  },
+};
 const dashboardPerson: PeopleDashboardPerson = {
   id: "person-1",
   name: "Private Name",
@@ -182,7 +256,9 @@ describe("presentation mode", () => {
     expect(isPresentationMode(environment)).toBeFalsy();
     expect(getPresentationCacheScope(environment)).toBe("live");
     await expect(
-      Effect.runPromise(presentPeople(people, dependencies.presentation))
+      Effect.runPromise(
+        presentPositionCandidates(people, dependencies.presentation)
+      )
     ).resolves.toBe(people);
     expect(dependencies.catalog.getOrganization).not.toHaveBeenCalled();
   });
@@ -232,18 +308,19 @@ describe("presentation mode", () => {
     const [first, second] = await Effect.runPromise(
       Effect.all(
         [
-          presentPeople(people, dependencies.presentation),
-          presentPeople(people, otherDependencies.presentation),
+          presentPositionCandidates(people, dependencies.presentation),
+          presentPositionCandidates(people, otherDependencies.presentation),
         ],
         { concurrency: "unbounded" }
       )
     );
-    expect(first[0]).toMatchObject(
-      presentationIdentity("org-1", "person-1", "test-seed")
-    );
-    expect(second[0]).toMatchObject(
-      presentationIdentity("org-2", "person-1", "test-seed")
-    );
+    expect([
+      first.candidates[0].fullName,
+      second.candidates[0].fullName,
+    ]).toStrictEqual([
+      presentationIdentity("org-1", "person-1", "test-seed").fullName,
+      presentationIdentity("org-2", "person-1", "test-seed").fullName,
+    ]);
   });
 
   it("masks every person view consistently without changing source data or scheduling fields", async () => {
@@ -254,19 +331,19 @@ describe("presentation mode", () => {
       detail,
       blockout,
     });
-    const [candidates, roster, overview, personDetail] =
-      await Effect.runPromise(
-        Effect.all(
-          [
-            presentPeople(people, dependencies.presentation),
-            presentTeamPositions(groups, dependencies.presentation),
-            presentDashboardRoster(dashboard, dependencies.presentation),
-            presentDashboardPerson(detail, dependencies.presentation),
-          ],
-          { concurrency: "unbounded" }
-        )
-      );
-    const alias = candidates[0].fullName;
+    const [presented, roster, overview, personDetail] = await Effect.runPromise(
+      Effect.all(
+        [
+          presentPositionCandidates(people, dependencies.presentation),
+          presentTeamPositions(groups, dependencies.presentation),
+          presentDashboardRoster(dashboard, dependencies.presentation),
+          presentDashboardPerson(detail, dependencies.presentation),
+        ],
+        { concurrency: "unbounded" }
+      )
+    );
+    const [candidate] = presented.candidates;
+    const alias = candidate.fullName;
     expect({
       names: [
         roster[0].positions[0].filledPeople?.[0]?.name,
@@ -274,22 +351,28 @@ describe("presentation mode", () => {
         personDetail.person.name,
       ],
       initials: personDetail.person.initials,
-      candidate: candidates[0],
+      candidate,
       roster: roster[0],
     }).toMatchObject({
       names: [alias, alias, alias],
-      initials: candidates[0].firstName[0] + candidates[0].lastName[0],
+      initials: candidate.firstName[0] + candidate.lastName[0],
       candidate: {
         id: "person-1",
         photoUrl: null,
         photoThumbnailUrl: null,
-        availability: "blocked",
-        recommendationScore: 42,
+        selectedPlanRosterLabels: ["Band - Vocals"],
+        selectedPlanSlot: {
+          planPersonId: "plan-person-1",
+          status: "declined",
+          declineReason: "Unavailable",
+        },
       },
       roster: { teamId: "band", teamName: "Band" },
     });
     const serialized = JSON.stringify([
-      candidates,
+      presented,
+      presentPlanWindowHistory(windowHistory, true),
+      presentCandidateDetails(candidateDetails, true),
       roster,
       overview,
       personDetail,
@@ -327,7 +410,9 @@ describe("presentation mode", () => {
     );
     await expect(
       Effect.runPromise(
-        Effect.flip(presentPeople(people, dependencies.presentation))
+        Effect.flip(
+          presentPositionCandidates(people, dependencies.presentation)
+        )
       )
     ).resolves.toMatchObject({ _tag: "PlanningCenterNetworkError" });
   });
@@ -335,7 +420,9 @@ describe("presentation mode", () => {
   it("preserves normal-mode data, including notes and photos", async () => {
     setEnvironment("PRESENTATION_MODE", "0");
     await expect(
-      Effect.runPromise(presentPeople(people, dependencies.presentation))
+      Effect.runPromise(
+        presentPositionCandidates(people, dependencies.presentation)
+      )
     ).resolves.toBe(people);
     await expect(
       Effect.runPromise(presentTeamPositions(groups, dependencies.presentation))
@@ -351,7 +438,11 @@ describe("presentation mode", () => {
       )
     ).resolves.toBe(detail);
     const blockouts = [blockout];
-    expect(presentBlockouts(blockouts, false)).toBe(blockouts);
+    expect([
+      presentBlockouts(blockouts, false),
+      presentPlanWindowHistory(windowHistory, false),
+      presentCandidateDetails(candidateDetails, false),
+    ]).toStrictEqual([blockouts, windowHistory, candidateDetails]);
   });
 });
 
@@ -372,9 +463,9 @@ describe("people search", () => {
   it("searches the displayed aliases, never real names or upstream name search", async () => {
     dependencies.people.getAllPeople.mockReturnValue(Effect.succeed(resources));
     const presentedPeople = await Effect.runPromise(
-      presentPeople(people, dependencies.presentation)
+      presentPositionCandidates(people, dependencies.presentation)
     );
-    const alias = presentedPeople[0].fullName;
+    const alias = presentedPeople.candidates[0].fullName;
     const results = await Effect.runPromise(
       searchPeople(alias.toLowerCase(), 15, dependencies.search)
     );

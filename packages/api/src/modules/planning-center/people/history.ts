@@ -1,25 +1,14 @@
-import {
-  findMatchingScheduleForSelectedPosition,
-  isDeclinedAssignmentStatus,
-} from "@pcobooster/api/modules/planning-center/people/matching";
-import type {
-  HistoryBuildResult,
-  SelectedPlanMatchContext,
-} from "@pcobooster/api/modules/planning-center/people/types";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import {
-  formatCalendarDayInTimeZone,
-  orgCalendarDaysRefMinusItem,
-} from "@pcobooster/planning-center-models/calendar";
+  isDeclinedAssignmentStatus,
+  summarizeCandidateHistory,
+} from "@pcobooster/planning-center-models/candidate-frequency";
 import {
   isNonEmptyString,
   isString,
 } from "@pcobooster/planning-center-models/json";
-import { PLAN_HISTORY_HALF_RANGE_DAYS } from "@pcobooster/planning-center-models/schedule-constants";
 import type {
   PCResource,
-  RawPlanPerson,
-  RawPlanTime,
   RawSchedule,
   ScheduleFrequency,
   ServiceHistoryItem,
@@ -99,127 +88,8 @@ const getSchedulePlanTimes = (
   return planTimes;
 };
 
-const splitPlanPositionName = (teamPositionName: string) => {
-  const teamPositionParts = teamPositionName.split(" - ");
-  const teamName =
-    teamPositionParts.length > 1 ? teamPositionParts[0] : undefined;
-  const positionName =
-    teamPositionParts.length > 1
-      ? teamPositionParts.slice(1).join(" - ")
-      : teamPositionParts[0];
-
-  return { teamName, positionName };
-};
-
-const getPlanPersonHistoryContext = (
-  pp: RawPlanPerson,
-  historyIncluded: PCResource[]
-) => {
-  const planRel = pp.relationships?.plan?.data;
-  const planId = planRel?.id;
-  const plan = isNonEmptyString(planId)
-    ? findIncluded(historyIncluded, "Plan", planId)
-    : undefined;
-  const serviceTypeRel = plan?.relationships?.service_type?.data;
-  const serviceTypeId = Array.isArray(serviceTypeRel)
-    ? serviceTypeRel[0]?.id
-    : serviceTypeRel?.id;
-  const serviceType = isNonEmptyString(serviceTypeId)
-    ? findIncluded(historyIncluded, "ServiceType", serviceTypeId)
-    : undefined;
-  const serviceTypeName = isString(serviceType?.attributes.name)
-    ? serviceType.attributes.name
-    : undefined;
-
-  const fallbackDate = isNonEmptyString(plan?.attributes.sort_date)
-    ? new Date(plan.attributes.sort_date)
-    : new Date(pp.attributes.created_at);
-
-  const { teamName, positionName } = splitPlanPositionName(
-    pp.attributes.team_position_name
-  );
-  const planTitle = isString(plan?.attributes.title)
-    ? plan.attributes.title
-    : undefined;
-  return { fallbackDate, teamName, positionName, serviceTypeName, planTitle };
-};
-
-const inferAssignedTimeType = (
-  rawType: string | undefined
-): HistoryTimeType => {
-  if (rawType === "other" || rawType === "service") {
-    return rawType;
-  }
-  return "rehearsal";
-};
-
-const mapPlanPeopleToServiceHistory = (
-  planPeople: RawPlanPerson[],
-  historyIncluded: PCResource[],
-  planTimeById = new Map<string, RawPlanTime>()
-): ServiceHistoryItem[] =>
-  planPeople.flatMap((pp) => {
-    if (isDeclinedAssignmentStatus(pp.attributes.status)) {
-      return [];
-    }
-
-    const { fallbackDate, teamName, positionName, serviceTypeName, planTitle } =
-      getPlanPersonHistoryContext(pp, historyIncluded);
-
-    const buildItem = (
-      id: string,
-      date: Date,
-      timeType: HistoryTimeType | undefined
-    ): ServiceHistoryItem => ({
-      id,
-      sourceScheduleId: pp.id,
-      date,
-      teamPositionName: positionName || "",
-      teamName,
-      serviceTypeName,
-      planTitle,
-      status: pp.attributes.status || "",
-      timeType,
-    });
-
-    const timesIds = new Set(getRelationshipIds(pp.relationships?.times));
-    const serviceTimesIds = new Set(
-      getRelationshipIds(pp.relationships?.service_times)
-    );
-
-    if (timesIds.size === 0 && serviceTimesIds.size === 0) {
-      return [buildItem(pp.id, fallbackDate, "service")];
-    }
-
-    const serviceRows = [...serviceTimesIds].map((planTimeId) => {
-      const planTime = planTimeById.get(planTimeId);
-      const date = isNonEmptyString(planTime?.attributes.starts_at)
-        ? new Date(planTime.attributes.starts_at)
-        : fallbackDate;
-      return buildItem(`${pp.id}:${planTimeId}`, date, "service");
-    });
-
-    const rehearsalCandidateIds = [...timesIds].filter(
-      (id) => !serviceTimesIds.has(id)
-    );
-    const rehearsalRows = rehearsalCandidateIds.map((planTimeId) => {
-      const planTime = planTimeById.get(planTimeId);
-      const rawType = planTime?.attributes.time_type;
-      const inferredType = inferAssignedTimeType(rawType);
-      const date = isNonEmptyString(planTime?.attributes.starts_at)
-        ? new Date(planTime.attributes.starts_at)
-        : fallbackDate;
-      return buildItem(`${pp.id}:${planTimeId}`, date, inferredType);
-    });
-
-    const rows = [...serviceRows, ...rehearsalRows].filter(
-      (item) => item.timeType === "service" || item.timeType === "rehearsal"
-    );
-
-    return rows.length > 0 ? rows : [buildItem(pp.id, fallbackDate, "service")];
-  });
-
-const mapSchedulesToServiceHistory = (
+/** History rows for a person's own schedules; declined schedules are left out. */
+export const mapSchedulesToServiceHistory = (
   schedules: RawSchedule[],
   historyIncluded: PCResource[]
 ): ServiceHistoryItem[] =>
@@ -306,221 +176,37 @@ const mapSchedulesToServiceHistory = (
     );
   });
 
-const isServiceEngagement = (item: ServiceHistoryItem) =>
-  item.timeType === undefined || item.timeType === "service";
-
-const isRehearsalEngagement = (item: ServiceHistoryItem) =>
-  item.timeType === "rehearsal";
-
-interface EngagementDay {
-  service?: ServiceHistoryItem;
-  rehearsal?: ServiceHistoryItem;
-}
-
-const groupEngagementDays = (
-  history: ServiceHistoryItem[],
-  orgTimeZone: string
-) => {
-  const days = new Map<string, EngagementDay>();
-  for (const item of history) {
-    if (isDeclinedAssignmentStatus(item.status)) {
-      continue;
-    }
-    const dayKey = formatCalendarDayInTimeZone(item.date, orgTimeZone);
-    const day = days.get(dayKey) ?? {};
-    if (
-      isServiceEngagement(item) &&
-      (!day.service || item.date > day.service.date)
-    ) {
-      day.service = item;
-    }
-    if (
-      isRehearsalEngagement(item) &&
-      (!day.rehearsal || item.date > day.rehearsal.date)
-    ) {
-      day.rehearsal = item;
-    }
-    days.set(dayKey, day);
-  }
-  return days;
-};
-
-interface EngagementSummary {
-  recent: number;
-  last60: number;
-  last90: number;
-  total: number;
-  upcoming: number;
-  latest?: Date;
-  next?: Date;
-}
-
-const summarizeEngagementDays = (
-  days: ServiceHistoryItem[],
-  referenceDate: Date,
-  orgTimeZone: string
-): EngagementSummary => {
-  const summary: EngagementSummary = {
-    recent: 0,
-    last60: 0,
-    last90: 0,
-    total: 0,
-    upcoming: 0,
-  };
-  const referenceKey = formatCalendarDayInTimeZone(referenceDate, orgTimeZone);
-  for (const item of days) {
-    const dayKey = formatCalendarDayInTimeZone(item.date, orgTimeZone);
-    const daysDiff = orgCalendarDaysRefMinusItem(dayKey, referenceKey);
-    if (daysDiff < -PLAN_HISTORY_HALF_RANGE_DAYS) {
-      continue;
-    }
-    if (daysDiff < 0) {
-      summary.upcoming += 1;
-      if (!summary.next || item.date < summary.next) {
-        summary.next = item.date;
-      }
-      continue;
-    }
-    summary.total += 1;
-    if (daysDiff <= PLAN_HISTORY_HALF_RANGE_DAYS) {
-      summary.recent += 1;
-    }
-    if (daysDiff <= 60) {
-      summary.last60 += 1;
-    }
-    if (daysDiff <= 90) {
-      summary.last90 += 1;
-    }
-    if (!summary.latest || item.date > summary.latest) {
-      summary.latest = item.date;
-    }
-  }
-  return summary;
-};
-
-export const buildFrequencyFromServiceHistory = (
+const limitHistory = (
   serviceHistory: ServiceHistoryItem[],
-  referenceDate: Date,
-  orgTimeZone: string
-): ScheduleFrequency => {
-  const serviceDays: ServiceHistoryItem[] = [];
-  const rehearsalOnlyDays: ServiceHistoryItem[] = [];
-  for (const day of groupEngagementDays(serviceHistory, orgTimeZone).values()) {
-    if (day.service) {
-      serviceDays.push(day.service);
-    } else if (day.rehearsal) {
-      rehearsalOnlyDays.push(day.rehearsal);
-    }
+  historyLimit: number
+): ServiceHistoryItem[] => {
+  if (!Number.isFinite(historyLimit)) {
+    return serviceHistory;
   }
-  const services = summarizeEngagementDays(
-    serviceDays,
-    referenceDate,
-    orgTimeZone
-  );
-  const rehearsals = summarizeEngagementDays(
-    rehearsalOnlyDays,
-    referenceDate,
-    orgTimeZone
-  );
-  return {
-    recentServedDays: services.recent,
-    last60Days: services.last60,
-    last90Days: services.last90,
-    totalServed: services.total,
-    upcomingServices: services.upcoming,
-    recentRehearsalOnlyDays: rehearsals.recent,
-    rehearsalLast60Days: rehearsals.last60,
-    rehearsalLast90Days: rehearsals.last90,
-    totalRehearsals: rehearsals.total,
-    upcomingRehearsals: rehearsals.upcoming,
-    ...(services.latest ? { lastServedDate: services.latest } : undefined),
-    ...(services.next ? { nextUpcomingDate: services.next } : undefined),
-    ...(rehearsals.latest
-      ? { lastRehearsalDate: rehearsals.latest }
-      : undefined),
-    ...(rehearsals.next ? { nextRehearsalDate: rehearsals.next } : undefined),
-  };
+  return historyLimit <= 0
+    ? []
+    : serviceHistory.slice(-Math.floor(historyLimit));
 };
+
+export interface HistoryBuildResult {
+  serviceHistory: ServiceHistoryItem[];
+  frequency: ScheduleFrequency;
+}
 
 export const buildHistoryAndFrequencyForPerson = (
   schedules: RawSchedule[],
   historyIncluded: PCResource[],
   referenceDate: Date,
-  selectedMatchContext: SelectedPlanMatchContext,
   historyLimit: number,
   orgTimeZone: string
 ): HistoryBuildResult => {
-  let serviceHistory = mapSchedulesToServiceHistory(schedules, historyIncluded);
-
-  const matchedSchedule = findMatchingScheduleForSelectedPosition(
-    schedules,
-    selectedMatchContext
-  );
-
-  serviceHistory.sort((a, b) => a.date.getTime() - b.date.getTime());
-  const frequency = buildFrequencyFromServiceHistory(
-    serviceHistory,
+  const { frequency, serviceHistory } = summarizeCandidateHistory(
+    mapSchedulesToServiceHistory(schedules, historyIncluded),
     referenceDate,
     orgTimeZone
   );
-  const refDayKey = formatCalendarDayInTimeZone(referenceDate, orgTimeZone);
-  serviceHistory = serviceHistory.filter((item) => {
-    const itemDayKey = formatCalendarDayInTimeZone(item.date, orgTimeZone);
-    const daysDiff = orgCalendarDaysRefMinusItem(itemDayKey, refDayKey);
-    return (
-      daysDiff >= -PLAN_HISTORY_HALF_RANGE_DAYS &&
-      daysDiff <= PLAN_HISTORY_HALF_RANGE_DAYS
-    );
-  });
-  if (Number.isFinite(historyLimit)) {
-    serviceHistory =
-      historyLimit <= 0 ? [] : serviceHistory.slice(-Math.floor(historyLimit));
-  }
-
-  return { serviceHistory, frequency, matchedSchedule };
-};
-
-export const buildHistoryAndFrequencyForPlanPeople = (
-  planPeople: RawPlanPerson[],
-  historyIncluded: PCResource[],
-  referenceDate: Date,
-  selectedMatchContext: SelectedPlanMatchContext,
-  planTimeById: Map<string, RawPlanTime>,
-  historyLimit: number,
-  orgTimeZone: string
-): HistoryBuildResult => {
-  let serviceHistory = mapPlanPeopleToServiceHistory(
-    planPeople,
-    historyIncluded,
-    planTimeById
-  );
-
-  const matchedSchedule = findMatchingScheduleForSelectedPosition(
-    planPeople,
-    selectedMatchContext
-  );
-
-  serviceHistory.sort((a, b) => a.date.getTime() - b.date.getTime());
-  const frequency = buildFrequencyFromServiceHistory(
-    serviceHistory,
-    referenceDate,
-    orgTimeZone
-  );
-  const refDayKey = formatCalendarDayInTimeZone(referenceDate, orgTimeZone);
-
-  serviceHistory = serviceHistory.filter((item) => {
-    const itemDayKey = formatCalendarDayInTimeZone(item.date, orgTimeZone);
-    const daysDiff = orgCalendarDaysRefMinusItem(itemDayKey, refDayKey);
-    return (
-      daysDiff >= -PLAN_HISTORY_HALF_RANGE_DAYS &&
-      daysDiff <= PLAN_HISTORY_HALF_RANGE_DAYS
-    );
-  });
-
-  if (Number.isFinite(historyLimit)) {
-    serviceHistory =
-      historyLimit <= 0 ? [] : serviceHistory.slice(-Math.floor(historyLimit));
-  }
-
-  return { serviceHistory, frequency, matchedSchedule };
+  return {
+    serviceHistory: limitHistory(serviceHistory, historyLimit),
+    frequency,
+  };
 };

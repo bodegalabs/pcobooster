@@ -15,7 +15,6 @@ export interface ServicePlanTableSelectorProps {
 export type DateRangeFilter = "all" | "14" | "30" | "60";
 export const SERVICE_TYPE_FILTER_STORAGE_KEY =
   "schedule:selected-service-type-ids";
-export const PEOPLE_HISTORY_WARMUP_STALE_TIME_MS = 60 * 1000;
 
 export interface ServicePlanRow {
   serviceTypeId: string;

@@ -9,18 +9,25 @@ import {
 import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/planning-center-access";
 import { loadDevBypassIdentity } from "@pcobooster/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
+import { getCandidateDetails } from "@pcobooster/api/modules/planning-center/get-candidate-details";
+import type {
+  CandidateDetailsBatch,
+  CandidateDetailsInput,
+} from "@pcobooster/api/modules/planning-center/get-candidate-details";
 import { getCurrentUserScheduledPlanIds } from "@pcobooster/api/modules/planning-center/get-current-user-scheduled-plans";
 import {
   getPeopleDashboardActivity as getPeopleDashboardActivityData,
   getPeopleDashboardRoster as getPeopleDashboardRosterData,
 } from "@pcobooster/api/modules/planning-center/get-people-dashboard";
 import { getPeopleDashboardPerson as getPeopleDashboardPersonDetail } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
-import {
-  getPeopleForPosition,
-  warmPeopleHistoryForPlan,
-} from "@pcobooster/api/modules/planning-center/get-people-for-position";
-import type { PeopleForPositionDependencies } from "@pcobooster/api/modules/planning-center/get-people-for-position";
 import { getFutureBlockoutsForPerson } from "@pcobooster/api/modules/planning-center/get-person-blockouts";
+import { getPlanWindowHistory } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
+import type {
+  PlanWindowHistoryBatch,
+  PlanWindowHistoryInput,
+} from "@pcobooster/api/modules/planning-center/get-plan-window-history";
+import { getPositionCandidates } from "@pcobooster/api/modules/planning-center/get-position-candidates";
+import type { PositionCandidatesResult } from "@pcobooster/api/modules/planning-center/get-position-candidates";
 import { getScheduleHistory } from "@pcobooster/api/modules/planning-center/get-schedule-history";
 import type { ScheduleHistoryResult } from "@pcobooster/api/modules/planning-center/get-schedule-history";
 import type {
@@ -30,19 +37,18 @@ import type {
 } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
 import {
   presentBlockouts,
+  presentCandidateDetails,
   presentDashboardRoster,
   presentDashboardPerson,
-  presentPeople,
+  presentPlanWindowHistory,
+  presentPositionCandidates,
   getPresentationIdentityMapper,
 } from "@pcobooster/api/modules/planning-center/presentation";
 import { searchPeople } from "@pcobooster/api/modules/planning-center/search-people";
 import type { PeopleSearchResult } from "@pcobooster/api/modules/planning-center/search-people";
 import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
 import { Server } from "@pcobooster/api/server";
-import type {
-  Blockout,
-  PersonWithAvailability,
-} from "@pcobooster/planning-center-models/types";
+import type { Blockout } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
 const resolveRequestTimeZone = (
@@ -63,15 +69,6 @@ const requestPresentationDependencies = (
   getPresentationSeed: () => access.presentationSeed,
 });
 
-const requestPeopleForPositionDependencies = (
-  access: PlanningCenterRequestAccess
-): PeopleForPositionDependencies => ({
-  catalog: access.services.catalog,
-  people: access.services.people,
-  plans: access.services.plans,
-  resolveTimeZone: resolveRequestTimeZone(access),
-});
-
 /** The People dashboard exists only where the `people` flag is on for this caller. */
 const requirePeopleDashboard = (access: PlanningCenterRequestAccess) =>
   Effect.gen(function* checkPeopleFlag() {
@@ -90,27 +87,60 @@ const requirePeopleDashboard = (access: PlanningCenterRequestAccess) =>
     }
   });
 
-export const getPeopleList = (input: {
+export const getPeoplePositionCandidates = (input: {
   readonly serviceTypeId: string;
   readonly positionId: string;
   readonly teamId?: string;
-  readonly planId?: string;
-  readonly date?: string;
+  readonly planId: string;
 }): Effect.Effect<
-  PersonWithAvailability[],
+  PositionCandidatesResult,
   ApplicationFault,
   PlanningCenterAccess | RequestContext | Server
 > =>
-  Effect.gen(function* listPeople() {
+  Effect.gen(function* listPositionCandidates() {
     const access = yield* PlanningCenterAccess;
-    const people = yield* getPeopleForPosition(
-      input,
-      requestPeopleForPositionDependencies(access)
-    );
-    return yield* presentPeople(
-      people,
+    const result = yield* getPositionCandidates(input, {
+      people: access.services.people,
+      resolveTimeZone: resolveRequestTimeZone(access),
+    });
+    return yield* presentPositionCandidates(
+      result,
       requestPresentationDependencies(access)
     );
+  }).pipe(withPlanningCenterFaults);
+
+export const getPeoplePlanWindowHistory = (
+  input: PlanWindowHistoryInput
+): Effect.Effect<
+  PlanWindowHistoryBatch,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext | Server
+> =>
+  Effect.gen(function* readPlanWindowHistory() {
+    const access = yield* PlanningCenterAccess;
+    const batch = yield* getPlanWindowHistory(input, {
+      catalog: access.services.catalog,
+      people: access.services.people,
+      plans: access.services.plans,
+      resolveTimeZone: resolveRequestTimeZone(access),
+    });
+    return presentPlanWindowHistory(batch, access.presentation);
+  }).pipe(withPlanningCenterFaults);
+
+export const getPeopleCandidateDetails = (
+  input: CandidateDetailsInput
+): Effect.Effect<
+  CandidateDetailsBatch,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext | Server
+> =>
+  Effect.gen(function* readCandidateDetails() {
+    const access = yield* PlanningCenterAccess;
+    const batch = yield* getCandidateDetails(input, {
+      people: access.services.people,
+      resolveTimeZone: resolveRequestTimeZone(access),
+    });
+    return presentCandidateDetails(batch, access.presentation);
   }).pipe(withPlanningCenterFaults);
 
 export const getPeopleSearch = (input: {
@@ -128,23 +158,6 @@ export const getPeopleSearch = (input: {
         requestPresentationDependencies(access)
       ),
     });
-  }).pipe(withPlanningCenterFaults);
-
-export const warmPeople = (input: {
-  readonly serviceTypeId: string;
-  readonly date: string;
-}): Effect.Effect<
-  { readonly warmed: true },
-  ApplicationFault,
-  PlanningCenterAccess | RequestContext | Server
-> =>
-  Effect.gen(function* warmPeopleHistory() {
-    const access = yield* PlanningCenterAccess;
-    yield* warmPeopleHistoryForPlan(
-      input,
-      requestPeopleForPositionDependencies(access)
-    );
-    return { warmed: true as const };
   }).pipe(withPlanningCenterFaults);
 
 export const getPeopleBlockouts = (input: {

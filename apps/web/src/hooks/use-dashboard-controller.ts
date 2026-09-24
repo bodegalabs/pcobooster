@@ -10,13 +10,18 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { SlotRef } from "@/components/schedule/types";
 import { useCollapsedTeams } from "@/hooks/use-collapsed-teams";
 import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
-import { createPeopleQueryOptions, usePeople } from "@/hooks/use-people";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
 import { usePlanTimes } from "@/hooks/use-plan-times";
 import { usePlans } from "@/hooks/use-plans";
+import {
+  isPositionCandidatesFresh,
+  prefetchPositionCandidates,
+  toPlanDateKey,
+  usePositionCandidates,
+} from "@/hooks/use-position-candidates";
+import type { CandidateSlot } from "@/hooks/use-position-candidates";
 import { useServiceTypes } from "@/hooks/use-service-types";
 import { useTeamPositions } from "@/hooks/use-team-positions";
-import { isQueryFresh } from "@/lib/intent-prefetch";
 import { queryKeys } from "@/lib/query-keys";
 import type {
   DashboardView,
@@ -80,17 +85,30 @@ const usePlanWorkspaceData = (
 
   const { selectedTeam, selectedPosition, selectedPositionUsesRoster } =
     resolveSelectedSlot(teamPositionGroups, routeIds);
-  const canLoadSelectedSlotPeople =
-    selectedPlan?.sortDate !== undefined &&
-    isNonEmptyString(selectedPosition) &&
-    selectedPositionUsesRoster;
-  const { data: people, isLoading: peopleLoading } = usePeople(
-    routeServiceTypeId,
-    canLoadSelectedSlotPeople ? selectedTeam : null,
-    canLoadSelectedSlotPeople ? selectedPosition : null,
-    routePlanId,
-    selectedPlan?.sortDate ?? null
+  const planDateKey = toPlanDateKey(selectedPlan?.sortDate ?? null);
+  const candidateSlot = useMemo<CandidateSlot | null>(
+    () =>
+      planDateKey !== null &&
+      isNonEmptyString(selectedPosition) &&
+      selectedPositionUsesRoster
+        ? {
+            serviceTypeId: routeServiceTypeId,
+            teamId: selectedTeam,
+            positionId: selectedPosition,
+            planId: routePlanId,
+            dateKey: planDateKey,
+          }
+        : null,
+    [
+      planDateKey,
+      routePlanId,
+      routeServiceTypeId,
+      selectedPosition,
+      selectedPositionUsesRoster,
+      selectedTeam,
+    ]
   );
+  const candidateList = usePositionCandidates(candidateSlot);
 
   const workspaceUnavailable =
     !serviceTypesLoading &&
@@ -105,8 +123,7 @@ const usePlanWorkspaceData = (
     selectedTeam,
     selectedPosition,
     selectedPositionUsesRoster,
-    people,
-    peopleLoading,
+    candidateList,
     workspaceUnavailable,
   };
 };
@@ -165,8 +182,7 @@ export const useDashboardController = ({
     selectedTeam,
     selectedPosition,
     selectedPositionUsesRoster,
-    people,
-    peopleLoading,
+    candidateList,
     workspaceUnavailable,
   } = usePlanWorkspaceData(serviceTypeId, planId, routeIds);
   const routeServiceTypeId = serviceTypeId;
@@ -230,9 +246,10 @@ export const useDashboardController = ({
     void prefetchPlanItems();
   }, [activeView, hasPlanUrlSelection, prefetchPlanItems]);
 
-  const getSlotPeopleQueryOptions = useCallback(
-    (slot: SlotRef) => {
-      if (!routeServiceTypeId || !selectedPlan) {
+  const getCandidateSlot = useCallback(
+    (slot: SlotRef): CandidateSlot | null => {
+      const dateKey = toPlanDateKey(selectedPlan?.sortDate ?? null);
+      if (!routeServiceTypeId || !selectedPlan || dateKey === null) {
         return null;
       }
       const slotPosition = teamPositionGroups
@@ -241,42 +258,42 @@ export const useDashboardController = ({
       if (slotPosition?.source && slotPosition.source !== "team_position") {
         return null;
       }
-      return createPeopleQueryOptions(
-        routeServiceTypeId,
-        slot.teamId,
-        slot.positionId,
-        selectedPlan.id,
-        selectedPlan.sortDate ?? null
-      );
+      return {
+        serviceTypeId: routeServiceTypeId,
+        teamId: slot.teamId,
+        positionId: slot.positionId,
+        planId: selectedPlan.id,
+        dateKey,
+      };
     },
     [routeServiceTypeId, selectedPlan, teamPositionGroups]
   );
 
   const prefetchSlotPeople = useCallback(
     async (slot: SlotRef) => {
-      const options = getSlotPeopleQueryOptions(slot);
-      if (options === null) {
+      const candidateSlot = getCandidateSlot(slot);
+      if (candidateSlot === null) {
         return;
       }
       try {
-        await queryClient.query(options);
+        await prefetchPositionCandidates(queryClient, candidateSlot);
       } catch {
-        // The selected-slot query owns any visible loading error.
+        // The selected-slot queries own any visible loading error.
       }
     },
-    [getSlotPeopleQueryOptions, queryClient]
+    [getCandidateSlot, queryClient]
   );
 
-  // A candidate list can cost dozens of Planning Center requests, so only a slot the
-  // pointer or focus rests on is loaded ahead of the click.
+  // Candidates are cheap, but their availability costs a request or more per person, so only
+  // a slot the pointer or focus rests on is loaded ahead of the click.
   const { getIntentProps: getSlotIntentProps, cancelIntent: cancelSlotIntent } =
     useIntentPrefetch<SlotRef>({
       keyOf: (slot) => `${slot.teamId}:${slot.positionId}`,
       isFresh: (slot) => {
-        const options = getSlotPeopleQueryOptions(slot);
+        const candidateSlot = getCandidateSlot(slot);
         return (
-          options === null ||
-          isQueryFresh(queryClient, options.queryKey, options.staleTime)
+          candidateSlot === null ||
+          isPositionCandidatesFresh(queryClient, candidateSlot)
         );
       },
       prefetch: prefetchSlotPeople,
@@ -446,8 +463,7 @@ export const useDashboardController = ({
     selectedTeam,
     selectedPosition,
     selectedPositionUsesRoster,
-    people,
-    peopleLoading,
+    candidateList,
     routeServiceTypeId,
     routePlanId,
     toggleTeamCollapsed,

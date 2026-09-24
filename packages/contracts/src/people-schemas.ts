@@ -1,4 +1,3 @@
-import { teamPositionSchema } from "@pcobooster/contracts/catalog";
 import { z } from "zod";
 
 export const blockoutSchema = z.object({
@@ -40,20 +39,22 @@ export const serviceHistoryItemSchema = z.object({
   timeType: z.enum(["service", "rehearsal", "other"]).optional(),
 });
 
-export const personWithAvailabilitySchema = z.object({
-  availability: z.enum(["available", "blocked", "unknown"]).optional(),
-  frequency: scheduleFrequencySchema.optional(),
-  blockouts: z.array(blockoutSchema).optional(),
-  serviceHistory: z.array(serviceHistoryItemSchema).optional(),
-  isBlockedForDate: z.boolean().optional(),
-  isScheduledForSelectedPlanPosition: z.boolean().optional(),
-  isConfirmedForSelectedPlanPosition: z.boolean().optional(),
-  isDeclinedForSelectedPlanPosition: z.boolean().optional(),
-  selectedPlanDeclineReason: z.string().nullable().optional(),
-  selectedPlanAssignmentLabels: z.array(z.string()).optional(),
-  scheduledPlanPersonId: z.string().optional(),
-  recommendationScore: z.number().optional(),
-  recommendationReasoning: z.array(z.string()).optional(),
+/** The selected plan and slot candidates are matched against. */
+export const selectedPlanMatchSchema = z.object({
+  planId: z.string().optional(),
+  teamId: z.string().optional(),
+  selectedPositionName: z.string().optional(),
+  selectedTeamName: z.string().optional(),
+});
+
+export const selectedPlanSlotSchema = z.object({
+  planPersonId: z.string(),
+  status: z.enum(["confirmed", "pending", "declined"]),
+  declineReason: z.string().nullable(),
+});
+
+/** A candidate with the selected plan's fresh roster applied; no history or availability. */
+export const positionCandidateSchema = z.object({
   id: z.string(),
   firstName: z.string(),
   lastName: z.string(),
@@ -61,7 +62,108 @@ export const personWithAvailabilitySchema = z.object({
   photoUrl: z.string().nullable(),
   photoThumbnailUrl: z.string().nullable(),
   archived: z.boolean(),
-  positions: z.array(teamPositionSchema),
+  selectedPlanRosterLabels: z.array(z.string()),
+  selectedPlanSlot: selectedPlanSlotSchema.nullable(),
+});
+
+export const positionCandidatesSchema = z.object({
+  generatedAt: z.string(),
+  timeZone: z.string(),
+  match: selectedPlanMatchSchema,
+  candidates: z.array(positionCandidateSchema),
+});
+
+/** One of a person's selected-plan assignments as history saw it. */
+export const selectedPlanAssignmentSchema = z.object({
+  source: z.enum(["planPerson", "schedule"]),
+  id: z.string(),
+  planId: z.string().nullable(),
+  teamId: z.string().nullable(),
+  teamName: z.string().nullable(),
+  teamPositionName: z.string(),
+  status: z.string(),
+  planPersonId: z.string().nullable(),
+  declineReason: z.string().nullable(),
+});
+
+export const candidateHistorySchema = z.object({
+  /** Unsorted; the browser sorts, summarizes, and trims them. */
+  serviceHistory: z.array(serviceHistoryItemSchema),
+  selectedPlanAssignments: z.array(selectedPlanAssignmentSchema),
+});
+
+export const windowPlanRefSchema = z.object({
+  serviceTypeId: z.string().trim().min(1),
+  planId: z.string().trim().min(1),
+});
+
+export const windowPlanSummarySchema = z.object({
+  id: z.string(),
+  title: z.string().nullable(),
+  sortDate: z.string().nullable(),
+  serviceTypeName: z.string().nullable(),
+});
+
+export const windowPlanTimeSchema = z.object({
+  id: z.string(),
+  startsAt: z.string().nullable(),
+  timeType: z.string().nullable(),
+});
+
+export const windowRosterRowSchema = z.object({
+  id: z.string(),
+  planId: z.string().nullable(),
+  teamId: z.string().nullable(),
+  teamPositionName: z.string(),
+  status: z.string(),
+  createdAt: z.string(),
+  timeIds: z.array(z.string()),
+  serviceTimeIds: z.array(z.string()),
+  declineReason: z.string().nullable(),
+});
+
+export const planWindowHistoryBatchSchema = z.object({
+  generatedAt: z.string(),
+  /** Rosters read by this call, including plans with no one scheduled. */
+  loadedPlanCount: z.number(),
+  /** Plans and times the rows point at; the browser expands rows into history items. */
+  plans: z.array(windowPlanSummarySchema),
+  planTimes: z.array(windowPlanTimeSchema),
+  people: z.array(
+    z.object({ personId: z.string(), rows: z.array(windowRosterRowSchema) })
+  ),
+  /** Listed plans left for a follow-up call, in window order. */
+  deferredPlans: z.array(windowPlanRefSchema),
+  /** Service types not listed yet; their plans follow `deferredPlans`. */
+  deferredServiceTypeIds: z.array(z.string()),
+  requestBudget: z.object({
+    limit: z.number(),
+    /** Upper bound: a cached read is counted as if it reached Planning Center. */
+    planningCenterRequests: z.number(),
+    planRangeRequests: z.number(),
+    rosterRequests: z.number(),
+  }),
+});
+
+export const candidateDetailSchema = z.object({
+  personId: z.string(),
+  isBlockedForDate: z.boolean(),
+  /** The person's own schedule history, only when it was asked for. */
+  history: candidateHistorySchema.optional(),
+});
+
+export const candidateDetailsBatchSchema = z.object({
+  generatedAt: z.string(),
+  people: z.array(candidateDetailSchema),
+  /** Requested people left for a follow-up call to stay within the budget. */
+  deferredPersonIds: z.array(z.string()),
+  requestBudget: z.object({
+    limit: z.number(),
+    /** Upper bound: a cached read is counted as if it reached Planning Center. */
+    planningCenterRequests: z.number(),
+    blockoutRequests: z.number(),
+    scheduleRequests: z.number(),
+  }),
 });
 
 export const planPersonSchema = z.object({
@@ -202,10 +304,14 @@ export const scheduleHistoryResponseSchema = z.object({
 export type Blockout = z.output<typeof blockoutSchema>;
 export type ScheduleFrequency = z.output<typeof scheduleFrequencySchema>;
 export type ServiceHistoryItem = z.output<typeof serviceHistoryItemSchema>;
-export type PersonWithAvailability = z.output<
-  typeof personWithAvailabilitySchema
->;
 export type PlanPerson = z.output<typeof planPersonSchema>;
+export type PositionCandidates = z.output<typeof positionCandidatesSchema>;
+export type PlanWindowHistoryBatch = z.output<
+  typeof planWindowHistoryBatchSchema
+>;
+export type CandidateDetailsBatch = z.output<
+  typeof candidateDetailsBatchSchema
+>;
 export type PeopleDashboardLoad = z.output<typeof peopleDashboardLoadSchema>;
 export type PeopleDashboardDayKind = z.output<
   typeof peopleDashboardDayKindSchema

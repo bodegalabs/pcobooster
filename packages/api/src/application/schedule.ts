@@ -7,7 +7,7 @@ import {
   planningCenterFault,
   withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
-import { invalidateCandidateHistoryForPerson } from "@pcobooster/api/modules/planning-center/get-people-for-position";
+import { invalidatePlanWindowHistory } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
 import {
   matchesScheduleTarget,
   resolveScheduleTarget,
@@ -23,7 +23,8 @@ import { Effect } from "effect";
 import type { RequestContext } from "./context";
 
 export interface ScheduleApplicationDependencies {
-  readonly invalidateHistory: typeof invalidateCandidateHistoryForPerson;
+  /** Drops the plan window's cached rosters, which history is built from. */
+  readonly invalidateHistory: typeof invalidatePlanWindowHistory;
 }
 
 export interface ScheduleAssignmentPreparation {
@@ -34,7 +35,7 @@ export interface ScheduleAssignmentPreparation {
 }
 
 const defaultDependencies: ScheduleApplicationDependencies = {
-  invalidateHistory: invalidateCandidateHistoryForPerson,
+  invalidateHistory: invalidatePlanWindowHistory,
 };
 
 /** Read-only validation remains in the request's interruptible phase. */
@@ -90,7 +91,7 @@ export const commitScheduledPerson = (
             )
           ) {
             access.services.people.invalidateScheduleReadCaches(input);
-            dependencies.invalidateHistory(input.personId, access.cacheScope);
+            dependencies.invalidateHistory(access.cacheScope);
             return Effect.fail(
               new AlreadyScheduled({
                 message:
@@ -104,7 +105,7 @@ export const commitScheduledPerson = (
       );
 
     access.services.people.invalidateScheduleReadCaches(input);
-    dependencies.invalidateHistory(input.personId, access.cacheScope);
+    dependencies.invalidateHistory(access.cacheScope);
     const name = created.attributes.team_position_name;
     const createdPositionName = isString(name) ? name : "";
 
@@ -144,9 +145,7 @@ export const removeScheduledPerson = (
     const access = yield* PlanningCenterAccess;
     yield* ensureRequestIsOpen;
     yield* access.services.people.deletePlanPerson(input.planPersonId, input);
-    if (input.personId !== undefined) {
-      dependencies.invalidateHistory(input.personId, access.cacheScope);
-    }
+    dependencies.invalidateHistory(access.cacheScope);
     return { success: true as const };
   }).pipe(withPlanningCenterFaults);
 
@@ -166,8 +165,6 @@ export const updateScheduledPersonStatus = (
       input.status,
       input
     );
-    if (input.personId !== undefined) {
-      dependencies.invalidateHistory(input.personId, access.cacheScope);
-    }
+    dependencies.invalidateHistory(access.cacheScope);
     return { success: true as const };
   }).pipe(withPlanningCenterFaults);

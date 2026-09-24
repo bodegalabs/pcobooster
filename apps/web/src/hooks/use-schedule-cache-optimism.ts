@@ -1,15 +1,26 @@
+import type {
+  PlanWindowHistoryBatch,
+  PositionCandidates,
+} from "@pcobooster/contracts/people-schemas";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
+  PositionCandidate,
+  SelectedPlanSlot,
+} from "@pcobooster/planning-center-models/position-candidates";
+import type {
   FilledPositionPerson,
-  PersonWithAvailability,
   TeamPosition,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
-import type { QueryClient, QueryKey } from "@tanstack/react-query";
+import type {
+  InvalidateQueryFilters,
+  QueryClient,
+  QueryKey,
+} from "@tanstack/react-query";
 
 import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
-import { clearCachedPeople } from "@/lib/people-cache";
 import { clearCachedPeopleDashboards } from "@/lib/people-dashboard-cache";
+import { clearCachedCandidateSchedules } from "@/lib/position-candidates-cache";
 import { queryKeys } from "@/lib/query-keys";
 import { clearCachedTeamPositions } from "@/lib/team-positions-cache";
 
@@ -46,16 +57,24 @@ const activeRefetchTimers = new WeakMap<
   Map<string, ReturnType<typeof setTimeout>>
 >();
 
+const CANDIDATES_QUERY_KEY = ["people"] as const;
+const WINDOW_HISTORY_QUERY_KEY = ["people-plan-window-history"] as const;
+const CANDIDATE_DETAILS_QUERY_KEY = ["people-candidate-details"] as const;
+
 interface ScheduleMutationSnapshot {
-  people: [QueryKey, PersonWithAvailability[] | undefined][];
+  candidates: [QueryKey, PositionCandidates | undefined][];
+  windowHistory: [QueryKey, PlanWindowHistoryBatch[] | undefined][];
   teamPositions: [QueryKey, TeamPositionGroup[] | undefined][];
 }
 
 const snapshotScheduleCaches = (
   queryClient: QueryClient
 ): ScheduleMutationSnapshot => ({
-  people: queryClient.getQueriesData<PersonWithAvailability[]>({
-    queryKey: ["people"],
+  candidates: queryClient.getQueriesData<PositionCandidates>({
+    queryKey: CANDIDATES_QUERY_KEY,
+  }),
+  windowHistory: queryClient.getQueriesData<PlanWindowHistoryBatch[]>({
+    queryKey: WINDOW_HISTORY_QUERY_KEY,
   }),
   teamPositions: queryClient.getQueriesData<TeamPositionGroup[]>({
     queryKey: ["team-positions"],
@@ -69,7 +88,10 @@ export const restoreScheduleCaches = (
   if (!snapshot) {
     return;
   }
-  for (const [queryKey, data] of snapshot.people) {
+  for (const [queryKey, data] of snapshot.candidates) {
+    queryClient.setQueryData(queryKey, data);
+  }
+  for (const [queryKey, data] of snapshot.windowHistory) {
     queryClient.setQueryData(queryKey, data);
   }
   for (const [queryKey, data] of snapshot.teamPositions) {
@@ -77,9 +99,22 @@ export const restoreScheduleCaches = (
   }
 };
 
+interface ScheduleMutationQueryFilters extends InvalidateQueryFilters {
+  queryKey: QueryKey;
+  /**
+   * Refetch cached copies nobody is viewing right away. Off for plan-window histories: each
+   * costs up to 40 Planning Center requests, so only the one on screen is refetched.
+   */
+  refetchInactive: boolean;
+}
+
+/** Candidate details that carry schedule history; blockouts do not change on schedule writes. */
+const hasScheduleHistory = ({ queryKey }: { queryKey: QueryKey }) =>
+  queryKey[2] !== null;
+
 const getScheduleMutationQueryFilters = (
   context: ScheduleMutationInvalidateContext
-) => {
+): ScheduleMutationQueryFilters[] => {
   const serviceTypeId = context.serviceTypeId ?? null;
   const planId = context.planId ?? null;
   const teamId = context.teamId ?? null;
@@ -88,12 +123,14 @@ const getScheduleMutationQueryFilters = (
   return [
     {
       queryKey: ["my-scheduled-plans"],
+      refetchInactive: true,
     },
     {
       queryKey:
         isNonEmptyString(serviceTypeId) && planId !== null && planId !== ""
           ? ["team-positions", serviceTypeId, planId]
           : ["team-positions"],
+      refetchInactive: true,
     },
     {
       queryKey:
@@ -104,18 +141,37 @@ const getScheduleMutationQueryFilters = (
         positionId !== "" &&
         planId !== null &&
         planId !== ""
-          ? queryKeys.peopleForSlot(serviceTypeId, teamId, positionId, planId)
-          : ["people"],
+          ? queryKeys.positionCandidates(
+              serviceTypeId,
+              teamId,
+              positionId,
+              planId
+            )
+          : CANDIDATES_QUERY_KEY,
+      refetchInactive: true,
+    },
+    { queryKey: WINDOW_HISTORY_QUERY_KEY, refetchInactive: false },
+    {
+      queryKey: CANDIDATE_DETAILS_QUERY_KEY,
+      predicate: hasScheduleHistory,
+      refetchInactive: false,
     },
   ];
 };
+
+const toQueryFilters = ({
+  refetchInactive: _refetchInactive,
+  ...filters
+}: ScheduleMutationQueryFilters): InvalidateQueryFilters & {
+  queryKey: QueryKey;
+} => filters;
 
 export const invalidateScheduleMutationQueries = (
   queryClient: QueryClient,
   context: ScheduleMutationInvalidateContext
 ) => {
   for (const filters of getScheduleMutationQueryFilters(context)) {
-    void queryClient.invalidateQueries(filters);
+    void queryClient.invalidateQueries(toQueryFilters(filters));
   }
 };
 
@@ -125,13 +181,13 @@ export const cancelScheduleMutationQueries = async (
 ) =>
   await Promise.all(
     getScheduleMutationQueryFilters(context).map(async (filters) => {
-      await queryClient.cancelQueries(filters);
+      await queryClient.cancelQueries(toQueryFilters(filters));
     })
   );
 
 const scheduleActiveRefetch = (
   queryClient: QueryClient,
-  filters: { queryKey: QueryKey }
+  filters: InvalidateQueryFilters & { queryKey: QueryKey }
 ) => {
   let clientTimers = activeRefetchTimers.get(queryClient);
   if (!clientTimers) {
@@ -157,17 +213,20 @@ export const settleScheduleMutationQueries = (
   context: ScheduleMutationInvalidateContext
 ) => {
   clearCachedMyScheduledPlans();
-  clearCachedPeople();
+  clearCachedCandidateSchedules();
   clearCachedPeopleDashboards();
   clearCachedTeamPositions();
   const filtersList = getScheduleMutationQueryFilters(context);
 
   for (const filters of filtersList) {
-    void queryClient.invalidateQueries({ ...filters, refetchType: "inactive" });
+    void queryClient.invalidateQueries({
+      ...toQueryFilters(filters),
+      refetchType: filters.refetchInactive ? "inactive" : "none",
+    });
   }
 
   for (const filters of filtersList) {
-    scheduleActiveRefetch(queryClient, filters);
+    scheduleActiveRefetch(queryClient, toQueryFilters(filters));
   }
 };
 
@@ -277,52 +336,85 @@ const updateFilledPersonStatus = (
   return recalculateFilledCounts({ ...position, filledPeople });
 };
 
-const applyStatusToPerson = (
-  person: PersonWithAvailability,
+const SLOT_STATUS_BY_CODE: Record<
+  OptimisticPlanPersonStatusCode,
+  SelectedPlanSlot["status"]
+> = {
+  C: "confirmed",
+  U: "pending",
+  D: "declined",
+};
+
+const slotWithStatus = (
   statusCode: OptimisticPlanPersonStatusCode,
   planPersonId: string
-): PersonWithAvailability => ({
-  ...person,
-  isScheduledForSelectedPlanPosition: true,
-  isConfirmedForSelectedPlanPosition: statusCode === "C",
-  isDeclinedForSelectedPlanPosition: statusCode === "D",
-  selectedPlanDeclineReason: statusCode === "D" ? null : undefined,
-  scheduledPlanPersonId: planPersonId,
+): SelectedPlanSlot => ({
+  planPersonId,
+  status: SLOT_STATUS_BY_CODE[statusCode],
+  declineReason: null,
 });
 
-const createOptimisticPerson = (
+const createOptimisticCandidate = (
   person: OptimisticSchedulePerson,
   planPersonId: string
-): PersonWithAvailability => {
+): PositionCandidate => {
   const [firstFallback = "", ...lastParts] = person.fullName
     .trim()
     .split(/\s+/u);
-  return applyStatusToPerson(
-    {
-      id: person.id,
-      firstName: person.firstName ?? firstFallback,
-      lastName: person.lastName ?? lastParts.join(" "),
-      fullName: person.fullName,
-      photoUrl: person.photoUrl ?? null,
-      photoThumbnailUrl: person.photoThumbnailUrl ?? null,
-      archived: false,
-      positions: [],
-    },
-    "U",
-    planPersonId
+  return {
+    id: person.id,
+    firstName: person.firstName ?? firstFallback,
+    lastName: person.lastName ?? lastParts.join(" "),
+    fullName: person.fullName,
+    photoUrl: person.photoUrl ?? null,
+    photoThumbnailUrl: person.photoThumbnailUrl ?? null,
+    archived: false,
+    selectedPlanRosterLabels: [],
+    selectedPlanSlot: slotWithStatus("U", planPersonId),
+  };
+};
+
+const updateCandidates = (
+  queryClient: QueryClient,
+  queryKey: QueryKey,
+  update: (candidate: PositionCandidate) => PositionCandidate
+) => {
+  queryClient.setQueriesData<PositionCandidates>({ queryKey }, (data) =>
+    data === undefined
+      ? data
+      : { ...data, candidates: data.candidates.map(update) }
   );
 };
 
-const clearStatusFromPerson = (
-  person: PersonWithAvailability
-): PersonWithAvailability => ({
-  ...person,
-  isScheduledForSelectedPlanPosition: false,
-  isConfirmedForSelectedPlanPosition: false,
-  isDeclinedForSelectedPlanPosition: false,
-  selectedPlanDeclineReason: undefined,
-  scheduledPlanPersonId: undefined,
-});
+type WindowRosterRow = PlanWindowHistoryBatch["people"][number]["rows"][number];
+
+/**
+ * History's copy of the selected plan can still name a plan person the scheduler just changed;
+ * without a roster entry for the slot, the list would fall back to that copy.
+ */
+const updateWindowRosterRows = (
+  queryClient: QueryClient,
+  planPersonId: string,
+  update: (row: WindowRosterRow) => WindowRosterRow | null
+) => {
+  queryClient.setQueriesData<PlanWindowHistoryBatch[]>(
+    { queryKey: WINDOW_HISTORY_QUERY_KEY },
+    (calls) =>
+      calls?.map((call) => ({
+        ...call,
+        people: call.people.map((person) => ({
+          ...person,
+          rows: person.rows.flatMap((row) => {
+            if (row.id !== planPersonId) {
+              return [row];
+            }
+            const next = update(row);
+            return next === null ? [] : [next];
+          }),
+        })),
+      }))
+  );
+};
 
 export const optimisticallySchedulePerson = (
   queryClient: QueryClient,
@@ -332,30 +424,37 @@ export const optimisticallySchedulePerson = (
 ): ScheduleMutationSnapshot => {
   const snapshot = snapshotScheduleCaches(queryClient);
 
-  queryClient.setQueriesData<PersonWithAvailability[]>(
+  queryClient.setQueriesData<PositionCandidates>(
     {
-      queryKey: queryKeys.peopleForSlot(
+      queryKey: queryKeys.positionCandidates(
         slot.serviceTypeId,
         slot.teamId,
         slot.positionId,
         slot.planId
       ),
     },
-    (people) => {
-      if (!people) {
-        return people;
+    (data) => {
+      if (!data) {
+        return data;
       }
-      let found = false;
-      const updatedPeople = people.map((cachedPerson) => {
-        if (cachedPerson.id !== person.id) {
-          return cachedPerson;
-        }
-        found = true;
-        return applyStatusToPerson(cachedPerson, "U", planPersonId);
-      });
-      return found
-        ? updatedPeople
-        : [createOptimisticPerson(person, planPersonId), ...updatedPeople];
+      const found = data.candidates.some(({ id }) => id === person.id);
+      // A new person joins at the end so earlier detail batches keep their keys.
+      return {
+        ...data,
+        candidates: found
+          ? data.candidates.map((candidate) =>
+              candidate.id === person.id
+                ? {
+                    ...candidate,
+                    selectedPlanSlot: slotWithStatus("U", planPersonId),
+                  }
+                : candidate
+            )
+          : [
+              ...data.candidates,
+              createOptimisticCandidate(person, planPersonId),
+            ],
+      };
     }
   );
 
@@ -388,14 +487,13 @@ export const reconcileOptimisticPlanPersonId = (
     return;
   }
 
-  queryClient.setQueriesData<PersonWithAvailability[]>(
-    { queryKey: ["people"] },
-    (people) =>
-      people?.map((person) =>
-        person.scheduledPlanPersonId === optimisticPlanPersonId
-          ? { ...person, scheduledPlanPersonId: planPersonId }
-          : person
-      )
+  updateCandidates(queryClient, CANDIDATES_QUERY_KEY, (candidate) =>
+    candidate.selectedPlanSlot?.planPersonId === optimisticPlanPersonId
+      ? {
+          ...candidate,
+          selectedPlanSlot: { ...candidate.selectedPlanSlot, planPersonId },
+        }
+      : candidate
   );
 
   queryClient.setQueriesData<TeamPositionGroup[]>(
@@ -422,15 +520,19 @@ export const optimisticallyUpdatePlanPersonStatus = (
 ): ScheduleMutationSnapshot => {
   const snapshot = snapshotScheduleCaches(queryClient);
 
-  queryClient.setQueriesData<PersonWithAvailability[]>(
-    { queryKey: ["people"] },
-    (people) =>
-      people?.map((person) =>
-        person.scheduledPlanPersonId === planPersonId
-          ? applyStatusToPerson(person, statusCode, planPersonId)
-          : person
-      )
+  updateCandidates(queryClient, CANDIDATES_QUERY_KEY, (candidate) =>
+    candidate.selectedPlanSlot?.planPersonId === planPersonId
+      ? {
+          ...candidate,
+          selectedPlanSlot: slotWithStatus(statusCode, planPersonId),
+        }
+      : candidate
   );
+  updateWindowRosterRows(queryClient, planPersonId, (row) => ({
+    ...row,
+    status: statusCode,
+    declineReason: null,
+  }));
 
   queryClient.setQueriesData<TeamPositionGroup[]>(
     { queryKey: ["team-positions"] },
@@ -453,16 +555,13 @@ export const optimisticallyUnschedulePlanPerson = (
 ): ScheduleMutationSnapshot => {
   const snapshot = snapshotScheduleCaches(queryClient);
 
-  queryClient.setQueriesData<PersonWithAvailability[]>(
-    { queryKey: ["people"] },
-    (people) =>
-      people?.map((person) =>
-        person.scheduledPlanPersonId === planPersonId ||
-        (isNonEmptyString(personId) && person.id === personId)
-          ? clearStatusFromPerson(person)
-          : person
-      )
+  updateCandidates(queryClient, CANDIDATES_QUERY_KEY, (candidate) =>
+    candidate.selectedPlanSlot?.planPersonId === planPersonId ||
+    (isNonEmptyString(personId) && candidate.id === personId)
+      ? { ...candidate, selectedPlanSlot: null }
+      : candidate
   );
+  updateWindowRosterRows(queryClient, planPersonId, () => null);
 
   queryClient.setQueriesData<TeamPositionGroup[]>(
     { queryKey: ["team-positions"] },

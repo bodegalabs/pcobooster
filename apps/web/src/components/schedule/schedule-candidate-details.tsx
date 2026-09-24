@@ -14,6 +14,7 @@ import {
   ResponsivePopoverContent,
   ResponsivePopoverTrigger,
 } from "@/components/ui/responsive-popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export type CandidateStatus =
@@ -199,10 +200,20 @@ export const ScheduleCandidateAvatar = ({
 export const ScheduleCandidateScore = ({
   person,
   percentage,
+  pending = false,
 }: {
   person: PersonWithAvailability;
   percentage: number | null;
+  /** The score is still being computed from history and availability. */
+  pending?: boolean;
 }) => {
+  if (percentage === null && pending) {
+    return (
+      <div className="flex justify-end" aria-label="Score loading">
+        <Skeleton variant="text" className="h-3.5 w-10 sm:h-5" />
+      </div>
+    );
+  }
   if (percentage === null) {
     return <div className="text-muted-foreground text-right text-xs">-</div>;
   }

@@ -13,8 +13,6 @@ import type {
   PeopleDashboardPerson,
   PeopleDashboardPersonDetail,
 } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
-import { buildFrequencyFromServiceHistory } from "@pcobooster/api/modules/planning-center/people/history";
-import { isDeclinedAssignmentStatus } from "@pcobooster/api/modules/planning-center/people/matching";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { recoverUnlessInterrupted } from "@pcobooster/api/planning-center/recover-unless-interrupted";
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
@@ -28,6 +26,10 @@ import {
   formatCalendarDayInTimeZone,
   zonedWallTimeToUtcIso,
 } from "@pcobooster/planning-center-models/calendar";
+import {
+  buildFrequencyFromServiceHistory,
+  isDeclinedAssignmentStatus,
+} from "@pcobooster/planning-center-models/candidate-frequency";
 import {
   isNonEmptyString,
   isString,
