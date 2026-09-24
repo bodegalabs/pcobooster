@@ -39,29 +39,47 @@ export const readVersion = async (
   }
 };
 
+/** Whether the public home page answers 200; it can trail the API during a rollout. */
+const homeIsServing = async (
+  origin: string,
+  fetchImpl: Fetch
+): Promise<boolean> => {
+  try {
+    const home = await fetchImpl(origin, { redirect: "manual" });
+    return home.status === 200;
+  } catch {
+    return false;
+  }
+};
+
 export const verifyDeployment = async (
   origin: string,
-  expectedVersion: string
+  expectedVersion: string,
+  { fetchImpl = fetch, intervalMs = attemptIntervalMs } = {}
 ): Promise<void> => {
   const deadline = Date.now() + deadlineMs;
   let lastVersion: string | undefined;
+  let homeServing = false;
   while (Date.now() < deadline) {
     // oxlint-disable-next-line no-await-in-loop -- Polling waits for the rollout.
-    lastVersion = await readVersion(origin);
-    if (lastVersion === expectedVersion) {
+    lastVersion = await readVersion(origin, fetchImpl);
+    homeServing =
+      lastVersion === expectedVersion &&
+      // oxlint-disable-next-line no-await-in-loop -- Polling waits for the rollout.
+      (await homeIsServing(origin, fetchImpl));
+    if (homeServing) {
       break;
     }
     // oxlint-disable-next-line no-await-in-loop -- Polling waits for the rollout.
-    await sleep(attemptIntervalMs);
+    await sleep(intervalMs);
   }
   if (lastVersion !== expectedVersion) {
     throw new Error(
       `${origin} served ${lastVersion ?? "no healthy response"}, expected ${expectedVersion}`
     );
   }
-  const home = await fetch(origin, { redirect: "manual" });
-  if (home.status !== 200) {
-    throw new Error(`${origin}/ returned ${home.status}`);
+  if (!homeServing) {
+    throw new Error(`${origin}/ never returned 200`);
   }
   process.stdout.write(`${origin} serves ${expectedVersion}\n`);
 };
