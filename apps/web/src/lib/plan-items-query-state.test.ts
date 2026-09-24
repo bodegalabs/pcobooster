@@ -358,7 +358,7 @@ describe("plan item query state", () => {
     const queryClient = new QueryClient();
     const queryKey = ["plan-items", "service-1", "plan-1"] as const;
     writeCachedPlanItems("service-1", "plan-1", [createItem("item-1", 1)]);
-    writeCachedSongSearch("service-1", "build", [
+    writeCachedSongSearch("build", [
       {
         id: "song-1",
         title: "Build My Life",
@@ -373,7 +373,7 @@ describe("plan item query state", () => {
     settlePlanItemsQuery(queryClient, queryKey);
 
     expect(readCachedPlanItems("service-1", "plan-1")).toBeUndefined();
-    expect(readCachedSongSearch("service-1", "build")).toBeUndefined();
+    expect(readCachedSongSearch("build")).toBeUndefined();
     expect(readCachedSongOptions("song-1", "service-1")).toBeUndefined();
   });
 });

@@ -5,7 +5,8 @@ import { serializedSongCatalogEntrySchema } from "@/lib/persistence-schemas";
 import { hydrateSongCatalogEntry } from "@/lib/song-catalog-client";
 import type { SerializedSongCatalogEntry } from "@/lib/song-catalog-client";
 
-const CACHE_VERSION = "v1";
+// v2: keyed by query only, since the catalog no longer depends on the service type.
+const CACHE_VERSION = "v2";
 const CACHE_KEY_PREFIX = `pcobooster:song-search:${CACHE_VERSION}:`;
 
 interface CachedPayload {
@@ -26,8 +27,8 @@ export interface SongSearchCacheEntry {
 const normalizeSongSearchQuery = (query: string): string =>
   query.trim().toLowerCase();
 
-const buildCacheKey = (serviceTypeId: string, query: string): string =>
-  `${CACHE_KEY_PREFIX}${encodeURIComponent(serviceTypeId)}:${encodeURIComponent(query)}`;
+const buildCacheKey = (query: string): string =>
+  `${CACHE_KEY_PREFIX}${encodeURIComponent(query)}`;
 
 const serializeSongCatalogEntry = (
   entry: SongCatalogEntry
@@ -38,22 +39,16 @@ const serializeSongCatalogEntry = (
 });
 
 export const readCachedSongSearch = (
-  serviceTypeId: string | null,
   query: string
 ): SongSearchCacheEntry | undefined => {
   const normalizedQuery = normalizeSongSearchQuery(query);
   const storage = globalThis.window?.localStorage;
-  if (
-    serviceTypeId === null ||
-    serviceTypeId.length === 0 ||
-    normalizedQuery.length === 0 ||
-    storage === undefined
-  ) {
+  if (normalizedQuery.length === 0 || storage === undefined) {
     return undefined;
   }
 
   try {
-    const raw = storage.getItem(buildCacheKey(serviceTypeId, normalizedQuery));
+    const raw = storage.getItem(buildCacheKey(normalizedQuery));
     if (raw === null) {
       return undefined;
     }
@@ -71,24 +66,18 @@ export const readCachedSongSearch = (
 };
 
 export const writeCachedSongSearch = (
-  serviceTypeId: string | null,
   query: string,
   songs: SongCatalogEntry[]
 ): void => {
   const normalizedQuery = normalizeSongSearchQuery(query);
   const storage = globalThis.window?.localStorage;
-  if (
-    serviceTypeId === null ||
-    serviceTypeId.length === 0 ||
-    normalizedQuery.length === 0 ||
-    storage === undefined
-  ) {
+  if (normalizedQuery.length === 0 || storage === undefined) {
     return;
   }
 
   try {
     storage.setItem(
-      buildCacheKey(serviceTypeId, normalizedQuery),
+      buildCacheKey(normalizedQuery),
       JSON.stringify({
         savedAt: Date.now(),
         data: songs.map(serializeSongCatalogEntry),
