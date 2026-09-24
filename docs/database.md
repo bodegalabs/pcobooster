@@ -1,6 +1,6 @@
 # Database
 
-The app uses Drizzle with Cloudflare D1 (SQLite). `alchemy.run.ts` owns one database per stage. API Workers receive a `DB` binding; no connection string is used at runtime. Better Auth uses the SQLite adapter with transactions disabled because D1's HTTP driver does not support interactive transactions.
+The app uses Drizzle with Cloudflare D1 (SQLite). `apps/server/src/database.ts` declares one database per stage, and the API Worker binds it through `Cloudflare.D1.QueryDatabase`; no connection string is used at runtime. Better Auth uses the SQLite adapter with transactions disabled because D1's HTTP driver does not support interactive transactions.
 
 ## Schema changes
 

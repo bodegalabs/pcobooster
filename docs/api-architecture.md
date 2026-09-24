@@ -1,6 +1,6 @@
 # API architecture
 
-The product API is a contract-first oRPC service running on Hono and Bun. Effect owns application execution below the transport boundary. Better Auth remains an ordinary HTTP handler because it defines its own protocol and routes.
+The product API is a contract-first oRPC service served by Hono inside an Alchemy Effect-native Cloudflare Worker (`apps/server/src/worker.ts`). Effect owns application execution below the transport boundary. Better Auth remains an ordinary HTTP handler because it defines its own protocol and routes.
 
 ## Package boundaries
 
@@ -8,7 +8,7 @@ The product API is a contract-first oRPC service running on Hono and Bun. Effect
 - `packages/planning-center-models` contains shared Planning Center data shapes plus pure calendar and scheduling rules. It is browser-safe and framework-independent.
 - `packages/presentation-mode` contains the server-side presentation-mode guard, seed, and cache namespace shared by the API and the web build, which inlines the namespace.
 - `packages/api` contains server-side application programs, typed faults, explicit feature modules, Better Auth and database integration, Planning Center adapters, and the oRPC implementation of the contracts.
-- `apps/server` mounts Better Auth and the oRPC handlers, supplies raw request context, and configures cross-origin and response-header behavior.
+- `apps/server` is the API Worker. It reads its settings with `Config` at startup, binds D1, builds the server dependencies once per isolate, mounts Better Auth and the oRPC handlers, supplies raw request context, and configures cross-origin and response-header behavior.
 - `apps/web` consumes `packages/contracts` through the oRPC client and owns browser caches, hydration, navigation, and presentation helpers under `src/lib`. It must not import server-side modules from `packages/api`.
 
 ## Request flow
@@ -23,7 +23,7 @@ apps/web
   -> Planning Center or database adapter
 ```
 
-One process-scoped `ApplicationRuntime` owns shared Effect layers. Every execution provides a new `RequestContext`, including a request ID, cloned headers, method, URL, user-agent metadata, and abort signal. Credentials and other identity-sensitive values belong in request-scoped services; they must not be captured by a process-scoped layer or implicit async context. Planning Center clients bind one explicit credential to both their Authorization header and cache scope for their entire lifetime. A [demo session](demo.md) resolves to the demo credential through a read-only client that rejects writes before they leave the process, and always presents people with fictional details.
+The Worker builds `ServerDependencies` (`packages/api/src/server.ts`: the typed `ServerConfig`, the Drizzle database, and Better Auth) once per isolate. The oRPC context carries them, and every execution provides them to the program as the `Server` service; `packages/api` never reads `process.env` or `cloudflare:workers`. One process-scoped `ApplicationRuntime` owns shared Effect layers. Every execution also provides a new `RequestContext`, including a request ID, cloned headers, method, URL, user-agent metadata, and abort signal. Credentials and other identity-sensitive values belong in request-scoped services; they must not be captured by a process-scoped layer or implicit async context. Planning Center clients bind one explicit credential to both their Authorization header and cache scope for their entire lifetime. A [demo session](demo.md) resolves to the demo credential through a read-only client that rejects writes before they leave the process, and always presents people with fictional details.
 
 Application programs fail with tagged application faults rather than HTTP statuses. The oRPC adapter maps each expected fault to a declared contract error once. Planning Center HTTP, network, and malformed-response errors are classified at the provider boundary; unexpected adapter errors remain Effect defects. Defects and persistence failures are returned as opaque internal errors, with their original cause retained only for server-side logging.
 
