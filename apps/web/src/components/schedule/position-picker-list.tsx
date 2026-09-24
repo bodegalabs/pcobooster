@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarSeparator } from "@/components/ui/sidebar";
+import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +27,7 @@ export const PositionPickerList = ({
   selectedPosition,
   onToggleTeam,
   onSelect,
-  onPreviewSlot,
+  getSlotIntentProps,
   onAddPosition,
   clearTabBar = false,
 }: {
@@ -39,7 +40,7 @@ export const PositionPickerList = ({
   selectedPosition: string | null;
   onToggleTeam: (teamId: string) => void;
   onSelect: (slot: SlotRef) => void;
-  onPreviewSlot?: (slot: SlotRef) => void;
+  getSlotIntentProps?: GetIntentPrefetchProps<SlotRef>;
   onAddPosition?: (
     team: { teamId: string; teamName: string },
     positionName: string
@@ -79,7 +80,7 @@ export const PositionPickerList = ({
               selectedPosition={selectedPosition}
               onToggle={onToggleTeam}
               onSelect={onSelect}
-              onPreview={onPreviewSlot}
+              getSlotIntentProps={getSlotIntentProps}
               onAddPosition={onAddPosition}
             />
           </Fragment>

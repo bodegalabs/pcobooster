@@ -14,12 +14,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 
 interface HealthQueuesProps {
   underused: PeopleDashboardPerson[];
   needsRest: PeopleDashboardPerson[];
   isLoading: boolean;
-  onPreviewPerson: (person: PeopleDashboardPerson) => void;
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
   onOpenPerson: (person: PeopleDashboardPerson) => void;
 }
 
@@ -27,7 +28,7 @@ export const HealthQueues = ({
   underused,
   needsRest,
   isLoading,
-  onPreviewPerson,
+  getPersonIntentProps,
   onOpenPerson,
 }: HealthQueuesProps) => (
   <div className="grid gap-3 lg:grid-cols-2">
@@ -50,7 +51,7 @@ export const HealthQueues = ({
             <PersonRowButton
               key={`queue-${person.id}`}
               person={person}
-              onPreviewPerson={onPreviewPerson}
+              getPersonIntentProps={getPersonIntentProps}
               onOpenPerson={onOpenPerson}
             >
               <PersonAvatar person={person} />
@@ -91,7 +92,7 @@ export const HealthQueues = ({
             <PersonRowButton
               key={`cadence-${person.id}`}
               person={person}
-              onPreviewPerson={onPreviewPerson}
+              getPersonIntentProps={getPersonIntentProps}
               onOpenPerson={onOpenPerson}
               className="justify-between"
             >

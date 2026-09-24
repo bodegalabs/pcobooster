@@ -34,6 +34,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { MonthGridDay } from "@/components/ui/month-grid-day";
+import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { cn } from "@/lib/utils";
 
 interface Month {
@@ -50,7 +51,7 @@ interface MonthViewProps {
   monthDays: PeopleDashboardDay[];
   matrixDays: number[];
   onSelectPerson: (person: PeopleDashboardPerson) => void;
-  onPreviewPerson: (person: PeopleDashboardPerson) => void;
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
 }
 
 const weekDayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -60,13 +61,13 @@ const SelectedDayPanel = ({
   selectedDay,
   scheduledPeople,
   onSelectPerson,
-  onPreviewPerson,
+  getPersonIntentProps,
 }: {
   month: Month;
   selectedDay: number;
   scheduledPeople: PeopleDashboardPerson[];
   onSelectPerson: (person: PeopleDashboardPerson) => void;
-  onPreviewPerson: (person: PeopleDashboardPerson) => void;
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
 }) => (
   <aside className="flex min-w-0 flex-col gap-2 pb-1">
     <Card>
@@ -86,7 +87,7 @@ const SelectedDayPanel = ({
             <PersonRowButton
               key={`day-${person.id}`}
               person={person}
-              onPreviewPerson={onPreviewPerson}
+              getPersonIntentProps={getPersonIntentProps}
               onOpenPerson={onSelectPerson}
             >
               <PersonAvatar person={person} />
@@ -378,19 +379,19 @@ const MatrixPersonRow = ({
   month,
   matrixDays,
   onSelectPerson,
-  onPreviewPerson,
+  getPersonIntentProps,
 }: {
   person: PeopleDashboardPerson;
   month: Month;
   matrixDays: number[];
   onSelectPerson: (person: PeopleDashboardPerson) => void;
-  onPreviewPerson: (person: PeopleDashboardPerson) => void;
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
 }) => (
   <div className="group/matrix-row hover:bg-muted/50 grid w-full grid-cols-[minmax(10.5rem,1.2fr)_repeat(5,minmax(4rem,1fr))] items-center text-left">
     <div className="bg-background group-hover/matrix-row:bg-muted/50 border-border/40 sticky left-0 z-[1] min-w-0 max-md:border-r md:static md:bg-transparent">
       <PersonRowButton
         person={person}
-        onPreviewPerson={onPreviewPerson}
+        getPersonIntentProps={getPersonIntentProps}
         onOpenPerson={onSelectPerson}
       >
         <PersonAvatar person={person} />
@@ -418,13 +419,13 @@ const PeopleMonthMatrix = ({
   month,
   matrixDays,
   onSelectPerson,
-  onPreviewPerson,
+  getPersonIntentProps,
 }: {
   people: PeopleDashboardPerson[];
   month: Month;
   matrixDays: number[];
   onSelectPerson: (person: PeopleDashboardPerson) => void;
-  onPreviewPerson: (person: PeopleDashboardPerson) => void;
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
 }) => (
   <div className="border-border/40 overflow-x-auto rounded-lg border">
     <div className="min-w-[31rem]">
@@ -446,7 +447,7 @@ const PeopleMonthMatrix = ({
             month={month}
             matrixDays={matrixDays}
             onSelectPerson={onSelectPerson}
-            onPreviewPerson={onPreviewPerson}
+            getPersonIntentProps={getPersonIntentProps}
           />
         ))}
       </div>
@@ -460,7 +461,7 @@ export const MonthView = ({
   monthDays,
   matrixDays,
   onSelectPerson,
-  onPreviewPerson,
+  getPersonIntentProps,
 }: MonthViewProps) => {
   const [selectedDay, setSelectedDay] = useState(
     () => monthDays.find((day) => day.serviceCount > 0)?.day ?? 1
@@ -490,7 +491,7 @@ export const MonthView = ({
           month={month}
           matrixDays={matrixDays}
           onSelectPerson={onSelectPerson}
-          onPreviewPerson={onPreviewPerson}
+          getPersonIntentProps={getPersonIntentProps}
         />
       </section>
       <SelectedDayPanel
@@ -498,7 +499,7 @@ export const MonthView = ({
         selectedDay={selectedDay}
         scheduledPeople={scheduledPeople}
         onSelectPerson={onSelectPerson}
-        onPreviewPerson={onPreviewPerson}
+        getPersonIntentProps={getPersonIntentProps}
       />
     </div>
   );

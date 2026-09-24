@@ -23,6 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 
 interface HealthSidebarProps {
   dashboard: PeopleDashboardData | undefined;
@@ -31,7 +32,7 @@ interface HealthSidebarProps {
   needsRest: PeopleDashboardPerson[];
   underused: PeopleDashboardPerson[];
   rhythmCalendarCells: CalendarCell[];
-  onPreviewPerson: (person: PeopleDashboardPerson) => void;
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
   onOpenPerson: (person: PeopleDashboardPerson) => void;
 }
 
@@ -42,7 +43,7 @@ export const HealthSidebar = ({
   needsRest,
   underused,
   rhythmCalendarCells,
-  onPreviewPerson,
+  getPersonIntentProps,
   onOpenPerson,
 }: HealthSidebarProps) => (
   <aside className="flex min-w-0 flex-col gap-2 pb-1">
@@ -64,7 +65,7 @@ export const HealthSidebar = ({
         {mvp ? (
           <PersonRowButton
             person={mvp}
-            onPreviewPerson={onPreviewPerson}
+            getPersonIntentProps={getPersonIntentProps}
             onOpenPerson={onOpenPerson}
             variant="outline"
           >
@@ -111,7 +112,7 @@ export const HealthSidebar = ({
             <PersonRowButton
               key={person.id}
               person={person}
-              onPreviewPerson={onPreviewPerson}
+              getPersonIntentProps={getPersonIntentProps}
               onOpenPerson={onOpenPerson}
             >
               <span className="bg-muted-foreground size-1.5 shrink-0 rounded-full" />

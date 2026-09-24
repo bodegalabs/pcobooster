@@ -26,8 +26,11 @@ import {
 } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
+import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import { usePeopleDashboard } from "@/hooks/use-people-dashboard";
 import { createPeopleDashboardPersonQueryOptions } from "@/hooks/use-people-dashboard-person";
+import { isQueryFresh } from "@/lib/intent-prefetch";
 
 const EMPTY_PEOPLE: PeopleDashboardPerson[] = [];
 
@@ -41,7 +44,7 @@ interface PeoplePageContentProps {
   needsRest: PeopleDashboardPerson[];
   underused: PeopleDashboardPerson[];
   rhythmCalendarCells: ReturnType<typeof buildCalendarCells>;
-  onPreviewPerson: (person: PeopleDashboardPerson) => void;
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
   onOpenPerson: (person: PeopleDashboardPerson) => void;
 }
 
@@ -55,7 +58,7 @@ const PeoplePageContent = ({
   needsRest,
   underused,
   rhythmCalendarCells,
-  onPreviewPerson,
+  getPersonIntentProps,
   onOpenPerson,
 }: PeoplePageContentProps) => {
   if (isError) {
@@ -75,7 +78,7 @@ const PeoplePageContent = ({
         needsRest={needsRest}
         underused={underused}
         rhythmCalendarCells={rhythmCalendarCells}
-        onPreviewPerson={onPreviewPerson}
+        getPersonIntentProps={getPersonIntentProps}
         onOpenPerson={onOpenPerson}
       />
     );
@@ -88,7 +91,7 @@ const PeoplePageContent = ({
         monthDays={dashboard.monthDays}
         matrixDays={dashboard.matrixDays}
         onSelectPerson={onOpenPerson}
-        onPreviewPerson={onPreviewPerson}
+        getPersonIntentProps={getPersonIntentProps}
       />
     );
   }
@@ -162,32 +165,40 @@ export const PeoplePage = () => {
   );
   const underused = people.filter((person) => person.load === "low");
   const prefetchPersonDetail = useCallback(
-    (person: PeopleDashboardPerson) => {
+    async (person: PeopleDashboardPerson) => {
       void router.preloadRoute({
         to: "/people/$personId",
         params: { personId: person.id },
       });
-      void (async () => {
-        try {
-          await queryClient.query(
-            createPeopleDashboardPersonQueryOptions(person.id, null)
-          );
-        } catch {
-          // Prefetching improves navigation speed but is optional.
-        }
-      })();
+      await queryClient.query(
+        createPeopleDashboardPersonQueryOptions(person.id, null)
+      );
     },
     [queryClient, router]
   );
+  // A cold person detail costs about 50 to 70 Planning Center requests, so hovering
+  // or tabbing past a row must not load it.
+  const { getIntentProps: getPersonIntentProps, cancelIntent } =
+    useIntentPrefetch<PeopleDashboardPerson>({
+      keyOf: (person) => person.id,
+      isFresh: (person) => {
+        const options = createPeopleDashboardPersonQueryOptions(
+          person.id,
+          null
+        );
+        return isQueryFresh(queryClient, options.queryKey, options.staleTime);
+      },
+      prefetch: prefetchPersonDetail,
+    });
   const openPerson = useCallback(
     (person: PeopleDashboardPerson) => {
-      prefetchPersonDetail(person);
+      cancelIntent();
       void navigate({
         to: "/people/$personId",
         params: { personId: person.id },
       });
     },
-    [navigate, prefetchPersonDetail]
+    [cancelIntent, navigate]
   );
 
   return (
@@ -286,7 +297,7 @@ export const PeoplePage = () => {
             needsRest={needsRest}
             underused={underused}
             rhythmCalendarCells={rhythmCalendarCells}
-            onPreviewPerson={prefetchPersonDetail}
+            getPersonIntentProps={getPersonIntentProps}
             onOpenPerson={openPerson}
           />
         </div>

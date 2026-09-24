@@ -53,6 +53,7 @@ import { Item, ItemContent, ItemGroup, ItemTitle } from "@/components/ui/item";
 import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useLineupColumnOrder } from "@/hooks/use-lineup-column-order";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
@@ -71,7 +72,7 @@ interface LineupTabProps {
   seriesId: string | null;
   planTimes: PlanTime[];
   onSelectPosition: (slot: SlotRef) => void;
-  onPreviewPosition?: (slot: SlotRef) => void;
+  getSlotIntentProps?: GetIntentPrefetchProps<SlotRef>;
 }
 
 const lineupSkeletonWidths = ["8rem", "6rem", "9rem", "7rem"];
@@ -194,7 +195,7 @@ const LineupPositionCard = ({
   seriesId,
   planTimes,
   onSelectPosition,
-  onPreviewPosition,
+  getSlotIntentProps,
 }: {
   teamId: string;
   teamName: string;
@@ -204,7 +205,7 @@ const LineupPositionCard = ({
   seriesId: string | null;
   planTimes: PlanTime[];
   onSelectPosition: (slot: SlotRef) => void;
-  onPreviewPosition?: (slot: SlotRef) => void;
+  getSlotIntentProps?: GetIntentPrefetchProps<SlotRef>;
 }) => {
   const people = position.filledPeople ?? [];
   const isTemporaryPosition =
@@ -234,9 +235,7 @@ const LineupPositionCard = ({
                     <button
                       type="button"
                       aria-label={`Open ${position.name} in scheduler`}
-                      onPointerEnter={() => onPreviewPosition?.(slot)}
-                      onFocus={() => onPreviewPosition?.(slot)}
-                      onTouchStart={() => onPreviewPosition?.(slot)}
+                      {...getSlotIntentProps?.(slot)}
                       onClick={() => {
                         onSelectPosition(slot);
                       }}
@@ -306,7 +305,7 @@ const TeamColumn = ({
   seriesId,
   planTimes,
   onSelectPosition,
-  onPreviewPosition,
+  getSlotIntentProps,
   dragHandleAttributes,
   dragHandleListeners,
   stacked = false,
@@ -318,7 +317,7 @@ const TeamColumn = ({
   seriesId: string | null;
   planTimes: PlanTime[];
   onSelectPosition: (slot: SlotRef) => void;
-  onPreviewPosition?: (slot: SlotRef) => void;
+  getSlotIntentProps?: GetIntentPrefetchProps<SlotRef>;
   dragHandleAttributes?: ReturnType<typeof useSortable>["attributes"];
   dragHandleListeners?: ReturnType<typeof useSortable>["listeners"];
 }) => {
@@ -396,7 +395,7 @@ const TeamColumn = ({
                   seriesId={seriesId}
                   planTimes={planTimes}
                   onSelectPosition={onSelectPosition}
-                  onPreviewPosition={onPreviewPosition}
+                  getSlotIntentProps={getSlotIntentProps}
                 />
               ))}
             </ItemGroup>
@@ -414,7 +413,7 @@ interface SortableTeamColumnProps {
   seriesId: string | null;
   planTimes: PlanTime[];
   onSelectPosition: (slot: SlotRef) => void;
-  onPreviewPosition?: (slot: SlotRef) => void;
+  getSlotIntentProps?: GetIntentPrefetchProps<SlotRef>;
   isDragging: boolean;
   reorderDisabled: boolean;
 }
@@ -556,7 +555,7 @@ export const LineupTab = ({
   seriesId,
   planTimes,
   onSelectPosition,
-  onPreviewPosition,
+  getSlotIntentProps,
 }: LineupTabProps) => {
   const [columnOrderByServiceType, updateColumnOrder] = useLineupColumnOrder();
   const [activeTeamId, setActiveTeamId] = useState<string | null>(null);
@@ -648,7 +647,7 @@ export const LineupTab = ({
               seriesId={seriesId}
               planTimes={planTimes}
               onSelectPosition={onSelectPosition}
-              onPreviewPosition={onPreviewPosition}
+              getSlotIntentProps={getSlotIntentProps}
               stacked
             />
           ))}
@@ -687,7 +686,7 @@ export const LineupTab = ({
                   seriesId={seriesId}
                   planTimes={planTimes}
                   onSelectPosition={onSelectPosition}
-                  onPreviewPosition={onPreviewPosition}
+                  getSlotIntentProps={getSlotIntentProps}
                   isDragging={activeTeamId === group.teamId}
                   reorderDisabled={reorderDisabled}
                 />

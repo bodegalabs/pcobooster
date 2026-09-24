@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Item } from "@/components/ui/item";
+import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { parsePlanRoute } from "@/lib/app-routes";
 import { cn } from "@/lib/utils";
 
@@ -82,7 +83,7 @@ export const Metric = ({ label, value }: { label: string; value: string }) => (
 /** A tappable person row that prefetches on intent and opens the person. */
 export const PersonRowButton = ({
   person,
-  onPreviewPerson,
+  getPersonIntentProps,
   onOpenPerson,
   variant = "default",
   size = "xs",
@@ -90,7 +91,7 @@ export const PersonRowButton = ({
   children,
 }: {
   person: PeopleDashboardPerson;
-  onPreviewPerson: (person: PeopleDashboardPerson) => void;
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
   onOpenPerson: (person: PeopleDashboardPerson) => void;
   variant?: "default" | "outline" | "muted";
   size?: "default" | "sm" | "xs";
@@ -102,15 +103,7 @@ export const PersonRowButton = ({
     size={size}
     className={className}
     render={<button type="button" aria-label={`Open ${person.name}`} />}
-    onFocus={() => {
-      onPreviewPerson(person);
-    }}
-    onPointerEnter={() => {
-      onPreviewPerson(person);
-    }}
-    onTouchStart={() => {
-      onPreviewPerson(person);
-    }}
+    {...getPersonIntentProps(person)}
     onClick={() => {
       onOpenPerson(person);
     }}

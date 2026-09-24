@@ -19,13 +19,14 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { cn } from "@/lib/utils";
 
 interface HealthRosterProps {
   dashboard: PeopleDashboardData | undefined;
   visiblePeople: PeopleDashboardPerson[];
   isLoading: boolean;
-  onPreviewPerson: (person: PeopleDashboardPerson) => void;
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
   onOpenPerson: (person: PeopleDashboardPerson) => void;
 }
 
@@ -33,7 +34,7 @@ export const HealthRoster = ({
   dashboard,
   visiblePeople,
   isLoading,
-  onPreviewPerson,
+  getPersonIntentProps,
   onOpenPerson,
 }: HealthRosterProps) => (
   <>
@@ -92,7 +93,7 @@ export const HealthRoster = ({
           <RosterTableBody
             visiblePeople={visiblePeople}
             isLoading={isLoading}
-            onPreviewPerson={onPreviewPerson}
+            getPersonIntentProps={getPersonIntentProps}
             onOpenPerson={onOpenPerson}
           />
         </Table>
@@ -113,7 +114,7 @@ export const HealthRoster = ({
                 <PersonRowButton
                   key={`mobile-${person.id}`}
                   person={person}
-                  onPreviewPerson={onPreviewPerson}
+                  getPersonIntentProps={getPersonIntentProps}
                   onOpenPerson={onOpenPerson}
                   className="flex-col items-stretch"
                 >

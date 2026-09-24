@@ -7,18 +7,19 @@ import { PersonIdentitySkeleton } from "@/components/people/people-skeletons";
 import { PersonAvatar } from "@/components/people/shared-components";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
+import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 
 interface RosterTableBodyProps {
   visiblePeople: PeopleDashboardPerson[];
   isLoading: boolean;
-  onPreviewPerson: (person: PeopleDashboardPerson) => void;
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
   onOpenPerson: (person: PeopleDashboardPerson) => void;
 }
 
 export const RosterTableBody = ({
   visiblePeople,
   isLoading,
-  onPreviewPerson,
+  getPersonIntentProps,
   onOpenPerson,
 }: RosterTableBodyProps) => {
   if (isLoading) {
@@ -70,9 +71,7 @@ export const RosterTableBody = ({
           <TableRow
             key={person.id}
             className="group/row cursor-pointer"
-            onPointerEnter={() => {
-              onPreviewPerson(person);
-            }}
+            {...getPersonIntentProps(person)}
             onClick={() => {
               onOpenPerson(person);
             }}
@@ -85,9 +84,6 @@ export const RosterTableBody = ({
                     to="/people/$personId"
                     params={{ personId: person.id }}
                     className="focus-visible:outline-ring block w-full truncate text-left text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2"
-                    onFocus={() => {
-                      onPreviewPerson(person);
-                    }}
                     onClick={(event) => {
                       event.stopPropagation();
                     }}

@@ -12,8 +12,10 @@ import { toast } from "sonner";
 
 import { getItemTypeLabel } from "@/components/schedule/plan-tab-helpers";
 import type { DraftState } from "@/components/schedule/plan-tab-helpers";
+import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import { usePlanItems } from "@/hooks/use-plan-items";
 import { createSongOptionsQueryOptions } from "@/hooks/use-song-options";
+import { isQueryFresh } from "@/lib/intent-prefetch";
 import {
   appendPlanItem,
   applyPlanItemDraft,
@@ -128,20 +130,28 @@ export const usePlanTabController = ({
     settlePlanItemsQuery(queryClient, queryKey);
   };
 
-  const prefetchItemSongOptions = useCallback(
-    (itemId: string) => {
-      if (!isNonEmptyString(serviceTypeId)) {
-        return;
-      }
-      const item = items.find((candidate) => candidate.id === itemId);
-      if (!item?.song) {
-        return;
-      }
-
-      void prefetchSongOptions(item.song.id);
-    },
-    [items, prefetchSongOptions, serviceTypeId]
+  const itemSongId = useCallback(
+    (itemId: string) =>
+      items.find((candidate) => candidate.id === itemId)?.song?.id ?? null,
+    [items]
   );
+  const { getIntentProps: getItemIntentProps } = useIntentPrefetch<string>({
+    keyOf: (itemId) => itemId,
+    isFresh: (itemId) => {
+      const songId = itemSongId(itemId);
+      if (songId === null || !isNonEmptyString(serviceTypeId)) {
+        return true;
+      }
+      const options = createSongOptionsQueryOptions(songId, serviceTypeId);
+      return isQueryFresh(queryClient, options.queryKey, options.staleTime);
+    },
+    prefetch: async (itemId) => {
+      const songId = itemSongId(itemId);
+      if (songId !== null) {
+        await prefetchSongOptions(songId);
+      }
+    },
+  });
 
   const createItemMutation = useMutation<
     PlanItem,
@@ -485,7 +495,7 @@ export const usePlanTabController = ({
 
       await reorderItemsMutation.mutateAsync(nextItems);
     },
-    prefetchItemSongOptions,
+    getItemIntentProps,
     saveItem: async (input: {
       item: PlanItem;
       draft: DraftState;

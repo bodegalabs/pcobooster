@@ -7,6 +7,7 @@ import type { buildCalendarCells } from "@/components/people/calendar";
 import { HealthQueues } from "@/components/people/health-queues";
 import { HealthRoster } from "@/components/people/health-roster";
 import { HealthSidebar } from "@/components/people/health-sidebar";
+import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 
 interface PeopleHealthViewProps {
   dashboard: PeopleDashboardData | undefined;
@@ -16,7 +17,7 @@ interface PeopleHealthViewProps {
   needsRest: PeopleDashboardPerson[];
   underused: PeopleDashboardPerson[];
   rhythmCalendarCells: ReturnType<typeof buildCalendarCells>;
-  onPreviewPerson: (person: PeopleDashboardPerson) => void;
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
   onOpenPerson: (person: PeopleDashboardPerson) => void;
 }
 
@@ -28,7 +29,7 @@ export const PeopleHealthView = ({
   needsRest,
   underused,
   rhythmCalendarCells,
-  onPreviewPerson,
+  getPersonIntentProps,
   onOpenPerson,
 }: PeopleHealthViewProps) => (
   <div className="grid shrink-0 items-start gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -37,14 +38,14 @@ export const PeopleHealthView = ({
         dashboard={dashboard}
         visiblePeople={visiblePeople}
         isLoading={isLoading}
-        onPreviewPerson={onPreviewPerson}
+        getPersonIntentProps={getPersonIntentProps}
         onOpenPerson={onOpenPerson}
       />
       <HealthQueues
         underused={underused}
         needsRest={needsRest}
         isLoading={isLoading}
-        onPreviewPerson={onPreviewPerson}
+        getPersonIntentProps={getPersonIntentProps}
         onOpenPerson={onOpenPerson}
       />
     </section>
@@ -55,7 +56,7 @@ export const PeopleHealthView = ({
       needsRest={needsRest}
       underused={underused}
       rhythmCalendarCells={rhythmCalendarCells}
-      onPreviewPerson={onPreviewPerson}
+      getPersonIntentProps={getPersonIntentProps}
       onOpenPerson={onOpenPerson}
     />
   </div>

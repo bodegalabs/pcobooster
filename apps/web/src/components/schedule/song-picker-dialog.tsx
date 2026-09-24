@@ -1,12 +1,8 @@
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { SongCatalogEntry } from "@pcobooster/planning-center-models/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
-import {
-  startTransition,
-  useCallback,
-  useDeferredValue,
-  useState,
-} from "react";
+import { startTransition, useDeferredValue, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -24,8 +20,10 @@ import {
   ResponsiveDialogTitle,
 } from "@/components/ui/responsive-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import { createSongOptionsQueryOptions } from "@/hooks/use-song-options";
 import { useSongSearch } from "@/hooks/use-song-search";
+import { isQueryFresh } from "@/lib/intent-prefetch";
 import { parseOptionalDate } from "@/lib/song-catalog-client";
 
 interface SongPickerDialogProps {
@@ -68,23 +66,24 @@ export const SongPickerDialog = ({
   const showResults = deferredQuery.trim().length > 0;
   const showInitialLoading = showResults && isLoading && songs.length === 0;
   const showRefreshing = showResults && isFetching && songs.length > 0;
-  const prefetchSongOptions = useCallback(
-    (songId: string) => {
-      if (!(serviceTypeId !== null && serviceTypeId !== "")) {
+  const { getIntentProps: getSongIntentProps } = useIntentPrefetch<string>({
+    keyOf: (songId) => songId,
+    isFresh: (songId) => {
+      if (!isNonEmptyString(serviceTypeId)) {
+        return true;
+      }
+      const options = createSongOptionsQueryOptions(songId, serviceTypeId);
+      return isQueryFresh(queryClient, options.queryKey, options.staleTime);
+    },
+    prefetch: async (songId) => {
+      if (!isNonEmptyString(serviceTypeId)) {
         return;
       }
-      startTransition(async () => {
-        try {
-          await queryClient.query(
-            createSongOptionsQueryOptions(songId, serviceTypeId)
-          );
-        } catch {
-          // Background prefetch is optional; selecting the song retries the query.
-        }
-      });
+      await queryClient.query(
+        createSongOptionsQueryOptions(songId, serviceTypeId)
+      );
     },
-    [queryClient, serviceTypeId]
-  );
+  });
 
   return (
     <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
@@ -136,15 +135,7 @@ export const SongPickerDialog = ({
                             .join(" ")}
                           disabled={pendingSongId === song.id}
                           className="items-start"
-                          onMouseEnter={() => {
-                            prefetchSongOptions(song.id);
-                          }}
-                          onFocus={() => {
-                            prefetchSongOptions(song.id);
-                          }}
-                          onTouchStart={() => {
-                            prefetchSongOptions(song.id);
-                          }}
+                          {...getSongIntentProps(song.id)}
                           onSelect={() => {
                             startTransition(async () => {
                               await onSelectSong(song);

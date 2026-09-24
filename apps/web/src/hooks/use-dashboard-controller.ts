@@ -9,12 +9,14 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import type { SlotRef } from "@/components/schedule/types";
 import { useCollapsedTeams } from "@/hooks/use-collapsed-teams";
+import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import { createPeopleQueryOptions, usePeople } from "@/hooks/use-people";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
 import { usePlanTimes } from "@/hooks/use-plan-times";
 import { usePlans } from "@/hooks/use-plans";
 import { useServiceTypes } from "@/hooks/use-service-types";
 import { useTeamPositions } from "@/hooks/use-team-positions";
+import { isQueryFresh } from "@/lib/intent-prefetch";
 import { queryKeys } from "@/lib/query-keys";
 import type {
   DashboardView,
@@ -30,8 +32,6 @@ interface RouteSelectionIds {
   positionId: string | null;
   view: DashboardView;
 }
-
-const SLOT_PEOPLE_PREFETCH_DELAY_MS = 180;
 
 const resolveSelectedSlot = (
   teamPositionGroups: TeamPositionGroup[] | undefined,
@@ -126,9 +126,6 @@ export const useDashboardController = ({
     from: "/_app/services/$serviceTypeId/plans/$planId/$view",
   });
   const queryClient = useQueryClient();
-  const slotPrefetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
   /** True once a slot was opened from the phone position list, so Back can pop history. */
   const openedSlotFromListRef = useRef(false);
 
@@ -233,56 +230,57 @@ export const useDashboardController = ({
     void prefetchPlanItems();
   }, [activeView, hasPlanUrlSelection, prefetchPlanItems]);
 
-  const prefetchSlotPeople = useCallback(
-    async (slot: SlotRef) => {
+  const getSlotPeopleQueryOptions = useCallback(
+    (slot: SlotRef) => {
       if (!routeServiceTypeId || !selectedPlan) {
-        return;
+        return null;
       }
       const slotPosition = teamPositionGroups
         ?.find((group) => group.teamId === slot.teamId)
         ?.positions.find((position) => position.id === slot.positionId);
       if (slotPosition?.source && slotPosition.source !== "team_position") {
+        return null;
+      }
+      return createPeopleQueryOptions(
+        routeServiceTypeId,
+        slot.teamId,
+        slot.positionId,
+        selectedPlan.id,
+        selectedPlan.sortDate ?? null
+      );
+    },
+    [routeServiceTypeId, selectedPlan, teamPositionGroups]
+  );
+
+  const prefetchSlotPeople = useCallback(
+    async (slot: SlotRef) => {
+      const options = getSlotPeopleQueryOptions(slot);
+      if (options === null) {
         return;
       }
       try {
-        await queryClient.query(
-          createPeopleQueryOptions(
-            routeServiceTypeId,
-            slot.teamId,
-            slot.positionId,
-            selectedPlan.id,
-            selectedPlan.sortDate ?? null
-          )
-        );
+        await queryClient.query(options);
       } catch {
         // The selected-slot query owns any visible loading error.
       }
     },
-    [queryClient, routeServiceTypeId, selectedPlan, teamPositionGroups]
+    [getSlotPeopleQueryOptions, queryClient]
   );
 
-  const handleSlotPreview = useCallback(
-    (slot: SlotRef) => {
-      if (slotPrefetchTimeoutRef.current) {
-        clearTimeout(slotPrefetchTimeoutRef.current);
-      }
-
-      slotPrefetchTimeoutRef.current = setTimeout(() => {
-        slotPrefetchTimeoutRef.current = null;
-        void prefetchSlotPeople(slot);
-      }, SLOT_PEOPLE_PREFETCH_DELAY_MS);
-    },
-    [prefetchSlotPeople]
-  );
-
-  useEffect(
-    () => () => {
-      if (slotPrefetchTimeoutRef.current) {
-        clearTimeout(slotPrefetchTimeoutRef.current);
-      }
-    },
-    []
-  );
+  // A candidate list can cost dozens of Planning Center requests, so only a slot the
+  // pointer or focus rests on is loaded ahead of the click.
+  const { getIntentProps: getSlotIntentProps, cancelIntent: cancelSlotIntent } =
+    useIntentPrefetch<SlotRef>({
+      keyOf: (slot) => `${slot.teamId}:${slot.positionId}`,
+      isFresh: (slot) => {
+        const options = getSlotPeopleQueryOptions(slot);
+        return (
+          options === null ||
+          isQueryFresh(queryClient, options.queryKey, options.staleTime)
+        );
+      },
+      prefetch: prefetchSlotPeople,
+    });
 
   const handleSlotSelect = (
     slot: SlotRef,
@@ -291,10 +289,7 @@ export const useDashboardController = ({
     if (!isNonEmptyString(routeIds.positionId)) {
       openedSlotFromListRef.current = true;
     }
-    if (slotPrefetchTimeoutRef.current) {
-      clearTimeout(slotPrefetchTimeoutRef.current);
-      slotPrefetchTimeoutRef.current = null;
-    }
+    cancelSlotIntent();
     void prefetchSlotPeople(slot);
 
     if (selectedPlanId) {
@@ -458,7 +453,7 @@ export const useDashboardController = ({
     toggleTeamCollapsed,
     handleSlotSelect,
     handleSlotClear,
-    handleSlotPreview,
+    getSlotIntentProps,
     handleAddCustomPosition,
     planTimes,
   };

@@ -31,6 +31,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { getInitials } from "@/lib/format/initials";
@@ -51,7 +52,7 @@ interface ScheduleViewTabProps {
   onToggleTeam: (teamId: string) => void;
   onSelectSlot: (slot: SlotRef, options?: { replace?: boolean }) => void;
   onClearSlot: () => void;
-  onPreviewSlot?: (slot: SlotRef) => void;
+  getSlotIntentProps?: GetIntentPrefetchProps<SlotRef>;
   onAddPosition?: (
     team: { teamId: string; teamName: string },
     positionName: string
@@ -313,7 +314,7 @@ const ScheduleViewContent = ({
   onToggleTeam,
   onSelectSlot,
   onClearSlot,
-  onPreviewSlot,
+  getSlotIntentProps,
   onAddPosition,
   onScheduleSuccess,
   onScheduleError,
@@ -383,7 +384,7 @@ const ScheduleViewContent = ({
       selectedPosition={selectedPosition}
       onToggleTeam={onToggleTeam}
       onSelect={handleSelectSlot}
-      onPreviewSlot={onPreviewSlot}
+      getSlotIntentProps={getSlotIntentProps}
       onAddPosition={onAddPosition}
     />
   );
@@ -450,7 +451,7 @@ const ScheduleViewContent = ({
                 selectedPosition={selectedPosition}
                 onToggleTeam={onToggleTeam}
                 onSelect={handleSelectSlot}
-                onPreviewSlot={onPreviewSlot}
+                getSlotIntentProps={getSlotIntentProps}
                 onAddPosition={onAddPosition}
                 clearTabBar
               />
