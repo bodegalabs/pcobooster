@@ -1,7 +1,5 @@
-"use client";
-
 // Per-icon imports: the package barrel references Grid*x* files whose on-disk
-// names are Grid*X*, which breaks webpack on case-sensitive filesystems.
+// names are Grid*X*, which breaks bundlers on case-sensitive filesystems.
 import Camera01Icon from "@hugeicons/core-free-icons/Camera01Icon";
 import Coffee01Icon from "@hugeicons/core-free-icons/Coffee01Icon";
 import DrumIcon from "@hugeicons/core-free-icons/DrumIcon";

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import styles from "../app/site.module.css";
+import styles from "../styles/site.module.css";
 
 export const DemoFrame = ({
   children,

@@ -1,3 +1,4 @@
+import { createFileRoute } from "@tanstack/react-router";
 import { ArrowDown, ArrowUpRight, Check, Plus } from "lucide-react";
 
 import { DemoFrame } from "../components/demo-frame";
@@ -7,8 +8,9 @@ import {
   ProductDemo,
 } from "../components/product-demo/product-demo";
 import { SiteLink, ActionLink } from "../components/site";
+import { pageHead } from "../lib/site-head";
 
-import styles from "./site.module.css";
+import styles from "../styles/site.module.css";
 
 const questions = [
   {
@@ -226,4 +228,12 @@ const HomePage = () => (
   </main>
 );
 
-export default HomePage;
+export const Route = createFileRoute("/")({
+  head: () =>
+    pageHead({
+      description:
+        "A thoughtful scheduling workspace for Planning Center Services. See availability, understand recent serving history, and build your next lineup with context.",
+      pathname: "/",
+    }),
+  component: HomePage,
+});

@@ -5,12 +5,12 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "out/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "@pcobooster/marketing#build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": [".next/**", "!.next/cache/**", "out/**"],
+      "outputs": ["dist/**"],
       "env": ["NEXT_PUBLIC_POSTHOG_KEY"]
     },
     "@pcobooster/admin#build": {

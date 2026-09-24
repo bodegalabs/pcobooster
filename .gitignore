@@ -17,10 +17,12 @@ package-lock.json
 
 # next.js
 **/.next/
-**/out/
 
 # turborepo
 .turbo/
+
+# TanStack Start build scratch space
+.tanstack/
 
 # production
 /build
@@ -49,7 +51,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Generated marketing export staged into the product app
+# Generated marketing prerender staged into the product app
 /apps/web/public/marketing/
 
 # Cloudflare and Alchemy generated state

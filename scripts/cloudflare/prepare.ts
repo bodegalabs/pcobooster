@@ -13,8 +13,9 @@ const ignoredDirectories = new Set([
   "node_modules",
   ".next",
   ".open-next",
+  ".tanstack",
   ".turbo",
-  "out",
+  "dist",
 ]);
 const buildStampName = "cloudflare-build-inputs.json";
 

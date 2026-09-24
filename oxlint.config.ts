@@ -13,7 +13,7 @@ import vitest from "ultracite/oxlint/vitest";
 const jsPlugins = selectJsPlugins(["react-doctor"]);
 
 /** Apps already on TanStack Start; the Next.js presets still govern the rest. */
-const tanstackStartApps = ["apps/admin/**"];
+const tanstackStartApps = ["apps/admin/**", "apps/marketing/**"];
 const nextRulesOff = Object.fromEntries(
   Object.keys({ ...next.rules, ...nextJsPlugins.rules }).map(
     (rule) => [rule, "off"] as const

@@ -1,8 +1,9 @@
 import { ArrowUpRight, ArrowRight } from "lucide-react";
-import Image from "next/image";
 import type { ComponentProps, ReactNode } from "react";
 
-import styles from "../app/site.module.css";
+import { marketingAssetUrl } from "../lib/site-head";
+
+import styles from "../styles/site.module.css";
 
 // Full document navigation keeps the independently built marketing and product routers isolated.
 export const SiteLink = ({ children, ...props }: ComponentProps<"a">) => (
@@ -37,7 +38,7 @@ export const Brand = () => (
     <span>
       <strong>PCO</strong>Booster
     </span>
-    <Image src="/marketing/logo.svg" alt="" width={30} height={30} />
+    <img src={marketingAssetUrl("logo.svg")} alt="" width={30} height={30} />
   </SiteLink>
 );
 

@@ -1,4 +1,6 @@
 :root {
+  /* Fontsource family, imported in the root route. */
+  --font-inter: "Inter Variable";
   --paper: #faf9f6;
   --surface: #f2f1ec;
   --stage: #ecebe4;
