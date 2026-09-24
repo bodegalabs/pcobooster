@@ -435,7 +435,7 @@ const ScheduleViewContent = ({
             />
 
             <ScrollArea className="-mx-4 min-h-0 w-auto flex-1 lg:mx-0 lg:h-full lg:w-full">
-              <div className="pb-tab-bar px-4 md:pb-0 lg:px-0">
+              <div className="pb-safe-4 px-4 md:pb-0 lg:px-0">
                 <SchedulePeopleList
                   candidateList={candidateList}
                   selectedSlotUsesCustomPosition={
@@ -473,7 +473,7 @@ const ScheduleViewContent = ({
                 onSelect={handleSelectSlot}
                 getSlotIntentProps={getSlotIntentProps}
                 onAddPosition={onAddPosition}
-                clearTabBar
+                clearSafeArea
               />
             </section>
             <UnselectedPositionEmpty />

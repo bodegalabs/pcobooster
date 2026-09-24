@@ -33,7 +33,7 @@ export const SchedulePlansPage = () => {
 
   return (
     <main className="bg-background flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain md:overflow-hidden">
-      <div className="pb-tab-bar mx-auto flex w-full max-w-7xl flex-col px-4 pt-1 md:min-h-0 md:flex-1 md:px-4 md:py-4">
+      <div className="pb-safe-4 mx-auto flex w-full max-w-7xl flex-col px-4 pt-1 md:min-h-0 md:flex-1 md:px-4 md:py-4">
         <ServicePlanTableSelector
           selectedServiceTypeId={null}
           selectedPlanId={isOpeningPlan ? openingPlanId : null}
