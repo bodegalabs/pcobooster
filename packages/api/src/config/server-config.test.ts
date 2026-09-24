@@ -48,19 +48,6 @@ describe(resolveServerConfig, () => {
     ]);
   });
 
-  it("defaults the People page on locally and off once deployed", () => {
-    expect(
-      testServerConfig({ NODE_ENV: "development" }).peoplePageEnabled
-    ).toBeTruthy();
-    expect(
-      testServerConfig({ NODE_ENV: "production" }).peoplePageEnabled
-    ).toBeFalsy();
-    expect(
-      testServerConfig({ NODE_ENV: "production", PEOPLE_PAGE_ENABLED: "true" })
-        .peoplePageEnabled
-    ).toBeTruthy();
-  });
-
   it("enables the OAuth proxy only with both a secret and a production URL", () => {
     expect(
       testServerConfig({ OAUTH_PROXY_SECRET: "proxy-secret" }).auth.proxy

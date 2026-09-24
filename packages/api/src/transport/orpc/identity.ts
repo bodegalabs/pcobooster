@@ -62,7 +62,7 @@ const peopleFeature = rpc.features.people.handler(
     applyPrivateNoStore(context.resHeaders);
     return await executeApplicationEffect(
       applicationRuntime,
-      getPeopleFeature,
+      getPeopleFeature(),
       context,
       signal
     );

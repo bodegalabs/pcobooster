@@ -1,8 +1,10 @@
+import { deploymentTier } from "@pcobooster/api/config/feature-flags";
 import type { ServerEnvironment } from "@pcobooster/api/config/server-config";
 import { resolveServerConfig } from "@pcobooster/api/config/server-config";
 import { logger } from "@pcobooster/api/logger";
 import { appRouter } from "@pcobooster/api/orpc";
 import { createServerDependencies } from "@pcobooster/api/server";
+import type { FeatureFlagSource } from "@pcobooster/api/server";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import { Config, Effect, Redacted } from "effect";
@@ -11,6 +13,7 @@ import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import { createServerApp } from "./app";
 import { Database } from "./database";
+import { FeatureFlagApp } from "./feature-flags";
 import { currentStageSettings } from "./stage";
 
 const PREVIEW_SECRET_PLACEHOLDER = "minted-by-alchemy-random-at-runtime";
@@ -58,7 +61,6 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
       "PLANNING_CENTER_OAUTH_CLIENT_SECRET"
     ),
     PCOBOOSTER_ADMIN_EMAILS: yield* secret("PCOBOOSTER_ADMIN_EMAILS"),
-    PEOPLE_PAGE_ENABLED: yield* Config.String("PEOPLE_PAGE_ENABLED"),
     PLANNING_CENTER_TIME_ZONE: yield* Config.String(
       "PLANNING_CENTER_TIME_ZONE"
     ).pipe(Config.withDefault("America/Los_Angeles")),
@@ -120,14 +122,30 @@ export default class Api extends Cloudflare.Worker<Api>()(
   }),
   Effect.gen(function* api() {
     const database = yield* Cloudflare.D1.QueryDatabase(yield* Database);
+    const tier = deploymentTier(yield* currentStageSettings);
+    // `alchemy dev` has no local Flagship: its binding would proxy to a live app, which needs
+    // Cloudflare credentials and cloud resources. The local stage serves registry values.
+    const flags =
+      tier === "local"
+        ? undefined
+        : yield* Cloudflare.Flagship.ReadFlags(yield* FeatureFlagApp(tier));
     const resolveEnvironment = yield* readEnvironment;
-    // The D1 binding and a runtime-minted secret are only readable inside a request, so the
-    // app is built by the first one and shared by the rest of the isolate's lifetime.
+    // The D1 and Flagship bindings and a runtime-minted secret are only readable inside a
+    // request, so the app is built by the first one and shared by the rest of the isolate's
+    // lifetime.
     const app = yield* Effect.cached(
       Effect.gen(function* buildApp() {
         const config = resolveServerConfig(yield* resolveEnvironment);
         const binding = yield* database.raw;
-        const server = createServerDependencies(config, binding);
+        const featureFlagSource: FeatureFlagSource =
+          flags === undefined
+            ? { kind: "registry", tier: "local" }
+            : { kind: "flagship", binding: yield* flags.raw };
+        const server = createServerDependencies(
+          config,
+          binding,
+          featureFlagSource
+        );
         // Better Auth starts initializing (including OIDC discovery) when created. workerd ties
         // that I/O to the current request, so it must settle before this request ends or every
         // later request would wait on it forever.
@@ -153,5 +171,8 @@ export default class Api extends Cloudflare.Worker<Api>()(
         return HttpServerResponse.fromWeb(response);
       }),
     };
-  }).pipe(Effect.provide(Cloudflare.D1.QueryDatabaseBinding))
+  }).pipe(
+    Effect.provide(Cloudflare.D1.QueryDatabaseBinding),
+    Effect.provide(Cloudflare.Flagship.ReadFlagsBinding)
+  )
 ) {}

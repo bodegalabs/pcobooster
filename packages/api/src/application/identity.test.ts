@@ -3,6 +3,7 @@ import {
   RequestContext,
 } from "@pcobooster/api/application/context";
 import {
+  getPeopleFeature,
   getPlanningCenterAccounts,
   getSessionStatus,
   selectPlanningCenterAccount,
@@ -15,7 +16,7 @@ import {
   loadDevBypassIdentity,
 } from "@pcobooster/api/auth/dev-bypass";
 import { Server } from "@pcobooster/api/server";
-import { testServer } from "@pcobooster/api/testing/server";
+import { testFeatureFlags, testServer } from "@pcobooster/api/testing/server";
 import { Cause, Effect, Exit, Option } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
@@ -219,5 +220,76 @@ describe("identity application programs", () => {
         )
       )
     ).toBe("NotFound");
+  });
+});
+
+const readPeopleFeature = async (
+  dependencies: IdentityDependencies,
+  featureFlags = testFeatureFlags({ people: true })
+) => {
+  const result = await Effect.runPromise(
+    getPeopleFeature(dependencies).pipe(
+      Effect.provideService(RequestContext, createRequestContext(request)),
+      Effect.provideService(Server, testServer({ featureFlags }))
+    )
+  );
+  return { result, evaluations: featureFlags.evaluations };
+};
+
+describe(getPeopleFeature, () => {
+  it("evaluates the flag anonymously for a signed-out visitor", async () => {
+    const { result, evaluations } = await readPeopleFeature(
+      unauthenticatedDependencies()
+    );
+    expect(result).toStrictEqual({ enabled: true });
+    expect(evaluations).toStrictEqual([
+      {
+        flag: "people",
+        subject: { userId: null, planningCenterAccountId: null },
+      },
+    ]);
+  });
+
+  it("evaluates the flag for the user and their selected Planning Center account", async () => {
+    const dependencies: IdentityDependencies = {
+      ...authenticatedDependencies(),
+      listUserAccounts: vi
+        .fn<IdentityDependencies["listUserAccounts"]>()
+        .mockResolvedValue([
+          planningCenterAccount("older", "2026-01-03T00:00:00.000Z"),
+          planningCenterAccount("newest", "2026-01-04T00:00:00.000Z"),
+        ]),
+    };
+    const newest = await readPeopleFeature(dependencies);
+    expect(newest.evaluations[0]?.subject).toStrictEqual({
+      userId: getDevBypassSession().user.id,
+      planningCenterAccountId: "newest",
+    });
+
+    const selected = await readPeopleFeature({
+      ...dependencies,
+      getSelectedAccountId: () => "older",
+    });
+    expect(selected.evaluations[0]?.subject.planningCenterAccountId).toBe(
+      "older"
+    );
+  });
+
+  it("evaluates a demo session anonymously without reading Better Auth", async () => {
+    const { dependencies } = demoDependencies();
+    const { evaluations } = await readPeopleFeature(dependencies);
+    expect(evaluations[0]?.subject).toStrictEqual({
+      userId: null,
+      planningCenterAccountId: null,
+    });
+    expect(dependencies.getSession).not.toHaveBeenCalled();
+  });
+
+  it("reports the flag's off value", async () => {
+    const { result } = await readPeopleFeature(
+      unauthenticatedDependencies(),
+      testFeatureFlags()
+    );
+    expect(result).toStrictEqual({ enabled: false });
   });
 });

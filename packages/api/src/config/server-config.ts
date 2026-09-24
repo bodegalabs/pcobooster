@@ -1,6 +1,5 @@
 import { readDemoConfiguration } from "@pcobooster/api/auth/demo-access";
 import type { DemoConfiguration } from "@pcobooster/api/auth/demo-access";
-import { resolvePeoplePageAvailability } from "@pcobooster/api/config/people-page-availability";
 import { resolveReleaseVersion } from "@pcobooster/api/config/release";
 import type { PlanningCenterPersonalAccessToken } from "@pcobooster/api/planning-center/core-client";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
@@ -34,7 +33,6 @@ export interface ServerConfig {
     };
   };
   readonly adminEmails: readonly string[];
-  readonly peoplePageEnabled: boolean;
   /** Used when Planning Center does not report the organization's time zone. */
   readonly fallbackTimeZone: string;
   /** Present only in production, the one stage that shares the product's PostHog project. */
@@ -61,7 +59,6 @@ export interface ServerEnvironment {
   readonly PLANNING_CENTER_OAUTH_CLIENT_ID: string;
   readonly PLANNING_CENTER_OAUTH_CLIENT_SECRET: string;
   readonly PCOBOOSTER_ADMIN_EMAILS?: string;
-  readonly PEOPLE_PAGE_ENABLED?: string;
   readonly PLANNING_CENTER_TIME_ZONE?: string;
   readonly POSTHOG_PROJECT_KEY?: string;
   readonly DEMO_ACCESS_KEY?: string;
@@ -148,10 +145,6 @@ export const resolveServerConfig = (
       },
     },
     adminEmails: parseAdminEmails(environment.PCOBOOSTER_ADMIN_EMAILS),
-    peoplePageEnabled: resolvePeoplePageAvailability(
-      environment.PEOPLE_PAGE_ENABLED,
-      localDevelopment
-    ),
     fallbackTimeZone:
       optional(environment.PLANNING_CENTER_TIME_ZONE) ?? DEFAULT_TIME_ZONE,
     postHogProjectKey: production

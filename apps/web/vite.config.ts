@@ -11,8 +11,6 @@ import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 import { z } from "zod";
 
-import { resolvePeoplePageAvailability } from "./src/people-page-availability.ts";
-
 const repositoryRoot = path.resolve(import.meta.dirname, "../..");
 
 // `alchemy dev`/`deploy` inject their own resource-aware Cloudflare plugin with the Worker's bindings.
@@ -58,9 +56,6 @@ const publicDefines = (devServer: boolean) => ({
   ),
   "import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE": JSON.stringify(
     process.env.PLANNING_CENTER_TIME_ZONE ?? ""
-  ),
-  "import.meta.env.VITE_PEOPLE_PAGE_ENABLED": JSON.stringify(
-    resolvePeoplePageAvailability(process.env.PEOPLE_PAGE_ENABLED, devServer)
   ),
   // `bun run dev:present` sets presentation mode for the dev server; deployed builds are
   // always live.

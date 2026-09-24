@@ -102,6 +102,7 @@ The account is on Cloudflare Workers Free: each Worker invocation may make at mo
 - People availability and blockouts: compare the plan `sort_date` instant to blockouts using each blockout’s Planning Center `time_zone` (calendar-day logic); pass the full ISO `date` through the `people.list` oRPC input. Naive UTC-midnight or date-only string overlap checks can mislabel people near timezone boundaries.
 - Congregation-local business dates (plan windows, schedule history frequency, calendar-day deltas) use the org IANA zone from Planning Center, falling back to `PLANNING_CENTER_TIME_ZONE` (inlined into the product build as `import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE`), with shared helpers in `packages/planning-center-models/src/calendar.ts`.
 - Person card frequency labels should align with recommendation scoring: distinct calendar service/rehearsal days in org TZ, not raw plan-time row counts or grouped-card counts.
+- Feature flags are Cloudflare Flagship flags managed by Alchemy, not environment settings or build-time `define`s. Add a flag to the registry in `packages/api/src/config/feature-flags.ts` (key and per-tier value), put targeting rules in `apps/server/src/feature-flags.ts`, and evaluate it per request through `ServerDependencies.featureFlags`; the browser asks the API. Dashboard edits are overwritten on deploy, and the local stage serves registry values without Flagship. See [docs/environment.md](docs/environment.md#feature-flags).
 
 # Ultracite Code Standards
 

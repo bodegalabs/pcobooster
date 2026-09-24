@@ -18,7 +18,6 @@ import type { PlanningCenterAccountsResponse } from "@pcobooster/contracts/accou
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
-import type { QueryFunctionContext } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Check, ChevronDown, ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
@@ -94,16 +93,9 @@ import {
   parseDetailRoute,
   planViews,
 } from "@/lib/app-routes";
-import { writeBrowserStorage } from "@/lib/browser-storage";
-import { peoplePageEnabled, presentationMode } from "@/lib/build-settings";
-import {
-  PEOPLE_PAGE_NAV_CACHE_KEY,
-  parsePeoplePageNavState,
-  serializePeoplePageNavState,
-} from "@/lib/people-page-nav-cache";
-import { queryKeys } from "@/lib/query-keys";
+import { presentationMode } from "@/lib/build-settings";
+import { peopleFeatureQueryOptions } from "@/lib/people-route";
 import { cn } from "@/lib/utils";
-import { orpc } from "@/orpc-client";
 
 const SIDEBAR_OPEN_STORAGE_KEY = "pcobooster:sidebar-open";
 const APP_CHROME_ROW = "flex h-12 shrink-0 items-center gap-2";
@@ -121,15 +113,6 @@ const initialsFromName = (name: string | null | undefined): string => {
     return parts[0].slice(0, 2).toUpperCase();
   }
   return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
-};
-
-const fetchPeopleNavFeature = async ({ signal }: QueryFunctionContext) => {
-  const response = await orpc.features.people({}, { signal });
-  writeBrowserStorage(
-    PEOPLE_PAGE_NAV_CACHE_KEY,
-    serializePeoplePageNavState(response)
-  );
-  return response;
 };
 
 const themeOptions = [
@@ -510,17 +493,8 @@ const ServicesSidebarMenuItem = () => {
 };
 
 const useNavFeatures = () => {
-  const [cachedPeopleFeature] = useBrowserStorage(PEOPLE_PAGE_NAV_CACHE_KEY);
-  const peopleFeatureQuery = useQuery({
-    queryKey: queryKeys.peopleFeature(),
-    queryFn: fetchPeopleNavFeature,
-  });
-  return {
-    peopleNavEnabled:
-      peopleFeatureQuery.data?.enabled ??
-      parsePeoplePageNavState(cachedPeopleFeature)?.enabled ??
-      peoplePageEnabled,
-  };
+  const peopleFeatureQuery = useQuery(peopleFeatureQueryOptions);
+  return { peopleNavEnabled: peopleFeatureQuery.data?.enabled ?? false };
 };
 
 const AppSidebar = ({ peopleNavEnabled }: { peopleNavEnabled: boolean }) => {
