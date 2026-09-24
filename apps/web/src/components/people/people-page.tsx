@@ -203,8 +203,8 @@ export const PeoplePage = () => {
   );
 
   return (
-    <main className="bg-background flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="pb-page-end mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pt-1 md:py-4">
+    <main className="bg-background flex flex-1 flex-col md:h-full md:min-h-0 md:overflow-hidden">
+      <div className="pb-safe-4 mx-auto flex w-full max-w-7xl flex-1 flex-col gap-3 px-4 pt-1 md:min-h-0 md:overflow-y-auto md:overscroll-contain md:py-4">
         <header className="flex shrink-0 flex-col gap-3">
           <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 max-md:contents">
             <div className="min-w-0 max-md:hidden">

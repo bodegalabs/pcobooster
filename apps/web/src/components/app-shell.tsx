@@ -632,7 +632,7 @@ const MobileChromeHeader = () => {
   const detail = parseDetailRoute(pathname);
 
   return (
-    <header className="flex h-12 shrink-0 items-center gap-2 px-2 md:hidden">
+    <header className="bg-background/80 sticky top-0 z-30 flex h-12 shrink-0 items-center gap-2 px-2 backdrop-blur-xl md:hidden">
       {detail ? (
         <Link
           to={detail.parentHref}
@@ -676,11 +676,11 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
     <SidebarProvider
       open={sidebarOpen}
       onOpenChange={handleSidebarOpenChange}
-      className="h-lvh min-h-0 overflow-hidden"
+      className="min-h-dvh md:h-dvh md:min-h-0 md:overflow-hidden"
     >
       <SidebarToggleHotkey />
       <AppSidebar peopleNavEnabled={peopleNavEnabled} />
-      <SidebarInset className="min-h-0 overflow-hidden">
+      <SidebarInset className="md:min-h-0 md:overflow-hidden">
         <AppInsetChromeHeader>
           <SidebarChromeTrigger when="inset" />
           <AppTopBar />
@@ -688,7 +688,7 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
           {presentationMode ? <PresentationModeBadge /> : null}
         </AppInsetChromeHeader>
         <MobileChromeHeader />
-        <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+        <div className="flex flex-1 flex-col md:min-h-0">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

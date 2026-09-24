@@ -391,7 +391,7 @@ export const MobileMenu = ({ className }: { className?: string }) => {
           </SheetClose>
           <div className="pt-safe flex h-full min-h-0 flex-col">
             <div className="h-12 shrink-0" />
-            <div className="pb-page-end flex min-h-0 flex-1 flex-col justify-between gap-8 overflow-y-auto overscroll-contain px-6 pt-4">
+            <div className="pb-safe-4 flex min-h-0 flex-1 flex-col justify-between gap-8 overflow-y-auto overscroll-contain px-6 pt-4">
               <MenuNav />
               <MenuAccount
                 onAccountSwitched={() => {

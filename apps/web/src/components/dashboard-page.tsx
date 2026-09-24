@@ -176,7 +176,7 @@ const DashboardPlanHeader = ({
   const planDate = formatHeaderPlanDate(sortDate, orgTimeZone);
   return (
     <>
-      <header className="flex shrink-0 items-center gap-1 pt-1.5 pb-2 md:hidden">
+      <header className="bg-background/80 sticky top-0 z-30 -mx-4 flex shrink-0 items-center gap-1 px-4 pt-1.5 pb-2 backdrop-blur-xl md:hidden">
         <MobilePlanBack onBack={onBack} />
         <div className="flex min-w-0 flex-1 flex-col">
           <h1 className="min-w-0 text-base leading-tight font-semibold tracking-tight">
@@ -222,7 +222,7 @@ const DashboardPlanHeader = ({
 
 const DashboardPlanHeaderFallback = () => (
   <>
-    <header className="flex shrink-0 items-center gap-1 pt-1.5 pb-2 md:hidden">
+    <header className="bg-background/80 sticky top-0 z-30 -mx-4 flex shrink-0 items-center gap-1 px-4 pt-1.5 pb-2 backdrop-blur-xl md:hidden">
       <MobilePlanBack onBack={null} />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <Skeleton variant="text" className="h-4 w-40" />
@@ -303,7 +303,7 @@ export const DashboardPage = ({
   }
 
   return (
-    <main className="bg-background flex h-full min-h-0 flex-col overflow-hidden">
+    <main className="bg-background flex flex-1 flex-col md:h-full md:min-h-0 md:overflow-hidden">
       <div
         className={cn(
           "mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-4",
