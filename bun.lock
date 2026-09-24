@@ -37,6 +37,7 @@
         "@effect/platform-bun": "4.0.0-rc.117",
         "@effect/platform-node": "4.0.0-rc.117",
         "@opennextjs/cloudflare": "1.20.6",
+        "@pcobooster/analytics": "workspace:*",
         "@pcobooster/api": "workspace:*",
         "@pcobooster/planning-center-models": "workspace:*",
         "@shadcn/lint": "^0.1.2",

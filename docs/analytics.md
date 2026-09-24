@@ -10,6 +10,27 @@ pcobooster.com uses one US PostHog project for marketing and product analytics. 
 
 Reporting uses America/Los_Angeles. Dashboards are saved ahead of deployment and remain empty until production events arrive. Retention cohorts require several weeks to mature. No historical Vercel data is imported.
 
+### Dashboards as code
+
+The project settings above, both dashboards, their tile order, and every insight on them are defined in [`packages/analytics/src/reports.ts`](../packages/analytics/src/reports.ts). They sit next to the event allowlist in `privacy.ts`, so a report can only reference events and properties the browser actually sends. The `pcobooster-posthog` Alchemy stack ([`alchemy.posthog.ts`](../alchemy.posthog.ts), stage `prod`, Cloudflare state) reconciles them with project 614621. The small PostHog providers live in `scripts/posthog/`.
+
+Existing objects carry their PostHog IDs, so the stack adopts them in place and the links above keep working. A deploy writes only fields that differ from PostHog; an unchanged definition makes no PostHog writes. Only the listed project settings are managed; every other setting stays as configured in PostHog. Removing a definition soft-deletes an insight, which can be restored in PostHog. The project and dashboards are retained, so the stack never deletes them.
+
+To change a dashboard:
+
+1. Edit `reports.ts`. Add an insight without an `id` to create it; keep `id` on existing ones.
+2. Run `bun run posthog:plan` (a dry run) and check that only the intended objects change.
+3. Open a PR. `scripts/posthog/resources.test.ts` checks the definitions against a snapshot of the live project in `scripts/posthog/fixtures/`. Update the snapshot when a change is intended.
+4. After merge, run `bun run posthog:deploy`. CI does not apply PostHog changes.
+
+Edits made in the PostHog UI to managed fields are overwritten by the next deploy. Make them in code instead, or copy them into `reports.ts` first.
+
+Both scripts read the production Infisical project: its Cloudflare token for Alchemy state, and a PostHog personal API key, `POSTHOG_PERSONAL_API_KEY`, stored in the `/posthog` folder. CI reads only `/`, so it never sees that key. Scope the key to project 614621 with `project:read`, `project:write`, `dashboard:read`, `dashboard:write`, `insight:read`, and `insight:write`.
+
+### Deploy annotations
+
+After `verify-deployment.ts` succeeds, the production CI job runs `scripts/posthog/annotate-deploy.ts`. It adds a project-wide annotation, "Deployed <commit sha>", so charts show when each release went live. It uses `POSTHOG_ANNOTATION_API_KEY` from Infisical Production `/`, a personal API key scoped to project 614621 with only `annotation:write`. If the key is missing, or PostHog rejects the request, the step logs a warning and the deploy still succeeds.
+
 ## Collection
 
 The shared `@pcobooster/analytics` package owns configuration and the outbound event allowlist. Both Next.js apps initialize through `instrumentation-client.ts`. The product waits for a successful account response before initializing or identifying, which excludes read-only demo sessions. The anonymous marketing ID carries across the shared origin and merges into the application's user ID on authenticated use. The browser never sends names, emails, or organization names; the server sets them on the person profile (see below). Planning Center people are never identified.

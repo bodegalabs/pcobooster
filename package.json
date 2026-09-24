@@ -41,6 +41,8 @@
     "deploy:production": "infisical run --env=prod --path=/ --projectId=2eca20e1-20ac-4f06-a086-99ea5c590483 -- env -u CLOUDFLARE_API_TOKEN -u CLOUDFLARE_ACCOUNT_ID bun alchemy deploy --stage prod",
     "infra:plan": "env -u CLOUDFLARE_API_TOKEN -u CLOUDFLARE_ACCOUNT_ID GITHUB_TOKEN=\"$(gh auth token)\" INFISICAL_API_TOKEN=\"$(infisical user get token --plain)\" bun alchemy deploy alchemy.ci.ts --stage ci --dry-run --detect-drift --no-input",
     "infra:deploy": "env -u CLOUDFLARE_API_TOKEN -u CLOUDFLARE_ACCOUNT_ID GITHUB_TOKEN=\"$(gh auth token)\" INFISICAL_API_TOKEN=\"$(infisical user get token --plain)\" bun alchemy deploy alchemy.ci.ts --stage ci",
+    "posthog:plan": "infisical run --env=prod --path=/ --path=/posthog --projectId=2eca20e1-20ac-4f06-a086-99ea5c590483 -- env CLOUDFLARE_ACCOUNT_ID=984b82870acd18daf8bda97bad966b38 bun alchemy deploy alchemy.posthog.ts --stage prod --dry-run",
+    "posthog:deploy": "infisical run --env=prod --path=/ --path=/posthog --projectId=2eca20e1-20ac-4f06-a086-99ea5c590483 -- env CLOUDFLARE_ACCOUNT_ID=984b82870acd18daf8bda97bad966b38 bun alchemy deploy alchemy.posthog.ts --stage prod",
     "db:rehearse": "infisical run --env=prod --path=/ -- bun run scripts/database/migrate-from-postgres.ts --local",
     "alchemy": "node --import ./node_modules/alchemy/bin/register-oxc.js ./node_modules/alchemy/bin/alchemy.js",
     "build:cloudflare": "bun run --cwd apps/web build:cloudflare && bun run --cwd apps/admin build:cloudflare"
@@ -78,6 +80,7 @@
     "@effect/platform-bun": "4.0.0-rc.117",
     "@effect/platform-node": "4.0.0-rc.117",
     "@opennextjs/cloudflare": "1.20.6",
+    "@pcobooster/analytics": "workspace:*",
     "@pcobooster/api": "workspace:*",
     "@pcobooster/planning-center-models": "workspace:*",
     "@shadcn/lint": "^0.1.2",
