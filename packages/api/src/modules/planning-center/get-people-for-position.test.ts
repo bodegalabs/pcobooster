@@ -179,7 +179,7 @@ const blockout = (
   },
 });
 
-/** Parent row from Services API for a recurring block — wide starts_at/ends_at; real days are on blockout_dates. */
+/** Parent row from Services API for a recurring block: wide starts_at/ends_at; real days are on blockout_dates. */
 const recurringWeeklyBlockout = (
   id: string,
   startsAt: string,

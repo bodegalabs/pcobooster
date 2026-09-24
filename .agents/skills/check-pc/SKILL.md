@@ -13,15 +13,15 @@ Use this when you need to **verify a Planning Center JSON:API endpoint** against
 
 - Repo root as the working directory.
 - Env vars in `**.env.local**` (or exported in your shell), matching `PlanningCenterCoreClient`:
-  - `**PLANNING_CENTER_CLIENT**` — API application ID
-  - `**PLANNING_CENTER_PAT**` — personal access token
+  - `**PLANNING_CENTER_CLIENT**`: API application ID
+  - `**PLANNING_CENTER_PAT**`: personal access token
 - Bun loads `.env`, `.env.local`, `.env.production`, etc. automatically when run from the project directory (see [Bun env files](https://bun.sh/docs/runtime/env)).
 
 Do **not** log or commit tokens. Keep scripts read-only (GET) unless you are intentionally mutating data.
 
 ## Pattern: one-off `bun -e`
 
-Bun evaluates the string as an ES module. Import `**node-fetch`** is unnecessary — use global `fetch`.
+Bun evaluates the string as an ES module. Import `**node-fetch`** is unnecessary; use global `fetch`.
 
 1. Open the relevant vertex doc under `docs/planning-center-api/services/.../vertices/` (e.g. `plan.md`, `plan_person.md`) for the path, query params, and `include` spelling.
 2. Run from repo root:

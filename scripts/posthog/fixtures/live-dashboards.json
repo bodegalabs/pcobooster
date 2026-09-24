@@ -399,7 +399,7 @@
         "insight": {
           "id": 12152298,
           "short_id": "lA7Z9GUg",
-          "name": "Active app users — daily, weekly, monthly",
+          "name": "Active app users: daily, weekly, monthly",
           "query": {
             "kind": "InsightVizNode",
             "source": {

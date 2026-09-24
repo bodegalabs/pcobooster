@@ -58,7 +58,7 @@ export interface DevBypassIdentity {
   image: string | null;
   organizationName: string;
   organizationId: string | null;
-  /** Planning Center Person ID for the PAT owner — used to look up "my schedules". */
+  /** Planning Center Person ID for the PAT owner, used to look up "my schedules". */
   personId: string | null;
 }
 

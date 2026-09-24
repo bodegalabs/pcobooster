@@ -51,13 +51,13 @@ export const formatPlanTimeRangeLabel = (edit: {
   const sameDay = !edit.endDate || edit.endDate === edit.startDate;
 
   if (sameDay && startDate) {
-    return `${format(startDate, "EEE, MMM d")} · ${startTimeLabel} – ${endTimeLabel}`;
+    return `${format(startDate, "EEE, MMM d")} · ${startTimeLabel} - ${endTimeLabel}`;
   }
 
   const endDate = parseCalendarDay(edit.endDate || edit.startDate);
   if (startDate && endDate) {
-    return `${format(startDate, "EEE, MMM d")} ${startTimeLabel} – ${format(endDate, "EEE, MMM d")} ${endTimeLabel}`;
+    return `${format(startDate, "EEE, MMM d")} ${startTimeLabel} - ${format(endDate, "EEE, MMM d")} ${endTimeLabel}`;
   }
 
-  return `${startTimeLabel} – ${endTimeLabel}`;
+  return `${startTimeLabel} - ${endTimeLabel}`;
 };

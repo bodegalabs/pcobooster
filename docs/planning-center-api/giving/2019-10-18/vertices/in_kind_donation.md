@@ -14,7 +14,7 @@
 An `InKindDonation` record represents a non-cash gift given to an `Organization` at a specific time.
 
 These include items like furniture, vehicles, services, or stocks. `InKindDonations` do not trigger
-acknowledgment letter emails via the API — these must be sent from the Giving Admin UI.
+acknowledgment letter emails via the API; these must be sent from the Giving Admin UI.
 
 [More info](https://pcogiving.zendesk.com/hc/en-us/articles/360040772154-In-kind-donations#enter-an-in-kind-donation-0)
 

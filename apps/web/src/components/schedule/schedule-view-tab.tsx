@@ -321,7 +321,7 @@ const ScheduleViewContent = ({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [filter, setFilter] = useState("");
   const deferredFilter = useDeferredValue(filter);
-  /** Tailwind `lg` — sidebar visible; sheet only below this width. */
+  /** Tailwind `lg`: sidebar visible; sheet only below this width. */
   const isWidePickerLayout = useMediaQuery("(min-width: 1024px)");
 
   const selectedSlotInfo = findSelectedSlotInfo(

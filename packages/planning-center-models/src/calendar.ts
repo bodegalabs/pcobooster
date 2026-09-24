@@ -2,7 +2,7 @@ import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/
 
 export { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar-day";
 
-/** Pure calendar helpers — supply IANA `timeZone` from Planning Center org resolution (server/client). */
+/** Pure calendar helpers: supply IANA `timeZone` from Planning Center org resolution (server/client). */
 
 const utcCivilMidnight = (dayKey: string): number => {
   const [y, m, d] = dayKey.split("-").map(Number);

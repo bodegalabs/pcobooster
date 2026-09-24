@@ -65,7 +65,7 @@ export const PlanPersonStatusMenu = ({
             variant="ghost"
             size="icon"
             className="size-8 shrink-0 justify-self-center max-sm:size-10"
-            aria-label={`Change status — ${currentItem.label}`}
+            aria-label={`Change status: ${currentItem.label}`}
             title={currentItem.label}
             disabled={!hasPlanPersonId || isBusy}
           />
