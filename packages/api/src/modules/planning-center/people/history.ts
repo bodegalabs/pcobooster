@@ -1,8 +1,5 @@
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
-import {
-  isDeclinedAssignmentStatus,
-  summarizeCandidateHistory,
-} from "@pcobooster/planning-center-models/candidate-frequency";
+import { isDeclinedAssignmentStatus } from "@pcobooster/planning-center-models/candidate-frequency";
 import {
   isNonEmptyString,
   isString,
@@ -10,7 +7,6 @@ import {
 import type {
   PCResource,
   RawSchedule,
-  ScheduleFrequency,
   ServiceHistoryItem,
 } from "@pcobooster/planning-center-models/types";
 
@@ -175,38 +171,3 @@ export const mapSchedulesToServiceHistory = (
       (item) => item.timeType === "service" || item.timeType === "rehearsal"
     );
   });
-
-const limitHistory = (
-  serviceHistory: ServiceHistoryItem[],
-  historyLimit: number
-): ServiceHistoryItem[] => {
-  if (!Number.isFinite(historyLimit)) {
-    return serviceHistory;
-  }
-  return historyLimit <= 0
-    ? []
-    : serviceHistory.slice(-Math.floor(historyLimit));
-};
-
-export interface HistoryBuildResult {
-  serviceHistory: ServiceHistoryItem[];
-  frequency: ScheduleFrequency;
-}
-
-export const buildHistoryAndFrequencyForPerson = (
-  schedules: RawSchedule[],
-  historyIncluded: PCResource[],
-  referenceDate: Date,
-  historyLimit: number,
-  orgTimeZone: string
-): HistoryBuildResult => {
-  const { frequency, serviceHistory } = summarizeCandidateHistory(
-    mapSchedulesToServiceHistory(schedules, historyIncluded),
-    referenceDate,
-    orgTimeZone
-  );
-  return {
-    serviceHistory: limitHistory(serviceHistory, historyLimit),
-    frequency,
-  };
-};

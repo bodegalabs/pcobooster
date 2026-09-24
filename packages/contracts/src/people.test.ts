@@ -11,7 +11,7 @@ import {
   peopleDashboardPersonSchema,
   peopleDashboardRosterSchema,
   positionCandidatesSchema,
-  scheduleHistoryResponseSchema,
+  scheduleFrequencySchema,
 } from "@pcobooster/contracts/people-schemas";
 import { describe, expect, it } from "vitest";
 
@@ -72,7 +72,7 @@ const frequency = {
 };
 
 describe("people read contracts", () => {
-  it("retains real dates throughout blockouts and schedule history", () => {
+  it("retains real dates throughout blockouts and schedule frequency", () => {
     const blockout = {
       id: "blockout-1",
       reason: "Unavailable",
@@ -82,23 +82,8 @@ describe("people read contracts", () => {
       share: false,
       timeZone: "America/Los_Angeles",
     };
-    const history = {
-      planPeople: [
-        {
-          id: "plan-person-1",
-          status: "C",
-          createdAt: new Date("2026-09-01T00:00:00Z"),
-          teamPositionName: "Keys",
-          planTitle: "Sunday",
-          planDate: new Date("2026-09-20T17:00:00Z"),
-          declineReason: "",
-        },
-      ],
-      frequency,
-    };
-
     expect(blockoutSchema.parse(blockout)).toStrictEqual(blockout);
-    expect(scheduleHistoryResponseSchema.parse(history)).toStrictEqual(history);
+    expect(scheduleFrequencySchema.parse(frequency)).toStrictEqual(frequency);
     expect(
       blockoutSchema.safeParse({
         ...blockout,
@@ -106,9 +91,9 @@ describe("people read contracts", () => {
       }).success
     ).toBeFalsy();
     expect(
-      scheduleHistoryResponseSchema.safeParse({
-        ...history,
-        frequency: { ...frequency, lastServedDate: "2026-09-13T17:00:00Z" },
+      scheduleFrequencySchema.safeParse({
+        ...frequency,
+        lastServedDate: "2026-09-13T17:00:00Z",
       }).success
     ).toBeFalsy();
   });
@@ -210,6 +195,18 @@ describe("people read contracts", () => {
         scheduleHistory: false,
       }).success
     ).toBeFalsy();
+    const continuation = {
+      personIds: ["1"],
+      planId: "plan-1",
+      date: history.date,
+      scheduleHistory: false,
+      blockoutProgress: [
+        { personId: "1", checkedBlockoutIds: ["blockout-1"], blocked: false },
+      ],
+    };
+    expect(peopleCandidateDetailsInputSchema.parse(continuation)).toStrictEqual(
+      continuation
+    );
     expect(
       peopleMyScheduledPlansInputSchema.safeParse({
         planIds: Array.from({ length: 501 }, (_, index) => String(index)),

@@ -42,6 +42,46 @@ export const needsScheduleHistory = (
   windowCalls !== undefined &&
   windowCalls.every(({ loadedPlanCount }) => loadedPlanCount === 0);
 
+type WindowPlanRef = PlanWindowHistoryBatch["deferredPlans"][number];
+
+/**
+ * Whether a follow-up window call got anywhere: it read a roster, dropped a plan that left the
+ * window, or listed another service type's plans. A call that did none would repeat forever.
+ */
+export const windowHistoryAdvanced = (
+  continuation: {
+    readonly plans: readonly WindowPlanRef[];
+    readonly serviceTypeIds: readonly string[];
+  },
+  batch: PlanWindowHistoryBatch
+): boolean => {
+  const stillDeferred = new Set(
+    batch.deferredPlans.map(({ planId }) => planId)
+  );
+  return (
+    batch.loadedPlanCount > 0 ||
+    batch.deferredServiceTypeIds.length < continuation.serviceTypeIds.length ||
+    continuation.plans.some(({ planId }) => !stillDeferred.has(planId))
+  );
+};
+
+type BlockoutProgress = CandidateDetailsBatch["blockoutProgress"];
+
+/** Whether a candidate details call checked another blockout or found a block. */
+export const advancedBlockoutChecks = (
+  before: BlockoutProgress,
+  after: BlockoutProgress
+): boolean => {
+  const earlier = new Map(before.map((entry) => [entry.personId, entry]));
+  return after.some(({ personId, checkedBlockoutIds, blocked }) => {
+    const previous = earlier.get(personId);
+    return (
+      blocked !== (previous?.blocked ?? false) ||
+      checkedBlockoutIds.length > (previous?.checkedBlockoutIds.length ?? 0)
+    );
+  });
+};
+
 export interface CandidateListProgress {
   candidateCount: number;
   /** Candidates whose availability (and history, when it is theirs) arrived. */

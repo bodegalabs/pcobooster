@@ -1,6 +1,7 @@
 import { getCandidateDetails } from "@pcobooster/api/modules/planning-center/get-candidate-details";
 import type {
   CandidateDetail,
+  CandidateDetailsBatch,
   CandidateDetailsDependencies,
 } from "@pcobooster/api/modules/planning-center/get-candidate-details";
 import { getPlanWindowHistory } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
@@ -94,6 +95,7 @@ const loadDetails = async (
     planId: string;
     date: string;
     scheduleHistory: boolean;
+    blockoutProgress?: CandidateDetailsBatch["blockoutProgress"];
   },
   spent: number,
   progress: Progress
@@ -106,14 +108,25 @@ const loadDetails = async (
     spent
   );
   progress.calls += 1;
-  if (batch.deferredPersonIds.length >= request.personIds.length) {
+  if (batch.deferredPersonIds.length === 0) {
+    return batch.people;
+  }
+  if (
+    batch.people.length === 0 &&
+    batch.blockoutProgress.length === 0 &&
+    batch.deferredPersonIds.length >= request.personIds.length
+  ) {
     throw new Error("Candidate details made no progress");
   }
   return [
     ...batch.people,
     ...(await loadDetails(
       dependencies,
-      { ...request, personIds: batch.deferredPersonIds },
+      {
+        ...request,
+        personIds: batch.deferredPersonIds,
+        blockoutProgress: batch.blockoutProgress,
+      },
       spent,
       progress
     )),

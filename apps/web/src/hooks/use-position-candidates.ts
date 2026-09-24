@@ -1,5 +1,6 @@
 import { PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE } from "@pcobooster/contracts/people";
 import type {
+  CandidateDetailsBatch,
   PlanWindowHistoryBatch,
   PositionCandidates,
 } from "@pcobooster/contracts/people-schemas";
@@ -14,12 +15,14 @@ import { useCallback, useLayoutEffect, useMemo } from "react";
 
 import { isQueryFresh } from "@/lib/intent-prefetch";
 import {
+  advancedBlockoutChecks,
   assembleCandidateList,
   CANDIDATE_DETAILS_BATCH_CONCURRENCY,
   collectCandidateDetails,
   expandWindowHistory,
   needsScheduleHistory,
   planCandidateDetailsBatches,
+  windowHistoryAdvanced,
 } from "@/lib/position-candidates";
 import type {
   CandidateDetail,
@@ -124,8 +127,7 @@ const fetchPlanWindowHistory = async (
   }
   if (
     continuation !== undefined &&
-    batch.loadedPlanCount === 0 &&
-    deferredServiceTypeIds.length >= continuation.serviceTypeIds.length
+    !windowHistoryAdvanced(continuation, batch)
   ) {
     throw new Error("Plan window history made no progress.");
   }
@@ -158,27 +160,41 @@ interface CandidateDetailsRequest {
   scheduleHistory: boolean;
 }
 
-/** Follows `deferredPersonIds` until the batch is complete. */
+/**
+ * Follows `deferredPersonIds` (with `blockoutProgress`) until the batch is complete. Every call
+ * details someone or advances someone's blockout checks.
+ */
 const fetchCandidateDetails = async (
   { personIds, planId, dateKey, scheduleHistory }: CandidateDetailsRequest,
-  signal: AbortSignal
+  signal: AbortSignal,
+  blockoutProgress?: CandidateDetailsBatch["blockoutProgress"]
 ): Promise<CandidateDetail[]> => {
   const batch = await orpc.people.candidateDetails(
-    { personIds: [...personIds], planId, date: dateKey, scheduleHistory },
+    {
+      personIds: [...personIds],
+      planId,
+      date: dateKey,
+      scheduleHistory,
+      blockoutProgress,
+    },
     { signal }
   );
   const deferred = batch.deferredPersonIds;
   if (deferred.length === 0) {
     return batch.people;
   }
-  if (deferred.length >= personIds.length) {
+  if (
+    batch.people.length === 0 &&
+    !advancedBlockoutChecks(blockoutProgress ?? [], batch.blockoutProgress)
+  ) {
     throw new Error("Candidate details made no progress.");
   }
   return [
     ...batch.people,
     ...(await fetchCandidateDetails(
       { personIds: deferred, planId, dateKey, scheduleHistory },
-      signal
+      signal,
+      batch.blockoutProgress
     )),
   ];
 };

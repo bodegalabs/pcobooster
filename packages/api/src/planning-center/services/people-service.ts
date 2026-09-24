@@ -100,40 +100,6 @@ const toResourceCollection = (
   included: fetched.included ?? [],
 });
 
-/** Plan IDs whose schedules list PlanTimes that `include=plan_times` did not sideload. */
-const findMissingPlanTimes = (
-  schedules: PCResource[],
-  included: PCResource[]
-): Map<string, Set<string>> => {
-  const sideloadedPlanTimeIds = new Set<string>();
-  for (const resource of included) {
-    if (resource.type === "PlanTime") {
-      sideloadedPlanTimeIds.add(resource.id);
-    }
-  }
-
-  const missingByPlan = new Map<string, Set<string>>();
-  for (const schedule of schedules) {
-    const planRel = schedule.relationships?.plan?.data;
-    const planId = Array.isArray(planRel) ? planRel[0]?.id : planRel?.id;
-    if (!isNonEmptyString(planId)) {
-      continue;
-    }
-    const timesRel = getRelationshipIdentifiers(
-      schedule.relationships?.times?.data
-    );
-    for (const t of timesRel) {
-      if (!isNonEmptyString(t.id) || sideloadedPlanTimeIds.has(t.id)) {
-        continue;
-      }
-      const missingTimes = missingByPlan.get(planId) ?? new Set<string>();
-      missingTimes.add(t.id);
-      missingByPlan.set(planId, missingTimes);
-    }
-  }
-  return missingByPlan;
-};
-
 /**
  * `teams?include=people` lists every member of each team in one response
  * (measured: a 65-person team arrives whole), unlike `teams/{id}/people`,
@@ -309,26 +275,16 @@ export class PlanningCenterPeopleService {
     ).pipe(Effect.map((dates) => structuredClone(dates)));
   }
 
+  /**
+   * A person's schedules with service PlanTimes sideloaded. Rehearsal PlanTimes are listed in
+   * `relationships.times` but not sideloaded; callers that need them resolve them within their
+   * request budget.
+   */
   getPersonSchedules(
     personId: string,
     params: Record<string, string> = {},
     maxPages = 2
   ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
-    const load = () =>
-      this.core
-        .fetchAllWithIncluded(
-          `/services/v2/people/${personId}/schedules`,
-          { include: "plan_times", ...params },
-          maxPages
-        )
-        .pipe(
-          Effect.flatMap(({ data, included }) =>
-            Effect.map(
-              this.enrichSchedulesWithRehearsalTimes(data, included),
-              (enrichedIncluded) => ({ data, included: enrichedIncluded })
-            )
-          )
-        );
     return cachedRead(
       this.caches.collections,
       this.buildCacheKey(
@@ -338,14 +294,20 @@ export class PlanningCenterPeopleService {
         String(maxPages)
       ),
       PERSON_READ_CACHE_TTL_MS,
-      load
+      () =>
+        this.core
+          .fetchAllWithIncluded(
+            `/services/v2/people/${personId}/schedules`,
+            { include: "plan_times", ...params },
+            maxPages
+          )
+          .pipe(Effect.map(toResourceCollection))
     ).pipe(Effect.map(cloneResourceCollectionResponse));
   }
 
   /**
-   * Schedules from `after` (a YYYY-MM-DD day or an ISO instant) onward, with service PlanTimes sideloaded. Unlike
-   * `getPersonSchedules`, this does not fetch rehearsal PlanTimes plan by plan; callers resolve
-   * them in bulk. Planning Center's default scope returns only future schedules, so the explicit
+   * Schedules from `after` (a YYYY-MM-DD day or an ISO instant) onward, with service PlanTimes sideloaded. Like
+   * `getPersonSchedules`, it leaves rehearsal PlanTimes for callers to resolve. Planning Center's default scope returns only future schedules, so the explicit
    * `after` filter is what makes past schedules visible. Declined schedules stay excluded.
    */
   getPersonSchedulesAfter(
@@ -400,30 +362,6 @@ export class PlanningCenterPeopleService {
           )
           .pipe(Effect.map(toResourceCollection))
     ).pipe(Effect.map(cloneResourceCollectionResponse));
-  }
-
-  /**
-   * `include=plan_times` only sideloads service-typed PlanTimes. Rehearsal PlanTime IDs are
-   * listed in `schedule.relationships.times` but their resources aren't included. Fetch them
-   * per-plan and merge into `included` so downstream history processing can classify them.
-   */
-  private enrichSchedulesWithRehearsalTimes(
-    schedules: PCResource[],
-    included: PCResource[]
-  ): Effect.Effect<PCResource[], PlanningCenterError> {
-    const missingByPlan = findMissingPlanTimes(schedules, included);
-    if (missingByPlan.size === 0) {
-      return Effect.succeed(included);
-    }
-
-    return Effect.forEach(
-      [...missingByPlan.entries()],
-      ([planId, idSet]) =>
-        Effect.map(this.getPlanPlanTimes(planId), (planTimes) =>
-          planTimes.filter((pt) => idSet.has(pt.id))
-        ),
-      { concurrency: "unbounded" }
-    ).pipe(Effect.map((fetched) => [...included, ...fetched.flat()]));
   }
 
   /**

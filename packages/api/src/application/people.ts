@@ -28,8 +28,6 @@ import type {
 } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
 import { getPositionCandidates } from "@pcobooster/api/modules/planning-center/get-position-candidates";
 import type { PositionCandidatesResult } from "@pcobooster/api/modules/planning-center/get-position-candidates";
-import { getScheduleHistory } from "@pcobooster/api/modules/planning-center/get-schedule-history";
-import type { ScheduleHistoryResult } from "@pcobooster/api/modules/planning-center/get-schedule-history";
 import type {
   PeopleDashboardActivityBatch,
   PeopleDashboardPersonDetail,
@@ -239,22 +237,6 @@ export const getPeopleDashboardPerson = (input: {
       detail,
       requestPresentationDependencies(access)
     );
-  }).pipe(withPlanningCenterFaults);
-
-export const getPeopleScheduleHistory = (input: {
-  readonly personId: string;
-  readonly days: number;
-}): Effect.Effect<
-  ScheduleHistoryResult,
-  ApplicationFault,
-  PlanningCenterAccess | RequestContext | Server
-> =>
-  Effect.gen(function* readPeopleScheduleHistory() {
-    const access = yield* PlanningCenterAccess;
-    return yield* getScheduleHistory(input.personId, input.days, {
-      peopleService: access.services.people,
-      resolveTimeZone: resolveRequestTimeZone(access),
-    });
   }).pipe(withPlanningCenterFaults);
 
 export const getMyScheduledPlans = (input: {

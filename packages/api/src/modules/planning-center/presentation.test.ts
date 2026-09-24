@@ -184,11 +184,13 @@ const candidateDetails: CandidateDetailsBatch = {
     },
   ],
   deferredPersonIds: [],
+  blockoutProgress: [],
   requestBudget: {
-    limit: 40,
+    limit: 36,
     planningCenterRequests: 1,
-    blockoutRequests: 1,
-    scheduleRequests: 0,
+    firstReadRequests: 1,
+    blockoutDateRequests: 0,
+    planTimeRequests: 0,
   },
 };
 const dashboardPerson: PeopleDashboardPerson = {

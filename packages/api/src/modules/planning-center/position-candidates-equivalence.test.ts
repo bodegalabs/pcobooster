@@ -614,9 +614,12 @@ const schedulesByPerson = new Map(
   })
 );
 
+/** `include=plan_times` sideloads service times only; rehearsal times are read per plan. */
 const scheduleIncluded: PCResource[] = PLANS.flatMap((plan) => [
   planResource(plan),
-  ...plan.times,
+  ...plan.times.filter(
+    ({ attributes }) => attributes.time_type !== "rehearsal"
+  ),
 ]);
 
 interface OrgFixture {
@@ -679,11 +682,15 @@ const createOrg = ({ emptyWindow = false }: OrgFixture = {}) => {
       Effect.succeed(structuredClone(blockoutsByPerson.get(personId) ?? [])),
     getPersonBlockoutDates: (_personId: string, blockoutId: string) =>
       Effect.succeed(structuredClone(blockoutDates.get(blockoutId) ?? [])),
-    getPersonSchedules: (personId: string) =>
+    getPersonSchedulesAfter: (personId: string) =>
       Effect.succeed({
         data: structuredClone(schedulesByPerson.get(personId) ?? []),
-        included: scheduleIncluded,
+        included: structuredClone(scheduleIncluded),
       }),
+    getPlanPlanTimes: (planId: string) =>
+      Effect.succeed(
+        structuredClone(PLANS.find(({ id }) => id === planId)?.times ?? [])
+      ),
   };
   return {
     catalog,

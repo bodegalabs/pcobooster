@@ -33,8 +33,6 @@ export const queryKeys = {
   peopleDashboardPerson: (personId: string, month: string | null) =>
     ["people-dashboard-person", personId, month] as const,
   blockouts: (personId: string | null) => ["blockouts", personId] as const,
-  scheduleHistory: (personId: string | null, days: number) =>
-    ["schedule-history", personId, days] as const,
   myScheduledPlans: (planIdsKey: string) =>
     ["my-scheduled-plans", planIdsKey] as const,
   planItems: (serviceTypeId: string | null, planId: string | null) =>

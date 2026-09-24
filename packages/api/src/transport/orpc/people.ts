@@ -7,7 +7,6 @@ import {
   getPeopleDashboardActivity,
   getPeopleDashboardPerson,
   getPeopleDashboardRoster,
-  getPeopleScheduleHistory,
   getPeopleSearch,
 } from "@pcobooster/api/application/people";
 import { withPlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
@@ -97,16 +96,6 @@ const dashboardPerson = rpc.people.dashboardPerson.handler(
     )
 );
 
-const scheduleHistory = rpc.people.scheduleHistory.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getPeopleScheduleHistory(input)),
-      context,
-      signal
-    )
-);
-
 const myScheduledPlans = rpc.people.myScheduledPlans.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
@@ -126,6 +115,5 @@ export const peopleRouter = {
   dashboardRoster,
   dashboardActivity,
   dashboardPerson,
-  scheduleHistory,
   myScheduledPlans,
 };

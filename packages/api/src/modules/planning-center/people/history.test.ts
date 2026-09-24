@@ -1,6 +1,9 @@
-import { buildHistoryAndFrequencyForPerson } from "@pcobooster/api/modules/planning-center/people/history";
+import { mapSchedulesToServiceHistory } from "@pcobooster/api/modules/planning-center/people/history";
 import { scheduleResourceSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
-import { buildFrequencyFromServiceHistory } from "@pcobooster/planning-center-models/candidate-frequency";
+import {
+  buildFrequencyFromServiceHistory,
+  summarizeCandidateHistory,
+} from "@pcobooster/planning-center-models/candidate-frequency";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   PCResource,
@@ -72,7 +75,7 @@ const team = (id: string, rehearsalTeam: boolean): PCResource => ({
   },
 });
 
-describe(buildHistoryAndFrequencyForPerson, () => {
+describe(mapSchedulesToServiceHistory, () => {
   it("classifies rehearsal/service entries and tracks counters separately", () => {
     const referenceDate = new Date("2026-02-22T00:00:00Z");
     const schedules = [
@@ -113,11 +116,9 @@ describe(buildHistoryAndFrequencyForPerson, () => {
       team("team-reh", true),
     ] satisfies PCResource[];
 
-    const result = buildHistoryAndFrequencyForPerson(
-      schedules,
-      included,
+    const result = summarizeCandidateHistory(
+      mapSchedulesToServiceHistory(schedules, included),
       referenceDate,
-      4,
       "UTC"
     );
 
@@ -169,11 +170,9 @@ describe(buildHistoryAndFrequencyForPerson, () => {
       },
     ] satisfies PCResource[];
 
-    const result = buildHistoryAndFrequencyForPerson(
-      schedules,
-      included,
+    const result = summarizeCandidateHistory(
+      mapSchedulesToServiceHistory(schedules, included),
       referenceDate,
-      Number.POSITIVE_INFINITY,
       "UTC"
     );
 
@@ -225,11 +224,9 @@ describe("declined assignments", () => {
       },
     ] satisfies PCResource[];
 
-    const result = buildHistoryAndFrequencyForPerson(
-      schedules,
-      included,
+    const result = summarizeCandidateHistory(
+      mapSchedulesToServiceHistory(schedules, included),
       referenceDate,
-      Number.POSITIVE_INFINITY,
       "UTC"
     );
 
