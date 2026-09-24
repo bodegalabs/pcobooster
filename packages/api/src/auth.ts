@@ -9,7 +9,7 @@ import type { Db } from "@pcobooster/api/db/client";
 import * as schema from "@pcobooster/api/db/schema";
 import { logger } from "@pcobooster/api/logger";
 import { upsertPlanningCenterAccountIdentity } from "@pcobooster/api/modules/admin/planning-center-account-identities";
-import type { PostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-activity";
+import type { PostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-capture";
 import { getPostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-person";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import { betterAuth } from "better-auth";

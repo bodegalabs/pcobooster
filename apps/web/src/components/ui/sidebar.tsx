@@ -548,7 +548,14 @@ const SidebarMenuButton = ({
       props
     ),
     render:
-      tooltip === undefined ? render : <HoverCardTrigger render={render} />,
+      tooltip === undefined ? (
+        render
+      ) : (
+        // The hover-card trigger defaults to an anchor; keep a real button.
+        <HoverCardTrigger
+          render={render ?? <button type="button">{props.children}</button>}
+        />
+      ),
     state: {
       slot: "sidebar-menu-button",
       sidebar: "menu-button",

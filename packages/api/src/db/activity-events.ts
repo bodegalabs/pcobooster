@@ -3,7 +3,7 @@ import type { Db } from "@pcobooster/api/db/client";
 import { activityEvents } from "@pcobooster/api/db/schema";
 import { logger } from "@pcobooster/api/logger";
 import { forwardActivityEventToPostHog } from "@pcobooster/api/modules/analytics/posthog-activity";
-import type { PostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-activity";
+import type { PostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-capture";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 
 const analyticsLog = logger.for("analytics/posthog");

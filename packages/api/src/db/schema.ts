@@ -131,6 +131,25 @@ export const activityEvents = sqliteTable(
   ]
 );
 
+/** Messages users send from the in-app feedback button. */
+export const feedback = sqliteTable(
+  "feedback",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(
+        sql`(cast((julianday('now') - 2440587.5) * 86400000 as integer))`
+      )
+      .notNull(),
+    userId: text("user_id").notNull(),
+    message: text("message").notNull(),
+    path: text("path").notNull(),
+    postHogSessionId: text("posthog_session_id"),
+    userAgent: text("user_agent"),
+  },
+  (table) => [index("feedback_created_at_idx").on(desc(table.createdAt))]
+);
+
 export const planningCenterAccountIdentities = sqliteTable(
   "planning_center_account_identities",
   {

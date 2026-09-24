@@ -11,6 +11,7 @@
     "./demo": "./src/demo.ts",
     "./errors": "./src/errors.ts",
     "./features": "./src/features.ts",
+    "./feedback": "./src/feedback.ts",
     "./identity": "./src/identity.ts",
     "./people": "./src/people.ts",
     "./people-schemas": "./src/people-schemas.ts",
