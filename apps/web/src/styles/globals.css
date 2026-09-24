@@ -701,7 +701,13 @@
     @apply bg-background text-foreground;
     overscroll-behavior-y: none;
   }
+  /*
+   * No theme-color meta: Safari would paint its bars that flat color. With the
+   * document scrolling on phones, Safari tints its bars from the page and draws
+   * content beneath them; the html background covers overscroll.
+   */
   html {
+    @apply bg-background;
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
