@@ -12,6 +12,14 @@ import vitest from "ultracite/oxlint/vitest";
 
 const jsPlugins = selectJsPlugins(["react-doctor"]);
 
+/** Apps already on TanStack Start; the Next.js presets still govern the rest. */
+const tanstackStartApps = ["apps/admin/**"];
+const nextRulesOff = Object.fromEntries(
+  Object.keys({ ...next.rules, ...nextJsPlugins.rules }).map(
+    (rule) => [rule, "off"] as const
+  )
+);
+
 export default defineConfig({
   extends: [
     core,
@@ -26,6 +34,7 @@ export default defineConfig({
     jsPlugins,
   ],
   ignorePatterns: [...(core.ignorePatterns ?? []), ".artifacts/**", "lint/**"],
+  overrides: [{ files: tanstackStartApps, rules: nextRulesOff }],
   options: { typeAware: true },
   jsPlugins: [
     ...(jsPlugins.jsPlugins ?? []),

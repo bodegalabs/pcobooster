@@ -17,7 +17,7 @@
       "dependsOn": ["^build"],
       "env": ["NODE_ENV", "ADMIN_BASE_PATH"],
       "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": ["dist/**"]
     },
     "@pcobooster/server#build": {
       "dependsOn": ["^build"],

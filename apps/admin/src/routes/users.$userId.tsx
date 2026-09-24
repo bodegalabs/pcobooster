@@ -1,4 +1,5 @@
 import type { AdminLinkedAccount } from "@pcobooster/contracts/admin";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import {
   CalendarClock,
   ExternalLink,
@@ -6,9 +7,8 @@ import {
   LinkIcon,
   ShieldCheck,
 } from "lucide-react";
-import Link from "next/link";
-import { notFound } from "next/navigation";
 
+import { AdminPageSkeleton } from "@/components/admin/admin-page-skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -19,11 +19,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { assertFound } from "@/lib/assert-found";
 import { formatDateTime } from "@/lib/format-date";
 import { postHogPersonUrl } from "@/lib/posthog";
-import { getAdminUser } from "@/server/api";
-
-export const dynamic = "force-dynamic";
+import { getAdminUser } from "@/server/admin.functions";
 
 const splitScope = (scope: string | null): string[] => {
   if (!(scope !== null && scope !== "")) {
@@ -57,23 +56,14 @@ const TokenStatus = ({ account }: { account: AdminLinkedAccount }) => {
   );
 };
 
-const AdminUserPage = async ({
-  params,
-}: {
-  params: Promise<{ userId: string }>;
-}) => {
-  const { userId } = await params;
-  const { user } = await getAdminUser(userId);
-
-  if (!user) {
-    notFound();
-  }
+const AdminUserPage = () => {
+  const user = Route.useLoaderData();
 
   return (
     <main className="bg-background min-h-0 flex-1 overflow-auto">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 pt-1 md:gap-6 md:px-6 md:py-6">
         <nav aria-label="Breadcrumb" className="text-muted-foreground text-sm">
-          <Link href="/" className="hover:text-foreground">
+          <Link to="/" className="hover:text-foreground">
             Accounts
           </Link>
           <span aria-hidden="true"> / </span>
@@ -221,4 +211,14 @@ const AdminUserPage = async ({
   );
 };
 
-export default AdminUserPage;
+const AdminUserLoading = () => <AdminPageSkeleton label="Loading user" />;
+
+export const Route = createFileRoute("/users/$userId")({
+  loader: async ({ params }) => {
+    const { user } = await getAdminUser({ data: { userId: params.userId } });
+    assertFound(user);
+    return user;
+  },
+  pendingComponent: AdminUserLoading,
+  component: AdminUserPage,
+});

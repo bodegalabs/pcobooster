@@ -144,7 +144,8 @@ export default Alchemy.Stack(
         ).pipe(Config.withDefault("America/Los_Angeles")),
       },
     });
-    const admin = yield* Cloudflare.Website.Nextjs("Admin", {
+    // TanStack Start; its Vite `base` (and router basepath) come from ADMIN_BASE_PATH above.
+    const admin = yield* Cloudflare.Website.Vite("Admin", {
       name: `pcobooster-${stage}-admin`,
       rootDir: path.join(import.meta.dirname, "apps/admin"),
       workersDev: production,
@@ -152,24 +153,23 @@ export default Alchemy.Stack(
         ? { name: "admin.pcobooster.com", zone }
         : undefined,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
-      dev: { mode: "hmr", port: 3003 },
+      dev: { host: "127.0.0.1", port: 3003, strictPort: true },
       memo: {
+        // Explicit globs also hash the gitignored cloudflare-build-inputs.json stamp,
+        // which carries the stage (and so the base path) into the rebuild key.
         include: ["**/*"],
         exclude: [
           "node_modules/**",
           "dist/**",
-          ".next/**",
-          ".open-next/**",
           ".turbo/**",
+          ".wrangler/**",
           "*.tsbuildinfo",
         ],
         lockfile: true,
       },
       env: {
         API: api,
-        NODE_ENV: "production",
         PRODUCT_ORIGIN: publicOrigin,
-        ADMIN_BASE_PATH: production ? "" : "/admin",
       },
     });
     const web = yield* Cloudflare.Website.Nextjs("Web", {

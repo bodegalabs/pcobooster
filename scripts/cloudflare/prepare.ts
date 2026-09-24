@@ -47,7 +47,10 @@ const hashDirectory = async (directory: string): Promise<string[]> => {
   return hashes.flat();
 };
 
-/** Native Next.js memoization is app-local; record its workspace and build-environment inputs too. */
+/**
+ * Alchemy's memo hashes files, not the environment: record the stage (which sets the admin
+ * base path) and public build variables, plus the workspaces Next.js memoization misses.
+ */
 export const prepareCloudflareBuild = async (stage: string): Promise<void> => {
   const directories = await Promise.all(
     ["packages", "apps/marketing", "scripts"].map(hashDirectory)
