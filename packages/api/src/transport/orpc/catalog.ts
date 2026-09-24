@@ -4,51 +4,25 @@ import {
   getCatalogServiceTypes,
   getCatalogTeamPositions,
 } from "@pcobooster/api/application/catalog";
-import { withPlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
-import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
-import {
-  applicationRuntime,
-  rpc,
-} from "@pcobooster/api/transport/orpc/implementation";
+import { rpc } from "@pcobooster/api/transport/orpc/implementation";
+import { readWithPlanningCenter } from "@pcobooster/api/transport/orpc/planning-center-procedure";
 
 const serviceTypes = rpc.catalog.serviceTypes.handler(
-  async ({ context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getCatalogServiceTypes),
-      context,
-      signal
-    )
+  async (call) => await readWithPlanningCenter(getCatalogServiceTypes, call)
 );
 
 const plans = rpc.catalog.plans.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getCatalogPlans(input)),
-      context,
-      signal
-    )
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(getCatalogPlans(input), call)
 );
 
 const organization = rpc.catalog.organization.handler(
-  async ({ context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getCatalogOrganization),
-      context,
-      signal
-    )
+  async (call) => await readWithPlanningCenter(getCatalogOrganization, call)
 );
 
 const teamPositions = rpc.catalog.teamPositions.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getCatalogTeamPositions(input)),
-      context,
-      signal
-    )
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(getCatalogTeamPositions(input), call)
 );
 
 export const catalogRouter = {

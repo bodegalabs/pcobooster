@@ -1,32 +1,18 @@
-import { withPlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
 import {
   getRunSheetSongOptions,
   searchRunSheetSongs,
 } from "@pcobooster/api/application/run-sheet";
-import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
-import {
-  applicationRuntime,
-  rpc,
-} from "@pcobooster/api/transport/orpc/implementation";
+import { rpc } from "@pcobooster/api/transport/orpc/implementation";
+import { readWithPlanningCenter } from "@pcobooster/api/transport/orpc/planning-center-procedure";
 
 const search = rpc.songs.search.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(searchRunSheetSongs(input)),
-      context,
-      signal
-    )
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(searchRunSheetSongs(input), call)
 );
 
 const options = rpc.songs.options.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getRunSheetSongOptions(input)),
-      context,
-      signal
-    )
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(getRunSheetSongOptions(input), call)
 );
 
 export const songsRouter = {
