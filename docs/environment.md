@@ -44,3 +44,9 @@ Local deployment uses the saved Alchemy profile. Use `bun alchemy profile edit` 
 GitHub Actions retrieves a narrowly scoped Cloudflare token from Infisical using OIDC. Preview deploys wait for approval; production deploys run on every merge to `main`. Account, project, and identity IDs are GitHub environment variables, not secrets. Tokens never become app Worker bindings. See [CI/CD](ci-cd.md) for permissions and trust boundaries.
 
 `DATABASE_URL` remains only in the original Infisical project for read-only migration/reconciliation and rollback evidence. The deployed app cannot connect to Neon.
+
+## Server logs
+
+Every Worker writes to Cloudflare Workers Logs, which Alchemy enables by default when a Worker sets no `observability` prop. The API's pino output and each request's invocation log (request and response metadata, including client IP and user agent) appear in the Cloudflare dashboard under Workers & Pages, Observability. The account is on the Workers Free plan: 200,000 log events per day across all Workers, kept for 3 days.
+
+Log IDs, not content: pino lines should carry request, user, and plan IDs rather than message text or tokens. Exporting logs to PostHog (OTLP) requires Workers Paid; revisit it after upgrading.
