@@ -16,17 +16,15 @@ import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useDashboardController } from "@/hooks/use-dashboard-controller";
+import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import type { DashboardView } from "@/lib/schedule-navigation";
+import { formatPlanDate } from "@/lib/service-plan-selection";
 import { cn } from "@/lib/utils";
 
-const planDateFormatter = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-});
-
-const formatPlanDate = (date: Date | string | undefined) => {
+const formatHeaderPlanDate = (
+  date: Date | string | undefined,
+  orgTimeZone: string
+) => {
   if (date === undefined || date === "") {
     return "No date";
   }
@@ -35,7 +33,7 @@ const formatPlanDate = (date: Date | string | undefined) => {
     return "Invalid date";
   }
 
-  return planDateFormatter.format(dateObj);
+  return formatPlanDate(dateObj, orgTimeZone);
 };
 
 const escapeRegExp = (value: string): string =>
@@ -172,49 +170,53 @@ const DashboardPlanHeader = ({
   sortDate: Date | string | undefined;
   planningCenterUrl: string | null | undefined;
   onBack: (() => void) | null;
-}) => (
-  <>
-    <header className="flex shrink-0 items-center gap-1 pt-1.5 pb-2 md:hidden">
-      <MobilePlanBack onBack={onBack} />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <h1 className="min-w-0 text-base leading-tight font-semibold tracking-tight">
-          <MiddleTruncate
-            text={
-              isNonEmptyString(planSubtitle) ? planSubtitle : serviceTypeName
-            }
-          />
-        </h1>
-        <p className="text-muted-foreground truncate text-xs tabular-nums">
-          {formatPlanDate(sortDate)}
-          {isNonEmptyString(planSubtitle) ? ` · ${serviceTypeName}` : null}
-        </p>
-      </div>
-      {isNonEmptyString(planningCenterUrl) ? (
-        <PlanningCenterLink href={planningCenterUrl} />
-      ) : null}
-    </header>
-    <header className="mb-3 shrink-0 max-md:hidden sm:mb-5">
-      <div className="flex min-w-0 items-start justify-between gap-3">
-        <h1 className="truncate text-xl leading-tight font-semibold tracking-tight md:text-2xl">
-          {serviceTypeName}
-          {isNonEmptyString(planSubtitle) ? (
-            <span className="text-muted-foreground font-normal">
-              {" "}
-              / {planSubtitle}
-            </span>
-          ) : null}
-          <span className="text-muted-foreground font-light tabular-nums">
-            {" "}
-            / {formatPlanDate(sortDate)}
-          </span>
-        </h1>
+}) => {
+  const orgTimeZone = useOrganizationTimeZone();
+  const planDate = formatHeaderPlanDate(sortDate, orgTimeZone);
+  return (
+    <>
+      <header className="flex shrink-0 items-center gap-1 pt-1.5 pb-2 md:hidden">
+        <MobilePlanBack onBack={onBack} />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <h1 className="min-w-0 text-base leading-tight font-semibold tracking-tight">
+            <MiddleTruncate
+              text={
+                isNonEmptyString(planSubtitle) ? planSubtitle : serviceTypeName
+              }
+            />
+          </h1>
+          <p className="text-muted-foreground truncate text-xs tabular-nums">
+            {planDate}
+            {isNonEmptyString(planSubtitle) ? ` · ${serviceTypeName}` : null}
+          </p>
+        </div>
         {isNonEmptyString(planningCenterUrl) ? (
           <PlanningCenterLink href={planningCenterUrl} />
         ) : null}
-      </div>
-    </header>
-  </>
-);
+      </header>
+      <header className="mb-3 shrink-0 max-md:hidden sm:mb-5">
+        <div className="flex min-w-0 items-start justify-between gap-3">
+          <h1 className="truncate text-xl leading-tight font-semibold tracking-tight md:text-2xl">
+            {serviceTypeName}
+            {isNonEmptyString(planSubtitle) ? (
+              <span className="text-muted-foreground font-normal">
+                {" "}
+                / {planSubtitle}
+              </span>
+            ) : null}
+            <span className="text-muted-foreground font-light tabular-nums">
+              {" "}
+              / {planDate}
+            </span>
+          </h1>
+          {isNonEmptyString(planningCenterUrl) ? (
+            <PlanningCenterLink href={planningCenterUrl} />
+          ) : null}
+        </div>
+      </header>
+    </>
+  );
+};
 
 const DashboardPlanHeaderFallback = () => (
   <>

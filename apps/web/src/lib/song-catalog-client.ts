@@ -1,3 +1,4 @@
+import { formatCalendarDateLabel } from "@pcobooster/planning-center-models/calendar";
 import type {
   SongCatalogEntry,
   SongOptionSet,
@@ -23,6 +24,17 @@ export const parseOptionalDate = (
 
   const parsed = value instanceof Date ? value : new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+/** "Dec 31, 2026" for the org calendar day a song was last scheduled, or null without a date. */
+export const formatSongLastScheduled = (
+  value: string | Date | null,
+  orgTimeZone: string
+): string | null => {
+  const date = parseOptionalDate(value);
+  return date === null
+    ? null
+    : formatCalendarDateLabel(date, orgTimeZone, "monthDayYear");
 };
 
 export const hydrateSongCatalogEntry = (

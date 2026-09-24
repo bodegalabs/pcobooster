@@ -2,7 +2,9 @@ import type { ServiceHistoryItem } from "@pcobooster/planning-center-models/type
 import { describe, expect, it } from "vitest";
 
 import {
+  buildServiceHistoryGroups,
   filterServiceHistoryWithinHalfRange,
+  formatServiceHistoryDayLabel,
   pickServiceHistoryGroupClosestToReference,
 } from "./service-history-display";
 import type { ServiceHistoryGroup } from "./service-history-display";
@@ -81,5 +83,69 @@ describe(filterServiceHistoryWithinHalfRange, () => {
     expect(
       filterServiceHistoryWithinHalfRange(items, null, 7, orgTz)
     ).toStrictEqual(items);
+  });
+});
+
+describe(buildServiceHistoryGroups, () => {
+  const orgTz = "America/Los_Angeles";
+  /** Sunday September 27, 2026, 10:00 AM in Los Angeles. */
+  const sundayService = "2026-09-27T17:00:00.000Z";
+  /** Saturday September 26, 2026, 7:00 PM in Los Angeles; Sunday in UTC. */
+  const saturdayEvening = "2026-09-27T02:00:00.000Z";
+
+  it("keeps a rehearsal the evening before as its own org day", () => {
+    const service: ServiceHistoryItem = {
+      ...historyItem("service", sundayService),
+      sourceScheduleId: "sched-sunday",
+      timeType: "service",
+    };
+    const rehearsal: ServiceHistoryItem = {
+      ...historyItem("rehearsal", saturdayEvening),
+      sourceScheduleId: "sched-sunday",
+      timeType: "rehearsal",
+    };
+
+    const groups = buildServiceHistoryGroups([service, rehearsal], orgTz);
+
+    expect(
+      groups.map((group) => ({
+        primary: group.primary.id,
+        rehearsals: group.rehearsals.map((item) => item.id),
+      }))
+    ).toStrictEqual([{ primary: "service", rehearsals: ["rehearsal"] }]);
+  });
+
+  it("does not merge services on different org days that share a UTC day", () => {
+    const groups = buildServiceHistoryGroups(
+      [
+        { ...historyItem("saturday", saturdayEvening), timeType: "service" },
+        { ...historyItem("sunday", sundayService), timeType: "service" },
+      ],
+      orgTz
+    );
+
+    expect(groups.map((group) => group.primary.id)).toStrictEqual([
+      "saturday",
+      "sunday",
+    ]);
+  });
+});
+
+describe(formatServiceHistoryDayLabel, () => {
+  it("labels the org calendar day of a late-evening service", () => {
+    expect(
+      formatServiceHistoryDayLabel(
+        "2026-09-27T02:00:00.000Z",
+        "America/Los_Angeles"
+      )
+    ).toBe("Sat, Sep 26");
+  });
+
+  it("describes missing and unparseable dates", () => {
+    expect(
+      [undefined, "", "not a date"].map((value) =>
+        formatServiceHistoryDayLabel(value, "America/Los_Angeles")
+      )
+    ).toStrictEqual(["Unknown date", "Unknown date", "Invalid date"]);
   });
 });

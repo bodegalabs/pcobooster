@@ -31,6 +31,7 @@ import {
   buildServiceHistoryGroups,
   filterServiceHistoryWithinHalfRange,
   formatCombinedHistoryPositionLabel,
+  formatServiceHistoryDayLabel,
   getHistoryStatusDotClass,
   toServiceHistoryDate,
 } from "@/lib/people/service-history-display";
@@ -43,29 +44,6 @@ interface ScheduleContextPopoverProps {
 }
 
 const halfRangeWeekOptions = getScheduleContextHalfRangeWeekOptions();
-
-const historyDateFormatter = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-});
-
-const formatServiceHistoryDisplayDateWithoutYear = (
-  date: Date | string | undefined
-) => {
-  if (date === undefined || date === "") {
-    return "Unknown date";
-  }
-  const dateObj = toServiceHistoryDate(date);
-  if (Number.isNaN(dateObj.getTime())) {
-    return "Invalid date";
-  }
-
-  return historyDateFormatter.format(dateObj);
-};
-
-const formatHistoryDayLabel = (item: ServiceHistoryItem) =>
-  formatServiceHistoryDisplayDateWithoutYear(item.date);
 
 const getUniqueHistoryPositionEntries = (
   primary: ServiceHistoryItem,
@@ -109,10 +87,12 @@ const ScheduleContextHistoryGroup = ({
   primary,
   additionalServices,
   rehearsals,
+  orgTimeZone,
 }: {
   primary: ServiceHistoryItem;
   additionalServices: ServiceHistoryItem[];
   rehearsals: ServiceHistoryItem[];
+  orgTimeZone: string;
 }) => {
   const serviceTypeName = primary.serviceTypeName?.trim();
   const serviceLabel =
@@ -135,12 +115,13 @@ const ScheduleContextHistoryGroup = ({
               getHistoryStatusDotClass(primary.status)
             )}
           />
-          {formatHistoryDayLabel(primary)}
+          {formatServiceHistoryDayLabel(primary.date, orgTimeZone)}
         </ItemTitle>
         <ItemDescription>{serviceLabel}</ItemDescription>
         {rehearsals.map((rehearsal) => (
           <ItemDescription key={rehearsal.id}>
-            {formatHistoryDayLabel(rehearsal)} · Rehearsal
+            {formatServiceHistoryDayLabel(rehearsal.date, orgTimeZone)} ·
+            Rehearsal
           </ItemDescription>
         ))}
       </ItemContent>
@@ -180,7 +161,8 @@ export const ScheduleContextPopover = ({
   );
 
   const historyGroups = buildServiceHistoryGroups(
-    filteredServiceHistory
+    filteredServiceHistory,
+    orgTimeZone
   ).toSorted(
     (a, b) =>
       toServiceHistoryDate(a.primary.date).getTime() -
@@ -228,6 +210,7 @@ export const ScheduleContextPopover = ({
                     primary={primary}
                     additionalServices={additionalServices}
                     rehearsals={rehearsals}
+                    orgTimeZone={orgTimeZone}
                   />
                 )
               )}
