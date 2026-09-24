@@ -1,8 +1,13 @@
-import { createBasicPlanningCenterPromiseClient } from "@pcobooster/api/planning-center/promise-client";
+import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import {
+  noContentResponse,
+  unreachableHttpClient,
+} from "@pcobooster/api/testing/http-client";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 const resource = (
@@ -18,88 +23,103 @@ const resource = (
 describe("PlanningCenterPeopleService.getAllPeople", () => {
   it("loads every directory page, caches by account, and returns independent copies", async () => {
     let scope = "account-a";
-    const core = createBasicPlanningCenterPromiseClient(
-      testPlanningCenterToken
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
     );
     const fetchAll = vi
       .spyOn(core, "fetchAll")
-      .mockResolvedValue([
-        resource("person-1", "Person", { first_name: "Original" }),
-      ]);
+      .mockReturnValue(
+        Effect.succeed([
+          resource("person-1", "Person", { first_name: "Original" }),
+        ])
+      );
     vi.spyOn(core, "getCacheScope").mockImplementation(() => scope);
     const service = new PlanningCenterPeopleService(core);
-    const first = await service.getAllPeople();
+    const first = await Effect.runPromise(service.getAllPeople());
     first[0].attributes.first_name = "Changed";
-    const second = await service.getAllPeople();
+    const second = await Effect.runPromise(service.getAllPeople());
     expect(second[0].attributes.first_name).toBe("Original");
     expect(fetchAll).toHaveBeenCalledExactlyOnceWith(
       "/people/v2/people",
       {},
-      Number.POSITIVE_INFINITY,
-      expect.any(AbortSignal)
+      Number.POSITIVE_INFINITY
     );
     scope = "account-b";
-    await service.getAllPeople();
+    await Effect.runPromise(service.getAllPeople());
     expect(fetchAll).toHaveBeenCalledTimes(2);
   });
 });
 
 describe("PlanningCenterPeopleService.getPlanTeamMembers", () => {
   it("uses fetchAllWithIncluded so large rosters are not truncated to the first page", async () => {
-    const core = createBasicPlanningCenterPromiseClient(
-      testPlanningCenterToken
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
     );
     const fetchAllWithIncluded = vi
       .spyOn(core, "fetchAllWithIncluded")
-      .mockResolvedValue({ data: [], included: [] });
+      .mockReturnValue(Effect.succeed({ data: [], included: [] }));
     const service = new PlanningCenterPeopleService(core);
 
-    await service.getPlanTeamMembers("st-123", "plan-456");
+    await Effect.runPromise(service.getPlanTeamMembers("st-123", "plan-456"));
 
     expect(fetchAllWithIncluded).toHaveBeenCalledExactlyOnceWith(
       "/services/v2/service_types/st-123/plans/plan-456/team_members",
       { include: "person,team,plan", per_page: "100" },
-      25,
-      expect.any(AbortSignal)
+      25
     );
   });
 });
 
 describe("PlanningCenterPeopleService.getPersonTeamPositionAssignments", () => {
   it("caches assignment validation reads used by schedule POST", async () => {
-    const core = createBasicPlanningCenterPromiseClient(
-      testPlanningCenterToken
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
     );
-    const fetch = vi.spyOn(core, "fetchCollection").mockResolvedValue({
-      data: [],
-      included: [],
-    });
+    const fetch = vi.spyOn(core, "fetchCollection").mockReturnValue(
+      Effect.succeed({
+        data: [],
+        included: [],
+      })
+    );
     const service = new PlanningCenterPeopleService(core);
 
-    await service.getPersonTeamPositionAssignments("person-123");
-    await service.getPersonTeamPositionAssignments("person-123");
+    await Effect.runPromise(
+      service.getPersonTeamPositionAssignments("person-123")
+    );
+    await Effect.runPromise(
+      service.getPersonTeamPositionAssignments("person-123")
+    );
 
     expect(fetch).toHaveBeenCalledOnce();
     expect(fetch.mock.calls[0]?.[0]).toBe(
       "/services/v2/people/person-123/person_team_position_assignments?include=team_position,team_position.team"
     );
-    expect(fetch.mock.calls[0]?.[1]?.signal).toBeInstanceOf(AbortSignal);
   });
 });
 
 describe("PlanningCenterPeopleService.searchPeopleByName", () => {
   it("caches normalized people search reads and returns mutation-safe copies", async () => {
-    const core = createBasicPlanningCenterPromiseClient(
-      testPlanningCenterToken
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
     );
-    const fetch = vi.spyOn(core, "fetchCollection").mockResolvedValue({
-      data: [resource("person-1", "Person", { first_name: "Andrew" })],
-    });
+    const fetch = vi.spyOn(core, "fetchCollection").mockReturnValue(
+      Effect.succeed({
+        data: [resource("person-1", "Person", { first_name: "Andrew" })],
+      })
+    );
     const service = new PlanningCenterPeopleService(core);
 
-    const first = await service.searchPeopleByName("  Andrew  ");
+    const first = await Effect.runPromise(
+      service.searchPeopleByName("  Andrew  ")
+    );
     first[0].attributes.first_name = "Mutated";
-    const second = await service.searchPeopleByName("andrew");
+    const second = await Effect.runPromise(
+      service.searchPeopleByName("andrew")
+    );
 
     expect(fetch).toHaveBeenCalledOnce();
     const requestedUrl = new URL(fetch.mock.calls[0][0]);
@@ -115,15 +135,18 @@ describe("PlanningCenterPeopleService.searchPeopleByName", () => {
 
 describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
   it("caches team roster reads and returns mutation-safe copies", async () => {
-    const core = createBasicPlanningCenterPromiseClient(
-      testPlanningCenterToken
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
     );
     const fetchAll = vi
       .spyOn(core, "fetchAll")
-      .mockResolvedValue([
-        resource("team-1", "Team", { name: "Band" }),
-        resource("team-2", "Team", { name: "Hosts" }),
-      ]);
+      .mockReturnValue(
+        Effect.succeed([
+          resource("team-1", "Team", { name: "Band" }),
+          resource("team-2", "Team", { name: "Hosts" }),
+        ])
+      );
     const responseForEndpoint = (endpoint: string) => {
       if (endpoint.includes("/teams/team-1/")) {
         return {
@@ -167,16 +190,15 @@ describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
     };
     const fetch = vi
       .spyOn(core, "fetchCollection")
-      .mockImplementation(
-        async (endpoint: string) =>
-          await Promise.resolve(responseForEndpoint(endpoint))
+      .mockImplementation((endpoint: string) =>
+        Effect.succeed(responseForEndpoint(endpoint))
       );
     const service = new PlanningCenterPeopleService(core);
 
-    const first = await service.getAllPeopleFromTeams();
+    const first = await Effect.runPromise(service.getAllPeopleFromTeams());
     first.people[0].attributes.first_name = "Mutated";
     first.teamNamesByPersonId.get("person-1")?.add("Mutated Team");
-    const second = await service.getAllPeopleFromTeams();
+    const second = await Effect.runPromise(service.getAllPeopleFromTeams());
 
     expect(fetchAll).toHaveBeenCalledOnce();
     expect(fetch).toHaveBeenCalledTimes(2);
@@ -190,27 +212,32 @@ describe("PlanningCenterPeopleService.getAllPeopleFromTeams", () => {
 
 describe("PlanningCenterPeopleService.updatePlanPersonStatus", () => {
   it("invalidates cached plan team members when plan context is available", async () => {
-    const core = createBasicPlanningCenterPromiseClient(
-      testPlanningCenterToken
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
     );
     const fetchAllWithIncluded = vi
       .spyOn(core, "fetchAllWithIncluded")
-      .mockResolvedValue({ data: [], included: [] });
-    const fetch = vi.spyOn(core, "fetch").mockResolvedValue({
-      data: { id: "pp-123", type: "PlanPerson", attributes: {} },
-    });
+      .mockReturnValue(Effect.succeed({ data: [], included: [] }));
+    const fetch = vi.spyOn(core, "fetch").mockReturnValue(
+      Effect.succeed({
+        data: { id: "pp-123", type: "PlanPerson", attributes: {} },
+      })
+    );
     const service = new PlanningCenterPeopleService(core);
 
-    await service.getPlanTeamMembers("st-789", "plan-101");
-    await service.getPlanTeamMembers("st-789", "plan-101");
+    await Effect.runPromise(service.getPlanTeamMembers("st-789", "plan-101"));
+    await Effect.runPromise(service.getPlanTeamMembers("st-789", "plan-101"));
 
-    await service.updatePlanPersonStatus("pp-123", "C", {
-      personId: "person-456",
-      serviceTypeId: "st-789",
-      planId: "plan-101",
-    });
+    await Effect.runPromise(
+      service.updatePlanPersonStatus("pp-123", "C", {
+        personId: "person-456",
+        serviceTypeId: "st-789",
+        planId: "plan-101",
+      })
+    );
 
-    await service.getPlanTeamMembers("st-789", "plan-101");
+    await Effect.runPromise(service.getPlanTeamMembers("st-789", "plan-101"));
 
     expect(fetchAllWithIncluded).toHaveBeenCalledTimes(2);
     expect(fetch).toHaveBeenCalledWith("/services/v2/plan_people/pp-123", {
@@ -230,29 +257,34 @@ describe("PlanningCenterPeopleService.updatePlanPersonStatus", () => {
 
 describe("PlanningCenterPeopleService.updatePlanPersonTimes", () => {
   it("patches PlanPerson time relationships and invalidates cached plan members", async () => {
-    const core = createBasicPlanningCenterPromiseClient(
-      testPlanningCenterToken
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
     );
     const fetchAllWithIncluded = vi
       .spyOn(core, "fetchAllWithIncluded")
-      .mockResolvedValue({ data: [], included: [] });
-    const fetch = vi.spyOn(core, "fetch").mockResolvedValue({
-      data: { id: "pp-123", type: "PlanPerson", attributes: {} },
-    });
+      .mockReturnValue(Effect.succeed({ data: [], included: [] }));
+    const fetch = vi.spyOn(core, "fetch").mockReturnValue(
+      Effect.succeed({
+        data: { id: "pp-123", type: "PlanPerson", attributes: {} },
+      })
+    );
     const service = new PlanningCenterPeopleService(core);
 
-    await service.getPlanTeamMembers("st-789", "plan-101");
-    await service.getPlanTeamMembers("st-789", "plan-101");
+    await Effect.runPromise(service.getPlanTeamMembers("st-789", "plan-101"));
+    await Effect.runPromise(service.getPlanTeamMembers("st-789", "plan-101"));
 
-    await service.updatePlanPersonTimes({
-      personId: "person-456",
-      planPersonId: "pp-123",
-      serviceTypeId: "st-789",
-      planId: "plan-101",
-      planTimeIds: ["time-1", "time-2"],
-    });
+    await Effect.runPromise(
+      service.updatePlanPersonTimes({
+        personId: "person-456",
+        planPersonId: "pp-123",
+        serviceTypeId: "st-789",
+        planId: "plan-101",
+        planTimeIds: ["time-1", "time-2"],
+      })
+    );
 
-    await service.getPlanTeamMembers("st-789", "plan-101");
+    await Effect.runPromise(service.getPlanTeamMembers("st-789", "plan-101"));
 
     expect(fetchAllWithIncluded).toHaveBeenCalledTimes(2);
     expect(fetch).toHaveBeenCalledWith(
@@ -280,18 +312,19 @@ describe("PlanningCenterPeopleService.updatePlanPersonTimes", () => {
 
 describe("PlanningCenterPeopleService.invalidateScheduleReadCaches", () => {
   it("clears cached plan team members and person schedules for conflict reconciliation", async () => {
-    const core = createBasicPlanningCenterPromiseClient(
-      testPlanningCenterToken
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
     );
     const fetchAllWithIncluded = vi
       .spyOn(core, "fetchAllWithIncluded")
-      .mockResolvedValue({ data: [], included: [] });
+      .mockReturnValue(Effect.succeed({ data: [], included: [] }));
     const service = new PlanningCenterPeopleService(core);
 
-    await service.getPlanTeamMembers("st-789", "plan-101");
-    await service.getPersonSchedules("person-456");
-    await service.getPlanTeamMembers("st-789", "plan-101");
-    await service.getPersonSchedules("person-456");
+    await Effect.runPromise(service.getPlanTeamMembers("st-789", "plan-101"));
+    await Effect.runPromise(service.getPersonSchedules("person-456"));
+    await Effect.runPromise(service.getPlanTeamMembers("st-789", "plan-101"));
+    await Effect.runPromise(service.getPersonSchedules("person-456"));
 
     service.invalidateScheduleReadCaches({
       personId: "person-456",
@@ -299,8 +332,8 @@ describe("PlanningCenterPeopleService.invalidateScheduleReadCaches", () => {
       planId: "plan-101",
     });
 
-    await service.getPlanTeamMembers("st-789", "plan-101");
-    await service.getPersonSchedules("person-456");
+    await Effect.runPromise(service.getPlanTeamMembers("st-789", "plan-101"));
+    await Effect.runPromise(service.getPersonSchedules("person-456"));
 
     expect(
       fetchAllWithIncluded.mock.calls.filter(([endpoint]) =>
@@ -317,38 +350,43 @@ describe("PlanningCenterPeopleService.invalidateScheduleReadCaches", () => {
 
 describe("PlanningCenterPeopleService.getPlanPlanTimes", () => {
   it("fetches all plan times through the shared cache-backed endpoint", async () => {
-    const core = createBasicPlanningCenterPromiseClient(
-      testPlanningCenterToken
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
     );
-    const fetchAll = vi.spyOn(core, "fetchAll").mockResolvedValue([]);
+    const fetchAll = vi
+      .spyOn(core, "fetchAll")
+      .mockReturnValue(Effect.succeed([]));
     const service = new PlanningCenterPeopleService(core);
 
-    await service.getPlanPlanTimes("plan-456");
+    await Effect.runPromise(service.getPlanPlanTimes("plan-456"));
 
     expect(fetchAll).toHaveBeenCalledExactlyOnceWith(
       "/services/v2/plans/plan-456/plan_times",
       { per_page: "200" },
-      10,
-      expect.any(AbortSignal)
+      10
     );
   });
 });
 
 describe("PlanningCenterPeopleService.deletePlanPerson", () => {
   it("uses the plan team_members endpoint when plan context is available", async () => {
-    const core = createBasicPlanningCenterPromiseClient(
-      testPlanningCenterToken
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
     );
     const request = vi
       .spyOn(core, "request")
-      .mockResolvedValue(new Response(null, { status: 204 }));
+      .mockReturnValue(Effect.succeed(noContentResponse()));
     const service = new PlanningCenterPeopleService(core);
 
-    await service.deletePlanPerson("pp-123", {
-      personId: "person-456",
-      serviceTypeId: "st-789",
-      planId: "plan-101",
-    });
+    await Effect.runPromise(
+      service.deletePlanPerson("pp-123", {
+        personId: "person-456",
+        serviceTypeId: "st-789",
+        planId: "plan-101",
+      })
+    );
 
     expect(request).toHaveBeenCalledWith(
       "/services/v2/service_types/st-789/plans/plan-101/team_members/pp-123",
@@ -357,17 +395,20 @@ describe("PlanningCenterPeopleService.deletePlanPerson", () => {
   });
 
   it("falls back to the person-scoped plan_people endpoint without plan context", async () => {
-    const core = createBasicPlanningCenterPromiseClient(
-      testPlanningCenterToken
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
     );
     const request = vi
       .spyOn(core, "request")
-      .mockResolvedValue(new Response(null, { status: 204 }));
+      .mockReturnValue(Effect.succeed(noContentResponse()));
     const service = new PlanningCenterPeopleService(core);
 
-    await service.deletePlanPerson("pp-123", {
-      personId: "person-456",
-    });
+    await Effect.runPromise(
+      service.deletePlanPerson("pp-123", {
+        personId: "person-456",
+      })
+    );
 
     expect(request).toHaveBeenCalledWith(
       "/services/v2/people/person-456/plan_people/pp-123",

@@ -24,19 +24,22 @@ import {
 } from "@pcobooster/api/modules/planning-center/people/scoring";
 import {
   applyAvailability,
-  buildBlockoutsPromise,
   buildSelectedPlanMatchContext,
   createBasePerson,
   getAssignedPeopleFromAssignments,
   getDefaultFrequency,
+  loadPersonBlockouts,
 } from "@pcobooster/api/modules/planning-center/people/transforms";
+import type { SelectedPlanMatchContext } from "@pcobooster/api/modules/planning-center/people/types";
 import {
   buildPlanSchedulingContext,
   emptyPlanSchedulingContext,
   getPlanSchedulingContext,
 } from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
 import type { PlanSchedulingContext } from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
-import { mapWithConcurrency } from "@pcobooster/api/modules/planning-center/shared";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import { recoverUnlessInterrupted } from "@pcobooster/api/planning-center/recover-unless-interrupted";
+import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
@@ -53,12 +56,14 @@ import { PLAN_HISTORY_HALF_RANGE_DAYS } from "@pcobooster/planning-center-models
 import type {
   PCResource,
   PersonWithAvailability,
+  RawPerson,
   RawPlanPerson,
   RawPlanTime,
   RawSchedule,
   ScheduleFrequency,
   ServiceHistoryItem,
 } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 /**
  * These are outbound Planning Center read requests. Keep them well below the 100 rps API window,
@@ -115,49 +120,48 @@ export interface PeopleForPositionDependencies {
     | "getPlanTeamMembers"
   >;
   plans: Pick<PlanningCenterPlansService, "getPlansWithIncludedInDateRange">;
-  resolveTimeZone: (signal?: AbortSignal) => Promise<string>;
-  signal?: AbortSignal;
+  resolveTimeZone: Effect.Effect<string>;
 }
 
-const getSelectedPlanSchedulingContext = async ({
+/** A roster we cannot read leaves the selected plan without roster context. */
+const getSelectedPlanSchedulingContext = ({
   serviceTypeId,
   planId,
   sharedPlanWindowHistory,
   peopleService,
-  signal,
 }: {
   serviceTypeId: string;
   planId?: string;
   sharedPlanWindowHistory: SharedPlanWindowHistorySnapshot | null;
   peopleService: PeopleForPositionDependencies["people"];
-  signal?: AbortSignal;
-}): Promise<PlanSchedulingContext> => {
+}): Effect.Effect<PlanSchedulingContext> => {
   if (!isNonEmptyString(planId)) {
-    return emptyPlanSchedulingContext(serviceTypeId, "");
+    return Effect.succeed(emptyPlanSchedulingContext(serviceTypeId, ""));
   }
 
   if (
     sharedPlanWindowHistory !== null &&
     sharedPlanWindowHistory.planMembersByPlanId.has(planId)
   ) {
-    return buildPlanSchedulingContext({
-      serviceTypeId,
-      planId,
-      planTeamMembers:
-        sharedPlanWindowHistory.planMembersByPlanId.get(planId) ?? [],
-      included: sharedPlanWindowHistory.includedByPlanId.get(planId) ?? [],
-    });
+    return Effect.succeed(
+      buildPlanSchedulingContext({
+        serviceTypeId,
+        planId,
+        planTeamMembers:
+          sharedPlanWindowHistory.planMembersByPlanId.get(planId) ?? [],
+        included: sharedPlanWindowHistory.includedByPlanId.get(planId) ?? [],
+      })
+    );
   }
 
-  try {
-    return await getPlanSchedulingContext(
-      { serviceTypeId, planId },
-      peopleService,
-      signal
-    );
-  } catch {
-    return emptyPlanSchedulingContext(serviceTypeId, planId);
-  }
+  return getPlanSchedulingContext(
+    { serviceTypeId, planId },
+    peopleService
+  ).pipe(
+    recoverUnlessInterrupted(() =>
+      emptyPlanSchedulingContext(serviceTypeId, planId)
+    )
+  );
 };
 
 const getIncludedPlanTimesForPlan = (
@@ -195,15 +199,14 @@ const getIncludedPlanTimesForPlan = (
   return planTimes;
 };
 
-const getActiveServiceTypes = async (
-  catalog: PeopleForPositionDependencies["catalog"],
-  signal?: AbortSignal
-): Promise<PCResource[]> => {
-  const serviceTypes = await catalog.getServiceTypesCached(undefined, signal);
-  return serviceTypes.filter(
-    (resource) => !isNonEmptyString(resource.attributes.archived_at)
+const getActiveServiceTypes = (
+  catalog: PeopleForPositionDependencies["catalog"]
+): Effect.Effect<PCResource[], PlanningCenterError> =>
+  Effect.map(catalog.getServiceTypesCached(), (serviceTypes) =>
+    serviceTypes.filter(
+      (resource) => !isNonEmptyString(resource.attributes.archived_at)
+    )
   );
-};
 
 const getCandidateHistorySnapshotFromSharedPlanWindow = (
   personId: string,
@@ -230,13 +233,12 @@ const getCandidateHistorySnapshotFromSharedPlanWindow = (
   };
 };
 
-const getCandidateHistorySnapshot = async (
+const getCandidateHistorySnapshot = (
   personId: string,
   referenceDate: Date,
   orgTimeZone: string,
-  peopleService: PeopleForPositionDependencies["people"],
-  signal?: AbortSignal
-): Promise<CandidateHistorySnapshot> => {
+  peopleService: PeopleForPositionDependencies["people"]
+): Effect.Effect<CandidateHistorySnapshot, PlanningCenterError> => {
   const refDayKey = formatCalendarDayInTimeZone(referenceDate, orgTimeZone);
   const cacheKey = [
     peopleService.getCacheScope(),
@@ -246,39 +248,42 @@ const getCandidateHistorySnapshot = async (
     refDayKey,
   ].join(":");
 
-  return await candidateHistoryCache.get(
-    cacheKey,
-    CANDIDATE_HISTORY_CACHE_TTL_MS,
-    async (loadSignal) => {
-      const scheduleResponse = await peopleService.getPersonSchedules(
+  const load = () =>
+    Effect.map(
+      peopleService.getPersonSchedules(
         personId,
         { order: "-starts_at" },
-        CANDIDATE_HISTORY_MAX_PAGES,
-        loadSignal
-      );
-      const schedules: RawSchedule[] = [];
-      for (const resource of scheduleResponse.data) {
-        const parsed = scheduleResourceSchema.safeParse(resource);
-        if (parsed.success) {
-          schedules.push(parsed.data);
+        CANDIDATE_HISTORY_MAX_PAGES
+      ),
+      (scheduleResponse): CandidateHistorySnapshot => {
+        const schedules: RawSchedule[] = [];
+        for (const resource of scheduleResponse.data) {
+          const parsed = scheduleResourceSchema.safeParse(resource);
+          if (parsed.success) {
+            schedules.push(parsed.data);
+          }
         }
-      }
-      const historyResult = buildHistoryAndFrequencyForPerson(
-        schedules,
-        scheduleResponse.included ?? [],
-        referenceDate,
-        {},
-        Number.POSITIVE_INFINITY,
-        orgTimeZone
-      );
+        const historyResult = buildHistoryAndFrequencyForPerson(
+          schedules,
+          scheduleResponse.included ?? [],
+          referenceDate,
+          {},
+          Number.POSITIVE_INFINITY,
+          orgTimeZone
+        );
 
-      return {
-        assignments: schedules,
-        frequency: historyResult.frequency,
-        serviceHistory: historyResult.serviceHistory,
-      };
-    },
-    signal
+        return {
+          assignments: schedules,
+          frequency: historyResult.frequency,
+          serviceHistory: historyResult.serviceHistory,
+        };
+      }
+    );
+  return cachedRead(
+    candidateHistoryCache,
+    cacheKey,
+    CANDIDATE_HISTORY_CACHE_TTL_MS,
+    load
   );
 };
 
@@ -309,12 +314,92 @@ const mergeIncludedResources = (
   return merged;
 };
 
-const getSharedPlanWindowHistorySnapshot = async (
+interface LoadedPlan {
+  included: PCResource[];
+  planId: string;
+  planMembers: RawPlanPerson[];
+  planTimes: RawPlanTime[];
+}
+
+const loadPlanWindowMembers = (
+  {
+    included,
+    plan,
+    serviceTypeId,
+  }: { included: PCResource[]; plan: PCResource; serviceTypeId: string },
+  people: PeopleForPositionDependencies["people"]
+): Effect.Effect<LoadedPlan, PlanningCenterError> => {
+  const planTimes = getIncludedPlanTimesForPlan(plan, included);
+  const planPeopleCount = isNumber(plan.attributes.plan_people_count)
+    ? plan.attributes.plan_people_count
+    : null;
+  const teamMembers =
+    planPeopleCount === 0
+      ? Effect.succeed({ data: [], included: [] })
+      : people.getPlanTeamMembers(serviceTypeId, plan.id);
+  return teamMembers.pipe(
+    Effect.map((teamMembersResponse) => ({
+      included: mergeIncludedResources(
+        teamMembersResponse.included ?? [],
+        planTimes
+      ),
+      planId: plan.id,
+      planMembers: teamMembersResponse.data.flatMap((resource) => {
+        const parsed = planPersonResourceSchema.safeParse(resource);
+        return parsed.success ? [parsed.data] : [];
+      }),
+      planTimes,
+    }))
+  );
+};
+
+const buildSharedPlanWindowHistory = (
+  activeServiceTypes: PCResource[],
+  loadedPlans: LoadedPlan[]
+): SharedPlanWindowHistorySnapshot => {
+  const historyIncluded: PCResource[] = [];
+  const includedByPlanId = new Map<string, PCResource[]>();
+  const personAssignments = new Map<string, RawPlanPerson[]>();
+  const planMembersByPlanId = new Map<string, RawPlanPerson[]>();
+  const planTimeById = new Map<string, RawPlanTime>();
+  appendIncludedResources(historyIncluded, activeServiceTypes);
+
+  for (const loadedPlan of loadedPlans) {
+    includedByPlanId.set(loadedPlan.planId, loadedPlan.included);
+    planMembersByPlanId.set(loadedPlan.planId, loadedPlan.planMembers);
+    appendIncludedResources(historyIncluded, loadedPlan.included);
+
+    for (const planTime of loadedPlan.planTimes) {
+      planTimeById.set(planTime.id, planTime);
+    }
+
+    for (const planMember of loadedPlan.planMembers) {
+      const personId = planMember.relationships?.person?.data?.id;
+      if (!isNonEmptyString(personId)) {
+        continue;
+      }
+
+      const assignments = personAssignments.get(personId) ?? [];
+      assignments.push(planMember);
+      personAssignments.set(personId, assignments);
+    }
+  }
+
+  return {
+    historyIncluded,
+    includedByPlanId,
+    personAssignments,
+    planMembersByPlanId,
+    planTimeById,
+  };
+};
+
+const getSharedPlanWindowHistorySnapshot = (
   serviceTypeId: string,
   referenceDate: Date,
   orgTimeZone: string,
   dependencies: PeopleForPositionDependencies
-): Promise<SharedPlanWindowHistorySnapshot> => {
+): Effect.Effect<SharedPlanWindowHistorySnapshot, PlanningCenterError> => {
   const refDayKey = formatCalendarDayInTimeZone(referenceDate, orgTimeZone);
   const cacheKey = [
     dependencies.people.getCacheScope(),
@@ -324,274 +409,242 @@ const getSharedPlanWindowHistorySnapshot = async (
     refDayKey,
   ].join(":");
 
-  return await planWindowHistoryCache.get(
-    cacheKey,
-    PLAN_WINDOW_HISTORY_CACHE_TTL_MS,
-    async (loadSignal) => {
-      const activeServiceTypes = await getActiveServiceTypes(
-        dependencies.catalog,
-        loadSignal
-      );
-      const afterDayKey = addCalendarDaysToDayKey(
-        refDayKey,
-        -PLAN_HISTORY_HALF_RANGE_DAYS,
-        orgTimeZone
-      );
-      const beforeDayKey = addCalendarDaysToDayKey(
-        refDayKey,
-        PLAN_HISTORY_HALF_RANGE_DAYS,
-        orgTimeZone
-      );
-      const plansByServiceType = await mapWithConcurrency(
-        activeServiceTypes,
-        SERVICE_TYPE_HISTORY_CONCURRENCY,
-        async (serviceType) => {
-          const response =
-            await dependencies.plans.getPlansWithIncludedInDateRange(
-              serviceType.id,
-              afterDayKey,
-              beforeDayKey,
-              "plan_times",
-              orgTimeZone,
-              loadSignal
-            );
-
-          return {
+  const load = Effect.gen(function* loadPlanWindowHistory() {
+    const activeServiceTypes = yield* getActiveServiceTypes(
+      dependencies.catalog
+    );
+    const afterDayKey = addCalendarDaysToDayKey(
+      refDayKey,
+      -PLAN_HISTORY_HALF_RANGE_DAYS,
+      orgTimeZone
+    );
+    const beforeDayKey = addCalendarDaysToDayKey(
+      refDayKey,
+      PLAN_HISTORY_HALF_RANGE_DAYS,
+      orgTimeZone
+    );
+    const plansByServiceType = yield* Effect.forEach(
+      activeServiceTypes,
+      (serviceType) =>
+        Effect.map(
+          dependencies.plans.getPlansWithIncludedInDateRange(
+            serviceType.id,
+            afterDayKey,
+            beforeDayKey,
+            "plan_times",
+            orgTimeZone
+          ),
+          (response) => ({
             included: response.included,
             plans: response.data,
             serviceTypeId: serviceType.id,
-          };
-        }
-      );
-      const loadedPlans = await mapWithConcurrency(
-        plansByServiceType.flatMap(
-          ({ included, plans, serviceTypeId: currentServiceTypeId }) =>
-            plans.map((plan) => ({
-              included,
-              plan,
-              serviceTypeId: currentServiceTypeId,
-            }))
+          })
         ),
-        PLAN_HISTORY_CONCURRENCY,
-        async ({ included, plan, serviceTypeId: currentServiceTypeId }) => {
-          const planTimes = getIncludedPlanTimesForPlan(plan, included);
-          const planPeopleCount = isNumber(plan.attributes.plan_people_count)
-            ? plan.attributes.plan_people_count
-            : null;
-          const teamMembersResponse =
-            planPeopleCount === 0
-              ? { data: [], included: [] }
-              : await dependencies.people.getPlanTeamMembers(
-                  currentServiceTypeId,
-                  plan.id,
-                  loadSignal
-                );
-
-          return {
-            included: mergeIncludedResources(
-              teamMembersResponse.included ?? [],
-              planTimes
-            ),
-            planId: plan.id,
-            planMembers: teamMembersResponse.data.flatMap((resource) => {
-              const parsed = planPersonResourceSchema.safeParse(resource);
-              return parsed.success ? [parsed.data] : [];
-            }),
-            planTimes,
+      { concurrency: SERVICE_TYPE_HISTORY_CONCURRENCY }
+    );
+    const loadedPlans = yield* Effect.forEach(
+      plansByServiceType.flatMap(
+        ({ included, plans, serviceTypeId: currentServiceTypeId }) =>
+          plans.map((plan) => ({
+            included,
+            plan,
             serviceTypeId: currentServiceTypeId,
-          };
-        }
-      );
+          }))
+      ),
+      (planToLoad) => loadPlanWindowMembers(planToLoad, dependencies.people),
+      { concurrency: PLAN_HISTORY_CONCURRENCY }
+    );
 
-      const historyIncluded: PCResource[] = [];
-      const includedByPlanId = new Map<string, PCResource[]>();
-      const personAssignments = new Map<string, RawPlanPerson[]>();
-      const planMembersByPlanId = new Map<string, RawPlanPerson[]>();
-      const planTimeById = new Map<string, RawPlanTime>();
-      appendIncludedResources(historyIncluded, activeServiceTypes);
+    return buildSharedPlanWindowHistory(activeServiceTypes, loadedPlans);
+  });
 
-      for (const loadedPlan of loadedPlans) {
-        includedByPlanId.set(loadedPlan.planId, loadedPlan.included);
-        planMembersByPlanId.set(loadedPlan.planId, loadedPlan.planMembers);
-        appendIncludedResources(historyIncluded, loadedPlan.included);
-
-        for (const planTime of loadedPlan.planTimes) {
-          planTimeById.set(planTime.id, planTime);
-        }
-
-        for (const planMember of loadedPlan.planMembers) {
-          const personId = planMember.relationships?.person?.data?.id;
-          if (!isNonEmptyString(personId)) {
-            continue;
-          }
-
-          const assignments = personAssignments.get(personId) ?? [];
-          assignments.push(planMember);
-          personAssignments.set(personId, assignments);
-        }
-      }
-
-      return {
-        historyIncluded,
-        includedByPlanId,
-        personAssignments,
-        planMembersByPlanId,
-        planTimeById,
-      };
-    },
-    dependencies.signal
+  return cachedRead(
+    planWindowHistoryCache,
+    cacheKey,
+    PLAN_WINDOW_HISTORY_CACHE_TTL_MS,
+    () => load
   );
 };
 
-export const getPeopleForPosition = async (
-  { serviceTypeId, positionId, teamId, planId, date }: Params,
-  dependencies: PeopleForPositionDependencies
-): Promise<PersonWithAvailability[]> => {
-  const planSortAt =
-    isNonEmptyString(date) && !Number.isNaN(new Date(date).getTime())
-      ? new Date(date)
-      : null;
-  const referenceDate = planSortAt ?? new Date();
-  const orgTimeZonePromise = dependencies.resolveTimeZone(dependencies.signal);
-  const loadSharedHistory =
-    async (): Promise<SharedPlanWindowHistorySnapshot | null> => {
-      if (planSortAt === null) {
-        return null;
-      }
-      try {
-        const orgTimeZone = await orgTimeZonePromise;
-        return await getSharedPlanWindowHistorySnapshot(
-          serviceTypeId,
+interface CandidateHydration {
+  readonly dependencies: PeopleForPositionDependencies;
+  readonly orgTimeZone: string;
+  readonly planSchedulingContext: PlanSchedulingContext;
+  readonly planSortAt: Date | null;
+  readonly referenceDate: Date;
+  readonly selectedMatchContext: SelectedPlanMatchContext;
+  readonly sharedPlanWindowHistory: SharedPlanWindowHistorySnapshot | null;
+}
+
+/** Candidate history is best effort; without it the person keeps default scores. */
+const hydrateCandidate = (
+  rawPerson: RawPerson,
+  {
+    dependencies,
+    orgTimeZone,
+    planSchedulingContext,
+    planSortAt,
+    referenceDate,
+    selectedMatchContext,
+    sharedPlanWindowHistory,
+  }: CandidateHydration
+): Effect.Effect<PersonWithAvailability> => {
+  const person = createBasePerson(rawPerson);
+  const rosterOverlay = getSelectedPlanRosterOverlay(
+    planSchedulingContext,
+    rawPerson.id,
+    selectedMatchContext
+  );
+  const historySnapshot =
+    sharedPlanWindowHistory !== null &&
+    sharedPlanWindowHistory.planMembersByPlanId.size > 0
+      ? Effect.succeed(
+          getCandidateHistorySnapshotFromSharedPlanWindow(
+            rawPerson.id,
+            referenceDate,
+            orgTimeZone,
+            sharedPlanWindowHistory
+          )
+        )
+      : getCandidateHistorySnapshot(
+          rawPerson.id,
           referenceDate,
           orgTimeZone,
-          dependencies
+          dependencies.people
         );
-      } catch (error) {
-        if (dependencies.signal?.aborted === true) {
-          throw error;
-        }
-        return null;
-      }
-    };
-  const sharedPlanWindowHistoryPromise = loadSharedHistory();
-
-  const [orgTimeZone, assignmentsResponse, sharedPlanWindowHistory] =
-    await Promise.all([
-      orgTimeZonePromise,
-      dependencies.people.getPeopleForTeamPosition(
-        serviceTypeId,
-        positionId,
-        dependencies.signal
-      ),
-      sharedPlanWindowHistoryPromise,
-    ]);
-  const planSchedulingContext = await getSelectedPlanSchedulingContext({
-    serviceTypeId,
-    planId,
-    sharedPlanWindowHistory,
-    peopleService: dependencies.people,
-    signal: dependencies.signal,
-  });
-  const canUseSharedPlanWindowHistory =
-    sharedPlanWindowHistory !== null &&
-    sharedPlanWindowHistory.planMembersByPlanId.size > 0;
-
-  const { data: assignmentsData, included: assignmentsIncluded } =
-    assignmentsResponse;
-
-  const assignedPeople = getAssignedPeopleFromAssignments(
-    assignmentsData,
-    assignmentsIncluded
-  );
-  const selectedMatchContext = buildSelectedPlanMatchContext(
-    assignmentsIncluded,
-    positionId,
-    teamId,
-    planId
-  );
-  const activePeople = mergeAssignedAndSelectedPlanSlotPeople({
-    assignedPeople,
-    planSchedulingContext,
-    selectedMatchContext,
-  }).filter((person) => !isNonEmptyString(person.attributes.archived_at));
-  const peopleWithData = await mapWithConcurrency(
-    activePeople,
-    PEOPLE_HYDRATION_CONCURRENCY,
-    async (rawPerson): Promise<PersonWithAvailability> => {
-      const person = createBasePerson(rawPerson);
-      const blockoutsPromise = buildBlockoutsPromise(
-        rawPerson.id,
-        planSortAt,
-        dependencies.people,
-        dependencies.signal
-      );
-      const rosterOverlay = getSelectedPlanRosterOverlay(
-        planSchedulingContext,
-        rawPerson.id,
+  const applyHistory = historySnapshot.pipe(
+    Effect.map((snapshot) => {
+      person.frequency = snapshot.frequency;
+      person.serviceHistory = snapshot.serviceHistory;
+      const scheduleLabels = getSelectedPlanAssignmentLabels(
+        snapshot.assignments,
         selectedMatchContext
       );
+      const combinedLabels = mergeAssignmentLabels(
+        rosterOverlay.assignmentLabels,
+        scheduleLabels
+      );
 
-      try {
-        const historySnapshot = canUseSharedPlanWindowHistory
-          ? getCandidateHistorySnapshotFromSharedPlanWindow(
-              rawPerson.id,
-              referenceDate,
-              orgTimeZone,
-              sharedPlanWindowHistory
-            )
-          : await getCandidateHistorySnapshot(
-              rawPerson.id,
-              referenceDate,
-              orgTimeZone,
-              dependencies.people,
-              dependencies.signal
-            );
-
-        person.frequency = historySnapshot.frequency;
-        person.serviceHistory = historySnapshot.serviceHistory;
-        const scheduleLabels = getSelectedPlanAssignmentLabels(
-          historySnapshot.assignments,
-          selectedMatchContext
+      if (rosterOverlay.selectedSlotEntry) {
+        applySelectedPlanRosterStatus(person, rosterOverlay, combinedLabels);
+      } else {
+        applySelectedPlanStatus(
+          person,
+          findMatchingScheduleForSelectedPosition(
+            snapshot.assignments,
+            selectedMatchContext
+          ),
+          combinedLabels
         );
-        const combinedLabels = mergeAssignmentLabels(
-          rosterOverlay.assignmentLabels,
-          scheduleLabels
-        );
-
-        if (rosterOverlay.selectedSlotEntry) {
-          applySelectedPlanRosterStatus(person, rosterOverlay, combinedLabels);
-        } else {
-          applySelectedPlanStatus(
-            person,
-            findMatchingScheduleForSelectedPosition(
-              historySnapshot.assignments,
-              selectedMatchContext
-            ),
-            combinedLabels
-          );
-        }
-      } catch (error) {
-        if (dependencies.signal?.aborted === true) {
-          throw error;
-        }
-        person.frequency = getDefaultFrequency();
-        person.serviceHistory = [];
-        applySelectedPlanRosterStatus(person, rosterOverlay);
       }
-
-      const blockouts = await blockoutsPromise;
-      applyAvailability(person, blockouts, planSortAt);
-
       return person;
-    }
+    }),
+    recoverUnlessInterrupted(() => {
+      person.frequency = getDefaultFrequency();
+      person.serviceHistory = [];
+      applySelectedPlanRosterStatus(person, rosterOverlay);
+      return person;
+    })
   );
 
-  scoreAndNormalizePeople(peopleWithData, referenceDate, orgTimeZone);
-  sortPeopleForSelection(peopleWithData);
-  return peopleWithData;
+  return Effect.all(
+    [
+      applyHistory,
+      loadPersonBlockouts(rawPerson.id, planSortAt, dependencies.people),
+    ],
+    { concurrency: "unbounded" }
+  ).pipe(
+    Effect.map(([hydratedPerson, blockouts]) => {
+      applyAvailability(hydratedPerson, blockouts, planSortAt);
+      return hydratedPerson;
+    })
+  );
 };
 
-export const warmPeopleHistoryForPlan = async (
+export const getPeopleForPosition = (
+  { serviceTypeId, positionId, teamId, planId, date }: Params,
+  dependencies: PeopleForPositionDependencies
+): Effect.Effect<PersonWithAvailability[], PlanningCenterError> =>
+  Effect.gen(function* readPeopleForPosition() {
+    const planSortAt =
+      isNonEmptyString(date) && !Number.isNaN(new Date(date).getTime())
+        ? new Date(date)
+        : null;
+    const referenceDate = planSortAt ?? new Date();
+    const resolveTimeZone = yield* Effect.cached(dependencies.resolveTimeZone);
+    const loadSharedHistory: Effect.Effect<SharedPlanWindowHistorySnapshot | null> =
+      planSortAt === null
+        ? Effect.succeed(null)
+        : resolveTimeZone.pipe(
+            Effect.flatMap((orgTimeZone) =>
+              getSharedPlanWindowHistorySnapshot(
+                serviceTypeId,
+                referenceDate,
+                orgTimeZone,
+                dependencies
+              )
+            ),
+            recoverUnlessInterrupted(() => null)
+          );
+
+    const [orgTimeZone, assignmentsResponse, sharedPlanWindowHistory] =
+      yield* Effect.all(
+        [
+          resolveTimeZone,
+          dependencies.people.getPeopleForTeamPosition(
+            serviceTypeId,
+            positionId
+          ),
+          loadSharedHistory,
+        ],
+        { concurrency: "unbounded" }
+      );
+    const planSchedulingContext = yield* getSelectedPlanSchedulingContext({
+      serviceTypeId,
+      planId,
+      sharedPlanWindowHistory,
+      peopleService: dependencies.people,
+    });
+
+    const { data: assignmentsData, included: assignmentsIncluded } =
+      assignmentsResponse;
+
+    const assignedPeople = getAssignedPeopleFromAssignments(
+      assignmentsData,
+      assignmentsIncluded
+    );
+    const selectedMatchContext = buildSelectedPlanMatchContext(
+      assignmentsIncluded,
+      positionId,
+      teamId,
+      planId
+    );
+    const activePeople = mergeAssignedAndSelectedPlanSlotPeople({
+      assignedPeople,
+      planSchedulingContext,
+      selectedMatchContext,
+    }).filter((person) => !isNonEmptyString(person.attributes.archived_at));
+    const peopleWithData = yield* Effect.forEach(
+      activePeople,
+      (rawPerson) =>
+        hydrateCandidate(rawPerson, {
+          dependencies,
+          orgTimeZone,
+          planSchedulingContext,
+          planSortAt,
+          referenceDate,
+          selectedMatchContext,
+          sharedPlanWindowHistory,
+        }),
+      { concurrency: PEOPLE_HYDRATION_CONCURRENCY }
+    );
+
+    scoreAndNormalizePeople(peopleWithData, referenceDate, orgTimeZone);
+    sortPeopleForSelection(peopleWithData);
+    return peopleWithData;
+  });
+
+export const warmPeopleHistoryForPlan = (
   {
     serviceTypeId,
     date,
@@ -600,20 +653,21 @@ export const warmPeopleHistoryForPlan = async (
     date: string;
   },
   dependencies: PeopleForPositionDependencies
-): Promise<void> => {
-  const referenceDate = new Date(date);
-  if (Number.isNaN(referenceDate.getTime())) {
-    return;
-  }
+): Effect.Effect<void, PlanningCenterError> =>
+  Effect.gen(function* warmPlanHistory() {
+    const referenceDate = new Date(date);
+    if (Number.isNaN(referenceDate.getTime())) {
+      return;
+    }
 
-  const orgTimeZone = await dependencies.resolveTimeZone(dependencies.signal);
-  await getSharedPlanWindowHistorySnapshot(
-    serviceTypeId,
-    referenceDate,
-    orgTimeZone,
-    dependencies
-  );
-};
+    const orgTimeZone = yield* dependencies.resolveTimeZone;
+    yield* getSharedPlanWindowHistorySnapshot(
+      serviceTypeId,
+      referenceDate,
+      orgTimeZone,
+      dependencies
+    );
+  });
 
 export const invalidateCandidateHistoryForPerson = (
   personId: string,

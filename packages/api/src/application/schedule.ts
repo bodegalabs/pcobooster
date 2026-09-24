@@ -3,9 +3,9 @@ import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import { AlreadyScheduled } from "@pcobooster/api/application/errors/already-scheduled";
 import { PositionMismatch } from "@pcobooster/api/application/errors/position-mismatch";
 import {
-  failPlanningCenter,
   PlanningCenterAccess,
-  tryPlanningCenter,
+  planningCenterFault,
+  withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
 import { invalidateCandidateHistoryForPerson } from "@pcobooster/api/modules/planning-center/get-people-for-position";
 import {
@@ -49,19 +49,12 @@ export const prepareScheduledPerson = (
   Effect.gen(function* preparePerson() {
     const access = yield* PlanningCenterAccess;
     const normalizedInput = { ...input, oneOff: input.oneOff ?? false };
-    const target = yield* tryPlanningCenter(
-      async (signal) =>
-        await resolveScheduleTarget(
-          normalizedInput,
-          {
-            catalog: access.services.catalog,
-            people: access.services.people,
-          },
-          signal
-        )
-    );
+    const target = yield* resolveScheduleTarget(normalizedInput, {
+      catalog: access.services.catalog,
+      people: access.services.people,
+    });
     return { target };
-  });
+  }).pipe(withPlanningCenterFaults);
 
 /**
  * This phase begins at the provider-write boundary. The transport executes it
@@ -79,40 +72,36 @@ export const commitScheduledPerson = (
   Effect.gen(function* commitPerson() {
     const access = yield* PlanningCenterAccess;
     yield* ensureRequestIsOpen;
-    const created = yield* Effect.tryPromise({
-      // This call starts the provider mutation synchronously. The scheduling
-      // transport does not interrupt it, so its outcome is audited accurately.
-      try: async () =>
-        await access.services.people.createPlanPerson(
-          input.serviceTypeId,
-          input.personId,
-          input.planId,
-          input.teamId,
-          preparation.target.positionName
-        ),
-      catch: (error) =>
-        error instanceof Error
-          ? error
-          : new Error("Scheduling request failed", { cause: error }),
-    }).pipe(
-      Effect.catch((error) => {
-        const cause = error instanceof Error ? error : new Error(String(error));
-        if (
-          cause.message.includes("has already been scheduled for this position")
-        ) {
-          access.services.people.invalidateScheduleReadCaches(input);
-          dependencies.invalidateHistory(input.personId, access.cacheScope);
-          return Effect.fail(
-            new AlreadyScheduled({
-              message:
-                "Person is already scheduled for this selected plan/team/position",
-              details: access.presentation ? undefined : cause.message,
-            })
-          );
-        }
-        return failPlanningCenter(error);
-      })
-    );
+    // The scheduling transport does not interrupt this provider mutation,
+    // so its outcome is audited accurately.
+    const created = yield* access.services.people
+      .createPlanPerson(
+        input.serviceTypeId,
+        input.personId,
+        input.planId,
+        input.teamId,
+        preparation.target.positionName
+      )
+      .pipe(
+        Effect.catch((error) => {
+          if (
+            error.message.includes(
+              "has already been scheduled for this position"
+            )
+          ) {
+            access.services.people.invalidateScheduleReadCaches(input);
+            dependencies.invalidateHistory(input.personId, access.cacheScope);
+            return Effect.fail(
+              new AlreadyScheduled({
+                message:
+                  "Person is already scheduled for this selected plan/team/position",
+                details: access.presentation ? undefined : error.message,
+              })
+            );
+          }
+          return Effect.fail(planningCenterFault(error));
+        })
+      );
 
     access.services.people.invalidateScheduleReadCaches(input);
     dependencies.invalidateHistory(input.personId, access.cacheScope);
@@ -154,14 +143,12 @@ export const removeScheduledPerson = (
   Effect.gen(function* removePerson() {
     const access = yield* PlanningCenterAccess;
     yield* ensureRequestIsOpen;
-    yield* tryPlanningCenter(async () => {
-      await access.services.people.deletePlanPerson(input.planPersonId, input);
-      if (input.personId !== undefined) {
-        dependencies.invalidateHistory(input.personId, access.cacheScope);
-      }
-    });
+    yield* access.services.people.deletePlanPerson(input.planPersonId, input);
+    if (input.personId !== undefined) {
+      dependencies.invalidateHistory(input.personId, access.cacheScope);
+    }
     return { success: true as const };
-  });
+  }).pipe(withPlanningCenterFaults);
 
 export const updateScheduledPersonStatus = (
   input: ScheduleUpdateStatusInput,
@@ -174,15 +161,13 @@ export const updateScheduledPersonStatus = (
   Effect.gen(function* updateStatus() {
     const access = yield* PlanningCenterAccess;
     yield* ensureRequestIsOpen;
-    yield* tryPlanningCenter(async () => {
-      await access.services.people.updatePlanPersonStatus(
-        input.planPersonId,
-        input.status,
-        input
-      );
-      if (input.personId !== undefined) {
-        dependencies.invalidateHistory(input.personId, access.cacheScope);
-      }
-    });
+    yield* access.services.people.updatePlanPersonStatus(
+      input.planPersonId,
+      input.status,
+      input
+    );
+    if (input.personId !== undefined) {
+      dependencies.invalidateHistory(input.personId, access.cacheScope);
+    }
     return { success: true as const };
-  });
+  }).pipe(withPlanningCenterFaults);

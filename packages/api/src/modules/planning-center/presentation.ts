@@ -1,5 +1,7 @@
 import { createHmac } from "node:crypto";
 
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
@@ -11,6 +13,7 @@ import type {
   TeamPosition,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 import type {
   PeopleDashboardData,
@@ -69,37 +72,47 @@ export const presentationIdentity = (
   };
 };
 
-export const getPresentationIdentityMapper = async (
-  dependencies: PresentationDependencies,
-  signal?: AbortSignal
-) => {
-  if (!dependencies.isPresentationMode()) {
-    return null;
+type IdentityMapper = (personId: string) => PresentationIdentity;
+
+const organizationCacheFor = (
+  catalog: PresentationDependencies["catalog"]
+): PlanningCenterReadCache<string> => {
+  const existing = organizationCaches.get(catalog);
+  if (existing) {
+    return existing;
   }
-  let organizationCache = organizationCaches.get(dependencies.catalog);
-  if (!organizationCache) {
-    organizationCache = new PlanningCenterReadCache<string>();
-    organizationCaches.set(dependencies.catalog, organizationCache);
-  }
-  const organizationId = await organizationCache.get(
-    dependencies.people.getCacheScope(),
-    5 * 60 * 1000,
-    async (loadSignal) => {
-      const organization =
-        await dependencies.catalog.getOrganization(loadSignal);
-      if (!organization.id) {
-        throw new Error("Missing Planning Center organization ID");
-      }
-      return organization.id;
-    },
-    signal
-  );
-  const seed = dependencies.getPresentationSeed();
-  return (personId: string) =>
-    presentationIdentity(organizationId, personId, seed);
+  const created = new PlanningCenterReadCache<string>();
+  organizationCaches.set(catalog, created);
+  return created;
 };
 
-type IdentityMapper = (personId: string) => PresentationIdentity;
+export const getPresentationIdentityMapper = (
+  dependencies: PresentationDependencies
+): Effect.Effect<IdentityMapper | null, PlanningCenterError> =>
+  Effect.suspend(() => {
+    if (!dependencies.isPresentationMode()) {
+      return Effect.succeed(null);
+    }
+    const loadOrganizationId = () =>
+      Effect.flatMap(dependencies.catalog.getOrganization(), (organization) =>
+        organization.id
+          ? Effect.succeed(organization.id)
+          : Effect.die(new Error("Missing Planning Center organization ID"))
+      );
+    return Effect.map(
+      cachedRead(
+        organizationCacheFor(dependencies.catalog),
+        dependencies.people.getCacheScope(),
+        5 * 60 * 1000,
+        loadOrganizationId
+      ),
+      (organizationId) => {
+        const seed = dependencies.getPresentationSeed();
+        return (personId: string) =>
+          presentationIdentity(organizationId, personId, seed);
+      }
+    );
+  });
 
 const maskBlockout = (blockout: Blockout): Blockout => ({
   ...blockout,
@@ -132,16 +145,11 @@ const maskPosition = (
     : undefined),
 });
 
-export const presentPeople = async (
+const maskPeople = (
   people: PersonWithAvailability[],
-  dependencies: PresentationDependencies,
-  signal?: AbortSignal
-): Promise<PersonWithAvailability[]> => {
-  const identity = await getPresentationIdentityMapper(dependencies, signal);
-  if (!identity) {
-    return people;
-  }
-  return people.map((person) => ({
+  identity: IdentityMapper
+): PersonWithAvailability[] =>
+  people.map((person) => ({
     ...person,
     ...identity(person.id),
     positions: person.positions.map((position) =>
@@ -156,24 +164,29 @@ export const presentPeople = async (
       ? "Unavailable"
       : person.selectedPlanDeclineReason,
   }));
-};
 
-export const presentTeamPositions = async (
+export const presentPeople = (
+  people: PersonWithAvailability[],
+  dependencies: PresentationDependencies
+): Effect.Effect<PersonWithAvailability[], PlanningCenterError> =>
+  Effect.map(getPresentationIdentityMapper(dependencies), (identity) =>
+    identity ? maskPeople(people, identity) : people
+  );
+
+export const presentTeamPositions = (
   groups: TeamPositionGroup[],
-  dependencies: PresentationDependencies,
-  signal?: AbortSignal
-): Promise<TeamPositionGroup[]> => {
-  const identity = await getPresentationIdentityMapper(dependencies, signal);
-  if (!identity) {
-    return groups;
-  }
-  return groups.map((group) => ({
-    ...group,
-    positions: group.positions.map((position) =>
-      maskPosition(position, identity)
-    ),
-  }));
-};
+  dependencies: PresentationDependencies
+): Effect.Effect<TeamPositionGroup[], PlanningCenterError> =>
+  Effect.map(getPresentationIdentityMapper(dependencies), (identity) =>
+    identity
+      ? groups.map((group) => ({
+          ...group,
+          positions: group.positions.map((position) =>
+            maskPosition(position, identity)
+          ),
+        }))
+      : groups
+  );
 
 const maskDashboardPerson = (
   person: PeopleDashboardPerson,
@@ -188,32 +201,30 @@ const maskDashboardPerson = (
   };
 };
 
-export const presentDashboard = async (
+export const presentDashboard = (
   data: PeopleDashboardData,
-  dependencies: PresentationDependencies,
-  signal?: AbortSignal
-): Promise<PeopleDashboardData> => {
-  const identity = await getPresentationIdentityMapper(dependencies, signal);
-  return identity
-    ? {
-        ...data,
-        people: data.people.map((person) =>
-          maskDashboardPerson(person, identity)
-        ),
-      }
-    : data;
-};
+  dependencies: PresentationDependencies
+): Effect.Effect<PeopleDashboardData, PlanningCenterError> =>
+  Effect.map(getPresentationIdentityMapper(dependencies), (identity) =>
+    identity
+      ? {
+          ...data,
+          people: data.people.map((person) =>
+            maskDashboardPerson(person, identity)
+          ),
+        }
+      : data
+  );
 
-export const presentDashboardPerson = async (
+export const presentDashboardPerson = (
   data: PeopleDashboardPersonDetail,
-  dependencies: PresentationDependencies,
-  signal?: AbortSignal
-): Promise<PeopleDashboardPersonDetail> => {
-  const identity = await getPresentationIdentityMapper(dependencies, signal);
-  return identity
-    ? { ...data, person: maskDashboardPerson(data.person, identity) }
-    : data;
-};
+  dependencies: PresentationDependencies
+): Effect.Effect<PeopleDashboardPersonDetail, PlanningCenterError> =>
+  Effect.map(getPresentationIdentityMapper(dependencies), (identity) =>
+    identity
+      ? { ...data, person: maskDashboardPerson(data.person, identity) }
+      : data
+  );
 
 export const presentBlockouts = (
   blockouts: Blockout[],

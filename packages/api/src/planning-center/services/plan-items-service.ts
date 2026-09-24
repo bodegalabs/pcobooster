@@ -1,12 +1,18 @@
 import { logger } from "@pcobooster/api/logger";
-import type { PlanningCenterPromiseClient } from "@pcobooster/api/planning-center/promise-client";
+import type {
+  PlanningCenterCoreClient,
+  PlanningCenterError,
+} from "@pcobooster/api/planning-center/core-client";
+import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 const log = logger.for("planning-center/plan-items");
 const PLAN_ITEMS_CACHE_TTL_MS = 30 * 1000;
+const PLAN_ITEM_INCLUDES = "song,arrangement,key,item_notes,item_times";
 
 export interface PlanningCenterPlanItemsServiceCaches {
   readonly items: PlanningCenterReadCache<PlanItemsResponse>;
@@ -25,6 +31,11 @@ interface PlanItemsResponse {
   included: PCResource[];
 }
 
+interface PlanItemResponse {
+  data: PCResource;
+  included: PCResource[];
+}
+
 const buildItemPayload = (attributes: JsonObject, id?: string) => ({
   data: {
     type: "Item",
@@ -33,146 +44,153 @@ const buildItemPayload = (attributes: JsonObject, id?: string) => ({
   },
 });
 
-const clonePlanItemsResponse = (response: PlanItemsResponse) => ({
+const clonePlanItemsResponse = (
+  response: PlanItemsResponse
+): PlanItemsResponse => ({
   data: structuredClone(response.data),
   included: structuredClone(response.included),
 });
 
 export class PlanningCenterPlanItemsService {
-  private readonly core: PlanningCenterPromiseClient;
+  private readonly core: PlanningCenterCoreClient;
   private readonly caches: PlanningCenterPlanItemsServiceCaches;
 
   constructor(
-    core: PlanningCenterPromiseClient,
+    core: PlanningCenterCoreClient,
     caches: PlanningCenterPlanItemsServiceCaches = createPlanningCenterPlanItemsServiceCaches()
   ) {
     this.core = core;
     this.caches = caches;
   }
 
-  async getPlanItems(
+  getPlanItems(
     serviceTypeId: string,
-    planId: string,
-    signal?: AbortSignal
-  ): Promise<PlanItemsResponse> {
-    const response = await this.caches.items.get(
+    planId: string
+  ): Effect.Effect<PlanItemsResponse, PlanningCenterError> {
+    const load = () =>
+      this.core
+        .fetchAllWithIncluded(
+          `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items`,
+          { include: PLAN_ITEM_INCLUDES },
+          5
+        )
+        .pipe(
+          Effect.tap((result) =>
+            Effect.sync(() => {
+              log.info(
+                { serviceTypeId, planId, itemCount: result.data.length },
+                "Plan items fetched"
+              );
+            })
+          )
+        );
+    return cachedRead(
+      this.caches.items,
       this.buildPlanItemsCacheKey(serviceTypeId, planId),
       PLAN_ITEMS_CACHE_TTL_MS,
-      async (loadSignal) => {
-        const result = await this.core.fetchAllWithIncluded(
-          `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items`,
-          {
-            include: "song,arrangement,key,item_notes,item_times",
-          },
-          5,
-          loadSignal
-        );
-
-        log.info(
-          { serviceTypeId, planId, itemCount: result.data.length },
-          "Plan items fetched"
-        );
-
-        return result;
-      },
-      signal
-    );
-
-    return clonePlanItemsResponse(response);
+      load
+    ).pipe(Effect.map(clonePlanItemsResponse));
   }
 
-  async getPlanItem(
-    serviceTypeId: string,
-    planId: string,
-    itemId: string,
-    signal?: AbortSignal
-  ): Promise<{ data: PCResource; included: PCResource[] }> {
-    const response = await this.core.fetch(
-      `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items/${itemId}?include=song,arrangement,key,item_notes,item_times`,
-      { signal }
-    );
-
-    return {
-      data: response.data,
-      included: response.included ?? [],
-    };
-  }
-
-  async createPlanItem(
-    serviceTypeId: string,
-    planId: string,
-    attributes: JsonObject
-  ): Promise<{ data: PCResource; included: PCResource[] }> {
-    const response = await this.core.fetch(
-      `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items?include=song,arrangement,key`,
-      {
-        method: "POST",
-        body: buildItemPayload(attributes),
-      }
-    );
-    this.invalidatePlanItemsCache(serviceTypeId, planId);
-
-    return {
-      data: response.data,
-      included: response.included ?? [],
-    };
-  }
-
-  async updatePlanItem(
-    serviceTypeId: string,
-    planId: string,
-    itemId: string,
-    attributes: JsonObject
-  ): Promise<{ data: PCResource; included: PCResource[] }> {
-    const response = await this.core.fetch(
-      `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items/${itemId}?include=song,arrangement,key`,
-      {
-        method: "PATCH",
-        body: buildItemPayload(attributes, itemId),
-      }
-    );
-    this.invalidatePlanItemsCache(serviceTypeId, planId);
-
-    return {
-      data: response.data,
-      included: response.included ?? [],
-    };
-  }
-
-  async deletePlanItem(
+  getPlanItem(
     serviceTypeId: string,
     planId: string,
     itemId: string
-  ): Promise<void> {
-    await this.core.request(
-      `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items/${itemId}`,
-      {
-        method: "DELETE",
-      }
+  ): Effect.Effect<PlanItemResponse, PlanningCenterError> {
+    return Effect.map(
+      this.core.fetch(
+        `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items/${itemId}?include=${PLAN_ITEM_INCLUDES}`
+      ),
+      (response) => ({
+        data: response.data,
+        included: response.included ?? [],
+      })
     );
-    this.invalidatePlanItemsCache(serviceTypeId, planId);
   }
 
-  async reorderPlanItems(
+  createPlanItem(
+    serviceTypeId: string,
+    planId: string,
+    attributes: JsonObject
+  ): Effect.Effect<PlanItemResponse, PlanningCenterError> {
+    return this.core
+      .fetch(
+        `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items?include=song,arrangement,key`,
+        { method: "POST", body: buildItemPayload(attributes) }
+      )
+      .pipe(
+        Effect.map((response) => {
+          this.invalidatePlanItemsCache(serviceTypeId, planId);
+          return { data: response.data, included: response.included ?? [] };
+        })
+      );
+  }
+
+  updatePlanItem(
+    serviceTypeId: string,
+    planId: string,
+    itemId: string,
+    attributes: JsonObject
+  ): Effect.Effect<PlanItemResponse, PlanningCenterError> {
+    return this.core
+      .fetch(
+        `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items/${itemId}?include=song,arrangement,key`,
+        { method: "PATCH", body: buildItemPayload(attributes, itemId) }
+      )
+      .pipe(
+        Effect.map((response) => {
+          this.invalidatePlanItemsCache(serviceTypeId, planId);
+          return { data: response.data, included: response.included ?? [] };
+        })
+      );
+  }
+
+  deletePlanItem(
+    serviceTypeId: string,
+    planId: string,
+    itemId: string
+  ): Effect.Effect<void, PlanningCenterError> {
+    return this.core
+      .request(
+        `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items/${itemId}`,
+        { method: "DELETE" }
+      )
+      .pipe(
+        Effect.asVoid,
+        Effect.tap(() =>
+          Effect.sync(() => {
+            this.invalidatePlanItemsCache(serviceTypeId, planId);
+          })
+        )
+      );
+  }
+
+  reorderPlanItems(
     serviceTypeId: string,
     planId: string,
     sequence: string[]
-  ): Promise<void> {
-    await this.core.request(
-      `/services/v2/service_types/${serviceTypeId}/plans/${planId}/item_reorder`,
-      {
-        method: "POST",
-        body: {
-          data: {
-            type: "PlanItemReorder",
-            attributes: {
-              sequence,
+  ): Effect.Effect<void, PlanningCenterError> {
+    return this.core
+      .request(
+        `/services/v2/service_types/${serviceTypeId}/plans/${planId}/item_reorder`,
+        {
+          method: "POST",
+          body: {
+            data: {
+              type: "PlanItemReorder",
+              attributes: { sequence },
             },
           },
-        },
-      }
-    );
-    this.invalidatePlanItemsCache(serviceTypeId, planId);
+        }
+      )
+      .pipe(
+        Effect.asVoid,
+        Effect.tap(() =>
+          Effect.sync(() => {
+            this.invalidatePlanItemsCache(serviceTypeId, planId);
+          })
+        )
+      );
   }
 
   private buildPlanItemsCacheKey(

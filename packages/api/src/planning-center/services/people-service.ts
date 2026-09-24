@@ -1,5 +1,10 @@
 import { buildPlanningCenterUrl } from "@pcobooster/api/planning-center/core-client";
-import type { PlanningCenterPromiseClient } from "@pcobooster/api/planning-center/promise-client";
+import type {
+  PlanningCenterCoreClient,
+  PlanningCenterError,
+} from "@pcobooster/api/planning-center/core-client";
+import { recoverUnlessInterrupted } from "@pcobooster/api/planning-center/recover-unless-interrupted";
+import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import {
   PlanningCenterReadCache,
   stableParams,
@@ -9,10 +14,12 @@ import {
   isString,
 } from "@pcobooster/planning-center-models/json";
 import type {
+  PCApiResponse,
   PCRelationship,
   PCResource,
   PCResourceIdentifier,
 } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 const ASSIGNMENTS_CACHE_TTL_MS = 5 * 60 * 1000;
 const PERSON_READ_CACHE_TTL_MS = 60 * 1000;
@@ -32,6 +39,11 @@ interface AllTeamPeopleResponse {
 interface ResourceCollectionResponse {
   data: PCResource[];
   included: PCResource[];
+}
+
+interface TeamPeopleResponse {
+  team: PCResource;
+  response: PCApiResponse<PCResource[]>;
 }
 
 export interface PlanningCenterPeopleServiceCaches {
@@ -61,45 +73,6 @@ const getRelationshipIdentifiers = (
   return Array.isArray(data) ? data : [data];
 };
 
-const mapWithConcurrency = async <T, R>(
-  items: T[],
-  concurrency: number,
-  mapper: (item: T, index: number) => Promise<R>
-): Promise<R[]> => {
-  if (items.length === 0) {
-    return [];
-  }
-
-  const safeConcurrency = Math.max(1, Math.min(concurrency, items.length));
-  const results = Array.from(
-    { length: items.length },
-    (): { value: R } | undefined => undefined
-  );
-  let nextIndex = 0;
-
-  const worker = async (): Promise<void> => {
-    const current = nextIndex;
-    nextIndex += 1;
-    if (current >= items.length) {
-      return;
-    }
-    const value = await mapper(items[current], current);
-    results[current] = { value };
-    await worker();
-  };
-
-  const workers = Array.from({ length: safeConcurrency }, async () => {
-    await worker();
-  });
-  await Promise.all(workers);
-  return results.map((slot) => {
-    if (slot === undefined) {
-      throw new Error("Concurrent mapping did not complete every item");
-    }
-    return slot.value;
-  });
-};
-
 const cloneAllTeamPeopleResponse = (
   response: AllTeamPeopleResponse
 ): AllTeamPeopleResponse => ({
@@ -120,170 +93,263 @@ const cloneResourceCollectionResponse = (
   included: structuredClone(response.included),
 });
 
+const toResourceCollection = (
+  fetched: PCApiResponse<PCResource[]>
+): ResourceCollectionResponse => ({
+  data: fetched.data,
+  included: fetched.included ?? [],
+});
+
+/** Plan IDs whose schedules list PlanTimes that `include=plan_times` did not sideload. */
+const findMissingPlanTimes = (
+  schedules: PCResource[],
+  included: PCResource[]
+): Map<string, Set<string>> => {
+  const sideloadedPlanTimeIds = new Set<string>();
+  for (const resource of included) {
+    if (resource.type === "PlanTime") {
+      sideloadedPlanTimeIds.add(resource.id);
+    }
+  }
+
+  const missingByPlan = new Map<string, Set<string>>();
+  for (const schedule of schedules) {
+    const planRel = schedule.relationships?.plan?.data;
+    const planId = Array.isArray(planRel) ? planRel[0]?.id : planRel?.id;
+    if (!isNonEmptyString(planId)) {
+      continue;
+    }
+    const timesRel = getRelationshipIdentifiers(
+      schedule.relationships?.times?.data
+    );
+    for (const t of timesRel) {
+      if (!isNonEmptyString(t.id) || sideloadedPlanTimeIds.has(t.id)) {
+        continue;
+      }
+      const missingTimes = missingByPlan.get(planId) ?? new Set<string>();
+      missingTimes.add(t.id);
+      missingByPlan.set(planId, missingTimes);
+    }
+  }
+  return missingByPlan;
+};
+
+const findTeamPerson = (
+  person: PCResource,
+  included: PCResource[]
+): PCResource | null => {
+  if (person.type === "Person") {
+    return person;
+  }
+  const personData = person.relationships?.person?.data;
+  if (!personData) {
+    return null;
+  }
+  const personId = Array.isArray(personData)
+    ? personData[0]?.id
+    : personData?.id;
+  if (!personId) {
+    return null;
+  }
+  return (
+    included.find(
+      (candidate) => candidate.type === "Person" && candidate.id === personId
+    ) ?? null
+  );
+};
+
+const collectTeamPeople = (
+  teamResponses: (TeamPeopleResponse | null)[]
+): AllTeamPeopleResponse => {
+  const allPeople: PCResource[] = [];
+  const allIncluded: PCResource[] = [];
+  const teamNamesByPersonId = new Map<string, Set<string>>();
+  const seenIds = new Set<string>();
+
+  for (const result of teamResponses) {
+    if (!result) {
+      continue;
+    }
+
+    const { team, response } = result;
+    const included = response.included ?? [];
+
+    for (const person of response.data) {
+      const personResource = findTeamPerson(person, included);
+      if (!personResource) {
+        continue;
+      }
+      if (!seenIds.has(personResource.id)) {
+        seenIds.add(personResource.id);
+        allPeople.push(personResource);
+      }
+      const teamName = team.attributes.name;
+      if (isString(teamName) && teamName.trim()) {
+        const teamNames =
+          teamNamesByPersonId.get(personResource.id) ?? new Set<string>();
+        teamNames.add(teamName);
+        teamNamesByPersonId.set(personResource.id, teamNames);
+      }
+    }
+
+    allIncluded.push(...included);
+  }
+
+  return { people: allPeople, included: allIncluded, teamNamesByPersonId };
+};
+
 export class PlanningCenterPeopleService {
-  private readonly core: PlanningCenterPromiseClient;
+  private readonly core: PlanningCenterCoreClient;
   private readonly caches: PlanningCenterPeopleServiceCaches;
 
   constructor(
-    core: PlanningCenterPromiseClient,
+    core: PlanningCenterCoreClient,
     caches: PlanningCenterPeopleServiceCaches = createPlanningCenterPeopleServiceCaches()
   ) {
     this.core = core;
     this.caches = caches;
   }
 
-  async getPeopleFromTeam(
-    teamId: string,
-    signal?: AbortSignal
-  ): Promise<PCResource[]> {
-    return await this.core.fetchAll(
+  getPeopleFromTeam(
+    teamId: string
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
+    return this.core.fetchAll(
       `/services/v2/teams/${teamId}/people?include=person`,
       {},
-      10,
-      signal
+      10
     );
   }
 
-  async getPerson(personId: string, signal?: AbortSignal): Promise<PCResource> {
-    const person = await this.caches.people.get(
+  getPerson(personId: string): Effect.Effect<PCResource, PlanningCenterError> {
+    return cachedRead(
+      this.caches.people,
       this.buildCacheKey("person", personId),
       PERSON_READ_CACHE_TTL_MS,
-      async (loadSignal) => {
-        const response = await this.core.fetch(
-          `/services/v2/people/${personId}`,
-          {
-            signal: loadSignal,
-          }
-        );
-        return response.data;
-      },
-      signal
-    );
-    return structuredClone(person);
+      () =>
+        Effect.map(
+          this.core.fetch(`/services/v2/people/${personId}`),
+          (response) => response.data
+        )
+    ).pipe(Effect.map((person) => structuredClone(person)));
   }
 
-  async searchPeopleByName(
+  searchPeopleByName(
     query: string,
-    limit = 15,
-    signal?: AbortSignal
-  ): Promise<PCResource[]> {
+    limit = 15
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
     const normalizedQuery = query.trim();
     if (!normalizedQuery) {
-      return [];
+      return Effect.succeed([]);
     }
 
-    const data = await this.caches.resourceLists.get(
+    const endpoint = buildPlanningCenterUrl("/people/v2/people", {
+      "where[search_name]": normalizedQuery,
+      order: "last_name,first_name",
+      per_page: String(limit),
+    });
+    return cachedRead(
+      this.caches.resourceLists,
       this.buildCacheKey(
         "people-search",
         normalizedQuery.toLowerCase(),
         String(limit)
       ),
       PEOPLE_SEARCH_CACHE_TTL_MS,
-      async (loadSignal) => {
-        const endpoint = buildPlanningCenterUrl("/people/v2/people", {
-          "where[search_name]": normalizedQuery,
-          order: "last_name,first_name",
-          per_page: String(limit),
-        });
-        const response = await this.core.fetchCollection(endpoint, {
-          signal: loadSignal,
-        });
-        return response.data.slice(0, limit);
-      },
-      signal
-    );
-
-    return structuredClone(data);
+      () =>
+        Effect.map(this.core.fetchCollection(endpoint), (response) =>
+          response.data.slice(0, limit)
+        )
+    ).pipe(Effect.map((data) => structuredClone(data)));
   }
 
-  async getAllPeople(signal?: AbortSignal): Promise<PCResource[]> {
-    const people = await this.caches.resourceLists.get(
+  getAllPeople(): Effect.Effect<PCResource[], PlanningCenterError> {
+    return cachedRead(
+      this.caches.resourceLists,
       this.buildCacheKey("all-people"),
       ALL_TEAM_PEOPLE_CACHE_TTL_MS,
-      async (loadSignal) =>
-        await this.core.fetchAll(
-          "/people/v2/people",
-          {},
-          Number.POSITIVE_INFINITY,
-          loadSignal
-        ),
-      signal
-    );
-    return structuredClone(people);
+      () =>
+        this.core.fetchAll("/people/v2/people", {}, Number.POSITIVE_INFINITY)
+    ).pipe(Effect.map((people) => structuredClone(people)));
   }
 
-  async getPersonTeamPositions(
-    personId: string,
-    signal?: AbortSignal
-  ): Promise<PCResource[]> {
-    return await this.core.fetchAll(
+  getPersonTeamPositions(
+    personId: string
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
+    return this.core.fetchAll(
       `/services/v2/people/${personId}/person_team_position_assignments?include=team_position`,
       {},
-      10,
-      signal
+      10
     );
   }
 
-  async getAllPeopleFromTeams(
-    signal?: AbortSignal
-  ): Promise<AllTeamPeopleResponse> {
-    const response = await this.caches.allTeamPeople.get(
+  getAllPeopleFromTeams(): Effect.Effect<
+    AllTeamPeopleResponse,
+    PlanningCenterError
+  > {
+    return cachedRead(
+      this.caches.allTeamPeople,
       this.buildCacheKey("all-team-people"),
       ALL_TEAM_PEOPLE_CACHE_TTL_MS,
-      async (loadSignal) => await this.loadAllPeopleFromTeams(loadSignal),
-      signal
-    );
-
-    return cloneAllTeamPeopleResponse(response);
+      () => this.loadAllPeopleFromTeams()
+    ).pipe(Effect.map(cloneAllTeamPeopleResponse));
   }
 
-  async getPersonBlockouts(
+  getPersonBlockouts(
     personId: string,
-    params: Record<string, string> = {},
-    signal?: AbortSignal
-  ): Promise<PCResource[]> {
-    const blockouts = await this.caches.resourceLists.get(
+    params: Record<string, string> = {}
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
+    return cachedRead(
+      this.caches.resourceLists,
       this.buildCacheKey("person-blockouts", personId, stableParams(params)),
       PERSON_READ_CACHE_TTL_MS,
-      async (loadSignal) =>
-        await this.core.fetchAll(
+      () =>
+        this.core.fetchAll(
           `/services/v2/people/${personId}/blockouts`,
           params,
-          10,
-          loadSignal
-        ),
-      signal
-    );
-    return structuredClone(blockouts);
+          10
+        )
+    ).pipe(Effect.map((blockouts) => structuredClone(blockouts)));
   }
 
-  async getPersonBlockoutDates(
+  getPersonBlockoutDates(
     personId: string,
-    blockoutId: string,
-    signal?: AbortSignal
-  ): Promise<PCResource[]> {
-    const dates = await this.caches.resourceLists.get(
+    blockoutId: string
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
+    return cachedRead(
+      this.caches.resourceLists,
       this.buildCacheKey("person-blockout-dates", personId, blockoutId),
       PERSON_READ_CACHE_TTL_MS,
-      async (loadSignal) =>
-        await this.core.fetchAll(
+      () =>
+        this.core.fetchAll(
           `/services/v2/people/${personId}/blockouts/${blockoutId}/blockout_dates`,
           {},
-          10,
-          loadSignal
-        ),
-      signal
-    );
-    return structuredClone(dates);
+          10
+        )
+    ).pipe(Effect.map((dates) => structuredClone(dates)));
   }
 
-  async getPersonSchedules(
+  getPersonSchedules(
     personId: string,
     params: Record<string, string> = {},
-    maxPages = 2,
-    signal?: AbortSignal
-  ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const response = await this.caches.collections.get(
+    maxPages = 2
+  ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
+    const load = () =>
+      this.core
+        .fetchAllWithIncluded(
+          `/services/v2/people/${personId}/schedules`,
+          { include: "plan_times", ...params },
+          maxPages
+        )
+        .pipe(
+          Effect.flatMap(({ data, included }) =>
+            Effect.map(
+              this.enrichSchedulesWithRehearsalTimes(data, included),
+              (enrichedIncluded) => ({ data, included: enrichedIncluded })
+            )
+          )
+        );
+    return cachedRead(
+      this.caches.collections,
       this.buildCacheKey(
         "person-schedules",
         personId,
@@ -291,30 +357,8 @@ export class PlanningCenterPeopleService {
         String(maxPages)
       ),
       PERSON_READ_CACHE_TTL_MS,
-      async (loadSignal) => {
-        const fetched = await this.core.fetchAllWithIncluded(
-          `/services/v2/people/${personId}/schedules`,
-          { include: "plan_times", ...params },
-          maxPages,
-          loadSignal
-        );
-
-        const { data } = fetched;
-        const included = fetched.included ?? [];
-        const enrichedIncluded = await this.enrichSchedulesWithRehearsalTimes(
-          data,
-          included,
-          loadSignal
-        );
-
-        return {
-          data,
-          included: enrichedIncluded,
-        };
-      },
-      signal
-    );
-    return cloneResourceCollectionResponse(response);
+      load
+    ).pipe(Effect.map(cloneResourceCollectionResponse));
   }
 
   /**
@@ -322,197 +366,141 @@ export class PlanningCenterPeopleService {
    * listed in `schedule.relationships.times` but their resources aren't included. Fetch them
    * per-plan and merge into `included` so downstream history processing can classify them.
    */
-  private async enrichSchedulesWithRehearsalTimes(
+  private enrichSchedulesWithRehearsalTimes(
     schedules: PCResource[],
-    included: PCResource[],
-    signal?: AbortSignal
-  ): Promise<PCResource[]> {
-    const sideloadedPlanTimeIds = new Set<string>();
-    for (const resource of included) {
-      if (resource.type === "PlanTime") {
-        sideloadedPlanTimeIds.add(resource.id);
-      }
-    }
-
-    const missingByPlan = new Map<string, Set<string>>();
-    for (const schedule of schedules) {
-      const planRel = schedule.relationships?.plan?.data;
-      const planId = Array.isArray(planRel) ? planRel[0]?.id : planRel?.id;
-      if (!isNonEmptyString(planId)) {
-        continue;
-      }
-      const timesRel = getRelationshipIdentifiers(
-        schedule.relationships?.times?.data
-      );
-      for (const t of timesRel) {
-        if (!isNonEmptyString(t.id) || sideloadedPlanTimeIds.has(t.id)) {
-          continue;
-        }
-        const missingTimes = missingByPlan.get(planId) ?? new Set<string>();
-        missingTimes.add(t.id);
-        missingByPlan.set(planId, missingTimes);
-      }
-    }
-
+    included: PCResource[]
+  ): Effect.Effect<PCResource[]> {
+    const missingByPlan = findMissingPlanTimes(schedules, included);
     if (missingByPlan.size === 0) {
-      return included;
+      return Effect.succeed(included);
     }
 
-    const fetched = await Promise.all(
-      [...missingByPlan.entries()].map(async ([planId, idSet]) => {
-        const planTimes = await this.getPlanPlanTimes(planId, signal);
-        return planTimes.filter((pt) => idSet.has(pt.id));
-      })
-    );
-
-    return [...included, ...fetched.flat()];
+    return Effect.forEach(
+      [...missingByPlan.entries()],
+      ([planId, idSet]) =>
+        Effect.map(this.getPlanPlanTimes(planId), (planTimes) =>
+          planTimes.filter((pt) => idSet.has(pt.id))
+        ),
+      { concurrency: "unbounded" }
+    ).pipe(Effect.map((fetched) => [...included, ...fetched.flat()]));
   }
 
   /**
    * Cached fetch of all PlanTimes for a plan. Shared across candidates so a position page with
    * 30 candidates serving on the same Sunday plan triggers one fetch, not 30. PlanTimes rarely
-   * change, so the TTL is longer than per-person caches.
+   * change, so the TTL is longer than per-person caches. A plan we cannot read has no times.
    */
-  async getPlanPlanTimes(
-    planId: string,
-    signal?: AbortSignal
-  ): Promise<PCResource[]> {
-    const planTimes = await this.caches.resourceLists.get(
+  getPlanPlanTimes(planId: string): Effect.Effect<PCResource[]> {
+    return cachedRead(
+      this.caches.resourceLists,
       this.buildCacheKey("plan-plan-times", planId),
       PLAN_TIMES_CACHE_TTL_MS,
-      async (loadSignal) => {
-        try {
-          return await this.core.fetchAll(
+      () =>
+        this.core
+          .fetchAll(
             `/services/v2/plans/${planId}/plan_times`,
             { per_page: "200" },
-            10,
-            loadSignal
-          );
-        } catch (error) {
-          if (loadSignal?.aborted === true) {
-            throw error;
-          }
-          return [];
-        }
-      },
-      signal
+            10
+          )
+          .pipe(recoverUnlessInterrupted((): PCResource[] => []))
+    ).pipe(
+      Effect.map((planTimes) => structuredClone(planTimes)),
+      Effect.orDie
     );
-    return structuredClone(planTimes);
   }
 
-  async getPeopleForTeamPosition(
+  getPeopleForTeamPosition(
     serviceTypeId: string,
-    positionId: string,
-    signal?: AbortSignal
-  ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const response = await this.caches.collections.get(
+    positionId: string
+  ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
+    return cachedRead(
+      this.caches.collections,
       this.buildCacheKey(
         "team-position-assignments",
         serviceTypeId,
         positionId
       ),
       ASSIGNMENTS_CACHE_TTL_MS,
-      async (loadSignal) => {
-        const fetched = await this.core.fetchAllWithIncluded(
-          `/services/v2/service_types/${serviceTypeId}/team_positions/${positionId}/person_team_position_assignments`,
-          { include: "person,team_position" },
-          10,
-          loadSignal
-        );
-
-        return {
-          data: fetched.data,
-          included: fetched.included ?? [],
-        };
-      },
-      signal
-    );
-    return cloneResourceCollectionResponse(response);
+      () =>
+        this.core
+          .fetchAllWithIncluded(
+            `/services/v2/service_types/${serviceTypeId}/team_positions/${positionId}/person_team_position_assignments`,
+            { include: "person,team_position" },
+            10
+          )
+          .pipe(Effect.map(toResourceCollection))
+    ).pipe(Effect.map(cloneResourceCollectionResponse));
   }
 
-  async getPlanTeamMembers(
+  getPlanTeamMembers(
     serviceTypeId: string,
-    planId: string,
-    signal?: AbortSignal
-  ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const response = await this.caches.collections.get(
+    planId: string
+  ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
+    return cachedRead(
+      this.caches.collections,
       this.buildCacheKey("plan-team-members", serviceTypeId, planId),
       PLAN_TEAM_MEMBERS_CACHE_TTL_MS,
-      async (loadSignal) => {
-        const fetched = await this.core.fetchAllWithIncluded(
-          `/services/v2/service_types/${serviceTypeId}/plans/${planId}/team_members`,
-          { include: "person,team,plan", per_page: "100" },
-          25,
-          loadSignal
-        );
-
-        return {
-          data: fetched.data,
-          included: fetched.included ?? [],
-        };
-      },
-      signal
-    );
-    return cloneResourceCollectionResponse(response);
+      () =>
+        this.core
+          .fetchAllWithIncluded(
+            `/services/v2/service_types/${serviceTypeId}/plans/${planId}/team_members`,
+            { include: "person,team,plan", per_page: "100" },
+            25
+          )
+          .pipe(Effect.map(toResourceCollection))
+    ).pipe(Effect.map(cloneResourceCollectionResponse));
   }
 
-  async getPersonTeamPositionAssignments(
-    personId: string,
-    signal?: AbortSignal
-  ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const response = await this.caches.collections.get(
+  getPersonTeamPositionAssignments(
+    personId: string
+  ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
+    return cachedRead(
+      this.caches.collections,
       this.buildCacheKey("person-team-position-assignments", personId),
       PERSON_TEAM_POSITION_ASSIGNMENTS_CACHE_TTL_MS,
-      async (loadSignal) => {
-        const fetched = await this.core.fetchCollection(
-          `/services/v2/people/${personId}/person_team_position_assignments?include=team_position,team_position.team`,
-          { signal: loadSignal }
-        );
-
-        return {
-          data: fetched.data,
-          included: fetched.included ?? [],
-        };
-      },
-      signal
-    );
-    return cloneResourceCollectionResponse(response);
+      () =>
+        this.core
+          .fetchCollection(
+            `/services/v2/people/${personId}/person_team_position_assignments?include=team_position,team_position.team`
+          )
+          .pipe(Effect.map(toResourceCollection))
+    ).pipe(Effect.map(cloneResourceCollectionResponse));
   }
 
-  async updatePlanPersonStatus(
+  updatePlanPersonStatus(
     planPersonId: string,
     status: "C" | "U" | "D",
     context?: { personId?: string; serviceTypeId?: string; planId?: string }
-  ): Promise<PCResource> {
-    const response = await this.core.fetch(
-      `/services/v2/plan_people/${planPersonId}`,
-      {
+  ): Effect.Effect<PCResource, PlanningCenterError> {
+    return this.core
+      .fetch(`/services/v2/plan_people/${planPersonId}`, {
         method: "PATCH",
         body: {
           data: {
             type: "PlanPerson",
             id: planPersonId,
-            attributes: {
-              status,
-            },
+            attributes: { status },
           },
         },
-      }
-    );
-    if (
-      isNonEmptyString(context?.serviceTypeId) &&
-      isNonEmptyString(context.planId)
-    ) {
-      this.invalidateScheduleReadCaches({
-        personId: context.personId,
-        serviceTypeId: context.serviceTypeId,
-        planId: context.planId,
-      });
-    }
-    return response.data;
+      })
+      .pipe(
+        Effect.map((response) => {
+          if (
+            isNonEmptyString(context?.serviceTypeId) &&
+            isNonEmptyString(context.planId)
+          ) {
+            this.invalidateScheduleReadCaches({
+              personId: context.personId,
+              serviceTypeId: context.serviceTypeId,
+              planId: context.planId,
+            });
+          }
+          return response.data;
+        })
+      );
   }
 
-  async updatePlanPersonTimes({
+  updatePlanPersonTimes({
     personId,
     planPersonId,
     serviceTypeId,
@@ -524,10 +512,9 @@ export class PlanningCenterPeopleService {
     serviceTypeId: string;
     planId: string;
     planTimeIds: string[];
-  }): Promise<PCResource> {
-    const response = await this.core.fetch(
-      `/services/v2/people/${personId}/plan_people/${planPersonId}`,
-      {
+  }): Effect.Effect<PCResource, PlanningCenterError> {
+    return this.core
+      .fetch(`/services/v2/people/${personId}/plan_people/${planPersonId}`, {
         method: "PATCH",
         body: {
           data: {
@@ -540,16 +527,23 @@ export class PlanningCenterPeopleService {
             },
           },
         },
-      }
-    );
-    this.invalidateScheduleReadCaches({ personId, serviceTypeId, planId });
-    return response.data;
+      })
+      .pipe(
+        Effect.map((response) => {
+          this.invalidateScheduleReadCaches({
+            personId,
+            serviceTypeId,
+            planId,
+          });
+          return response.data;
+        })
+      );
   }
 
-  async deletePlanPerson(
+  deletePlanPerson(
     planPersonId: string,
     context?: { personId?: string; serviceTypeId?: string; planId?: string }
-  ): Promise<void> {
+  ): Effect.Effect<void, PlanningCenterError> {
     let endpoint = `/services/v2/plan_people/${planPersonId}`;
     if (
       isNonEmptyString(context?.serviceTypeId) &&
@@ -560,50 +554,63 @@ export class PlanningCenterPeopleService {
       endpoint = `/services/v2/people/${context.personId}/plan_people/${planPersonId}`;
     }
 
-    await this.core.request(endpoint, {
-      method: "DELETE",
-    });
-    if (
-      isNonEmptyString(context?.serviceTypeId) &&
-      isNonEmptyString(context.planId)
-    ) {
-      this.invalidateScheduleReadCaches({
-        personId: context.personId,
-        serviceTypeId: context.serviceTypeId,
-        planId: context.planId,
-      });
-    }
+    return this.core.request(endpoint, { method: "DELETE" }).pipe(
+      Effect.asVoid,
+      Effect.tap(() =>
+        Effect.sync(() => {
+          if (
+            isNonEmptyString(context?.serviceTypeId) &&
+            isNonEmptyString(context.planId)
+          ) {
+            this.invalidateScheduleReadCaches({
+              personId: context.personId,
+              serviceTypeId: context.serviceTypeId,
+              planId: context.planId,
+            });
+          }
+        })
+      )
+    );
   }
 
   /**
    * Schedule a person to a plan for a team. Creates a PlanPerson in Planning Center Services.
    */
-  async createPlanPerson(
+  createPlanPerson(
     serviceTypeId: string,
     personId: string,
     planId: string,
     teamId: string,
     teamPositionName: string
-  ): Promise<PCResource> {
-    const response = await this.core.fetch(
-      `/services/v2/service_types/${serviceTypeId}/plans/${planId}/team_members`,
-      {
-        method: "POST",
-        body: {
-          data: {
-            type: "PlanPerson",
-            attributes: {
-              status: "U",
-              person_id: personId,
-              team_id: teamId,
-              team_position_name: teamPositionName,
+  ): Effect.Effect<PCResource, PlanningCenterError> {
+    return this.core
+      .fetch(
+        `/services/v2/service_types/${serviceTypeId}/plans/${planId}/team_members`,
+        {
+          method: "POST",
+          body: {
+            data: {
+              type: "PlanPerson",
+              attributes: {
+                status: "U",
+                person_id: personId,
+                team_id: teamId,
+                team_position_name: teamPositionName,
+              },
             },
           },
-        },
-      }
-    );
-    this.invalidateScheduleReadCaches({ personId, serviceTypeId, planId });
-    return response.data;
+        }
+      )
+      .pipe(
+        Effect.map((response) => {
+          this.invalidateScheduleReadCaches({
+            personId,
+            serviceTypeId,
+            planId,
+          });
+          return response.data;
+        })
+      );
   }
 
   invalidateScheduleReadCaches({
@@ -652,91 +659,34 @@ export class PlanningCenterPeopleService {
     ].join(":");
   }
 
-  private async loadAllPeopleFromTeams(
-    signal?: AbortSignal
-  ): Promise<AllTeamPeopleResponse> {
-    const teams = await this.core.fetchAll(
-      "/services/v2/teams",
-      {},
-      10,
-      signal
+  /** Teams that fail to load (partial access or a transient error) are skipped. */
+  private loadAllPeopleFromTeams(): Effect.Effect<
+    AllTeamPeopleResponse,
+    PlanningCenterError
+  > {
+    return this.core.fetchAll("/services/v2/teams", {}, 10).pipe(
+      Effect.flatMap((teams) =>
+        Effect.forEach(
+          teams.filter(
+            (team) => !isNonEmptyString(team.attributes.archived_at)
+          ),
+          (team) =>
+            this.core
+              .fetchCollection(
+                `/services/v2/teams/${team.id}/people?include=person`
+              )
+              .pipe(
+                Effect.map((response): TeamPeopleResponse | null => ({
+                  team,
+                  response,
+                })),
+                recoverUnlessInterrupted(() => null)
+              ),
+          { concurrency: TEAM_PEOPLE_CONCURRENCY }
+        )
+      ),
+      Effect.map(collectTeamPeople)
     );
-    const activeTeams = teams.filter(
-      (team) => !isNonEmptyString(team.attributes.archived_at)
-    );
-
-    const teamResponses = await mapWithConcurrency(
-      activeTeams,
-      TEAM_PEOPLE_CONCURRENCY,
-      async (team) => {
-        try {
-          const response = await this.core.fetchCollection(
-            `/services/v2/teams/${team.id}/people?include=person`,
-            { signal }
-          );
-          return { team, response };
-        } catch (error) {
-          if (signal?.aborted === true) {
-            throw error;
-          }
-          // Skip teams with partial-access or transient API failures.
-          return null;
-        }
-      }
-    );
-
-    const allPeople: PCResource[] = [];
-    const allIncluded: PCResource[] = [];
-    const teamNamesByPersonId = new Map<string, Set<string>>();
-    const seenIds = new Set<string>();
-
-    for (const result of teamResponses) {
-      if (!result) {
-        continue;
-      }
-
-      const { team, response } = result;
-      const people = response.data;
-      const included = response.included ?? [];
-
-      for (const person of people) {
-        let personResource: PCResource | null = null;
-
-        if (person.type === "Person") {
-          personResource = person;
-        } else if (person.relationships?.person?.data) {
-          const personData = person.relationships.person.data;
-          const personId = Array.isArray(personData)
-            ? personData[0]?.id
-            : personData?.id;
-
-          if (personId) {
-            personResource =
-              included.find((p) => p.type === "Person" && p.id === personId) ??
-              null;
-          }
-        }
-
-        if (personResource && !seenIds.has(personResource.id)) {
-          seenIds.add(personResource.id);
-          allPeople.push(personResource);
-        }
-
-        if (personResource) {
-          const teamName = team.attributes.name;
-          if (isString(teamName) && teamName.trim()) {
-            const teamNames =
-              teamNamesByPersonId.get(personResource.id) ?? new Set<string>();
-            teamNames.add(teamName);
-            teamNamesByPersonId.set(personResource.id, teamNames);
-          }
-        }
-      }
-
-      allIncluded.push(...included);
-    }
-
-    return { people: allPeople, included: allIncluded, teamNamesByPersonId };
   }
 
   getCacheScope(): string {

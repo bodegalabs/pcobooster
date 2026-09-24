@@ -5,6 +5,8 @@ import {
   updateRunSheetTime,
 } from "@pcobooster/api/application/run-sheet";
 import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import type { SuccessOf } from "@pcobooster/api/testing/effect";
+import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testServer } from "@pcobooster/api/testing/server";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
 import { applicationRuntime } from "@pcobooster/api/transport/orpc/implementation";
@@ -23,7 +25,8 @@ const context = {
 const setup = () => {
   const services = createPlanningCenterServices(
     "run-sheet-test-token",
-    "America/Los_Angeles"
+    "America/Los_Angeles",
+    unreachableHttpClient
   );
   const access = {
     authentication: {
@@ -53,20 +56,16 @@ describe("run-sheet mutation cancellation", () => {
     const { access, services } = setup();
     const controller = new AbortController();
     const song =
-      Promise.withResolvers<
-        Awaited<ReturnType<typeof services.songs.getSong>>
-      >();
+      Promise.withResolvers<SuccessOf<typeof services.songs.getSong>>();
     const getSong = vi
       .spyOn(services.songs, "getSong")
-      .mockReturnValueOnce(song.promise);
-    vi.spyOn(services.songs, "getSongArrangementsWithKeys").mockResolvedValue({
-      data: [],
-      included: [],
-    });
-    vi.spyOn(services.songs, "getSongLastScheduledItem").mockResolvedValue({
-      data: null,
-      included: [],
-    });
+      .mockReturnValueOnce(Effect.promise(async () => await song.promise));
+    vi.spyOn(services.songs, "getSongArrangementsWithKeys").mockReturnValue(
+      Effect.succeed({ data: [], included: [] })
+    );
+    vi.spyOn(services.songs, "getSongLastScheduledItem").mockReturnValue(
+      Effect.succeed({ data: null, included: [] })
+    );
     const create = vi.spyOn(services.planItems, "createPlanItem");
 
     const pending = executeApplicationEffect(
@@ -109,14 +108,16 @@ describe("run-sheet mutation cancellation", () => {
     const controller = new AbortController();
     const completion =
       Promise.withResolvers<
-        Awaited<ReturnType<typeof services.planItems.createPlanItem>>
+        SuccessOf<typeof services.planItems.createPlanItem>
       >();
     const create = vi
       .spyOn(services.planItems, "createPlanItem")
-      .mockImplementationOnce(async () => {
-        controller.abort();
-        return await completion.promise;
-      });
+      .mockReturnValueOnce(
+        Effect.promise(async () => {
+          controller.abort();
+          return await completion.promise;
+        })
+      );
 
     const pending = executeApplicationEffect(
       applicationRuntime,
@@ -160,22 +161,24 @@ describe("run-sheet mutation cancellation", () => {
     const { access, services } = setup();
     const controller = new AbortController();
     const completion =
-      Promise.withResolvers<
-        Awaited<ReturnType<typeof services.plans.updatePlanTime>>
-      >();
+      Promise.withResolvers<SuccessOf<typeof services.plans.updatePlanTime>>();
     const updateTime = vi
       .spyOn(services.plans, "updatePlanTime")
-      .mockImplementationOnce(async () => {
-        controller.abort();
-        return await completion.promise;
-      });
+      .mockReturnValueOnce(
+        Effect.promise(async () => {
+          controller.abort();
+          return await completion.promise;
+        })
+      );
     const updateNeededPosition = vi
       .spyOn(services.catalog, "updateServiceTypePlanNeededPositionTime")
-      .mockResolvedValue({
-        id: "needed-position-1",
-        type: "ServiceTypePlanNeededPosition",
-        attributes: {},
-      });
+      .mockReturnValue(
+        Effect.succeed({
+          id: "needed-position-1",
+          type: "ServiceTypePlanNeededPosition",
+          attributes: {},
+        })
+      );
 
     const pending = executeApplicationEffect(
       applicationRuntime,

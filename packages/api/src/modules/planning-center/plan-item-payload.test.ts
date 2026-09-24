@@ -3,6 +3,7 @@ import {
   resolvePlanItemSongDefaults,
 } from "@pcobooster/api/modules/planning-center/plan-item-payload";
 import type { LoadSongOptions } from "@pcobooster/api/modules/planning-center/plan-item-payload";
+import { Effect } from "effect";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getSongOptionsMock = vi.fn<LoadSongOptions>();
@@ -13,34 +14,38 @@ describe("plan item payload helpers", () => {
   });
 
   it("backfills song defaults and builds a trimmed payload", async () => {
-    getSongOptionsMock.mockResolvedValue({
-      song: {
-        id: "song-1",
-        title: "Build My Life",
-        author: "Pat Barrett",
-        themes: "Worship",
-        hidden: false,
-        lastScheduledAt: null,
-      },
-      arrangements: [],
-      layouts: [],
-      currentLayout: null,
-      suggestedArrangementId: "arr-1",
-      suggestedKeyId: "key-1",
-      suggestedLayoutId: "layout-1",
-      layoutMode: "existing-only",
-    });
+    getSongOptionsMock.mockReturnValue(
+      Effect.succeed({
+        song: {
+          id: "song-1",
+          title: "Build My Life",
+          author: "Pat Barrett",
+          themes: "Worship",
+          hidden: false,
+          lastScheduledAt: null,
+        },
+        arrangements: [],
+        layouts: [],
+        currentLayout: null,
+        suggestedArrangementId: "arr-1",
+        suggestedKeyId: "key-1",
+        suggestedLayoutId: "layout-1",
+        layoutMode: "existing-only",
+      })
+    );
 
-    const resolved = await resolvePlanItemSongDefaults(
-      {
-        serviceTypeId: "service-1",
-        songId: "song-1",
-        title: "  ",
-        description: "  Spoken intro  ",
-        htmlDetails: "  <p>Notes</p>  ",
-        itemType: "item",
-      },
-      getSongOptionsMock
+    const resolved = await Effect.runPromise(
+      resolvePlanItemSongDefaults(
+        {
+          serviceTypeId: "service-1",
+          songId: "song-1",
+          title: "  ",
+          description: "  Spoken intro  ",
+          htmlDetails: "  <p>Notes</p>  ",
+          itemType: "item",
+        },
+        getSongOptionsMock
+      )
     );
 
     expect(resolved.title).toBe("Build My Life");
@@ -65,16 +70,18 @@ describe("plan item payload helpers", () => {
   });
 
   it("does not fetch song defaults when the client already supplied them", async () => {
-    const resolved = await resolvePlanItemSongDefaults(
-      {
-        serviceTypeId: "service-1",
-        songId: "song-1",
-        title: "Build My Life",
-        arrangementId: "arr-1",
-        keyId: "key-1",
-        selectedLayoutId: "layout-1",
-      },
-      getSongOptionsMock
+    const resolved = await Effect.runPromise(
+      resolvePlanItemSongDefaults(
+        {
+          serviceTypeId: "service-1",
+          songId: "song-1",
+          title: "Build My Life",
+          arrangementId: "arr-1",
+          keyId: "key-1",
+          selectedLayoutId: "layout-1",
+        },
+        getSongOptionsMock
+      )
     );
 
     expect(getSongOptionsMock).not.toHaveBeenCalled();

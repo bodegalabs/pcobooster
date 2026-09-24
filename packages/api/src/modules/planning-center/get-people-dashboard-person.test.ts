@@ -1,6 +1,7 @@
 import { getPeopleDashboardPerson } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
 import type { PeopleDashboardPersonDependencies } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 const person: PCResource = {
@@ -64,40 +65,38 @@ const dependenciesFor = (
     getCacheScope: () => cacheScope,
     getPerson: vi
       .fn<PeopleDashboardPersonDependencies["peopleService"]["getPerson"]>()
-      .mockResolvedValue(person),
+      .mockReturnValue(Effect.succeed(person)),
     getPersonSchedules: vi
       .fn<
         PeopleDashboardPersonDependencies["peopleService"]["getPersonSchedules"]
       >()
-      .mockResolvedValue(emptySchedules),
+      .mockReturnValue(Effect.succeed(emptySchedules)),
     getPlanTeamMembers: vi
       .fn<
         PeopleDashboardPersonDependencies["peopleService"]["getPlanTeamMembers"]
       >()
-      .mockResolvedValue(emptySchedules),
+      .mockReturnValue(Effect.succeed(emptySchedules)),
     getPlanPlanTimes: vi
       .fn<
         PeopleDashboardPersonDependencies["peopleService"]["getPlanPlanTimes"]
       >()
-      .mockResolvedValue([]),
+      .mockReturnValue(Effect.succeed([])),
   },
   catalogService: {
     getServiceTypesCached: vi
       .fn<
         PeopleDashboardPersonDependencies["catalogService"]["getServiceTypesCached"]
       >()
-      .mockResolvedValue([]),
+      .mockReturnValue(Effect.succeed([])),
   },
   plansService: {
     getPlansInDateRange: vi
       .fn<
         PeopleDashboardPersonDependencies["plansService"]["getPlansInDateRange"]
       >()
-      .mockResolvedValue([]),
+      .mockReturnValue(Effect.succeed([])),
   },
-  resolveTimeZone: vi
-    .fn<PeopleDashboardPersonDependencies["resolveTimeZone"]>()
-    .mockResolvedValue("America/Los_Angeles"),
+  resolveTimeZone: Effect.succeed("America/Los_Angeles"),
 });
 
 describe(getPeopleDashboardPerson, () => {
@@ -105,16 +104,20 @@ describe(getPeopleDashboardPerson, () => {
     const first = dependenciesFor("bearer:first");
     const second = dependenciesFor("bearer:second");
 
-    await getPeopleDashboardPerson({
-      personId: "person-1",
-      month: "2026-09",
-      dependencies: first,
-    });
-    await getPeopleDashboardPerson({
-      personId: "person-1",
-      month: "2026-09",
-      dependencies: second,
-    });
+    await Effect.runPromise(
+      getPeopleDashboardPerson({
+        personId: "person-1",
+        month: "2026-09",
+        dependencies: first,
+      })
+    );
+    await Effect.runPromise(
+      getPeopleDashboardPerson({
+        personId: "person-1",
+        month: "2026-09",
+        dependencies: second,
+      })
+    );
 
     expect(first.peopleService.getPerson).toHaveBeenCalledOnce();
     expect(second.peopleService.getPerson).toHaveBeenCalledOnce();
@@ -123,32 +126,32 @@ describe(getPeopleDashboardPerson, () => {
   it("hydrates roster items through injected request-owned services", async () => {
     const getPerson = vi
       .fn<PeopleDashboardPersonDependencies["peopleService"]["getPerson"]>()
-      .mockResolvedValue(person);
+      .mockReturnValue(Effect.succeed(person));
     const getPersonSchedules = vi
       .fn<
         PeopleDashboardPersonDependencies["peopleService"]["getPersonSchedules"]
       >()
-      .mockResolvedValue(emptySchedules);
+      .mockReturnValue(Effect.succeed(emptySchedules));
     const getPlanTeamMembers = vi
       .fn<
         PeopleDashboardPersonDependencies["peopleService"]["getPlanTeamMembers"]
       >()
-      .mockResolvedValue(rosterMembers);
+      .mockReturnValue(Effect.succeed(rosterMembers));
     const getPlanPlanTimes = vi
       .fn<
         PeopleDashboardPersonDependencies["peopleService"]["getPlanPlanTimes"]
       >()
-      .mockResolvedValue([rosterPlanTime]);
+      .mockReturnValue(Effect.succeed([rosterPlanTime]));
     const getServiceTypesCached = vi
       .fn<
         PeopleDashboardPersonDependencies["catalogService"]["getServiceTypesCached"]
       >()
-      .mockResolvedValue([rosterServiceType]);
+      .mockReturnValue(Effect.succeed([rosterServiceType]));
     const getPlansInDateRange = vi
       .fn<
         PeopleDashboardPersonDependencies["plansService"]["getPlansInDateRange"]
       >()
-      .mockResolvedValue([rosterPlan]);
+      .mockReturnValue(Effect.succeed([rosterPlan]));
     const dependencies: PeopleDashboardPersonDependencies = {
       peopleService: {
         getCacheScope: () => "bearer:roster-test",
@@ -159,44 +162,38 @@ describe(getPeopleDashboardPerson, () => {
       },
       catalogService: { getServiceTypesCached },
       plansService: { getPlansInDateRange },
-      resolveTimeZone: vi
-        .fn<PeopleDashboardPersonDependencies["resolveTimeZone"]>()
-        .mockResolvedValue("America/Los_Angeles"),
+      resolveTimeZone: Effect.succeed("America/Los_Angeles"),
     };
 
-    const detail = await getPeopleDashboardPerson({
-      personId: "person-1",
-      month: "2026-09",
-      dependencies,
-    });
+    const detail = await Effect.runPromise(
+      getPeopleDashboardPerson({
+        personId: "person-1",
+        month: "2026-09",
+        dependencies,
+      })
+    );
 
     expect(detail.person.monthCount).toBe(1);
     expect(getPlansInDateRange).toHaveBeenCalledOnce();
     expect(getPlanTeamMembers).toHaveBeenCalledOnce();
   });
 
-  it("passes the request signal through detail reads", async () => {
-    const dependencies = dependenciesFor("signal-person-scope");
-    const controller = new AbortController();
+  it("reads the person and every service type for the requested month", async () => {
+    const dependencies = dependenciesFor("reads-person-scope");
 
-    await getPeopleDashboardPerson(
-      {
+    await Effect.runPromise(
+      getPeopleDashboardPerson({
         personId: "person-1",
         month: "2026-09",
         dependencies,
-      },
-      controller.signal
+      })
     );
 
-    expect(dependencies.resolveTimeZone).toHaveBeenCalledWith(
-      controller.signal
-    );
     expect(dependencies.peopleService.getPerson).toHaveBeenCalledWith(
-      "person-1",
-      expect.any(AbortSignal)
+      "person-1"
     );
     expect(
       dependencies.catalogService.getServiceTypesCached
-    ).toHaveBeenCalledWith(undefined, expect.any(AbortSignal));
+    ).toHaveBeenCalledWith();
   });
 });

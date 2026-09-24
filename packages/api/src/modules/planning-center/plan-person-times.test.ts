@@ -1,5 +1,6 @@
 import { updatePlanPersonTimes } from "@pcobooster/api/modules/planning-center/plan-person-times";
 import type { UpdatePlanPersonTimesDependencies } from "@pcobooster/api/modules/planning-center/plan-person-times";
+import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 describe(updatePlanPersonTimes, () => {
@@ -8,11 +9,13 @@ describe(updatePlanPersonTimes, () => {
       .fn<
         UpdatePlanPersonTimesDependencies["peopleService"]["updatePlanPersonTimes"]
       >()
-      .mockResolvedValue({
-        id: "plan-person-1",
-        type: "PlanPerson",
-        attributes: {},
-      });
+      .mockReturnValue(
+        Effect.succeed({
+          id: "plan-person-1",
+          type: "PlanPerson",
+          attributes: {},
+        })
+      );
     const invalidateReads =
       vi.fn<
         UpdatePlanPersonTimesDependencies["peopleService"]["invalidatePlanTimeSensitiveReadCaches"]
@@ -23,22 +26,24 @@ describe(updatePlanPersonTimes, () => {
     const invalidateHistory =
       vi.fn<UpdatePlanPersonTimesDependencies["invalidateHistory"]>();
 
-    await updatePlanPersonTimes(
-      {
-        serviceTypeId: "service-type-1",
-        planId: "plan-1",
-        personId: "person-1",
-        planPersonId: "plan-person-1",
-        planTimeIds: ["time-1"],
-      },
-      {
-        peopleService: {
-          updatePlanPersonTimes: update,
-          invalidatePlanTimeSensitiveReadCaches: invalidateReads,
-          getCacheScope,
+    await Effect.runPromise(
+      updatePlanPersonTimes(
+        {
+          serviceTypeId: "service-type-1",
+          planId: "plan-1",
+          personId: "person-1",
+          planPersonId: "plan-person-1",
+          planTimeIds: ["time-1"],
         },
-        invalidateHistory,
-      }
+        {
+          peopleService: {
+            updatePlanPersonTimes: update,
+            invalidatePlanTimeSensitiveReadCaches: invalidateReads,
+            getCacheScope,
+          },
+          invalidateHistory,
+        }
+      )
     );
 
     expect(invalidateReads).toHaveBeenCalledWith("plan-1");

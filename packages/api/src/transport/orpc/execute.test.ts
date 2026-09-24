@@ -1,9 +1,11 @@
 import { RequestContext } from "@pcobooster/api/application/context";
 import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
 import { createApplicationRuntime } from "@pcobooster/api/application/runtime";
+import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testServer } from "@pcobooster/api/testing/server";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
 import { Effect, Layer } from "effect";
+import * as HttpClient from "effect/unstable/http/HttpClient";
 import { describe, expect, it } from "vitest";
 
 const createRpcContext = () => ({
@@ -14,7 +16,9 @@ const createRpcContext = () => ({
 
 describe(executeApplicationEffect, () => {
   it("provides request context to an Effect program", async () => {
-    const runtime = createApplicationRuntime(Layer.empty);
+    const runtime = createApplicationRuntime(
+      Layer.succeed(HttpClient.HttpClient, unreachableHttpClient)
+    );
 
     try {
       await expect(
@@ -33,7 +37,9 @@ describe(executeApplicationEffect, () => {
   });
 
   it("maps typed application faults to oRPC errors", async () => {
-    const runtime = createApplicationRuntime(Layer.empty);
+    const runtime = createApplicationRuntime(
+      Layer.succeed(HttpClient.HttpClient, unreachableHttpClient)
+    );
 
     try {
       const result = executeApplicationEffect(
@@ -53,7 +59,9 @@ describe(executeApplicationEffect, () => {
   });
 
   it("keeps defects opaque", async () => {
-    const runtime = createApplicationRuntime(Layer.empty);
+    const runtime = createApplicationRuntime(
+      Layer.succeed(HttpClient.HttpClient, unreachableHttpClient)
+    );
     const defect = new Error("Database credentials leaked here");
 
     try {

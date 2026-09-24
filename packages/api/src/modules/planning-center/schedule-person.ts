@@ -1,10 +1,12 @@
 import { InvalidInput } from "@pcobooster/api/application/errors/invalid-input";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import type { scheduleAssignInputSchema } from "@pcobooster/contracts/schedule";
 import { isString } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 import type { z } from "zod";
 
 export type SchedulePersonInput = z.output<typeof scheduleAssignInputSchema>;
@@ -43,62 +45,71 @@ const getPositionTeamId = (
   return Array.isArray(relation) ? undefined : relation?.id;
 };
 
-export const resolveScheduleTarget = async (
+export const resolveScheduleTarget = (
   input: SchedulePersonInput,
-  dependencies: ScheduleDependencies,
-  signal?: AbortSignal
-): Promise<ScheduleTarget> => {
-  const [{ data: positions, included }, assignments] = await Promise.all([
-    dependencies.catalog.getServiceTypeTeamPositionsWithTeams(
-      input.serviceTypeId,
-      signal
-    ),
-    input.oneOff
-      ? null
-      : dependencies.people.getPersonTeamPositionAssignments(
-          input.personId,
-          signal
+  dependencies: ScheduleDependencies
+): Effect.Effect<ScheduleTarget, InvalidInput | PlanningCenterError> =>
+  Effect.gen(function* resolveTarget() {
+    const [{ data: positions, included }, assignments] = yield* Effect.all(
+      [
+        dependencies.catalog.getServiceTypeTeamPositionsWithTeams(
+          input.serviceTypeId
         ),
-  ]);
-  const position = positions.find(
-    (candidate) => candidate.id === input.positionId
-  );
-  if (
-    position === undefined &&
-    (!input.oneOff || input.positionName === undefined)
-  ) {
-    throw new InvalidInput({
-      message: "Selected position was not found for this service type",
-    });
-  }
-  const positionTeamId = getPositionTeamId(position);
-  if (position !== undefined && positionTeamId !== input.teamId) {
-    throw new InvalidInput({
-      message: "Selected position does not belong to selected team",
-    });
-  }
-  const team = findIncluded(included, "Team", input.teamId);
-  if (position === undefined && team === undefined) {
-    throw new InvalidInput({
-      message: "Selected team was not found for this service type",
-    });
-  }
-  if (!input.oneOff) {
-    const assigned =
-      assignments?.data.some((assignment) =>
-        assignmentHasPosition(assignment, input.positionId)
-      ) ?? false;
-    if (!assigned) {
-      throw new InvalidInput({
-        message: "Person is not assigned to the selected team position",
-      });
+        input.oneOff
+          ? Effect.succeed(null)
+          : dependencies.people.getPersonTeamPositionAssignments(
+              input.personId
+            ),
+      ],
+      { concurrency: "unbounded" }
+    );
+    const position = positions.find(
+      (candidate) => candidate.id === input.positionId
+    );
+    if (
+      position === undefined &&
+      (!input.oneOff || input.positionName === undefined)
+    ) {
+      return yield* Effect.fail(
+        new InvalidInput({
+          message: "Selected position was not found for this service type",
+        })
+      );
     }
-  }
-  return {
-    teamName: input.teamName ?? resourceName(team),
-    positionName: resourceName(position) || (input.positionName ?? ""),
-  };
-};
+    const positionTeamId = getPositionTeamId(position);
+    if (position !== undefined && positionTeamId !== input.teamId) {
+      return yield* Effect.fail(
+        new InvalidInput({
+          message: "Selected position does not belong to selected team",
+        })
+      );
+    }
+    const team = findIncluded(included, "Team", input.teamId);
+    if (position === undefined && team === undefined) {
+      return yield* Effect.fail(
+        new InvalidInput({
+          message: "Selected team was not found for this service type",
+        })
+      );
+    }
+    if (!input.oneOff) {
+      const assigned =
+        assignments?.data.some((assignment) =>
+          assignmentHasPosition(assignment, input.positionId)
+        ) ?? false;
+      if (!assigned) {
+        return yield* Effect.fail(
+          new InvalidInput({
+            message: "Person is not assigned to the selected team position",
+          })
+        );
+      }
+    }
+    return {
+      teamName: input.teamName ?? resourceName(team),
+      positionName: resourceName(position) || (input.positionName ?? ""),
+    };
+  });
 
 export const matchesScheduleTarget = (
   target: ScheduleTarget,

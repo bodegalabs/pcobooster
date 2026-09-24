@@ -1,6 +1,10 @@
 import { logger } from "@pcobooster/api/logger";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
-import type { PlanningCenterPromiseClient } from "@pcobooster/api/planning-center/promise-client";
+import type {
+  PlanningCenterCoreClient,
+  PlanningCenterError,
+} from "@pcobooster/api/planning-center/core-client";
+import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import {
   PlanningCenterReadCache,
   stableParams,
@@ -9,34 +13,33 @@ import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 const log = logger.for("planning-center/plans");
 const PLANS_RANGE_CACHE_TTL_MS = 5 * 60 * 1000;
 
+interface ResourceCollection {
+  data: PCResource[];
+  included: PCResource[];
+}
+
 export interface PlanningCenterPlansServiceCaches {
-  readonly ranges: PlanningCenterReadCache<{
-    data: PCResource[];
-    included: PCResource[];
-  }>;
+  readonly ranges: PlanningCenterReadCache<ResourceCollection>;
   readonly planTimes: PlanningCenterReadCache<PCResource[]>;
 }
 
 export const createPlanningCenterPlansServiceCaches =
   (): PlanningCenterPlansServiceCaches => ({
-    ranges: new PlanningCenterReadCache<{
-      data: PCResource[];
-      included: PCResource[];
-    }>(),
+    ranges: new PlanningCenterReadCache<ResourceCollection>(),
     planTimes: new PlanningCenterReadCache<PCResource[]>(),
   });
 
 export const planningCenterPlansServiceCaches =
   createPlanningCenterPlansServiceCaches();
 
-const cloneResourceResponse = (response: {
-  data: PCResource[];
-  included: PCResource[];
-}) => ({
+const cloneResourceResponse = (
+  response: ResourceCollection
+): ResourceCollection => ({
   data: structuredClone(response.data),
   included: structuredClone(response.included),
 });
@@ -67,14 +70,32 @@ const buildPlanTimeAssignmentRelationships = (
   return Object.keys(relationships).length > 0 ? relationships : null;
 };
 
+const isInOrganizationDayRange = (
+  plan: PCResource,
+  afterDayKey: string,
+  beforeDayKey: string,
+  organizationTimeZone: string
+): boolean => {
+  const sortDateStr = plan.attributes.sort_date;
+  if (!isNonEmptyString(sortDateStr)) {
+    return false;
+  }
+  const sortDate = new Date(sortDateStr);
+  if (Number.isNaN(sortDate.getTime())) {
+    return false;
+  }
+  const planDay = formatCalendarDayInTimeZone(sortDate, organizationTimeZone);
+  return planDay >= afterDayKey && planDay <= beforeDayKey;
+};
+
 export class PlanningCenterPlansService {
-  private readonly core: PlanningCenterPromiseClient;
-  private readonly resolveTimeZone: (signal?: AbortSignal) => Promise<string>;
+  private readonly core: PlanningCenterCoreClient;
+  private readonly resolveTimeZone: Effect.Effect<string>;
   private readonly caches: PlanningCenterPlansServiceCaches;
 
   constructor(
-    core: PlanningCenterPromiseClient,
-    resolveTimeZone: (signal?: AbortSignal) => Promise<string>,
+    core: PlanningCenterCoreClient,
+    resolveTimeZone: Effect.Effect<string>,
     caches: PlanningCenterPlansServiceCaches = createPlanningCenterPlansServiceCaches()
   ) {
     this.core = core;
@@ -82,16 +103,14 @@ export class PlanningCenterPlansService {
     this.caches = caches;
   }
 
-  async getPlans(
+  getPlans(
     serviceTypeId: string,
-    params: Record<string, string> = {},
-    signal?: AbortSignal
-  ): Promise<PCResource[]> {
-    return await this.core.fetchAll(
+    params: Record<string, string> = {}
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
+    return this.core.fetchAll(
       `/services/v2/service_types/${serviceTypeId}/plans`,
       { ...params, order: "-sort_date" },
-      3,
-      signal
+      3
     );
   }
 
@@ -99,53 +118,54 @@ export class PlanningCenterPlansService {
    * Fetch plans from `afterDayKey` onward (YYYY-MM-DD in org TZ) via filter=after.
    * Trims to plans whose sort_date falls on [`afterDayKey`, `beforeDayKey`] in the org timezone.
    */
-  async getPlansInDateRange(
+  getPlansInDateRange(
     serviceTypeId: string,
     afterDayKey: string,
     beforeDayKey: string,
-    organizationTimeZone?: string,
-    signal?: AbortSignal
-  ): Promise<PCResource[]> {
-    const response = await this.getPlansWithIncludedInDateRange(
-      serviceTypeId,
-      afterDayKey,
-      beforeDayKey,
-      "",
-      organizationTimeZone,
-      signal
+    organizationTimeZone?: string
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
+    return Effect.map(
+      this.getPlansWithIncludedInDateRange(
+        serviceTypeId,
+        afterDayKey,
+        beforeDayKey,
+        "",
+        organizationTimeZone
+      ),
+      (response) => response.data
     );
-    return response.data;
   }
 
-  async getPlansWithIncludedInDateRange(
+  getPlansWithIncludedInDateRange(
     serviceTypeId: string,
     afterDayKey: string,
     beforeDayKey: string,
     include = "",
-    organizationTimeZone?: string,
-    signal?: AbortSignal
-  ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const orgTz = organizationTimeZone ?? (await this.resolveTimeZone(signal));
-    const params = {
-      order: "sort_date",
-      per_page: "100",
-      filter: "after",
-      after: afterDayKey,
-      ...(include ? { include } : undefined),
-    };
-    const cacheKey = [
-      this.core.getCacheScope(),
-      "plans-range",
-      encodeURIComponent(serviceTypeId),
-      encodeURIComponent(afterDayKey),
-      encodeURIComponent(beforeDayKey),
-      stableParams(params),
-    ].join(":");
-
-    const response = await this.caches.ranges.get(
-      cacheKey,
-      PLANS_RANGE_CACHE_TTL_MS,
-      async (loadSignal) => {
+    organizationTimeZone?: string
+  ): Effect.Effect<ResourceCollection, PlanningCenterError> {
+    const { core, caches } = this;
+    const resolveTimeZone =
+      organizationTimeZone === undefined
+        ? this.resolveTimeZone
+        : Effect.succeed(organizationTimeZone);
+    return Effect.gen(function* readPlansInDateRange() {
+      const orgTz = yield* resolveTimeZone;
+      const params = {
+        order: "sort_date",
+        per_page: "100",
+        filter: "after",
+        after: afterDayKey,
+        ...(include ? { include } : undefined),
+      };
+      const cacheKey = [
+        core.getCacheScope(),
+        "plans-range",
+        encodeURIComponent(serviceTypeId),
+        encodeURIComponent(afterDayKey),
+        encodeURIComponent(beforeDayKey),
+        stableParams(params),
+      ].join(":");
+      const load = Effect.gen(function* loadPlansInDateRange() {
         log.info(
           {
             serviceTypeId,
@@ -155,34 +175,20 @@ export class PlanningCenterPlansService {
           },
           "Fetching plans in date range"
         );
-
-        const fetched = await this.core.fetchAllWithIncluded(
+        const fetched = yield* core.fetchAllWithIncluded(
           `/services/v2/service_types/${serviceTypeId}/plans`,
           params,
-          3,
-          loadSignal
+          3
         );
-
-        const plans = fetched.data.filter((plan) => {
-          const sortDateStr = plan.attributes.sort_date;
-          if (!isNonEmptyString(sortDateStr)) {
-            return false;
-          }
-          const sortDate = new Date(sortDateStr);
-          if (Number.isNaN(sortDate.getTime())) {
-            return false;
-          }
-          const planDay = formatCalendarDayInTimeZone(sortDate, orgTz);
-          return planDay >= afterDayKey && planDay <= beforeDayKey;
-        });
-
+        const plans = fetched.data.filter((plan) =>
+          isInOrganizationDayRange(plan, afterDayKey, beforeDayKey, orgTz)
+        );
         const planIds = new Set(plans.map((plan) => plan.id));
         const included = fetched.included.filter((resource) => {
           const planRel = resource.relationships?.plan?.data;
           const planId = Array.isArray(planRel) ? planRel[0]?.id : planRel?.id;
           return !isNonEmptyString(planId) || planIds.has(planId);
         });
-
         log.info(
           {
             serviceTypeId,
@@ -193,136 +199,155 @@ export class PlanningCenterPlansService {
           "Plans fetched"
         );
         return { data: plans, included };
-      },
-      signal
-    );
-
-    return cloneResourceResponse(response);
-  }
-
-  async getPlan(planId: string, signal?: AbortSignal): Promise<PCResource> {
-    const response = await this.core.fetch(`/services/v2/plans/${planId}`, {
-      signal,
+      });
+      const response = yield* cachedRead(
+        caches.ranges,
+        cacheKey,
+        PLANS_RANGE_CACHE_TTL_MS,
+        () => load
+      );
+      return cloneResourceResponse(response);
     });
-    return response.data;
   }
 
-  async getPlanTimes(
+  getPlan(planId: string): Effect.Effect<PCResource, PlanningCenterError> {
+    return Effect.map(
+      this.core.fetch(`/services/v2/plans/${planId}`),
+      (response) => response.data
+    );
+  }
+
+  getPlanTimes(
     serviceTypeId: string,
-    planId: string,
-    signal?: AbortSignal
-  ): Promise<PCResource[]> {
-    const planTimes = await this.caches.planTimes.get(
+    planId: string
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
+    return cachedRead(
+      this.caches.planTimes,
       this.buildCacheKey("plan-times", serviceTypeId, planId),
       PLANS_RANGE_CACHE_TTL_MS,
-      async (loadSignal) =>
-        await this.core.fetchAll(
+      () =>
+        this.core.fetchAll(
           `/services/v2/service_types/${serviceTypeId}/plans/${planId}/plan_times`,
           {
             order: "starts_at",
             per_page: "200",
             include: "split_team_rehearsal_assignments",
           },
-          10,
-          loadSignal
-        ),
-      signal
-    );
-    return structuredClone(planTimes);
+          10
+        )
+    ).pipe(Effect.map((planTimes) => structuredClone(planTimes)));
   }
 
-  async updatePlanTime(
+  updatePlanTime(
     serviceTypeId: string,
     planId: string,
     planTimeId: string,
     attributes: JsonObject,
     assignedTeamIds?: string[],
     assignedPositionIds?: string[]
-  ): Promise<PCResource> {
+  ): Effect.Effect<PCResource, PlanningCenterError> {
     const relationships = buildPlanTimeAssignmentRelationships(
       assignedTeamIds,
       assignedPositionIds
     );
-
-    const response = await this.core.fetch(
-      `/services/v2/service_types/${serviceTypeId}/plan_times/${planTimeId}`,
-      {
-        method: "PATCH",
-        body: {
-          data: {
-            type: "PlanTime",
-            id: planTimeId,
-            attributes,
-            ...(relationships ? { relationships } : undefined),
+    return this.core
+      .fetch(
+        `/services/v2/service_types/${serviceTypeId}/plan_times/${planTimeId}`,
+        {
+          method: "PATCH",
+          body: {
+            data: {
+              type: "PlanTime",
+              id: planTimeId,
+              attributes,
+              ...(relationships ? { relationships } : undefined),
+            },
           },
-        },
-      }
-    );
-    this.invalidatePlanTimesCache(serviceTypeId, planId);
-    return response.data;
+        }
+      )
+      .pipe(
+        Effect.map((response) => {
+          this.invalidatePlanTimesCache(serviceTypeId, planId);
+          return response.data;
+        })
+      );
   }
 
-  async createPlanTime(
+  createPlanTime(
     serviceTypeId: string,
     planId: string,
     attributes: JsonObject,
     assignedTeamIds?: string[],
     assignedPositionIds?: string[]
-  ): Promise<PCResource> {
+  ): Effect.Effect<PCResource, PlanningCenterError> {
     const relationships = buildPlanTimeAssignmentRelationships(
       assignedTeamIds,
       assignedPositionIds
     );
-    const response = await this.core.fetch(
-      `/services/v2/service_types/${serviceTypeId}/plans/${planId}/plan_times`,
-      {
-        method: "POST",
-        body: {
-          data: {
-            type: "PlanTime",
-            attributes,
-            ...(relationships ? { relationships } : undefined),
+    return this.core
+      .fetch(
+        `/services/v2/service_types/${serviceTypeId}/plans/${planId}/plan_times`,
+        {
+          method: "POST",
+          body: {
+            data: {
+              type: "PlanTime",
+              attributes,
+              ...(relationships ? { relationships } : undefined),
+            },
           },
-        },
-      }
-    );
-    this.invalidatePlanTimesCache(serviceTypeId, planId);
-    return response.data;
+        }
+      )
+      .pipe(
+        Effect.map((response) => {
+          this.invalidatePlanTimesCache(serviceTypeId, planId);
+          return response.data;
+        })
+      );
   }
 
-  async deletePlanTime(
+  /** A plan time Planning Center no longer has is already deleted. */
+  deletePlanTime(
     serviceTypeId: string,
     planId: string,
     planTimeId: string
-  ): Promise<void> {
-    try {
-      await this.core.request(
+  ): Effect.Effect<void, PlanningCenterError> {
+    return this.core
+      .request(
         `/services/v2/service_types/${serviceTypeId}/plan_times/${planTimeId}`,
-        {
-          method: "DELETE",
-        }
+        { method: "DELETE" }
+      )
+      .pipe(
+        Effect.asVoid,
+        Effect.catchIf(
+          (error) =>
+            error instanceof PlanningCenterApiError && error.status === 404,
+          () => Effect.void
+        ),
+        Effect.tap(() =>
+          Effect.sync(() => {
+            this.invalidatePlanTimesCache(serviceTypeId, planId);
+          })
+        )
       );
-    } catch (error) {
-      if (!(error instanceof PlanningCenterApiError && error.status === 404)) {
-        throw error;
-      }
-    }
-    this.invalidatePlanTimesCache(serviceTypeId, planId);
   }
 
-  async getPlanForServiceTypeWithSeries(
+  getPlanForServiceTypeWithSeries(
     serviceTypeId: string,
-    planId: string,
-    signal?: AbortSignal
-  ): Promise<{ data: PCResource; included: PCResource[] }> {
-    const response = await this.core.fetch(
-      `/services/v2/service_types/${serviceTypeId}/plans/${planId}?include=series`,
-      { signal }
+    planId: string
+  ): Effect.Effect<
+    { data: PCResource; included: PCResource[] },
+    PlanningCenterError
+  > {
+    return Effect.map(
+      this.core.fetch(
+        `/services/v2/service_types/${serviceTypeId}/plans/${planId}?include=series`
+      ),
+      (response) => ({
+        data: response.data,
+        included: response.included ?? [],
+      })
     );
-    return {
-      data: response.data,
-      included: response.included ?? [],
-    };
   }
 
   invalidatePlanTimesCache(serviceTypeId: string, planId: string) {

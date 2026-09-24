@@ -1,3 +1,4 @@
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import {
   addCalendarDaysToDayKey,
@@ -7,30 +8,18 @@ import {
   isNonEmptyString,
   isString,
 } from "@pcobooster/planning-center-models/json";
-import type { Plan } from "@pcobooster/planning-center-models/types";
+import type {
+  PCResource,
+  Plan,
+} from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 export interface GetPlansDependencies {
   plansService: Pick<PlanningCenterPlansService, "getPlansInDateRange">;
-  resolveTimeZone: (signal?: AbortSignal) => Promise<string>;
+  resolveTimeZone: Effect.Effect<string>;
 }
 
-export const getPlansForServiceType = async (
-  serviceTypeId: string,
-  dependencies: GetPlansDependencies,
-  signal?: AbortSignal
-): Promise<Plan[]> => {
-  const orgTz = await dependencies.resolveTimeZone(signal);
-  const afterKey = formatCalendarDayInTimeZone(new Date(), orgTz);
-  const beforeKey = addCalendarDaysToDayKey(afterKey, 60, orgTz);
-
-  const rawPlans = await dependencies.plansService.getPlansInDateRange(
-    serviceTypeId,
-    afterKey,
-    beforeKey,
-    orgTz,
-    signal
-  );
-
+const toPlans = (rawPlans: PCResource[]): Plan[] => {
   const plans: Plan[] = [];
   for (const raw of rawPlans) {
     const sortDateStr = raw.attributes.sort_date;
@@ -69,3 +58,21 @@ export const getPlansForServiceType = async (
   );
   return plans;
 };
+
+export const getPlansForServiceType = (
+  serviceTypeId: string,
+  dependencies: GetPlansDependencies
+): Effect.Effect<Plan[], PlanningCenterError> =>
+  Effect.gen(function* getPlans() {
+    const orgTz = yield* dependencies.resolveTimeZone;
+    const afterKey = formatCalendarDayInTimeZone(new Date(), orgTz);
+    const beforeKey = addCalendarDaysToDayKey(afterKey, 60, orgTz);
+
+    const rawPlans = yield* dependencies.plansService.getPlansInDateRange(
+      serviceTypeId,
+      afterKey,
+      beforeKey,
+      orgTz
+    );
+    return toPlans(rawPlans);
+  });

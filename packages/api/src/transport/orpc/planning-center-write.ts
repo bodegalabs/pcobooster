@@ -9,10 +9,11 @@ import type { ApplicationRuntime } from "@pcobooster/api/application/runtime";
 import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
 import { Effect } from "effect";
+import type { HttpClient } from "effect/unstable/http/HttpClient";
 
 /** Keep one request credential across interruptible preparation and a committed write. */
 export const executePreparedPlanningCenterWrite = async <Preparation, Value>(
-  runtime: ApplicationRuntime<never>,
+  runtime: ApplicationRuntime<HttpClient>,
   context: RpcContext,
   signal: AbortSignal | undefined,
   prepare: Effect.Effect<

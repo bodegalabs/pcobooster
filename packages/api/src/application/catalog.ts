@@ -2,7 +2,7 @@ import type { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import {
   PlanningCenterAccess,
-  tryPlanningCenter,
+  withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/planning-center-access";
 import { getPlansForServiceType } from "@pcobooster/api/modules/planning-center/get-plans";
@@ -18,15 +18,13 @@ import type {
 } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
-const resolveRequestTimeZone = async (
-  access: PlanningCenterRequestAccess,
-  signal?: AbortSignal
-): Promise<string> =>
-  await resolveOrganizationTimeZone({
+const resolveRequestTimeZone = (
+  access: PlanningCenterRequestAccess
+): Effect.Effect<string> =>
+  resolveOrganizationTimeZone({
     cacheScope: access.cacheScope,
     catalogService: access.services.catalog,
     fallbackTimeZone: access.fallbackTimeZone,
-    signal,
   });
 
 export const getCatalogServiceTypes: Effect.Effect<
@@ -35,8 +33,8 @@ export const getCatalogServiceTypes: Effect.Effect<
   PlanningCenterAccess | RequestContext
 > = Effect.gen(function* listServiceTypes() {
   const access = yield* PlanningCenterAccess;
-  return yield* tryPlanningCenter(
-    async (signal) => await getServiceTypes(access.services.catalog, signal)
+  return yield* withPlanningCenterFaults(
+    getServiceTypes(access.services.catalog)
   );
 });
 
@@ -49,17 +47,11 @@ export const getCatalogPlans = (input: {
 > =>
   Effect.gen(function* listPlans() {
     const access = yield* PlanningCenterAccess;
-    return yield* tryPlanningCenter(
-      async (signal) =>
-        await getPlansForServiceType(
-          input.serviceTypeId,
-          {
-            plansService: access.services.plans,
-            resolveTimeZone: async (timeZoneSignal) =>
-              await resolveRequestTimeZone(access, timeZoneSignal),
-          },
-          signal
-        )
+    return yield* withPlanningCenterFaults(
+      getPlansForServiceType(input.serviceTypeId, {
+        plansService: access.services.plans,
+        resolveTimeZone: resolveRequestTimeZone(access),
+      })
     );
   });
 
@@ -69,11 +61,7 @@ export const getCatalogOrganization: Effect.Effect<
   PlanningCenterAccess | RequestContext
 > = Effect.gen(function* getOrganization() {
   const access = yield* PlanningCenterAccess;
-  return {
-    timeZone: yield* tryPlanningCenter(
-      async (signal) => await resolveRequestTimeZone(access, signal)
-    ),
-  };
+  return { timeZone: yield* resolveRequestTimeZone(access) };
 });
 
 export const getCatalogTeamPositions = (input: {
@@ -92,28 +80,16 @@ export const getCatalogTeamPositions = (input: {
       peopleService: access.services.people,
       plansService: access.services.plans,
     };
-    const groups = yield* tryPlanningCenter(
-      async (signal) =>
-        await getNeededTeamPositionsForPlan(
-          input.serviceTypeId,
-          input.planId,
-          input.seriesId,
-          dependencies,
-          signal
-        )
+    const groups = yield* getNeededTeamPositionsForPlan(
+      input.serviceTypeId,
+      input.planId,
+      input.seriesId,
+      dependencies
     );
-
-    return yield* tryPlanningCenter(
-      async (signal) =>
-        await presentTeamPositions(
-          groups,
-          {
-            catalog: access.services.catalog,
-            people: access.services.people,
-            getPresentationSeed: () => access.presentationSeed,
-            isPresentationMode: () => access.presentation,
-          },
-          signal
-        )
-    );
-  });
+    return yield* presentTeamPositions(groups, {
+      catalog: access.services.catalog,
+      people: access.services.people,
+      getPresentationSeed: () => access.presentationSeed,
+      isPresentationMode: () => access.presentation,
+    });
+  }).pipe(withPlanningCenterFaults);

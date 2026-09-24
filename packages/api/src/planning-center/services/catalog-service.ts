@@ -1,218 +1,221 @@
 import { logger } from "@pcobooster/api/logger";
-import type { PlanningCenterPromiseClient } from "@pcobooster/api/planning-center/promise-client";
+import type {
+  PlanningCenterCoreClient,
+  PlanningCenterError,
+} from "@pcobooster/api/planning-center/core-client";
+import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 const log = logger.for("planning-center/catalog");
+const SERVICE_TYPES_CACHE_TTL_MS = 5 * 60 * 1000;
 const TEAM_POSITIONS_CACHE_TTL_MS = 5 * 60 * 1000;
 const NEEDED_POSITIONS_CACHE_TTL_MS = 60 * 1000;
 
+interface ResourceCollection {
+  data: PCResource[];
+  included: PCResource[];
+}
+
 export interface PlanningCenterCatalogServiceCaches {
   readonly serviceTypes: PlanningCenterReadCache<PCResource[]>;
-  readonly reads: PlanningCenterReadCache<{
-    data: PCResource[];
-    included: PCResource[];
-  }>;
+  readonly reads: PlanningCenterReadCache<ResourceCollection>;
 }
 
 export const createPlanningCenterCatalogServiceCaches =
   (): PlanningCenterCatalogServiceCaches => ({
     serviceTypes: new PlanningCenterReadCache<PCResource[]>(),
-    reads: new PlanningCenterReadCache<{
-      data: PCResource[];
-      included: PCResource[];
-    }>(),
+    reads: new PlanningCenterReadCache<ResourceCollection>(),
   });
 
 export const planningCenterCatalogServiceCaches =
   createPlanningCenterCatalogServiceCaches();
 
-const cloneResourceResponse = (response: {
-  data: PCResource[];
-  included: PCResource[];
-}) => ({
+const cloneResourceResponse = (
+  response: ResourceCollection
+): ResourceCollection => ({
   data: structuredClone(response.data),
   included: structuredClone(response.included),
 });
 
 export class PlanningCenterCatalogService {
-  private readonly core: PlanningCenterPromiseClient;
+  private readonly core: PlanningCenterCoreClient;
   private readonly caches: PlanningCenterCatalogServiceCaches;
 
   constructor(
-    core: PlanningCenterPromiseClient,
+    core: PlanningCenterCoreClient,
     caches: PlanningCenterCatalogServiceCaches = createPlanningCenterCatalogServiceCaches()
   ) {
     this.core = core;
     this.caches = caches;
   }
 
-  async getTeam(teamId: string, signal?: AbortSignal): Promise<PCResource> {
-    const response = await this.core.fetch(`/services/v2/teams/${teamId}`, {
-      signal,
-    });
-    return response.data;
+  getTeam(teamId: string): Effect.Effect<PCResource, PlanningCenterError> {
+    return Effect.map(
+      this.core.fetch(`/services/v2/teams/${teamId}`),
+      (response) => response.data
+    );
   }
 
   /** Root Services `Organization` (account settings include `time_zone`). */
-  async getOrganization(signal?: AbortSignal): Promise<PCResource> {
-    const response = await this.core.fetchCollection("/services/v2", {
-      signal,
-    });
-    const [first] = response.data;
-    if (first === undefined) {
-      throw new Error(
-        "Planning Center Services organization response was empty"
-      );
-    }
-    return first;
-  }
-
-  async getServiceTypes(
-    params: Record<string, string> = {},
-    signal?: AbortSignal
-  ): Promise<PCResource[]> {
-    return await this.core.fetchAll(
-      "/services/v2/service_types",
-      params,
-      10,
-      signal
+  getOrganization(): Effect.Effect<PCResource, PlanningCenterError> {
+    return Effect.flatMap(
+      this.core.fetchCollection("/services/v2"),
+      (response) => {
+        const [first] = response.data;
+        return first === undefined
+          ? Effect.die(
+              new Error(
+                "Planning Center Services organization response was empty"
+              )
+            )
+          : Effect.succeed(first);
+      }
     );
   }
 
-  async getServiceTypesCached(
-    ttlMs: number = 5 * 60 * 1000,
-    signal?: AbortSignal
-  ): Promise<PCResource[]> {
-    const serviceTypes = await this.caches.serviceTypes.get(
+  getServiceTypes(
+    params: Record<string, string> = {}
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
+    return this.core.fetchAll("/services/v2/service_types", params, 10);
+  }
+
+  getServiceTypesCached(
+    ttlMs: number = SERVICE_TYPES_CACHE_TTL_MS
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
+    return cachedRead(
+      this.caches.serviceTypes,
       `${this.core.getCacheScope()}:service-types`,
       ttlMs,
-      async (loadSignal) => await this.getServiceTypes({}, loadSignal),
-      signal
-    );
-    return structuredClone(serviceTypes);
+      () => this.getServiceTypes({})
+    ).pipe(Effect.map((serviceTypes) => structuredClone(serviceTypes)));
   }
 
-  async getServiceTypeTeamPositionsWithTeams(
-    serviceTypeId: string,
-    signal?: AbortSignal
-  ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const response = await this.caches.reads.get(
+  getServiceTypeTeamPositionsWithTeams(
+    serviceTypeId: string
+  ): Effect.Effect<ResourceCollection, PlanningCenterError> {
+    const load = () =>
+      this.core
+        .fetchCollection(
+          `/services/v2/service_types/${serviceTypeId}/team_positions?include=team&per_page=100`
+        )
+        .pipe(
+          Effect.map((result) => {
+            log.info(
+              { serviceTypeId, positionCount: result.data.length },
+              "Team positions fetched"
+            );
+            return { data: result.data, included: result.included ?? [] };
+          })
+        );
+    return cachedRead(
+      this.caches.reads,
       this.buildCacheKey("service-type-team-positions", serviceTypeId),
       TEAM_POSITIONS_CACHE_TTL_MS,
-      async (loadSignal) => {
-        const result = await this.core.fetchCollection(
-          `/services/v2/service_types/${serviceTypeId}/team_positions?include=team&per_page=100`,
-          { signal: loadSignal }
-        );
-
-        const { data } = result;
-        log.info(
-          { serviceTypeId, positionCount: data.length },
-          "Team positions fetched"
-        );
-
-        return {
-          data,
-          included: result.included ?? [],
-        };
-      },
-      signal
-    );
-
-    return cloneResourceResponse(response);
+      load
+    ).pipe(Effect.map(cloneResourceResponse));
   }
 
-  async getPlanNeededPositionsWithTeams(
+  getPlanNeededPositionsWithTeams(
     seriesId: string,
-    planId: string,
-    signal?: AbortSignal
-  ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const response = await this.caches.reads.get(
-      this.buildCacheKey("series-plan-needed-positions", seriesId, planId),
-      NEEDED_POSITIONS_CACHE_TTL_MS,
-      async (loadSignal) => {
-        const result = await this.core.fetchAllWithIncluded(
+    planId: string
+  ): Effect.Effect<ResourceCollection, PlanningCenterError> {
+    const load = () =>
+      this.core
+        .fetchAllWithIncluded(
           `/services/v2/series/${seriesId}/plans/${planId}/needed_positions`,
           { include: "team" },
-          5,
-          loadSignal
+          5
+        )
+        .pipe(
+          Effect.tap((result) =>
+            Effect.sync(() => {
+              log.info(
+                { seriesId, planId, neededPositionCount: result.data.length },
+                "Plan needed positions fetched"
+              );
+            })
+          )
         );
-
-        log.info(
-          { seriesId, planId, neededPositionCount: result.data.length },
-          "Plan needed positions fetched"
-        );
-
-        return result;
-      },
-      signal
-    );
-
-    return cloneResourceResponse(response);
+    return cachedRead(
+      this.caches.reads,
+      this.buildCacheKey("series-plan-needed-positions", seriesId, planId),
+      NEEDED_POSITIONS_CACHE_TTL_MS,
+      load
+    ).pipe(Effect.map(cloneResourceResponse));
   }
 
-  async getServiceTypePlanNeededPositionsWithTeams(
+  getServiceTypePlanNeededPositionsWithTeams(
     serviceTypeId: string,
-    planId: string,
-    signal?: AbortSignal
-  ): Promise<{ data: PCResource[]; included: PCResource[] }> {
-    const response = await this.caches.reads.get(
+    planId: string
+  ): Effect.Effect<ResourceCollection, PlanningCenterError> {
+    const load = () =>
+      this.core
+        .fetchAllWithIncluded(
+          `/services/v2/service_types/${serviceTypeId}/plans/${planId}/needed_positions`,
+          { include: "team" },
+          5
+        )
+        .pipe(
+          Effect.tap((result) =>
+            Effect.sync(() => {
+              log.info(
+                {
+                  serviceTypeId,
+                  planId,
+                  neededPositionCount: result.data.length,
+                },
+                "Service type plan needed positions fetched"
+              );
+            })
+          )
+        );
+    return cachedRead(
+      this.caches.reads,
       this.buildCacheKey(
         "service-type-plan-needed-positions",
         serviceTypeId,
         planId
       ),
       NEEDED_POSITIONS_CACHE_TTL_MS,
-      async (loadSignal) => {
-        const result = await this.core.fetchAllWithIncluded(
-          `/services/v2/service_types/${serviceTypeId}/plans/${planId}/needed_positions`,
-          { include: "team" },
-          5,
-          loadSignal
-        );
-
-        log.info(
-          { serviceTypeId, planId, neededPositionCount: result.data.length },
-          "Service type plan needed positions fetched"
-        );
-
-        return result;
-      },
-      signal
-    );
-
-    return cloneResourceResponse(response);
+      load
+    ).pipe(Effect.map(cloneResourceResponse));
   }
 
-  async updateServiceTypePlanNeededPositionTime(
+  updateServiceTypePlanNeededPositionTime(
     serviceTypeId: string,
     planId: string,
     neededPositionId: string,
     planTimeId: string | null
-  ): Promise<PCResource> {
-    const response = await this.core.fetch(
-      `/services/v2/service_types/${serviceTypeId}/plans/${planId}/needed_positions/${neededPositionId}`,
-      {
-        method: "PATCH",
-        body: {
-          data: {
-            type: "NeededPosition",
-            id: neededPositionId,
-            relationships: {
-              time: {
-                data: isNonEmptyString(planTimeId)
-                  ? { type: "PlanTime", id: planTimeId }
-                  : null,
+  ): Effect.Effect<PCResource, PlanningCenterError> {
+    return this.core
+      .fetch(
+        `/services/v2/service_types/${serviceTypeId}/plans/${planId}/needed_positions/${neededPositionId}`,
+        {
+          method: "PATCH",
+          body: {
+            data: {
+              type: "NeededPosition",
+              id: neededPositionId,
+              relationships: {
+                time: {
+                  data: isNonEmptyString(planTimeId)
+                    ? { type: "PlanTime", id: planTimeId }
+                    : null,
+                },
               },
             },
           },
-        },
-      }
-    );
-    this.invalidateNeededPositionsCache(serviceTypeId, planId);
-    return response.data;
+        }
+      )
+      .pipe(
+        Effect.map((response) => {
+          this.invalidateNeededPositionsCache(serviceTypeId, planId);
+          return response.data;
+        })
+      );
   }
 
   invalidateNeededPositionsCache(serviceTypeId: string, planId: string) {

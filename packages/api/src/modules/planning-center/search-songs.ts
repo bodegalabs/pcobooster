@@ -2,8 +2,13 @@ import {
   normalizeSongCatalogEntry,
   scoreSongSearch,
 } from "@pcobooster/api/modules/planning-center/plan-items-shared";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterSongsService } from "@pcobooster/api/planning-center/services/songs-service";
-import type { SongCatalogEntry } from "@pcobooster/planning-center-models/types";
+import type {
+  PCResource,
+  SongCatalogEntry,
+} from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 const MAX_RESULTS = 24;
 const SONG_SEARCH_RESULT_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -19,30 +24,10 @@ export interface SongCatalogReader {
   getSongsCatalogCached: PlanningCenterSongsService["getSongsCatalogCached"];
 }
 
-export const searchSongs = async (
-  cacheKey: string,
-  serviceTypeId: string,
-  query: string,
-  songCatalogReader: SongCatalogReader,
-  signal?: AbortSignal
-): Promise<SongCatalogEntry[]> => {
-  const normalizedQuery = query.trim().toLowerCase();
-  if (!normalizedQuery) {
-    return [];
-  }
-
-  const resultCacheKey = [cacheKey, serviceTypeId, normalizedQuery].join(":");
-  const now = Date.now();
-  const cached = songSearchResultCache.get(resultCacheKey);
-  if (cached && cached.expiresAt > now) {
-    return structuredClone(cached.songs);
-  }
-
-  const catalog = await songCatalogReader.getSongsCatalogCached(
-    `${cacheKey}:${serviceTypeId}`,
-    undefined,
-    signal
-  );
+const rankSongs = (
+  catalog: PCResource[],
+  normalizedQuery: string
+): SongCatalogEntry[] => {
   const normalized: SongCatalogEntry[] = [];
   for (const rawSong of catalog) {
     const song = normalizeSongCatalogEntry(rawSong);
@@ -62,12 +47,37 @@ export const searchSongs = async (
 
     return a.title.localeCompare(b.title);
   });
-
-  const results = normalized.slice(0, MAX_RESULTS);
-  songSearchResultCache.set(resultCacheKey, {
-    expiresAt: now + SONG_SEARCH_RESULT_CACHE_TTL_MS,
-    songs: results,
-  });
-
-  return structuredClone(results);
+  return normalized.slice(0, MAX_RESULTS);
 };
+
+export const searchSongs = (
+  cacheKey: string,
+  serviceTypeId: string,
+  query: string,
+  songCatalogReader: SongCatalogReader
+): Effect.Effect<SongCatalogEntry[], PlanningCenterError> =>
+  Effect.suspend(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return Effect.succeed([]);
+    }
+
+    const resultCacheKey = [cacheKey, serviceTypeId, normalizedQuery].join(":");
+    const now = Date.now();
+    const cached = songSearchResultCache.get(resultCacheKey);
+    if (cached && cached.expiresAt > now) {
+      return Effect.succeed(structuredClone(cached.songs));
+    }
+
+    return Effect.map(
+      songCatalogReader.getSongsCatalogCached(`${cacheKey}:${serviceTypeId}`),
+      (catalog) => {
+        const results = rankSongs(catalog, normalizedQuery);
+        songSearchResultCache.set(resultCacheKey, {
+          expiresAt: now + SONG_SEARCH_RESULT_CACHE_TTL_MS,
+          songs: results,
+        });
+        return structuredClone(results);
+      }
+    );
+  });

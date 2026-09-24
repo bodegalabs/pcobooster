@@ -2,9 +2,11 @@ import { PlanningCenterAccess } from "@pcobooster/api/application/planning-cente
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
 import { createApplicationRuntime } from "@pcobooster/api/application/runtime";
 import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testServer } from "@pcobooster/api/testing/server";
 import { executePreparedPlanningCenterWrite } from "@pcobooster/api/transport/orpc/planning-center-write";
 import { Effect, Layer } from "effect";
+import * as HttpClient from "effect/unstable/http/HttpClient";
 import { describe, expect, it, vi } from "vitest";
 
 describe(executePreparedPlanningCenterWrite, () => {
@@ -24,16 +26,19 @@ describe(executePreparedPlanningCenterWrite, () => {
     );
     const dependencies: PlanningCenterAccessDependencies = {
       authorize,
-      createServices: (authentication) =>
+      createServices: (authentication, httpClient) =>
         createPlanningCenterServices(
           authentication.kind === "account" ? authentication.accessToken : "",
-          "America/Los_Angeles"
+          "America/Los_Angeles",
+          httpClient
         ),
       presentationMode: () => false,
       presentationSeed: "test-seed",
       fallbackTimeZone: "America/Los_Angeles",
     };
-    const runtime = createApplicationRuntime(Layer.empty);
+    const runtime = createApplicationRuntime(
+      Layer.succeed(HttpClient.HttpClient, unreachableHttpClient)
+    );
     const context = {
       request: new Request("https://pcobooster.com/api/rpc/plan-items"),
       requestId: "request-1",

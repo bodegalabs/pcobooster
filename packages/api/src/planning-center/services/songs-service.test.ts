@@ -1,11 +1,16 @@
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
-import { createBasicPlanningCenterPromiseClient } from "@pcobooster/api/planning-center/promise-client";
+import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterSongsService } from "@pcobooster/api/planning-center/services/songs-service";
+import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
+import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 const createCoreClientMock = () => {
-  const core = createBasicPlanningCenterPromiseClient(testPlanningCenterToken);
+  const core = createBasicPlanningCenterClient(
+    testPlanningCenterToken,
+    unreachableHttpClient
+  );
   const fetchMock = vi.spyOn(core, "fetch");
   const fetchAllMock = vi.spyOn(core, "fetchAll");
   const fetchAllWithIncludedMock = vi.spyOn(core, "fetchAllWithIncluded");
@@ -15,19 +20,26 @@ const createCoreClientMock = () => {
 describe(PlanningCenterSongsService, () => {
   it("dedupes song catalog loads and returns defensive clones", async () => {
     const { core, fetchAllMock } = createCoreClientMock();
-    fetchAllMock.mockResolvedValue([
-      {
-        id: "song-1",
-        type: "Song",
-        attributes: { title: "Build My Life" },
-      },
-    ]);
+    fetchAllMock.mockReturnValue(
+      Effect.succeed([
+        {
+          id: "song-1",
+          type: "Song",
+          attributes: { title: "Build My Life" },
+        },
+      ])
+    );
 
     const service = new PlanningCenterSongsService(core);
-    const [first, second] = await Promise.all([
-      service.getSongsCatalogCached("account-1:service-1"),
-      service.getSongsCatalogCached("account-1:service-1"),
-    ]);
+    const [first, second] = await Effect.runPromise(
+      Effect.all(
+        [
+          service.getSongsCatalogCached("account-1:service-1"),
+          service.getSongsCatalogCached("account-1:service-1"),
+        ],
+        { concurrency: "unbounded" }
+      )
+    );
 
     expect(fetchAllMock).toHaveBeenCalledOnce();
     expect(fetchAllMock.mock.calls[0]?.slice(0, 3)).toStrictEqual([
@@ -35,7 +47,6 @@ describe(PlanningCenterSongsService, () => {
       { order: "title" },
       15,
     ]);
-    expect(fetchAllMock.mock.calls[0]?.[3]).toBeInstanceOf(AbortSignal);
     expect({
       sameContent: first,
       separateArrays: first !== second,
@@ -47,7 +58,9 @@ describe(PlanningCenterSongsService, () => {
     });
 
     first[0].attributes.title = "Changed locally";
-    const third = await service.getSongsCatalogCached("account-1:service-1");
+    const third = await Effect.runPromise(
+      service.getSongsCatalogCached("account-1:service-1")
+    );
 
     expect({
       fetchCount: fetchAllMock.mock.calls.length,
@@ -62,17 +75,19 @@ describe(PlanningCenterSongsService, () => {
 
   it("caches song details and returns defensive clones", async () => {
     const { core, fetchMock } = createCoreClientMock();
-    fetchMock.mockResolvedValue({
-      data: {
-        id: "song-1",
-        type: "Song",
-        attributes: { title: "Build My Life" },
-      },
-    });
+    fetchMock.mockReturnValue(
+      Effect.succeed({
+        data: {
+          id: "song-1",
+          type: "Song",
+          attributes: { title: "Build My Life" },
+        },
+      })
+    );
 
     const service = new PlanningCenterSongsService(core);
-    const first = await service.getSong("song-1");
-    const second = await service.getSong("song-1");
+    const first = await Effect.runPromise(service.getSong("song-1"));
+    const second = await Effect.runPromise(service.getSong("song-1"));
 
     expect({
       fetchCount: fetchMock.mock.calls.length,
@@ -90,26 +105,32 @@ describe(PlanningCenterSongsService, () => {
 
   it("caches arrangement and key responses and returns defensive clones", async () => {
     const { core, fetchAllWithIncludedMock } = createCoreClientMock();
-    fetchAllWithIncludedMock.mockResolvedValue({
-      data: [
-        {
-          id: "arr-1",
-          type: "Arrangement",
-          attributes: { name: "Default" },
-        },
-      ],
-      included: [
-        {
-          id: "key-1",
-          type: "Key",
-          attributes: { name: "G" },
-        },
-      ],
-    });
+    fetchAllWithIncludedMock.mockReturnValue(
+      Effect.succeed({
+        data: [
+          {
+            id: "arr-1",
+            type: "Arrangement",
+            attributes: { name: "Default" },
+          },
+        ],
+        included: [
+          {
+            id: "key-1",
+            type: "Key",
+            attributes: { name: "G" },
+          },
+        ],
+      })
+    );
 
     const service = new PlanningCenterSongsService(core);
-    const first = await service.getSongArrangementsWithKeys("song-1");
-    const second = await service.getSongArrangementsWithKeys("song-1");
+    const first = await Effect.runPromise(
+      service.getSongArrangementsWithKeys("song-1")
+    );
+    const second = await Effect.runPromise(
+      service.getSongArrangementsWithKeys("song-1")
+    );
 
     expect({
       fetchCount: fetchAllWithIncludedMock.mock.calls.length,
@@ -133,17 +154,19 @@ describe(PlanningCenterSongsService, () => {
 describe("PlanningCenterSongsService.getSongLastScheduledItem", () => {
   it("returns null for 404 responses only", async () => {
     const { core, fetchMock } = createCoreClientMock();
-    fetchMock.mockRejectedValueOnce(
-      new PlanningCenterApiError({
-        message: "Planning Center API error: 404 - Not found",
-        status: 404,
-      })
+    fetchMock.mockReturnValueOnce(
+      Effect.fail(
+        new PlanningCenterApiError({
+          message: "Planning Center API error: 404 - Not found",
+          status: 404,
+        })
+      )
     );
 
     const service = new PlanningCenterSongsService(core);
 
     await expect(
-      service.getSongLastScheduledItem("song-1", "service-1")
+      Effect.runPromise(service.getSongLastScheduledItem("song-1", "service-1"))
     ).resolves.toStrictEqual({
       data: null,
       included: [],
@@ -156,12 +179,14 @@ describe("PlanningCenterSongsService.getSongLastScheduledItem", () => {
       message: "Planning Center API error: 500 - Internal error",
       status: 500,
     });
-    fetchMock.mockRejectedValueOnce(error);
+    fetchMock.mockReturnValueOnce(Effect.fail(error));
 
     const service = new PlanningCenterSongsService(core);
 
     await expect(
-      service.getSongLastScheduledItem("song-1", "service-1")
-    ).rejects.toBe(error);
+      Effect.runPromise(
+        Effect.flip(service.getSongLastScheduledItem("song-1", "service-1"))
+      )
+    ).resolves.toBe(error);
   });
 });

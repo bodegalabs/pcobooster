@@ -4,12 +4,14 @@ import {
 } from "@pcobooster/api/modules/planning-center/plan-item-payload";
 import type { LoadSongOptions } from "@pcobooster/api/modules/planning-center/plan-item-payload";
 import { normalizePlanItem } from "@pcobooster/api/modules/planning-center/plan-items-shared";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterPlanItemsService } from "@pcobooster/api/planning-center/services/plan-items-service";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type {
   PlanItem,
   PlanItemServicePosition,
 } from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
 
 export interface UpdatePlanItemInput {
   serviceTypeId: string;
@@ -34,32 +36,30 @@ export interface PreparedUpdatePlanItem {
   readonly attributes: JsonObject;
 }
 
-export const prepareUpdatePlanItem = async (
+export const prepareUpdatePlanItem = (
   input: UpdatePlanItemInput,
   loadSongOptions: LoadSongOptions
-): Promise<PreparedUpdatePlanItem> => {
-  const resolvedInput = await resolvePlanItemSongDefaults(
-    input,
-    loadSongOptions
+): Effect.Effect<PreparedUpdatePlanItem, PlanningCenterError> =>
+  Effect.map(
+    resolvePlanItemSongDefaults(input, loadSongOptions),
+    (resolvedInput) => ({
+      serviceTypeId: input.serviceTypeId,
+      planId: input.planId,
+      itemId: input.itemId,
+      attributes: buildPlanItemAttributes(resolvedInput),
+    })
   );
-  return {
-    serviceTypeId: input.serviceTypeId,
-    planId: input.planId,
-    itemId: input.itemId,
-    attributes: buildPlanItemAttributes(resolvedInput),
-  };
-};
 
-export const commitUpdatePlanItem = async (
+export const commitUpdatePlanItem = (
   prepared: PreparedUpdatePlanItem,
   planItemsService: Pick<PlanningCenterPlanItemsService, "updatePlanItem">
-): Promise<PlanItem> => {
-  const response = await planItemsService.updatePlanItem(
-    prepared.serviceTypeId,
-    prepared.planId,
-    prepared.itemId,
-    prepared.attributes
+): Effect.Effect<PlanItem, PlanningCenterError> =>
+  Effect.map(
+    planItemsService.updatePlanItem(
+      prepared.serviceTypeId,
+      prepared.planId,
+      prepared.itemId,
+      prepared.attributes
+    ),
+    (response) => normalizePlanItem(response.data, response.included)
   );
-
-  return normalizePlanItem(response.data, response.included);
-};
