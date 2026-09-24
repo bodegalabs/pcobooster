@@ -46,6 +46,12 @@ const CADENCE_WINDOW_DAYS = 90;
 /** Planning Center compares `after` to an instant; one extra day absorbs any zone offset. */
 const SCHEDULE_AFTER_MARGIN_DAYS = 1;
 const MISSING_PLAN_TIMES_CONCURRENCY = 4;
+/**
+ * Plan-by-plan time reads are a fallback for plans the ranges missed. The cap keeps a failed range
+ * read from turning back into one request per plan; times left unresolved date the assignment by
+ * its plan, as before.
+ */
+const MAX_DIRECT_PLAN_TIME_READS = 5;
 const PEOPLE_DASHBOARD_PERSON_CACHE_TTL_MS = 2 * 60 * 1000;
 const PEOPLE_DASHBOARD_PERSON_CACHE_VERSION = "v8";
 const monthLabelFormatter = new Intl.DateTimeFormat("en-US", {
@@ -279,7 +285,10 @@ const resolveMissingPlanTimes = (
       [...missingTimeIds].filter((id) => !resolved.has(id))
     );
     const direct = yield* Effect.forEach(
-      planIdsWithUnresolvedTimes(schedules, unresolvedTimeIds),
+      planIdsWithUnresolvedTimes(schedules, unresolvedTimeIds).slice(
+        0,
+        MAX_DIRECT_PLAN_TIME_READS
+      ),
       (planId) => dependencies.peopleService.getPlanPlanTimes(planId),
       { concurrency: MISSING_PLAN_TIMES_CONCURRENCY }
     );
