@@ -24,12 +24,9 @@ import type { ReactNode } from "react";
 import { useCallback, useState } from "react";
 
 import { HotkeyChord } from "@/components/hotkey-chord";
+import { MobileMenu } from "@/components/mobile-menu";
 import { SidebarBrandMark } from "@/components/sidebar-brand-mark";
-import {
-  MobileMenuTrigger,
-  MobileSidebarCloseOnNavigate,
-  SidebarChromeTrigger,
-} from "@/components/sidebar-chrome-trigger";
+import { SidebarChromeTrigger } from "@/components/sidebar-chrome-trigger";
 import { SidebarFeedback } from "@/components/sidebar-feedback";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
 import type { SidebarTabGroupItem } from "@/components/sidebar-tab-group";
@@ -636,26 +633,26 @@ const MobileChromeHeader = () => {
 
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 px-2 md:hidden">
-      <MobileMenuTrigger />
       {detail ? (
         <Link
           to={detail.parentHref}
           className={buttonVariants({
             variant: "ghost",
             size: "lg",
-            className: "gap-0.5 pl-1.5 text-base",
+            className: "-ml-2 gap-0.5 pl-1.5 text-base",
           })}
         >
           <ChevronLeft className="size-5" aria-hidden />
           {detail.parentLabel}
         </Link>
       ) : (
-        <p className="text-lg font-semibold tracking-tight">
+        <p className="px-2 text-lg font-semibold tracking-tight">
           {getAppSectionLabel(getAppSection(pathname))}
         </p>
       )}
       <DemoBadge />
       {presentationMode ? <PresentationModeBadge /> : null}
+      <MobileMenu className="ml-auto" />
     </header>
   );
 };
@@ -682,7 +679,6 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
       className="h-dvh min-h-0 overflow-hidden"
     >
       <SidebarToggleHotkey />
-      <MobileSidebarCloseOnNavigate />
       <AppSidebar peopleNavEnabled={peopleNavEnabled} />
       <SidebarInset className="min-h-0 overflow-hidden">
         <AppInsetChromeHeader>

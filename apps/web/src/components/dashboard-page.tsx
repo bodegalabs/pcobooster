@@ -3,13 +3,13 @@ import { Link } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 
+import { MobileMenu } from "@/components/mobile-menu";
 import { PlanningCenterServicesIcon } from "@/components/planning-center-services-icon";
 import { LineupTab } from "@/components/schedule/lineup-tab";
 import { PlanTab } from "@/components/schedule/plan-tab";
 import { PlanHeaderSkeleton } from "@/components/schedule/schedule-skeletons";
 import { ScheduleViewTab } from "@/components/schedule/schedule-view-tab";
 import { TimesTab } from "@/components/schedule/times-tab";
-import { MobileMenuTrigger } from "@/components/sidebar-chrome-trigger";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { HoverLabel } from "@/components/ui/hover-card";
@@ -133,6 +133,7 @@ const PlanningCenterLink = ({ href }: { href: string }) => (
 const servicesBackClassName = buttonVariants({
   variant: "ghost",
   size: "icon-lg",
+  className: "-ml-2",
 });
 
 /** Phones go up one level: from a position to the position list, then to Services. */
@@ -143,6 +144,7 @@ const MobilePlanBack = ({ onBack }: { onBack: (() => void) | null }) =>
       variant="ghost"
       size="icon-lg"
       aria-label="Back to positions"
+      className="-ml-2"
       onClick={onBack}
     >
       <ChevronLeft className="size-6" aria-hidden />
@@ -175,7 +177,6 @@ const DashboardPlanHeader = ({
   return (
     <>
       <header className="flex shrink-0 items-center gap-1 pt-1.5 pb-2 md:hidden">
-        <MobileMenuTrigger className="-ml-2" />
         <MobilePlanBack onBack={onBack} />
         <div className="flex min-w-0 flex-1 flex-col">
           <h1 className="min-w-0 text-base leading-tight font-semibold tracking-tight">
@@ -193,6 +194,7 @@ const DashboardPlanHeader = ({
         {isNonEmptyString(planningCenterUrl) ? (
           <PlanningCenterLink href={planningCenterUrl} />
         ) : null}
+        <MobileMenu className="-mr-2" />
       </header>
       <header className="mb-3 shrink-0 max-md:hidden sm:mb-5">
         <div className="flex min-w-0 items-start justify-between gap-3">
@@ -221,12 +223,12 @@ const DashboardPlanHeader = ({
 const DashboardPlanHeaderFallback = () => (
   <>
     <header className="flex shrink-0 items-center gap-1 pt-1.5 pb-2 md:hidden">
-      <MobileMenuTrigger className="-ml-2" />
       <MobilePlanBack onBack={null} />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <Skeleton variant="text" className="h-4 w-40" />
         <Skeleton variant="text" className="h-3 w-28" />
       </div>
+      <MobileMenu className="-mr-2" />
     </header>
     <div className="max-md:hidden">
       <PlanHeaderSkeleton />
