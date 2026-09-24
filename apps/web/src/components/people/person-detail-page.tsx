@@ -53,8 +53,11 @@ export const PersonDetailPage = ({
   personId: string;
   month: string | null;
 }) => {
-  const { data, isError, isLoading, isPlaceholderData } =
+  const { data, isError, isFetching, isLoading, isPlaceholderData, refetch } =
     usePeopleDashboardPerson(personId, month);
+  const handleRetry = () => {
+    void refetch();
+  };
   const person = data?.person ?? null;
   const monthLabel = data?.month.label ?? "Month";
   const calendarCells = data
@@ -133,8 +136,21 @@ export const PersonDetailPage = ({
         </header>
 
         {isError ? (
-          <div className="border-border/40 text-muted-foreground rounded-lg border px-4 py-8 text-sm">
-            Person details failed to load. Go back and try again.
+          <div
+            className="border-border/40 text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border px-4 py-8 text-sm"
+            aria-live="polite"
+          >
+            <span className="text-destructive">
+              Person details failed to load.
+            </span>
+            <Button
+              variant="outline"
+              size="xs"
+              disabled={isFetching}
+              onClick={handleRetry}
+            >
+              Retry
+            </Button>
           </div>
         ) : (
           <PersonDetailState
