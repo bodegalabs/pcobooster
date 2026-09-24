@@ -84,7 +84,7 @@ Product operations are served through the typed oRPC transport at `/api/rpc`; it
 apps/
   web/                       # Next.js product UI
   server/                    # Bun/Hono transport and oRPC entrypoint
-  marketing/                 # Static-export Next.js marketing site
+  marketing/                 # Prerendered TanStack Start marketing site
 packages/
   api/                       # Server-only application, auth, DB, adapters, oRPC
   contracts/                 # Browser-safe oRPC contracts and DTO schemas
