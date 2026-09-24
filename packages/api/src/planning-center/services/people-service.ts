@@ -35,6 +35,8 @@ const PLAN_TIMES_CACHE_TTL_MS = 5 * 60 * 1000;
 const PERSON_TEAM_POSITION_ASSIGNMENTS_CACHE_TTL_MS = 5 * 60 * 1000;
 const ALL_TEAM_PEOPLE_CACHE_TTL_MS = 5 * 60 * 1000;
 const PEOPLE_SEARCH_CACHE_TTL_MS = 60 * 1000;
+/** Pages of 100 people `getPlanTeamMembers` reads, at most. */
+export const PLAN_ROSTER_MAX_PAGES = 25;
 /** 100 teams per page; an organization with more than 1,000 teams is cut off. */
 const TEAM_PAGES_MAX = 10;
 
@@ -438,7 +440,7 @@ export class PlanningCenterPeopleService {
           .fetchAllWithIncluded(
             `/services/v2/service_types/${serviceTypeId}/plans/${planId}/team_members`,
             { include: "person,team,plan", per_page: "100" },
-            25
+            PLAN_ROSTER_MAX_PAGES
           )
           .pipe(Effect.map(toResourceCollection))
     ).pipe(Effect.map(cloneResourceCollectionResponse));

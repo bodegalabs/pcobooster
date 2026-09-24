@@ -1,4 +1,5 @@
 import { loadPositionCandidatesProgressively } from "@pcobooster/api/modules/planning-center/load-position-candidates.test-support";
+import { PROGRESSIVE_REQUEST_BUDGET } from "@pcobooster/api/planning-center/request-budget";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
@@ -750,8 +751,12 @@ describe("progressive candidate list equivalence", () => {
   });
 
   it("matches the single call when every call is left almost no budget", async () => {
-    // 39 of 40 requests already spent: one roster (or one blockout date) per call.
-    const progressive = await loadProgressively(createOrg(), 39);
+    // All but one request of the budget already spent: one roster (or one blockout date) per
+    // call, and every call still advances.
+    const progressive = await loadProgressively(
+      createOrg(),
+      PROGRESSIVE_REQUEST_BUDGET - 1
+    );
 
     expect(wireJson(progressive.people)).toBe(golden.window);
     expect(progressive.calls).toBeGreaterThan(6);

@@ -95,6 +95,8 @@ export const candidateHistorySchema = z.object({
 export const windowPlanRefSchema = z.object({
   serviceTypeId: z.string().trim().min(1),
   planId: z.string().trim().min(1),
+  /** Roster pages the plan needs; a follow-up call reserves them before locating plans. */
+  rosterRequests: z.number().int().min(0).max(100),
 });
 
 export const windowPlanSummarySchema = z.object({

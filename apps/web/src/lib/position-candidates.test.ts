@@ -157,8 +157,8 @@ describe(planCandidateDetailsBatches, () => {
 describe(windowHistoryAdvanced, () => {
   const continuation = {
     plans: [
-      { serviceTypeId: "st-1", planId: "plan-1" },
-      { serviceTypeId: "st-1", planId: "plan-2" },
+      { serviceTypeId: "st-1", planId: "plan-1", rosterRequests: 1 },
+      { serviceTypeId: "st-1", planId: "plan-2", rosterRequests: 1 },
     ],
     serviceTypeIds: ["st-2"],
   };
@@ -168,14 +168,16 @@ describe(windowHistoryAdvanced, () => {
       windowHistoryAdvanced(continuation, windowCall(1)),
       windowHistoryAdvanced(continuation, {
         ...windowCall(0),
-        deferredPlans: [{ serviceTypeId: "st-1", planId: "plan-2" }],
+        deferredPlans: [
+          { serviceTypeId: "st-1", planId: "plan-2", rosterRequests: 1 },
+        ],
         deferredServiceTypeIds: ["st-2"],
       }),
       windowHistoryAdvanced(continuation, {
         ...windowCall(0),
         deferredPlans: [
           ...continuation.plans,
-          { serviceTypeId: "st-2", planId: "plan-3" },
+          { serviceTypeId: "st-2", planId: "plan-3", rosterRequests: 1 },
         ],
         deferredServiceTypeIds: [],
       }),

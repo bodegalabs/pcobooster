@@ -17,6 +17,8 @@ import { Effect } from "effect";
 
 const log = logger.for("planning-center/plans");
 const PLANS_RANGE_CACHE_TTL_MS = 5 * 60 * 1000;
+/** Pages of 100 plans `getPlansWithIncludedInDateRange` reads, at most. */
+export const PLAN_RANGE_MAX_PAGES = 3;
 
 interface ResourceCollection {
   data: PCResource[];
@@ -175,7 +177,7 @@ export class PlanningCenterPlansService {
         const fetched = yield* core.fetchAllWithIncluded(
           `/services/v2/service_types/${serviceTypeId}/plans`,
           params,
-          3
+          PLAN_RANGE_MAX_PAGES
         );
         const plans = fetched.data.filter((plan) =>
           isInOrganizationDayRange(plan, afterDayKey, beforeDayKey, orgTz)
