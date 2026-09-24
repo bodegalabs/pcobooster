@@ -13,6 +13,8 @@ import { createServerApp } from "./app";
 import { Database } from "./database";
 import { currentStageSettings } from "./stage";
 
+const PREVIEW_SECRET_PLACEHOLDER = "minted-by-alchemy-random-at-runtime";
+
 const secret = (name: string) =>
   Config.Redacted(name).pipe(Config.map(Redacted.value));
 const optionalSecret = (name: string) =>
@@ -29,12 +31,14 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
     yield* currentStageSettings;
   // Production keeps its Infisical secret so existing sessions stay valid; each preview mints
   // its own, stored in Alchemy state and discarded with the stage.
+  const configuredSecret =
+    production || local ? yield* secret("BETTER_AUTH_SECRET") : undefined;
   const authSecret: Effect.Effect<string> =
-    production || local
-      ? Effect.succeed(yield* secret("BETTER_AUTH_SECRET"))
-      : (yield* (yield* Alchemy.Random("BetterAuthSecret")).text).pipe(
+    configuredSecret === undefined
+      ? (yield* (yield* Alchemy.Random("BetterAuthSecret")).text).pipe(
           Effect.map(Redacted.value)
-        );
+        )
+      : Effect.succeed(configuredSecret);
   const environment: Omit<ServerEnvironment, "BETTER_AUTH_SECRET"> = {
     NODE_ENV: local ? "development" : "production",
     APP_ENV: production ? "production" : "preview",
@@ -80,6 +84,19 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
     PRESENTATION_MODE: local ? yield* optionalString("PRESENTATION_MODE") : "",
     PRESENTATION_SEED: local ? yield* optionalSecret("PRESENTATION_SEED") : "",
   };
+  // Validate now, while Alchemy deploys, so a bad setting fails the deploy instead of the
+  // first request. A preview's minted secret only exists at runtime, so it stands in here.
+  yield* Effect.try({
+    try: () =>
+      resolveServerConfig({
+        ...environment,
+        BETTER_AUTH_SECRET: configuredSecret ?? PREVIEW_SECRET_PLACEHOLDER,
+      }),
+    catch: (error) =>
+      new Error(`Invalid API Worker settings: ${String(error)}`, {
+        cause: error,
+      }),
+  }).pipe(Effect.orDie);
   return authSecret.pipe(
     Effect.map((BETTER_AUTH_SECRET): ServerEnvironment => ({
       ...environment,

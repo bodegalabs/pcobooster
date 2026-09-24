@@ -69,6 +69,16 @@
 - PRs should include: summary, behavior changes, test coverage notes, and screenshots for UI changes.
 - For visible or high-risk changes, use the repo-local `proofed-pr` workflow in `docs/proofed-delivery.md`; proof must match the current PR head and base.
 
+## Request Budget (Workers Free)
+
+The account is on Cloudflare Workers Free: each Worker invocation may make at most 50 subrequests (Planning Center calls, D1, KV, and service-binding calls all count), and Planning Center allows 100 requests per 20 seconds per user. Design within these limits; see `docs/research/planning-center-rate-limits.md`.
+
+- Keep each oRPC procedure well under the cap. Split heavy screens into several small procedures the browser calls progressively (for example, list first, then details in batches) instead of one call that fans out.
+- Treat the budget as explicit: when a procedure cannot finish within it, return partial data with a continuation cursor. Never swallow a subrequest or rate-limit failure into empty data.
+- Fetch less per call: prefer Planning Center `include`, filters (such as future-only blockouts), and a person's own records over scanning every roster. Cache slow-changing data (past plans, service types) longer.
+- Prefetch only on clear intent (click, or a debounced hover); never run Planning Center fan-out on incidental pointer movement.
+- Log per-procedure request counts, rate-limit pauses, and 429s at `info` so Workers Logs shows which screens approach the limits.
+
 ## Architecture Notes
 
 - Preferred flow: `apps/web` -> oRPC contract -> `apps/server` -> `packages/api/src/transport/orpc/*` -> Effect application program -> `packages/api/src/modules/*` -> service adapter.
