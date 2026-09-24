@@ -145,7 +145,7 @@ export const createPostHogActivityForwarder = ({
 export const forwardActivityEventToPostHog = createPostHogActivityForwarder({
   apiKey:
     process.env.APP_ENV === "production"
-      ? process.env.NEXT_PUBLIC_POSTHOG_KEY
+      ? process.env.POSTHOG_PROJECT_KEY
       : undefined,
   fetch: globalThis.fetch,
 });

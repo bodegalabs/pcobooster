@@ -11,7 +11,6 @@
     "dev": "infisical run --env=dev --path=/ --path=/local -- bun run scripts/cloudflare/dev.ts",
     "dev:present": "infisical run --env=dev --path=/ --path=/local -- env PRESENTATION_MODE=1 bun run scripts/cloudflare/dev.ts",
     "build": "turbo run build",
-    "build:web": "turbo run build --filter=@pcobooster/web...",
     "start": "bun run dev",
     "lint": "bun run check",
     "lint:fix": "bun run fix",
@@ -31,9 +30,8 @@
     "ci": "bun run check && bun run typecheck && bun run test",
     "proof": "bun run scripts/verification/proof.ts",
     "verification:create": "bun run scripts/verification/create-verification-skill.ts",
-    "dev:marketing": "turbo run dev --filter=@pcobooster/marketing",
-    "build:admin": "turbo run build --filter=@pcobooster/admin...",
-    "build:marketing": "turbo run build --filter=@pcobooster/marketing && bun run scripts/stage-marketing.ts",
+    "dev:marketing": "bun run --cwd apps/marketing dev",
+    "build:marketing": "turbo run build --filter=@pcobooster/marketing",
     "cloud:run": "bash scripts/codex-cloud/with-infisical.sh",
     "cloud:dev": "bash scripts/codex-cloud/with-infisical.sh bun run scripts/cloudflare/dev.ts",
     "cloud:build": "bash scripts/codex-cloud/with-infisical.sh bun run build",
@@ -45,7 +43,7 @@
     "posthog:deploy": "infisical run --env=prod --path=/ --path=/posthog --projectId=2eca20e1-20ac-4f06-a086-99ea5c590483 -- env CLOUDFLARE_ACCOUNT_ID=984b82870acd18daf8bda97bad966b38 bun alchemy deploy alchemy.posthog.ts --stage prod",
     "db:rehearse": "infisical run --env=prod --path=/ -- bun run scripts/database/migrate-from-postgres.ts --local",
     "alchemy": "node --import ./node_modules/alchemy/bin/register-oxc.js ./node_modules/alchemy/bin/alchemy.js",
-    "build:cloudflare": "bun run build:marketing && bun run --cwd apps/web build && bun run --cwd apps/admin build"
+    "build:cloudflare": "turbo run build --filter=@pcobooster/web --filter=@pcobooster/admin"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",

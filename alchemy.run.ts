@@ -23,9 +23,7 @@ const productionSecrets = (production: boolean) => ({
   DEMO_PLANNING_CENTER_PAT: production
     ? optionalSecret("DEMO_PLANNING_CENTER_PAT")
     : "",
-  NEXT_PUBLIC_POSTHOG_KEY: production
-    ? optionalSecret("NEXT_PUBLIC_POSTHOG_KEY")
-    : "",
+  POSTHOG_PROJECT_KEY: production ? optionalSecret("POSTHOG_PROJECT_KEY") : "",
 });
 
 const developmentSecrets = (local: boolean) => ({

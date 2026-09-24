@@ -33,9 +33,8 @@ const runBunScript = async (args: readonly string[]): Promise<void> => {
 
 /**
  * `/` and `/about` serve the prerendered marketing site from `public/marketing`, which Vite
- * copies into the uploaded client assets. Standalone builds stage the marketing build that
- * Turborepo (or `build:cloudflare`) already ran. Alchemy has no pre-build hook, so its builds
- * build marketing first.
+ * copies into the uploaded client assets. Turborepo builds marketing before a standalone
+ * product build; Alchemy has no pre-build hook, so its builds run the marketing build first.
  */
 const stageMarketingSite = (): Plugin => ({
   name: "pcobooster:stage-marketing",
@@ -43,28 +42,25 @@ const stageMarketingSite = (): Plugin => ({
   buildApp: {
     order: "pre",
     handler: async () => {
-      await runBunScript(
-        alchemyInjected
-          ? ["run", "build:marketing"]
-          : ["run", "scripts/stage-marketing.ts"]
-      );
+      if (alchemyInjected) {
+        await runBunScript(["run", "build:marketing"]);
+      }
+      await runBunScript(["run", "scripts/stage-marketing.ts"]);
     },
   },
 });
 
 /** Public values inlined into both the server and browser bundles. */
 const publicDefines = (devServer: boolean) => ({
-  // Infisical still stores these under their Next.js names; a `VITE_*` value wins.
+  // The API reads the same Infisical keys at runtime.
   "import.meta.env.VITE_POSTHOG_KEY": JSON.stringify(
-    process.env.VITE_POSTHOG_KEY ?? process.env.NEXT_PUBLIC_POSTHOG_KEY ?? ""
+    process.env.POSTHOG_PROJECT_KEY ?? ""
   ),
   "import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE": JSON.stringify(
-    process.env.VITE_PLANNING_CENTER_TIME_ZONE ??
-      process.env.NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE ??
-      ""
+    process.env.PLANNING_CENTER_TIME_ZONE ?? ""
   ),
-  // Build-time settings, as they were under Next.js: `bun run dev:present` sets presentation
-  // mode for the dev server, and deployed builds are always live.
+  // `bun run dev:present` sets presentation mode for the dev server; deployed builds are
+  // always live.
   "import.meta.env.VITE_PEOPLE_PAGE_ENABLED": JSON.stringify(
     resolvePeoplePageAvailability(process.env.PEOPLE_PAGE_ENABLED, devServer)
   ),

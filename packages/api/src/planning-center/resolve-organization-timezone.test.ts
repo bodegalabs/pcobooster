@@ -1,6 +1,6 @@
 import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const organization = (timeZone: string): PCResource => ({
   type: "Organization",
@@ -9,6 +9,10 @@ const organization = (timeZone: string): PCResource => ({
 });
 
 describe(resolveOrganizationTimeZone, () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("uses the explicit service and cache scope for converted requests", async () => {
     const firstCatalog = {
       getOrganization: vi
@@ -34,4 +38,27 @@ describe(resolveOrganizationTimeZone, () => {
       })
     ).resolves.toBe("America/New_York");
   });
+
+  it.each([
+    ["America/Denver", "America/Denver"],
+    ["", "America/Los_Angeles"],
+    [undefined, "America/Los_Angeles"],
+  ])(
+    "falls back to PLANNING_CENTER_TIME_ZONE=%j as %s without an org zone",
+    async (configured, expected) => {
+      vi.stubEnv("PLANNING_CENTER_TIME_ZONE", configured);
+      const catalogService = {
+        getOrganization: vi
+          .fn<() => Promise<PCResource>>()
+          .mockRejectedValue(new Error("unavailable")),
+      };
+
+      await expect(
+        resolveOrganizationTimeZone({
+          catalogService,
+          cacheScope: `fallback-${String(configured)}`,
+        })
+      ).resolves.toBe(expected);
+    }
+  );
 });
