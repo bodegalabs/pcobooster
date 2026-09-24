@@ -230,7 +230,16 @@ export const presentPlanWindowHistory = (
   presentationMode: boolean
 ): PlanWindowHistoryBatch =>
   presentationMode
-    ? { ...batch, people: batch.people.map(maskCandidateHistory) }
+    ? {
+        ...batch,
+        people: batch.people.map((person) => ({
+          ...person,
+          rows: person.rows.map((row) => ({
+            ...row,
+            declineReason: maskDeclineReason(row.declineReason),
+          })),
+        })),
+      }
     : batch;
 
 export const presentCandidateDetails = (

@@ -9,6 +9,7 @@
     "./candidate-frequency": "./src/candidate-frequency.ts",
     "./candidate-scoring": "./src/candidate-scoring.ts",
     "./json": "./src/json.ts",
+    "./plan-window-history": "./src/plan-window-history.ts",
     "./position-candidates": "./src/position-candidates.ts",
     "./schedule-constants": "./src/schedule-constants.ts",
     "./types": "./src/types.ts"

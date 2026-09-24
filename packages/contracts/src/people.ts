@@ -35,7 +35,6 @@ export const peoplePositionCandidatesInputSchema = z.object({
 const planDateSchema = z.iso.datetime({ offset: true });
 
 export const peoplePlanWindowHistoryInputSchema = z.object({
-  planId: z.string().trim().min(1),
   date: planDateSchema,
   /** Where the previous call stopped; omit on the first call. */
   continuation: z

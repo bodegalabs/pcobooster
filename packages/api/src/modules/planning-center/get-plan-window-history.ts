@@ -4,12 +4,10 @@ import {
   pagesFor,
   requestsSpent,
 } from "@pcobooster/api/modules/planning-center/candidate-request-budget";
-import { mapPlanPeopleToServiceHistory } from "@pcobooster/api/modules/planning-center/people/history";
 import {
   planPersonResourceSchema,
   planTimeResourceSchema,
 } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
-import { selectedPlanAssignmentsFor } from "@pcobooster/api/modules/planning-center/people/selected-plan-assignments";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
@@ -23,8 +21,13 @@ import {
 import {
   isNonEmptyString,
   isNumber,
+  isString,
 } from "@pcobooster/planning-center-models/json";
-import type { CandidateHistory } from "@pcobooster/planning-center-models/position-candidates";
+import type {
+  PlanWindowRosters,
+  WindowPlanSummary,
+  WindowRosterRow,
+} from "@pcobooster/planning-center-models/plan-window-history";
 import { PLAN_HISTORY_HALF_RANGE_DAYS } from "@pcobooster/planning-center-models/schedule-constants";
 import type {
   PCResource,
@@ -61,16 +64,10 @@ export interface WindowPlanRef {
   readonly planId: string;
 }
 
-export interface PlanWindowHistoryPerson extends CandidateHistory {
-  personId: string;
-}
-
-export interface PlanWindowHistoryBatch {
+export interface PlanWindowHistoryBatch extends PlanWindowRosters {
   generatedAt: string;
   /** Plans whose rosters this call read, including plans with no one scheduled. */
   loadedPlanCount: number;
-  /** History for everyone on a loaded roster; people with none are left out. */
-  people: PlanWindowHistoryPerson[];
   /** Listed plans whose rosters are left for the next call, in window order. */
   deferredPlans: WindowPlanRef[];
   /** Service types whose plans are not listed yet; they come after `deferredPlans`. */
@@ -85,8 +82,6 @@ export interface PlanWindowHistoryBatch {
 }
 
 export interface PlanWindowHistoryInput {
-  /** The selected plan, whose assignments come back for slot matching. */
-  readonly planId: string;
   /** The selected plan's sort instant; the window spans 28 days either side. */
   readonly date: string;
   /** Where the previous call stopped; omit on the first call. */
@@ -250,47 +245,103 @@ const loadWindowRoster = (
   );
 };
 
-/** Everyone's history rows from the loaded rosters, in window order. */
-const buildHistory = (
+const relatedIds = (
+  relationship: { data?: { id: string } | { id: string }[] | null } | undefined
+): string[] => {
+  const data = relationship?.data;
+  if (!data) {
+    return [];
+  }
+  return Array.isArray(data) ? data.map(({ id }) => id) : [data.id];
+};
+
+const toRosterRow = (member: RawPlanPerson): WindowRosterRow => {
+  const declineReason = member.attributes.decline_reason;
+  return {
+    id: member.id,
+    planId: member.relationships?.plan?.data?.id ?? null,
+    teamId: member.relationships?.team?.data?.id ?? null,
+    teamPositionName: member.attributes.team_position_name,
+    status: member.attributes.status,
+    createdAt: member.attributes.created_at,
+    timeIds: relatedIds(member.relationships?.times),
+    serviceTimeIds: relatedIds(member.relationships?.service_times),
+    declineReason:
+      isString(declineReason) && declineReason.trim().length > 0
+        ? declineReason.trim()
+        : null,
+  };
+};
+
+/** A plan's title, date, and service type name, as history items show them. */
+const toPlanSummary = (
+  plan: PCResource,
+  historyIncluded: readonly PCResource[]
+): WindowPlanSummary => {
+  const [serviceTypeId] = relatedIds(plan.relationships?.service_type);
+  const serviceType = isNonEmptyString(serviceTypeId)
+    ? historyIncluded.find(
+        ({ type, id }) => type === "ServiceType" && id === serviceTypeId
+      )
+    : undefined;
+  const { title, sort_date: sortDate } = plan.attributes;
+  const serviceTypeName = serviceType?.attributes.name;
+  return {
+    id: plan.id,
+    title: isString(title) ? title : null,
+    sortDate: isString(sortDate) ? sortDate : null,
+    serviceTypeName: isString(serviceTypeName) ? serviceTypeName : null,
+  };
+};
+
+/**
+ * Everyone's roster rows from the loaded rosters, in window order, with the plans and times
+ * those rows point at.
+ */
+const buildRosters = (
   activeServiceTypes: readonly PCResource[],
-  loadedPlans: readonly LoadedPlan[],
-  planId: string
-): PlanWindowHistoryPerson[] => {
+  loadedPlans: readonly LoadedPlan[]
+): PlanWindowRosters => {
   const historyIncluded: PCResource[] = [];
   const seen = new Set<string>();
   appendIncludedResources(historyIncluded, seen, activeServiceTypes);
-  const planTimeById = new Map<string, RawPlanTime>();
-  const assignmentsByPersonId = new Map<string, RawPlanPerson[]>();
+  const rowsByPersonId = new Map<string, WindowRosterRow[]>();
+  const planIds = new Set<string>();
   for (const loadedPlan of loadedPlans) {
     appendIncludedResources(historyIncluded, seen, loadedPlan.included);
-    for (const planTime of loadedPlan.planTimes) {
-      planTimeById.set(planTime.id, planTime);
-    }
     for (const member of loadedPlan.members) {
       const personId = member.relationships?.person?.data?.id;
       if (!isNonEmptyString(personId)) {
         continue;
       }
-      const assignments = assignmentsByPersonId.get(personId) ?? [];
-      assignments.push(member);
-      assignmentsByPersonId.set(personId, assignments);
+      const row = toRosterRow(member);
+      if (row.planId !== null) {
+        planIds.add(row.planId);
+      }
+      const rows = rowsByPersonId.get(personId) ?? [];
+      rows.push(row);
+      rowsByPersonId.set(personId, rows);
     }
   }
-
-  return [...assignmentsByPersonId].flatMap(([personId, assignments]) => {
-    const serviceHistory = mapPlanPeopleToServiceHistory(
-      assignments,
-      historyIncluded,
-      planTimeById
-    );
-    const selectedPlanAssignments = selectedPlanAssignmentsFor(
-      assignments,
-      planId
-    );
-    return serviceHistory.length === 0 && selectedPlanAssignments.length === 0
-      ? []
-      : [{ personId, serviceHistory, selectedPlanAssignments }];
-  });
+  const plans = historyIncluded.flatMap((resource) =>
+    resource.type === "Plan" && planIds.has(resource.id)
+      ? [toPlanSummary(resource, historyIncluded)]
+      : []
+  );
+  return {
+    plans,
+    planTimes: loadedPlans.flatMap(({ planTimes }) =>
+      planTimes.map(({ id, attributes }) => ({
+        id,
+        startsAt: attributes.starts_at ?? null,
+        timeType: attributes.time_type ?? null,
+      }))
+    ),
+    people: [...rowsByPersonId].map(([personId, rows]) => ({
+      personId,
+      rows,
+    })),
+  };
 };
 
 const serviceTypeIdsOf = (plans: readonly WindowPlanRef[]): string[] => [
@@ -309,7 +360,7 @@ const serviceTypeIdsOf = (plans: readonly WindowPlanRef[]): string[] => [
  * the call.
  */
 export const getPlanWindowHistory = (
-  { planId, date, continuation }: PlanWindowHistoryInput,
+  { date, continuation }: PlanWindowHistoryInput,
   { catalog, people, plans, resolveTimeZone }: PlanWindowHistoryDependencies
 ): Effect.Effect<PlanWindowHistoryBatch, PlanningCenterError> =>
   Effect.gen(function* readPlanWindowHistory() {
@@ -441,7 +492,7 @@ export const getPlanWindowHistory = (
     const batch: PlanWindowHistoryBatch = {
       generatedAt: new Date().toISOString(),
       loadedPlanCount: loadedPlans.length,
-      people: buildHistory(activeServiceTypes, loadedPlans, planId),
+      ...buildRosters(activeServiceTypes, loadedPlans),
       deferredPlans: [
         ...windowPlans.slice(admittedCount).map(({ serviceTypeId, plan }) => ({
           serviceTypeId,
@@ -463,7 +514,7 @@ export const getPlanWindowHistory = (
         loadedPlanCount: batch.loadedPlanCount,
         deferredPlanCount: batch.deferredPlans.length,
         deferredServiceTypeCount: batch.deferredServiceTypeIds.length,
-        historyPeopleCount: batch.people.length,
+        rosterPeopleCount: batch.people.length,
       },
       "Plan window history read"
     );

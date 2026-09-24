@@ -2,14 +2,15 @@ import { getCandidateDetails } from "@pcobooster/api/modules/planning-center/get
 import type { CandidateDetail } from "@pcobooster/api/modules/planning-center/get-candidate-details";
 import { getPeopleForPosition } from "@pcobooster/api/modules/planning-center/get-people-for-position";
 import { getPlanWindowHistory } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
+import type { PlanWindowHistoryBatch } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
 import { getPositionCandidates } from "@pcobooster/api/modules/planning-center/get-position-candidates";
 import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
+import { expandPlanWindowHistory } from "@pcobooster/planning-center-models/plan-window-history";
 import {
   assemblePositionCandidates,
   EMPTY_CANDIDATE_HISTORY,
 } from "@pcobooster/planning-center-models/position-candidates";
-import type { CandidateHistory } from "@pcobooster/planning-center-models/position-candidates";
 import type {
   PCResource,
   PersonWithAvailability,
@@ -735,54 +736,31 @@ type HistoryContinuation = Parameters<
   typeof getPlanWindowHistory
 >[0]["continuation"];
 
-/** Follows plan-window continuations, keeping rows in call order as the browser does. */
+/** Follows plan-window continuations; the browser expands the calls in order. */
 const loadWindowHistory = async (
   org: Org,
   spent: number,
   progress: Progress,
-  continuation: HistoryContinuation,
-  history: Map<string, CandidateHistory>
-): Promise<number> => {
+  continuation?: HistoryContinuation
+): Promise<PlanWindowHistoryBatch[]> => {
   const batch = await runWithSpent(
-    getPlanWindowHistory(
-      { planId: PLAN_ID, date: PLAN_DATE, continuation },
-      org
-    ),
+    getPlanWindowHistory({ date: PLAN_DATE, continuation }, org),
     spent
   );
   progress.calls += 1;
-  for (const { personId, ...rows } of batch.people) {
-    const existing = history.get(personId);
-    history.set(personId, {
-      serviceHistory: [
-        ...(existing?.serviceHistory ?? []),
-        ...rows.serviceHistory,
-      ],
-      selectedPlanAssignments: [
-        ...(existing?.selectedPlanAssignments ?? []),
-        ...rows.selectedPlanAssignments,
-      ],
-    });
-  }
   if (
     batch.deferredPlans.length === 0 &&
     batch.deferredServiceTypeIds.length === 0
   ) {
-    return batch.loadedPlanCount;
+    return [batch];
   }
-  return (
-    batch.loadedPlanCount +
-    (await loadWindowHistory(
-      org,
-      spent,
-      progress,
-      {
-        plans: batch.deferredPlans,
-        serviceTypeIds: batch.deferredServiceTypeIds,
-      },
-      history
-    ))
-  );
+  return [
+    batch,
+    ...(await loadWindowHistory(org, spent, progress, {
+      plans: batch.deferredPlans,
+      serviceTypeIds: batch.deferredServiceTypeIds,
+    })),
+  ];
 };
 
 /** Follows `deferredPersonIds` for one batch of candidates. */
@@ -826,15 +804,11 @@ const loadProgressively = async (
 ): Promise<{ people: PersonWithAvailability[]; calls: number }> => {
   const progress: Progress = { calls: 1 };
   const candidates = await Effect.runPromise(getPositionCandidates(input, org));
-  const windowHistory = new Map<string, CandidateHistory>();
-  const loadedPlanCount = await loadWindowHistory(
-    org,
-    spent,
-    progress,
-    undefined,
-    windowHistory
+  const windowCalls = await loadWindowHistory(org, spent, progress);
+  const windowHistory = expandPlanWindowHistory(windowCalls, PLAN_ID);
+  const scheduleHistory = windowCalls.every(
+    ({ loadedPlanCount }) => loadedPlanCount === 0
   );
-  const scheduleHistory = loadedPlanCount === 0;
   const candidateIds = candidates.candidates.map(({ id }) => id);
   const batches: string[][] = [];
   for (let start = 0; start < candidateIds.length; start += BATCH_SIZE) {

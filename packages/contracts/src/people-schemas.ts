@@ -122,11 +122,41 @@ export const windowPlanRefSchema = z.object({
   planId: z.string().trim().min(1),
 });
 
+export const windowPlanSummarySchema = z.object({
+  id: z.string(),
+  title: z.string().nullable(),
+  sortDate: z.string().nullable(),
+  serviceTypeName: z.string().nullable(),
+});
+
+export const windowPlanTimeSchema = z.object({
+  id: z.string(),
+  startsAt: z.string().nullable(),
+  timeType: z.string().nullable(),
+});
+
+export const windowRosterRowSchema = z.object({
+  id: z.string(),
+  planId: z.string().nullable(),
+  teamId: z.string().nullable(),
+  teamPositionName: z.string(),
+  status: z.string(),
+  createdAt: z.string(),
+  timeIds: z.array(z.string()),
+  serviceTimeIds: z.array(z.string()),
+  declineReason: z.string().nullable(),
+});
+
 export const planWindowHistoryBatchSchema = z.object({
   generatedAt: z.string(),
   /** Rosters read by this call, including plans with no one scheduled. */
   loadedPlanCount: z.number(),
-  people: z.array(candidateHistorySchema.extend({ personId: z.string() })),
+  /** Plans and times the rows point at; the browser expands rows into history items. */
+  plans: z.array(windowPlanSummarySchema),
+  planTimes: z.array(windowPlanTimeSchema),
+  people: z.array(
+    z.object({ personId: z.string(), rows: z.array(windowRosterRowSchema) })
+  ),
   /** Listed plans left for a follow-up call, in window order. */
   deferredPlans: z.array(windowPlanRefSchema),
   /** Service types not listed yet; their plans follow `deferredPlans`. */
