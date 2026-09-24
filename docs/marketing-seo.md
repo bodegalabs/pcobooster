@@ -7,7 +7,7 @@ The public marketing pages are `/` and `/about`. The prerendered TanStack Start 
 - Root `robots.txt` and `sitemap.xml` are served publicly. The sitemap lists only the two canonical marketing URLs. The exported HTML copies under `/marketing/` are excluded from crawling.
 - Each page has its own canonical URL, descriptive title and description, Open Graph URL and image, and large image social card. The source SVGs and raster PNGs are under `apps/marketing/public/`.
 - The home page identifies the site as `PCOBooster` with `WebSite` JSON-LD. The sign-in page is marked `noindex`.
-- Marketing TypeScript and TSX copy rejects em and en dashes through `bun run check`.
+- All tracked repository text rejects em and en dashes through `bun run check`.
 
 ## Release checks
 

@@ -33,27 +33,30 @@ describe(pageHead, () => {
   it.each([
     ["/", "https://pcobooster.com", "og-home.png"],
     ["/about", "https://pcobooster.com/about", "og-about.png"],
-  ] as const)("gives %s a distinct canonical and sharing image", (pathname, url, image) => {
-    const head = pageHead({
-      title: pathname === "/about" ? "Our story" : undefined,
-      description: "Page description",
-      pathname,
-    });
-    expect(head.links).toContainEqual({ rel: "canonical", href: url });
-    expect(head.meta).toContainEqual({ property: "og:url", content: url });
-    expect(head.meta).toContainEqual({
-      property: "og:image",
-      content: `https://pcobooster.com/marketing/${image}`,
-    });
-    expect(head.meta).toContainEqual({
-      name: "twitter:card",
-      content: "summary_large_image",
-    });
-    expect(head.meta).toContainEqual({
-      name: "description",
-      content: "Page description",
-    });
-  });
+  ] as const)(
+    "gives %s a distinct canonical and sharing image",
+    (pathname, url, image) => {
+      const head = pageHead({
+        title: pathname === "/about" ? "Our story" : undefined,
+        description: "Page description",
+        pathname,
+      });
+      expect(head.links).toContainEqual({ rel: "canonical", href: url });
+      expect(head.meta).toContainEqual({ property: "og:url", content: url });
+      expect(head.meta).toContainEqual({
+        property: "og:image",
+        content: `https://pcobooster.com/marketing/${image}`,
+      });
+      expect(head.meta).toContainEqual({
+        name: "twitter:card",
+        content: "summary_large_image",
+      });
+      expect(head.meta).toContainEqual({
+        name: "description",
+        content: "Page description",
+      });
+    }
+  );
 });
 
 describe(siteHead, () => {
