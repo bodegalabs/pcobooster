@@ -1,5 +1,5 @@
 import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
-import { auth } from "@pcobooster/api/auth";
+import type { Auth } from "@pcobooster/api/auth";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 
 interface PlanningCenterAccountSelector {
@@ -7,7 +7,7 @@ interface PlanningCenterAccountSelector {
   accountId: string;
 }
 
-interface TokenApi {
+export interface TokenApi {
   getAccessToken: (
     headers: Headers,
     accountId: string
@@ -18,7 +18,7 @@ interface TokenApi {
   ) => Promise<{ accessToken?: string; scope?: string | null }>;
 }
 
-const authTokenApi: TokenApi = {
+export const createAuthTokenApi = (auth: Auth): TokenApi => ({
   getAccessToken: async (headers, accountId) =>
     await auth.api.getAccessToken({
       headers,
@@ -29,12 +29,12 @@ const authTokenApi: TokenApi = {
       headers,
       body: { accountId },
     }),
-};
+});
 
 export const getPlanningCenterToken = async (
   headers: Headers,
   account: PlanningCenterAccountSelector,
-  tokenApi: TokenApi = authTokenApi
+  tokenApi: TokenApi
 ): Promise<{ accessToken: string; scopes: string[] }> => {
   // Better Auth 1.7 selects tokens by the local account row ID.
   const localAccountId = account.id;

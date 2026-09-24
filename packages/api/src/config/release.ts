@@ -5,6 +5,3 @@ export const resolveReleaseVersion = (configuredValue?: string): string =>
   configuredValue === undefined || configuredValue === ""
     ? unreleasedVersion
     : configuredValue;
-
-export const releaseVersion = (): string =>
-  resolveReleaseVersion(process.env.PCOBOOSTER_VERSION);

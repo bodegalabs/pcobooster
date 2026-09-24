@@ -2,8 +2,11 @@ import {
   createPlanningCenterServices,
   createBasicPlanningCenterServices,
 } from "@pcobooster/api/planning-center/services/factory";
+import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+const TIME_ZONE = "America/Los_Angeles";
 
 const resource = (id: string, type: string): PCResource => ({
   id,
@@ -12,28 +15,24 @@ const resource = (id: string, type: string): PCResource => ({
 });
 
 describe("createPlanningCenterServices shared caches", () => {
-  afterEach(() => {
-    vi.unstubAllEnvs();
-  });
-
-  it("rejects empty request credentials and requires explicit Basic services", () => {
-    expect(() => createPlanningCenterServices("")).toThrow(
+  it("rejects empty request credentials and scopes Basic services by credential", () => {
+    expect(() => createPlanningCenterServices("", TIME_ZONE)).toThrow(
       "requires a non-empty access token"
     );
-    vi.stubEnv("PLANNING_CENTER_CLIENT", "");
-    expect(() => createBasicPlanningCenterServices()).toThrow(
-      "Missing PLANNING_CENTER_CLIENT"
-    );
-    vi.stubEnv("PLANNING_CENTER_CLIENT", "client");
-    vi.stubEnv("PLANNING_CENTER_PAT", "pat");
-    expect(createBasicPlanningCenterServices().core.getCacheScope()).toMatch(
-      /^basic:/u
-    );
+    expect(
+      createBasicPlanningCenterServices(
+        testPlanningCenterToken,
+        TIME_ZONE
+      ).core.getCacheScope()
+    ).toMatch(/^basic:/u);
   });
 
   it("reuses cached reads for the same credential without leaking mutations", async () => {
-    const first = createPlanningCenterServices("shared-cache-token");
-    const second = createPlanningCenterServices("shared-cache-token");
+    const first = createPlanningCenterServices("shared-cache-token", TIME_ZONE);
+    const second = createPlanningCenterServices(
+      "shared-cache-token",
+      TIME_ZONE
+    );
     const firstLoad = vi
       .spyOn(first.catalog, "getServiceTypes")
       .mockResolvedValue([resource("first", "ServiceType")]);
@@ -51,8 +50,14 @@ describe("createPlanningCenterServices shared caches", () => {
   });
 
   it("isolates shared caches by credential scope", async () => {
-    const first = createPlanningCenterServices("isolated-cache-token-a");
-    const second = createPlanningCenterServices("isolated-cache-token-b");
+    const first = createPlanningCenterServices(
+      "isolated-cache-token-a",
+      TIME_ZONE
+    );
+    const second = createPlanningCenterServices(
+      "isolated-cache-token-b",
+      TIME_ZONE
+    );
     const firstLoad = vi
       .spyOn(first.catalog, "getServiceTypes")
       .mockResolvedValue([resource("first", "ServiceType")]);
@@ -72,8 +77,14 @@ describe("createPlanningCenterServices shared caches", () => {
   });
 
   it("invalidates another request service instance after a mutation", async () => {
-    const first = createPlanningCenterServices("mutation-cache-token");
-    const second = createPlanningCenterServices("mutation-cache-token");
+    const first = createPlanningCenterServices(
+      "mutation-cache-token",
+      TIME_ZONE
+    );
+    const second = createPlanningCenterServices(
+      "mutation-cache-token",
+      TIME_ZONE
+    );
     const load = vi
       .spyOn(first.core, "fetchAllWithIncluded")
       .mockResolvedValue({
@@ -101,8 +112,11 @@ describe("createPlanningCenterServices shared caches", () => {
 
   it("shares schedule invalidation across request-owned services", async () => {
     const accessToken = "schedule-invalidation-token";
-    const services = createPlanningCenterServices(accessToken);
-    const mutationServices = createPlanningCenterServices(accessToken);
+    const services = createPlanningCenterServices(accessToken, TIME_ZONE);
+    const mutationServices = createPlanningCenterServices(
+      accessToken,
+      TIME_ZONE
+    );
     const load = vi
       .spyOn(services.core, "fetchAllWithIncluded")
       .mockResolvedValue({

@@ -11,14 +11,13 @@ import {
   tryPlanningCenter,
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
-import {
-  demoSessionToken,
-  readDemoConfiguration,
-} from "@pcobooster/api/auth/demo-access";
+import { demoSessionToken } from "@pcobooster/api/auth/demo-access";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
 import { PlanningCenterReadOnlyError } from "@pcobooster/api/planning-center/read-only-error";
 import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import { Server } from "@pcobooster/api/server";
+import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { DEMO_SESSION_COOKIE } from "@pcobooster/contracts/demo";
 import { Cause, Effect, Exit } from "effect";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -41,18 +40,20 @@ const dependenciesFor = (
     }),
   createServices: (authentication) =>
     createPlanningCenterServices(
-      authentication.kind === "account" ? authentication.accessToken : ""
+      authentication.kind === "account" ? authentication.accessToken : "",
+      "America/Los_Angeles"
     ),
   presentationMode: () => false,
+  presentationSeed: "test-seed",
+  fallbackTimeZone: "America/Los_Angeles",
 });
 
 const resolveFor = async (accountId: string) => {
   const request = requestFor(accountId);
   return await Effect.runPromise(
-    Effect.provideService(
-      resolvePlanningCenterAccess(dependenciesFor(accountId)),
-      RequestContext,
-      createRequestContext(request)
+    resolvePlanningCenterAccess(dependenciesFor(accountId)).pipe(
+      Effect.provideService(RequestContext, createRequestContext(request)),
+      Effect.provideService(Server, testServer())
     )
   );
 };
@@ -60,7 +61,6 @@ const resolveFor = async (accountId: string) => {
 describe("PlanningCenterAccess", () => {
   afterEach(() => {
     vi.restoreAllMocks();
-    vi.unstubAllEnvs();
   });
 
   it("creates isolated request-owned services for concurrent credentials", async () => {
@@ -96,15 +96,13 @@ describe("PlanningCenterAccess", () => {
   });
 
   it("serves a demo session through read-only demo credentials", async () => {
-    const environment = {
+    const config = testServerConfig({
+      APP_ENV: "production",
       DEMO_ACCESS_KEY: "demo-access-key-for-access-tests",
       DEMO_PLANNING_CENTER_CLIENT: "demo-app",
       DEMO_PLANNING_CENTER_PAT: "demo-secret",
-    };
-    for (const [name, value] of Object.entries(environment)) {
-      vi.stubEnv(name, value);
-    }
-    const configuration = readDemoConfiguration(environment);
+    });
+    const configuration = config.demo;
     if (configuration === null) {
       throw new Error("Expected a demo configuration");
     }
@@ -116,10 +114,9 @@ describe("PlanningCenterAccess", () => {
     });
 
     const access = await Effect.runPromise(
-      Effect.provideService(
-        resolvePlanningCenterAccess(),
-        RequestContext,
-        createRequestContext(request)
+      resolvePlanningCenterAccess().pipe(
+        Effect.provideService(RequestContext, createRequestContext(request)),
+        Effect.provideService(Server, testServer({ config }))
       )
     );
 

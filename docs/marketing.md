@@ -18,7 +18,7 @@ Run `bun run build` from the repository root. It:
 
 1. Builds `apps/marketing` with `vite build`, which prerenders `/` and `/about` to `dist/client/index.html` and `dist/client/about.html` beside their `assets/`.
 2. Stages `dist/client` into the ignored, generated `apps/web/public/marketing` directory (`scripts/stage-marketing.ts`).
-3. Builds the product and Hono service.
+3. Builds the product.
 
 The product is a TanStack Start app deployed with Alchemy's `Cloudflare.Website.Vite`. Vite copies the staged files into the product's client assets, which Alchemy uploads. Alchemy's build has no pre-build hook, so a plugin in `apps/web/vite.config.ts` runs `bun run build:marketing` first when Alchemy drives the build; standalone builds stage the marketing build Turborepo already ran. The product's `/` and `/about` server routes fetch `/marketing/index.html` and `/marketing/about.html` from the `ASSETS` binding.
 

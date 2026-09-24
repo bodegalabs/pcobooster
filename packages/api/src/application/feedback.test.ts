@@ -4,6 +4,8 @@ import {
 } from "@pcobooster/api/application/context";
 import { submitUserFeedback } from "@pcobooster/api/application/feedback";
 import type { SubmitFeedbackDependencies } from "@pcobooster/api/application/feedback";
+import { Server } from "@pcobooster/api/server";
+import { testServer } from "@pcobooster/api/testing/server";
 import { Effect, Result } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
@@ -39,10 +41,9 @@ const dependencies = (author: FeedbackAuthor): SubmitFeedbackDependencies => ({
 const submit = async (deps: SubmitFeedbackDependencies) =>
   await Effect.runPromise(
     Effect.result(
-      Effect.provideService(
-        submitUserFeedback(input, deps),
-        RequestContext,
-        createRequestContext(request)
+      submitUserFeedback(input, deps).pipe(
+        Effect.provideService(RequestContext, createRequestContext(request)),
+        Effect.provideService(Server, testServer())
       )
     )
   );

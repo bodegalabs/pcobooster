@@ -1,8 +1,8 @@
-import { db } from "@pcobooster/api/db";
+import type { ServerConfig } from "@pcobooster/api/config/server-config";
 import type { Db } from "@pcobooster/api/db/client";
 import { activityEvents } from "@pcobooster/api/db/schema";
 import { logger } from "@pcobooster/api/logger";
-import { forwardActivityEventToPostHog } from "@pcobooster/api/modules/analytics/posthog-activity";
+import { createPostHogActivityForwarder } from "@pcobooster/api/modules/analytics/posthog-activity";
 import type { PostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-capture";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 
@@ -100,10 +100,15 @@ export const getActivityRequestContext = (
 };
 
 /** The database row is the audit record; PostHog delivery is best effort. */
+export interface ActivityRecorder {
+  readonly database: Db;
+  readonly config: Pick<ServerConfig, "postHogProjectKey">;
+}
+
 export const recordActivityEvent = async (
+  { database, config }: ActivityRecorder,
   input: ActivityEventInput,
-  person: PostHogPersonProperties | null = null,
-  database: Db = db
+  person: PostHogPersonProperties | null = null
 ): Promise<void> => {
   await database.insert(activityEvents).values({
     eventType: input.eventType,
@@ -125,7 +130,10 @@ export const recordActivityEvent = async (
     metadata: input.metadata ?? {},
   });
   try {
-    await forwardActivityEventToPostHog(input, person);
+    await createPostHogActivityForwarder({
+      apiKey: config.postHogProjectKey ?? undefined,
+      fetch: globalThis.fetch,
+    })(input, person);
   } catch (error) {
     analyticsLog.warn(
       { err: error, eventType: input.eventType },

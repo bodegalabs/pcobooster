@@ -14,7 +14,7 @@ This app helps teams schedule people into open positions for specific plans by c
 
 The public marketing site lives at `/`, with the origin story at `/about`. The authenticated product starts at `/services`.
 
-This is a Bun/Turborepo monorepo. The product UI lives in `apps/web`, the Cloudflare Hono API Worker lives in `apps/server`, server implementation lives in `packages/api`, browser-safe oRPC contracts live in `packages/contracts`, Planning Center models and calendar rules live in `packages/planning-center-models`, and the static marketing site lives in `apps/marketing`. See [marketing development and deployment](docs/marketing.md).
+This is a Bun/Turborepo monorepo. The product UI lives in `apps/web`, the API Worker (an Alchemy Effect-native Cloudflare Worker serving Hono) lives in `apps/server`, server implementation lives in `packages/api`, browser-safe oRPC contracts live in `packages/contracts`, Planning Center models and calendar rules live in `packages/planning-center-models`, and the static marketing site lives in `apps/marketing`. See [marketing development and deployment](docs/marketing.md).
 
 For parallel remote development, see [Codex cloud development](docs/codex-cloud.md).
 
@@ -84,7 +84,7 @@ Product operations are served through the typed oRPC transport at `/api/rpc`; it
 apps/
   web/                       # TanStack Start product UI
   admin/                     # TanStack Start admin app
-  server/                    # Hono API Worker and oRPC entrypoint
+  server/                    # API Worker (Alchemy Effect-native) serving Hono and oRPC
   marketing/                 # Prerendered TanStack Start marketing site
 packages/
   api/                       # Server-side application, auth, DB, adapters, oRPC

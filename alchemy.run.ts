@@ -5,38 +5,15 @@ import * as Cloudflare from "alchemy/Cloudflare";
 import * as Drizzle from "alchemy/Drizzle";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
 import * as State from "alchemy/State";
-import { Config, Effect, Layer, Redacted } from "effect";
+import { Config, Effect, Layer } from "effect";
 
+import { Database } from "./apps/server/src/database";
+import { currentStageSettings } from "./apps/server/src/stage";
+import Api from "./apps/server/src/worker";
 import { prepareCloudflareBuild } from "./scripts/cloudflare/prepare";
-
-const optionalSecret = (name: string) =>
-  Config.Redacted(name).pipe(Config.withDefault(Redacted.make("")));
 
 const canAttachDomains = (production: boolean) =>
   production && process.env.CLOUDFLARE_CUSTOM_DOMAINS === "1";
-
-const productionSecrets = (production: boolean) => ({
-  DEMO_ACCESS_KEY: production ? optionalSecret("DEMO_ACCESS_KEY") : "",
-  DEMO_PLANNING_CENTER_CLIENT: production
-    ? optionalSecret("DEMO_PLANNING_CENTER_CLIENT")
-    : "",
-  DEMO_PLANNING_CENTER_PAT: production
-    ? optionalSecret("DEMO_PLANNING_CENTER_PAT")
-    : "",
-  POSTHOG_PROJECT_KEY: production ? optionalSecret("POSTHOG_PROJECT_KEY") : "",
-});
-
-const developmentSecrets = (local: boolean) => ({
-  DEV_AUTH_BYPASS: local
-    ? Config.String("DEV_AUTH_BYPASS").pipe(Config.withDefault(""))
-    : "",
-  PLANNING_CENTER_CLIENT: local ? optionalSecret("PLANNING_CENTER_CLIENT") : "",
-  PLANNING_CENTER_PAT: local ? optionalSecret("PLANNING_CENTER_PAT") : "",
-  PRESENTATION_MODE: local
-    ? Config.String("PRESENTATION_MODE").pipe(Config.withDefault(""))
-    : "",
-  PRESENTATION_SEED: local ? optionalSecret("PRESENTATION_SEED") : "",
-});
 
 export default Alchemy.Stack(
   "pcobooster",
@@ -51,25 +28,12 @@ export default Alchemy.Stack(
     ),
   },
   Effect.gen(function* infrastructure() {
-    const stage = yield* Alchemy.Stage;
-    const production = stage === "prod";
-    const local = stage === "local";
-    if (!/^(?:prod|local|pr-\d+)$/u.test(stage)) {
-      return yield* Effect.die(
-        new Error(`Unsupported deployment stage: ${stage}`)
-      );
-    }
+    const { stage, production, local, publicOrigin } =
+      yield* currentStageSettings;
     process.env.ADMIN_BASE_PATH = production ? "" : "/admin";
     yield* Effect.promise(async () => {
       await prepareCloudflareBuild(stage);
     });
-    const workersSubdomain = yield* Config.String(
-      "CLOUDFLARE_WORKERS_SUBDOMAIN"
-    ).pipe(Config.withDefault("jakebodea"));
-    const productOrigin = local
-      ? "http://127.0.0.1:3001"
-      : `https://pcobooster-${stage}-web.${workersSubdomain}.workers.dev`;
-    const publicOrigin = production ? "https://pcobooster.com" : productOrigin;
     const attachDomains = canAttachDomains(production);
     const zone = production
       ? yield* Cloudflare.Zone.Zone("Zone", {
@@ -91,60 +55,9 @@ export default Alchemy.Stack(
         });
       }
     }
-    // Production keeps its Infisical secret so existing sessions stay valid; each preview mints
-    // its own, stored in Alchemy state and discarded with the stage.
-    const authSecret =
-      production || local
-        ? yield* Config.Redacted("BETTER_AUTH_SECRET")
-        : yield* Alchemy.makeRandom("BetterAuthSecret");
-    // Regenerates migration SQL when the schema drifts; the database applies it on deploy.
-    const schema = yield* Drizzle.Schema("Schema", {
-      schema: "./packages/api/src/db/schema.ts",
-      out: "./packages/api/migrations",
-      dialect: "sqlite",
-    });
-    const database = yield* Cloudflare.D1.Database("Database", {
-      name: `pcobooster-${stage}`,
-      primaryLocationHint: "wnam",
-      migrations: schema,
-    }).pipe(RemovalPolicy.retain(production));
-
-    const api = yield* Cloudflare.Worker("Api", {
-      name: `pcobooster-${stage}-api`,
-      main: "./apps/server/src/index.ts",
-      workersDev: false,
-      compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
-      dev: { host: "127.0.0.1", port: 3000, strictPort: true },
-      env: {
-        DB: database,
-        NODE_ENV: local ? "development" : "production",
-        APP_ENV: production ? "production" : "preview",
-        // CI deploys the checked-out commit; post-deploy verification expects it from health.
-        PCOBOOSTER_VERSION: Config.String("GITHUB_SHA").pipe(
-          Config.withDefault("")
-        ),
-        BETTER_AUTH_URL: publicOrigin,
-        CORS_ORIGIN: publicOrigin,
-        AUTH_COOKIE_DOMAIN: production ? "pcobooster.com" : "",
-        OAUTH_PROXY_SECRET: local ? "" : optionalSecret("OAUTH_PROXY_SECRET"),
-        OAUTH_PROXY_PRODUCTION_URL: local ? "" : "https://pcobooster.com",
-        OAUTH_PREVIEW_ORIGIN_PATTERN: `https://pcobooster-*-web.${workersSubdomain}.workers.dev`,
-        BETTER_AUTH_SECRET: authSecret,
-        PLANNING_CENTER_OAUTH_CLIENT_ID: Config.Redacted(
-          "PLANNING_CENTER_OAUTH_CLIENT_ID"
-        ),
-        PLANNING_CENTER_OAUTH_CLIENT_SECRET: Config.Redacted(
-          "PLANNING_CENTER_OAUTH_CLIENT_SECRET"
-        ),
-        PCOBOOSTER_ADMIN_EMAILS: Config.Redacted("PCOBOOSTER_ADMIN_EMAILS"),
-        PEOPLE_PAGE_ENABLED: Config.String("PEOPLE_PAGE_ENABLED"),
-        ...productionSecrets(production),
-        ...developmentSecrets(local),
-        PLANNING_CENTER_TIME_ZONE: Config.String(
-          "PLANNING_CENTER_TIME_ZONE"
-        ).pipe(Config.withDefault("America/Los_Angeles")),
-      },
-    });
+    const database = yield* Database;
+    // Effect-native: it reads its own settings and binds the database (`apps/server/src/worker.ts`).
+    const api = yield* Api;
     // TanStack Start; its Vite `base` (and router basepath) come from ADMIN_BASE_PATH above.
     const admin = yield* Cloudflare.Website.Vite("Admin", {
       name: `pcobooster-${stage}-admin`,
@@ -203,7 +116,9 @@ export default Alchemy.Stack(
         ADMIN: admin,
         PRODUCT_ORIGIN: publicOrigin,
         // Local stage only, like the API's; production builds ignore it regardless.
-        DEV_AUTH_BYPASS: developmentSecrets(local).DEV_AUTH_BYPASS,
+        DEV_AUTH_BYPASS: local
+          ? Config.String("DEV_AUTH_BYPASS").pipe(Config.withDefault(""))
+          : "",
       },
     });
     return {

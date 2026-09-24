@@ -8,6 +8,7 @@ import {
   user,
 } from "@pcobooster/api/db/schema";
 import { getAccountActivity } from "@pcobooster/api/modules/admin/get-account-activity";
+import { testServerConfig } from "@pcobooster/api/testing/server";
 import { makeSignature } from "better-auth/crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -112,7 +113,7 @@ describe("D1 persistence", () => {
   });
 
   it("initializes Better Auth with D1 and safely handles an unsigned request", async () => {
-    const auth = createAuth(database);
+    const auth = createAuth(testServerConfig(), database);
     const response = await auth.handler(
       new Request("http://localhost:3000/api/auth/get-session")
     );
@@ -125,7 +126,7 @@ describe("D1 persistence", () => {
       "test-session-token",
       "pcobooster-unit-test-secret-with-no-production-access"
     );
-    const auth = createAuth(database);
+    const auth = createAuth(testServerConfig(), database);
     const response = await auth.handler(
       new Request("http://localhost:3000/api/auth/get-session", {
         headers: {

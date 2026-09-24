@@ -1,8 +1,6 @@
 import { logger } from "@pcobooster/api/logger";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterCoreClient } from "@pcobooster/api/planning-center/core-client";
-import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
-import { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import {
   PlanningCenterReadCache,
   stableParams,
@@ -76,14 +74,7 @@ export class PlanningCenterPlansService {
 
   constructor(
     core: PlanningCenterCoreClient,
-    resolveTimeZone: (signal?: AbortSignal) => Promise<string> = async (
-      signal
-    ) =>
-      await resolveOrganizationTimeZone({
-        catalogService: new PlanningCenterCatalogService(core),
-        cacheScope: core.getCacheScope(),
-        signal,
-      }),
+    resolveTimeZone: (signal?: AbortSignal) => Promise<string>,
     caches: PlanningCenterPlansServiceCaches = createPlanningCenterPlansServiceCaches()
   ) {
     this.core = core;

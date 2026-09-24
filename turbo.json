@@ -19,12 +19,6 @@
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": ["dist/**"]
     },
-    "@pcobooster/server#build": {
-      "dependsOn": ["^build"],
-      "env": ["NODE_ENV"],
-      "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": ["dist/**"]
-    },
     "@pcobooster/web#build": {
       "dependsOn": ["^build"],
       "env": [

@@ -1,8 +1,12 @@
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
 import { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
+import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it, vi } from "vitest";
+
+const resolveTimeZone = async () =>
+  await Promise.resolve("America/Los_Angeles");
 
 const planResource = (id: string, sortDate: string): PCResource => ({
   id,
@@ -14,7 +18,7 @@ const planResource = (id: string, sortDate: string): PCResource => ({
 
 describe("PlanningCenterPlansService.getPlansWithIncludedInDateRange", () => {
   it("caches range reads and returns mutation-safe copies", async () => {
-    const core = createBasicPlanningCenterClient();
+    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
     const fetchAllWithIncluded = vi
       .spyOn(core, "fetchAllWithIncluded")
       .mockResolvedValue({
@@ -33,10 +37,7 @@ describe("PlanningCenterPlansService.getPlansWithIncludedInDateRange", () => {
           },
         ],
       });
-    const service = new PlanningCenterPlansService(
-      core,
-      async () => await Promise.resolve("America/Los_Angeles")
-    );
+    const service = new PlanningCenterPlansService(core, resolveTimeZone);
 
     const first = await service.getPlansWithIncludedInDateRange(
       "st-1",
@@ -64,7 +65,7 @@ describe("PlanningCenterPlansService.getPlansWithIncludedInDateRange", () => {
 
 describe("PlanningCenterPlansService plan times", () => {
   it("fetches plan times through the service-type plan endpoint and returns cache-safe copies", async () => {
-    const core = createBasicPlanningCenterClient();
+    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
     const fetchAll = vi.spyOn(core, "fetchAll").mockResolvedValue([
       {
         id: "time-1",
@@ -72,7 +73,7 @@ describe("PlanningCenterPlansService plan times", () => {
         attributes: { name: "Service", starts_at: "2026-05-24T16:30:00Z" },
       },
     ]);
-    const service = new PlanningCenterPlansService(core);
+    const service = new PlanningCenterPlansService(core, resolveTimeZone);
 
     const first = await service.getPlanTimes("st-1", "plan-1");
     first[0].attributes.name = "Mutated";
@@ -93,7 +94,7 @@ describe("PlanningCenterPlansService plan times", () => {
   });
 
   it("patches plan times through the service-type plan-time endpoint", async () => {
-    const core = createBasicPlanningCenterClient();
+    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
     const fetch = vi.spyOn(core, "fetch").mockResolvedValue({
       data: {
         id: "time-1",
@@ -101,7 +102,7 @@ describe("PlanningCenterPlansService plan times", () => {
         attributes: { name: "Updated" },
       },
     });
-    const service = new PlanningCenterPlansService(core);
+    const service = new PlanningCenterPlansService(core, resolveTimeZone);
 
     await service.updatePlanTime(
       "st-1",
@@ -136,7 +137,7 @@ describe("PlanningCenterPlansService plan times", () => {
   });
 
   it("creates plan times through the plan-scoped endpoint", async () => {
-    const core = createBasicPlanningCenterClient();
+    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
     const fetch = vi.spyOn(core, "fetch").mockResolvedValue({
       data: {
         id: "time-new",
@@ -144,7 +145,7 @@ describe("PlanningCenterPlansService plan times", () => {
         attributes: { name: "New service" },
       },
     });
-    const service = new PlanningCenterPlansService(core);
+    const service = new PlanningCenterPlansService(core, resolveTimeZone);
 
     await service.createPlanTime(
       "st-1",
@@ -179,11 +180,11 @@ describe("PlanningCenterPlansService plan times", () => {
   });
 
   it("deletes plan times through the service-type plan-time endpoint", async () => {
-    const core = createBasicPlanningCenterClient();
+    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
     const request = vi
       .spyOn(core, "request")
       .mockResolvedValue(new Response(null, { status: 204 }));
-    const service = new PlanningCenterPlansService(core);
+    const service = new PlanningCenterPlansService(core, resolveTimeZone);
 
     await service.deletePlanTime("st-1", "plan-1", "time-1");
 
@@ -196,14 +197,14 @@ describe("PlanningCenterPlansService plan times", () => {
   });
 
   it("treats missing plan times as already deleted", async () => {
-    const core = createBasicPlanningCenterClient();
+    const core = createBasicPlanningCenterClient(testPlanningCenterToken);
     const request = vi.spyOn(core, "request").mockRejectedValue(
       new PlanningCenterApiError({
         message: "Planning Center API error: 404",
         status: 404,
       })
     );
-    const service = new PlanningCenterPlansService(core);
+    const service = new PlanningCenterPlansService(core, resolveTimeZone);
 
     await expect(
       service.deletePlanTime("st-1", "plan-1", "time-1")

@@ -1,5 +1,4 @@
 import type { PlanningCenterIdentity } from "@pcobooster/api/auth/planning-center-identity";
-import { db } from "@pcobooster/api/db";
 import type { Db } from "@pcobooster/api/db/client";
 import { planningCenterAccountIdentities } from "@pcobooster/api/db/schema";
 
@@ -16,7 +15,7 @@ export const upsertPlanningCenterAccountIdentity = async (
     identity: PlanningCenterIdentity;
     fetchedAt?: Date;
   },
-  database: Db = db
+  database: Db
 ) => {
   const now = new Date();
   const fetchedAt = input.fetchedAt ?? now;
@@ -51,7 +50,7 @@ export const upsertPlanningCenterAccountIdentity = async (
 
 export const getPlanningCenterAccountIdentity = async (
   accountId: string,
-  database: Db = db
+  database: Db
 ): Promise<StoredPlanningCenterAccountIdentity | null> => {
   const row = await database.query.planningCenterAccountIdentities.findFirst({
     where: { accountId },

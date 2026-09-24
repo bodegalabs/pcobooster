@@ -1,3 +1,4 @@
+import { testServer } from "@pcobooster/api/testing/server";
 import {
   appendSelectedPlanningCenterAccountCookie,
   applyPrivateNoStore,
@@ -18,7 +19,15 @@ describe("identity oRPC response headers", () => {
     const headers = new Headers({ "Set-Cookie": "existing=value; Path=/" });
 
     applyPrivateNoStore(headers);
-    appendSelectedPlanningCenterAccountCookie(headers, "account-1");
+    appendSelectedPlanningCenterAccountCookie(
+      {
+        request: new Request("https://pcobooster.com/api/rpc/accounts/select"),
+        requestId: "request-1",
+        resHeaders: headers,
+        server: testServer(),
+      },
+      "account-1"
+    );
 
     expect(headers.get("Cache-Control")).toBe("private, no-store");
     expect(headers.get("Set-Cookie")).toContain("existing=value; Path=/");

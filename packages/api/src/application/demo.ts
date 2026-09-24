@@ -3,30 +3,21 @@ import { NotFound } from "@pcobooster/api/application/errors/not-found";
 import {
   demoSessionToken,
   isDemoAccessKey,
-  readDemoConfiguration,
 } from "@pcobooster/api/auth/demo-access";
 import type { DemoConfiguration } from "@pcobooster/api/auth/demo-access";
+import { Server } from "@pcobooster/api/server";
 import type { DemoStartInput } from "@pcobooster/contracts/demo";
 import { Effect } from "effect";
-
-export interface DemoDependencies {
-  readonly readConfiguration: () => DemoConfiguration | null;
-}
-
-const defaultDependencies: DemoDependencies = {
-  readConfiguration: readDemoConfiguration,
-};
 
 /**
  * Exchanges a demo link key for a session token. An unknown key and a
  * disabled demo look the same, so a probe learns nothing.
  */
 export const startDemoSession = (
-  input: DemoStartInput,
-  dependencies: DemoDependencies = defaultDependencies
-): Effect.Effect<{ readonly sessionToken: string }, ApplicationFault> =>
+  input: DemoStartInput
+): Effect.Effect<{ readonly sessionToken: string }, ApplicationFault, Server> =>
   Effect.gen(function* startDemo() {
-    const configuration = dependencies.readConfiguration();
+    const configuration: DemoConfiguration | null = (yield* Server).config.demo;
     if (configuration === null || !isDemoAccessKey(configuration, input.key)) {
       return yield* Effect.fail(
         new NotFound({

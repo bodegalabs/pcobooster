@@ -1,4 +1,5 @@
 import { PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE } from "@pcobooster/api/auth/planning-center-session";
+import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
 import { DEMO_SESSION_COOKIE } from "@pcobooster/contracts/demo";
 
 const THIRTY_DAYS_IN_SECONDS = 60 * 60 * 24 * 30;
@@ -10,7 +11,7 @@ export const applyPrivateNoStore = (headers: Headers | undefined): void => {
 const serializeSessionCookie = (
   name: string,
   value: string | null,
-  production: boolean
+  secure: boolean
 ): string => {
   const attributes = [
     `${name}=${encodeURIComponent(value ?? "")}`,
@@ -19,7 +20,7 @@ const serializeSessionCookie = (
     `Max-Age=${value === null ? 0 : THIRTY_DAYS_IN_SECONDS}`,
     "Path=/",
   ];
-  if (production) {
+  if (secure) {
     attributes.push("Secure");
   }
   return attributes.join("; ");
@@ -27,34 +28,40 @@ const serializeSessionCookie = (
 
 export const serializeSelectedPlanningCenterAccountCookie = (
   accountId: string,
-  production = process.env.NODE_ENV === "production"
+  secure: boolean
 ): string =>
   serializeSessionCookie(
     PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE,
     accountId,
-    production
+    secure
   );
 
 /** A null token expires the demo session cookie. */
 export const serializeDemoSessionCookie = (
   sessionToken: string | null,
-  production = process.env.NODE_ENV === "production"
-): string =>
-  serializeSessionCookie(DEMO_SESSION_COOKIE, sessionToken, production);
+  secure: boolean
+): string => serializeSessionCookie(DEMO_SESSION_COOKIE, sessionToken, secure);
+
+/** Cookies are `Secure` everywhere except plain-HTTP local development. */
+const isSecure = (context: RpcContext): boolean =>
+  !context.server.config.localDevelopment;
 
 export const appendSelectedPlanningCenterAccountCookie = (
-  headers: Headers | undefined,
+  context: RpcContext,
   accountId: string
 ): void => {
-  headers?.append(
+  context.resHeaders?.append(
     "Set-Cookie",
-    serializeSelectedPlanningCenterAccountCookie(accountId)
+    serializeSelectedPlanningCenterAccountCookie(accountId, isSecure(context))
   );
 };
 
 export const appendDemoSessionCookie = (
-  headers: Headers | undefined,
+  context: RpcContext,
   sessionToken: string | null
 ): void => {
-  headers?.append("Set-Cookie", serializeDemoSessionCookie(sessionToken));
+  context.resHeaders?.append(
+    "Set-Cookie",
+    serializeDemoSessionCookie(sessionToken, isSecure(context))
+  );
 };

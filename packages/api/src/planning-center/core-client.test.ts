@@ -4,8 +4,9 @@ import {
   PlanningCenterCoreClient,
   createBasicPlanningCenterClient,
 } from "@pcobooster/api/planning-center/core-client";
+import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const jsonResponse = (body: JsonValue, init?: ResponseInit): Response =>
   Response.json(body, init);
@@ -18,14 +19,8 @@ const basicCacheScope = (secret: string): string =>
   }).getCacheScope();
 
 describe(PlanningCenterCoreClient, () => {
-  beforeEach(() => {
-    vi.stubEnv("PLANNING_CENTER_CLIENT", "client");
-    vi.stubEnv("PLANNING_CENTER_PAT", "pat");
-  });
-
   afterEach(() => {
     vi.restoreAllMocks();
-    vi.unstubAllEnvs();
   });
 
   it("keeps bearer requests and cache scope bound to the constructor credential", async () => {
@@ -56,7 +51,10 @@ describe(PlanningCenterCoreClient, () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockResolvedValue(jsonResponse({ data: person }));
-    const client = createBasicPlanningCenterClient();
+    const client = createBasicPlanningCenterClient({
+      applicationId: "client",
+      secret: "pat",
+    });
     await client.fetch("/services/v2/people/1");
     const headers = new Headers(fetchMock.mock.calls[0]?.[1]?.headers);
     expect(headers.get("Authorization")).toBe(
@@ -106,7 +104,7 @@ describe(PlanningCenterCoreClient, () => {
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
       .mockReturnValue(deferred.promise);
-    const client = createBasicPlanningCenterClient();
+    const client = createBasicPlanningCenterClient(testPlanningCenterToken);
     const first = client.fetch("/services/v2/people/1");
     const second = client.fetch("/services/v2/people/1");
     expect(fetchMock).toHaveBeenCalledOnce();
@@ -141,7 +139,7 @@ describe(PlanningCenterCoreClient, () => {
       .spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(jsonResponse({ data: person }))
       .mockResolvedValueOnce(jsonResponse({ data: person }));
-    const client = createBasicPlanningCenterClient();
+    const client = createBasicPlanningCenterClient(testPlanningCenterToken);
     await Promise.all([
       client.fetch("/services/v2/people", { method: "POST", body: "{}" }),
       client.fetch("/services/v2/people", { method: "POST", body: "{}" }),
@@ -153,10 +151,9 @@ describe(PlanningCenterCoreClient, () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(null, { status: 204 })
     );
-    const response = await createBasicPlanningCenterClient().request(
-      "/services/v2/plan_times/1",
-      { method: "DELETE" }
-    );
+    const response = await createBasicPlanningCenterClient(
+      testPlanningCenterToken
+    ).request("/services/v2/plan_times/1", { method: "DELETE" });
     expect(response.status).toBe(204);
   });
 
@@ -165,7 +162,9 @@ describe(PlanningCenterCoreClient, () => {
       new Response(null, { status: 204 })
     );
     await expect(
-      createBasicPlanningCenterClient().fetch("/services/v2/people/1")
+      createBasicPlanningCenterClient(testPlanningCenterToken).fetch(
+        "/services/v2/people/1"
+      )
     ).rejects.toMatchObject({ code: "INVALID_RESPONSE" });
   });
 
@@ -184,7 +183,9 @@ describe(PlanningCenterCoreClient, () => {
       vi.spyOn(globalThis, "fetch").mockResolvedValue(failedBody());
 
       await expect(
-        createBasicPlanningCenterClient().fetch("/services/v2/people/1")
+        createBasicPlanningCenterClient(testPlanningCenterToken).fetch(
+          "/services/v2/people/1"
+        )
       ).rejects.toMatchObject({
         name: "PlanningCenterNetworkError",
         cause: { message: "body stream failed" },
@@ -197,7 +198,9 @@ describe(PlanningCenterCoreClient, () => {
       jsonResponse({ data: { id: 1, type: "Person" } })
     );
     await expect(
-      createBasicPlanningCenterClient().fetch("/services/v2/people/1")
+      createBasicPlanningCenterClient(testPlanningCenterToken).fetch(
+        "/services/v2/people/1"
+      )
     ).rejects.toMatchObject({
       name: "PlanningCenterApiError",
       code: "INVALID_RESPONSE",
@@ -211,9 +214,9 @@ describe(PlanningCenterCoreClient, () => {
         links: { next: null },
       })
     );
-    const response = await createBasicPlanningCenterClient().fetchCollection(
-      "/services/v2/people"
-    );
+    const response = await createBasicPlanningCenterClient(
+      testPlanningCenterToken
+    ).fetchCollection("/services/v2/people");
     expect(response.data).toStrictEqual([
       { ...person, relationships: { team: { data: null } } },
     ]);
@@ -232,9 +235,9 @@ describe(PlanningCenterCoreClient, () => {
         ],
       })
     );
-    const response = await createBasicPlanningCenterClient().fetchCollection(
-      "/services/v2/people/me/schedules"
-    );
+    const response = await createBasicPlanningCenterClient(
+      testPlanningCenterToken
+    ).fetchCollection("/services/v2/people/me/schedules");
     expect(response.data).toStrictEqual([
       {
         type: "Schedule",
@@ -267,10 +270,9 @@ describe(PlanningCenterCoreClient, () => {
           links: { next: firstUrl },
         })
       );
-    const response =
-      await createBasicPlanningCenterClient().fetchAllWithIncluded(
-        "/services/v2/people"
-      );
+    const response = await createBasicPlanningCenterClient(
+      testPlanningCenterToken
+    ).fetchAllWithIncluded("/services/v2/people");
     expect(response.data.map((item) => item.id)).toStrictEqual(["1", "2"]);
     expect(response.included).toStrictEqual([team]);
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -297,12 +299,9 @@ describe(PlanningCenterCoreClient, () => {
       });
 
     await expect(
-      createBasicPlanningCenterClient().fetchAllWithIncluded(
-        "/services/v2/people",
-        {},
-        5,
-        controller.signal
-      )
+      createBasicPlanningCenterClient(
+        testPlanningCenterToken
+      ).fetchAllWithIncluded("/services/v2/people", {}, 5, controller.signal)
     ).rejects.toMatchObject({ name: "AbortError" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
@@ -314,9 +313,9 @@ describe(PlanningCenterCoreClient, () => {
         jsonResponse({ error: "Temporarily unavailable" }, { status: 503 })
       )
       .mockResolvedValueOnce(jsonResponse({ data: person }));
-    const response = await createBasicPlanningCenterClient().fetch(
-      "/services/v2/people/1"
-    );
+    const response = await createBasicPlanningCenterClient(
+      testPlanningCenterToken
+    ).fetch("/services/v2/people/1");
     expect(response.data.id).toBe("1");
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
@@ -328,10 +327,13 @@ describe(PlanningCenterCoreClient, () => {
         jsonResponse({ error: "Temporarily unavailable" }, { status: 503 })
       );
     await expect(
-      createBasicPlanningCenterClient().fetch("/services/v2/people", {
-        method: "POST",
-        body: "{}",
-      })
+      createBasicPlanningCenterClient(testPlanningCenterToken).fetch(
+        "/services/v2/people",
+        {
+          method: "POST",
+          body: "{}",
+        }
+      )
     ).rejects.toMatchObject({ status: 503 });
     expect(fetchMock).toHaveBeenCalledOnce();
   });
@@ -340,7 +342,9 @@ describe(PlanningCenterCoreClient, () => {
     const fetchMock = vi.spyOn(globalThis, "fetch");
     fetchMock.mockRejectedValueOnce(new TypeError("network unavailable"));
     await expect(
-      createBasicPlanningCenterClient().fetch("/services/v2/people/1")
+      createBasicPlanningCenterClient(testPlanningCenterToken).fetch(
+        "/services/v2/people/1"
+      )
     ).rejects.toMatchObject({ name: "PlanningCenterNetworkError" });
 
     fetchMock.mockResolvedValueOnce(
@@ -349,7 +353,9 @@ describe(PlanningCenterCoreClient, () => {
       })
     );
     await expect(
-      createBasicPlanningCenterClient().fetch("/services/v2/people/2")
+      createBasicPlanningCenterClient(testPlanningCenterToken).fetch(
+        "/services/v2/people/2"
+      )
     ).rejects.toMatchObject({
       name: "PlanningCenterApiError",
       code: "INVALID_RESPONSE",
@@ -363,9 +369,12 @@ describe(PlanningCenterCoreClient, () => {
       .spyOn(globalThis, "fetch")
       .mockRejectedValue(new DOMException("Canceled", "AbortError"));
     await expect(
-      createBasicPlanningCenterClient().fetch("/services/v2/people/1", {
-        signal: controller.signal,
-      })
+      createBasicPlanningCenterClient(testPlanningCenterToken).fetch(
+        "/services/v2/people/1",
+        {
+          signal: controller.signal,
+        }
+      )
     ).rejects.toMatchObject({ name: "AbortError" });
     expect(fetchMock).toHaveBeenCalledOnce();
   });
@@ -389,9 +398,12 @@ describe(PlanningCenterCoreClient, () => {
       });
 
     await expect(
-      createBasicPlanningCenterClient().fetch("/services/v2/people/1", {
-        signal: controller.signal,
-      })
+      createBasicPlanningCenterClient(testPlanningCenterToken).fetch(
+        "/services/v2/people/1",
+        {
+          signal: controller.signal,
+        }
+      )
     ).rejects.toMatchObject({ name: "AbortError" });
     expect(fetchMock).toHaveBeenCalledOnce();
   });

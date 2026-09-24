@@ -6,12 +6,8 @@ import {
   tryPlanningCenter,
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/planning-center-access";
-import {
-  isDevAuthBypassEnabled,
-  loadDevBypassIdentity,
-} from "@pcobooster/api/auth/dev-bypass";
+import { loadDevBypassIdentity } from "@pcobooster/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
-import { isPeoplePageEnabled } from "@pcobooster/api/config/people-page-availability";
 import { getCurrentUserScheduledPlanIds } from "@pcobooster/api/modules/planning-center/get-current-user-scheduled-plans";
 import { getPeopleDashboard as getPeopleDashboardData } from "@pcobooster/api/modules/planning-center/get-people-dashboard";
 import { getPeopleDashboardPerson as getPeopleDashboardPersonDetail } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
@@ -38,11 +34,11 @@ import {
 import { searchPeople } from "@pcobooster/api/modules/planning-center/search-people";
 import type { PeopleSearchResult } from "@pcobooster/api/modules/planning-center/search-people";
 import { resolveOrganizationTimeZone } from "@pcobooster/api/planning-center/resolve-organization-timezone";
+import { Server } from "@pcobooster/api/server";
 import type {
   Blockout,
   PersonWithAvailability,
 } from "@pcobooster/planning-center-models/types";
-import { getPresentationSeed } from "@pcobooster/presentation-mode";
 import { Effect } from "effect";
 
 const resolveRequestTimeZone = async (
@@ -52,6 +48,7 @@ const resolveRequestTimeZone = async (
   await resolveOrganizationTimeZone({
     cacheScope: access.cacheScope,
     catalogService: access.services.catalog,
+    fallbackTimeZone: access.fallbackTimeZone,
     signal,
   });
 
@@ -61,7 +58,7 @@ const requestPresentationDependencies = (
   catalog: access.services.catalog,
   people: access.services.people,
   isPresentationMode: () => access.presentation,
-  getPresentationSeed,
+  getPresentationSeed: () => access.presentationSeed,
 });
 
 const requestPeopleForPositionDependencies = (
@@ -77,7 +74,8 @@ const requestPeopleForPositionDependencies = (
 });
 
 const requirePeopleDashboard = Effect.gen(function* requirePeopleDashboard() {
-  if (!isPeoplePageEnabled()) {
+  const { config } = yield* Server;
+  if (!config.peoplePageEnabled) {
     yield* Effect.fail(
       new NotFound({
         message: "People dashboard is not enabled.",
@@ -96,7 +94,7 @@ export const getPeopleList = (input: {
 }): Effect.Effect<
   PersonWithAvailability[],
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterAccess | RequestContext | Server
 > =>
   Effect.gen(function* listPeople() {
     const access = yield* PlanningCenterAccess;
@@ -122,7 +120,7 @@ export const getPeopleSearch = (input: {
 }): Effect.Effect<
   PeopleSearchResult[],
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterAccess | RequestContext | Server
 > =>
   Effect.gen(function* searchDirectory() {
     const access = yield* PlanningCenterAccess;
@@ -150,7 +148,7 @@ export const warmPeople = (input: {
 }): Effect.Effect<
   { readonly warmed: true },
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterAccess | RequestContext | Server
 > =>
   Effect.gen(function* warmPeopleHistory() {
     const access = yield* PlanningCenterAccess;
@@ -168,7 +166,7 @@ export const getPeopleBlockouts = (input: {
 }): Effect.Effect<
   Blockout[],
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterAccess | RequestContext | Server
 > =>
   Effect.gen(function* listPeopleBlockouts() {
     const access = yield* PlanningCenterAccess;
@@ -190,7 +188,7 @@ export const getPeopleDashboard = (input: {
 }): Effect.Effect<
   PeopleDashboardData,
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterAccess | RequestContext | Server
 > =>
   Effect.gen(function* readPeopleDashboard() {
     yield* requirePeopleDashboard;
@@ -223,7 +221,7 @@ export const getPeopleDashboardPerson = (input: {
 }): Effect.Effect<
   PeopleDashboardPersonDetail,
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterAccess | RequestContext | Server
 > =>
   Effect.gen(function* readPeopleDashboardPerson() {
     yield* requirePeopleDashboard;
@@ -261,7 +259,7 @@ export const getPeopleScheduleHistory = (input: {
 }): Effect.Effect<
   ScheduleHistoryResult,
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterAccess | RequestContext | Server
 > =>
   Effect.gen(function* readPeopleScheduleHistory() {
     const access = yield* PlanningCenterAccess;
@@ -285,11 +283,12 @@ export const getMyScheduledPlans = (input: {
 }): Effect.Effect<
   { readonly planIds: string[] },
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterAccess | RequestContext | Server
 > =>
   Effect.gen(function* readMyScheduledPlans() {
     const access = yield* PlanningCenterAccess;
     const { request } = yield* RequestContext;
+    const { auth, config } = yield* Server;
     // A demo visitor is not a person in the demo organization.
     if (access.authentication.kind === "demo") {
       return { planIds: [] };
@@ -304,9 +303,18 @@ export const getMyScheduledPlans = (input: {
           uniquePlanIds,
           {
             peopleService: access.services.people,
-            isDevAuthBypassEnabled,
-            loadDevBypassIdentity,
-            getPlanningCenterIdentityForAccount,
+            isDevAuthBypassEnabled: () => config.devAuthBypass,
+            loadDevBypassIdentity: async () =>
+              await loadDevBypassIdentity(config.localPlanningCenterToken),
+            getPlanningCenterIdentityForAccount: async (
+              identityRequest,
+              identityAccount
+            ) =>
+              await getPlanningCenterIdentityForAccount(
+                auth,
+                identityRequest,
+                identityAccount
+              ),
           },
           signal
         )

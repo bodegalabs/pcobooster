@@ -1,11 +1,12 @@
 import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
-import { auth } from "@pcobooster/api/auth";
+import type { Auth } from "@pcobooster/api/auth";
+import { getDevBypassSession } from "@pcobooster/api/auth/dev-bypass";
 import {
-  getDevBypassSession,
-  isDevAuthBypassEnabled,
-} from "@pcobooster/api/auth/dev-bypass";
-import { getPlanningCenterToken } from "@pcobooster/api/auth/planning-center-token";
+  createAuthTokenApi,
+  getPlanningCenterToken,
+} from "@pcobooster/api/auth/planning-center-token";
 import { readCookie } from "@pcobooster/api/http/cookies";
+import type { ServerDependencies } from "@pcobooster/api/server";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
@@ -18,7 +19,7 @@ export const getSelectedPlanningCenterAccountId = (
   readCookie(request, PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE);
 
 export interface PlanningCenterUserAuthContext {
-  session: NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
+  session: NonNullable<Awaited<ReturnType<Auth["api"]["getSession"]>>>;
   accessToken: string;
   scopes: string[];
   accountId: string;
@@ -26,9 +27,10 @@ export interface PlanningCenterUserAuthContext {
 }
 
 export const requirePlanningCenterAccessToken = async (
+  { auth, config }: Pick<ServerDependencies, "auth" | "config">,
   request: Request
 ): Promise<PlanningCenterUserAuthContext> => {
-  if (isDevAuthBypassEnabled()) {
+  if (config.devAuthBypass) {
     return {
       session: getDevBypassSession(),
       accessToken: "",
@@ -74,7 +76,11 @@ export const requirePlanningCenterAccessToken = async (
     });
   }
 
-  const token = await getPlanningCenterToken(request.headers, selectedAccount);
+  const token = await getPlanningCenterToken(
+    request.headers,
+    selectedAccount,
+    createAuthTokenApi(auth)
+  );
   return {
     session,
     ...token,

@@ -1,6 +1,6 @@
 # Application configuration
 
-Infisical is the source of truth for application secrets. Alchemy reads them at deployment time and binds the approved values to Cloudflare Workers. Do not create application `.env` files or maintain a second set of values in Cloudflare. Redeploy after changing secrets. Values the product build inlines (browser keys and `PEOPLE_PAGE_ENABLED`) take effect only in a rebuilt frontend; `scripts/cloudflare/prepare.ts` stamps them into the build inputs so Alchemy rebuilds when they change.
+Infisical is the source of truth for application secrets. Alchemy reads them at deployment time and binds the approved values to Cloudflare Workers. The API Worker (`apps/server/src/worker.ts`) declares its settings itself: each `Config` it reads at startup is bound at deploy and read back at runtime, then resolved into the typed `ServerConfig` (`packages/api/src/config/server-config.ts`). Do not create application `.env` files or maintain a second set of values in Cloudflare. Redeploy after changing secrets. Values the product build inlines (browser keys and `PEOPLE_PAGE_ENABLED`) take effect only in a rebuilt frontend; `scripts/cloudflare/prepare.ts` stamps them into the build inputs so Alchemy rebuilds when they change.
 
 ## Environment boundaries
 

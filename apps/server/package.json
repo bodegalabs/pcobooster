@@ -2,9 +2,8 @@
   "name": "@pcobooster/server",
   "private": true,
   "type": "module",
-  "main": "src/index.ts",
+  "main": "src/worker.ts",
   "scripts": {
-    "build": "tsdown",
     "test": "vitest run --root ../.. apps/server/src",
     "typecheck": "tsc --noEmit"
   },
@@ -14,14 +13,15 @@
     "@orpc/server": "^1.15.0",
     "@orpc/zod": "^1.15.0",
     "@pcobooster/api": "workspace:*",
+    "alchemy": "2.0.0-beta.79",
     "better-auth": "1.7.5",
+    "effect": "4.0.0-rc.117",
     "hono": "^4.13.7",
     "zod": "^4.6.5"
   },
   "devDependencies": {
     "@pcobooster/config": "workspace:*",
     "@types/bun": "^1.3.9",
-    "tsdown": "^0.23.0",
     "typescript": "^7.0.2"
   }
 }

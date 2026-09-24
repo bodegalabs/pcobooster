@@ -1,7 +1,6 @@
 import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
 import {
   createPostHogCaptureSender,
-  productionPostHogApiKey,
   toPostHogPersonSet,
 } from "@pcobooster/api/modules/analytics/posthog-capture";
 import type {
@@ -115,8 +114,3 @@ export const createPostHogActivityForwarder = ({
     }
   };
 };
-
-export const forwardActivityEventToPostHog = createPostHogActivityForwarder({
-  apiKey: productionPostHogApiKey,
-  fetch: globalThis.fetch,
-});

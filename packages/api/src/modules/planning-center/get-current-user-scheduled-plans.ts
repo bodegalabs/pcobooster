@@ -1,8 +1,5 @@
-import type {
-  isDevAuthBypassEnabled,
-  loadDevBypassIdentity,
-} from "@pcobooster/api/auth/dev-bypass";
-import type { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
+import type { DevBypassIdentity } from "@pcobooster/api/auth/dev-bypass";
+import type { PlanningCenterIdentity } from "@pcobooster/api/auth/planning-center-identity";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import {
   isNonEmptyString,
@@ -47,9 +44,12 @@ const isScheduledStatus = (status: string | undefined): boolean => {
 };
 
 export interface CurrentUserScheduledPlansDependencies {
-  readonly isDevAuthBypassEnabled: typeof isDevAuthBypassEnabled;
-  readonly loadDevBypassIdentity: typeof loadDevBypassIdentity;
-  readonly getPlanningCenterIdentityForAccount: typeof getPlanningCenterIdentityForAccount;
+  readonly isDevAuthBypassEnabled: () => boolean;
+  readonly loadDevBypassIdentity: () => Promise<DevBypassIdentity>;
+  readonly getPlanningCenterIdentityForAccount: (
+    request: Request,
+    account: { id: string; accountId: string }
+  ) => Promise<PlanningCenterIdentity | null>;
   readonly peopleService: Pick<
     PlanningCenterPeopleService,
     "getPersonSchedules"

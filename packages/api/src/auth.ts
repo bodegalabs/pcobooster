@@ -1,6 +1,6 @@
 import { getPlanningCenterIdentityFromAccessToken } from "@pcobooster/api/auth/planning-center-identity";
 import { createPreviewProxy } from "@pcobooster/api/auth/preview-proxy";
-import { db } from "@pcobooster/api/db";
+import type { ServerConfig } from "@pcobooster/api/config/server-config";
 import {
   getActivityRequestContext,
   recordActivityEvent,
@@ -15,42 +15,6 @@ import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { genericOAuth } from "better-auth/plugins/generic-oauth";
-
-const baseUrl = process.env.BETTER_AUTH_URL;
-const secret = process.env.BETTER_AUTH_SECRET;
-const configuredWebOrigin = process.env.CORS_ORIGIN;
-const proxySecret = process.env.OAUTH_PROXY_SECRET;
-const proxyProductionURL = process.env.OAUTH_PROXY_PRODUCTION_URL;
-const previewOriginPattern = process.env.OAUTH_PREVIEW_ORIGIN_PATTERN;
-
-if (!(baseUrl !== undefined && baseUrl !== "")) {
-  throw new Error("Missing BETTER_AUTH_URL environment variable");
-}
-
-if (!(secret !== undefined && secret !== "")) {
-  throw new Error("Missing BETTER_AUTH_SECRET environment variable");
-}
-
-const planningCenterClientId = process.env.PLANNING_CENTER_OAUTH_CLIENT_ID;
-const planningCenterClientSecret =
-  process.env.PLANNING_CENTER_OAUTH_CLIENT_SECRET;
-
-if (!(planningCenterClientId !== undefined && planningCenterClientId !== "")) {
-  throw new Error(
-    "Missing PLANNING_CENTER_OAUTH_CLIENT_ID environment variable"
-  );
-}
-
-if (
-  !(
-    planningCenterClientSecret !== undefined &&
-    planningCenterClientSecret !== ""
-  )
-) {
-  throw new Error(
-    "Missing PLANNING_CENTER_OAUTH_CLIENT_SECRET environment variable"
-  );
-}
 
 const shouldTrackSessionDeletion = (
   context: Parameters<typeof getActivityRequestContext>[0]
@@ -67,25 +31,17 @@ const shouldTrackSessionDeletion = (
   );
 };
 
-export const createAuth = (database: Db) => {
+export const createAuth = (config: ServerConfig, database: Db) => {
   const authEventLog = logger.for("auth/events");
-
-  /**
-   * Parent domain for the session cookie (for example `pcobooster.com`) so the
-   * private admin app on its own subdomain receives the same session.
-   */
-  const sessionCookieDomain = process.env.AUTH_COOKIE_DOMAIN;
+  const { cookieDomain, planningCenter, previewOriginPattern, proxy } =
+    config.auth;
 
   const trustedOrigins = [
-    ...(previewOriginPattern === undefined || previewOriginPattern === ""
-      ? []
-      : [previewOriginPattern]),
-    ...(configuredWebOrigin !== undefined && configuredWebOrigin !== ""
-      ? [configuredWebOrigin]
+    ...(previewOriginPattern === null ? [] : [previewOriginPattern]),
+    config.publicOrigin,
+    ...(config.localDevelopment
+      ? ["http://localhost:3001", "http://127.0.0.1:3001"]
       : []),
-    ...(process.env.NODE_ENV === "production"
-      ? []
-      : ["http://localhost:3001", "http://127.0.0.1:3001"]),
   ];
 
   const recordAuthEventSafely = async (
@@ -104,6 +60,7 @@ export const createAuth = (database: Db) => {
     try {
       const requestContext = getActivityRequestContext(payload.context);
       await recordActivityEvent(
+        { database, config },
         {
           eventType,
           actorUserId: payload.userId ?? null,
@@ -117,8 +74,7 @@ export const createAuth = (database: Db) => {
           statusCode: 200,
           metadata: payload.metadata ?? null,
         },
-        payload.person ?? null,
-        database
+        payload.person ?? null
       );
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
@@ -172,14 +128,14 @@ export const createAuth = (database: Db) => {
   };
 
   return betterAuth({
-    baseURL: baseUrl,
-    secret,
+    baseURL: config.publicOrigin,
+    secret: config.auth.secret,
     trustedOrigins,
     advanced: {
+      // A parent domain (`pcobooster.com`) lets the admin subdomain share the session.
       crossSubDomainCookies: {
-        enabled:
-          sessionCookieDomain !== undefined && sessionCookieDomain !== "",
-        domain: sessionCookieDomain,
+        enabled: cookieDomain !== null,
+        domain: cookieDomain ?? undefined,
       },
     },
     database: drizzleAdapter(database, {
@@ -260,8 +216,8 @@ export const createAuth = (database: Db) => {
               "https://api.planningcenteronline.com/oauth/authorize",
             tokenUrl: "https://api.planningcenteronline.com/oauth/token",
             userInfoUrl: "https://api.planningcenteronline.com/oauth/userinfo",
-            clientId: planningCenterClientId,
-            clientSecret: planningCenterClientSecret,
+            clientId: planningCenter.clientId,
+            clientSecret: planningCenter.clientSecret,
             scopes: ["openid", "services", "people"],
             // Force Planning Center to prompt for login so users can switch accounts/org context.
             prompt: "login",
@@ -272,21 +228,18 @@ export const createAuth = (database: Db) => {
           },
         ],
       }),
-      ...(proxySecret !== undefined &&
-      proxySecret !== "" &&
-      proxyProductionURL !== undefined &&
-      proxyProductionURL !== ""
-        ? [
+      ...(proxy === null
+        ? []
+        : [
             createPreviewProxy({
-              currentURL: baseUrl,
-              productionURL: proxyProductionURL,
-              secret: proxySecret,
-              production: process.env.APP_ENV === "production",
+              currentURL: config.publicOrigin,
+              productionURL: proxy.productionUrl,
+              secret: proxy.secret,
+              production: config.production,
             }),
-          ]
-        : []),
+          ]),
     ],
   });
 };
 
-export const auth = createAuth(db);
+export type Auth = ReturnType<typeof createAuth>;

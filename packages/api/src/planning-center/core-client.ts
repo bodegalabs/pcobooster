@@ -2,11 +2,6 @@ import { createHash } from "node:crypto";
 import { setTimeout as sleep } from "node:timers/promises";
 
 import { mergeHeaders } from "@pcobooster/api/http/merge-headers";
-import {
-  elapsedMs,
-  formatDurationMs,
-  nowMs,
-} from "@pcobooster/api/http/timing";
 import { logger } from "@pcobooster/api/logger";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterRateLimitInfo } from "@pcobooster/api/planning-center/api-error";
@@ -248,40 +243,6 @@ const describePlanningCenterEndpoint = (value: string) => {
   };
 };
 
-const logPlanningCenterTiming = ({
-  url,
-  method,
-  attempt,
-  status,
-  durationMs,
-  rateLimit,
-  error,
-}: {
-  url: string;
-  method: string;
-  attempt: number;
-  status?: number;
-  durationMs: number;
-  rateLimit?: PlanningCenterRateLimitInfo;
-  error?: Error;
-}) => {
-  if (process.env.LOG_PLANNING_CENTER_TIMINGS !== "1") {
-    return;
-  }
-  log.debug(
-    {
-      method,
-      status,
-      attempt: attempt + 1,
-      durationMs: formatDurationMs(durationMs),
-      endpoint: describePlanningCenterEndpoint(url),
-      rateLimit,
-      error: error?.message.slice(0, 100),
-    },
-    "Planning Center API timing"
-  );
-};
-
 /** A Planning Center personal access token: application ID plus secret. */
 export interface PlanningCenterPersonalAccessToken {
   readonly applicationId: string;
@@ -349,7 +310,6 @@ export class PlanningCenterCoreClient {
     const signal = options.signal
       ? AbortSignal.any([options.signal, timeoutSignal])
       : timeoutSignal;
-    const startedAt = nowMs();
     try {
       const headers = mergeHeaders(
         { Accept: "application/json" },
@@ -369,14 +329,6 @@ export class PlanningCenterCoreClient {
             : new Error("Planning Center fetch failed", { cause: error })
         );
       }
-      logPlanningCenterTiming({
-        url,
-        method,
-        attempt,
-        status: response.status,
-        durationMs: elapsedMs(startedAt),
-        rateLimit: readRateLimitInfo(response.headers),
-      });
       if (!response.ok) {
         throw buildApiError(
           response.status,
@@ -389,13 +341,6 @@ export class PlanningCenterCoreClient {
     } catch (error) {
       const requestError =
         error instanceof Error ? error : new Error(String(error));
-      logPlanningCenterTiming({
-        url,
-        method,
-        attempt,
-        durationMs: elapsedMs(startedAt),
-        error: requestError,
-      });
       if (
         options.signal?.aborted === true ||
         !isReadMethod(method) ||
@@ -562,23 +507,8 @@ export class PlanningCenterCoreClient {
   }
 }
 
-/** The local personal access token used by scripts and the development auth bypass. */
-export const readLocalPlanningCenterPersonalAccessToken =
-  (): PlanningCenterPersonalAccessToken => {
-    const applicationId = process.env.PLANNING_CENTER_CLIENT;
-    const secret = process.env.PLANNING_CENTER_PAT;
-    if (!isNonEmptyString(applicationId)) {
-      throw new Error("Missing PLANNING_CENTER_CLIENT environment variable");
-    }
-    if (!isNonEmptyString(secret)) {
-      throw new Error("Missing PLANNING_CENTER_PAT environment variable");
-    }
-    return { applicationId, secret };
-  };
-
 /** Explicit application credentials for scripts and the development auth bypass. */
-export const createBasicPlanningCenterClient = (): PlanningCenterCoreClient =>
-  new PlanningCenterCoreClient({
-    kind: "basic",
-    ...readLocalPlanningCenterPersonalAccessToken(),
-  });
+export const createBasicPlanningCenterClient = (
+  token: PlanningCenterPersonalAccessToken
+): PlanningCenterCoreClient =>
+  new PlanningCenterCoreClient({ kind: "basic", ...token });

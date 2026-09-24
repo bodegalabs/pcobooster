@@ -11,10 +11,6 @@ import type {
   TeamPosition,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
-import type {
-  getPresentationSeed,
-  isPresentationMode,
-} from "@pcobooster/presentation-mode";
 
 import type {
   PeopleDashboardData,
@@ -29,8 +25,8 @@ import {
 export interface PresentationDependencies {
   catalog: Pick<PlanningCenterCatalogService, "getOrganization">;
   people: Pick<PlanningCenterPeopleService, "getCacheScope">;
-  isPresentationMode: typeof isPresentationMode;
-  getPresentationSeed: typeof getPresentationSeed;
+  isPresentationMode: () => boolean;
+  getPresentationSeed: () => string;
 }
 const organizationCaches = new WeakMap<
   PresentationDependencies["catalog"],

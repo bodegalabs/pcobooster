@@ -1,5 +1,4 @@
-import { RequestContext } from "@pcobooster/api/application/context";
-import { releaseVersion } from "@pcobooster/api/config/release";
+import { Server } from "@pcobooster/api/server";
 import { catalogRouter } from "@pcobooster/api/transport/orpc/catalog";
 import { demoRouter } from "@pcobooster/api/transport/orpc/demo";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
@@ -23,10 +22,12 @@ const health = rpc.health.handler(
   async ({ context, signal }) =>
     await executeApplicationEffect(
       applicationRuntime,
-      Effect.as(RequestContext, {
-        status: "ok" as const,
-        version: releaseVersion(),
-      }),
+      Server.pipe(
+        Effect.map(({ config }) => ({
+          status: "ok" as const,
+          version: config.releaseVersion,
+        }))
+      ),
       context,
       signal
     )
