@@ -4,6 +4,7 @@ import { adminContract } from "@pcobooster/contracts/admin";
 import { catalogContract } from "@pcobooster/contracts/catalog";
 import { demoContract } from "@pcobooster/contracts/demo";
 import { featuresContract } from "@pcobooster/contracts/features";
+import { feedbackContract } from "@pcobooster/contracts/feedback";
 import { peopleContract } from "@pcobooster/contracts/people";
 import { planItemsContract } from "@pcobooster/contracts/plan-items";
 import { planPeopleContract } from "@pcobooster/contracts/plan-people";
@@ -34,6 +35,7 @@ export const appContract = oc.router({
   catalog: catalogContract,
   demo: demoContract,
   features: featuresContract,
+  feedback: feedbackContract,
   health: healthContract,
   people: peopleContract,
   planItems: planItemsContract,

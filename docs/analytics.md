@@ -61,8 +61,25 @@ The API mirrors every `activity_events` audit row to PostHog, keyed by the same 
 | `schedule assign attempted` | `schedule_attempt` | `success`, `status_code`, `error_code`, `service_type_id`, `plan_id`, `team_id`, `position_id`, `one_off` |
 | `schedule status changed` | `schedule_status_change` | Same as above plus `schedule_status` |
 | `schedule person removed` | `schedule_remove` | Same as assign |
+| `feedback submitted` | `feedback` row (see [Feedback](#feedback)) | `feedback_id`, `message`, `path`, `$session_id`; `$set` like `signed in` |
 
-Every server event also carries `source: server`, `success`, and `status_code`. IP addresses, user agents, and Planning Center person IDs stay in the database only. Person profiles pick up email, name, and church on each new sign-in, so accounts that have not signed in since this shipped remain unlabeled until they do.
+Activity events also carry `source: server`, `success`, and `status_code`. IP addresses, user agents, and Planning Center person IDs stay in the database only. Person profiles pick up email, name, and church on each new sign-in, so accounts that have not signed in since this shipped remain unlabeled until they do.
+
+## Feedback
+
+Signed-in desktop users send feedback from **Feedback** in the sidebar footer. It is hidden for read-only demo visitors, and the server also rejects their submissions. The browser posts to the `feedback.submit` oRPC procedure, so ad blockers and Do Not Track can't drop a report. The API writes a `feedback` row first (user ID, message, raw path, PostHog session ID, user agent). Then, in production only, it forwards a best-effort `feedback submitted` event to PostHog under the user's ID.
+
+The event includes the message exactly as the user wrote it. It is the only PostHog event with free text. Person-detail paths become `/people/:personId`. Plan and service-type IDs remain, as they do in the schedule events. `$session_id` links the event to the session replay, but a replay exists only if that session was sampled (see below). During launch hypercare, raise replay sampling to 100% so every report has a replay.
+
+### Alert email
+
+A PostHog Workflow emails each report:
+
+1. In [Workflows → Channels](https://us.posthog.com/project/614621/workflows/channels), add an email sender on `pcobooster.com` (for example `alerts@pcobooster.com`). Then add the SPF and DKIM DNS records PostHog shows and wait for verification.
+2. Create a workflow with an event trigger on `feedback submitted`. Add an email step to your own address. Its body can use `{event.properties.message}`, `{event.properties.path}`, `{person.properties.name}`, `{person.properties.email}`, `{person.properties.organization_name}`, and a replay link: `https://us.posthog.com/project/614621/replay/{event.properties.$session_id}`.
+3. Test-run it, then enable it.
+
+If PostHog delivery fails, the API logs `Failed to forward feedback to PostHog` with the feedback ID. The database row remains the complete record.
 
 ## Privacy and cost boundaries
 

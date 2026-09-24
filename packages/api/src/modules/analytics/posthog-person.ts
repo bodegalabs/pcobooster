@@ -5,7 +5,7 @@ import {
   planningCenterAccountIdentities,
   user,
 } from "@pcobooster/api/db/schema";
-import type { PostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-activity";
+import type { PostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-capture";
 import { desc, eq } from "drizzle-orm";
 
 /** The most recently refreshed Planning Center identity names the user's church. */

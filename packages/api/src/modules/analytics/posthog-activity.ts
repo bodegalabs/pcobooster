@@ -1,8 +1,14 @@
 import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
+import {
+  createPostHogCaptureSender,
+  productionPostHogApiKey,
+  toPostHogPersonSet,
+} from "@pcobooster/api/modules/analytics/posthog-capture";
+import type {
+  PostHogPersonProperties,
+  PostHogPersonSet,
+} from "@pcobooster/api/modules/analytics/posthog-capture";
 import { z } from "zod";
-
-const POSTHOG_CAPTURE_URL = "https://us.i.posthog.com/i/v0/e/";
-const CAPTURE_TIMEOUT_MS = 1500;
 
 const EVENT_NAMES = {
   auth_session_created: "signed in",
@@ -12,21 +18,6 @@ const EVENT_NAMES = {
   schedule_status_change: "schedule status changed",
   schedule_remove: "schedule person removed",
 } as const satisfies Record<ActivityEventInput["eventType"], string>;
-
-/** Person profile fields shared with the admin app, keyed by Better Auth user ID. */
-export interface PostHogPersonProperties {
-  readonly email: string;
-  readonly name: string;
-  readonly organizationId: string | null;
-  readonly organizationName: string | null;
-}
-
-interface PostHogPersonSet {
-  readonly email: string;
-  readonly name: string;
-  readonly organization_id: string | null;
-  readonly organization_name: string | null;
-}
 
 interface PostHogActivityProperties {
   readonly source: "server";
@@ -87,15 +78,7 @@ export const toPostHogCapture = (
   const properties: PostHogActivityProperties =
     person === null
       ? activity
-      : {
-          ...activity,
-          $set: {
-            email: person.email,
-            name: person.name,
-            organization_id: person.organizationId,
-            organization_name: person.organizationName,
-          },
-        };
+      : { ...activity, $set: toPostHogPersonSet(person) };
   return {
     api_key: apiKey,
     event: EVENT_NAMES[input.eventType],
@@ -124,28 +107,16 @@ export const createPostHogActivityForwarder = ({
       // Analytics is disabled outside production.
     };
   }
+  const sendCapture = createPostHogCaptureSender(send);
   return async (input, person = null) => {
     const capture = toPostHogCapture(apiKey, input, person, now());
-    if (capture === null) {
-      return;
-    }
-    const response = await send(POSTHOG_CAPTURE_URL, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(capture),
-      signal: AbortSignal.timeout(CAPTURE_TIMEOUT_MS),
-    });
-    if (!response.ok) {
-      throw new Error(`PostHog capture failed with status ${response.status}`);
+    if (capture !== null) {
+      await sendCapture(capture);
     }
   };
 };
 
-/** Only production deployments share the product's PostHog project. */
 export const forwardActivityEventToPostHog = createPostHogActivityForwarder({
-  apiKey:
-    process.env.APP_ENV === "production"
-      ? process.env.POSTHOG_PROJECT_KEY
-      : undefined,
+  apiKey: productionPostHogApiKey,
   fetch: globalThis.fetch,
 });

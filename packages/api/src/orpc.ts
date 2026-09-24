@@ -3,6 +3,7 @@ import { releaseVersion } from "@pcobooster/api/config/release";
 import { catalogRouter } from "@pcobooster/api/transport/orpc/catalog";
 import { demoRouter } from "@pcobooster/api/transport/orpc/demo";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
+import { feedbackRouter } from "@pcobooster/api/transport/orpc/feedback";
 import { identityRouter } from "@pcobooster/api/transport/orpc/identity";
 import {
   applicationRuntime,
@@ -37,6 +38,7 @@ export const appRouter = rpc.router({
   catalog: catalogRouter,
   demo: demoRouter,
   features: identityRouter.features,
+  feedback: feedbackRouter,
   health,
   people: peopleRouter,
   planItems: planItemsRouter,

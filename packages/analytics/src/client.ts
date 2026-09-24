@@ -142,6 +142,18 @@ export const initializeAnalytics = (
   }
 };
 
+/** Lets server-side events, such as feedback, link to this session's replay. */
+export const getAnalyticsSessionId = (): string | null => {
+  if (!initialized) {
+    return null;
+  }
+  try {
+    return posthog.get_session_id() || null;
+  } catch {
+    return null;
+  }
+};
+
 export const resetAnalytics = (): void => {
   currentUserId = undefined;
   if (initialized) {

@@ -28,6 +28,7 @@ import { HotkeyChord } from "@/components/hotkey-chord";
 import { MobileTabBar } from "@/components/mobile-nav";
 import { SidebarBrandMark } from "@/components/sidebar-brand-mark";
 import { SidebarChromeTrigger } from "@/components/sidebar-chrome-trigger";
+import { SidebarFeedback } from "@/components/sidebar-feedback";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
 import type { SidebarTabGroupItem } from "@/components/sidebar-tab-group";
 import { SidebarTabGroup } from "@/components/sidebar-tab-group";
@@ -569,6 +570,7 @@ const AppSidebar = ({ peopleNavEnabled }: { peopleNavEnabled: boolean }) => {
         <SidebarFooter>
           <div className="border-sidebar-border/50 flex flex-col gap-2 border-t pt-2">
             <SidebarMenu>
+              <SidebarFeedback />
               <SidebarMenuItem>
                 <SidebarMenuButton
                   type="button"
