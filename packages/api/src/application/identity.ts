@@ -87,19 +87,23 @@ export interface IdentityDependencies {
 export const createIdentityDependencies = ({
   auth,
   config,
+  planningCenterReadCaches,
 }: ServerDependencies): IdentityDependencies => ({
   resolveDemoSession: (request) => resolveDemoSession(request, config.demo),
   loadDemoOrganization: (configuration) =>
-    HttpClient.HttpClient.pipe(
-      Effect.flatMap((httpClient) =>
-        getDemoOrganization(
+    Effect.acquireUseRelease(
+      HttpClient.HttpClient.pipe(
+        Effect.map((httpClient) =>
           createReadOnlyPlanningCenterServices(
             configuration.planningCenter,
             config.fallbackTimeZone,
-            httpClient
+            httpClient,
+            planningCenterReadCaches
           )
         )
-      )
+      ),
+      getDemoOrganization,
+      (services) => services.settleReadCaches
     ),
   isDevAuthBypassEnabled: () => config.devAuthBypass,
   loadDevBypassIdentity: async () =>

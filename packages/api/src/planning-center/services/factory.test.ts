@@ -1,7 +1,9 @@
 import {
+  createPlanningCenterReadCaches,
   createPlanningCenterServices,
   createBasicPlanningCenterServices,
 } from "@pcobooster/api/planning-center/services/factory";
+import { createMemorySharedReadStore } from "@pcobooster/api/planning-center/services/shared-read-store";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
@@ -16,8 +18,15 @@ const resource = (id: string, type: string): PCResource => ({
   attributes: { name: id },
 });
 
+const caches = createPlanningCenterReadCaches(null);
+
 const servicesFor = (accessToken: string) =>
-  createPlanningCenterServices(accessToken, TIME_ZONE, unreachableHttpClient);
+  createPlanningCenterServices(
+    accessToken,
+    TIME_ZONE,
+    unreachableHttpClient,
+    caches
+  );
 
 describe("createPlanningCenterServices shared caches", () => {
   it("rejects empty request credentials and scopes Basic services by credential", () => {
@@ -26,7 +35,8 @@ describe("createPlanningCenterServices shared caches", () => {
       createBasicPlanningCenterServices(
         testPlanningCenterToken,
         TIME_ZONE,
-        unreachableHttpClient
+        unreachableHttpClient,
+        caches
       ).core.getCacheScope()
     ).toMatch(/^basic:/u);
   });
@@ -145,5 +155,79 @@ describe("createPlanningCenterServices shared caches", () => {
     );
 
     expect(load).toHaveBeenCalledTimes(2);
+  });
+});
+
+const reportError = (message: string, error: Error) => {
+  throw new Error(message, { cause: error });
+};
+
+describe("createPlanningCenterServices shared tier", () => {
+  it("shares the song catalog across isolates for the same credential only", async () => {
+    const store = createMemorySharedReadStore();
+    const isolate = () =>
+      createPlanningCenterReadCaches({ store, reportError });
+    const secondIsolate = isolate();
+    const servicesIn = (
+      token: string,
+      readCaches: ReturnType<typeof isolate>
+    ) =>
+      createPlanningCenterServices(
+        token,
+        TIME_ZONE,
+        unreachableHttpClient,
+        readCaches
+      );
+    const first = servicesIn("token-a", isolate());
+    vi.spyOn(first.core, "fetchAll").mockReturnValue(
+      Effect.succeed([resource("first", "Song")])
+    );
+    await Effect.runPromise(
+      first.songs
+        .getSongsCatalogCached("catalog")
+        .pipe(Effect.ensuring(first.settleReadCaches))
+    );
+
+    const sameCredential = servicesIn("token-a", secondIsolate);
+    const sameLoad = vi
+      .spyOn(sameCredential.core, "fetchAll")
+      .mockReturnValue(Effect.succeed([resource("reloaded", "Song")]));
+    const otherCredential = servicesIn("token-b", secondIsolate);
+    const otherLoad = vi
+      .spyOn(otherCredential.core, "fetchAll")
+      .mockReturnValue(Effect.succeed([resource("other", "Song")]));
+
+    await expect(
+      Effect.runPromise(sameCredential.songs.getSongsCatalogCached("catalog"))
+    ).resolves.toMatchObject([{ id: "first" }]);
+    await expect(
+      Effect.runPromise(otherCredential.songs.getSongsCatalogCached("catalog"))
+    ).resolves.toMatchObject([{ id: "other" }]);
+    expect(sameLoad).not.toHaveBeenCalled();
+    expect(otherLoad).toHaveBeenCalledOnce();
+    expect([...store.entries.keys()].join(",")).not.toContain("token-");
+  });
+
+  it("never shares a cache that a mutation invalidates", () => {
+    const services = createPlanningCenterServices(
+      "invalidation-token",
+      TIME_ZONE,
+      unreachableHttpClient,
+      createPlanningCenterReadCaches({
+        store: createMemorySharedReadStore(),
+        reportError,
+      })
+    );
+
+    expect(() => {
+      services.people.invalidateScheduleReadCaches({
+        personId: "person",
+        serviceTypeId: "service-type",
+        planId: "plan",
+      });
+      services.people.invalidatePlanTimeSensitiveReadCaches("plan");
+      services.plans.invalidatePlanTimesCache("service-type", "plan");
+      services.catalog.invalidateNeededPositionsCache("service-type", "plan");
+    }).not.toThrow();
   });
 });

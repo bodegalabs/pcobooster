@@ -34,9 +34,6 @@ export const createPlanningCenterPlansServiceCaches =
     planTimes: new PlanningCenterReadCache<PCResource[]>(),
   });
 
-export const planningCenterPlansServiceCaches =
-  createPlanningCenterPlansServiceCaches();
-
 const cloneResourceResponse = (
   response: ResourceCollection
 ): ResourceCollection => ({

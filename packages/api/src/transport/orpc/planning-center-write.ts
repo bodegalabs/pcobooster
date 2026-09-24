@@ -36,17 +36,22 @@ export const executePreparedPlanningCenterWrite = async <Preparation, Value>(
     context,
     signal
   );
-  const prepared = await executeApplicationEffect(
-    runtime,
-    Effect.provideService(prepare, PlanningCenterAccess, access),
-    context,
-    signal
-  );
-  return await executeApplicationEffect(
-    runtime,
-    Effect.provideService(commit(prepared), PlanningCenterAccess, access),
-    context,
-    signal,
-    { interruptOnAbort: false }
-  );
+  try {
+    const prepared = await executeApplicationEffect(
+      runtime,
+      Effect.provideService(prepare, PlanningCenterAccess, access),
+      context,
+      signal
+    );
+    return await executeApplicationEffect(
+      runtime,
+      Effect.provideService(commit(prepared), PlanningCenterAccess, access),
+      context,
+      signal,
+      { interruptOnAbort: false }
+    );
+  } finally {
+    // Shared read-cache writes must finish inside the request that started them.
+    await Effect.runPromise(access.services.settleReadCaches);
+  }
 };

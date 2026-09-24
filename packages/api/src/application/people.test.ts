@@ -11,7 +11,10 @@ import type {
   PlanningCenterRequestAccess,
   RequestAuthentication,
 } from "@pcobooster/api/application/planning-center-access";
-import { createBasicPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import {
+  createBasicPlanningCenterServices,
+  createPlanningCenterReadCaches,
+} from "@pcobooster/api/planning-center/services/factory";
 import { Server } from "@pcobooster/api/server";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import {
@@ -38,7 +41,8 @@ const access = (
   const services = createBasicPlanningCenterServices(
     testPlanningCenterToken,
     "UTC",
-    unreachableHttpClient
+    unreachableHttpClient,
+    createPlanningCenterReadCaches(null)
   );
   return {
     authentication,

@@ -81,6 +81,9 @@ export const createScheduleRouter = (
       } catch (error) {
         await record({ success: false, error });
         throw error;
+      } finally {
+        // Shared read-cache writes must finish inside the request that started them.
+        await Effect.runPromise(access.services.settleReadCaches);
       }
     });
 

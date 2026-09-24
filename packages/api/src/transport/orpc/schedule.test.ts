@@ -14,7 +14,10 @@ import {
 import type { ScheduleApplicationDependencies } from "@pcobooster/api/application/schedule";
 import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
-import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import {
+  createPlanningCenterServices,
+  createPlanningCenterReadCaches,
+} from "@pcobooster/api/planning-center/services/factory";
 import type { SuccessOf } from "@pcobooster/api/testing/effect";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testServer } from "@pcobooster/api/testing/server";
@@ -47,7 +50,8 @@ const setup = () => {
   const services = createPlanningCenterServices(
     "schedule-test-token",
     "America/Los_Angeles",
-    unreachableHttpClient
+    unreachableHttpClient,
+    createPlanningCenterReadCaches(null)
   );
   const getTeamPositions = vi
     .spyOn(services.catalog, "getServiceTypeTeamPositionsWithTeams")

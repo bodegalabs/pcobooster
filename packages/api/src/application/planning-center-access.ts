@@ -103,11 +103,13 @@ export const createPlanningCenterAccessDependencies = (
   },
   createServices: (authentication, httpClient) => {
     const { fallbackTimeZone, localPlanningCenterToken } = server.config;
+    const readCaches = server.planningCenterReadCaches;
     if (authentication.kind === "demo") {
       return createReadOnlyPlanningCenterServices(
         authentication.planningCenter,
         fallbackTimeZone,
-        httpClient
+        httpClient,
+        readCaches
       );
     }
     if (server.config.devAuthBypass) {
@@ -119,13 +121,15 @@ export const createPlanningCenterAccessDependencies = (
       return createBasicPlanningCenterServices(
         localPlanningCenterToken,
         fallbackTimeZone,
-        httpClient
+        httpClient,
+        readCaches
       );
     }
     return createPlanningCenterServices(
       authentication.accessToken,
       fallbackTimeZone,
-      httpClient
+      httpClient,
+      readCaches
     );
   },
   presentationMode: () => isPresentationMode(server.config.presentation),
@@ -271,6 +275,9 @@ export const withPlanningCenterAccess = <Value, Failure, Requirements>(
   | Server
   | HttpClient.HttpClient
 > =>
-  Effect.flatMap(resolvePlanningCenterAccess(dependencies), (access) =>
-    Effect.provideService(program, PlanningCenterAccess, access)
+  Effect.acquireUseRelease(
+    resolvePlanningCenterAccess(dependencies),
+    (access) => Effect.provideService(program, PlanningCenterAccess, access),
+    // Shared read-cache writes must finish inside the request that started them.
+    (access) => access.services.settleReadCaches
   );

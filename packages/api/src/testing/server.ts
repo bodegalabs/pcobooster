@@ -9,6 +9,7 @@ import type {
   FeatureFlagSubject,
 } from "@pcobooster/api/modules/feature-flags/feature-flags";
 import type { PlanningCenterPersonalAccessToken } from "@pcobooster/api/planning-center/core-client";
+import { createPlanningCenterReadCaches } from "@pcobooster/api/planning-center/services/factory";
 import type { ServerDependencies } from "@pcobooster/api/server";
 import { Effect } from "effect";
 
@@ -58,6 +59,7 @@ export const testFeatureFlags = (
 /**
  * Server dependencies for unit tests. Config defaults to `testServerConfig()` and every flag to off; a test that
  * touches the database or Better Auth must supply them, so none starts them by accident.
+ * Planning Center read caches are fresh and memory-only unless a test supplies them.
  */
 export const testServer = (
   overrides: Partial<ServerDependencies> = {}
@@ -65,12 +67,14 @@ export const testServer = (
   const {
     config = testServerConfig(),
     featureFlags = testFeatureFlags(),
+    planningCenterReadCaches = createPlanningCenterReadCaches(null),
     database,
     auth,
   } = overrides;
   return {
     config,
     featureFlags,
+    planningCenterReadCaches,
     get database() {
       if (database === undefined) {
         throw new Error("This test did not provide a database");

@@ -16,7 +16,10 @@ import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-erro
 import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
 import { PlanningCenterRateLimitError } from "@pcobooster/api/planning-center/rate-limit-error";
 import { PlanningCenterReadOnlyError } from "@pcobooster/api/planning-center/read-only-error";
-import { createPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
+import {
+  createPlanningCenterServices,
+  createPlanningCenterReadCaches,
+} from "@pcobooster/api/planning-center/services/factory";
 import { PlanningCenterSubrequestLimitError } from "@pcobooster/api/planning-center/subrequest-limit-error";
 import { Server } from "@pcobooster/api/server";
 import {
@@ -49,7 +52,8 @@ const dependenciesFor = (
     createPlanningCenterServices(
       authentication.kind === "account" ? authentication.accessToken : "",
       "America/Los_Angeles",
-      httpClient
+      httpClient,
+      createPlanningCenterReadCaches(null)
     ),
   presentationMode: () => false,
   presentationSeed: "test-seed",
