@@ -62,7 +62,7 @@ describe(getCachedPeopleDashboardPersonDetail, () => {
     expect(placeholder?.month.label).toBe("May 2026");
     expect(placeholder?.previousMonth).toBe("2026-04");
     expect(placeholder?.nextMonth).toBe("2026-06");
-    expect(placeholder?.requestBudget.scheduleRequests).toBe(0);
+    expect(placeholder?.requestBudget.unresolvedRehearsalTimes).toBe(0);
   });
 
   it("does not reuse cached dashboard data for a different requested month", () => {

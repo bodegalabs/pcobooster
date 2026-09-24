@@ -112,8 +112,9 @@ const personDetail = (): PeopleDashboardPersonDetail => ({
     },
   ],
   requestBudget: {
-    scheduleRequests: 1,
-    blockoutRequests: 1,
+    limit: 36,
+    planningCenterRequests: 4,
+    unresolvedRehearsalTimes: 0,
   },
 });
 

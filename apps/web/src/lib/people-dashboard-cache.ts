@@ -93,8 +93,9 @@ const peopleDashboardPersonDetailSchema = z.object({
     })
   ),
   requestBudget: z.object({
-    scheduleRequests: z.number(),
-    blockoutRequests: z.number(),
+    limit: z.number(),
+    planningCenterRequests: z.number(),
+    unresolvedRehearsalTimes: z.number(),
   }),
 });
 

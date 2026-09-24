@@ -51,8 +51,9 @@ export const getCachedPeopleDashboardPersonDetail = (
       person,
       trend: [],
       requestBudget: {
-        scheduleRequests: 0,
-        blockoutRequests: 0,
+        limit: 0,
+        planningCenterRequests: 0,
+        unresolvedRehearsalTimes: 0,
       },
     };
   }

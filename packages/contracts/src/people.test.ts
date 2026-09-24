@@ -126,7 +126,11 @@ describe("people read contracts", () => {
       trend: [
         { month: "2026-09", label: "September", services: 2, rehearsals: 1 },
       ],
-      requestBudget: { scheduleRequests: 1, blockoutRequests: 1 },
+      requestBudget: {
+        limit: 36,
+        planningCenterRequests: 4,
+        unresolvedRehearsalTimes: 0,
+      },
     };
 
     expect(peopleDashboardRosterSchema.parse(roster)).toStrictEqual(roster);

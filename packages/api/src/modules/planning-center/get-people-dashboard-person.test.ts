@@ -3,12 +3,16 @@ import {
   getPersonScheduleWindow,
 } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
 import type { PeopleDashboardPersonDependencies } from "@pcobooster/api/modules/planning-center/get-people-dashboard-person";
+import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
+import { PROGRESSIVE_REQUEST_BUDGET } from "@pcobooster/api/planning-center/request-budget";
 import {
   planningCenterBudgetFailures,
   planningCenterNotFound,
 } from "@pcobooster/api/testing/planning-center-failures";
+import { countedRead } from "@pcobooster/api/testing/planning-center-requests";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect, Exit } from "effect";
@@ -60,6 +64,7 @@ const schedule = ({
   status = "C",
   timeIds,
   position = "Keys",
+  serviceTypeId = "service-type-1",
 }: {
   id: string;
   planId: string;
@@ -67,6 +72,7 @@ const schedule = ({
   status?: string;
   timeIds: string[];
   position?: string;
+  serviceTypeId?: string;
 }): PCResource => ({
   type: "Schedule",
   id,
@@ -80,7 +86,7 @@ const schedule = ({
   relationships: {
     plan: { data: { type: "Plan", id: planId } },
     plan_person: { data: { type: "PlanPerson", id } },
-    service_type: { data: { type: "ServiceType", id: "service-type-1" } },
+    service_type: { data: { type: "ServiceType", id: serviceTypeId } },
     times: { data: ids("PlanTime", timeIds) },
   },
 });
@@ -471,6 +477,89 @@ describe(getPeopleDashboardPerson, () => {
     expect(fixture.getPlanPlanTimes).toHaveBeenCalledExactlyOnceWith("plan-1");
     expect(detail.person.lastRehearsal).toBe("Sep 12");
     expect(detail.trend.at(-1)?.rehearsals).toBe(1);
+    expect(detail.requestBudget.unresolvedRehearsalTimes).toBe(0);
+  });
+
+  it("stays within the budget for someone serving in 12 service types and reports what it left unresolved", async () => {
+    vi.useFakeTimers({ now: NOW });
+    const serviceTypeIds = Array.from(
+      { length: 12 },
+      (_, index) => `service-type-${index}`
+    );
+    const plansOf = (serviceTypeId: string) =>
+      [6, 13, 20].map((day) => ({
+        planId: `${serviceTypeId}-plan-${day}`,
+        sortDate: `2026-09-${String(day).padStart(2, "0")}T17:00:00Z`,
+        rehearsal: planTime(
+          `${serviceTypeId}-rehearsal-${day}`,
+          `2026-09-${String(day - 2).padStart(2, "0")}T17:00:00Z`,
+          "rehearsal",
+          `${serviceTypeId}-plan-${day}`
+        ),
+      }));
+    const schedules = serviceTypeIds.flatMap((serviceTypeId) =>
+      plansOf(serviceTypeId).map(({ planId, sortDate, rehearsal }) =>
+        schedule({
+          id: `schedule-${planId}`,
+          planId,
+          sortDate,
+          serviceTypeId,
+          timeIds: [rehearsal.id],
+        })
+      )
+    );
+    const rehearsalsByPlanId = new Map(
+      serviceTypeIds.flatMap((serviceTypeId) =>
+        plansOf(serviceTypeId).map(({ planId, rehearsal }) => [
+          planId,
+          rehearsal,
+        ])
+      )
+    );
+    const fixture = dependenciesFor();
+    fixture.getPerson.mockReturnValue(countedRead(person));
+    fixture.getPersonSchedulesAfter.mockReturnValue(
+      countedRead({ data: schedules, included: [] })
+    );
+    fixture.getPersonPlanPeople.mockReturnValue(countedRead(emptyCollection()));
+    fixture.getPlansWithIncludedInDateRange.mockImplementation(
+      (serviceTypeId) =>
+        countedRead(
+          {
+            data: [],
+            included: plansOf(serviceTypeId).map(({ rehearsal }) => rehearsal),
+          },
+          3
+        )
+    );
+    fixture.getPlanPlanTimes.mockImplementation((planId) => {
+      const rehearsal = rehearsalsByPlanId.get(planId);
+      return countedRead(rehearsal === undefined ? [] : [rehearsal]);
+    });
+    const accounting = new PlanningCenterRequestAccounting();
+
+    const detail = await Effect.runPromise(
+      getPeopleDashboardPerson({
+        personId: "person-1",
+        month: "2026-09",
+        dependencies: fixture.dependencies,
+      }).pipe(Effect.provideService(PlanningCenterAccounting, accounting))
+    );
+
+    const resolved =
+      3 * fixture.getPlansWithIncludedInDateRange.mock.calls.length +
+      fixture.getPlanPlanTimes.mock.calls.length;
+    expect({
+      withinBudget: accounting.requestCount <= PROGRESSIVE_REQUEST_BUDGET,
+      reported: detail.requestBudget.planningCenterRequests,
+      unresolved: detail.requestBudget.unresolvedRehearsalTimes,
+      someUnresolved: detail.requestBudget.unresolvedRehearsalTimes > 0,
+    }).toStrictEqual({
+      withinBudget: true,
+      reported: accounting.requestCount,
+      unresolved: 36 - resolved,
+      someUnresolved: true,
+    });
   });
 });
 

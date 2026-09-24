@@ -238,7 +238,11 @@ const detail: PeopleDashboardPersonDetail = {
   nextMonth: "2026-10",
   person: dashboardPerson,
   trend: [],
-  requestBudget: { scheduleRequests: 1, blockoutRequests: 1 },
+  requestBudget: {
+    limit: 36,
+    planningCenterRequests: 4,
+    unresolvedRehearsalTimes: 0,
+  },
 };
 
 const setupPresentationEnvironment = () => {

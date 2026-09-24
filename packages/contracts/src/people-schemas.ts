@@ -284,8 +284,14 @@ export const peopleDashboardPersonDetailSchema = z.object({
     })
   ),
   requestBudget: z.object({
-    scheduleRequests: z.number(),
-    blockoutRequests: z.number(),
+    limit: z.number(),
+    /** Planning Center requests the call sent; cached reads cost none. */
+    planningCenterRequests: z.number(),
+    /**
+     * Rehearsal (and other) times the budget left unread; their assignments show on their
+     * plan's date. Zero when the detail is complete.
+     */
+    unresolvedRehearsalTimes: z.number(),
   }),
 });
 

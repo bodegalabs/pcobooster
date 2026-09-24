@@ -81,7 +81,13 @@ export interface PeopleDashboardPersonDetail {
     rehearsals: number;
   }[];
   requestBudget: {
-    scheduleRequests: number;
-    blockoutRequests: number;
+    limit: number;
+    /** Planning Center requests the procedure sent; cached reads cost none. */
+    planningCenterRequests: number;
+    /**
+     * Rehearsal (and other) times the budget left unread; their assignments show on their
+     * plan's date. Zero when the detail is complete.
+     */
+    unresolvedRehearsalTimes: number;
   };
 }

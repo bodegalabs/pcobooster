@@ -15,9 +15,15 @@ import type {
 } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
+import {
+  planningCenterRequestsSpent,
+  PROGRESSIVE_REQUEST_BUDGET,
+  withPlanningCenterRequestCount,
+} from "@pcobooster/api/planning-center/request-budget";
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import { PLAN_RANGE_MAX_PAGES } from "@pcobooster/api/planning-center/services/plans-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import {
@@ -50,11 +56,10 @@ const CADENCE_WINDOW_DAYS = 90;
 const SCHEDULE_AFTER_MARGIN_DAYS = 1;
 const MISSING_PLAN_TIMES_CONCURRENCY = 4;
 /**
- * Plan-by-plan time reads are a fallback for plans the ranges missed, such as plans of another
- * organization's service type. The cap keeps those from turning into one request per plan; times
- * left unresolved date the assignment by its plan.
+ * Plan-range reads leave room for this many plan-by-plan reads, the fallback for plans the ranges
+ * missed (such as plans of another organization's service type) or could not afford.
  */
-const MAX_DIRECT_PLAN_TIME_READS = 5;
+const DIRECT_PLAN_TIME_READS_RESERVE = 5;
 const PEOPLE_DASHBOARD_PERSON_CACHE_TTL_MS = 2 * 60 * 1000;
 const PEOPLE_DASHBOARD_PERSON_CACHE_VERSION = "v9";
 const peopleDashboardPersonCache =
@@ -165,6 +170,8 @@ export const getPersonScheduleWindow = (
 
 interface PlansMissingTimes {
   readonly latestPlanDayKey: string;
+  /** Missing time IDs a range read of this service type could resolve. */
+  readonly missingTimes: number;
 }
 
 /**
@@ -210,10 +217,14 @@ const findMissingPlanTimes = (
       new Date(sortDate),
       orgTimeZone
     );
-    const latest = byServiceType.get(serviceTypeId)?.latestPlanDayKey;
-    if (latest === undefined || planDayKey > latest) {
-      byServiceType.set(serviceTypeId, { latestPlanDayKey: planDayKey });
-    }
+    const known = byServiceType.get(serviceTypeId);
+    byServiceType.set(serviceTypeId, {
+      latestPlanDayKey:
+        known === undefined || planDayKey > known.latestPlanDayKey
+          ? planDayKey
+          : known.latestPlanDayKey,
+      missingTimes: (known?.missingTimes ?? 0) + missing.length,
+    });
   }
   return { byServiceType, missingTimeIds };
 };
@@ -235,29 +246,50 @@ const planIdsWithUnresolvedTimes = (
   return [...planIds];
 };
 
+interface ResolvedPlanTimes {
+  readonly included: PCResource[];
+  /** Rehearsal (and other) times left out to stay within the request budget. */
+  readonly unresolvedTimes: number;
+}
+
 /**
  * Resolves rehearsal PlanTimes with one cached plan-range read per service type (shared by every
- * person and month in that range) and reads a plan's own times only when the range lacks them.
- * A service type or plan Planning Center does not find contributes no times; any other failure
- * fails the read.
+ * person and month in that range), then reads a plan's own times when the ranges lack them, all
+ * within `PROGRESSIVE_REQUEST_BUDGET` counted requests. Ranges go to the service types missing
+ * the most times, and leave room for plan-by-plan reads. Times that still do not fit date their
+ * assignment by its plan and are counted in `unresolvedTimes`. A service type or plan Planning
+ * Center does not find contributes no times; any other failure fails the read.
  */
 const resolveMissingPlanTimes = (
   schedules: PCResource[],
   included: PCResource[],
   window: PersonScheduleWindow,
   dependencies: ScheduleReaders
-): Effect.Effect<PCResource[], PlanningCenterError> => {
+): Effect.Effect<ResolvedPlanTimes, PlanningCenterError> => {
   const { byServiceType, missingTimeIds } = findMissingPlanTimes(
     schedules,
     included,
     window.orgTimeZone
   );
   if (missingTimeIds.size === 0) {
-    return Effect.succeed(included);
+    return Effect.succeed({ included, unresolvedTimes: 0 });
   }
   return Effect.gen(function* readMissingPlanTimes() {
+    const beforeRanges = yield* planningCenterRequestsSpent;
+    const rangeSlots = Math.max(
+      0,
+      Math.floor(
+        (PROGRESSIVE_REQUEST_BUDGET -
+          beforeRanges -
+          DIRECT_PLAN_TIME_READS_RESERVE) /
+          PLAN_RANGE_MAX_PAGES
+      )
+    );
+    const rangeServiceTypes = [...byServiceType.entries()]
+      .toSorted(([, a], [, b]) => b.missingTimes - a.missingTimes)
+      .slice(0, rangeSlots);
     const ranges = yield* Effect.forEach(
-      [...byServiceType.entries()],
+      rangeServiceTypes,
       ([serviceTypeId, { latestPlanDayKey }]) =>
         dependencies.plansService
           .getPlansWithIncludedInDateRange(
@@ -287,23 +319,30 @@ const resolveMissingPlanTimes = (
         resolved.set(resource.id, resource);
       }
     }
-    const unresolvedTimeIds = new Set(
+    const unresolvedAfterRanges = new Set(
       [...missingTimeIds].filter((id) => !resolved.has(id))
     );
+    const afterRanges = yield* planningCenterRequestsSpent;
     const direct = yield* Effect.forEach(
-      planIdsWithUnresolvedTimes(schedules, unresolvedTimeIds).slice(
+      planIdsWithUnresolvedTimes(schedules, unresolvedAfterRanges).slice(
         0,
-        MAX_DIRECT_PLAN_TIME_READS
+        Math.max(0, PROGRESSIVE_REQUEST_BUDGET - afterRanges)
       ),
       (planId) => dependencies.peopleService.getPlanPlanTimes(planId),
       { concurrency: MISSING_PLAN_TIMES_CONCURRENCY }
     );
     for (const resource of direct.flat()) {
-      if (resource.type === "PlanTime" && unresolvedTimeIds.has(resource.id)) {
+      if (
+        resource.type === "PlanTime" &&
+        unresolvedAfterRanges.has(resource.id)
+      ) {
         resolved.set(resource.id, resource);
       }
     }
-    return [...included, ...resolved.values()];
+    return {
+      included: [...included, ...resolved.values()],
+      unresolvedTimes: missingTimeIds.size - resolved.size,
+    };
   });
 };
 
@@ -393,11 +432,14 @@ const getPendingRequestSchedules = (
  * future only, so the explicit `after` filter is what brings in past services. Declined requests
  * are excluded by that endpoint and again here.
  */
-export const getPersonScheduleItems = (
+const getPersonScheduleItems = (
   personId: string,
   window: PersonScheduleWindow,
   dependencies: ScheduleReaders
-): Effect.Effect<ScheduleItem[], PlanningCenterError> =>
+): Effect.Effect<
+  { readonly items: ScheduleItem[]; readonly unresolvedTimes: number },
+  PlanningCenterError
+> =>
   Effect.gen(function* readPersonScheduleItems() {
     const [schedules, planPeople] = yield* Effect.all(
       [
@@ -422,7 +464,7 @@ export const getPersonScheduleItems = (
         dependencies.catalogService
       )),
     ];
-    const included = yield* resolveMissingPlanTimes(
+    const { included, unresolvedTimes } = yield* resolveMissingPlanTimes(
       allSchedules,
       schedules.included,
       window,
@@ -439,7 +481,7 @@ export const getPersonScheduleItems = (
         }
       }
     }
-    return items;
+    return { items, unresolvedTimes };
   });
 
 const dedupeScheduleItems = (items: ScheduleItem[]) => {
@@ -733,9 +775,15 @@ const buildPeopleDashboardPerson = ({
         ),
       ],
       { concurrency: "unbounded" }
+    ).pipe(
+      Effect.flatMap(([personResource, scheduleItems]) =>
+        planningCenterRequestsSpent.pipe(
+          Effect.map((spent) => [personResource, scheduleItems, spent] as const)
+        )
+      )
     ),
-    ([personResource, scheduleItems]) => {
-      const items = dedupeScheduleItems(scheduleItems);
+    ([personResource, scheduleItems, spent]) => {
+      const items = dedupeScheduleItems(scheduleItems.items);
       return {
         generatedAt: now.toISOString(),
         month: monthInfo,
@@ -750,8 +798,9 @@ const buildPeopleDashboardPerson = ({
         ),
         trend: buildMonthlyTrend(items, monthInfo, orgTimeZone),
         requestBudget: {
-          scheduleRequests: 1,
-          blockoutRequests: 0,
+          limit: PROGRESSIVE_REQUEST_BUDGET,
+          planningCenterRequests: spent,
+          unresolvedRehearsalTimes: scheduleItems.unresolvedTimes,
         },
       };
     }
@@ -794,5 +843,6 @@ export const getPeopleDashboardPerson = ({
             orgTimeZone,
           })
       );
-    })
+    }),
+    withPlanningCenterRequestCount
   );
