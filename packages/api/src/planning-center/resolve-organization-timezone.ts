@@ -35,7 +35,7 @@ const readTimeZoneFromOrganization = (org: PCResource): string | null => {
 };
 
 /**
- * Services org `time_zone` (IANA) — the same calendar semantics Planning Center uses for plans.
+ * Services org `time_zone` (IANA) uses the same calendar semantics Planning Center uses for plans.
  * Cached per access token / app credentials. Falls back to env (then Los Angeles) only if the API
  * does not expose a zone or the fetch fails.
  */

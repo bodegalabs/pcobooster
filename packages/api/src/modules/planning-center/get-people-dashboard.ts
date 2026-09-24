@@ -448,7 +448,7 @@ export const getMostCommonRoles = (items: ScheduleItem[]) => {
   return roles.length > 0 ? roles.join(", ") : "No recent role";
 };
 
-export const formatShortDate = (date: Date | undefined, fallback = "—") => {
+export const formatShortDate = (date: Date | undefined, fallback = "-") => {
   if (!date || Number.isNaN(date.getTime())) {
     return fallback;
   }

@@ -6,7 +6,6 @@ import {
   noOverlaySectionBorderRule,
   noPopoverContentPaddingRule,
   noTransitionColorsRule,
-  noMarketingDashesRule,
   preferSharedControlsRule,
 } from "./oxlint-plugin-local.mjs";
 
@@ -20,35 +19,6 @@ const ruleTester = new RuleTester({
     },
   },
 });
-
-ruleTester.run(
-  "no-marketing-dashes",
-  noMarketingDashesRule as Parameters<typeof ruleTester.run>[1],
-  {
-    valid: [
-      {
-        filename: "apps/marketing/src/routes/index.tsx",
-        code: `const title = "PCOBooster: clear scheduling"; const view = <p>See your team - clearly.</p>;`,
-      },
-      {
-        filename: "apps/web/src/app/page.tsx",
-        code: `const title = "A range 1–3";`,
-      },
-    ],
-    invalid: [
-      {
-        filename: "apps/marketing/src/lib/site-head.ts",
-        code: `const title = "PCOBooster — clearer scheduling";`,
-        errors: [{ messageId: "dash" }],
-      },
-      {
-        filename: "apps/marketing/src/routes/index.tsx",
-        code: `<p>Schedule people – with context.</p>`,
-        errors: [{ messageId: "dash" }],
-      },
-    ],
-  }
-);
 
 // Oxlint's Rule union treats JS-exported create()-only rules as CreateOnceRule
 // because meta.type widens to string; assert the create()-based shape for RuleTester.

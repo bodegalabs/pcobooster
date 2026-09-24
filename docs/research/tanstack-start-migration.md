@@ -2,7 +2,7 @@
 
 Research date: September 23, 2026. This document records the recommendations, and their sources, for moving `apps/web`, `apps/admin`, and `apps/marketing` from Next.js 16 to TanStack Start on Cloudflare Workers, deployed by Alchemy `2.0.0-beta.79`.
 
-**Status: implemented.** All three apps run on TanStack Start, and no Next.js, OpenNext, or Vercel code remains. Sections 1–9 and the conventions are the pre-implementation research. The implementation notes at the end record what was verified and where the code deviates, and they win wherever the two disagree. The current code differs from the research in these ways:
+**Status: implemented.** All three apps run on TanStack Start, and no Next.js, OpenNext, or Vercel code remains. Sections 1 to 9 and the conventions are the pre-implementation research. The implementation notes at the end record what was verified and where the code deviates, and they win wherever the two disagree. The current code differs from the research in these ways:
 
 - **SSR mode.** Product pages are `ssr: "data-only"` under an SSR `_app` shell, not `ssr: false` (web notes).
 - **Build-time values.** Public values are Vite `define`s in each `vite.config.ts`, read from unprefixed Infisical keys: `POSTHOG_PROJECT_KEY` becomes `import.meta.env.VITE_POSTHOG_KEY`, and `PLANNING_CENTER_TIME_ZONE` becomes `import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE`. `PEOPLE_PAGE_ENABLED` and the presentation scope are `define`s too, not a root server function. No `VITE_*` keys are set on Alchemy resources.
@@ -64,7 +64,7 @@ Source: `npm view <pkg> version peerDependencies`. Existing repo pins that stay:
 
 Plugin collision guard, quoted from Alchemy `Workers/Sources/Vite.ts`:
 
-> Apps that also build standalone (plain `vite build` in CI, no Alchemy) need the Cloudflare plugin in their `vite.config.ts`. Without a guard, an Alchemy-orchestrated run instantiates that config-file instance _alongside_ the injected one … in dev — two workerd runtimes, only one of which carries the Worker's bindings.
+> Apps that also build standalone (plain `vite build` in CI, no Alchemy) need the Cloudflare plugin in their `vite.config.ts`. Without a guard, an Alchemy-orchestrated run instantiates that config-file instance _alongside_ the injected one ... in dev: two workerd runtimes, only one of which carries the Worker's bindings.
 >
 > ```ts
 > process.env.ALCHEMY_CLOUDFLARE_VITE_INJECTED === "1" ? null : cloudflare({ ... })
@@ -163,7 +163,7 @@ Only marketing ended up needing one, for prerendering (see the marketing notes).
 - Client-visible values: inline them at build time as `import.meta.env.VITE_*`, and list their sources in `turbo.json` `env`. _(Implemented as `define`s in `vite.config.ts` from `POSTHOG_PROJECT_KEY` and `PLANNING_CENTER_TIME_ZONE`, not as `VITE_*` keys on the Alchemy resource.)_
 - Forward requests to a service binding with the original `Request`, e.g. `env.API.fetch(request)`. The URL, method, headers, and streaming body are preserved, and the target sees the product origin ([HTTP service bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/http/)). This replaces the manual `arrayBuffer()` copy in `apps/web/src/app/api/[[...path]]/route.ts`.
 
-**Typing.** `@cloudflare/workers-types@5.20260923.1` (already a web devDependency) declares `module "cloudflare:workers" { export const env: Cloudflare.Env }` with an empty `interface Env {}` in `declare namespace Cloudflare` (`index.d.ts` lines ~15841–16145). Augment it once per app:
+**Typing.** `@cloudflare/workers-types@5.20260923.1` (already a web devDependency) declares `module "cloudflare:workers" { export const env: Cloudflare.Env }` with an empty `interface Env {}` in `declare namespace Cloudflare` (`index.d.ts` lines ~15841 to 16145). Augment it once per app:
 
 ```ts
 // apps/web/src/worker-env.d.ts
@@ -226,7 +226,7 @@ export const getAdminAccounts = createServerFn({ method: "GET" })
   });
 ```
 
-- Validators accept Standard Schema (`'~standard'`), objects with `.parse`, or functions (`execValidator`). The canonical builder is `.validator()`. `.inputValidator()` is typed `/** @deprecated Use \`validator\` instead. */` and stored under both names (`createServerFn.ts`lines ~88–125, 509–513, 670–673; the same pattern is in`createMiddleware.ts`). Better Auth and Cloudflare snippets that use `.inputValidator` still work but should not be copied.
+- Validators accept Standard Schema (`'~standard'`), objects with `.parse`, or functions (`execValidator`). The canonical builder is `.validator()`. `.inputValidator()` is typed `/** @deprecated Use \`validator\` instead. */` and stored under both names (`createServerFn.ts`lines ~88 to 125, 509 to 513, and 670 to 673; the same pattern is in`createMiddleware.ts`). Better Auth and Cloudflare snippets that use `.inputValidator` still work but should not be copied.
 - Loaders are isomorphic, meaning they run on the server for the first request and in the browser on navigation. Privileged reads therefore go inside server functions, not loaders (Start docs `guide/execution-model.md`, `migrate-from-next-js.md`).
 - Request utilities come from `@tanstack/react-start/server`: `getRequest`, `getRequestHeaders`, `getRequestHeader`, `getRequestUrl`, `getRequestHost`, `getRequestIP`, `getCookies`/`getCookie`/`setCookie`/`deleteCookie`, `setResponseHeader(s)`, `setResponseStatus`, `useSession` (`start-server-core` `src/request-response.ts`).
 - CSRF: "If your app does not define `src/start.ts`, Start installs this middleware automatically for server functions. If you define `src/start.ts`, add the middleware explicitly" with `createCsrfMiddleware({ filter: (ctx) => ctx.handlerType === 'serverFn' })` (Start docs `guide/server-functions.md`, `guide/middleware.md`).

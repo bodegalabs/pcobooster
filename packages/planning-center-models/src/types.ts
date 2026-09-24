@@ -134,7 +134,7 @@ export interface Blockout {
   endsAt: Date;
   description: string;
   share: boolean;
-  /** Services API `time_zone` — used for calendar-day blockout checks */
+  /** Services API `time_zone`, used for calendar-day blockout checks */
   timeZone?: string | null;
 }
 

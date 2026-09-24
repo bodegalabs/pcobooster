@@ -131,7 +131,7 @@ const DesktopPlanRows = ({
         aria-selected={isActive}
         aria-label={
           isScheduledForCurrentUser
-            ? `${row.serviceTypeName} — you are scheduled`
+            ? `${row.serviceTypeName}: you are scheduled`
             : undefined
         }
         onClick={() => {
@@ -155,7 +155,7 @@ const DesktopPlanRows = ({
           {isNonEmptyString(row.seriesTitle) ? (
             <span className="truncate">{row.seriesTitle}</span>
           ) : (
-            <span className="opacity-30">—</span>
+            <span className="opacity-30">-</span>
           )}
         </TableCell>
         <TableCell>
@@ -227,7 +227,7 @@ const MobilePlanRow = ({
         aria-current={isActive ? "page" : undefined}
         aria-label={
           isScheduledForCurrentUser
-            ? `${row.serviceTypeName}, ${formatDate(row.sortDate)} — you are scheduled`
+            ? `${row.serviceTypeName}, ${formatDate(row.sortDate)}: you are scheduled`
             : `${row.serviceTypeName}, ${formatDate(row.sortDate)}`
         }
       />

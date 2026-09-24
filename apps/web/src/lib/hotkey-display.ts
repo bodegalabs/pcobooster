@@ -2,7 +2,7 @@ import { detectPlatform, formatForDisplay } from "@tanstack/react-hotkeys";
 import type { RegisterableHotkey } from "@tanstack/react-hotkeys";
 
 /**
- * Spoken UI label — modifier names as words so assistive tech says “command B”, not glyphs.
+ * Spoken UI label: modifier names as words so assistive tech says “command B”, not glyphs.
  */
 export const hotkeyAriaLabel = (binding: RegisterableHotkey): string =>
   formatForDisplay(binding, {

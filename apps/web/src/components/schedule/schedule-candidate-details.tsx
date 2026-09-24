@@ -204,7 +204,7 @@ export const ScheduleCandidateScore = ({
   percentage: number | null;
 }) => {
   if (percentage === null) {
-    return <div className="text-muted-foreground text-right text-xs">—</div>;
+    return <div className="text-muted-foreground text-right text-xs">-</div>;
   }
   const progressStyle: CSSProperties & { "--recommendation-width": string } = {
     "--recommendation-width": `${Math.max(4, percentage)}%`,

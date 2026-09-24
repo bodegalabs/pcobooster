@@ -37,7 +37,7 @@ Use **PCO Boost** rather than **PCO Booster**.
 
 Public copy should say:
 
-> PCO Boost — scheduling tools for Planning Center Services.
+> PCO Boost: scheduling tools for Planning Center Services.
 
 It should not say or imply:
 
@@ -72,7 +72,7 @@ A person who personally owns the scheduling workflow and feels the pain every we
 ### Initial ideal customer profile
 
 - Already uses Planning Center Services.
-- Has roughly 20–150 active people being scheduled.
+- Has roughly 20 to 150 active people being scheduled.
 - Has one or a few people responsible for building lineups.
 - Spends recurring time checking conflicts, fairness, availability, and recent assignments.
 - Wants to keep Planning Center as the system of record.
@@ -85,15 +85,15 @@ Supporting both an individual path and an organization path is the right comprom
 
 | Plan | Who pays | Initial scope | Pricing hypothesis |
 | --- | --- | --- | --- |
-| Solo | Individual scheduler | One scheduler, one connected church/org, core scheduling workflow | $7–9/month |
-| Team | Church or organization | 3–5 scheduler seats, organization-owned subscription and billing | $19/month |
-| Growth later | Larger or multi-campus organization | More scheduler seats and differentiated automation/features | $39–49/month initially |
+| Solo | Individual scheduler | One scheduler, one connected church/org, core scheduling workflow | $7 to $9/month |
+| Team | Church or organization | 3 to 5 scheduler seats, organization-owned subscription and billing | $19/month |
+| Growth later | Larger or multi-campus organization | More scheduler seats and differentiated automation/features | $39 to $49/month initially |
 
 The prices are hypotheses for validation, not market facts. The key rules are:
 
 - Charge for scheduler/admin seats, not every volunteer in Planning Center.
 - Keep the core scheduling workflow substantially the same across Solo and Team.
-- Make the Team plan about shared access, ownership, continuity, and future collaboration—not arbitrary feature withholding.
+- Make the Team plan about shared access, ownership, continuity, and future collaboration, not arbitrary feature withholding.
 - Do not require an accounting or procurement process for a small church to try Solo.
 - Do not let personal billing grant any Planning Center permissions beyond what the user authorizes through OAuth.
 
@@ -134,7 +134,7 @@ Before building complex billing or organization administration:
 4. Ask whether the scheduler would pay personally, expense the subscription, or request a Team plan.
 5. Convert repeated multi-scheduler usage into the Team plan.
 
-A scheduler declining a $7–9 paid pilot is more useful evidence than a large number of free users. If the product saves meaningful time but nobody will pay even a small amount, the problem is likely positioning, trust, or insufficiently painful workflow—not simply that the price is too high.
+A scheduler declining a $7 to $9 paid pilot is more useful evidence than a large number of free users. If the product saves meaningful time but nobody will pay even a small amount, the problem is likely positioning, trust, or insufficiently painful workflow, not simply that the price is too high.
 
 ## Rebrand and migration implications
 

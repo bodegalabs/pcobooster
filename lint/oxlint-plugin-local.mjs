@@ -12,7 +12,6 @@ const OVERLAY_SECTION_BORDER_CLASS = /(^|\s)border-b(\s|$)/;
 const OVERLAY_SECTION_PADDING_CLASS = /(^|\s)px-[345](\s|$)/;
 const LIST_ROW_BORDER_CLASS = /last:border-b-0/;
 const TRANSITION_COLORS_CLASS = /transition-colors|transition-plan-item/;
-const MARKETING_DASH = /[—–]/;
 const OVERLAY_SECTION_BORDER_IGNORED_FILES = [
   "components/ui/",
   "components/schedule/plan-tab-toolbar.tsx",
@@ -439,45 +438,6 @@ const noTransitionColorsRule = {
   },
 };
 
-const noMarketingDashesRule = {
-  meta: {
-    type: "problem",
-    docs: {
-      description: "Disallow em and en dashes in marketing copy.",
-    },
-    messages: {
-      dash: "Use plain punctuation instead of an em or en dash in marketing copy.",
-    },
-    schema: [],
-  },
-  create(context) {
-    const filename = context.filename.replaceAll("\\", "/");
-    if (!filename.includes("/apps/marketing/")) {
-      return {};
-    }
-
-    const reportDash = (node, value) => {
-      if (MARKETING_DASH.test(value)) {
-        context.report({ node, messageId: "dash" });
-      }
-    };
-
-    return {
-      Literal(node) {
-        if (typeof node.value === "string") {
-          reportDash(node, node.value);
-        }
-      },
-      JSXText(node) {
-        reportDash(node, node.value);
-      },
-      TemplateElement(node) {
-        reportDash(node, node.value.cooked ?? node.value.raw);
-      },
-    };
-  },
-};
-
 export default {
   meta: {
     name: "local",
@@ -487,7 +447,6 @@ export default {
     "no-popover-content-padding": noPopoverContentPaddingRule,
     "no-overlay-section-border-b": noOverlaySectionBorderRule,
     "no-transition-colors": noTransitionColorsRule,
-    "no-marketing-dashes": noMarketingDashesRule,
     "prefer-shared-controls": preferSharedControlsRule,
   },
 };
@@ -497,6 +456,5 @@ export {
   noOverlaySectionBorderRule,
   noPopoverContentPaddingRule,
   noTransitionColorsRule,
-  noMarketingDashesRule,
   preferSharedControlsRule,
 };

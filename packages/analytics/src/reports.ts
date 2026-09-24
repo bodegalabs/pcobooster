@@ -312,7 +312,7 @@ export const productDashboard: DashboardDefinition = {
     {
       key: "ActiveAppUsers",
       id: 12_152_298,
-      name: "Active app users — daily, weekly, monthly",
+      name: "Active app users: daily, weekly, monthly",
       description:
         "Distinct authenticated users with an app pageview. Weekly/monthly series use rolling windows. Demo traffic is excluded before capture.",
       tags,
