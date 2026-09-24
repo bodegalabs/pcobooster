@@ -3,5 +3,9 @@ import staticAssetsIncrementalCache from "@opennextjs/cloudflare/overrides/incre
 
 export default {
   ...defineCloudflareConfig({ incrementalCache: staticAssetsIncrementalCache }),
-  buildCommand: "bun run --cwd ../.. build:marketing && bun run build",
+  // CI restores `cloudflare-build`'s `.next` for previews when the build environment matches.
+  buildCommand:
+    process.env.PCOBOOSTER_PREBUILT_NEXT === "1"
+      ? "true"
+      : "bun run --cwd ../.. build:marketing && bun run build",
 };

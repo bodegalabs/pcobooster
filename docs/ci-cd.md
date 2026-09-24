@@ -26,7 +26,9 @@ Concurrency is set per job. A new push to a pull request cancels that PR's older
 
 ## Preview lifecycle
 
-Same-repository pull requests request a deployment only after validation passes. Each deployment waits for Jake's approval in the `cloudflare-preview` GitHub environment. Fork PRs receive secretless checks only. Approval grants the checked-out revision access to preview app secrets and an account-scoped Cloudflare token, so review workflow/dependency changes before approving.
+Previews deploy only on request. Add the `preview` label to a same-repository pull request; adding the label, and every later push while it is present, requests a deployment once validation passes. Each deployment still waits for Jake's approval in the `cloudflare-preview` GitHub environment, because anyone with write access can add a label. Pull requests without the label get checks only, with no waiting deployment.
+
+Labeled pull requests reuse the build. `cloudflare-build` packages its `.next` outputs (tarred to keep `.next/standalone` symlinks) with a fingerprint of the build-time environment (`scripts/cloudflare/build-fingerprint.ts`: every `NEXT_PUBLIC_*` plus the server variables the apps read while building). The preview job restores them and sets `PCOBOOSTER_PREBUILT_NEXT=1` only when its own fingerprint matches. Each app's `open-next.config.ts` then skips `next build`, and OpenNext only bundles. On a mismatch the job logs a notice and builds from source. `cloudflare-build` sets `PEOPLE_PAGE_ENABLED=false` to match the preview environment; keep the two aligned. Fork PRs receive secretless checks only. Approval grants the checked-out revision access to preview app secrets and an account-scoped Cloudflare token, so review workflow/dependency changes before approving.
 
 An approved job authenticates to Infisical using GitHub OIDC, checks the PR is still open at the expected head, and runs `bun alchemy deploy --stage pr-<number>`. Alchemy owns a separate D1 database and API/web/admin Workers for each PR. The preview URL is exposed in GitHub's deployment environment. Production data is never copied into these databases.
 
