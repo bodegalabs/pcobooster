@@ -7,6 +7,8 @@ describe("public marketing routes", () => {
     "/",
     "/about",
     "/about/",
+    "/robots.txt",
+    "/sitemap.xml",
     "/marketing/assets/index.js",
     "/marketing/screenshots/assign.webp",
   ])("allows %s without a session", (pathname) => {

@@ -27,7 +27,12 @@ export const Route = createFileRoute("/auth")({
     }
     return { returnPath };
   },
-  head: () => ({ meta: [{ title: "Sign in · PCOBooster" }] }),
+  head: () => ({
+    meta: [
+      { title: "Sign in · PCOBooster" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   headers: () => ({ "Cache-Control": "private, no-store" }),
   component: AuthPage,
 });

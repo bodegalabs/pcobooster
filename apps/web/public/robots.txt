@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /marketing/
+Disallow: /api/
+Disallow: /auth
+Disallow: /demo/
+Disallow: /services
+Disallow: /people
+Disallow: /admin
+Disallow: /marketing/index.html
+Disallow: /marketing/about.html
+
+Sitemap: https://pcobooster.com/sitemap.xml

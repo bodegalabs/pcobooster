@@ -77,6 +77,8 @@ describe(decideRequestGate, () => {
     "/api/rpc/session/status",
     "/auth",
     "/auth?next=%2Fpeople",
+    "/robots.txt",
+    "/sitemap.xml",
   ])("lets signed-out visitors reach %s", (path) => {
     expect(
       decideRequestGate(signedOut(`https://pcobooster.com${path}`))
