@@ -175,6 +175,24 @@ export const invalidateScheduleMutationQueries = (
   }
 };
 
+/**
+ * Plan person time and plan time writes change the rosters and plan times that candidate history
+ * is built from: plan-window histories and schedule-history candidate details go stale, and only
+ * the ones on screen refetch now. Blockout-only details are untouched.
+ */
+export const invalidateCandidateHistoryQueries = async (
+  queryClient: QueryClient
+): Promise<void> => {
+  clearCachedCandidateSchedules();
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: WINDOW_HISTORY_QUERY_KEY }),
+    queryClient.invalidateQueries({
+      queryKey: CANDIDATE_DETAILS_QUERY_KEY,
+      predicate: hasScheduleHistory,
+    }),
+  ]);
+};
+
 export const cancelScheduleMutationQueries = async (
   queryClient: QueryClient,
   context: ScheduleMutationInvalidateContext

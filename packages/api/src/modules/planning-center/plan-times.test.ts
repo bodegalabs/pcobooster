@@ -44,7 +44,10 @@ const createFixture = () => {
     vi.fn<
       PlanTimeDependencies["peopleService"]["invalidatePlanTimeSensitiveReadCaches"]
     >();
-  const invalidatePlanWindowHistoryMock = vi.fn<() => void>();
+  const invalidatePlanWindowRostersMock =
+    vi.fn<
+      PlanTimeDependencies["peopleService"]["invalidatePlanWindowRosters"]
+    >();
   const dependencies = {
     plansService: {
       getPlanTimes: getPlanTimesMock,
@@ -57,6 +60,7 @@ const createFixture = () => {
       updatePlanPersonTimes: updatePlanPersonTimesMock,
       invalidatePlanTimeSensitiveReadCaches:
         invalidatePlanTimeSensitiveReadCachesMock,
+      invalidatePlanWindowRosters: invalidatePlanWindowRostersMock,
     },
     catalogService: {
       updateServiceTypePlanNeededPositionTime:
@@ -72,7 +76,7 @@ const createFixture = () => {
     getPlanTeamMembersMock,
     updatePlanPersonTimesMock,
     invalidatePlanTimeSensitiveReadCachesMock,
-    invalidatePlanWindowHistoryMock,
+    invalidatePlanWindowRostersMock,
     dependencies,
   };
 };
@@ -155,9 +159,9 @@ describe("plan-times module", () => {
   let invalidatePlanTimeSensitiveReadCachesMock: ReturnType<
     typeof createFixture
   >["invalidatePlanTimeSensitiveReadCachesMock"];
-  let invalidatePlanWindowHistoryMock: ReturnType<
+  let invalidatePlanWindowRostersMock: ReturnType<
     typeof createFixture
-  >["invalidatePlanWindowHistoryMock"];
+  >["invalidatePlanWindowRostersMock"];
   let dependencies: ReturnType<typeof createFixture>["dependencies"];
 
   beforeEach(() => {
@@ -170,7 +174,7 @@ describe("plan-times module", () => {
       getPlanTeamMembersMock,
       updatePlanPersonTimesMock,
       invalidatePlanTimeSensitiveReadCachesMock,
-      invalidatePlanWindowHistoryMock,
+      invalidatePlanWindowRostersMock,
       dependencies,
     } = createFixture());
   });
@@ -255,7 +259,6 @@ describe("plan-times module", () => {
           timeType: "service",
           assignedTeamIds: ["team-1", "team-2"],
         },
-        invalidatePlanWindowHistoryMock,
         dependencies
       )
     );
@@ -276,7 +279,7 @@ describe("plan-times module", () => {
     expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith(
       "plan-1"
     );
-    expect(invalidatePlanWindowHistoryMock).toHaveBeenCalledWith();
+    expect(invalidatePlanWindowRostersMock).toHaveBeenCalledWith();
     expect(planTime.timeType).toBe("service");
   });
 
@@ -306,7 +309,6 @@ describe("plan-times module", () => {
           assignedTeamIds: ["team-1"],
           assignedPositionIds: ["position-1"],
         },
-        invalidatePlanWindowHistoryMock,
         dependencies
       )
     );
@@ -326,7 +328,7 @@ describe("plan-times module", () => {
     expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith(
       "plan-1"
     );
-    expect(invalidatePlanWindowHistoryMock).toHaveBeenCalledWith();
+    expect(invalidatePlanWindowRostersMock).toHaveBeenCalledWith();
     expect(planTime.id).toBe("time-new");
   });
 
@@ -338,7 +340,6 @@ describe("plan-times module", () => {
           planId: "plan-1",
           planTimeId: "time-1",
         },
-        invalidatePlanWindowHistoryMock,
         dependencies
       )
     );
@@ -347,7 +348,7 @@ describe("plan-times module", () => {
     expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith(
       "plan-1"
     );
-    expect(invalidatePlanWindowHistoryMock).toHaveBeenCalledWith();
+    expect(invalidatePlanWindowRostersMock).toHaveBeenCalledWith();
   });
 
   it("patches plan-level needed position time overrides", async () => {
@@ -372,7 +373,6 @@ describe("plan-times module", () => {
           assignedNeededPositionIds: ["needed-1"],
           clearedNeededPositionIds: ["needed-2"],
         },
-        invalidatePlanWindowHistoryMock,
         dependencies
       )
     );
@@ -424,7 +424,6 @@ describe("plan-times module", () => {
             planTimeId: "time-1",
             assignedNeededPositionIds: ["needed-1", "needed-2"],
           },
-          invalidatePlanWindowHistoryMock,
           dependencies
         )
       )
@@ -435,7 +434,7 @@ describe("plan-times module", () => {
       );
     });
     expect(invalidatePlanTimeSensitiveReadCachesMock).not.toHaveBeenCalled();
-    expect(invalidatePlanWindowHistoryMock).not.toHaveBeenCalled();
+    expect(invalidatePlanWindowRostersMock).not.toHaveBeenCalled();
 
     lateWrite.resolve({
       id: "needed-2",
@@ -450,7 +449,7 @@ describe("plan-times module", () => {
     expect(invalidatePlanTimeSensitiveReadCachesMock).toHaveBeenCalledWith(
       "plan-1"
     );
-    expect(invalidatePlanWindowHistoryMock).toHaveBeenCalledOnce();
+    expect(invalidatePlanWindowRostersMock).toHaveBeenCalledOnce();
   });
 
   it("patches individual plan person time overrides from roster relationships", async () => {
@@ -498,7 +497,6 @@ describe("plan-times module", () => {
           assignedPlanPersonIds: ["pp-add"],
           clearedPlanPersonIds: ["pp-clear", "pp-declined", "pp-no-person"],
         },
-        invalidatePlanWindowHistoryMock,
         dependencies
       )
     );

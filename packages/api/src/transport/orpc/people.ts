@@ -7,114 +7,53 @@ import {
   getPeopleDashboardActivity,
   getPeopleDashboardPerson,
   getPeopleDashboardRoster,
-  getPeopleScheduleHistory,
   getPeopleSearch,
 } from "@pcobooster/api/application/people";
-import { withPlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
-import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
-import {
-  applicationRuntime,
-  rpc,
-} from "@pcobooster/api/transport/orpc/implementation";
+import { rpc } from "@pcobooster/api/transport/orpc/implementation";
+import { readWithPlanningCenter } from "@pcobooster/api/transport/orpc/planning-center-procedure";
 
 const positionCandidates = rpc.people.positionCandidates.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getPeoplePositionCandidates(input)),
-      context,
-      signal
-    )
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(getPeoplePositionCandidates(input), call)
 );
 
 const planWindowHistory = rpc.people.planWindowHistory.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getPeoplePlanWindowHistory(input)),
-      context,
-      signal
-    )
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(getPeoplePlanWindowHistory(input), call)
 );
 
 const candidateDetails = rpc.people.candidateDetails.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getPeopleCandidateDetails(input)),
-      context,
-      signal
-    )
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(getPeopleCandidateDetails(input), call)
 );
 
 const search = rpc.people.search.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getPeopleSearch(input)),
-      context,
-      signal
-    )
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(getPeopleSearch(input), call)
 );
 
 const blockouts = rpc.people.blockouts.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getPeopleBlockouts(input)),
-      context,
-      signal
-    )
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(getPeopleBlockouts(input), call)
 );
 
 const dashboardRoster = rpc.people.dashboardRoster.handler(
-  async ({ context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getPeopleDashboardRoster()),
-      context,
-      signal
-    )
+  async (call) => await readWithPlanningCenter(getPeopleDashboardRoster(), call)
 );
 
 const dashboardActivity = rpc.people.dashboardActivity.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getPeopleDashboardActivity(input)),
-      context,
-      signal
-    )
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(getPeopleDashboardActivity(input), call)
 );
 
 const dashboardPerson = rpc.people.dashboardPerson.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getPeopleDashboardPerson(input)),
-      context,
-      signal
-    )
-);
-
-const scheduleHistory = rpc.people.scheduleHistory.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getPeopleScheduleHistory(input)),
-      context,
-      signal
-    )
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(getPeopleDashboardPerson(input), call)
 );
 
 const myScheduledPlans = rpc.people.myScheduledPlans.handler(
-  async ({ input, context, signal }) =>
-    await executeApplicationEffect(
-      applicationRuntime,
-      withPlanningCenterAccess(getMyScheduledPlans(input)),
-      context,
-      signal
-    )
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(getMyScheduledPlans(input), call)
 );
 
 export const peopleRouter = {
@@ -126,6 +65,5 @@ export const peopleRouter = {
   dashboardRoster,
   dashboardActivity,
   dashboardPerson,
-  scheduleHistory,
   myScheduledPlans,
 };

@@ -9,7 +9,14 @@ import type {
 } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
+import {
+  PLANNING_CENTER_REQUEST_CAP,
+  planningCenterRequestsSpent,
+  PROGRESSIVE_REQUEST_BUDGET,
+  withPlanningCenterRequestCount,
+} from "@pcobooster/api/planning-center/request-budget";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import { PLAN_RANGE_MAX_PAGES } from "@pcobooster/api/planning-center/services/plans-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import {
@@ -26,22 +33,10 @@ import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
 /**
- * Planning Center requests one `people.dashboardActivity` call may make. The
- * Workers Free cap is 50 subrequests per invocation, and auth, D1, KV, and
- * flag reads use some of that, so Planning Center gets 40.
- */
-export const PEOPLE_DASHBOARD_REQUEST_BUDGET = 40;
-/** The organization time zone read, counted even when it is cached. */
-const TIME_ZONE_REQUESTS = 1;
-/**
  * 100 schedules per page. The busiest volunteer measured had 23 schedules in
  * the window, so one page is typical and two leave room for heavy servers.
  */
 const SCHEDULE_MAX_PAGES = 2;
-/** `getPlansWithIncludedInDateRange` reads at most 3 pages of 100 plans. */
-const PLAN_RANGE_MAX_PAGES = 3;
-/** Planning Center pages hold 100 records (`per_page=100`). */
-const PAGE_SIZE = 100;
 /** Workers allows 6 open connections per invocation; leave headroom. */
 const READ_CONCURRENCY = 4;
 /** The 90-day cadence counts, plus one day for the org-day boundary. */
@@ -567,9 +562,6 @@ export const getPeopleDashboardRoster = ({
     };
   });
 
-const pagesFor = (records: number) =>
-  Math.max(1, Math.ceil(records / PAGE_SIZE));
-
 interface PersonSchedules {
   readonly personId: string;
   readonly data: PCResource[];
@@ -611,14 +603,22 @@ export const findServiceTypesMissingPlanTimes = (
 };
 
 /**
- * Serving activity for a batch of roster people, within
- * `PEOPLE_DASHBOARD_REQUEST_BUDGET` Planning Center requests.
+ * Serving activity for a batch of roster people. Each call plans against
+ * `PROGRESSIVE_REQUEST_BUDGET` Planning Center requests, counting what was
+ * really sent.
  *
  * Each person costs one schedule page (two at most), read from 91 days ago
  * onward. Rehearsal PlanTimes are then read per service type (one plan-range
- * page each, shared across the batch and cached for 5 minutes) instead of per
- * plan. People who cannot be finished within the budget come back in
- * `deferredPersonIds` for the caller's next call; failed reads fail the call.
+ * read each, shared across the batch and cached for 5 minutes) instead of per
+ * plan, first the service types of the batch's first person. People whose
+ * service types do not fit come back in `deferredPersonIds` for the caller's
+ * next call; failed reads fail the call.
+ *
+ * Every call finishes its first person. That person's plan ranges may use the
+ * retry headroom up to the procedure cap; beyond it (a person serving in more
+ * than about ten service types), their remaining schedules keep their plan
+ * dates without rehearsal times, and the call logs how many service types it
+ * left unread.
  */
 export const getPeopleDashboardActivity = ({
   personIds,
@@ -639,11 +639,20 @@ export const getPeopleDashboardActivity = ({
       orgTimeZone
     );
     const uniquePersonIds = [...new Set(personIds)];
-    let remaining = PEOPLE_DASHBOARD_REQUEST_BUDGET - TIME_ZONE_REQUESTS;
 
+    // Schedules first, by their upper-bound cost, leaving room for a plan range.
+    const beforeSchedules = yield* planningCenterRequestsSpent;
     const admittedCount = Math.min(
       uniquePersonIds.length,
-      Math.floor(remaining / SCHEDULE_MAX_PAGES)
+      Math.max(
+        1,
+        Math.floor(
+          (PROGRESSIVE_REQUEST_BUDGET -
+            beforeSchedules -
+            PLAN_RANGE_MAX_PAGES) /
+            SCHEDULE_MAX_PAGES
+        )
+      )
     );
     const admitted = uniquePersonIds.slice(0, admittedCount);
     const deferred = new Set(uniquePersonIds.slice(admittedCount));
@@ -664,25 +673,39 @@ export const getPeopleDashboardActivity = ({
         ),
       { concurrency: READ_CONCURRENCY }
     );
-    const scheduleRequests = schedules.reduce(
-      (total, { data }) => total + pagesFor(data.length),
+    const afterSchedules = yield* planningCenterRequestsSpent;
+
+    // In order of first need, so the first person's service types come first.
+    const missing = findServiceTypesMissingPlanTimes(schedules);
+    const serviceTypeIds = [...missing.keys()];
+    const [firstPersonId] = admitted;
+    const firstPersonTypes = serviceTypeIds.filter(
+      (id) => missing.get(id)?.has(firstPersonId ?? "") === true
+    ).length;
+    const slots = Math.max(
+      Math.floor(
+        (PROGRESSIVE_REQUEST_BUDGET - afterSchedules) / PLAN_RANGE_MAX_PAGES
+      ),
+      Math.min(
+        firstPersonTypes,
+        Math.floor(
+          (PLANNING_CENTER_REQUEST_CAP - afterSchedules) / PLAN_RANGE_MAX_PAGES
+        )
+      ),
       0
     );
-    remaining -= scheduleRequests;
-
-    const missing = findServiceTypesMissingPlanTimes(schedules);
-    const serviceTypeIds = [...missing.keys()].toSorted();
-    const affordable = Math.max(
-      0,
-      Math.floor(remaining / PLAN_RANGE_MAX_PAGES)
-    );
-    for (const serviceTypeId of serviceTypeIds.slice(affordable)) {
+    let unreadFirstPersonTypes = 0;
+    for (const serviceTypeId of serviceTypeIds.slice(slots)) {
       for (const personId of missing.get(serviceTypeId) ?? []) {
-        deferred.add(personId);
+        if (personId === firstPersonId) {
+          unreadFirstPersonTypes += 1;
+        } else {
+          deferred.add(personId);
+        }
       }
     }
     const planRanges = yield* Effect.forEach(
-      serviceTypeIds.slice(0, affordable),
+      serviceTypeIds.slice(0, slots),
       (serviceTypeId) =>
         plansService
           .getPlansWithIncludedInDateRange(
@@ -706,10 +729,6 @@ export const getPeopleDashboardActivity = ({
           ),
       { concurrency: READ_CONCURRENCY }
     );
-    const planTimeRequests = planRanges.reduce(
-      (total, { data }) => total + pagesFor(data.length),
-      0
-    );
     const planTimes = planRanges.flatMap(({ included }) =>
       included.filter((resource) => resource.type === "PlanTime")
     );
@@ -727,12 +746,12 @@ export const getPeopleDashboardActivity = ({
             ),
           ]
     );
+    const spent = yield* planningCenterRequestsSpent;
     const requestBudget = {
-      limit: PEOPLE_DASHBOARD_REQUEST_BUDGET,
-      planningCenterRequests:
-        TIME_ZONE_REQUESTS + scheduleRequests + planTimeRequests,
-      scheduleRequests,
-      planTimeRequests,
+      limit: PROGRESSIVE_REQUEST_BUDGET,
+      planningCenterRequests: spent,
+      scheduleRequests: afterSchedules - beforeSchedules,
+      planTimeRequests: spent - afterSchedules,
     };
     log.info(
       {
@@ -740,6 +759,7 @@ export const getPeopleDashboardActivity = ({
         requestedPeopleCount: uniquePersonIds.length,
         hydratedPeopleCount: people.length,
         deferredPeopleCount: deferred.size,
+        unreadFirstPersonServiceTypeCount: unreadFirstPersonTypes,
       },
       "People dashboard activity read"
     );
@@ -749,4 +769,4 @@ export const getPeopleDashboardActivity = ({
       deferredPersonIds: uniquePersonIds.filter((id) => deferred.has(id)),
       requestBudget,
     };
-  });
+  }).pipe(withPlanningCenterRequestCount);

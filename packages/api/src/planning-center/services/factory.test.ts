@@ -226,6 +226,7 @@ describe("createPlanningCenterServices shared tier", () => {
         planId: "plan",
       });
       services.people.invalidatePlanTimeSensitiveReadCaches("plan");
+      services.people.invalidatePlanWindowRosters();
       services.plans.invalidatePlanTimesCache("service-type", "plan");
       services.catalog.invalidateNeededPositionsCache("service-type", "plan");
     }).not.toThrow();

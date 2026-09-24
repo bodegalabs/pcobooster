@@ -1,5 +1,8 @@
 import { createBasicPlanningCenterClient } from "@pcobooster/api/planning-center/core-client";
-import { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import {
+  createPlanningCenterPeopleServiceCaches,
+  PlanningCenterPeopleService,
+} from "@pcobooster/api/planning-center/services/people-service";
 import {
   noContentResponse,
   unreachableHttpClient,
@@ -491,26 +494,40 @@ describe("PlanningCenterPeopleService.deletePlanPerson", () => {
   });
 });
 
-describe("PlanningCenterPeopleService.getPlanTeamMembers settled rosters", () => {
+const rosterService = (caches = createPlanningCenterPeopleServiceCaches()) => {
+  const core = createBasicPlanningCenterClient(
+    testPlanningCenterToken,
+    unreachableHttpClient
+  );
+  const fetchAllWithIncluded = vi
+    .spyOn(core, "fetchAllWithIncluded")
+    .mockReturnValue(Effect.succeed({ data: [], included: [] }));
+  return {
+    service: new PlanningCenterPeopleService(core, caches),
+    fetchAllWithIncluded,
+  };
+};
+const rosterPath = (planId: string) =>
+  `/services/v2/service_types/st-1/plans/${planId}/team_members`;
+
+const readWindowRoster = async (service: PlanningCenterPeopleService) =>
+  await Effect.runPromise(
+    service.getPlanWindowRoster("st-1", "plan-1", { settled: false })
+  );
+
+describe("PlanningCenterPeopleService plan rosters", () => {
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  it("keeps a settled roster for 30 minutes and a live roster for 30 seconds", async () => {
+  it("reads the selected plan fresh even while the window keeps a settled copy", async () => {
     vi.useFakeTimers({ now: new Date("2026-09-24T18:00:00.000Z") });
-    const core = createBasicPlanningCenterClient(
-      testPlanningCenterToken,
-      unreachableHttpClient
-    );
-    const fetchAllWithIncluded = vi
-      .spyOn(core, "fetchAllWithIncluded")
-      .mockReturnValue(Effect.succeed({ data: [], included: [] }));
-    const service = new PlanningCenterPeopleService(core);
+    const { service, fetchAllWithIncluded } = rosterService();
     const readBoth = async () => {
       await Effect.runPromise(
-        service.getPlanTeamMembers("st-1", "plan-past", { settled: true })
+        service.getPlanWindowRoster("st-1", "plan-past", { settled: true })
       );
-      await Effect.runPromise(service.getPlanTeamMembers("st-1", "plan-next"));
+      await Effect.runPromise(service.getPlanTeamMembers("st-1", "plan-past"));
     };
 
     await readBoth();
@@ -519,26 +536,46 @@ describe("PlanningCenterPeopleService.getPlanTeamMembers settled rosters", () =>
 
     expect(fetchAllWithIncluded.mock.calls.map(([path]) => path)).toStrictEqual(
       [
-        "/services/v2/service_types/st-1/plans/plan-past/team_members",
-        "/services/v2/service_types/st-1/plans/plan-next/team_members",
-        "/services/v2/service_types/st-1/plans/plan-next/team_members",
+        rosterPath("plan-past"),
+        rosterPath("plan-past"),
+        rosterPath("plan-past"),
       ]
     );
   });
 
-  it("clears a settled roster when this app changes the plan", async () => {
-    const core = createBasicPlanningCenterClient(
-      testPlanningCenterToken,
-      unreachableHttpClient
-    );
-    const fetchAllWithIncluded = vi
-      .spyOn(core, "fetchAllWithIncluded")
-      .mockReturnValue(Effect.succeed({ data: [], included: [] }));
-    const service = new PlanningCenterPeopleService(core);
-    const read = async () =>
+  it("keeps a settled window roster for 30 minutes and a live one for 5", async () => {
+    vi.useFakeTimers({ now: new Date("2026-09-24T18:00:00.000Z") });
+    const { service, fetchAllWithIncluded } = rosterService();
+    const readBoth = async () => {
       await Effect.runPromise(
-        service.getPlanTeamMembers("st-1", "plan-past", { settled: true })
+        service.getPlanWindowRoster("st-1", "plan-past", { settled: true })
       );
+      await Effect.runPromise(
+        service.getPlanWindowRoster("st-1", "plan-next", { settled: false })
+      );
+    };
+
+    await readBoth();
+    vi.advanceTimersByTime(6 * 60 * 1000);
+    await readBoth();
+
+    expect(fetchAllWithIncluded.mock.calls.map(([path]) => path)).toStrictEqual(
+      [
+        rosterPath("plan-past"),
+        rosterPath("plan-next"),
+        rosterPath("plan-next"),
+      ]
+    );
+  });
+
+  it("clears the fresh roster and the window's copy when this app changes the plan", async () => {
+    const { service, fetchAllWithIncluded } = rosterService();
+    const read = async () => {
+      await Effect.runPromise(
+        service.getPlanWindowRoster("st-1", "plan-past", { settled: true })
+      );
+      await Effect.runPromise(service.getPlanTeamMembers("st-1", "plan-past"));
+    };
 
     await read();
     service.invalidateScheduleReadCaches({
@@ -547,7 +584,23 @@ describe("PlanningCenterPeopleService.getPlanTeamMembers settled rosters", () =>
     });
     await read();
 
-    expect(fetchAllWithIncluded).toHaveBeenCalledTimes(2);
+    expect(fetchAllWithIncluded).toHaveBeenCalledTimes(4);
+  });
+
+  it("shares window rosters across requests of the isolate until a write clears them", async () => {
+    const caches = createPlanningCenterPeopleServiceCaches();
+    const first = rosterService(caches);
+    const second = rosterService(caches);
+
+    await readWindowRoster(first.service);
+    await readWindowRoster(second.service);
+    second.service.invalidatePlanWindowRosters();
+    await readWindowRoster(first.service);
+
+    expect([
+      first.fetchAllWithIncluded.mock.calls.length,
+      second.fetchAllWithIncluded.mock.calls.length,
+    ]).toStrictEqual([2, 0]);
   });
 });
 

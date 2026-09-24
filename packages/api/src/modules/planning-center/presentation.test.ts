@@ -184,11 +184,13 @@ const candidateDetails: CandidateDetailsBatch = {
     },
   ],
   deferredPersonIds: [],
+  blockoutProgress: [],
   requestBudget: {
-    limit: 40,
+    limit: 36,
     planningCenterRequests: 1,
-    blockoutRequests: 1,
-    scheduleRequests: 0,
+    firstReadRequests: 1,
+    blockoutDateRequests: 0,
+    planTimeRequests: 0,
   },
 };
 const dashboardPerson: PeopleDashboardPerson = {
@@ -236,7 +238,11 @@ const detail: PeopleDashboardPersonDetail = {
   nextMonth: "2026-10",
   person: dashboardPerson,
   trend: [],
-  requestBudget: { scheduleRequests: 1, blockoutRequests: 1 },
+  requestBudget: {
+    limit: 36,
+    planningCenterRequests: 4,
+    unresolvedRehearsalTimes: 0,
+  },
 };
 
 const setupPresentationEnvironment = () => {

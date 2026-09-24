@@ -1,19 +1,21 @@
 import { logger } from "@pcobooster/api/logger";
 import {
-  CANDIDATE_REQUEST_BUDGET,
-  pagesFor,
-  requestsSpent,
-} from "@pcobooster/api/modules/planning-center/candidate-request-budget";
-import {
   planPersonResourceSchema,
   planTimeResourceSchema,
 } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
-import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
+import {
+  pagesFor,
+  PLANNING_CENTER_REQUEST_CAP,
+  planningCenterRequestsSpent,
+  PROGRESSIVE_REQUEST_BUDGET,
+  withPlanningCenterRequestCount,
+} from "@pcobooster/api/planning-center/request-budget";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
+import { PLAN_ROSTER_MAX_PAGES } from "@pcobooster/api/planning-center/services/people-service";
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
+import { PLAN_RANGE_MAX_PAGES } from "@pcobooster/api/planning-center/services/plans-service";
 import type { PlanningCenterPlansService } from "@pcobooster/api/planning-center/services/plans-service";
-import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import {
   addCalendarDaysToDayKey,
   formatCalendarDayInTimeZone,
@@ -38,30 +40,13 @@ import { Effect } from "effect";
 
 const log = logger.for("planning-center/plan-window-history");
 
-/** The organization time zone and service type reads, counted even when cached. */
-const FIXED_REQUESTS = 2;
-/** `getPlansWithIncludedInDateRange` reads at most 3 pages of 100 plans. */
-const PLAN_RANGE_MAX_PAGES = 3;
 /** A Worker keeps at most 6 connections waiting for response headers. */
 const READ_CONCURRENCY = 6;
-/**
- * Window rosters feed history only; the candidate list reads the selected plan's roster fresh.
- * Rosters of plans that already happened are also kept 30 minutes by the people service. This
- * app's schedule writes clear both.
- */
-const PLAN_WINDOW_ROSTER_CACHE_TTL_MS = 5 * 60 * 1000;
-const PLAN_WINDOW_ROSTER_CACHE_KEY = "plan-window-roster";
-
-interface PlanRoster {
-  readonly data: PCResource[];
-  readonly included: PCResource[];
-}
-
-const planWindowRosterCache = new PlanningCenterReadCache<PlanRoster>();
-
 export interface WindowPlanRef {
   readonly serviceTypeId: string;
   readonly planId: string;
+  /** Roster pages the plan needs, so the next call can reserve them before reading ranges. */
+  readonly rosterRequests: number;
 }
 
 export interface PlanWindowHistoryBatch extends PlanWindowRosters {
@@ -74,7 +59,7 @@ export interface PlanWindowHistoryBatch extends PlanWindowRosters {
   deferredServiceTypeIds: string[];
   requestBudget: {
     limit: number;
-    /** Upper bound when transport does not count: cached reads count as requests. */
+    /** Planning Center requests this procedure sent; cached reads cost none. */
     planningCenterRequests: number;
     planRangeRequests: number;
     rosterRequests: number;
@@ -93,10 +78,7 @@ export interface PlanWindowHistoryInput {
 
 export interface PlanWindowHistoryDependencies {
   readonly catalog: Pick<PlanningCenterCatalogService, "getServiceTypesCached">;
-  readonly people: Pick<
-    PlanningCenterPeopleService,
-    "getCacheScope" | "getPlanTeamMembers"
-  >;
+  readonly people: Pick<PlanningCenterPeopleService, "getPlanWindowRoster">;
   readonly plans: Pick<
     PlanningCenterPlansService,
     "getPlansWithIncludedInDateRange"
@@ -199,7 +181,7 @@ const rosterRequestsFor = (plan: PCResource): number => {
   if (!isNumber(count)) {
     return 1;
   }
-  return count === 0 ? 0 : pagesFor(count);
+  return count === 0 ? 0 : Math.min(pagesFor(count), PLAN_ROSTER_MAX_PAGES);
 };
 
 interface LoadedPlan {
@@ -216,18 +198,8 @@ const loadWindowRoster = (
   if (rosterRequestsFor(plan) === 0) {
     return Effect.succeed({ planTimes, included: [...planTimes], members: [] });
   }
-  const cacheKey = [
-    people.getCacheScope(),
-    PLAN_WINDOW_ROSTER_CACHE_KEY,
-    encodeURIComponent(serviceTypeId),
-    encodeURIComponent(plan.id),
-  ].join(":");
-  return cachedRead(
-    planWindowRosterCache,
-    cacheKey,
-    PLAN_WINDOW_ROSTER_CACHE_TTL_MS,
-    () => people.getPlanTeamMembers(serviceTypeId, plan.id, { settled })
-  ).pipe(
+  // Window rosters feed history only; the candidate list reads the selected plan's roster fresh.
+  return people.getPlanWindowRoster(serviceTypeId, plan.id, { settled }).pipe(
     Effect.map(({ data, included }) => {
       const merged: PCResource[] = [];
       const seen = new Set<string>();
@@ -350,14 +322,15 @@ const serviceTypeIdsOf = (plans: readonly WindowPlanRef[]): string[] => [
 
 /**
  * History for the candidate list from the rosters of every plan within 28 days either side of
- * the selected plan, across active service types, within `CANDIDATE_REQUEST_BUDGET` Planning
- * Center requests.
+ * the selected plan, across active service types. Each call plans against
+ * `PROGRESSIVE_REQUEST_BUDGET` Planning Center requests, counting what was really sent.
  *
  * The first call lists the window's plans (one plan-range read per service type) and reads
  * rosters in window order until the budget runs out. The rest comes back as `deferredPlans`
  * (and `deferredServiceTypeIds` when even the listing does not fit) for the caller's next
- * call, so concatenating every call's rows reproduces the window's order. Failed reads fail
- * the call.
+ * call, so concatenating every call's rows reproduces the window's order. A follow-up call
+ * reserves the first deferred plan's roster pages before locating plans again, so it always
+ * reads that roster. Failed reads fail the call.
  */
 export const getPlanWindowHistory = (
   { date, continuation }: PlanWindowHistoryInput,
@@ -391,10 +364,16 @@ export const getPlanWindowHistory = (
       continuation === undefined
         ? activeServiceTypes.map(({ id }) => id)
         : continuation.serviceTypeIds.filter((id) => activeIds.has(id));
+    const firstRosterRequests = Math.min(
+      pendingPlans[0]?.rosterRequests ?? 1,
+      PLAN_ROSTER_MAX_PAGES
+    );
+    const beforeRanges = yield* planningCenterRequestsSpent;
     const rangeSlots = Math.max(
       1,
       Math.floor(
-        (CANDIDATE_REQUEST_BUDGET - FIXED_REQUESTS - 1) / PLAN_RANGE_MAX_PAGES
+        (PROGRESSIVE_REQUEST_BUDGET - beforeRanges - firstRosterRequests) /
+          PLAN_RANGE_MAX_PAGES
       )
     );
     const pendingRangeIds = pendingServiceTypeIds.slice(0, rangeSlots);
@@ -455,13 +434,17 @@ export const getPlanWindowHistory = (
       }
     }
 
-    const planRangeRequests = rangeIds.length * PLAN_RANGE_MAX_PAGES;
-    const spent = yield* requestsSpent(FIXED_REQUESTS + planRangeRequests);
-    let remaining = CANDIDATE_REQUEST_BUDGET - spent;
+    const afterRanges = yield* planningCenterRequestsSpent;
+    let remaining = PROGRESSIVE_REQUEST_BUDGET - afterRanges;
     let admittedCount = 0;
     for (const windowPlan of windowPlans) {
       const cost = rosterRequestsFor(windowPlan.plan);
-      if (cost > remaining) {
+      // The first roster may use the retry headroom, so a follow-up call always reads one.
+      const limit =
+        admittedCount === 0
+          ? Math.max(remaining, PLANNING_CENTER_REQUEST_CAP - afterRanges)
+          : remaining;
+      if (cost > limit) {
         break;
       }
       remaining -= cost;
@@ -485,10 +468,7 @@ export const getPlanWindowHistory = (
       { concurrency: READ_CONCURRENCY }
     );
 
-    const rosterRequests = admitted.reduce(
-      (total, windowPlan) => total + rosterRequestsFor(windowPlan.plan),
-      0
-    );
+    const spent = yield* planningCenterRequestsSpent;
     const batch: PlanWindowHistoryBatch = {
       generatedAt: new Date().toISOString(),
       loadedPlanCount: loadedPlans.length,
@@ -497,15 +477,16 @@ export const getPlanWindowHistory = (
         ...windowPlans.slice(admittedCount).map(({ serviceTypeId, plan }) => ({
           serviceTypeId,
           planId: plan.id,
+          rosterRequests: rosterRequestsFor(plan),
         })),
         ...unlocatedPlans,
       ],
       deferredServiceTypeIds: unlistedServiceTypeIds.slice(listedIds.length),
       requestBudget: {
-        limit: CANDIDATE_REQUEST_BUDGET,
-        planningCenterRequests: spent + rosterRequests,
-        planRangeRequests,
-        rosterRequests,
+        limit: PROGRESSIVE_REQUEST_BUDGET,
+        planningCenterRequests: spent,
+        planRangeRequests: afterRanges - beforeRanges,
+        rosterRequests: spent - afterRanges,
       },
     };
     log.info(
@@ -519,10 +500,4 @@ export const getPlanWindowHistory = (
       "Plan window history read"
     );
     return batch;
-  });
-
-/** Schedule and plan time writes change rosters, so the window's copies are dropped. */
-export const invalidatePlanWindowHistory = (cacheScope: string) => {
-  const prefix = [cacheScope, PLAN_WINDOW_ROSTER_CACHE_KEY, ""].join(":");
-  planWindowRosterCache.deleteWhere((key) => key.startsWith(prefix));
-};
+  }).pipe(withPlanningCenterRequestCount);

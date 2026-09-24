@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { usePlanTimes } from "@/hooks/use-plan-times";
+import { invalidateCandidateHistoryQueries } from "@/hooks/use-schedule-cache-optimism";
 import { useTeamPositions } from "@/hooks/use-team-positions";
 import { queryKeys } from "@/lib/query-keys";
 import {
@@ -62,11 +63,7 @@ export const useTimesTabController = ({
       queryClient.invalidateQueries({
         queryKey: queryKeys.teamPositions(serviceTypeId, planId, seriesId),
       }),
-      queryClient.invalidateQueries({
-        predicate: (query) =>
-          query.queryKey[0] === "people-history-warmup" &&
-          query.queryKey[1] === serviceTypeId,
-      }),
+      invalidateCandidateHistoryQueries(queryClient),
     ]);
   };
 

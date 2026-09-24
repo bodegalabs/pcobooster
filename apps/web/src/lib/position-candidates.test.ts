@@ -5,10 +5,12 @@ import type {
 import { describe, expect, it } from "vitest";
 
 import {
+  advancedBlockoutChecks,
   assembleCandidateList,
   expandWindowHistory,
   needsScheduleHistory,
   planCandidateDetailsBatches,
+  windowHistoryAdvanced,
 } from "@/lib/position-candidates";
 import type { CandidateDetail } from "@/lib/position-candidates";
 
@@ -69,7 +71,7 @@ const windowCall = (loadedPlanCount: number): PlanWindowHistoryBatch => ({
   deferredPlans: [],
   deferredServiceTypeIds: [],
   requestBudget: {
-    limit: 40,
+    limit: 36,
     planningCenterRequests: 3,
     planRangeRequests: 1,
     rosterRequests: 1,
@@ -149,5 +151,74 @@ describe(planCandidateDetailsBatches, () => {
       ["p-busy"],
       ["p-free"],
     ]);
+  });
+});
+
+describe(windowHistoryAdvanced, () => {
+  const continuation = {
+    plans: [
+      { serviceTypeId: "st-1", planId: "plan-1", rosterRequests: 1 },
+      { serviceTypeId: "st-1", planId: "plan-2", rosterRequests: 1 },
+    ],
+    serviceTypeIds: ["st-2"],
+  };
+
+  it("counts rosters read, plans that left the window, and newly listed service types", () => {
+    expect([
+      windowHistoryAdvanced(continuation, windowCall(1)),
+      windowHistoryAdvanced(continuation, {
+        ...windowCall(0),
+        deferredPlans: [
+          { serviceTypeId: "st-1", planId: "plan-2", rosterRequests: 1 },
+        ],
+        deferredServiceTypeIds: ["st-2"],
+      }),
+      windowHistoryAdvanced(continuation, {
+        ...windowCall(0),
+        deferredPlans: [
+          ...continuation.plans,
+          { serviceTypeId: "st-2", planId: "plan-3", rosterRequests: 1 },
+        ],
+        deferredServiceTypeIds: [],
+      }),
+    ]).toStrictEqual([true, true, true]);
+  });
+
+  it("reports a call that read nothing and listed nothing", () => {
+    expect(
+      windowHistoryAdvanced(continuation, {
+        ...windowCall(0),
+        deferredPlans: continuation.plans,
+        deferredServiceTypeIds: continuation.serviceTypeIds,
+      })
+    ).toBeFalsy();
+  });
+});
+
+describe(advancedBlockoutChecks, () => {
+  const before = [
+    { personId: "p-1", checkedBlockoutIds: ["b-1"], blocked: false },
+  ];
+
+  it("counts newly checked blockouts and newly found blocks", () => {
+    expect([
+      advancedBlockoutChecks(before, [
+        { personId: "p-1", checkedBlockoutIds: ["b-1", "b-2"], blocked: false },
+      ]),
+      advancedBlockoutChecks(before, [
+        { personId: "p-1", checkedBlockoutIds: ["b-1"], blocked: true },
+      ]),
+      advancedBlockoutChecks(
+        [],
+        [{ personId: "p-2", checkedBlockoutIds: ["b-9"], blocked: false }]
+      ),
+    ]).toStrictEqual([true, true, true]);
+  });
+
+  it("reports progress that did not move", () => {
+    expect([
+      advancedBlockoutChecks(before, before),
+      advancedBlockoutChecks([], []),
+    ]).toStrictEqual([false, false]);
   });
 });

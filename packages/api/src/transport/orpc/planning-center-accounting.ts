@@ -4,23 +4,17 @@ import {
   logPlanningCenterProcedureSummary,
 } from "@pcobooster/api/planning-center/request-accounting";
 import type { PlanningCenterLogger } from "@pcobooster/api/planning-center/request-accounting";
-
-/**
- * Planning Center requests one procedure may send; `undefined` leaves only
- * Cloudflare's own cap (50 subrequests on Workers Free, shared with D1, KV,
- * and service bindings). Set a number to make the client fail with
- * `PlanningCenterSubrequestLimitError` before Cloudflare refuses the fetch.
- */
-export const PLANNING_CENTER_REQUEST_BUDGET: number | undefined = undefined;
+import { PLANNING_CENTER_REQUEST_CAP } from "@pcobooster/api/planning-center/request-budget";
 
 export interface PlanningCenterProcedureAccountingOptions {
   readonly logger?: PlanningCenterLogger;
+  /** Defaults to `PLANNING_CENTER_REQUEST_CAP`. */
   readonly requestBudget?: number;
   readonly now?: () => number;
 }
 
 export interface PlanningCenterProcedure {
-  /** Dotted oRPC path, for example `people.list`. */
+  /** Dotted oRPC path, for example `people.planWindowHistory`. */
   readonly procedure: string;
   readonly requestId: string;
   /** Present when an outer middleware already counts this procedure. */
@@ -42,7 +36,7 @@ export const accountPlanningCenterProcedure = async <Result>(
   }
   const now = options.now ?? Date.now;
   const accounting = new PlanningCenterRequestAccounting({
-    requestBudget: options.requestBudget ?? PLANNING_CENTER_REQUEST_BUDGET,
+    requestBudget: options.requestBudget ?? PLANNING_CENTER_REQUEST_CAP,
   });
   const startedAt = now();
   let outcome: "success" | "failure" = "failure";

@@ -1,4 +1,5 @@
 import { loadPositionCandidatesProgressively } from "@pcobooster/api/modules/planning-center/load-position-candidates.test-support";
+import { PROGRESSIVE_REQUEST_BUDGET } from "@pcobooster/api/planning-center/request-budget";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
@@ -614,9 +615,12 @@ const schedulesByPerson = new Map(
   })
 );
 
+/** `include=plan_times` sideloads service times only; rehearsal times are read per plan. */
 const scheduleIncluded: PCResource[] = PLANS.flatMap((plan) => [
   planResource(plan),
-  ...plan.times,
+  ...plan.times.filter(
+    ({ attributes }) => attributes.time_type !== "rehearsal"
+  ),
 ]);
 
 interface OrgFixture {
@@ -625,7 +629,6 @@ interface OrgFixture {
 }
 
 const createOrg = ({ emptyWindow = false }: OrgFixture = {}) => {
-  const cacheScope = `equivalence-${crypto.randomUUID()}`;
   const catalog = {
     getServiceTypesCached: () => Effect.succeed(structuredClone(serviceTypes)),
   };
@@ -641,7 +644,6 @@ const createOrg = ({ emptyWindow = false }: OrgFixture = {}) => {
     },
   };
   const people = {
-    getCacheScope: () => cacheScope,
     getPeopleForTeamPosition: () =>
       Effect.succeed({
         data: ["ana", "ben", "cy", "dee", "eve", "fay", "gus"].map((key) => ({
@@ -660,30 +662,34 @@ const createOrg = ({ emptyWindow = false }: OrgFixture = {}) => {
           ...teams,
         ],
       }),
-    getPlanTeamMembers: (
-      _serviceTypeId: string,
-      planId: string,
-      options?: { readonly settled?: boolean }
-    ) => {
-      // Only the window passes options; the fresh selected-plan read does not.
-      const members =
-        options === undefined && planId === PLAN_ID
-          ? selectedRoster
-          : (windowRosters.get(planId) ?? []);
-      return Effect.succeed({
-        data: structuredClone(members),
+    // The fresh selected-plan read sees the current roster; the window's copy may lag.
+    getPlanTeamMembers: (_serviceTypeId: string, planId: string) =>
+      Effect.succeed({
+        data: structuredClone(
+          planId === PLAN_ID
+            ? selectedRoster
+            : (windowRosters.get(planId) ?? [])
+        ),
         included: rosterIncluded(planId),
-      });
-    },
+      }),
+    getPlanWindowRoster: (_serviceTypeId: string, planId: string) =>
+      Effect.succeed({
+        data: structuredClone(windowRosters.get(planId) ?? []),
+        included: rosterIncluded(planId),
+      }),
     getPersonBlockouts: (personId: string) =>
       Effect.succeed(structuredClone(blockoutsByPerson.get(personId) ?? [])),
     getPersonBlockoutDates: (_personId: string, blockoutId: string) =>
       Effect.succeed(structuredClone(blockoutDates.get(blockoutId) ?? [])),
-    getPersonSchedules: (personId: string) =>
+    getPersonSchedulesAfter: (personId: string) =>
       Effect.succeed({
         data: structuredClone(schedulesByPerson.get(personId) ?? []),
-        included: scheduleIncluded,
+        included: structuredClone(scheduleIncluded),
       }),
+    getPlanPlanTimes: (planId: string) =>
+      Effect.succeed(
+        structuredClone(PLANS.find(({ id }) => id === planId)?.times ?? [])
+      ),
   };
   return {
     catalog,
@@ -743,8 +749,12 @@ describe("progressive candidate list equivalence", () => {
   });
 
   it("matches the single call when every call is left almost no budget", async () => {
-    // 39 of 40 requests already spent: one roster (or one blockout date) per call.
-    const progressive = await loadProgressively(createOrg(), 39);
+    // All but one request of the budget already spent: one roster (or one blockout date) per
+    // call, and every call still advances.
+    const progressive = await loadProgressively(
+      createOrg(),
+      PROGRESSIVE_REQUEST_BUDGET - 1
+    );
 
     expect(wireJson(progressive.people)).toBe(golden.window);
     expect(progressive.calls).toBeGreaterThan(6);

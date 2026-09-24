@@ -65,6 +65,7 @@ export interface PlanTimeDependencies {
     | "getPlanTeamMembers"
     | "updatePlanPersonTimes"
     | "invalidatePlanTimeSensitiveReadCaches"
+    | "invalidatePlanWindowRosters"
   >;
   catalogService: Pick<
     PlanningCenterCatalogService,
@@ -89,7 +90,6 @@ const awaitAllWrites = <Value>(
 
 export const deletePlanTime = (
   input: DeletePlanTimeInput,
-  invalidateHistory: () => void,
   dependencies: PlanTimeDependencies
 ): Effect.Effect<void, PlanningCenterError> =>
   dependencies.plansService
@@ -100,7 +100,7 @@ export const deletePlanTime = (
           dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
             input.planId
           );
-          invalidateHistory();
+          dependencies.peopleService.invalidatePlanWindowRosters();
         })
       )
     );
@@ -272,7 +272,6 @@ export const getPlanTimes = (
 
 export const updatePlanTime = (
   input: UpdatePlanTimeInput,
-  invalidateHistory: () => void,
   dependencies: PlanTimeDependencies
 ): Effect.Effect<PlanTime, PlanningCenterError> =>
   Effect.gen(function* updateTime() {
@@ -305,7 +304,7 @@ export const updatePlanTime = (
           dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
             input.planId
           );
-          invalidateHistory();
+          dependencies.peopleService.invalidatePlanWindowRosters();
         })
       )
     );
@@ -316,7 +315,6 @@ export const updatePlanTime = (
 
 export const createPlanTime = (
   input: CreatePlanTimeInput,
-  invalidateHistory: () => void,
   dependencies: PlanTimeDependencies
 ): Effect.Effect<PlanTime, PlanningCenterError> =>
   Effect.gen(function* createTime() {
@@ -341,7 +339,7 @@ export const createPlanTime = (
     dependencies.peopleService.invalidatePlanTimeSensitiveReadCaches(
       input.planId
     );
-    invalidateHistory();
+    dependencies.peopleService.invalidatePlanWindowRosters();
 
     const planTime = normalizePlanTime(rawPlanTime);
     return planTime ?? (yield* invalidPlanTime());

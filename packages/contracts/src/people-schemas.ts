@@ -95,6 +95,8 @@ export const candidateHistorySchema = z.object({
 export const windowPlanRefSchema = z.object({
   serviceTypeId: z.string().trim().min(1),
   planId: z.string().trim().min(1),
+  /** Roster pages the plan needs; a follow-up call reserves them before locating plans. */
+  rosterRequests: z.number().int().min(0).max(100),
 });
 
 export const windowPlanSummarySchema = z.object({
@@ -138,7 +140,7 @@ export const planWindowHistoryBatchSchema = z.object({
   deferredServiceTypeIds: z.array(z.string()),
   requestBudget: z.object({
     limit: z.number(),
-    /** Upper bound: a cached read is counted as if it reached Planning Center. */
+    /** Planning Center requests the call sent; cached reads cost none. */
     planningCenterRequests: z.number(),
     planRangeRequests: z.number(),
     rosterRequests: z.number(),
@@ -152,28 +154,31 @@ export const candidateDetailSchema = z.object({
   history: candidateHistorySchema.optional(),
 });
 
+/** Blockout checks a previous call already did for a person it left unfinished. */
+export const blockoutProgressSchema = z.object({
+  personId: z.string().trim().min(1),
+  /** Repeating blockouts read and found not to cover the plan day. */
+  checkedBlockoutIds: z.array(z.string().trim().min(1)).max(1000),
+  /** A blockout was found to cover the plan day. */
+  blocked: z.boolean(),
+});
+
 export const candidateDetailsBatchSchema = z.object({
   generatedAt: z.string(),
   people: z.array(candidateDetailSchema),
   /** Requested people left for a follow-up call to stay within the budget. */
   deferredPersonIds: z.array(z.string()),
+  /** Pass back with `deferredPersonIds`; the next call skips checks already done. */
+  blockoutProgress: z.array(blockoutProgressSchema),
   requestBudget: z.object({
     limit: z.number(),
-    /** Upper bound: a cached read is counted as if it reached Planning Center. */
+    /** Planning Center requests the call sent; cached reads cost none. */
     planningCenterRequests: z.number(),
-    blockoutRequests: z.number(),
-    scheduleRequests: z.number(),
+    /** Blockout lists and schedule pages. */
+    firstReadRequests: z.number(),
+    blockoutDateRequests: z.number(),
+    planTimeRequests: z.number(),
   }),
-});
-
-export const planPersonSchema = z.object({
-  id: z.string(),
-  status: z.string(),
-  createdAt: z.date(),
-  teamPositionName: z.string(),
-  planTitle: z.string().optional(),
-  planDate: z.date().optional(),
-  declineReason: z.string().optional(),
 });
 
 export const peopleDashboardLoadSchema = z.enum([
@@ -257,7 +262,7 @@ export const peopleDashboardActivityBatchSchema = z.object({
   deferredPersonIds: z.array(z.string()),
   requestBudget: z.object({
     limit: z.number(),
-    /** Upper bound: a cached read is counted as if it reached Planning Center. */
+    /** Planning Center requests the call sent; cached reads cost none. */
     planningCenterRequests: z.number(),
     scheduleRequests: z.number(),
     planTimeRequests: z.number(),
@@ -279,8 +284,14 @@ export const peopleDashboardPersonDetailSchema = z.object({
     })
   ),
   requestBudget: z.object({
-    scheduleRequests: z.number(),
-    blockoutRequests: z.number(),
+    limit: z.number(),
+    /** Planning Center requests the call sent; cached reads cost none. */
+    planningCenterRequests: z.number(),
+    /**
+     * Rehearsal (and other) times the budget left unread; their assignments show on their
+     * plan's date. Zero when the detail is complete.
+     */
+    unresolvedRehearsalTimes: z.number(),
   }),
 });
 
@@ -296,15 +307,9 @@ export const myScheduledPlansDataSchema = z.object({
   planIds: z.array(z.string()),
 });
 
-export const scheduleHistoryResponseSchema = z.object({
-  planPeople: z.array(planPersonSchema),
-  frequency: scheduleFrequencySchema,
-});
-
 export type Blockout = z.output<typeof blockoutSchema>;
 export type ScheduleFrequency = z.output<typeof scheduleFrequencySchema>;
 export type ServiceHistoryItem = z.output<typeof serviceHistoryItemSchema>;
-export type PlanPerson = z.output<typeof planPersonSchema>;
 export type PositionCandidates = z.output<typeof positionCandidatesSchema>;
 export type PlanWindowHistoryBatch = z.output<
   typeof planWindowHistoryBatchSchema

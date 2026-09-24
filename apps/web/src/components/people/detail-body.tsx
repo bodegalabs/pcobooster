@@ -128,6 +128,9 @@ export const PersonDetailBody = ({
               <span className="md:hidden">Tap</span>
               <span className="max-md:hidden">Hover</span> a scheduled date to
               see service, rehearsal, position, and status.
+              {data.requestBudget.unresolvedRehearsalTimes > 0
+                ? " Some rehearsal times could not be loaded, so those assignments show on their service date."
+                : null}
             </CardDescription>
           </CardHeader>
           <CardContent>

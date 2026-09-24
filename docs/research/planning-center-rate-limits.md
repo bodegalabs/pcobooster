@@ -192,7 +192,7 @@ These are small: `schedule.assign` reads `team_positions` (cached) and the perso
 
 ### Unused by the web app
 
-`people.scheduleHistory` and `people.blockouts` have no caller in `apps/web`. They cost 1 to 4 requests each.
+`people.scheduleHistory` and `people.blockouts` have no caller in `apps/web`. They cost 1 to 4 requests each. (`people.scheduleHistory` has since been removed.)
 
 ## 3. The proactive pause and shared buckets
 

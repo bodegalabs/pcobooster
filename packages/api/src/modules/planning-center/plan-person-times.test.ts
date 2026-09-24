@@ -4,7 +4,7 @@ import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 describe(updatePlanPersonTimes, () => {
-  it("invalidates only the active credential scope after updating assignments", async () => {
+  it("clears plan-time reads and the window rosters after updating assignments", async () => {
     const update = vi
       .fn<
         UpdatePlanPersonTimesDependencies["peopleService"]["updatePlanPersonTimes"]
@@ -20,11 +20,10 @@ describe(updatePlanPersonTimes, () => {
       vi.fn<
         UpdatePlanPersonTimesDependencies["peopleService"]["invalidatePlanTimeSensitiveReadCaches"]
       >();
-    const getCacheScope = vi
-      .fn<UpdatePlanPersonTimesDependencies["peopleService"]["getCacheScope"]>()
-      .mockReturnValue("bearer:request-account");
-    const invalidateHistory =
-      vi.fn<UpdatePlanPersonTimesDependencies["invalidateHistory"]>();
+    const invalidateWindowRosters =
+      vi.fn<
+        UpdatePlanPersonTimesDependencies["peopleService"]["invalidatePlanWindowRosters"]
+      >();
 
     await Effect.runPromise(
       updatePlanPersonTimes(
@@ -39,14 +38,13 @@ describe(updatePlanPersonTimes, () => {
           peopleService: {
             updatePlanPersonTimes: update,
             invalidatePlanTimeSensitiveReadCaches: invalidateReads,
-            getCacheScope,
+            invalidatePlanWindowRosters: invalidateWindowRosters,
           },
-          invalidateHistory,
         }
       )
     );
 
     expect(invalidateReads).toHaveBeenCalledWith("plan-1");
-    expect(invalidateHistory).toHaveBeenCalledWith("bearer:request-account");
+    expect(invalidateWindowRosters).toHaveBeenCalledOnce();
   });
 });

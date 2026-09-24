@@ -1,6 +1,7 @@
 import { oc } from "@orpc/contract";
 import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import {
+  blockoutProgressSchema,
   blockoutSchema,
   candidateDetailsBatchSchema,
   myScheduledPlansDataSchema,
@@ -10,7 +11,6 @@ import {
   peopleSearchResultSchema,
   planWindowHistoryBatchSchema,
   positionCandidatesSchema,
-  scheduleHistoryResponseSchema,
   windowPlanRefSchema,
 } from "@pcobooster/contracts/people-schemas";
 import { z } from "zod";
@@ -52,6 +52,11 @@ export const peopleCandidateDetailsInputSchema = z.object({
   date: planDateSchema,
   /** Also read each person's own schedules; only when the plan window is empty. */
   scheduleHistory: z.boolean(),
+  /** From the previous call's `blockoutProgress`; omit on the first call. */
+  blockoutProgress: z
+    .array(blockoutProgressSchema)
+    .max(PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE)
+    .optional(),
 });
 
 export const peopleSearchInputSchema = z.object({
@@ -81,11 +86,6 @@ export const peopleDashboardPersonInputSchema =
       .string()
       .regex(/^\d{4}-\d{2}$/u)
       .optional(),
-  });
-
-export const peopleScheduleHistoryInputSchema =
-  peopleBlockoutsInputSchema.extend({
-    days: z.number().int().positive(),
   });
 
 export const peopleMyScheduledPlansInputSchema = z.object({
@@ -171,14 +171,6 @@ export const peopleContract = {
     })
     .input(peopleDashboardPersonInputSchema)
     .output(peopleDashboardPersonDetailSchema),
-  scheduleHistory: peopleProcedure
-    .route({
-      method: "GET",
-      path: "/people/{personId}/schedule-history",
-      summary: "Read a person's schedule history and frequency",
-    })
-    .input(peopleScheduleHistoryInputSchema)
-    .output(scheduleHistoryResponseSchema),
   myScheduledPlans: peopleProcedure
     .route({
       method: "POST",
@@ -205,9 +197,6 @@ export type PeopleDashboardActivityInput = z.input<
 >;
 export type PeopleDashboardPersonInput = z.input<
   typeof peopleDashboardPersonInputSchema
->;
-export type PeopleScheduleHistoryInput = z.input<
-  typeof peopleScheduleHistoryInputSchema
 >;
 export type PeopleMyScheduledPlansInput = z.input<
   typeof peopleMyScheduledPlansInputSchema

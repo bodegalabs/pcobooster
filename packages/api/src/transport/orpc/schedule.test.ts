@@ -11,7 +11,6 @@ import {
   removeScheduledPerson,
   updateScheduledPersonStatus,
 } from "@pcobooster/api/application/schedule";
-import type { ScheduleApplicationDependencies } from "@pcobooster/api/application/schedule";
 import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import {
@@ -151,10 +150,10 @@ describe("scheduling oRPC transport", () => {
       presentationSeed: "test-seed",
       fallbackTimeZone: "America/Los_Angeles",
     };
-    const dependencies: ScheduleApplicationDependencies = {
-      invalidateHistory:
-        vi.fn<ScheduleApplicationDependencies["invalidateHistory"]>(),
-    };
+    const invalidateWindowRosters = vi.spyOn(
+      services.people,
+      "invalidatePlanWindowRosters"
+    );
     const withRequestContext = <Value, Failure>(
       program: Effect.Effect<Value, Failure, RequestContext>
     ) =>
@@ -167,7 +166,7 @@ describe("scheduling oRPC transport", () => {
       await Effect.runPromise(
         withRequestContext(
           Effect.provideService(
-            prepareScheduledPerson(input, dependencies),
+            prepareScheduledPerson(input),
             PlanningCenterAccess,
             access
           )
@@ -179,7 +178,7 @@ describe("scheduling oRPC transport", () => {
       await Effect.runPromise(
         withRequestContext(
           Effect.provideService(
-            commitScheduledPerson(input, preparation, dependencies),
+            commitScheduledPerson(input, preparation),
             PlanningCenterAccess,
             access
           )
@@ -197,7 +196,7 @@ describe("scheduling oRPC transport", () => {
     await Effect.runPromise(
       withRequestContext(
         Effect.provideService(
-          removeScheduledPerson(existingInput, dependencies),
+          removeScheduledPerson(existingInput),
           PlanningCenterAccess,
           access
         )
@@ -206,10 +205,7 @@ describe("scheduling oRPC transport", () => {
     await Effect.runPromise(
       withRequestContext(
         Effect.provideService(
-          updateScheduledPersonStatus(
-            { ...existingInput, status: "C" },
-            dependencies
-          ),
+          updateScheduledPersonStatus({ ...existingInput, status: "C" }),
           PlanningCenterAccess,
           access
         )
@@ -228,7 +224,7 @@ describe("scheduling oRPC transport", () => {
       Effect.result(
         withRequestContext(
           Effect.provideService(
-            commitScheduledPerson(input, duplicatePreparation, dependencies),
+            commitScheduledPerson(input, duplicatePreparation),
             PlanningCenterAccess,
             access
           )
@@ -239,10 +235,7 @@ describe("scheduling oRPC transport", () => {
       _tag: "Failure",
       failure: { _tag: "AlreadyScheduled", details: undefined },
     });
-    expect(dependencies.invalidateHistory).toHaveBeenCalledTimes(4);
-    expect(dependencies.invalidateHistory).toHaveBeenLastCalledWith(
-      access.cacheScope
-    );
+    expect(invalidateWindowRosters).toHaveBeenCalledTimes(4);
   });
 
   it("assigns with the authorized services and records complete activity context", async () => {
