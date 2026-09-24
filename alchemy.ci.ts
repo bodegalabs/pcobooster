@@ -126,8 +126,8 @@ const environments: readonly DeployEnvironment[] = [
     id: "PreviewEnvironment",
     name: "cloudflare-preview",
     target: preview,
-    // Each pull request deploy waits for Jake: approval grants that revision preview secrets.
-    reviewers: { users: ["jakebodea"] },
+    // The `preview` label is the approval; fork pull requests never reach this environment.
+    reviewers: undefined,
     branches: undefined,
     variables: {},
   },
