@@ -16,6 +16,8 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { genericOAuth } from "better-auth/plugins/generic-oauth";
 
+const SESSION_COOKIE_CACHE_SECONDS = 5 * 60;
+
 const shouldTrackSessionDeletion = (
   context: Parameters<typeof getActivityRequestContext>[0]
 ): boolean => {
@@ -144,6 +146,11 @@ export const createAuth = (config: ServerConfig, database: Db) => {
       camelCase: true,
       transaction: false,
     }),
+    session: {
+      // Most requests check the session; a short-lived signed copy in a cookie saves the D1
+      // lookup. A revoked session can stay valid on other devices for up to this long.
+      cookieCache: { enabled: true, maxAge: SESSION_COOKIE_CACHE_SECONDS },
+    },
     account: {
       accountLinking: {
         enabled: true,
