@@ -10,7 +10,6 @@ const ignoredDirectories = new Set([
 ]);
 /** Variables the product and marketing builds inline (see their `vite.config.ts`). */
 const inlinedVariables = [
-  "PEOPLE_PAGE_ENABLED",
   "PLANNING_CENTER_TIME_ZONE",
   "POSTHOG_PROJECT_KEY",
 ] as const;

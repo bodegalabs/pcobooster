@@ -1,6 +1,7 @@
 import { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import { NotFound } from "@pcobooster/api/application/errors/not-found";
+import { featureFlagSubjectFor } from "@pcobooster/api/application/feature-flags";
 import {
   PlanningCenterAccess,
   tryPlanningCenter,
@@ -73,17 +74,23 @@ const requestPeopleForPositionDependencies = (
   signal,
 });
 
-const requirePeopleDashboard = Effect.gen(function* requirePeopleDashboard() {
-  const { config } = yield* Server;
-  if (!config.peoplePageEnabled) {
-    yield* Effect.fail(
-      new NotFound({
-        message: "People dashboard is not enabled.",
-        resource: "people-dashboard",
-      })
+/** The People dashboard exists only where the `people` flag is on for this caller. */
+const requirePeopleDashboard = (access: PlanningCenterRequestAccess) =>
+  Effect.gen(function* checkPeopleFlag() {
+    const { featureFlags } = yield* Server;
+    const enabled = yield* featureFlags.isEnabled(
+      "people",
+      featureFlagSubjectFor(access.authentication)
     );
-  }
-});
+    if (!enabled) {
+      yield* Effect.fail(
+        new NotFound({
+          message: "People dashboard is not enabled.",
+          resource: "people-dashboard",
+        })
+      );
+    }
+  });
 
 export const getPeopleList = (input: {
   readonly serviceTypeId: string;
@@ -191,8 +198,8 @@ export const getPeopleDashboard = (input: {
   PlanningCenterAccess | RequestContext | Server
 > =>
   Effect.gen(function* readPeopleDashboard() {
-    yield* requirePeopleDashboard;
     const access = yield* PlanningCenterAccess;
+    yield* requirePeopleDashboard(access);
     const dashboard = yield* tryPlanningCenter(
       async (signal) =>
         await getPeopleDashboardData(
@@ -224,8 +231,8 @@ export const getPeopleDashboardPerson = (input: {
   PlanningCenterAccess | RequestContext | Server
 > =>
   Effect.gen(function* readPeopleDashboardPerson() {
-    yield* requirePeopleDashboard;
     const access = yield* PlanningCenterAccess;
+    yield* requirePeopleDashboard(access);
     const detail = yield* tryPlanningCenter(
       async (signal) =>
         await getPeopleDashboardPersonDetail(

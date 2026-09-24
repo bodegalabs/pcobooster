@@ -1,6 +1,6 @@
 # Analytics
 
-pcobooster.com uses one US PostHog project for marketing and product analytics. Feature settings stay in configuration (`PEOPLE_PAGE_ENABLED`); PostHog feature flags are unused.
+pcobooster.com uses one US PostHog project for marketing and product analytics. Feature flags are Cloudflare Flagship flags managed by Alchemy (see [Feature flags](environment.md#feature-flags)); PostHog feature flags are unused.
 
 ## Dashboards
 

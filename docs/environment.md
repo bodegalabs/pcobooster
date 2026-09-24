@@ -1,6 +1,6 @@
 # Application configuration
 
-Infisical is the source of truth for application secrets. Alchemy reads them at deployment time and binds the approved values to Cloudflare Workers. The API Worker (`apps/server/src/worker.ts`) declares its settings itself: each `Config` it reads at startup is bound at deploy and read back at runtime, then resolved into the typed `ServerConfig` (`packages/api/src/config/server-config.ts`). Do not create application `.env` files or maintain a second set of values in Cloudflare. Redeploy after changing secrets. Values the product build inlines (browser keys and `PEOPLE_PAGE_ENABLED`) take effect only in a rebuilt frontend; `scripts/cloudflare/prepare.ts` stamps them into the build inputs so Alchemy rebuilds when they change.
+Infisical is the source of truth for application secrets. Alchemy reads them at deployment time and binds the approved values to Cloudflare Workers. The API Worker (`apps/server/src/worker.ts`) declares its settings itself: each `Config` it reads at startup is bound at deploy and read back at runtime, then resolved into the typed `ServerConfig` (`packages/api/src/config/server-config.ts`). Do not create application `.env` files or maintain a second set of values in Cloudflare. Redeploy after changing secrets. Feature flags are not configuration; they live in code and Cloudflare Flagship (see [Feature flags](#feature-flags)). Values the product build inlines (browser keys) take effect only in a rebuilt frontend; `scripts/cloudflare/prepare.ts` stamps them into the build inputs so Alchemy rebuilds when they change.
 
 ## Environment boundaries
 
@@ -24,12 +24,23 @@ The production deployment project is `pcobooster-production` (`2eca20e1-20ac-4f0
 | `OAUTH_PROXY_SECRET` | Shared production/preview broker secret. Preview callbacks use production only to finish the provider exchange; preview accounts and sessions stay in preview D1. |
 | `PLANNING_CENTER_OAUTH_CLIENT_ID`, `PLANNING_CENTER_OAUTH_CLIENT_SECRET` | Planning Center application credentials from Infisical. |
 | `PCOBOOSTER_ADMIN_EMAILS` | Comma-separated admin allowlist. |
-| `PEOPLE_PAGE_ENABLED` | Strict `true` or `false` feature setting. The API reads it at runtime; the product build inlines it to gate the People routes. |
+| `FeatureFlags` | Alchemy Cloudflare Flagship binding (deployed stages only); see [Feature flags](#feature-flags). |
 | `DEMO_ACCESS_KEY`, `DEMO_PLANNING_CENTER_CLIENT`, `DEMO_PLANNING_CENTER_PAT` | Optional production-only read-only demo. |
 | `POSTHOG_PROJECT_KEY` | Optional production analytics key (a public ingestion token), bound to the API. The product's and marketing's `vite.config.ts` inline it as `import.meta.env.VITE_POSTHOG_KEY`. |
 | `PLANNING_CENTER_TIME_ZONE` | Fallback when Planning Center returns no organization zone. The API defaults it to `America/Los_Angeles`; the product build inlines it as `import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE` for the browser while the organization loads. |
 
 Alchemy owns stage origins, `BETTER_AUTH_URL`, `CORS_ORIGIN`, cookie domain, OAuth receiver allowlist, `NODE_ENV`, and service bindings. Production uses parent-domain cookies for `admin.pcobooster.com`; previews use host-only cookies and serve admin at `/admin` on the preview origin. Do not override these derived values in Infisical.
+
+## Feature flags
+
+Feature flags are typed infrastructure, not Infisical settings. `packages/api/src/config/feature-flags.ts` is the registry: each flag's name, Flagship key, description, and the value each tier serves (`local`, `preview` for `pr-<number>`, `production`). Today it holds one flag, `people` (key `people-page`): on locally, off in previews and production.
+
+- **Deployed stages.** `apps/server/src/feature-flags.ts` declares one [Cloudflare Flagship](https://developers.cloudflare.com/flagship/) app per stage (`pcobooster-<stage>-flags`) and one boolean flag per registry entry, with the tier's value as the default variation plus any targeting rules listed there. The API Worker binds the app with `Cloudflare.Flagship.ReadFlags` and evaluates flags per request through `ServerDependencies.featureFlags`, with the user ID (`userId`, also the rollout `targetingKey`) and the Planning Center organization ID (`organizationId`, recorded at sign-in) when known. An evaluation error, including a missing flag, serves off and logs `Feature flag evaluation failed; serving off`.
+- **Alchemy owns the rules.** Every deploy writes each flag's variations, default, enabled state, and rules. Edits in the Cloudflare dashboard take effect within seconds (Flagship propagates globally in up to 30 seconds) but are overwritten by the next deploy, so change `apps/server/src/feature-flags.ts` instead. Deleting a registry entry deletes the flag on the next deploy; remove its evaluations first.
+- **Local stage.** `alchemy dev` has no local Flagship: Alchemy proxies the binding to a live app, which would need Cloudflare credentials and create cloud resources for every checkout. The local stage therefore declares no Flagship resources and serves the registry's `local` values (People on). To try other local values, edit the registry; the API reloads.
+- **Browser.** The product never inlines flags. The app layout loads `features.people` on the server (`src/lib/people-route.ts`) so the navigation renders with the answer, and the People routes' `beforeLoad` returns not found when it is off. The API independently rejects People dashboard requests when the flag is off.
+
+Deploying Flagship resources needs Flagship access: the deploy tokens need Flagship Write (see [CI/CD](ci-cd.md#oidc-and-token-scope)), and a local Alchemy OAuth profile needs the `flagship.read` and `flagship.write` scopes (`bun alchemy profile edit`, then sign in again). Flagship is in public beta; Cloudflare has not announced pricing.
 
 ## Developer credentials
 

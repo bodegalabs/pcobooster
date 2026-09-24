@@ -21,12 +21,7 @@
     },
     "@pcobooster/web#build": {
       "dependsOn": ["^build"],
-      "env": [
-        "NODE_ENV",
-        "PEOPLE_PAGE_ENABLED",
-        "PLANNING_CENTER_TIME_ZONE",
-        "POSTHOG_PROJECT_KEY"
-      ],
+      "env": ["NODE_ENV", "PLANNING_CENTER_TIME_ZONE", "POSTHOG_PROJECT_KEY"],
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/scripts/stage-marketing.ts"],
       "outputs": ["dist/**", "public/marketing/**"]
     },

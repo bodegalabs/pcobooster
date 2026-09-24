@@ -45,11 +45,16 @@ const githubOidcSubject = (environment: string) =>
   `repo:${owner}@305914027/${repository}@1125110564:environment:${environment}`;
 
 const accountScope = { [`com.cloudflare.api.account.${accountId}`]: "*" };
-const deployPermissions: Cloudflare.ApiToken.PermissionGroupName[] = [
+/** Account-level Flagship Write (includes read); Alchemy's typed catalog does not list it yet. */
+const FLAGSHIP_WRITE = { id: "521a41dc78f94eaba5e643528846cb7b" };
+
+const deployPermissions: Cloudflare.ApiToken.PermissionGroupRef[] = [
   "Workers Scripts Write",
   "D1 Write",
   // The shared Alchemy state store keeps its bearer token in the account Secrets Store.
   "Secrets Store Write",
+  // Each deployed stage declares a Flagship app and its flags (`apps/server/src/feature-flags.ts`).
+  FLAGSHIP_WRITE,
 ];
 
 /** One Infisical project per trust level; each GitHub environment reads exactly one. */

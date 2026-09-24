@@ -1,10 +1,24 @@
-import { notFound } from "@tanstack/react-router";
+import type { QueryClient } from "@tanstack/react-query";
 
-import { peoplePageEnabled } from "@/lib/build-settings";
+import {
+  createPeopleFeatureQueryOptions,
+  requirePeopleFeature,
+} from "@/lib/people-feature";
+import { getPeopleFeature } from "@/server/features.functions";
 
-/** People pages 404 unless `PEOPLE_PAGE_ENABLED` was on for this build. */
-export const assertPeoplePageEnabled = (): void => {
-  if (!peoplePageEnabled) {
-    notFound({ throw: true });
-  }
+/**
+ * The API's `people` flag answer. The app layout loads it on the server, so the navigation
+ * renders with it and never flashes the People link.
+ */
+export const peopleFeatureQueryOptions = createPeopleFeatureQueryOptions(
+  async () => await getPeopleFeature()
+);
+
+/** People pages 404 unless the API's `people` flag is on for this visitor. */
+export const assertPeoplePageEnabled = async ({
+  context,
+}: {
+  context: { queryClient: QueryClient };
+}): Promise<void> => {
+  await requirePeopleFeature(context.queryClient, peopleFeatureQueryOptions);
 };

@@ -21,6 +21,8 @@ import {
 } from "@pcobooster/api/modules/admin/get-account-activity";
 import { getDemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
 import type { DemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
+import { anonymousFeatureFlagSubject } from "@pcobooster/api/modules/feature-flags/feature-flags";
+import type { FeatureFlagSubject } from "@pcobooster/api/modules/feature-flags/feature-flags";
 import { createReadOnlyPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
 import { Server } from "@pcobooster/api/server";
 import type { ServerDependencies } from "@pcobooster/api/server";
@@ -171,6 +173,20 @@ const planningCenterAccounts = (accounts: AuthAccount[]): AuthAccount[] =>
         new Date(first.updatedAt).getTime()
     );
 
+/** The caller's selected Planning Center account: the cookie's choice, else the newest. */
+const selectPlanningCenterAccountFor = (
+  request: Request,
+  linkedAccounts: AuthAccount[],
+  dependencies: Pick<IdentityDependencies, "getSelectedAccountId">
+): AuthAccount | undefined => {
+  const cookieAccountId = dependencies.getSelectedAccountId(request);
+  return (
+    (isNonEmptyString(cookieAccountId)
+      ? linkedAccounts.find((account) => account.id === cookieAccountId)
+      : undefined) ?? linkedAccounts[0]
+  );
+};
+
 const demoAccountsSummary = (
   organization: DemoOrganization
 ): PlanningCenterAccountsSummary => ({
@@ -270,11 +286,11 @@ export const getPlanningCenterAccounts = (
       "list-user-accounts"
     );
     const linkedAccounts = planningCenterAccounts(accounts);
-    const cookieAccountId = dependencies.getSelectedAccountId(request);
-    const selectedAccount =
-      (isNonEmptyString(cookieAccountId)
-        ? linkedAccounts.find((account) => account.id === cookieAccountId)
-        : undefined) ?? linkedAccounts[0];
+    const selectedAccount = selectPlanningCenterAccountFor(
+      request,
+      linkedAccounts,
+      dependencies
+    );
     const summaries = yield* tryIdentity(
       async () =>
         await Promise.all(
@@ -348,9 +364,57 @@ export const selectPlanningCenterAccount = (
     return { success: true, selectedAccountId: account.id };
   });
 
-export const getPeopleFeature = Server.pipe(
-  Effect.map(({ config }) => ({ enabled: config.peoplePageEnabled }))
-);
+/** Who flags are evaluated for. Signed-out and demo callers are anonymous. */
+const resolveFeatureFlagSubject = (
+  dependencies: IdentityDependencies
+): Effect.Effect<FeatureFlagSubject, ApplicationFault, RequestContext> =>
+  Effect.gen(function* readFeatureFlagSubject() {
+    const { request, headers } = yield* RequestContext;
+    if (dependencies.resolveDemoSession(request) !== null) {
+      return anonymousFeatureFlagSubject;
+    }
+    if (dependencies.isDevAuthBypassEnabled()) {
+      return {
+        userId: dependencies.getDevBypassSession().user.id,
+        planningCenterAccountId:
+          dependencies.getDevBypassPlanningCenterAccount().id,
+      };
+    }
+    const session = yield* tryIdentity(
+      async () => await dependencies.getSession(headers),
+      "session"
+    );
+    if (session === null) {
+      return anonymousFeatureFlagSubject;
+    }
+    const accounts = yield* tryIdentity(
+      async () => await dependencies.listUserAccounts(headers),
+      "list-user-accounts"
+    );
+    const selectedAccount = selectPlanningCenterAccountFor(
+      request,
+      planningCenterAccounts(accounts),
+      dependencies
+    );
+    return {
+      userId: session.user.id,
+      planningCenterAccountId: selectedAccount?.id ?? null,
+    };
+  });
+
+export const getPeopleFeature = (
+  overrides?: IdentityDependencies
+): Effect.Effect<
+  { readonly enabled: boolean },
+  ApplicationFault,
+  RequestContext | Server
+> =>
+  Effect.gen(function* readPeopleFeature() {
+    const dependencies = yield* resolveIdentityDependencies(overrides);
+    const subject = yield* resolveFeatureFlagSubject(dependencies);
+    const { featureFlags } = yield* Server;
+    return { enabled: yield* featureFlags.isEnabled("people", subject) };
+  });
 
 export const getAdminAccounts = Effect.gen(function* readAdminAccounts() {
   const { request } = yield* RequestContext;
