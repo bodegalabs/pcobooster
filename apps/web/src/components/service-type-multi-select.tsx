@@ -1,5 +1,3 @@
-"use client";
-
 import { UnfoldMoreIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ServiceType } from "@pcobooster/planning-center-models/types";

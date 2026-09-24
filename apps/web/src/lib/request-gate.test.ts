@@ -104,33 +104,30 @@ describe(decideRequestGate, () => {
   });
 
   it.each([
-    ["/services", "https://pcobooster.com/auth"],
-    [
-      "/people/12?month=2026-09",
-      "https://pcobooster.com/auth?next=%2Fpeople%2F12%3Fmonth%3D2026-09",
-    ],
+    ["/services", "/auth"],
+    ["/people/12?month=2026-09", "/auth?next=%2Fpeople%2F12%3Fmonth%3D2026-09"],
     [
       "/services/1/plans/2/assign?teamId=3&positionId=4",
-      "https://pcobooster.com/auth?next=%2Fservices%2F1%2Fplans%2F2%2Fassign%3FteamId%3D3%26positionId%3D4",
+      "/auth?next=%2Fservices%2F1%2Fplans%2F2%2Fassign%3FteamId%3D3%26positionId%3D4",
     ],
-    ["/admin", "https://pcobooster.com/auth?next=%2Fadmin"],
-    ["/admin/users/7", "https://pcobooster.com/auth?next=%2Fadmin%2Fusers%2F7"],
+    ["/admin", "/auth?next=%2Fadmin"],
+    ["/admin/users/7", "/auth?next=%2Fadmin%2Fusers%2F7"],
     // Other API paths are gated, and API paths are never a return destination.
-    ["/api/health", "https://pcobooster.com/auth"],
-    ["/authors", "https://pcobooster.com/auth?next=%2Fauthors"],
-    ["/demo", "https://pcobooster.com/auth?next=%2Fdemo"],
+    ["/api/health", "/auth"],
+    ["/authors", "/auth?next=%2Fauthors"],
+    ["/demo", "/auth?next=%2Fdemo"],
   ])("sends signed-out visitors from %s to sign-in", (path, location) => {
     expect(
       decideRequestGate(signedOut(`https://pcobooster.com${path}`))
     ).toStrictEqual({ action: "redirect", location, status: 307 });
   });
 
-  it("keeps the request origin in the sign-in redirect", () => {
+  it("redirects on the request's own origin", () => {
     expect(
       decideRequestGate(signedOut("http://127.0.0.1:3001/people"))
     ).toStrictEqual({
       action: "redirect",
-      location: "http://127.0.0.1:3001/auth?next=%2Fpeople",
+      location: "/auth?next=%2Fpeople",
       status: 307,
     });
   });

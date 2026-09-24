@@ -1,5 +1,3 @@
-"use client";
-
 import { Delete02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TeamPositionGroup } from "@pcobooster/planning-center-models/types";

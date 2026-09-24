@@ -1,80 +1,54 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import {
-  buildPlanWorkspaceUrl,
-  updatePlanWorkspaceUrl,
+  buildPlanMemberPositionId,
+  planSlotLink,
+  planWorkspaceLink,
 } from "@/lib/schedule-navigation";
 
-const pushState = vi.fn<History["pushState"]>();
-const replaceState = vi.fn<History["replaceState"]>();
-
-describe("schedule navigation", () => {
-  beforeEach(() => {
-    pushState.mockReset();
-    replaceState.mockReset();
-    vi.stubGlobal("window", { history: { pushState, replaceState } });
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  describe(buildPlanWorkspaceUrl, () => {
-    it("opens a plan on the assign view", () => {
-      expect(buildPlanWorkspaceUrl("78", "90")).toBe(
-        "/services/78/plans/90/assign"
-      );
+describe(planWorkspaceLink, () => {
+  it("opens a plan on the assign view", () => {
+    expect(planWorkspaceLink("78", "90")).toStrictEqual({
+      to: "/services/$serviceTypeId/plans/$planId/$view",
+      params: { serviceTypeId: "78", planId: "90", view: "assign" },
     });
   });
+});
 
-  describe(updatePlanWorkspaceUrl, () => {
-    it("pushes view and slot changes within the same plan in place", () => {
-      const nextUrl = "/services/78/plans/90/lineup?teamId=1&positionId=2";
-
-      expect(
-        updatePlanWorkspaceUrl("/services/78/plans/90/assign", nextUrl, "push")
-      ).toBeTruthy();
-      expect(pushState).toHaveBeenCalledWith(null, "", nextUrl);
-      expect(replaceState).not.toHaveBeenCalled();
+describe(planSlotLink, () => {
+  it("selects a slot in a view", () => {
+    expect(
+      planSlotLink({
+        serviceTypeId: "78",
+        planId: "90",
+        view: "lineup",
+        teamId: "1",
+        positionId: "2",
+      })
+    ).toStrictEqual({
+      to: "/services/$serviceTypeId/plans/$planId/$view",
+      params: { serviceTypeId: "78", planId: "90", view: "lineup" },
+      search: { teamId: "1", positionId: "2" },
     });
+  });
 
-    it("replaces history when asked", () => {
-      const nextUrl = "/services/78/plans/90/assign?teamId=1";
+  it("omits an unselected slot from the URL", () => {
+    expect(
+      planSlotLink({
+        serviceTypeId: "78",
+        planId: "90",
+        view: "assign",
+        teamId: "",
+        positionId: null,
+      }).search
+    ).toStrictEqual({ teamId: undefined, positionId: undefined });
+  });
+});
 
-      expect(
-        updatePlanWorkspaceUrl(
-          "/services/78/plans/90/assign",
-          nextUrl,
-          "replace"
-        )
-      ).toBeTruthy();
-      expect(replaceState).toHaveBeenCalledWith(null, "", nextUrl);
-      expect(pushState).not.toHaveBeenCalled();
-    });
-
-    it("leaves other plans and pages to the router", () => {
-      expect(
-        updatePlanWorkspaceUrl(
-          "/services/78/plans/90/assign",
-          "/services/78/plans/91/assign",
-          "push"
-        )
-      ).toBeFalsy();
-      expect(
-        updatePlanWorkspaceUrl(
-          "/services",
-          "/services/78/plans/90/assign",
-          "push"
-        )
-      ).toBeFalsy();
-      expect(
-        updatePlanWorkspaceUrl(
-          "/services/78/plans/90/assign",
-          "/services",
-          "push"
-        )
-      ).toBeFalsy();
-      expect(pushState).not.toHaveBeenCalled();
-    });
+describe(buildPlanMemberPositionId, () => {
+  it("normalizes the position name", () => {
+    expect(buildPlanMemberPositionId("5", "  Lead Vocals ")).toBe(
+      "plan-member-position:5:lead%20vocals"
+    );
   });
 });

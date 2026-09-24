@@ -1,9 +1,7 @@
-"use client";
-
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@tanstack/react-router";
 import {
   useCallback,
   useDeferredValue,
@@ -25,7 +23,7 @@ import {
   readCachedPlansEntry,
   writeCachedPlans,
 } from "@/lib/schedule-catalog-cache";
-import { buildPlanWorkspaceUrl } from "@/lib/schedule-navigation";
+import { planWorkspaceLink } from "@/lib/schedule-navigation";
 import type {
   DateRangeFilter,
   ServicePlanRow,
@@ -322,8 +320,10 @@ export const useServicePlanSelection = ({
   );
   const prefetchPlanData = useCallback(
     (row: ServicePlanRow) => {
-      // Warm the route too, so its loading shell is ready before the click.
-      router.prefetch(buildPlanWorkspaceUrl(row.serviceTypeId, row.planId));
+      // Warm the route too, so its code is ready before the click.
+      void router.preloadRoute(
+        planWorkspaceLink(row.serviceTypeId, row.planId)
+      );
       void prefetchTeamPositions(row);
       void prefetchPlanItems(row);
       void warmPeopleHistory(row);

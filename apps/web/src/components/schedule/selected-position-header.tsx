@@ -1,5 +1,3 @@
-"use client";
-
 import type { TeamPosition } from "@pcobooster/planning-center-models/types";
 import { ChevronLeft, ChevronsUpDown, Search, X } from "lucide-react";
 

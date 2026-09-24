@@ -1,5 +1,3 @@
-"use client";
-
 import { startTransition, useState } from "react";
 
 import { PlanItemEditDialog } from "@/components/schedule/plan-item-edit-dialog";

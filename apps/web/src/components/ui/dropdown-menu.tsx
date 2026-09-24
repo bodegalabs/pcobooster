@@ -1,5 +1,3 @@
-"use client";
-
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import type { BaseUIEvent } from "@base-ui/react/types";
 import { ArrowRight01Icon, Tick02Icon } from "@hugeicons/core-free-icons";

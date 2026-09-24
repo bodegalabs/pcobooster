@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback, useEffect, useId, useRef } from "react";
 
 import { BrandRocketLogo } from "@/components/brand-rocket-logo";

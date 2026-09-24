@@ -53,13 +53,13 @@ const isSignedOutPath = (pathname: string): boolean =>
   pathname.startsWith("/api/rpc/") ||
   pathname === "/auth";
 
-const signInUrl = (url: URL): string => {
+/** Same-origin and relative, as the Next.js proxy sent it. */
+const signInPath = (url: URL): string => {
   const returnPath = sanitizeReturnPath(`${url.pathname}${url.search}`);
-  const destination = new URL("/auth", url.origin);
-  if (returnPath !== DEFAULT_SIGN_IN_RETURN_PATH) {
-    destination.searchParams.set(SIGN_IN_RETURN_PARAM, returnPath);
+  if (returnPath === DEFAULT_SIGN_IN_RETURN_PATH) {
+    return "/auth";
   }
-  return destination.toString();
+  return `/auth?${new URLSearchParams({ [SIGN_IN_RETURN_PARAM]: returnPath }).toString()}`;
 };
 
 /**
@@ -96,7 +96,7 @@ export const decideRequestGate = ({
   ) {
     return proceed();
   }
-  return { action: "redirect", location: signInUrl(url), status: 307 };
+  return { action: "redirect", location: signInPath(url), status: 307 };
 };
 
 /** Local development may skip sign-in; production builds never do. */

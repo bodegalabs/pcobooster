@@ -1,5 +1,3 @@
-"use client";
-
 import {
   CheckmarkCircle02Icon,
   InformationCircleIcon,
@@ -8,10 +6,11 @@ import {
   Loading03Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useTheme } from "next-themes";
 import type { CSSProperties } from "react";
 import { Toaster as Sonner } from "sonner";
 import type { ToasterProps } from "sonner";
+
+import { useTheme } from "@/components/theme-provider";
 
 type SonnerStyle = CSSProperties & Record<`--${string}`, string>;
 
@@ -23,14 +22,10 @@ const toasterStyle: SonnerStyle = {
 };
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
-  const toasterTheme =
-    theme === "dark" || theme === "light" || theme === "system"
-      ? theme
-      : "system";
+  const { theme } = useTheme();
   return (
     <Sonner
-      theme={toasterTheme}
+      theme={theme}
       className="group"
       icons={{
         success: (

@@ -1,5 +1,3 @@
-"use client";
-
 import type { FilledPositionPerson } from "@pcobooster/planning-center-models/types";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

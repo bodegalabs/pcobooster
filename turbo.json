@@ -5,7 +5,7 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+      "outputs": ["dist/**"]
     },
     "@pcobooster/marketing#build": {
       "dependsOn": ["^build"],
@@ -28,16 +28,15 @@
     "@pcobooster/web#build": {
       "dependsOn": ["^build"],
       "env": [
-        "DEV_AUTH_BYPASS",
         "NEXT_PUBLIC_PLANNING_CENTER_TIME_ZONE",
+        "NEXT_PUBLIC_POSTHOG_KEY",
         "NODE_ENV",
         "PEOPLE_PAGE_ENABLED",
-        "PRESENTATION_MODE",
-        "PRESENTATION_SEED",
-        "NEXT_PUBLIC_POSTHOG_KEY"
+        "VITE_PLANNING_CENTER_TIME_ZONE",
+        "VITE_POSTHOG_KEY"
       ],
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/scripts/stage-marketing.ts"],
-      "outputs": [".next/**", "!.next/cache/**", "public/marketing/**"]
+      "outputs": ["dist/**", "public/marketing/**"]
     },
     "typecheck": {
       "dependsOn": ["^typecheck"],
@@ -102,7 +101,9 @@
         "PRESENTATION_MODE",
         "PRESENTATION_SEED",
         "PCOBOOSTER_ADMIN_EMAILS",
-        "NEXT_PUBLIC_POSTHOG_KEY"
+        "NEXT_PUBLIC_POSTHOG_KEY",
+        "VITE_PLANNING_CENTER_TIME_ZONE",
+        "VITE_POSTHOG_KEY"
       ],
       "persistent": true
     },

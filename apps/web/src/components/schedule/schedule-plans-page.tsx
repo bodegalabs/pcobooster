@@ -1,21 +1,12 @@
-"use client";
-
-import { useRouter, useSearchParams } from "next/navigation";
-import {
-  startTransition,
-  useCallback,
-  useEffect,
-  useState,
-  useTransition,
-} from "react";
+import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { ServicePlanTableSelector } from "@/components/service-plan-table-selector";
-import { buildPlanWorkspaceUrl } from "@/lib/schedule-navigation";
+import { planWorkspaceLink } from "@/lib/schedule-navigation";
 
 export const SchedulePlansPage = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const searchQuery = searchParams.toString();
+  const navigate = useNavigate();
+  const searchQuery = useLocation({ select: (location) => location.searchStr });
   const [isOpeningPlan, startOpeningPlan] = useTransition();
   const [openingPlanId, setOpeningPlanId] = useState<string | null>(null);
 
@@ -24,23 +15,20 @@ export const SchedulePlansPage = () => {
       return;
     }
 
-    startTransition(() => {
-      router.replace("/services");
-    });
-  }, [router, searchQuery]);
+    // Services takes no query; drop stale ones from old links.
+    void navigate({ to: "/services", replace: true });
+  }, [navigate, searchQuery]);
 
   const handleServicePlanSelect = useCallback(
     ({ serviceTypeId, planId }: { serviceTypeId: string; planId: string }) => {
-      const nextUrl = buildPlanWorkspaceUrl(serviceTypeId, planId);
-
-      // Mark the row right away; if the route is not prefetched yet, the
+      // Mark the row right away; if the route is not preloaded yet, the
       // highlight and bar acknowledge the click until the plan shell arrives.
       setOpeningPlanId(planId);
-      startOpeningPlan(() => {
-        router.push(nextUrl);
+      startOpeningPlan(async () => {
+        await navigate(planWorkspaceLink(serviceTypeId, planId));
       });
     },
-    [router]
+    [navigate]
   );
 
   return (

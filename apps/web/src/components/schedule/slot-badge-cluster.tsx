@@ -1,5 +1,3 @@
-"use client";
-
 import type { TeamPosition } from "@pcobooster/planning-center-models/types";
 
 import { SlotStatusPopoverContent } from "@/components/schedule/popovers/slot-status-popover";

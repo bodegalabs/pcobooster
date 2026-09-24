@@ -1,5 +1,3 @@
-"use client";
-
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
 import { CalendarPlus, Info, Loader2 } from "lucide-react";

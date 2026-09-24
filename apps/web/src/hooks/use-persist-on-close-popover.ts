@@ -1,5 +1,3 @@
-"use client";
-
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useCallback, useRef, useState } from "react";
 import type { SetStateAction } from "react";

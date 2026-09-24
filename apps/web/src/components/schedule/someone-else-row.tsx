@@ -1,5 +1,3 @@
-"use client";
-
 import { CalendarPlus, Loader2, UserPlus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 

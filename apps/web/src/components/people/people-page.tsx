@@ -1,13 +1,11 @@
-"use client";
-
 import type {
   PeopleDashboardData,
   PeopleDashboardPerson,
   PeopleDashboardRange,
 } from "@pcobooster/contracts/people-schemas";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { Search } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
 
 import {
@@ -119,6 +117,7 @@ export const PeoplePage = () => {
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const router = useRouter();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeView, setActiveView] = useState<"health" | "month">("health");
   const [range, setRange] = useState<PeopleDashboardRange>("month");
@@ -164,7 +163,10 @@ export const PeoplePage = () => {
   const underused = people.filter((person) => person.load === "low");
   const prefetchPersonDetail = useCallback(
     (person: PeopleDashboardPerson) => {
-      router.prefetch(`/people/${person.id}`);
+      void router.preloadRoute({
+        to: "/people/$personId",
+        params: { personId: person.id },
+      });
       void (async () => {
         try {
           await queryClient.query(
@@ -180,9 +182,12 @@ export const PeoplePage = () => {
   const openPerson = useCallback(
     (person: PeopleDashboardPerson) => {
       prefetchPersonDetail(person);
-      router.push(`/people/${person.id}`);
+      void navigate({
+        to: "/people/$personId",
+        params: { personId: person.id },
+      });
     },
-    [prefetchPersonDetail, router]
+    [navigate, prefetchPersonDetail]
   );
 
   return (

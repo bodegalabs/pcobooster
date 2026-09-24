@@ -1,5 +1,3 @@
-"use client";
-
 import type { TeamPositionGroup } from "@pcobooster/planning-center-models/types";
 import { CalendarDays } from "lucide-react";
 import { Fragment } from "react";

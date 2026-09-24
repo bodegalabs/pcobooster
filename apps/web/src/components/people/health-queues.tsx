@@ -1,5 +1,3 @@
-"use client";
-
 import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 import { Clock3, ListChecks } from "lucide-react";
 

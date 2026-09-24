@@ -1,4 +1,3 @@
-"use client";
 import type { PeopleSearchResult } from "@pcobooster/contracts/people-schemas";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";

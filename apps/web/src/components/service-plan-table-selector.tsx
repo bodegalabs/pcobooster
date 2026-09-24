@@ -1,5 +1,3 @@
-"use client";
-
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { ChevronRight, Search } from "lucide-react";
 import type { ReactNode } from "react";

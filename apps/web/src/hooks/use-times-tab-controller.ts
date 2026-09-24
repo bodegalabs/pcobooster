@@ -1,5 +1,3 @@
-"use client";
-
 import type { PlanTime } from "@pcobooster/planning-center-models/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { startTransition, useMemo, useState } from "react";

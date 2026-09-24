@@ -1,5 +1,3 @@
-"use client";
-
 import {
   ArrowDown01Icon,
   Calendar04Icon,
@@ -21,12 +19,10 @@ import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { Check, ChevronDown, ChevronLeft } from "lucide-react";
-import { useTheme } from "next-themes";
-import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
-import { Suspense, startTransition, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { HotkeyChord } from "@/components/hotkey-chord";
 import { MobileTabBar } from "@/components/mobile-nav";
@@ -36,6 +32,7 @@ import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
 import type { SidebarTabGroupItem } from "@/components/sidebar-tab-group";
 import { SidebarTabGroup } from "@/components/sidebar-tab-group";
 import { SidebarToggleHotkey } from "@/components/sidebar-toggle-hotkey";
+import { useTheme } from "@/components/theme-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -86,25 +83,24 @@ import {
   useAccountsQuery,
 } from "@/hooks/use-account-panel";
 import { useBrowserStorage } from "@/hooks/use-browser-storage";
+import { usePlanRoute } from "@/hooks/use-plan-route";
 import { APP_SHORTCUTS, SHORTCUTS_PALETTE_HOTKEY } from "@/lib/app-hotkeys";
 import type { PlanView } from "@/lib/app-routes";
 import {
-  buildPlanViewUrl,
   getAppSection,
   getAppSectionLabel,
   getPlanViewLabel,
   parseDetailRoute,
-  parsePlanRoute,
   planViews,
 } from "@/lib/app-routes";
 import { writeBrowserStorage } from "@/lib/browser-storage";
+import { peoplePageEnabled, presentationMode } from "@/lib/build-settings";
 import {
   PEOPLE_PAGE_NAV_CACHE_KEY,
   parsePeoplePageNavState,
   serializePeoplePageNavState,
 } from "@/lib/people-page-nav-cache";
 import { queryKeys } from "@/lib/query-keys";
-import { updatePlanWorkspaceUrl } from "@/lib/schedule-navigation";
 import { cn } from "@/lib/utils";
 import { orpc } from "@/orpc-client";
 
@@ -160,12 +156,15 @@ const AppInsetChromeHeader = ({ children }: { children: ReactNode }) => {
   );
 };
 
+const usePathname = (): string =>
+  useLocation({ select: (location) => location.pathname });
+
 const AppTopBar = () => {
-  const router = useRouter();
+  const navigate = useNavigate();
   const pathname = usePathname();
-  const planPath = parsePlanRoute(pathname);
-  const hasPlan = Boolean(planPath);
-  const planView = planPath?.view ?? "assign";
+  const planRoute = usePlanRoute();
+  const hasPlan = planRoute !== null;
+  const planView = planRoute?.view ?? "assign";
   const planViewLabel = getPlanViewLabel(planView);
   const isPersonDetail = /^\/people\/[^/]+/u.test(pathname);
   const pageLabel = getAppSectionLabel(getAppSection(pathname));
@@ -177,7 +176,7 @@ const AppTopBar = () => {
           {isPersonDetail ? (
             <>
               <BreadcrumbItem>
-                <BreadcrumbLink render={<Link href="/people" />}>
+                <BreadcrumbLink render={<Link to="/people" />}>
                   People
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -190,7 +189,7 @@ const AppTopBar = () => {
             <>
               <BreadcrumbItem>
                 {hasPlan ? (
-                  <BreadcrumbLink render={<Link href="/services" />}>
+                  <BreadcrumbLink render={<Link to="/services" />}>
                     Services
                   </BreadcrumbLink>
                 ) : (
@@ -222,22 +221,14 @@ const AppTopBar = () => {
                           <DropdownMenuItem
                             key={view}
                             onSelect={() => {
-                              const nextUrl = buildPlanViewUrl(
-                                pathname,
-                                new URLSearchParams(window.location.search),
-                                view
-                              );
-                              if (
-                                updatePlanWorkspaceUrl(
-                                  pathname,
-                                  nextUrl,
-                                  "replace"
-                                )
-                              ) {
+                              if (planRoute === null) {
                                 return;
                               }
-                              startTransition(() => {
-                                router.replace(nextUrl);
+                              void navigate({
+                                to: "/services/$serviceTypeId/plans/$planId/$view",
+                                params: { ...planRoute, view },
+                                search: true,
+                                replace: true,
                               });
                             }}
                           >
@@ -253,35 +244,6 @@ const AppTopBar = () => {
                 </>
               ) : null}
             </>
-          )}
-        </BreadcrumbList>
-      </Breadcrumb>
-    </div>
-  );
-};
-
-const AppTopBarFallback = ({ pathname }: { pathname: string }) => {
-  const isPersonDetail = /^\/people\/[^/]+/u.test(pathname);
-  const pageLabel = getAppSectionLabel(getAppSection(pathname));
-
-  return (
-    <div className="flex w-full min-w-0 items-center gap-2 sm:gap-3">
-      <Breadcrumb className="shrink-0">
-        <BreadcrumbList>
-          {isPersonDetail ? (
-            <>
-              <BreadcrumbItem>
-                <BreadcrumbPage>People</BreadcrumbPage>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Person</BreadcrumbPage>
-              </BreadcrumbItem>
-            </>
-          ) : (
-            <BreadcrumbItem>
-              <BreadcrumbPage>{pageLabel}</BreadcrumbPage>
-            </BreadcrumbItem>
           )}
         </BreadcrumbList>
       </Breadcrumb>
@@ -421,7 +383,7 @@ const SidebarAccountPanel = ({
             <DropdownMenuGroup>
               <DropdownMenuLabel>Appearance</DropdownMenuLabel>
               {themeOptions.map((option) => {
-                const selected = (theme ?? "system") === option.value;
+                const selected = theme === option.value;
                 return (
                   <DropdownMenuItem
                     key={option.value}
@@ -496,65 +458,57 @@ const SidebarAccountPanel = ({
 const servicesRootItem: SidebarTabGroupItem<ServicesSidebarKey> = {
   key: "services",
   label: "Services",
-  href: "/services",
+  link: <Link to="/services" />,
   icon: Calendar04Icon,
+};
+
+const planViewIcons: Record<PlanView, SidebarTabGroupItem["icon"]> = {
+  assign: UserAdd01Icon,
+  lineup: Layout3ColumnIcon,
+  plan: ListMusicIcon,
+  times: Clock01Icon,
 };
 
 const ServicesSidebarMenuItem = () => {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const planPath = parsePlanRoute(pathname);
-  const isPlanWorkspace = Boolean(planPath);
-  const activeScheduleView = planPath?.view ?? "assign";
-  const viewItem = (
-    key: PlanView,
-    icon: SidebarTabGroupItem["icon"]
-  ): SidebarTabGroupItem<ServicesSidebarKey> => {
-    const href = buildPlanViewUrl(pathname, searchParams, key);
-    return {
-      key,
-      label: getPlanViewLabel(key),
-      href,
-      icon,
-      handleNavigate: (event) => {
-        if (updatePlanWorkspaceUrl(pathname, href, "push")) {
-          event.preventDefault();
-        }
-      },
-    };
-  };
-  const servicesViewItems: SidebarTabGroupItem<ServicesSidebarKey>[] = [
-    servicesRootItem,
-    viewItem("assign", UserAdd01Icon),
-    viewItem("lineup", Layout3ColumnIcon),
-    viewItem("plan", ListMusicIcon),
-    viewItem("times", Clock01Icon),
-  ];
+  const planRoute = usePlanRoute();
+  const servicesViewItems: SidebarTabGroupItem<ServicesSidebarKey>[] =
+    planRoute === null
+      ? [servicesRootItem]
+      : [
+          servicesRootItem,
+          ...planViews.map((view) => ({
+            key: view,
+            label: getPlanViewLabel(view),
+            // Keeps the selected slot across views.
+            link: (
+              <Link
+                to="/services/$serviceTypeId/plans/$planId/$view"
+                params={{ ...planRoute, view }}
+                search
+              />
+            ),
+            icon: planViewIcons[view],
+          })),
+        ];
   let servicesActiveKey: ServicesSidebarKey | null = null;
   if (pathname === "/services") {
     servicesActiveKey = "services";
-  } else if (isPlanWorkspace) {
-    servicesActiveKey = activeScheduleView;
+  } else if (planRoute !== null) {
+    servicesActiveKey = planRoute.view;
   }
 
   return (
     <SidebarTabGroup
       activeKey={servicesActiveKey}
       fallbackItem={servicesRootItem}
-      isGrouped={isPlanWorkspace}
-      items={isPlanWorkspace ? servicesViewItems : [servicesRootItem]}
+      isGrouped={planRoute !== null}
+      items={servicesViewItems}
     />
   );
 };
 
-const ServicesSidebarMenuItemFallback = () => (
-  <SidebarMenuButton render={<Link href="/services" />} tooltip="Services">
-    <SidebarNavIcon icon={Calendar04Icon} />
-    <span>Services</span>
-  </SidebarMenuButton>
-);
-
-const useNavFeatures = (peoplePageEnabled: boolean) => {
+const useNavFeatures = () => {
   const [cachedPeopleFeature] = useBrowserStorage(PEOPLE_PAGE_NAV_CACHE_KEY);
   const peopleFeatureQuery = useQuery({
     queryKey: queryKeys.peopleFeature(),
@@ -594,14 +548,12 @@ const AppSidebar = ({ peopleNavEnabled }: { peopleNavEnabled: boolean }) => {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <Suspense fallback={<ServicesSidebarMenuItemFallback />}>
-                    <ServicesSidebarMenuItem />
-                  </Suspense>
+                  <ServicesSidebarMenuItem />
                 </SidebarMenuItem>
                 {peopleNavEnabled ? (
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      render={<Link href="/people" />}
+                      render={<Link to="/people" />}
                       isActive={pathname.startsWith("/people")}
                       tooltip="People"
                     >
@@ -695,13 +647,10 @@ const PresentationModeBadge = () => (
  * Phone header for sections and detail pages. Plan workspaces render their own
  * header with the plan title, so this stays out of the way there.
  */
-const MobileChromeHeader = ({
-  presentationMode,
-}: {
-  presentationMode: boolean;
-}) => {
+const MobileChromeHeader = () => {
   const pathname = usePathname();
-  if (parsePlanRoute(pathname)) {
+  const planRoute = usePlanRoute();
+  if (planRoute !== null) {
     return null;
   }
   const detail = parseDetailRoute(pathname);
@@ -710,7 +659,7 @@ const MobileChromeHeader = ({
     <header className="flex h-12 shrink-0 items-center gap-2 px-2 md:hidden">
       {detail ? (
         <Link
-          href={detail.parentHref}
+          to={detail.parentHref}
           className={buttonVariants({
             variant: "ghost",
             size: "lg",
@@ -731,23 +680,13 @@ const MobileChromeHeader = ({
   );
 };
 
-export const AppShell = ({
-  children,
-  peoplePageEnabled,
-  presentationMode,
-}: {
-  children: ReactNode;
-  peoplePageEnabled: boolean;
-  presentationMode: boolean;
-}): ReactNode => {
-  const pathname = usePathname();
-  const isStandaloneRoute =
-    pathname.startsWith("/auth") || pathname.startsWith("/demo/");
+/** Navigation chrome around every signed-in product page. */
+export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
   const [storedOpen, setStoredOpen] = useBrowserStorage(
     SIDEBAR_OPEN_STORAGE_KEY
   );
   const sidebarOpen = storedOpen !== "false";
-  const { peopleNavEnabled } = useNavFeatures(peoplePageEnabled);
+  const { peopleNavEnabled } = useNavFeatures();
 
   const handleSidebarOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -755,10 +694,6 @@ export const AppShell = ({
     },
     [setStoredOpen]
   );
-
-  if (isStandaloneRoute) {
-    return children;
-  }
 
   return (
     <SidebarProvider
@@ -771,17 +706,13 @@ export const AppShell = ({
       <SidebarInset className="min-h-0 overflow-hidden">
         <AppInsetChromeHeader>
           <SidebarChromeTrigger when="inset" />
-          <Suspense fallback={<AppTopBarFallback pathname={pathname} />}>
-            <AppTopBar />
-          </Suspense>
+          <AppTopBar />
           <DemoBadge />
           {presentationMode ? <PresentationModeBadge /> : null}
         </AppInsetChromeHeader>
-        <MobileChromeHeader presentationMode={presentationMode} />
+        <MobileChromeHeader />
         <div className="flex min-h-0 flex-1 flex-col">{children}</div>
-        <Suspense fallback={null}>
-          <MobileTabBar peopleEnabled={peopleNavEnabled} />
-        </Suspense>
+        <MobileTabBar peopleEnabled={peopleNavEnabled} />
       </SidebarInset>
     </SidebarProvider>
   );
