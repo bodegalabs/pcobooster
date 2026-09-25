@@ -1,5 +1,5 @@
 import { captureAnalytics } from "@pcobooster/analytics/client";
-import { X } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { preconnect } from "react-dom";
 
@@ -9,13 +9,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item";
+import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
+import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import { authClient } from "@/lib/auth-client";
@@ -82,6 +77,40 @@ const accountInitials = (account: RememberedAccount): string => {
   return initials.toUpperCase() || "?";
 };
 
+const RELATIVE_TIME_UNITS = [
+  { unit: "year", ms: 365 * 24 * 60 * 60 * 1000 },
+  { unit: "month", ms: 30 * 24 * 60 * 60 * 1000 },
+  { unit: "week", ms: 7 * 24 * 60 * 60 * 1000 },
+  { unit: "day", ms: 24 * 60 * 60 * 1000 },
+  { unit: "hour", ms: 60 * 60 * 1000 },
+] as const satisfies readonly {
+  unit: Intl.RelativeTimeFormatUnit;
+  ms: number;
+}[];
+
+/** Rows only render in the browser, so this is when the visitor opened the page. */
+const PAGE_OPENED_AT = Date.now();
+
+const relativeTimeFormat = new Intl.RelativeTimeFormat("en", {
+  numeric: "auto",
+});
+
+/** "today", "yesterday", "3 weeks ago": how recently this device used the account. */
+const describeLastUsed = (lastSignedInAt: number, now: number): string => {
+  const elapsed = Math.max(0, now - lastSignedInAt);
+  for (const { unit, ms } of RELATIVE_TIME_UNITS) {
+    if (elapsed >= ms) {
+      return relativeTimeFormat.format(-Math.floor(elapsed / ms), unit);
+    }
+  }
+  return "just now";
+};
+
+const firstName = (account: RememberedAccount): string | null => {
+  const [first = ""] = account.name.trim().split(WHITESPACE);
+  return first === "" ? null : first;
+};
+
 const RememberedAccountRow = ({
   account,
   pending,
@@ -98,17 +127,17 @@ const RememberedAccountRow = ({
   onIntent: () => void;
 }) => {
   const displayName = account.name.trim() || account.email;
-  const detail = account.organizationName ?? account.email;
+  const organization = account.organizationName ?? account.email;
+  const lastUsed = describeLastUsed(account.lastSignedInAt, PAGE_OPENED_AT);
   return (
-    <li className="relative">
+    <li className="group/account relative">
       <Item
-        variant="outline"
-        size="xs"
-        className="pr-11"
+        size="sm"
+        className="pr-12"
         render={
           <button
             type="button"
-            aria-label={`Continue as ${displayName}`}
+            aria-label={`Continue as ${displayName}, ${organization}`}
             aria-busy={pending}
             disabled={disabled}
           />
@@ -118,7 +147,7 @@ const RememberedAccountRow = ({
         onClick={onSelect}
       >
         <ItemMedia>
-          <Avatar>
+          <Avatar size="lg">
             {account.image === null ? null : (
               <AvatarImage src={account.image} alt="" />
             )}
@@ -126,23 +155,42 @@ const RememberedAccountRow = ({
           </Avatar>
         </ItemMedia>
         <ItemContent className="min-w-0">
-          <ItemTitle>{displayName}</ItemTitle>
-          <ItemDescription>{detail}</ItemDescription>
+          <div className="flex w-full min-w-0 flex-col gap-0.5">
+            <ItemTitle>{displayName}</ItemTitle>
+            <p className="text-muted-foreground flex w-full min-w-0 items-center gap-1.5 text-xs">
+              <span className="truncate">{organization}</span>
+              <span aria-hidden className="opacity-50">
+                ·
+              </span>
+              <span className="shrink-0">{lastUsed}</span>
+            </p>
+          </div>
         </ItemContent>
-        {pending ? <Spinner /> : null}
       </Item>
+      {pending ? (
+        <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2">
+          <Spinner />
+        </span>
+      ) : null}
       {pending ? null : (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          className="absolute top-1/2 right-1.5 -translate-y-1/2"
-          aria-label={`Remove ${displayName} from this device`}
-          disabled={disabled}
-          onClick={onForget}
-        >
-          <X />
-        </Button>
+        <ChevronRight
+          aria-hidden
+          className="text-muted-foreground pointer-events-none absolute top-1/2 right-4 hidden size-4 -translate-y-1/2 transition-transform duration-150 ease-out [@media(hover:hover)]:block [@media(hover:hover)]:group-focus-within/account:opacity-0 [@media(hover:hover)]:group-hover/account:opacity-0"
+        />
+      )}
+      {pending ? null : (
+        <span className="absolute top-1/2 right-2 -translate-y-1/2 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-focus-within/account:opacity-100 [@media(hover:hover)]:group-hover/account:opacity-100">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Remove ${displayName} from this device`}
+            disabled={disabled}
+            onClick={onForget}
+          >
+            <X />
+          </Button>
+        </span>
       )}
     </li>
   );
@@ -257,6 +305,17 @@ export const AuthSignInCard = ({
   }, []);
 
   const hasRemembered = rememberedAccounts.length > 0;
+  const [onlyAccount] = rememberedAccounts;
+  const greetingName =
+    rememberedAccounts.length === 1 && onlyAccount !== undefined
+      ? firstName(onlyAccount)
+      : null;
+  let heading = "Sign in";
+  if (greetingName !== null) {
+    heading = `Welcome back, ${greetingName}`;
+  } else if (hasRemembered) {
+    heading = "Welcome back";
+  }
   const mainButtonLabel =
     redirecting && pendingUserId === null
       ? "Opening Planning Center…"
@@ -284,11 +343,11 @@ export const AuthSignInCard = ({
             <div className="flex flex-col gap-6">
               <div className="flex flex-col gap-1.5 text-center">
                 <h1 className="font-heading text-xl font-semibold tracking-tight">
-                  {hasRemembered ? "Welcome back" : "Sign in"}
+                  {heading}
                 </h1>
                 <p className="text-muted-foreground text-pretty">
                   {hasRemembered
-                    ? "Pick up where you left off on this device."
+                    ? "Choose an account to keep planning."
                     : "Plan services and schedule your team with your Planning Center account."}
                 </p>
               </div>
@@ -301,8 +360,8 @@ export const AuthSignInCard = ({
 
               {hasRemembered ? (
                 <ul
-                  className="flex flex-col gap-2"
-                  aria-label="Recent accounts"
+                  className="bg-background/60 divide-border -mx-1 flex flex-col divide-y overflow-hidden rounded-2xl border"
+                  aria-label="Accounts on this device"
                 >
                   {rememberedAccounts.map((account) => (
                     <RememberedAccountRow
@@ -324,10 +383,17 @@ export const AuthSignInCard = ({
                 </ul>
               ) : null}
 
+              {hasRemembered ? (
+                <div className="text-muted-foreground flex items-center gap-3 text-xs">
+                  <Separator className="flex-1" />
+                  <span>or</span>
+                  <Separator className="flex-1" />
+                </div>
+              ) : null}
+
               <Button
                 type="button"
                 size="lg"
-                variant={hasRemembered ? "outline" : "default"}
                 className="w-full"
                 aria-busy={redirecting}
                 disabled={redirecting}
@@ -357,8 +423,9 @@ export const AuthSignInCard = ({
         </Card>
 
         <p className="text-muted-foreground max-w-xs text-center text-xs text-pretty">
-          You’ll sign in on Planning Center, then come right back here.
-          PCOBooster only uses your Services and People access.
+          {hasRemembered
+            ? "Only your name and organization are saved on this device. Remove an account any time."
+            : "You’ll sign in on Planning Center, then come right back here. PCOBooster only uses your Services and People access."}
         </p>
       </div>
     </main>
