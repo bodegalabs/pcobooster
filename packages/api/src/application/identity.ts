@@ -14,6 +14,7 @@ import {
 } from "@pcobooster/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
 import { getSelectedPlanningCenterAccountId } from "@pcobooster/api/auth/planning-center-session";
+import type { FeatureFlagName } from "@pcobooster/api/config/feature-flags";
 import { authorizeAdminRequest } from "@pcobooster/api/modules/admin/authorize-admin";
 import {
   getAccountActivity,
@@ -433,18 +434,20 @@ const resolveFeatureFlagSubject = (
     };
   });
 
-export const getPeopleFeature = (
+/** Whether a page's feature flag is on for this visitor. */
+export const getFeature = (
+  name: FeatureFlagName,
   overrides?: IdentityDependencies
 ): Effect.Effect<
   { readonly enabled: boolean },
   ApplicationFault,
   RequestContext | Server
 > =>
-  Effect.gen(function* readPeopleFeature() {
+  Effect.gen(function* readFeature() {
     const dependencies = yield* resolveIdentityDependencies(overrides);
     const subject = yield* resolveFeatureFlagSubject(dependencies);
     const { featureFlags } = yield* Server;
-    return { enabled: yield* featureFlags.isEnabled("people", subject) };
+    return { enabled: yield* featureFlags.isEnabled(name, subject) };
   });
 
 export const getAdminAccounts = Effect.gen(function* readAdminAccounts() {

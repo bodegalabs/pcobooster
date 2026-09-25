@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminSplatRouteImport } from './routes/admin/$'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as DemoKeyRouteImport } from './routes/demo/$key'
+import { Route as AppCleanupIndexRouteImport } from './routes/_app/cleanup/index'
 import { Route as AppPeopleIndexRouteImport } from './routes/_app/people/index'
 import { Route as AppPeoplePersonIdRouteImport } from './routes/_app/people/$personId'
 import { Route as AppServicesIndexRouteImport } from './routes/_app/services/index'
@@ -56,6 +57,11 @@ const DemoKeyRoute = DemoKeyRouteImport.update({
   id: '/demo/$key',
   path: '/demo/$key',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppCleanupIndexRoute = AppCleanupIndexRouteImport.update({
+  id: '/cleanup/',
+  path: '/cleanup/',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppPeopleIndexRoute = AppPeopleIndexRouteImport.update({
   id: '/people/',
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/api/$': typeof ApiSplatRoute
   '/demo/$key': typeof DemoKeyRoute
   '/people/$personId': typeof AppPeoplePersonIdRoute
+  '/cleanup/': typeof AppCleanupIndexRoute
   '/people/': typeof AppPeopleIndexRoute
   '/services/': typeof AppServicesIndexRoute
   '/services/$serviceTypeId/plans/$planId': typeof AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/api/$': typeof ApiSplatRoute
   '/demo/$key': typeof DemoKeyRoute
   '/people/$personId': typeof AppPeoplePersonIdRoute
+  '/cleanup': typeof AppCleanupIndexRoute
   '/people': typeof AppPeopleIndexRoute
   '/services': typeof AppServicesIndexRoute
   '/services/$serviceTypeId/plans/$planId/$view': typeof AppServicesServiceTypeIdPlansPlanIdViewRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/api/$': typeof ApiSplatRoute
   '/demo/$key': typeof DemoKeyRoute
   '/_app/people/$personId': typeof AppPeoplePersonIdRoute
+  '/_app/cleanup/': typeof AppCleanupIndexRoute
   '/_app/people/': typeof AppPeopleIndexRoute
   '/_app/services/': typeof AppServicesIndexRoute
   '/_app/services/$serviceTypeId/plans/$planId': typeof AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/demo/$key'
     | '/people/$personId'
+    | '/cleanup/'
     | '/people/'
     | '/services/'
     | '/services/$serviceTypeId/plans/$planId'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/demo/$key'
     | '/people/$personId'
+    | '/cleanup'
     | '/people'
     | '/services'
     | '/services/$serviceTypeId/plans/$planId/$view'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/demo/$key'
     | '/_app/people/$personId'
+    | '/_app/cleanup/'
     | '/_app/people/'
     | '/_app/services/'
     | '/_app/services/$serviceTypeId/plans/$planId'
@@ -240,6 +252,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/cleanup/': {
+      id: '/_app/cleanup/'
+      path: '/cleanup'
+      fullPath: '/cleanup/'
+      preLoaderRoute: typeof AppCleanupIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/people/': {
       id: '/_app/people/'
       path: '/people'
@@ -305,6 +324,7 @@ const AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren =
 
 interface AppRouteChildren {
   AppPeoplePersonIdRoute: typeof AppPeoplePersonIdRoute
+  AppCleanupIndexRoute: typeof AppCleanupIndexRoute
   AppPeopleIndexRoute: typeof AppPeopleIndexRoute
   AppServicesIndexRoute: typeof AppServicesIndexRoute
   AppServicesServiceTypeIdPlansPlanIdRouteRoute: typeof AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren
@@ -312,6 +332,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppPeoplePersonIdRoute: AppPeoplePersonIdRoute,
+  AppCleanupIndexRoute: AppCleanupIndexRoute,
   AppPeopleIndexRoute: AppPeopleIndexRoute,
   AppServicesIndexRoute: AppServicesIndexRoute,
   AppServicesServiceTypeIdPlansPlanIdRouteRoute:

@@ -25,6 +25,12 @@ export const featureFlags = {
       "Shows the People pages and serves the People dashboard API. Managed by Alchemy; dashboard edits are overwritten on deploy.",
     enabled: { local: true, preview: false, production: false },
   },
+  cleanup: {
+    key: "data-cleanup-page",
+    description:
+      "Shows the Data cleanup page and serves its recommendations API. Managed by Alchemy; dashboard edits are overwritten on deploy.",
+    enabled: { local: true, preview: true, production: false },
+  },
 } as const satisfies Readonly<Record<string, BooleanFeatureFlag>>;
 
 export type FeatureFlagName = keyof typeof featureFlags;

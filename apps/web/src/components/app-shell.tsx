@@ -1,6 +1,7 @@
 import {
   ArrowDown01Icon,
   Calendar04Icon,
+  CleanIcon,
   Clock01Icon,
   KeyboardIcon,
   LaptopIcon,
@@ -94,6 +95,7 @@ import {
   planViews,
 } from "@/lib/app-routes";
 import { presentationMode } from "@/lib/build-settings";
+import { cleanupFeatureQueryOptions } from "@/lib/cleanup-route";
 import { peopleFeatureQueryOptions } from "@/lib/people-route";
 import { cn } from "@/lib/utils";
 
@@ -494,10 +496,20 @@ const ServicesSidebarMenuItem = () => {
 
 const useNavFeatures = () => {
   const peopleFeatureQuery = useQuery(peopleFeatureQueryOptions);
-  return { peopleNavEnabled: peopleFeatureQuery.data?.enabled ?? false };
+  const cleanupFeatureQuery = useQuery(cleanupFeatureQueryOptions);
+  return {
+    peopleNavEnabled: peopleFeatureQuery.data?.enabled ?? false,
+    cleanupNavEnabled: cleanupFeatureQuery.data?.enabled ?? false,
+  };
 };
 
-const AppSidebar = ({ peopleNavEnabled }: { peopleNavEnabled: boolean }) => {
+const AppSidebar = ({
+  peopleNavEnabled,
+  cleanupNavEnabled,
+}: {
+  peopleNavEnabled: boolean;
+  cleanupNavEnabled: boolean;
+}) => {
   const pathname = usePathname();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
@@ -534,6 +546,18 @@ const AppSidebar = ({ peopleNavEnabled }: { peopleNavEnabled: boolean }) => {
                     >
                       <SidebarNavIcon icon={UsersIcon} />
                       <span>People</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ) : null}
+                {cleanupNavEnabled ? (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      render={<Link to="/cleanup" />}
+                      isActive={pathname.startsWith("/cleanup")}
+                      tooltip="Data cleanup"
+                    >
+                      <SidebarNavIcon icon={CleanIcon} />
+                      <span>Data cleanup</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ) : null}
@@ -662,7 +686,7 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
     SIDEBAR_OPEN_STORAGE_KEY
   );
   const sidebarOpen = storedOpen !== "false";
-  const { peopleNavEnabled } = useNavFeatures();
+  const { peopleNavEnabled, cleanupNavEnabled } = useNavFeatures();
 
   const handleSidebarOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -678,7 +702,10 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
       className="min-h-dvh md:h-dvh md:min-h-0 md:overflow-hidden"
     >
       <SidebarToggleHotkey />
-      <AppSidebar peopleNavEnabled={peopleNavEnabled} />
+      <AppSidebar
+        peopleNavEnabled={peopleNavEnabled}
+        cleanupNavEnabled={cleanupNavEnabled}
+      />
       <SidebarInset className="md:min-h-0 md:overflow-hidden">
         <AppInsetChromeHeader>
           <SidebarChromeTrigger when="inset" />

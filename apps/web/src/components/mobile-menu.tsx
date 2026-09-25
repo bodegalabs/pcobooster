@@ -30,6 +30,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { signOutLabel, useAccountPanel } from "@/hooks/use-account-panel";
 import { usePlanRoute } from "@/hooks/use-plan-route";
 import { getAppSection, getPlanViewLabel, planViews } from "@/lib/app-routes";
+import { cleanupFeatureQueryOptions } from "@/lib/cleanup-route";
 import { getInitials } from "@/lib/format/initials";
 import { peopleFeatureQueryOptions } from "@/lib/people-route";
 import { cn } from "@/lib/utils";
@@ -74,6 +75,8 @@ const MenuNav = () => {
   const planRoute = usePlanRoute();
   const peopleEnabled =
     useQuery(peopleFeatureQueryOptions).data?.enabled ?? false;
+  const cleanupEnabled =
+    useQuery(cleanupFeatureQueryOptions).data?.enabled ?? false;
   const entries: {
     key: string;
     link: ReactElement;
@@ -113,6 +116,14 @@ const MenuNav = () => {
       link: <Link to="/people" />,
       label: "People",
       active: section === "people",
+    });
+  }
+  if (cleanupEnabled) {
+    entries.push({
+      key: "cleanup",
+      link: <Link to="/cleanup" />,
+      label: "Data cleanup",
+      active: section === "cleanup",
     });
   }
 

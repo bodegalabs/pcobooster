@@ -1,7 +1,7 @@
 import {
   getAdminAccounts,
   getAdminUser,
-  getPeopleFeature,
+  getFeature,
   getPlanningCenterAccounts,
   getSessionStatus,
   selectPlanningCenterAccount,
@@ -62,7 +62,19 @@ const peopleFeature = rpc.features.people.handler(
     applyPrivateNoStore(context.resHeaders);
     return await executeApplicationEffect(
       applicationRuntime,
-      getPeopleFeature(),
+      getFeature("people"),
+      context,
+      signal
+    );
+  }
+);
+
+const cleanupFeature = rpc.features.cleanup.handler(
+  async ({ context, signal }) => {
+    applyPrivateNoStore(context.resHeaders);
+    return await executeApplicationEffect(
+      applicationRuntime,
+      getFeature("cleanup"),
       context,
       signal
     );
@@ -94,6 +106,6 @@ const adminUser = rpc.admin.user.handler(async ({ input, context, signal }) => {
 export const identityRouter = {
   accounts: { list: accountsList, select: accountsSelect },
   admin: { accounts: adminAccounts, user: adminUser },
-  features: { people: peopleFeature },
+  features: { people: peopleFeature, cleanup: cleanupFeature },
   session: { status: sessionStatus },
 };

@@ -12,7 +12,7 @@ import { Effect } from "effect";
 const log = logger.for("planning-center/songs");
 /** Songs change rarely and this app never writes them. */
 const DEFAULT_CATALOG_TTL_MS = 60 * 60 * 1000;
-const DEFAULT_CATALOG_MAX_PAGES = 15;
+export const DEFAULT_CATALOG_MAX_PAGES = 15;
 const SONG_DETAILS_CACHE_TTL_MS = 5 * 60 * 1000;
 
 interface LastScheduledItem {

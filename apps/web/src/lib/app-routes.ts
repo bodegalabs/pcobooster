@@ -63,11 +63,14 @@ export const parsePlanRoute = (pathname: string): PlanRoute | null => {
   return { serviceTypeId, planId, view };
 };
 
-export type AppSection = "services" | "people";
+export type AppSection = "services" | "people" | "cleanup";
 
 export const getAppSection = (pathname: string): AppSection => {
   if (pathname.startsWith("/people")) {
     return "people";
+  }
+  if (pathname.startsWith("/cleanup")) {
+    return "cleanup";
   }
   return "services";
 };
@@ -75,6 +78,7 @@ export const getAppSection = (pathname: string): AppSection => {
 const appSectionLabels: Record<AppSection, string> = {
   services: "Services",
   people: "People",
+  cleanup: "Data cleanup",
 };
 
 export const getAppSectionLabel = (section: AppSection): string =>

@@ -1,16 +1,15 @@
 import type { QueryClient } from "@tanstack/react-query";
 
-import {
-  createPeopleFeatureQueryOptions,
-  requirePeopleFeature,
-} from "@/lib/people-feature";
+import { createFeatureQueryOptions, requireFeature } from "@/lib/feature-gate";
+import { queryKeys } from "@/lib/query-keys";
 import { getPeopleFeature } from "@/server/features.functions";
 
 /**
  * The API's `people` flag answer. The app layout loads it on the server, so the navigation
  * renders with it and never flashes the People link.
  */
-export const peopleFeatureQueryOptions = createPeopleFeatureQueryOptions(
+export const peopleFeatureQueryOptions = createFeatureQueryOptions(
+  queryKeys.peopleFeature(),
   async () => await getPeopleFeature()
 );
 
@@ -20,5 +19,5 @@ export const assertPeoplePageEnabled = async ({
 }: {
   context: { queryClient: QueryClient };
 }): Promise<void> => {
-  await requirePeopleFeature(context.queryClient, peopleFeatureQueryOptions);
+  await requireFeature(context.queryClient, peopleFeatureQueryOptions);
 };

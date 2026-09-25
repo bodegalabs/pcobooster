@@ -1,6 +1,12 @@
 export const queryKeys = {
   accounts: () => ["planning-center-accounts"] as const,
   peopleFeature: () => ["people-feature"] as const,
+  cleanupFeature: () => ["cleanup-feature"] as const,
+  cleanupSongs: (staleMonths: number) =>
+    ["cleanup-songs", staleMonths] as const,
+  cleanupPeopleRoster: () => ["cleanup-people-roster"] as const,
+  cleanupPeopleActivity: (staleMonths: number, personIds: readonly string[]) =>
+    ["cleanup-people-activity", staleMonths, ...personIds] as const,
   organizationTimeZone: () =>
     ["planning-center-organization-time-zone"] as const,
   serviceTypes: () => ["service-types"] as const,
