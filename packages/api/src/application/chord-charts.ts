@@ -12,6 +12,7 @@ import type { LyricsSearchDependencies } from "@pcobooster/api/modules/lyrics/lr
 import {
   commitChordChartUpdate,
   createChordChartArrangement,
+  createChordChartSong,
   getChordChartSong,
   prepareChordChartUpdate,
 } from "@pcobooster/api/modules/planning-center/chord-charts";
@@ -20,6 +21,7 @@ import { Server } from "@pcobooster/api/server";
 import type {
   ChordChartArrangement,
   ChordChartCreateInput,
+  ChordChartSongCreateInput,
   ChordChartSongInput,
   ChordChartSongOutput,
   ChordChartUpdateInput,
@@ -100,6 +102,19 @@ export const createChordChart = (
   }).pipe(withPlanningCenterFaults);
 
 /** Calls the Worker's `fetch` through a wrapper: invoked as a method it loses its binding. */
+export const addChordChartSong = (
+  input: ChordChartSongCreateInput
+): Effect.Effect<
+  ChordChartSongOutput,
+  ApplicationFault,
+  ChordChartRequirements
+> =>
+  Effect.gen(function* addSong() {
+    const access = yield* PlanningCenterAccess;
+    yield* requireChordCharts(access);
+    return yield* createChordChartSong(input, access.services.songs);
+  }).pipe(withPlanningCenterFaults);
+
 const workerLyricsSearch: LyricsSearchDependencies = {
   fetch: async (input, init) => await globalThis.fetch(input, init),
 };

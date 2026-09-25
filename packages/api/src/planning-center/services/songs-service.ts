@@ -202,6 +202,18 @@ export class PlanningCenterSongsService {
       );
   }
 
+  /** The catalog cache is shared across isolates, so a new song reaches search when it expires. */
+  createSong(
+    attributes: JsonObject
+  ): Effect.Effect<PCResource, PlanningCenterError> {
+    return this.core
+      .fetch("/services/v2/songs", {
+        method: "POST",
+        body: { data: { type: "Song", attributes } },
+      })
+      .pipe(Effect.map((response) => response.data));
+  }
+
   /** A song never scheduled for the service type has no last item. */
   getSongLastScheduledItem(
     songId: string,

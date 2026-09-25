@@ -17,6 +17,7 @@ import type {
   ChordChartCreateInput,
   ChordChartLayout,
   ChordChartSong,
+  ChordChartSongCreateInput,
   ChordChartSongOutput,
   ChordChartUpdateInput,
 } from "@pcobooster/contracts/chord-charts";
@@ -42,6 +43,7 @@ export type ChordChartSongsService = Pick<
   | "getArrangement"
   | "updateArrangement"
   | "createArrangement"
+  | "createSong"
 >;
 
 const toText = (value: JsonValue | undefined): string =>
@@ -254,3 +256,47 @@ export const createChordChartArrangement = (
     songs.createArrangement(input.songId, buildChordChartAttributes(input)),
     normalizeArrangementResponse
   );
+
+const DEFAULT_ARRANGEMENT_NAME = "Default";
+
+const buildSongAttributes = (input: ChordChartSongCreateInput): JsonObject => {
+  const attributes: JsonObject = { title: input.title };
+  if (input.author !== undefined && input.author !== "") {
+    attributes.author = input.author;
+  }
+  if (input.copyright !== undefined && input.copyright !== "") {
+    attributes.copyright = input.copyright;
+  }
+  if (input.ccliNumber !== undefined) {
+    attributes.ccli_number = input.ccliNumber;
+  }
+  return attributes;
+};
+
+/**
+ * Adds a song and makes sure it has an arrangement to write the chart in: Services may
+ * create a default one itself, and otherwise this does. At most three requests.
+ */
+export const createChordChartSong = (
+  input: ChordChartSongCreateInput,
+  songs: ChordChartSongsService
+): Effect.Effect<ChordChartSongOutput, PlanningCenterError> =>
+  Effect.gen(function* addSong() {
+    const song = yield* songs.createSong(buildSongAttributes(input));
+    const existing = yield* songs.getSongArrangementsForEditing(song.id);
+    const arrangements = existing.data.map((arrangement) =>
+      normalizeChordChartArrangement(arrangement, existing.included)
+    );
+    if (arrangements.length === 0) {
+      const created = yield* songs.createArrangement(
+        song.id,
+        buildChordChartAttributes({
+          name: DEFAULT_ARRANGEMENT_NAME,
+          chordChart: "",
+          chordChartKey: null,
+        })
+      );
+      arrangements.push(normalizeArrangementResponse(created));
+    }
+    return { song: normalizeChordChartSong(song), arrangements };
+  });

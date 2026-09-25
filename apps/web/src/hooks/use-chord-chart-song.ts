@@ -2,6 +2,7 @@ import { ORPCError } from "@orpc/client";
 import type {
   ChordChartArrangement,
   ChordChartCreateInput,
+  ChordChartSongCreateInput,
   ChordChartSongOutput,
   ChordChartUpdateInput,
   LyricsSearchResult,
@@ -90,3 +91,18 @@ export const useLyricsSearch = (query: string, enabled: boolean) =>
     staleTime: 60 * 60 * 1000,
     retry: false,
   });
+
+/** Adds a song to Planning Center and primes the editor with it. */
+export const useCreateSong = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: ChordChartSongCreateInput) =>
+      await orpc.chordCharts.createSong(input),
+    onSuccess: (created) => {
+      queryClient.setQueryData(
+        queryKeys.chordChartSong(created.song.id),
+        created
+      );
+    },
+  });
+};

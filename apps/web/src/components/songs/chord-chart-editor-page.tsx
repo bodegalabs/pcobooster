@@ -59,6 +59,7 @@ import type { ChordChartWorkspace } from "@/hooks/use-chord-chart-workspace";
 import { writeChordChartDraft } from "@/lib/chord-chart-draft";
 import type { ChordChartDraft } from "@/lib/chord-chart-draft";
 import { DEFAULT_CHORD_CHART_LAYOUT } from "@/lib/chord-chart-page";
+import { rememberRecentSong } from "@/lib/recent-songs";
 import { cn } from "@/lib/utils";
 
 const SAVE_HOTKEY = "Mod+S";
@@ -727,6 +728,12 @@ export const ChordChartEditorPage = ({
   arrangementId: string | null;
 }) => {
   const { data, isError, refetch } = useChordChartSong(songId);
+  const openedSong = data?.song;
+  useEffect(() => {
+    if (openedSong !== undefined) {
+      rememberRecentSong(openedSong);
+    }
+  }, [openedSong]);
   if (isError && data === undefined) {
     return (
       <main className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">

@@ -1,6 +1,7 @@
 import {
   buildChordChartAttributes,
   commitChordChartUpdate,
+  createChordChartSong,
   getChordChartSong,
   prepareChordChartUpdate,
 } from "@pcobooster/api/modules/planning-center/chord-charts";
@@ -71,8 +72,12 @@ const createSongs = () => {
           included: [key],
         })
     ),
-    createArrangement: vi.fn<ChordChartSongsService["createArrangement"]>(() =>
-      Effect.succeed({ data: arrangement({}), included: [] })
+    createArrangement: vi.fn<ChordChartSongsService["createArrangement"]>(
+      (_songId, attributes) =>
+        Effect.succeed({ data: arrangement(attributes), included: [] })
+    ),
+    createSong: vi.fn<ChordChartSongsService["createSong"]>((attributes) =>
+      Effect.succeed({ id: "song-2", type: "Song", attributes })
     ),
   } satisfies ChordChartSongsService;
   return songs;
@@ -206,5 +211,46 @@ describe(prepareChordChartUpdate, () => {
     expect(Exit.isFailure(exit)).toBeTruthy();
     expect(JSON.stringify(exit)).toContain("arrangement-updated");
     expect(songs.updateArrangement).not.toHaveBeenCalled();
+  });
+});
+
+describe(createChordChartSong, () => {
+  it("adds the song with only the details given", async () => {
+    const songs = createSongs();
+    const result = await Effect.runPromise(
+      createChordChartSong(
+        { title: "New Song", author: "", ccliNumber: 7 },
+        songs
+      )
+    );
+    expect(songs.createSong).toHaveBeenCalledWith({
+      title: "New Song",
+      ccli_number: 7,
+    });
+    expect(result.song).toStrictEqual({
+      id: "song-2",
+      title: "New Song",
+      author: "",
+      copyright: "",
+      ccliNumber: "7",
+    });
+    expect(result.arrangements.map((item) => item.id)).toStrictEqual(["arr-1"]);
+    expect(songs.createArrangement).not.toHaveBeenCalled();
+  });
+
+  it("creates a Default arrangement when Services made none", async () => {
+    const songs = createSongs();
+    songs.getSongArrangementsForEditing.mockReturnValue(
+      Effect.succeed({ data: [], included: [] })
+    );
+    const result = await Effect.runPromise(
+      createChordChartSong({ title: "New Song" }, songs)
+    );
+    expect(songs.createArrangement).toHaveBeenCalledWith("song-2", {
+      chord_chart: "",
+      chord_chart_key: null,
+      name: "Default",
+    });
+    expect(result.arrangements).toHaveLength(1);
   });
 });

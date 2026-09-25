@@ -97,6 +97,14 @@ export const chordChartCreateInputSchema = chordChartEditSchema.extend({
   name: z.string().trim().min(1).max(255),
 });
 
+export const chordChartSongCreateInputSchema = z.object({
+  /** A title, or a CCLI number for Services to fill in the song from SongSelect. */
+  title: z.string().trim().min(1).max(255),
+  author: z.string().trim().max(255).optional(),
+  copyright: z.string().trim().max(255).optional(),
+  ccliNumber: z.number().int().positive().optional(),
+});
+
 /** A song's lyrics found by a web search, to start a chart from. */
 export const lyricsSearchResultSchema = z.object({
   id: z.string(),
@@ -149,6 +157,14 @@ export const chordChartsContract = {
     })
     .input(chordChartCreateInputSchema)
     .output(chordChartArrangementSchema),
+  createSong: chordChartsProcedure
+    .route({
+      method: "POST",
+      path: "/chord-charts/songs",
+      summary: "Add a song to Planning Center, ready for a chord chart",
+    })
+    .input(chordChartSongCreateInputSchema)
+    .output(chordChartSongOutputSchema),
   lyricsSearch: chordChartsProcedure
     .route({
       method: "GET",
@@ -168,5 +184,8 @@ export type ChordChartSongOutput = z.output<typeof chordChartSongOutputSchema>;
 export type ChordChartSongInput = z.input<typeof chordChartSongInputSchema>;
 export type ChordChartUpdateInput = z.input<typeof chordChartUpdateInputSchema>;
 export type ChordChartCreateInput = z.input<typeof chordChartCreateInputSchema>;
+export type ChordChartSongCreateInput = z.input<
+  typeof chordChartSongCreateInputSchema
+>;
 export type LyricsSearchResult = z.output<typeof lyricsSearchResultSchema>;
 export type LyricsSearchInput = z.input<typeof lyricsSearchInputSchema>;

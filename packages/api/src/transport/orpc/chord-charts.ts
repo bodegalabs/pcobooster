@@ -1,4 +1,5 @@
 import {
+  addChordChartSong,
   commitChordChartSave,
   createChordChart,
   prepareChordChartSave,
@@ -55,4 +56,21 @@ const lyricsSearch = rpc.chordCharts.lyricsSearch.handler(
     )
 );
 
-export const chordChartsRouter = { song, update, create, lyricsSearch };
+const createSong = rpc.chordCharts.createSong.handler(
+  async ({ input, context, signal }) =>
+    await executeApplicationEffect(
+      applicationRuntime,
+      withPlanningCenterAccess(addChordChartSong(input)),
+      context,
+      signal,
+      { interruptOnAbort: false }
+    )
+);
+
+export const chordChartsRouter = {
+  song,
+  update,
+  create,
+  createSong,
+  lyricsSearch,
+};
