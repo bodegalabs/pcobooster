@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Copy,
   ExternalLink,
+  Eye,
   FileInput,
   Plus,
   Search,
@@ -29,6 +30,13 @@ import { ChordChartImportDialog } from "@/components/songs/chord-chart-import-di
 import { ChordChartLayoutPopover } from "@/components/songs/chord-chart-layout-popover";
 import { PlanningCenterPdfPreview } from "@/components/songs/planning-center-pdf-preview";
 import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,14 +60,13 @@ import {
 } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useChordChartSong } from "@/hooks/use-chord-chart-song";
 import { useChordChartWorkspace } from "@/hooks/use-chord-chart-workspace";
 import type { ChordChartWorkspace } from "@/hooks/use-chord-chart-workspace";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { writeChordChartDraft } from "@/lib/chord-chart-draft";
 import type { ChordChartDraft } from "@/lib/chord-chart-draft";
 import { rememberRecentSong } from "@/lib/recent-songs";
-import { cn } from "@/lib/utils";
 
 const SAVE_HOTKEY = "Mod+S";
 const COPIED_LABEL_MS = 2000;
@@ -432,12 +439,13 @@ const WorkspaceHeader = ({
 
 const EditorPane = ({
   workspace,
-  hidden,
   onFindLyrics,
+  onPreview,
 }: {
   workspace: ChordChartWorkspace;
-  hidden: boolean;
   onFindLyrics: () => void;
+  /** On phones the preview opens from here instead of sitting beside the editor. */
+  onPreview: (() => void) | null;
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { draft } = workspace;
@@ -448,10 +456,7 @@ const EditorPane = ({
   return (
     <section
       aria-label="Chart text"
-      className={cn(
-        "flex min-h-0 flex-col gap-2",
-        hidden ? "max-md:hidden" : null
-      )}
+      className="flex min-h-0 flex-1 flex-col gap-2"
     >
       <div className="flex flex-wrap items-center gap-1.5">
         <WrittenKeySelect
@@ -469,6 +474,17 @@ const EditorPane = ({
             Find lyrics
           </Button>
         ) : null}
+        {onPreview === null ? null : (
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={onPreview}
+          >
+            <Eye aria-hidden />
+            Preview
+          </Button>
+        )}
         {workspace.restored ? (
           <p className="text-muted-foreground ml-auto flex items-center gap-1 text-xs">
             Unsaved draft restored.
@@ -521,19 +537,14 @@ const PreviewPane = ({
   songId,
   arrangement,
   workspace,
-  hidden,
 }: {
   songId: string;
   arrangement: ChordChartArrangement;
   workspace: ChordChartWorkspace;
-  hidden: boolean;
 }) => (
   <section
     aria-label="Preview"
-    className={cn(
-      "bg-muted/40 flex min-h-0 flex-col overflow-hidden rounded-2xl",
-      hidden ? "max-md:hidden" : null
-    )}
+    className="bg-muted/40 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl"
   >
     <PlanningCenterPdfPreview
       songId={songId}
@@ -575,7 +586,8 @@ const ChordChartWorkspaceView = ({
 }: WorkspaceProps) => {
   const navigate = useNavigate();
   const workspace = useChordChartWorkspace(song.id, arrangement);
-  const [pane, setPane] = useState<"edit" | "preview">("edit");
+  const isMobile = useIsMobile();
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -598,34 +610,52 @@ const ChordChartWorkspaceView = ({
           setCreateOpen(true);
         }}
       />
-      <div className="shrink-0 px-4 pb-2 md:hidden">
-        <Tabs
-          value={pane}
-          onValueChange={(value: string) => {
-            setPane(value === "preview" ? "preview" : "edit");
-          }}
-        >
-          <TabsList className="w-full">
-            <TabsTrigger value="edit">Edit</TabsTrigger>
-            <TabsTrigger value="preview">Preview</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-      <div className="grid min-h-0 flex-1 gap-3 px-4 pb-4 max-md:min-h-[70svh] md:grid-cols-2">
+      <div className="flex min-h-0 flex-1 gap-3 px-4 pb-4 max-md:min-h-[70svh] md:grid md:grid-cols-2">
         <EditorPane
           workspace={workspace}
-          hidden={pane !== "edit"}
           onFindLyrics={() => {
             setImportOpen(true);
           }}
+          onPreview={
+            isMobile
+              ? () => {
+                  setPreviewOpen(true);
+                }
+              : null
+          }
         />
-        <PreviewPane
-          songId={song.id}
-          arrangement={arrangement}
-          workspace={workspace}
-          hidden={pane !== "preview"}
-        />
+        {isMobile ? null : (
+          <PreviewPane
+            songId={song.id}
+            arrangement={arrangement}
+            workspace={workspace}
+          />
+        )}
       </div>
+      {/* The PDF loads only while the sheet is open, so typing on a phone costs no renders. */}
+      <Drawer
+        open={isMobile && previewOpen}
+        onOpenChange={setPreviewOpen}
+        showSwipeHandle
+      >
+        <DrawerContent className="h-[calc(100dvh-3rem)]">
+          <DrawerHeader className="text-left">
+            <DrawerTitle className="text-left">
+              Planning Center preview
+            </DrawerTitle>
+            <DrawerDescription className="sr-only">
+              The chord chart as Planning Center renders it.
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="flex min-h-0 flex-1 flex-col px-2">
+            <PreviewPane
+              songId={song.id}
+              arrangement={arrangement}
+              workspace={workspace}
+            />
+          </div>
+        </DrawerContent>
+      </Drawer>
       <ChordChartImportDialog
         open={importOpen}
         onOpenChange={setImportOpen}
