@@ -25,15 +25,24 @@ export const CHORD_CHART_MARGINS = [
   "0.75in",
   "1.0in",
 ] as const;
-export const CHORD_CHART_MAX_COLUMNS = 4;
-/**
- * Fonts Services' Format menu offers. `chord_chart_font` stores them as PDF core font
- * names, such as `Times-Roman`; any other stored value is kept as it is.
- */
+/** Services lays charts out in one or two columns. */
+export const CHORD_CHART_MAX_COLUMNS = 2;
+/** Fonts Services' Formatting dialog offers, stored in `chord_chart_font` by value. */
 export const CHORD_CHART_FONTS = [
-  { value: "Helvetica", label: "Helvetica (Arial)" },
-  { value: "Times-Roman", label: "Times" },
-  { value: "Courier", label: "Courier (monospace)" },
+  { value: "Helvetica", label: "Arial, Helvetica" },
+  { value: "Courier", label: "Courier, Monospaced" },
+  { value: "Monaco", label: "Monaco, Monospaced" },
+  { value: "Times-Roman", label: "Times New Roman" },
+  { value: "Noto Sans", label: "Noto Sans (International)" },
+] as const;
+/** Chord colors in Services' order; `chord_chart_chord_color` stores the index. */
+export const CHORD_CHART_CHORD_COLORS = [
+  "Black",
+  "Blue",
+  "Green",
+  "Orange",
+  "Purple",
+  "Red",
 ] as const;
 
 const fontSizeSchema = z
@@ -49,6 +58,12 @@ export const chordChartLayoutSchema = z.object({
   font: z.string().nullable(),
   fontSize: fontSizeSchema.nullable(),
   columns: z.number().int().min(1).max(CHORD_CHART_MAX_COLUMNS).nullable(),
+  chordColor: z
+    .number()
+    .int()
+    .min(0)
+    .max(CHORD_CHART_CHORD_COLORS.length - 1)
+    .nullable(),
   pageSize: z.enum(CHORD_CHART_PAGE_SIZES).nullable(),
   orientation: z.enum(CHORD_CHART_ORIENTATIONS).nullable(),
   margin: z.enum(CHORD_CHART_MARGINS).nullable(),
@@ -114,6 +129,20 @@ export const chordChartSongCreateInputSchema = z.object({
   ccliNumber: z.number().int().positive().optional(),
 });
 
+/** A chart Services renders: one of the arrangement's keys, or its lyrics sheet. */
+export const chordChartPdfInputSchema = z.object({
+  songId: requiredId,
+  arrangementId: requiredId,
+  /** The arrangement key to render chords in; absent for the lyrics sheet. */
+  keyId: requiredId.optional(),
+});
+
+export const chordChartPdfOutputSchema = z.object({
+  filename: z.string(),
+  /** The PDF Services rendered, base64 encoded. */
+  data: z.string(),
+});
+
 /** A song's lyrics found by a web search, to start a chart from. */
 export const lyricsSearchResultSchema = z.object({
   id: z.string(),
@@ -174,6 +203,14 @@ export const chordChartsContract = {
     })
     .input(chordChartSongCreateInputSchema)
     .output(chordChartSongOutputSchema),
+  pdf: chordChartsProcedure
+    .route({
+      method: "GET",
+      path: "/chord-charts/songs/{songId}/arrangements/{arrangementId}/pdf",
+      summary: "Read the PDF Planning Center renders from the saved chart",
+    })
+    .input(chordChartPdfInputSchema)
+    .output(chordChartPdfOutputSchema),
   lyricsSearch: chordChartsProcedure
     .route({
       method: "GET",
@@ -196,5 +233,7 @@ export type ChordChartCreateInput = z.input<typeof chordChartCreateInputSchema>;
 export type ChordChartSongCreateInput = z.input<
   typeof chordChartSongCreateInputSchema
 >;
+export type ChordChartPdfInput = z.input<typeof chordChartPdfInputSchema>;
+export type ChordChartPdf = z.output<typeof chordChartPdfOutputSchema>;
 export type LyricsSearchResult = z.output<typeof lyricsSearchResultSchema>;
 export type LyricsSearchInput = z.input<typeof lyricsSearchInputSchema>;

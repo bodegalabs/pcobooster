@@ -1,10 +1,14 @@
-import type { ChordChartArrangement } from "@pcobooster/contracts/chord-charts";
+import type {
+  ChordChartArrangement,
+  ChordChartLayout,
+} from "@pcobooster/contracts/chord-charts";
 import { transposeChordChartText } from "@pcobooster/planning-center-models/chord-chart";
 import { parseKey } from "@pcobooster/planning-center-models/chord-chart-chords";
 import type { ChordChartImport } from "@pcobooster/planning-center-models/chord-chart-import";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import {
   chordChartErrorMessage,
   isChordChartConflict,
@@ -18,6 +22,34 @@ import {
 import type { ChordChartDraft } from "@/lib/chord-chart-draft";
 
 const DRAFT_WRITE_DELAY_MS = 400;
+/** Typing pauses this long before a save, as Services' own editor saves while you type. */
+const AUTO_REFRESH_DELAY_MS = 1200;
+const AUTO_REFRESH_STORAGE_KEY = "pcobooster:chord-chart-auto-refresh";
+const AUTO_REFRESH_OFF = "off";
+
+const LAYOUT_FIELDS = [
+  "font",
+  "fontSize",
+  "columns",
+  "chordColor",
+  "pageSize",
+  "orientation",
+  "margin",
+] as const satisfies readonly (keyof ChordChartLayout)[];
+
+/** Print settings the draft changed; the rest keep inheriting Services' defaults. */
+export const changedLayout = (
+  draft: ChordChartLayout,
+  saved: ChordChartLayout
+): Partial<ChordChartLayout> => {
+  const changed: Partial<ChordChartLayout> = {};
+  for (const field of LAYOUT_FIELDS) {
+    if (draft[field] !== saved[field]) {
+      Object.assign(changed, { [field]: draft[field] });
+    }
+  }
+  return changed;
+};
 
 export const toServerDraft = (
   arrangement: ChordChartArrangement
@@ -29,6 +61,10 @@ export const toServerDraft = (
 
 interface WorkspaceSession {
   readonly draft: ChordChartDraft;
+  /** Planning Center's chart when editing began, for Revert all changes. */
+  readonly opening: ChordChartDraft;
+  /** Auto-refresh stopped after a failed save until the next manual one. */
+  readonly paused: boolean;
   /** The draft came from this browser rather than Planning Center. */
   readonly restored: boolean;
   /** The arrangement version the draft started from. */
@@ -42,14 +78,26 @@ const startSession = (arrangement: ChordChartArrangement): WorkspaceSession => {
   if (stored === null || isSameDraft(stored, server)) {
     return {
       draft: server,
+      opening: server,
+      paused: false,
       restored: false,
       baseUpdatedAt: arrangement.updatedAt,
     };
   }
   return {
     draft: { chart: stored.chart, key: stored.key, layout: stored.layout },
+    opening: server,
+    // A restored draft waits for the person to save or discard it.
+    paused: true,
     restored: true,
     baseUpdatedAt: stored.baseUpdatedAt,
+  };
+};
+
+const scheduleSave = (save: () => void): (() => void) => {
+  const timeout = window.setTimeout(save, AUTO_REFRESH_DELAY_MS);
+  return () => {
+    window.clearTimeout(timeout);
   };
 };
 
@@ -72,14 +120,20 @@ const scheduleDraftWrite = (
 
 /**
  * One arrangement's editing session: the draft, whether it differs from Planning Center,
- * and saving it back. Unsaved drafts persist in this browser until saved or discarded.
+ * and saving it back. Services renders only saved charts, so with Auto-refresh on (as in
+ * Services' own editor) each pause in typing saves, and the preview renders the result.
+ * Unsaved drafts persist in this browser until saved or discarded.
  */
 export const useChordChartWorkspace = (
   songId: string,
   arrangement: ChordChartArrangement
 ) => {
   const [session, setSession] = useState(() => startSession(arrangement));
-  const { draft, restored, baseUpdatedAt } = session;
+  const { draft, opening, paused, restored, baseUpdatedAt } = session;
+  const [storedAutoRefresh, setStoredAutoRefresh] = useBrowserStorage(
+    AUTO_REFRESH_STORAGE_KEY
+  );
+  const autoRefresh = storedAutoRefresh !== AUTO_REFRESH_OFF;
   const setDraft = (update: (current: ChordChartDraft) => ChordChartDraft) => {
     setSession((current) => ({ ...current, draft: update(current.draft) }));
   };
@@ -92,28 +146,33 @@ export const useChordChartWorkspace = (
     [arrangement.id, baseUpdatedAt, dirty, draft]
   );
 
-  const saveFrom = (base: string | null) => {
-    if (!dirty || saveChart.isPending) {
+  const saveFrom = (base: string | null, target: ChordChartDraft = draft) => {
+    if (isSameDraft(target, serverDraft) || saveChart.isPending) {
       return;
     }
+    const pause = () => {
+      setSession((current) => ({ ...current, paused: true }));
+    };
     saveChart.mutate(
       {
         songId,
         arrangementId: arrangement.id,
-        chordChart: draft.chart,
-        chordChartKey: draft.key,
-        layout: draft.layout,
+        chordChart: target.chart,
+        chordChartKey: target.key,
+        layout: changedLayout(target.layout, serverDraft.layout),
         baseUpdatedAt: base,
       },
       {
         onSuccess: (saved) => {
           setSession((current) => ({
             ...current,
+            paused: false,
             restored: false,
             baseUpdatedAt: saved.updatedAt,
           }));
         },
         onError: (error) => {
+          pause();
           if (!isChordChartConflict(error)) {
             toast.error(chordChartErrorMessage(error));
             return;
@@ -131,11 +190,43 @@ export const useChordChartWorkspace = (
     );
   };
 
+  const autoSave = useEffectEvent((target: ChordChartDraft) => {
+    saveFrom(baseUpdatedAt, target);
+  });
+  const waitingToSave = autoRefresh && !paused && dirty && !saveChart.isPending;
+  // Each edit restarts the wait, so the save goes out once typing pauses.
+  useEffect(
+    () =>
+      waitingToSave
+        ? scheduleSave(() => {
+            autoSave(draft);
+          })
+        : undefined,
+    [waitingToSave, draft]
+  );
+
   return {
     draft,
     dirty,
     restored: restored && dirty,
     saving: saveChart.isPending,
+    autoRefresh,
+    /** Auto-refresh is on but stopped after a failed save. */
+    paused: autoRefresh && paused && dirty,
+    /** Something changed in Planning Center since editing began. */
+    revertable:
+      !isSameDraft(opening, draft) || !isSameDraft(opening, serverDraft),
+    handleAutoRefreshChange: (enabled: boolean) => {
+      setStoredAutoRefresh(enabled ? null : AUTO_REFRESH_OFF);
+    },
+    /** Puts back the chart as it was when editing began; Auto-refresh saves it. */
+    handleRevert: () => {
+      setSession((current) => ({
+        ...current,
+        draft: current.opening,
+        paused: false,
+      }));
+    },
     handleSave: () => {
       saveFrom(baseUpdatedAt);
     },
@@ -179,11 +270,13 @@ export const useChordChartWorkspace = (
       });
     },
     handleDiscard: () => {
-      setSession({
+      setSession((current) => ({
+        ...current,
         draft: serverDraft,
+        paused: false,
         restored: false,
         baseUpdatedAt: arrangement.updatedAt,
-      });
+      }));
     },
   };
 };

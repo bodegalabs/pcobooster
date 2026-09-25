@@ -2,7 +2,6 @@ import type {
   ChordChartArrangement,
   ChordChartSong,
 } from "@pcobooster/contracts/chord-charts";
-import type { ChordChartDisplay } from "@pcobooster/planning-center-models/chord-chart";
 import {
   CHORD_CHART_KEYS,
   parseKey,
@@ -18,6 +17,7 @@ import {
   FileInput,
   Plus,
   Search,
+  Undo2,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
@@ -27,7 +27,7 @@ import { ChordChartCreateDialog } from "@/components/songs/chord-chart-create-di
 import { highlightChordChart } from "@/components/songs/chord-chart-highlight";
 import { ChordChartImportDialog } from "@/components/songs/chord-chart-import-dialog";
 import { ChordChartLayoutPopover } from "@/components/songs/chord-chart-layout-popover";
-import { ChordChartPreview } from "@/components/songs/chord-chart-preview";
+import { PlanningCenterPdfPreview } from "@/components/songs/planning-center-pdf-preview";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -58,7 +58,6 @@ import { useChordChartWorkspace } from "@/hooks/use-chord-chart-workspace";
 import type { ChordChartWorkspace } from "@/hooks/use-chord-chart-workspace";
 import { writeChordChartDraft } from "@/lib/chord-chart-draft";
 import type { ChordChartDraft } from "@/lib/chord-chart-draft";
-import { DEFAULT_CHORD_CHART_LAYOUT } from "@/lib/chord-chart-page";
 import { rememberRecentSong } from "@/lib/recent-songs";
 import { cn } from "@/lib/utils";
 
@@ -87,25 +86,19 @@ const CODE_SNIPPETS = [
   { label: "Key change up a step", text: "TRANSPOSE KEY +2" },
 ] as const;
 
+/** A new arrangement inherits every print setting from the organization's defaults. */
 const EMPTY_DRAFT: ChordChartDraft = {
   chart: "",
   key: null,
-  layout: { ...DEFAULT_CHORD_CHART_LAYOUT },
-};
-
-type PreviewValue = `key:${string}` | "numbers" | "numerals" | "lyrics";
-
-const isPreviewValue = (value: string): value is PreviewValue =>
-  value.startsWith("key:") ||
-  value === "numbers" ||
-  value === "numerals" ||
-  value === "lyrics";
-
-const toDisplay = (value: PreviewValue): ChordChartDisplay => {
-  if (value === "numbers" || value === "numerals" || value === "lyrics") {
-    return { kind: value };
-  }
-  return { kind: "chords", key: parseKey(value.slice("key:".length)) };
+  layout: {
+    font: null,
+    fontSize: null,
+    columns: null,
+    chordColor: null,
+    pageSize: null,
+    orientation: null,
+    margin: null,
+  },
 };
 
 /** The chart's twelve keys in its own mode, for previewing and transposing. */
@@ -290,47 +283,31 @@ const WrittenKeySelect = ({
   </NativeSelect>
 );
 
-const PreviewSelect = ({
-  writtenKey,
-  value,
-  onChange,
-}: {
-  writtenKey: string | null;
-  value: PreviewValue;
-  onChange: (value: PreviewValue) => void;
-}) => {
-  const key = parseKey(writtenKey);
+/**
+ * With Auto-refresh on, edits save as typing pauses and this only reports progress;
+ * otherwise, or after a failed save, saving is a button.
+ */
+const SaveControl = ({ workspace }: { workspace: ChordChartWorkspace }) => {
+  if (workspace.autoRefresh && !workspace.paused) {
+    return (
+      <p
+        className="text-muted-foreground flex min-w-24 items-center justify-end gap-1.5 text-xs"
+        aria-live="polite"
+      >
+        {workspace.saving ? <Spinner aria-hidden /> : null}
+        {workspace.saving || workspace.dirty ? "Saving…" : "Saved"}
+      </p>
+    );
+  }
   return (
-    <NativeSelect
-      aria-label="Preview as"
+    <Button
       size="sm"
-      value={value}
-      onChange={(event) => {
-        const next = event.target.value;
-        if (isPreviewValue(next)) {
-          onChange(next);
-        }
-      }}
+      disabled={!workspace.dirty || workspace.saving}
+      onClick={workspace.handleSave}
     >
-      {key === null ? null : (
-        <NativeSelectOptGroup label="Chords in">
-          {keysInMode(writtenKey).map((option) => (
-            <NativeSelectOption key={option} value={`key:${option}`}>
-              {option === key.name ? `${option} (written)` : option}
-            </NativeSelectOption>
-          ))}
-        </NativeSelectOptGroup>
-      )}
-      <NativeSelectOptGroup label="Charts">
-        <NativeSelectOption value="numbers" disabled={key === null}>
-          Numbers
-        </NativeSelectOption>
-        <NativeSelectOption value="numerals" disabled={key === null}>
-          Numerals
-        </NativeSelectOption>
-        <NativeSelectOption value="lyrics">Lyrics</NativeSelectOption>
-      </NativeSelectOptGroup>
-    </NativeSelect>
+      {workspace.saving ? <Spinner aria-hidden /> : null}
+      {workspace.dirty ? "Save to Planning Center" : "Saved"}
+    </Button>
   );
 };
 
@@ -422,6 +399,13 @@ const WorkspaceHeader = ({
               Save as new arrangement…
             </DropdownMenuItem>
             <DropdownMenuItem
+              disabled={!workspace.revertable}
+              onClick={workspace.handleRevert}
+            >
+              <Undo2 aria-hidden />
+              Revert all changes
+            </DropdownMenuItem>
+            <DropdownMenuItem
               onClick={() => {
                 window.open(
                   planningCenterArrangementUrl(song.id, arrangement.id),
@@ -435,14 +419,7 @@ const WorkspaceHeader = ({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button
-          size="sm"
-          disabled={!workspace.dirty || workspace.saving}
-          onClick={workspace.handleSave}
-        >
-          {workspace.saving ? <Spinner aria-hidden /> : null}
-          {workspace.dirty ? "Save to Planning Center" : "Saved"}
-        </Button>
+        <SaveControl workspace={workspace} />
       </div>
       {copied ? (
         <p className="text-muted-foreground w-full text-xs" aria-live="polite">
@@ -518,64 +495,72 @@ const EditorPane = ({
   );
 };
 
-/** What the preview shows; a chosen key resets when the chart's own key changes. */
-const usePreviewValue = (writtenKey: string | null) => {
-  const [chosen, setChosen] = useState<{
-    value: PreviewValue;
-    forKey: string | null;
-  } | null>(null);
-  const key = parseKey(writtenKey);
-  const fallback: PreviewValue = key === null ? "lyrics" : `key:${key.name}`;
-  const value =
-    chosen !== null && chosen.forKey === writtenKey ? chosen.value : fallback;
-  const choose = (next: PreviewValue) => {
-    setChosen({ value: next, forKey: writtenKey });
-  };
-  return [value, choose] as const;
+/** Why the preview may trail the editor, with a way to catch it up. */
+const PreviewStatus = ({ workspace }: { workspace: ChordChartWorkspace }) => {
+  if (!workspace.dirty || (workspace.autoRefresh && !workspace.paused)) {
+    return null;
+  }
+  return (
+    <p className="text-muted-foreground flex items-center gap-2 px-3 pb-2 text-xs">
+      {workspace.paused
+        ? "Auto-refresh paused. Planning Center shows the last saved chart."
+        : "Planning Center shows the last saved chart."}
+      <Button
+        size="xs"
+        disabled={workspace.saving}
+        onClick={workspace.handleSave}
+      >
+        {workspace.saving ? <Spinner aria-hidden /> : null}
+        Save to update
+      </Button>
+    </p>
+  );
 };
 
 const PreviewPane = ({
-  song,
+  songId,
   arrangement,
   workspace,
   hidden,
 }: {
-  song: ChordChartSong;
+  songId: string;
   arrangement: ChordChartArrangement;
   workspace: ChordChartWorkspace;
   hidden: boolean;
-}) => {
-  const { draft } = workspace;
-  const [value, choose] = usePreviewValue(draft.key);
-  const display = useMemo(() => toDisplay(value), [value]);
-  return (
-    <section
-      aria-label="Preview"
-      className={cn(
-        "bg-muted/40 flex min-h-0 flex-col overflow-hidden rounded-2xl",
-        hidden ? "max-md:hidden" : null
-      )}
-    >
-      <div className="flex items-center gap-1.5 p-2">
-        <PreviewSelect writtenKey={draft.key} value={value} onChange={choose} />
-        <div className="ml-auto">
+}) => (
+  <section
+    aria-label="Preview"
+    className={cn(
+      "bg-muted/40 flex min-h-0 flex-col overflow-hidden rounded-2xl",
+      hidden ? "max-md:hidden" : null
+    )}
+  >
+    <PlanningCenterPdfPreview
+      songId={songId}
+      arrangement={arrangement}
+      status={<PreviewStatus workspace={workspace} />}
+      actions={
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-pressed={workspace.autoRefresh}
+            onClick={() => {
+              workspace.handleAutoRefreshChange(!workspace.autoRefresh);
+            }}
+          >
+            {workspace.autoRefresh ? <Check aria-hidden /> : null}
+            Auto-refresh
+          </Button>
           <ChordChartLayoutPopover
-            layout={draft.layout}
+            layout={workspace.draft.layout}
             onChange={workspace.handleLayoutChange}
           />
-        </div>
-      </div>
-      <ChordChartPreview
-        song={song}
-        arrangement={arrangement}
-        chart={draft.chart}
-        writtenKey={draft.key}
-        display={display}
-        layout={draft.layout}
-      />
-    </section>
-  );
-};
+        </>
+      }
+    />
+  </section>
+);
 
 interface WorkspaceProps {
   song: ChordChartSong;
@@ -635,7 +620,7 @@ const ChordChartWorkspaceView = ({
           }}
         />
         <PreviewPane
-          song={song}
+          songId={song.id}
           arrangement={arrangement}
           workspace={workspace}
           hidden={pane !== "preview"}

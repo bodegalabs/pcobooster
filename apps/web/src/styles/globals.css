@@ -94,9 +94,6 @@
   --color-pc-services-foreground: var(--pc-services-foreground);
   --color-pc-services-gradient-start: var(--pc-services-gradient-start);
   --color-pc-services-gradient-end: var(--pc-services-gradient-end);
-  --color-paper: var(--paper);
-  --color-paper-foreground: var(--paper-foreground);
-  --color-paper-band: var(--paper-band);
   --font-heading: var(--font-sans);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);

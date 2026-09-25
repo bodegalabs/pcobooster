@@ -10,6 +10,7 @@ const layout = {
   font: null,
   fontSize: 12,
   columns: 2,
+  chordColor: 1,
   pageSize: "Letter",
   orientation: "Portrait",
   margin: "0.5in",

@@ -1,7 +1,5 @@
 import {
   CHORD_CHART_KEYS,
-  chordTextToNumbers,
-  chordTextToNumerals,
   isChord,
   parseKey,
   semitonesBetween,
@@ -98,19 +96,5 @@ describe(semitonesBetween, () => {
   it("chooses the shorter direction", () => {
     expect(semitonesBetween(key("G"), key("A"))).toBe(2);
     expect(semitonesBetween(key("C"), key("A"))).toBe(-3);
-  });
-});
-
-describe("number and numeral charts", () => {
-  it("spells chords as scale degrees in the key", () => {
-    expect(chordTextToNumbers("D Em7/G A Bm Bb", key("D"))).toBe(
-      "1 2m7/4 5 6m b6"
-    );
-  });
-
-  it("uses uppercase numerals for major chords and lowercase for minor", () => {
-    expect(chordTextToNumerals("D Em7 A/C# Bm F#dim Bb", key("D"))).toBe(
-      "I ii7 V/7 vi iiidim bVI"
-    );
   });
 });

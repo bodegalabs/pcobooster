@@ -3,6 +3,7 @@ import {
   commitChordChartSave,
   createChordChart,
   prepareChordChartSave,
+  readChordChartPdf,
   readChordChartSong,
   searchChordChartLyrics,
 } from "@pcobooster/api/application/chord-charts";
@@ -56,6 +57,16 @@ const lyricsSearch = rpc.chordCharts.lyricsSearch.handler(
     )
 );
 
+const pdf = rpc.chordCharts.pdf.handler(
+  async ({ input, context, signal }) =>
+    await executeApplicationEffect(
+      applicationRuntime,
+      withPlanningCenterAccess(readChordChartPdf(input)),
+      context,
+      signal
+    )
+);
+
 const createSong = rpc.chordCharts.createSong.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
@@ -72,5 +83,6 @@ export const chordChartsRouter = {
   update,
   create,
   createSong,
+  pdf,
   lyricsSearch,
 };

@@ -8,10 +8,6 @@
   --pc-services-foreground: #fff;
   --pc-services-gradient-start: #6bb23d;
   --pc-services-gradient-end: #659630;
-  /* Printed Planning Center chord charts: paper stays white in both themes. */
-  --paper: #fff;
-  --paper-foreground: #000;
-  --paper-band: #e3e3e3;
   /* Preset radius token; tune globally from this value. */
   --radius: 0.625rem;
   /* Soft forest sage light palette. Grounded off-whites with muted green neutrals. */

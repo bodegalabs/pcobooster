@@ -1,7 +1,9 @@
 import {
   buildChordChartAttributes,
   commitChordChartUpdate,
+  bytesToBase64,
   createChordChartSong,
+  getChordChartPdf,
   getChordChartSong,
   prepareChordChartUpdate,
 } from "@pcobooster/api/modules/planning-center/chord-charts";
@@ -19,6 +21,7 @@ const arrangement = (attributes: PCResource["attributes"]): PCResource => ({
     chord_chart_key: "G",
     chord_chart_font_size: 14,
     chord_chart_columns: 2,
+    chord_chart_chord_color: 1,
     chord_chart_font: "Helvetica",
     print_page_size: "Letter",
     print_orientation: "Portrait",
@@ -79,6 +82,9 @@ const createSongs = () => {
     createSong: vi.fn<ChordChartSongsService["createSong"]>((attributes) =>
       Effect.succeed({ id: "song-2", type: "Song", attributes })
     ),
+    openChartAttachment: vi.fn<ChordChartSongsService["openChartAttachment"]>(
+      () => Effect.succeed("https://files.example/chart.pdf")
+    ),
   } satisfies ChordChartSongsService;
   return songs;
 };
@@ -114,6 +120,7 @@ describe(getChordChartSong, () => {
             font: "Helvetica",
             fontSize: 14,
             columns: 2,
+            chordColor: 1,
             pageSize: "Letter",
             orientation: "Portrait",
             margin: "0.5in",
@@ -131,7 +138,8 @@ describe(getChordChartSong, () => {
         data: [
           arrangement({
             chord_chart_font_size: 17,
-            chord_chart_columns: 9,
+            chord_chart_columns: 3,
+            chord_chart_chord_color: 9,
             print_page_size: "Tabloid",
             chord_chart: null,
             chord_chart_key: "",
@@ -146,6 +154,7 @@ describe(getChordChartSong, () => {
       font: "Helvetica",
       fontSize: null,
       columns: null,
+      chordColor: null,
       pageSize: null,
       orientation: "Portrait",
       margin: "0.5in",
@@ -156,7 +165,7 @@ describe(getChordChartSong, () => {
 });
 
 describe(buildChordChartAttributes, () => {
-  it("writes the chart and key, and only the print settings that were sent", () => {
+  it("writes the chart, key, and only the print settings sent; null resets one", () => {
     expect(
       buildChordChartAttributes({
         chordChart: "VERSE",
@@ -167,6 +176,7 @@ describe(buildChordChartAttributes, () => {
       chord_chart: "VERSE",
       chord_chart_key: null,
       chord_chart_font_size: 16,
+      chord_chart_columns: null,
     });
   });
 });
@@ -252,5 +262,48 @@ describe(createChordChartSong, () => {
       name: "Default",
     });
     expect(result.arrangements).toHaveLength(1);
+  });
+});
+
+describe(getChordChartPdf, () => {
+  const pdfBytes = new TextEncoder().encode("%PDF-1.5 chart");
+
+  it("opens a key's chord chart and returns the PDF Services rendered", async () => {
+    const songs = createSongs();
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(new Response(pdfBytes, { status: 200 }));
+    const pdf = await Effect.runPromise(
+      getChordChartPdf(
+        { songId: "song-1", arrangementId: "arr-1", keyId: "key-1" },
+        { songs, fetch }
+      )
+    );
+    expect(songs.openChartAttachment).toHaveBeenCalledWith(
+      "/services/v2/songs/song-1/arrangements/arr-1/keys/key-1/attachments/chord_chart-key-1--"
+    );
+    expect(fetch.mock.calls[0]?.[0]).toBe("https://files.example/chart.pdf");
+    expect(pdf).toStrictEqual({
+      filename: "chord-chart.pdf",
+      data: bytesToBase64(pdfBytes),
+    });
+    expect(atob(pdf.data)).toBe("%PDF-1.5 chart");
+  });
+
+  it("opens the lyrics sheet without a key and reports failed downloads", async () => {
+    const songs = createSongs();
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(new Response("gone", { status: 410 }));
+    const exit = await Effect.runPromiseExit(
+      getChordChartPdf(
+        { songId: "song-1", arrangementId: "arr-1" },
+        { songs, fetch }
+      )
+    );
+    expect(songs.openChartAttachment).toHaveBeenCalledWith(
+      "/services/v2/songs/song-1/arrangements/arr-1/attachments/lyric_chart-arr-1"
+    );
+    expect(JSON.stringify(exit)).toContain("ExternalServiceFailure");
   });
 });

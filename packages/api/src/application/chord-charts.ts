@@ -13,6 +13,7 @@ import {
   commitChordChartUpdate,
   createChordChartArrangement,
   createChordChartSong,
+  getChordChartPdf,
   getChordChartSong,
   prepareChordChartUpdate,
 } from "@pcobooster/api/modules/planning-center/chord-charts";
@@ -21,6 +22,8 @@ import { Server } from "@pcobooster/api/server";
 import type {
   ChordChartArrangement,
   ChordChartCreateInput,
+  ChordChartPdf,
+  ChordChartPdfInput,
   ChordChartSongCreateInput,
   ChordChartSongInput,
   ChordChartSongOutput,
@@ -113,6 +116,19 @@ export const addChordChartSong = (
     const access = yield* PlanningCenterAccess;
     yield* requireChordCharts(access);
     return yield* createChordChartSong(input, access.services.songs);
+  }).pipe(withPlanningCenterFaults);
+
+/** Planning Center's own render of the saved chart, so the preview matches it exactly. */
+export const readChordChartPdf = (
+  input: ChordChartPdfInput
+): Effect.Effect<ChordChartPdf, ApplicationFault, ChordChartRequirements> =>
+  Effect.gen(function* readPdf() {
+    const access = yield* PlanningCenterAccess;
+    yield* requireChordCharts(access);
+    return yield* getChordChartPdf(input, {
+      songs: access.services.songs,
+      fetch: async (request, init) => await globalThis.fetch(request, init),
+    });
   }).pipe(withPlanningCenterFaults);
 
 const workerLyricsSearch: LyricsSearchDependencies = {

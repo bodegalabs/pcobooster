@@ -46,4 +46,10 @@ export const queryKeys = {
     ["song-options", songId, serviceTypeId] as const,
   chordChartSong: (songId: string) => ["chord-chart-song", songId] as const,
   lyricsSearch: (query: string) => ["lyrics-search", query] as const,
+  /** Keyed by the saved version, so each save renders again. */
+  chordChartPdf: (
+    arrangementId: string,
+    keyId: string | null,
+    updatedAt: string | null
+  ) => ["chord-chart-pdf", arrangementId, keyId, updatedAt] as const,
 } as const;

@@ -10,7 +10,20 @@ How Services stores Lyrics & Chords, and what the Songs editor (`/songs/$songId`
   - `POST /services/v2/songs/{song_id}/arrangements`
 - `lyrics`, `has_chords`, `sequence_short`, and `arrangement_sections` are read-only values Services derives from the chart.
 - `chord_chart_key` is the key the chords are written in. Services transposes from it for other keys and for number and numeral charts, so the saved text is the one source of truth.
-- Services renders PDFs itself. The API does not expose a rendered PDF, so the editor's preview reproduces the layout: a grey title band with `Title [Key, BPM bpm, Meter]`, a credit line, the short sequence, bold section labels, and bold chords over the lyrics.
+- The API reports print settings with the organization's defaults filled in (`chord_chart_font` reads `Times-Roman` even when the chart's own setting is unset), so the editor writes only settings the user changed; `null` resets one to the default.
+- Services' Formatting dialog offers (read from its page data, September 2026):
+  - Fonts: `Helvetica` (Arial, Helvetica), `Courier`, `Monaco`, `Times-Roman`, `Noto Sans`.
+  - Chord colors: `chord_chart_chord_color` 0 to 5 for Black, Blue, Green, Orange, Purple, Red.
+  - Columns 1 or 2, the 17 font sizes, and the page sizes, orientations, and margins above.
+
+## Rendered PDFs
+
+Services renders every chart PDF itself, and the API exposes them as virtual attachments:
+
+- `GET /songs/{song}/arrangements/{arrangement}/keys/{key}/attachments` lists `chord_chart-{keyId}--` (`pco_type` `AttachmentChart::Chord`), one per arrangement key (plus alternate keys).
+- `GET /songs/{song}/arrangements/{arrangement}/attachments` lists `lyric_chart-{arrangementId}` (`AttachmentChart::Lyric`).
+- `POST …/attachments/{id}/open` returns an `AttachmentActivity` whose `attachment_url` is a short-lived link to the PDF. Opening logs a view; it changes nothing.
+- Services renders only the saved chart. Its own editor saves as you type ("Auto-refresh", "Revert All Changes"), so the Songs editor does the same: with Auto-refresh on, a pause in typing saves, and the preview draws Services' PDF of the result with pdf.js. Keys the arrangement lacks, and number or numeral charts not enabled on it, return 404.
 
 ## Text format ("special codes")
 

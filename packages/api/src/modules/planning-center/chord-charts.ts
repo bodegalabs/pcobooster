@@ -1,4 +1,5 @@
 import { Conflict } from "@pcobooster/api/application/errors/conflict";
+import { ExternalServiceFailure } from "@pcobooster/api/application/errors/external-service-failure";
 import { normalizeKeyOption } from "@pcobooster/api/modules/planning-center/plan-items-shared";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type {
@@ -6,6 +7,7 @@ import type {
   PlanningCenterSongsService,
 } from "@pcobooster/api/planning-center/services/songs-service";
 import {
+  CHORD_CHART_CHORD_COLORS,
   CHORD_CHART_FONT_SIZES,
   CHORD_CHART_MARGINS,
   CHORD_CHART_MAX_COLUMNS,
@@ -16,6 +18,8 @@ import type {
   ChordChartArrangement,
   ChordChartCreateInput,
   ChordChartLayout,
+  ChordChartPdf,
+  ChordChartPdfInput,
   ChordChartSong,
   ChordChartSongCreateInput,
   ChordChartSongOutput,
@@ -44,6 +48,7 @@ export type ChordChartSongsService = Pick<
   | "updateArrangement"
   | "createArrangement"
   | "createSong"
+  | "openChartAttachment"
 >;
 
 const toText = (value: JsonValue | undefined): string =>
@@ -68,6 +73,16 @@ const toColumns = (value: JsonValue | undefined): number | null => {
     columns >= 1 &&
     columns <= CHORD_CHART_MAX_COLUMNS
     ? columns
+    : null;
+};
+
+const toChordColor = (value: JsonValue | undefined): number | null => {
+  const color = toNumberOrNull(value);
+  return color !== null &&
+    Number.isInteger(color) &&
+    color >= 0 &&
+    color < CHORD_CHART_CHORD_COLORS.length
+    ? color
     : null;
 };
 
@@ -125,6 +140,7 @@ export const normalizeChordChartArrangement = (
       font: toTextOrNull(attributes.chord_chart_font),
       fontSize: oneOf(CHORD_CHART_FONT_SIZES, attributes.chord_chart_font_size),
       columns: toColumns(attributes.chord_chart_columns),
+      chordColor: toChordColor(attributes.chord_chart_chord_color),
       pageSize: oneOf(CHORD_CHART_PAGE_SIZES, attributes.print_page_size),
       orientation: oneOf(
         CHORD_CHART_ORIENTATIONS,
@@ -151,7 +167,10 @@ const normalizeChordChartSong = (resource: PCResource): ChordChartSong => ({
 const normalizeArrangementResponse = (response: ArrangementResponse) =>
   normalizeChordChartArrangement(response.data, response.included);
 
-/** Only fields the caller sent are written, so Services keeps its own defaults. */
+/**
+ * Only fields the caller sent are written. Services reports print settings with the
+ * organization's defaults filled in, so writing unchanged ones would pin those defaults.
+ */
 export const buildChordChartAttributes = (input: {
   readonly chordChart: string;
   readonly chordChartKey: string | null;
@@ -170,13 +189,15 @@ export const buildChordChartAttributes = (input: {
     ["font", "chord_chart_font"],
     ["fontSize", "chord_chart_font_size"],
     ["columns", "chord_chart_columns"],
+    ["chordColor", "chord_chart_chord_color"],
     ["pageSize", "print_page_size"],
     ["orientation", "print_orientation"],
     ["margin", "print_margin"],
   ];
+  // A null resets the setting to the organization default.
   for (const [field, attribute] of fields) {
     const value = layout[field];
-    if (value !== undefined && value !== null) {
+    if (value !== undefined) {
       attributes[attribute] = value;
     }
   }
@@ -299,4 +320,72 @@ export const createChordChartSong = (
       arrangements.push(normalizeArrangementResponse(created));
     }
     return { song: normalizeChordChartSong(song), arrangements };
+  });
+
+const PDF_DOWNLOAD_TIMEOUT_MS = 15_000;
+const BASE64_CHUNK_BYTES = 0x80_00;
+
+/** Base64 without Node's Buffer, which Workers only have with compatibility flags. */
+export const bytesToBase64 = (bytes: Uint8Array): string => {
+  let binary = "";
+  for (let start = 0; start < bytes.length; start += BASE64_CHUNK_BYTES) {
+    binary += String.fromCodePoint(
+      ...bytes.subarray(start, start + BASE64_CHUNK_BYTES)
+    );
+  }
+  return btoa(binary);
+};
+
+export interface ChordChartPdfDependencies {
+  readonly songs: Pick<ChordChartSongsService, "openChartAttachment">;
+  readonly fetch: typeof globalThis.fetch;
+}
+
+const pdfFailure = (message: string, cause?: unknown) =>
+  new ExternalServiceFailure({ message, service: "planning-center", cause });
+
+/**
+ * The PDF Services itself renders from the saved chart: a key's chord chart, or the lyrics
+ * sheet. Two requests: Planning Center's `open` action, then the file it points to.
+ */
+export const getChordChartPdf = (
+  input: ChordChartPdfInput,
+  { songs, fetch }: ChordChartPdfDependencies
+): Effect.Effect<ChordChartPdf, PlanningCenterError | ExternalServiceFailure> =>
+  Effect.gen(function* renderChart() {
+    const arrangementPath = `/services/v2/songs/${input.songId}/arrangements/${input.arrangementId}`;
+    const attachmentPath =
+      input.keyId === undefined
+        ? `${arrangementPath}/attachments/lyric_chart-${input.arrangementId}`
+        : `${arrangementPath}/keys/${input.keyId}/attachments/chord_chart-${input.keyId}--`;
+    const url = yield* songs.openChartAttachment(attachmentPath);
+    if (url === "") {
+      return yield* pdfFailure(
+        "Planning Center did not return the chart's PDF."
+      );
+    }
+    const response = yield* Effect.tryPromise({
+      try: async (signal) =>
+        await fetch(url, {
+          signal: AbortSignal.any([
+            signal,
+            AbortSignal.timeout(PDF_DOWNLOAD_TIMEOUT_MS),
+          ]),
+        }),
+      catch: (cause) =>
+        pdfFailure("The chart's PDF could not be downloaded.", cause),
+    });
+    if (!response.ok) {
+      return yield* pdfFailure(
+        `The chart's PDF download answered ${String(response.status)}.`
+      );
+    }
+    const bytes = yield* Effect.tryPromise({
+      try: async () => new Uint8Array(await response.arrayBuffer()),
+      catch: (cause) => pdfFailure("The chart's PDF could not be read.", cause),
+    });
+    return {
+      filename: input.keyId === undefined ? "lyrics.pdf" : "chord-chart.pdf",
+      data: bytesToBase64(bytes),
+    };
   });

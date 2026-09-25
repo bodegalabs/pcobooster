@@ -1,7 +1,6 @@
 /**
- * Chord and key arithmetic for Planning Center chord charts: transposing chords into another
- * key and spelling them as Nashville numbers or Roman numerals, as Services does for
- * `Arrangement.chord_chart`.
+ * Chord and key arithmetic for Planning Center chord charts (`Arrangement.chord_chart`):
+ * reading keys and chords and transposing chords into another key.
  */
 
 const SEMITONES = 12;
@@ -94,35 +93,6 @@ const MINOR_KEY_NAMES = [
 /** Relative-major pitches whose key signatures use sharps and flats. */
 const SHARP_KEY_PITCHES = new Set([7, 2, 9, 4, 11, 6, 1]);
 const FLAT_KEY_PITCHES = new Set([5, 10, 3, 8]);
-
-const NUMBER_DEGREES = [
-  "1",
-  "b2",
-  "2",
-  "b3",
-  "3",
-  "4",
-  "b5",
-  "5",
-  "b6",
-  "6",
-  "b7",
-  "7",
-] as const;
-const NUMERAL_DEGREES = [
-  "I",
-  "bII",
-  "II",
-  "bIII",
-  "III",
-  "IV",
-  "bV",
-  "V",
-  "bVI",
-  "VI",
-  "bVII",
-  "VII",
-] as const;
 
 /** Every key Planning Center accepts for `chord_chart_key`, majors then minors. */
 export const CHORD_CHART_KEYS: readonly string[] = [
@@ -262,38 +232,3 @@ export const transposeChordText = (
     return `${root}${chord.quality}${bass}`;
   });
 };
-
-const MINOR_QUALITY_PATTERN = /^(?:m(?!aj)|min|-)/u;
-const DIMINISHED_QUALITY_PATTERN = /^(?:dim|°|ø)/u;
-
-/** Nashville numbers relative to `key`: in D, `Em7/G` is `2m7/4`. */
-export const chordTextToNumbers = (text: string, key: MusicalKey): string =>
-  mapChordTokens(text, (chord) => {
-    const degree = NUMBER_DEGREES[mod12(chord.pitch - key.pitch)];
-    const bass =
-      chord.bassPitch === null
-        ? ""
-        : `/${NUMBER_DEGREES[mod12(chord.bassPitch - key.pitch)]}`;
-    return `${degree}${chord.quality}${bass}`;
-  });
-
-/** Roman numerals relative to `key`: uppercase for major chords, lowercase for minor. */
-export const chordTextToNumerals = (text: string, key: MusicalKey): string =>
-  mapChordTokens(text, (chord) => {
-    const degree = NUMERAL_DEGREES[mod12(chord.pitch - key.pitch)];
-    const minorQuality = MINOR_QUALITY_PATTERN.exec(chord.quality);
-    const lowercase =
-      minorQuality !== null || DIMINISHED_QUALITY_PATTERN.test(chord.quality);
-    const numeral = lowercase
-      ? `${degree.startsWith("b") ? "b" : ""}${degree.replace(/^b/u, "").toLowerCase()}`
-      : degree;
-    const quality =
-      minorQuality === null
-        ? chord.quality
-        : chord.quality.slice(minorQuality[0].length);
-    const bass =
-      chord.bassPitch === null
-        ? ""
-        : `/${NUMBER_DEGREES[mod12(chord.bassPitch - key.pitch)]}`;
-    return `${numeral}${quality}${bass}`;
-  });

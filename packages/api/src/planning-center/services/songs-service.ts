@@ -6,6 +6,7 @@ import type {
 import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
+import { isString } from "@pcobooster/planning-center-models/json";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
@@ -212,6 +213,23 @@ export class PlanningCenterSongsService {
         body: { data: { type: "Song", attributes } },
       })
       .pipe(Effect.map((response) => response.data));
+  }
+
+  /**
+   * A short-lived URL for a chart Services renders, such as `chord_chart-{keyId}--` on a
+   * key or `lyric_chart-{arrangementId}` on an arrangement. Opening logs a view.
+   */
+  openChartAttachment(
+    attachmentPath: string
+  ): Effect.Effect<string, PlanningCenterError> {
+    return this.core
+      .fetch(`${attachmentPath}/open`, { method: "POST", body: {} })
+      .pipe(
+        Effect.map((response) => {
+          const url = response.data.attributes.attachment_url;
+          return isString(url) ? url : "";
+        })
+      );
   }
 
   /** A song never scheduled for the service type has no last item. */

@@ -2,6 +2,7 @@ import { ORPCError } from "@orpc/client";
 import type {
   ChordChartArrangement,
   ChordChartCreateInput,
+  ChordChartPdf,
   ChordChartSongCreateInput,
   ChordChartSongOutput,
   ChordChartUpdateInput,
@@ -106,3 +107,35 @@ export const useCreateSong = () => {
     },
   });
 };
+
+export interface ChordChartPdfTarget {
+  readonly songId: string;
+  readonly arrangementId: string;
+  /** An arrangement key's chord chart, or null for the lyrics sheet. */
+  readonly keyId: string | null;
+  /** The saved version to render; Services renders only what is saved. */
+  readonly updatedAt: string | null;
+}
+
+/** Planning Center's own PDF of the saved chart; a save changes the key and renders again. */
+export const useChordChartPdf = (target: ChordChartPdfTarget) =>
+  useQuery<ChordChartPdf>({
+    queryKey: queryKeys.chordChartPdf(
+      target.arrangementId,
+      target.keyId,
+      target.updatedAt
+    ),
+    queryFn: async ({ signal }: QueryFunctionContext) =>
+      await orpc.chordCharts.pdf(
+        {
+          songId: target.songId,
+          arrangementId: target.arrangementId,
+          keyId: target.keyId ?? undefined,
+        },
+        { signal }
+      ),
+    staleTime: Number.POSITIVE_INFINITY,
+    // The last render stays up while the next save renders.
+    placeholderData: (previous) => previous,
+    retry: false,
+  });
