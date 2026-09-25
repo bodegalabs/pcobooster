@@ -60,6 +60,9 @@ describe(chordChartFontFamily, () => {
   it("falls back within the named font's family", () => {
     expect(chordChartFontFamily("Courier")).toContain("monospace");
     expect(chordChartFontFamily("Times")).toContain("serif");
+    expect(chordChartFontFamily("Times-Roman")).toBe(
+      '"Times-Roman", "Times New Roman", Times, serif'
+    );
     expect(chordChartFontFamily("Arial")).toBe(
       '"Arial", Helvetica, Arial, sans-serif'
     );

@@ -26,6 +26,15 @@ export const CHORD_CHART_MARGINS = [
   "1.0in",
 ] as const;
 export const CHORD_CHART_MAX_COLUMNS = 4;
+/**
+ * Fonts Services' Format menu offers. `chord_chart_font` stores them as PDF core font
+ * names, such as `Times-Roman`; any other stored value is kept as it is.
+ */
+export const CHORD_CHART_FONTS = [
+  { value: "Helvetica", label: "Helvetica (Arial)" },
+  { value: "Times-Roman", label: "Times" },
+  { value: "Courier", label: "Courier (monospace)" },
+] as const;
 
 const fontSizeSchema = z
   .number()

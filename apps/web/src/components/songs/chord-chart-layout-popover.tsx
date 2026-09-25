@@ -1,4 +1,5 @@
 import {
+  CHORD_CHART_FONTS,
   CHORD_CHART_FONT_SIZES,
   CHORD_CHART_MARGINS,
   CHORD_CHART_MAX_COLUMNS,
@@ -79,6 +80,36 @@ export const ChordChartLayoutPopover = ({
       <PopoverContent align="end" className="w-80">
         <div className="flex flex-col gap-3 p-4">
           <p className="text-sm font-medium">Page layout</p>
+          <LayoutField label="Font">
+            {(id) => (
+              <NativeSelect
+                id={id}
+                size="sm"
+                value={layout.font ?? ""}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  update("font", next === "" ? null : next);
+                }}
+              >
+                {layout.font === null ? (
+                  <NativeSelectOption value="">Default</NativeSelectOption>
+                ) : null}
+                {CHORD_CHART_FONTS.map((font) => (
+                  <NativeSelectOption key={font.value} value={font.value}>
+                    {font.label}
+                  </NativeSelectOption>
+                ))}
+                {layout.font === null ||
+                CHORD_CHART_FONTS.some(
+                  (font) => font.value === layout.font
+                ) ? null : (
+                  <NativeSelectOption value={layout.font}>
+                    {layout.font}
+                  </NativeSelectOption>
+                )}
+              </NativeSelect>
+            )}
+          </LayoutField>
           <LayoutField label="Font size">
             {(id) => (
               <NativeSelect
@@ -187,11 +218,6 @@ export const ChordChartLayoutPopover = ({
               </NativeSelect>
             )}
           </LayoutField>
-          <p className="text-muted-foreground text-xs">
-            {layout.font === null
-              ? "Font: Planning Center default."
-              : `Font: ${layout.font} (change it in Planning Center).`}
-          </p>
         </div>
       </PopoverContent>
     </Popover>
