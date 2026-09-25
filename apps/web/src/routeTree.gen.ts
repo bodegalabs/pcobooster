@@ -19,6 +19,8 @@ import { Route as DemoKeyRouteImport } from './routes/demo/$key'
 import { Route as AppPeopleIndexRouteImport } from './routes/_app/people/index'
 import { Route as AppPeoplePersonIdRouteImport } from './routes/_app/people/$personId'
 import { Route as AppServicesIndexRouteImport } from './routes/_app/services/index'
+import { Route as AppSongsIndexRouteImport } from './routes/_app/songs/index'
+import { Route as AppSongsSongIdRouteImport } from './routes/_app/songs/$songId'
 import { Route as AppServicesServiceTypeIdPlansPlanIdRouteRouteImport } from './routes/_app/services/$serviceTypeId/plans/$planId/route'
 import { Route as AppServicesServiceTypeIdPlansPlanIdIndexRouteImport } from './routes/_app/services/$serviceTypeId/plans/$planId/index'
 import { Route as AppServicesServiceTypeIdPlansPlanIdViewRouteImport } from './routes/_app/services/$serviceTypeId/plans/$planId/$view'
@@ -72,6 +74,16 @@ const AppServicesIndexRoute = AppServicesIndexRouteImport.update({
   path: '/services/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSongsIndexRoute = AppSongsIndexRouteImport.update({
+  id: '/songs/',
+  path: '/songs/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSongsSongIdRoute = AppSongsSongIdRouteImport.update({
+  id: '/songs/$songId',
+  path: '/songs/$songId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppServicesServiceTypeIdPlansPlanIdRouteRoute =
   AppServicesServiceTypeIdPlansPlanIdRouteRouteImport.update({
     id: '/services/$serviceTypeId/plans/$planId',
@@ -99,8 +111,10 @@ export interface FileRoutesByFullPath {
   '/api/$': typeof ApiSplatRoute
   '/demo/$key': typeof DemoKeyRoute
   '/people/$personId': typeof AppPeoplePersonIdRoute
+  '/songs/$songId': typeof AppSongsSongIdRoute
   '/people/': typeof AppPeopleIndexRoute
   '/services/': typeof AppServicesIndexRoute
+  '/songs/': typeof AppSongsIndexRoute
   '/services/$serviceTypeId/plans/$planId': typeof AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren
   '/services/$serviceTypeId/plans/$planId/$view': typeof AppServicesServiceTypeIdPlansPlanIdViewRoute
   '/services/$serviceTypeId/plans/$planId/': typeof AppServicesServiceTypeIdPlansPlanIdIndexRoute
@@ -113,8 +127,10 @@ export interface FileRoutesByTo {
   '/api/$': typeof ApiSplatRoute
   '/demo/$key': typeof DemoKeyRoute
   '/people/$personId': typeof AppPeoplePersonIdRoute
+  '/songs/$songId': typeof AppSongsSongIdRoute
   '/people': typeof AppPeopleIndexRoute
   '/services': typeof AppServicesIndexRoute
+  '/songs': typeof AppSongsIndexRoute
   '/services/$serviceTypeId/plans/$planId/$view': typeof AppServicesServiceTypeIdPlansPlanIdViewRoute
   '/services/$serviceTypeId/plans/$planId': typeof AppServicesServiceTypeIdPlansPlanIdIndexRoute
 }
@@ -128,8 +144,10 @@ export interface FileRoutesById {
   '/api/$': typeof ApiSplatRoute
   '/demo/$key': typeof DemoKeyRoute
   '/_app/people/$personId': typeof AppPeoplePersonIdRoute
+  '/_app/songs/$songId': typeof AppSongsSongIdRoute
   '/_app/people/': typeof AppPeopleIndexRoute
   '/_app/services/': typeof AppServicesIndexRoute
+  '/_app/songs/': typeof AppSongsIndexRoute
   '/_app/services/$serviceTypeId/plans/$planId': typeof AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren
   '/_app/services/$serviceTypeId/plans/$planId/$view': typeof AppServicesServiceTypeIdPlansPlanIdViewRoute
   '/_app/services/$serviceTypeId/plans/$planId/': typeof AppServicesServiceTypeIdPlansPlanIdIndexRoute
@@ -144,8 +162,10 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/demo/$key'
     | '/people/$personId'
+    | '/songs/$songId'
     | '/people/'
     | '/services/'
+    | '/songs/'
     | '/services/$serviceTypeId/plans/$planId'
     | '/services/$serviceTypeId/plans/$planId/$view'
     | '/services/$serviceTypeId/plans/$planId/'
@@ -158,8 +178,10 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/demo/$key'
     | '/people/$personId'
+    | '/songs/$songId'
     | '/people'
     | '/services'
+    | '/songs'
     | '/services/$serviceTypeId/plans/$planId/$view'
     | '/services/$serviceTypeId/plans/$planId'
   id:
@@ -172,8 +194,10 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/demo/$key'
     | '/_app/people/$personId'
+    | '/_app/songs/$songId'
     | '/_app/people/'
     | '/_app/services/'
+    | '/_app/songs/'
     | '/_app/services/$serviceTypeId/plans/$planId'
     | '/_app/services/$serviceTypeId/plans/$planId/$view'
     | '/_app/services/$serviceTypeId/plans/$planId/'
@@ -261,6 +285,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppServicesIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/songs/': {
+      id: '/_app/songs/'
+      path: '/songs'
+      fullPath: '/songs/'
+      preLoaderRoute: typeof AppSongsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/songs/$songId': {
+      id: '/_app/songs/$songId'
+      path: '/songs/$songId'
+      fullPath: '/songs/$songId'
+      preLoaderRoute: typeof AppSongsSongIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/services/$serviceTypeId/plans/$planId': {
       id: '/_app/services/$serviceTypeId/plans/$planId'
       path: '/services/$serviceTypeId/plans/$planId'
@@ -305,15 +343,19 @@ const AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren =
 
 interface AppRouteChildren {
   AppPeoplePersonIdRoute: typeof AppPeoplePersonIdRoute
+  AppSongsSongIdRoute: typeof AppSongsSongIdRoute
   AppPeopleIndexRoute: typeof AppPeopleIndexRoute
   AppServicesIndexRoute: typeof AppServicesIndexRoute
+  AppSongsIndexRoute: typeof AppSongsIndexRoute
   AppServicesServiceTypeIdPlansPlanIdRouteRoute: typeof AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppPeoplePersonIdRoute: AppPeoplePersonIdRoute,
+  AppSongsSongIdRoute: AppSongsSongIdRoute,
   AppPeopleIndexRoute: AppPeopleIndexRoute,
   AppServicesIndexRoute: AppServicesIndexRoute,
+  AppSongsIndexRoute: AppSongsIndexRoute,
   AppServicesServiceTypeIdPlansPlanIdRouteRoute:
     AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren,
 }

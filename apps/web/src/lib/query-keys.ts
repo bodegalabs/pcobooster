@@ -1,6 +1,8 @@
+export type FeatureName = "people" | "chordCharts";
+
 export const queryKeys = {
   accounts: () => ["planning-center-accounts"] as const,
-  peopleFeature: () => ["people-feature"] as const,
+  feature: (feature: FeatureName) => ["feature", feature] as const,
   organizationTimeZone: () =>
     ["planning-center-organization-time-zone"] as const,
   serviceTypes: () => ["service-types"] as const,
@@ -42,4 +44,5 @@ export const queryKeys = {
   songSearch: (query: string) => ["song-search", query] as const,
   songOptions: (songId: string | null, serviceTypeId: string | null) =>
     ["song-options", songId, serviceTypeId] as const,
+  chordChartSong: (songId: string) => ["chord-chart-song", songId] as const,
 } as const;

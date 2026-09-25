@@ -6,11 +6,12 @@ import type {
 import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
+import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
 const log = logger.for("planning-center/songs");
-/** Songs change rarely and this app never writes them. */
+/** Songs change rarely; this app writes only arrangement chord charts. */
 const DEFAULT_CATALOG_TTL_MS = 60 * 60 * 1000;
 const DEFAULT_CATALOG_MAX_PAGES = 15;
 const SONG_DETAILS_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -24,6 +25,19 @@ interface SongArrangementsResponse {
   data: PCResource[];
   included: PCResource[];
 }
+
+export interface ArrangementResponse {
+  data: PCResource;
+  included: PCResource[];
+}
+
+const buildArrangementPayload = (attributes: JsonObject, id?: string) => ({
+  data: {
+    type: "Arrangement",
+    ...(id === undefined ? undefined : { id }),
+    attributes,
+  },
+});
 
 export interface PlanningCenterSongsServiceCaches {
   readonly catalogs: PlanningCenterReadCache<PCResource[]>;
@@ -122,6 +136,72 @@ export class PlanningCenterSongsService {
     );
   }
 
+  /** Uncached, so an editor starts from what Services holds right now. */
+  getSongArrangementsForEditing(
+    songId: string
+  ): Effect.Effect<SongArrangementsResponse, PlanningCenterError> {
+    return this.core.fetchAllWithIncluded(
+      `/services/v2/songs/${songId}/arrangements`,
+      { include: "keys" },
+      5
+    );
+  }
+
+  /** Uncached, to compare against the version an edit started from. */
+  getArrangement(
+    songId: string,
+    arrangementId: string
+  ): Effect.Effect<ArrangementResponse, PlanningCenterError> {
+    return this.core
+      .fetch(
+        `/services/v2/songs/${songId}/arrangements/${arrangementId}?include=keys`
+      )
+      .pipe(
+        Effect.map((response) => ({
+          data: response.data,
+          included: response.included ?? [],
+        }))
+      );
+  }
+
+  updateArrangement(
+    songId: string,
+    arrangementId: string,
+    attributes: JsonObject
+  ): Effect.Effect<ArrangementResponse, PlanningCenterError> {
+    return this.core
+      .fetch(
+        `/services/v2/songs/${songId}/arrangements/${arrangementId}?include=keys`,
+        {
+          method: "PATCH",
+          body: buildArrangementPayload(attributes, arrangementId),
+        }
+      )
+      .pipe(
+        Effect.map((response) => {
+          this.invalidateArrangementsCache(songId);
+          return { data: response.data, included: response.included ?? [] };
+        })
+      );
+  }
+
+  createArrangement(
+    songId: string,
+    attributes: JsonObject
+  ): Effect.Effect<ArrangementResponse, PlanningCenterError> {
+    return this.core
+      .fetch(`/services/v2/songs/${songId}/arrangements?include=keys`, {
+        method: "POST",
+        body: buildArrangementPayload(attributes),
+      })
+      .pipe(
+        Effect.map((response) => {
+          this.invalidateArrangementsCache(songId);
+          return { data: response.data, included: response.included ?? [] };
+        })
+      );
+  }
+
   /** A song never scheduled for the service type has no last item. */
   getSongLastScheduledItem(
     songId: string,
@@ -144,6 +224,11 @@ export class PlanningCenterSongsService {
           fallback: (): LastScheduledItem => ({ data: null, included: [] }),
         })
       );
+  }
+
+  private invalidateArrangementsCache(songId: string) {
+    const cacheKey = this.buildSongCacheKey("arrangements", songId);
+    this.caches.arrangements.deleteWhere((key) => key === cacheKey);
   }
 
   private buildSongCacheKey(

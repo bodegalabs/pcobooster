@@ -1,0 +1,256 @@
+import { Conflict } from "@pcobooster/api/application/errors/conflict";
+import { normalizeKeyOption } from "@pcobooster/api/modules/planning-center/plan-items-shared";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import type {
+  ArrangementResponse,
+  PlanningCenterSongsService,
+} from "@pcobooster/api/planning-center/services/songs-service";
+import {
+  CHORD_CHART_FONT_SIZES,
+  CHORD_CHART_MARGINS,
+  CHORD_CHART_MAX_COLUMNS,
+  CHORD_CHART_ORIENTATIONS,
+  CHORD_CHART_PAGE_SIZES,
+} from "@pcobooster/contracts/chord-charts";
+import type {
+  ChordChartArrangement,
+  ChordChartCreateInput,
+  ChordChartLayout,
+  ChordChartSong,
+  ChordChartSongOutput,
+  ChordChartUpdateInput,
+} from "@pcobooster/contracts/chord-charts";
+import {
+  isNonEmptyString,
+  isNumber,
+  isString,
+} from "@pcobooster/planning-center-models/json";
+import type {
+  JsonObject,
+  JsonValue,
+} from "@pcobooster/planning-center-models/json";
+import type {
+  KeyOption,
+  PCResource,
+} from "@pcobooster/planning-center-models/types";
+import { Effect } from "effect";
+
+export type ChordChartSongsService = Pick<
+  PlanningCenterSongsService,
+  | "getSong"
+  | "getSongArrangementsForEditing"
+  | "getArrangement"
+  | "updateArrangement"
+  | "createArrangement"
+>;
+
+const toText = (value: JsonValue | undefined): string =>
+  isString(value) ? value : "";
+
+const toTextOrNull = (value: JsonValue | undefined): string | null =>
+  isNonEmptyString(value) ? value : null;
+
+const toNumberOrNull = (value: JsonValue | undefined): number | null =>
+  isNumber(value) && Number.isFinite(value) ? value : null;
+
+/** Values outside what the editor offers read as unset rather than failing the response. */
+const oneOf = <Value extends string | number>(
+  allowed: readonly Value[],
+  value: JsonValue | undefined
+): Value | null => allowed.find((option) => option === value) ?? null;
+
+const toColumns = (value: JsonValue | undefined): number | null => {
+  const columns = toNumberOrNull(value);
+  return columns !== null &&
+    Number.isInteger(columns) &&
+    columns >= 1 &&
+    columns <= CHORD_CHART_MAX_COLUMNS
+    ? columns
+    : null;
+};
+
+const toSequence = (attributes: JsonObject): string[] => {
+  const short = attributes.sequence_short;
+  const source =
+    Array.isArray(short) && short.length > 0 ? short : attributes.sequence;
+  if (!Array.isArray(source)) {
+    return [];
+  }
+  return source.filter(
+    (label): label is string => isString(label) && label.trim().length > 0
+  );
+};
+
+const belongsToArrangement = (key: PCResource, arrangementId: string) => {
+  const relationship = key.relationships?.arrangement?.data;
+  return (
+    relationship === undefined ||
+    relationship === null ||
+    (!Array.isArray(relationship) && relationship.id === arrangementId)
+  );
+};
+
+const arrangementKeys = (
+  included: readonly PCResource[],
+  arrangementId: string
+): KeyOption[] => {
+  const keys: KeyOption[] = [];
+  for (const item of included) {
+    if (item.type === "Key" && belongsToArrangement(item, arrangementId)) {
+      keys.push(normalizeKeyOption(item));
+    }
+  }
+  return keys;
+};
+
+export const normalizeChordChartArrangement = (
+  resource: PCResource,
+  included: readonly PCResource[]
+): ChordChartArrangement => {
+  const { attributes } = resource;
+  return {
+    id: resource.id,
+    name: toText(attributes.name),
+    archived: isNonEmptyString(attributes.archived_at),
+    bpm: toNumberOrNull(attributes.bpm),
+    meter: toTextOrNull(attributes.meter),
+    sequence: toSequence(attributes),
+    chordChart: toText(attributes.chord_chart),
+    chordChartKey: toTextOrNull(attributes.chord_chart_key),
+    lyrics: toText(attributes.lyrics),
+    keys: arrangementKeys(included, resource.id),
+    layout: {
+      font: toTextOrNull(attributes.chord_chart_font),
+      fontSize: oneOf(CHORD_CHART_FONT_SIZES, attributes.chord_chart_font_size),
+      columns: toColumns(attributes.chord_chart_columns),
+      pageSize: oneOf(CHORD_CHART_PAGE_SIZES, attributes.print_page_size),
+      orientation: oneOf(
+        CHORD_CHART_ORIENTATIONS,
+        attributes.print_orientation
+      ),
+      margin: oneOf(CHORD_CHART_MARGINS, attributes.print_margin),
+    },
+    updatedAt: toTextOrNull(attributes.updated_at),
+  };
+};
+
+const normalizeChordChartSong = (resource: PCResource): ChordChartSong => ({
+  id: resource.id,
+  title: toText(resource.attributes.title),
+  author: toText(resource.attributes.author),
+  copyright: toText(resource.attributes.copyright),
+  ccliNumber:
+    isNumber(resource.attributes.ccli_number) ||
+    isNonEmptyString(resource.attributes.ccli_number)
+      ? String(resource.attributes.ccli_number)
+      : null,
+});
+
+const normalizeArrangementResponse = (response: ArrangementResponse) =>
+  normalizeChordChartArrangement(response.data, response.included);
+
+/** Only fields the caller sent are written, so Services keeps its own defaults. */
+export const buildChordChartAttributes = (input: {
+  readonly chordChart: string;
+  readonly chordChartKey: string | null;
+  readonly layout?: Partial<ChordChartLayout>;
+  readonly name?: string;
+}): JsonObject => {
+  const attributes: JsonObject = {
+    chord_chart: input.chordChart,
+    chord_chart_key: input.chordChartKey,
+  };
+  if (input.name !== undefined) {
+    attributes.name = input.name;
+  }
+  const layout = input.layout ?? {};
+  const fields: [keyof ChordChartLayout, string][] = [
+    ["font", "chord_chart_font"],
+    ["fontSize", "chord_chart_font_size"],
+    ["columns", "chord_chart_columns"],
+    ["pageSize", "print_page_size"],
+    ["orientation", "print_orientation"],
+    ["margin", "print_margin"],
+  ];
+  for (const [field, attribute] of fields) {
+    const value = layout[field];
+    if (value !== undefined && value !== null) {
+      attributes[attribute] = value;
+    }
+  }
+  return attributes;
+};
+
+export const getChordChartSong = (
+  songId: string,
+  songs: ChordChartSongsService
+): Effect.Effect<ChordChartSongOutput, PlanningCenterError> =>
+  Effect.map(
+    Effect.all(
+      [songs.getSong(songId), songs.getSongArrangementsForEditing(songId)],
+      { concurrency: "unbounded" }
+    ),
+    ([song, arrangements]) => ({
+      song: normalizeChordChartSong(song),
+      arrangements: arrangements.data.map((arrangement) =>
+        normalizeChordChartArrangement(arrangement, arrangements.included)
+      ),
+    })
+  );
+
+export interface PreparedChordChartUpdate {
+  readonly songId: string;
+  readonly arrangementId: string;
+  readonly attributes: JsonObject;
+}
+
+/** Refuses to overwrite a chart someone saved in Services after this edit began. */
+export const prepareChordChartUpdate = (
+  input: ChordChartUpdateInput,
+  songs: ChordChartSongsService
+): Effect.Effect<PreparedChordChartUpdate, PlanningCenterError | Conflict> =>
+  Effect.gen(function* checkForNewerChart() {
+    const current = yield* songs.getArrangement(
+      input.songId,
+      input.arrangementId
+    );
+    const currentUpdatedAt = toTextOrNull(current.data.attributes.updated_at);
+    if (
+      input.baseUpdatedAt !== null &&
+      currentUpdatedAt !== null &&
+      currentUpdatedAt !== input.baseUpdatedAt
+    ) {
+      return yield* new Conflict({
+        message:
+          "This arrangement changed in Planning Center after you opened it. Reload to see the latest version.",
+        reason: "arrangement-updated",
+      });
+    }
+    return {
+      songId: input.songId,
+      arrangementId: input.arrangementId,
+      attributes: buildChordChartAttributes(input),
+    };
+  });
+
+export const commitChordChartUpdate = (
+  prepared: PreparedChordChartUpdate,
+  songs: ChordChartSongsService
+): Effect.Effect<ChordChartArrangement, PlanningCenterError> =>
+  Effect.map(
+    songs.updateArrangement(
+      prepared.songId,
+      prepared.arrangementId,
+      prepared.attributes
+    ),
+    normalizeArrangementResponse
+  );
+
+export const createChordChartArrangement = (
+  input: ChordChartCreateInput,
+  songs: ChordChartSongsService
+): Effect.Effect<ChordChartArrangement, PlanningCenterError> =>
+  Effect.map(
+    songs.createArrangement(input.songId, buildChordChartAttributes(input)),
+    normalizeArrangementResponse
+  );
