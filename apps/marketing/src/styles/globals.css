@@ -2,6 +2,8 @@
 @import "shadcn/tailwind.css";
 @import "@pcobooster/design-tokens/tokens.css";
 
+@import "@pcobooster/ui/mobile-menu.css";
+
 @source "../../../../packages/ui/src";
 
 /*

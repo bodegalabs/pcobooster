@@ -8,8 +8,8 @@ import type { CSSProperties, ReactNode } from "react";
  * cascade. Each app owns its header and button primitives; this package owns
  * the open state, the overlay, and the motion.
  *
- * Classes here are Tailwind utilities, so each app's stylesheet must `@source`
- * this package.
+ * Each app's stylesheet imports `@pcobooster/ui/mobile-menu.css` and
+ * `@source`s this package for its Tailwind utilities.
  */
 
 export interface MobileMenuState {
@@ -56,11 +56,9 @@ export const MobileMenuIcon = ({ open }: { open: boolean }) =>
   open ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />;
 
 /**
- * The overlay; `className` sets its top padding to clear the header bar. It
- * fades in from `@starting-style` and is `display: none` while closed: Safari
- * 26 reads full-screen fixed layers when it tints its bars and decides where
- * the page may draw, even at `opacity: 0`, so a merely transparent overlay
- * crops the page to flat bars.
+ * The overlay; `className` sets its top padding to clear the header bar. Its
+ * enter and exit motion lives in `@pcobooster/ui/mobile-menu.css`, which each
+ * app imports.
  */
 export const MobileMenuOverlay = ({
   id,
@@ -75,9 +73,11 @@ export const MobileMenuOverlay = ({
 }) => (
   <div
     id={id}
-    hidden={!open}
+    data-slot="mobile-menu-overlay"
+    inert={!open}
+    data-open={open ? "" : undefined}
     className={[
-      "bg-background/70 fixed inset-0 backdrop-blur-lg backdrop-saturate-150 transition-opacity duration-200 ease-(--ease-snappy) starting:opacity-0 motion-reduce:duration-0 md:hidden",
+      "bg-background/70 fixed inset-0 backdrop-blur-lg backdrop-saturate-150 md:hidden",
       className,
     ]
       .filter(Boolean)
@@ -103,13 +103,8 @@ export const MobileMenuItem = ({
     "--menu-item-delay": `${index * ITEM_DELAY_MS}ms`,
   };
   return (
-    <li
-      style={style}
-      className="transition-opacity delay-(--menu-item-delay) duration-300 ease-(--ease-snappy) starting:opacity-0"
-    >
-      <div className="transition-transform delay-(--menu-item-delay) duration-300 ease-(--ease-snappy) starting:translate-y-2 motion-reduce:starting:translate-y-0">
-        {children}
-      </div>
+    <li style={style} data-slot="mobile-menu-item">
+      {children}
     </li>
   );
 };

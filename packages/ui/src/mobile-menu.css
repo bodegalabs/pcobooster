@@ -1,0 +1,56 @@
+/*
+ * Motion for `@pcobooster/ui/mobile-menu`. Opening is deliberate (250ms, links
+ * rising in a 40ms cascade); closing gets out of the way (150ms, all at once).
+ * The overlay transitions `display` so it fades out before leaving the render
+ * tree: Safari 26 reads even transparent full-screen fixed layers when it
+ * tints its bars and decides where the page may draw.
+ */
+[data-slot="mobile-menu-overlay"] {
+  display: none;
+  opacity: 0;
+  transition:
+    opacity 150ms var(--ease-snappy),
+    display 150ms allow-discrete;
+}
+
+[data-slot="mobile-menu-overlay"][data-open] {
+  display: block;
+  opacity: 1;
+  transition-duration: 250ms;
+
+  @starting-style {
+    opacity: 0;
+  }
+}
+
+[data-slot="mobile-menu-item"] {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 150ms var(--ease-snappy),
+    transform 150ms var(--ease-snappy);
+}
+
+[data-slot="mobile-menu-overlay"][data-open] [data-slot="mobile-menu-item"] {
+  opacity: 1;
+  transform: none;
+  transition-duration: 250ms;
+  transition-delay: var(--menu-item-delay);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Reduced motion keeps the fades and drops the rise. */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="mobile-menu-item"],
+  [data-slot="mobile-menu-overlay"][data-open] [data-slot="mobile-menu-item"] {
+    transform: none;
+
+    @starting-style {
+      transform: none;
+    }
+  }
+}

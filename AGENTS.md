@@ -12,7 +12,7 @@
 - `apps/marketing/`: independent marketing site, a TanStack Start app prerendered to static files. Its interactive product replica lives in `apps/marketing/src/components/product-demo/` with fictional fixtures; it shares design tokens and shared UI from `packages/ui` (currently the phone menu) with the product; its own primitives stay in `apps/marketing/src/components/ui`.
 - `apps/admin/`: private TanStack Start admin app for `admin.pcobooster.com`, deployed as its own Cloudflare Worker. See `docs/admin.md`.
 - `packages/design-tokens/`: product color and radius tokens (`tokens.css`, light on `:root`, dark under `.dark`) shared by `apps/web` and the marketing replica.
-- `packages/ui/`: UI shared by `apps/web` and `apps/marketing`, one export per component (`@pcobooster/ui/mobile-menu`). Components are primitive-free (each app supplies its own buttons and headers) and styled with Tailwind utilities that exist in both apps; each app `@source`s `packages/ui/src`.
+- `packages/ui/`: UI shared by `apps/web` and `apps/marketing`, one export per component (`@pcobooster/ui/mobile-menu`). Components are primitive-free (each app supplies its own buttons and headers) and styled with Tailwind utilities that exist in both apps; each app `@source`s `packages/ui/src` and imports a component's CSS (`@pcobooster/ui/mobile-menu.css`) when it has one.
 - `packages/contracts/`: browser-safe oRPC contracts, transport schemas, and safe error payloads.
 - `packages/planning-center-models/`: browser-safe Planning Center shapes and pure calendar/scheduling rules.
 - `packages/presentation-mode/`: server-side presentation-mode guard, seed, and cache namespace.

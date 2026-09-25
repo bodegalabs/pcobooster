@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./mobile-menu": "./src/mobile-menu.tsx"
+    "./mobile-menu": "./src/mobile-menu.tsx",
+    "./mobile-menu.css": "./src/mobile-menu.css"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

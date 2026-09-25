@@ -303,7 +303,9 @@ export const MobileHeader = ({
         className="bg-background/80 absolute inset-0 backdrop-blur-xl group-data-open/menu:hidden"
       />
       <div className="relative z-10 flex h-14 items-center gap-1 px-4">
-        <div className="flex min-w-0 flex-1 items-center gap-1">{children}</div>
+        <div className="flex min-w-0 flex-1 items-center gap-1 group-data-open/menu:invisible">
+          {children}
+        </div>
         <Button
           type="button"
           variant="ghost"
