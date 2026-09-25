@@ -82,7 +82,7 @@ const STYLE_TAG_PATTERN = /<\/?(?:b|strong|i|em|u|t)>/giu;
 const PLAIN_TEXT_TAG_PATTERN = /<t>/iu;
 /** Chord-line tokens that are not chords: bar lines, repeats, and rests. */
 const CHORD_LINE_SYMBOL_PATTERN =
-  /^(?:\||\|\||\/|-|–|%|\.|:|\(|\)|[x×]\d+|\(?[x×]\d+\)?|N\.?C\.?|\(\S*\))$/iu;
+  /^(?:\||\|\||\/|-|\u2013|%|\.|:|\(|\)|[x×]\d+|\(?[x×]\d+\)?|N\.?C\.?|\(\S*\))$/iu;
 const WHITESPACE_TOKEN_PATTERN = /\S+/gu;
 
 export const COLUMN_BREAK = "COLUMN_BREAK";

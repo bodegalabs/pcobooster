@@ -1,6 +1,7 @@
 import {
   detectChordChartFormat,
   importChordChart,
+  lyricsToChordChart,
   mergeChordsIntoLyrics,
 } from "@pcobooster/planning-center-models/chord-chart-import";
 import { describe, expect, it } from "vitest";
@@ -76,6 +77,59 @@ describe(importChordChart, () => {
   it("keeps a chart that already uses inline chords", () => {
     expect(detectChordChartFormat("VERSE\n[G]Amazing grace")).toBe(
       "inline-chords"
+    );
+  });
+});
+
+describe(lyricsToChordChart, () => {
+  it("numbers verses and prints each repeated stanza once as a chorus", () => {
+    const lyrics = [
+      "Verse one line",
+      "Still verse one",
+      "",
+      "Chorus line",
+      "Sing it again",
+      "",
+      "Verse two line",
+      "",
+      "Chorus line",
+      "Sing it again!",
+      "",
+      "Bridge line",
+      "",
+      "Tag line",
+      "",
+      "Tag line",
+    ].join("\n");
+    expect(lyricsToChordChart(lyrics)).toBe(
+      [
+        "VERSE 1",
+        "Verse one line",
+        "Still verse one",
+        "",
+        "CHORUS 1",
+        "Chorus line",
+        "Sing it again",
+        "",
+        "VERSE 2",
+        "Verse two line",
+        "",
+        "VERSE 3",
+        "Bridge line",
+        "",
+        "CHORUS 2",
+        "Tag line",
+        "",
+      ].join("\n")
+    );
+  });
+
+  it("keeps lyrics that already name their sections or have no stanza breaks", () => {
+    expect(lyricsToChordChart("Chorus\nSing it\n\nVerse 2\nMore")).toBe(
+      "CHORUS\nSing it\n\nVERSE 2\nMore\n"
+    );
+    expect(lyricsToChordChart("One line\nAnother line")).toBe(
+      "One line\nAnother line\n"
     );
   });
 });

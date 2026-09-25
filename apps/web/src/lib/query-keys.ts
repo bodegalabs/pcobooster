@@ -45,4 +45,5 @@ export const queryKeys = {
   songOptions: (songId: string | null, serviceTypeId: string | null) =>
     ["song-options", songId, serviceTypeId] as const,
   chordChartSong: (songId: string) => ["chord-chart-song", songId] as const,
+  lyricsSearch: (query: string) => ["lyrics-search", query] as const,
 } as const;

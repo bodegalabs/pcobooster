@@ -17,6 +17,7 @@ import {
   ExternalLink,
   FileInput,
   Plus,
+  Search,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
@@ -454,9 +455,11 @@ const WorkspaceHeader = ({
 const EditorPane = ({
   workspace,
   hidden,
+  onFindLyrics,
 }: {
   workspace: ChordChartWorkspace;
   hidden: boolean;
+  onFindLyrics: () => void;
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { draft } = workspace;
@@ -482,6 +485,12 @@ const EditorPane = ({
           onTranspose={workspace.handleTranspose}
         />
         <InsertMenu textareaRef={textareaRef} />
+        {draft.chart.trim() === "" ? (
+          <Button variant="secondary" size="sm" onClick={onFindLyrics}>
+            <Search aria-hidden />
+            Find lyrics
+          </Button>
+        ) : null}
         {workspace.restored ? (
           <p className="text-muted-foreground ml-auto flex items-center gap-1 text-xs">
             Unsaved draft restored.
@@ -617,7 +626,13 @@ const ChordChartWorkspaceView = ({
         </Tabs>
       </div>
       <div className="grid min-h-0 flex-1 gap-3 px-4 pb-4 max-md:min-h-[70svh] md:grid-cols-2">
-        <EditorPane workspace={workspace} hidden={pane !== "edit"} />
+        <EditorPane
+          workspace={workspace}
+          hidden={pane !== "edit"}
+          onFindLyrics={() => {
+            setImportOpen(true);
+          }}
+        />
         <PreviewPane
           song={song}
           arrangement={arrangement}
@@ -628,6 +643,7 @@ const ChordChartWorkspaceView = ({
       <ChordChartImportDialog
         open={importOpen}
         onOpenChange={setImportOpen}
+        song={song}
         arrangements={arrangements}
         onImport={workspace.handleImport}
       />

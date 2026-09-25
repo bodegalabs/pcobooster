@@ -3,6 +3,7 @@ import {
   createChordChart,
   prepareChordChartSave,
   readChordChartSong,
+  searchChordChartLyrics,
 } from "@pcobooster/api/application/chord-charts";
 import { withPlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
@@ -44,4 +45,14 @@ const create = rpc.chordCharts.create.handler(
     )
 );
 
-export const chordChartsRouter = { song, update, create };
+const lyricsSearch = rpc.chordCharts.lyricsSearch.handler(
+  async ({ input, context, signal }) =>
+    await executeApplicationEffect(
+      applicationRuntime,
+      withPlanningCenterAccess(searchChordChartLyrics(input)),
+      context,
+      signal
+    )
+);
+
+export const chordChartsRouter = { song, update, create, lyricsSearch };

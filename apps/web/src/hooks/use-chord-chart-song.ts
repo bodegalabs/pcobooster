@@ -4,6 +4,7 @@ import type {
   ChordChartCreateInput,
   ChordChartSongOutput,
   ChordChartUpdateInput,
+  LyricsSearchResult,
 } from "@pcobooster/contracts/chord-charts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
@@ -78,3 +79,14 @@ export const useCreateChordChart = (songId: string) => {
     },
   });
 };
+
+/** Lyrics searches reach an outside service, so they run only on submit and stay cached. */
+export const useLyricsSearch = (query: string, enabled: boolean) =>
+  useQuery<LyricsSearchResult[]>({
+    queryKey: queryKeys.lyricsSearch(query),
+    queryFn: async ({ signal }: QueryFunctionContext) =>
+      await orpc.chordCharts.lyricsSearch({ query }, { signal }),
+    enabled: enabled && query.length >= 2,
+    staleTime: 60 * 60 * 1000,
+    retry: false,
+  });

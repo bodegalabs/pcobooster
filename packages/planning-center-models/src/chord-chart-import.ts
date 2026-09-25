@@ -236,3 +236,66 @@ export const importChordChart = (text: string): ChordChartImport => {
     }
   }
 };
+
+const STANZA_BREAK_PATTERN = /\n\s*\n/u;
+const NON_WORD_PATTERN = /[^\p{L}\p{N}]+/gu;
+
+const stanzaKey = (stanza: string) =>
+  stanza.toLowerCase().replaceAll(NON_WORD_PATTERN, "");
+
+const toStanzas = (text: string): string[] =>
+  text
+    .split(STANZA_BREAK_PATTERN)
+    .map((stanza) =>
+      stanza
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line !== "")
+        .join("\n")
+    )
+    .filter((stanza) => stanza !== "");
+
+/**
+ * Plain lyrics, such as a lyrics site's, as a starting chart. Stanzas that repeat become
+ * choruses and print once, the rest become numbered verses, as Services charts are usually
+ * written; the arrangement's sequence gives the order. Lyrics that already name their
+ * sections, or have no stanza breaks to go by, keep their own shape.
+ */
+export const lyricsToChordChart = (text: string): string => {
+  const source = dropFooter(text.replaceAll("\r\n", "\n"));
+  const stanzas = toStanzas(source);
+  const labelled = source.split("\n").some((line) => toHeading(line) !== null);
+  if (labelled || stanzas.length < 2) {
+    return importChordChart(source).chart;
+  }
+  const counts = new Map<string, number>();
+  for (const stanza of stanzas) {
+    const key = stanzaKey(stanza);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const repeated: string[] = [];
+  for (const [key, count] of counts) {
+    if (count > 1) {
+      repeated.push(key);
+    }
+  }
+  const printed = new Set<string>();
+  const lines: string[] = [];
+  let verse = 0;
+  for (const stanza of stanzas) {
+    const key = stanzaKey(stanza);
+    if (printed.has(key)) {
+      continue;
+    }
+    printed.add(key);
+    const chorus = repeated.indexOf(key);
+    if (chorus === -1) {
+      verse += 1;
+      lines.push(`VERSE ${verse}`);
+    } else {
+      lines.push(repeated.length === 1 ? "CHORUS" : `CHORUS ${chorus + 1}`);
+    }
+    lines.push(stanza, "");
+  }
+  return tidy(lines.join("\n"));
+};

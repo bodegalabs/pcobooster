@@ -97,6 +97,22 @@ export const chordChartCreateInputSchema = chordChartEditSchema.extend({
   name: z.string().trim().min(1).max(255),
 });
 
+/** A song's lyrics found by a web search, to start a chart from. */
+export const lyricsSearchResultSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  artist: z.string(),
+  album: z.string().nullable(),
+  durationSeconds: z.number().nullable(),
+  lyrics: z.string(),
+});
+
+export const lyricsSearchInputSchema = z.object({
+  query: z.string().trim().min(2).max(200),
+});
+
+export const lyricsSearchOutputSchema = z.array(lyricsSearchResultSchema);
+
 const chordChartsProcedure = oc.errors({
   UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
   FORBIDDEN: applicationErrorMap.FORBIDDEN,
@@ -133,6 +149,14 @@ export const chordChartsContract = {
     })
     .input(chordChartCreateInputSchema)
     .output(chordChartArrangementSchema),
+  lyricsSearch: chordChartsProcedure
+    .route({
+      method: "GET",
+      path: "/chord-charts/lyrics",
+      summary: "Search published song lyrics to start a chart from",
+    })
+    .input(lyricsSearchInputSchema)
+    .output(lyricsSearchOutputSchema),
 };
 
 export type ChordChartLayout = z.output<typeof chordChartLayoutSchema>;
@@ -144,3 +168,5 @@ export type ChordChartSongOutput = z.output<typeof chordChartSongOutputSchema>;
 export type ChordChartSongInput = z.input<typeof chordChartSongInputSchema>;
 export type ChordChartUpdateInput = z.input<typeof chordChartUpdateInputSchema>;
 export type ChordChartCreateInput = z.input<typeof chordChartCreateInputSchema>;
+export type LyricsSearchResult = z.output<typeof lyricsSearchResultSchema>;
+export type LyricsSearchInput = z.input<typeof lyricsSearchInputSchema>;

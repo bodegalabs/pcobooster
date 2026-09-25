@@ -7,6 +7,8 @@ import {
   withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/planning-center-access";
+import { searchLyrics } from "@pcobooster/api/modules/lyrics/lrclib-search";
+import type { LyricsSearchDependencies } from "@pcobooster/api/modules/lyrics/lrclib-search";
 import {
   commitChordChartUpdate,
   createChordChartArrangement,
@@ -21,6 +23,8 @@ import type {
   ChordChartSongInput,
   ChordChartSongOutput,
   ChordChartUpdateInput,
+  LyricsSearchInput,
+  LyricsSearchResult,
 } from "@pcobooster/contracts/chord-charts";
 import { Effect } from "effect";
 
@@ -93,4 +97,24 @@ export const createChordChart = (
     const access = yield* PlanningCenterAccess;
     yield* requireChordCharts(access);
     return yield* createChordChartArrangement(input, access.services.songs);
+  }).pipe(withPlanningCenterFaults);
+
+/** Calls the Worker's `fetch` through a wrapper: invoked as a method it loses its binding. */
+const workerLyricsSearch: LyricsSearchDependencies = {
+  fetch: async (input, init) => await globalThis.fetch(input, init),
+};
+
+/** Lyrics from the web to start a chart; one request to LRCLIB, none to Planning Center. */
+export const searchChordChartLyrics = (
+  input: LyricsSearchInput,
+  dependencies: LyricsSearchDependencies = workerLyricsSearch
+): Effect.Effect<
+  LyricsSearchResult[],
+  ApplicationFault,
+  ChordChartRequirements
+> =>
+  Effect.gen(function* searchSongLyrics() {
+    const access = yield* PlanningCenterAccess;
+    yield* requireChordCharts(access);
+    return yield* searchLyrics(input.query, dependencies);
   }).pipe(withPlanningCenterFaults);

@@ -27,4 +27,5 @@ From [Special codes for lyrics and chords](https://help.planningcenter.com/en/13
 ## Starting from lyrics
 
 - CCLI retired the SongSelect partner API and accepts no new partners, so there is no API route to fetch licensed lyrics. Services' own SongSelect integration (including editable ChordPro imports) stays inside Services.
-- The editor imports text a user pastes: a SongSelect ChordPro download, a chords-over-lyrics sheet, or plain lyrics. It also starts from another arrangement's chart or lyrics through the API.
+- The editor searches [LRCLIB](https://lrclib.net/docs), a free, keyless community lyrics database with good coverage of worship songs, through `chordCharts.lyricsSearch` (one outside request, none to Planning Center). It sends a `User-Agent` as LRCLIB asks. Its lyrics carry no section names, so the editor numbers verses and prints repeated stanzas once as choruses. Genius offers no lyrics through its API, and Musixmatch's free tier returns partial lyrics.
+- The editor also imports text a user pastes (a SongSelect ChordPro download, a chords-over-lyrics sheet, or plain lyrics), or starts from another arrangement's chart or lyrics through the API.
