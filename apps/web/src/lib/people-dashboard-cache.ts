@@ -11,7 +11,7 @@ import { z } from "zod";
 
 import { presentationCacheKey } from "@/lib/presentation-cache";
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const KEY_PREFIX = `pcobooster:people-dashboard:${CACHE_VERSION}:`;
 const PERSON_DETAIL_KEY_PREFIX = `${KEY_PREFIX}person:`;
 const ROSTER_KEY = `${KEY_PREFIX}roster`;

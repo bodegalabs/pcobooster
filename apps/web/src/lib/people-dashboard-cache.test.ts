@@ -84,6 +84,15 @@ const roster = (): PeopleDashboardRoster => ({
       teams: ["Band"],
     },
   ],
+  teams: [
+    {
+      id: "team-1",
+      name: "Band",
+      serviceTypeName: "Sunday",
+      personIds: ["person-1"],
+    },
+  ],
+  ledTeamIds: ["team-1"],
 });
 
 const activity = (id: string): PeopleDashboardActivity => {
@@ -94,7 +103,23 @@ const activity = (id: string): PeopleDashboardActivity => {
     teams: _teams,
     ...serving
   } = dashboardPerson;
-  return { ...serving, id };
+  return {
+    ...serving,
+    id,
+    rhythm: {
+      lastServedOn: "2026-05-10",
+      nextServingOn: "2026-05-31",
+      servedDays30: 1,
+      servedDays90: 2,
+      servedDays180: 4,
+      upcomingDays30: 1,
+      typicalGapDays: 21,
+      requests180: 5,
+      declined180: 0,
+      pendingUpcoming: 1,
+      nextPendingOn: "2026-05-31",
+    },
+  };
 };
 
 const personDetail = (): PeopleDashboardPersonDetail => ({
