@@ -18,6 +18,7 @@ const AuthPage = () => {
       deviceAccounts={accounts}
       renderedAt={now}
       initialError={describeSignInError(error ?? null)}
+      errorCode={error ?? null}
     />
   );
 };
