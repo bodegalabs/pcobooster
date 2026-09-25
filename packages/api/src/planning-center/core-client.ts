@@ -398,10 +398,12 @@ const waitForSlot = (
 ): Effect.Effect<void, PlanningCenterRateLimitError> =>
   Clock.currentTimeMillis.pipe(
     Effect.flatMap((now) => {
+      const priority = accounting?.priority ?? "interactive";
       const decision = pacer.reserve(
         scope,
         now,
-        isReadMethod(method) ? "read" : "write"
+        isReadMethod(method) ? "read" : "write",
+        priority
       );
       if (decision.kind === "reject") {
         accounting?.recordRateLimitRejection();
@@ -410,14 +412,18 @@ const waitForSlot = (
             endpoint,
             method,
             attempt,
+            priority,
             retryAfterMs: decision.retryAfterMs,
             rateLimit: decision.window,
           },
-          "Planning Center request rejected: rate limit budget is spent"
+          decision.reason === "speculative"
+            ? "Planning Center speculative request held back: budget kept for interactive requests"
+            : "Planning Center request rejected: rate limit budget is spent"
         );
         return Effect.fail(
           new PlanningCenterRateLimitError({
             retryAfterSeconds: Math.ceil(decision.retryAfterMs / MS_PER_SECOND),
+            reason: decision.reason,
           })
         );
       }
