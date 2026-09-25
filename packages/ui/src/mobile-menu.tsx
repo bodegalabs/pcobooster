@@ -56,8 +56,11 @@ export const MobileMenuIcon = ({ open }: { open: boolean }) =>
   open ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />;
 
 /**
- * The overlay. It stays in the DOM (inert while closed) so it can fade both
- * ways; `className` sets its top padding to clear the header bar.
+ * The overlay; `className` sets its top padding to clear the header bar. It
+ * fades in from `@starting-style` and is `display: none` while closed: Safari
+ * 26 reads full-screen fixed layers when it tints its bars and decides where
+ * the page may draw, even at `opacity: 0`, so a merely transparent overlay
+ * crops the page to flat bars.
  */
 export const MobileMenuOverlay = ({
   id,
@@ -72,10 +75,9 @@ export const MobileMenuOverlay = ({
 }) => (
   <div
     id={id}
-    inert={!open}
-    data-open={open ? "" : undefined}
+    hidden={!open}
     className={[
-      "group/mobile-menu bg-background/70 pointer-events-none fixed inset-0 opacity-0 backdrop-blur-lg backdrop-saturate-150 transition-opacity duration-200 ease-(--ease-snappy) motion-reduce:duration-0 data-open:pointer-events-auto data-open:opacity-100 md:hidden",
+      "bg-background/70 fixed inset-0 backdrop-blur-lg backdrop-saturate-150 transition-opacity duration-200 ease-(--ease-snappy) starting:opacity-0 motion-reduce:duration-0 md:hidden",
       className,
     ]
       .filter(Boolean)
@@ -103,9 +105,9 @@ export const MobileMenuItem = ({
   return (
     <li
       style={style}
-      className="opacity-0 transition-opacity delay-(--menu-item-delay) duration-300 ease-(--ease-snappy) group-data-open/mobile-menu:opacity-100"
+      className="transition-opacity delay-(--menu-item-delay) duration-300 ease-(--ease-snappy) starting:opacity-0"
     >
-      <div className="translate-y-2 transition-transform delay-(--menu-item-delay) duration-300 ease-(--ease-snappy) group-data-open/mobile-menu:translate-y-0 motion-reduce:translate-y-0">
+      <div className="transition-transform delay-(--menu-item-delay) duration-300 ease-(--ease-snappy) starting:translate-y-2 motion-reduce:starting:translate-y-0">
         {children}
       </div>
     </li>

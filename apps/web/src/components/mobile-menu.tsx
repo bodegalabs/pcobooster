@@ -289,36 +289,45 @@ export const MobileHeader = ({
     <header
       data-open={menu.open ? "" : undefined}
       className={cn(
-        "group/menu sticky top-0 z-30 shrink-0 md:hidden",
+        "group/menu pt-safe sticky top-0 z-30 shrink-0 md:hidden",
         className
       )}
     >
-      <div className="bg-background/80 relative z-10 backdrop-blur-xl group-data-open/menu:bg-transparent group-data-open/menu:backdrop-blur-none">
-        <div className="flex h-14 items-center gap-1 px-4">
-          <div className="flex min-w-0 flex-1 items-center gap-1">
-            {children}
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-lg"
-            aria-label={menu.open ? "Close menu" : "Open menu"}
-            aria-expanded={menu.open}
-            aria-controls={MOBILE_MENU_ID}
-            className="-mr-2 shrink-0"
-            onClick={menu.handleToggle}
-          >
-            <MobileMenuIcon open={menu.open} />
-          </Button>
-        </div>
+      {/*
+       * The blur sits on an absolute layer, not the sticky header: Safari 26
+       * tints its bars from sticky elements' own backgrounds, while this layer
+       * lets the header show through the status bar like the page beneath.
+       */}
+      <div
+        aria-hidden
+        className="bg-background/80 absolute inset-0 backdrop-blur-xl group-data-open/menu:hidden"
+      />
+      <div className="relative z-10 flex h-14 items-center gap-1 px-4">
+        <div className="flex min-w-0 flex-1 items-center gap-1">{children}</div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-lg"
+          aria-label={menu.open ? "Close menu" : "Open menu"}
+          aria-expanded={menu.open}
+          aria-controls={MOBILE_MENU_ID}
+          className="-mr-2 shrink-0"
+          onClick={menu.handleToggle}
+        >
+          <MobileMenuIcon open={menu.open} />
+        </Button>
       </div>
-      <MobileMenuOverlay id={MOBILE_MENU_ID} open={menu.open} className="pt-14">
+      <MobileMenuOverlay
+        id={MOBILE_MENU_ID}
+        open={menu.open}
+        className="pt-safe"
+      >
         <nav
           aria-label="Mobile navigation"
-          className="pb-safe-4 flex h-full flex-col justify-between gap-8 overflow-y-auto overscroll-contain px-4 pt-4"
+          className="pb-safe-4 flex h-full flex-col justify-between gap-8 overflow-y-auto overscroll-contain px-4 pt-18"
         >
           <MenuNav />
-          <MenuAccount onAccountSwitched={handleClose} />
+          <MenuAccount onAccountSwitched={menu.handleClose} />
         </nav>
       </MobileMenuOverlay>
     </header>
