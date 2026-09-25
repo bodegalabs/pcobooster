@@ -3,14 +3,20 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AuthSignInCard } from "@/components/auth/auth-sign-in-card";
 import { describeSignInError, sanitizeReturnPath } from "@/lib/auth-redirect";
 import { authSearchSchema } from "@/lib/route-search";
-import { getSessionStatus } from "@/server/session.functions";
+import {
+  getDeviceAccounts,
+  getSessionStatus,
+} from "@/server/session.functions";
 
 const AuthPage = () => {
   const { returnPath } = Route.useRouteContext();
+  const { accounts, now } = Route.useLoaderData();
   const { error } = Route.useSearch();
   return (
     <AuthSignInCard
       returnPath={returnPath}
+      deviceAccounts={accounts}
+      renderedAt={now}
       initialError={describeSignInError(error ?? null)}
     />
   );
@@ -26,6 +32,10 @@ export const Route = createFileRoute("/auth")({
       redirect({ href: returnPath, reloadDocument: true, throw: true });
     }
     return { returnPath };
+  },
+  loader: async () => {
+    const deviceAccounts = await getDeviceAccounts();
+    return deviceAccounts;
   },
   head: () => ({
     meta: [

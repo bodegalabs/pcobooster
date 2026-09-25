@@ -1,3 +1,4 @@
+import { deviceAccounts } from "@pcobooster/api/auth/device-accounts";
 import { getPlanningCenterIdentityFromAccessToken } from "@pcobooster/api/auth/planning-center-identity";
 import { createPreviewProxy } from "@pcobooster/api/auth/preview-proxy";
 import type { ServerConfig } from "@pcobooster/api/config/server-config";
@@ -210,6 +211,7 @@ export const createAuth = (config: ServerConfig, database: Db) => {
     },
     socialProviders: {},
     plugins: [
+      deviceAccounts(database),
       genericOAuth({
         config: [
           {

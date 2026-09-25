@@ -2,6 +2,7 @@ import { useRender } from "@base-ui/react/use-render";
 import {
   LaptopIcon,
   Logout01Icon,
+  UserSwitchIcon,
   Moon02Icon,
   Sun01Icon,
   Tick02Icon,
@@ -170,6 +171,7 @@ const MenuAccount = ({
     isSigningOut,
     selectAccount,
     signOut,
+    switchAccount,
   } = useAccountPanel({ onAccountSwitched });
   const accounts = data?.accounts ?? [];
   const themeOption =
@@ -225,6 +227,18 @@ const MenuAccount = ({
           ))}
         </NativeSelect>
       </div>
+      {demo ? null : (
+        <AccountRow
+          render={<button type="button" aria-label="Switch account" />}
+          disabled={busy}
+          onClick={() => {
+            void switchAccount();
+          }}
+        >
+          <SidebarNavIcon icon={UserSwitchIcon} />
+          Switch account
+        </AccountRow>
+      )}
       <AccountRow
         render={
           <button type="button" aria-label={signOutLabel(demo, isSigningOut)} />
