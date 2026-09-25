@@ -29,7 +29,7 @@ export const featureFlags = {
     key: "chord-charts",
     description:
       "Shows the Songs chord chart editor and serves its API, which writes arrangement chord charts to Planning Center. Managed by Alchemy; dashboard edits are overwritten on deploy.",
-    enabled: { local: true, preview: true, production: false },
+    enabled: { local: true, preview: false, production: false },
   },
 } as const satisfies Readonly<Record<string, BooleanFeatureFlag>>;
 
