@@ -19,6 +19,7 @@ import { clearAccountScopedCaches } from "@/lib/account-scoped-caches";
 import { authClient } from "@/lib/auth-client";
 import { writeBrowserStorage } from "@/lib/browser-storage";
 import { queryKeys } from "@/lib/query-keys";
+import { rememberAccount } from "@/lib/remembered-accounts";
 import { orpc } from "@/orpc-client";
 
 export const fetchAccounts = async ({
@@ -34,10 +35,21 @@ export const fetchAccounts = async ({
       response.session.userId
     );
   }
-  writeBrowserStorage(
-    ACCOUNT_PANEL_CACHE_KEY,
-    serializeAccountPanel(summarizeAccountPanel(response))
-  );
+  const summary = summarizeAccountPanel(response);
+  writeBrowserStorage(ACCOUNT_PANEL_CACHE_KEY, serializeAccountPanel(summary));
+  if (!response.demo) {
+    rememberAccount({
+      userId: response.session.userId,
+      name: response.session.name,
+      email: response.session.email,
+      image: response.session.image,
+      organizationName:
+        response.accounts.find(
+          (account) => account.id === response.selectedAccountId
+        )?.identity?.organizationName ?? null,
+      lastSignedInAt: Date.now(),
+    });
+  }
   return response;
 };
 

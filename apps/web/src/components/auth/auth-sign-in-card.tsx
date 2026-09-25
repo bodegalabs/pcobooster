@@ -1,13 +1,23 @@
 import { captureAnalytics } from "@pcobooster/analytics/client";
+import { X } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { preconnect } from "react-dom";
 
 import { BrandRocketLogo } from "@/components/brand-rocket-logo";
 import { PlanningCenterServicesIcon } from "@/components/planning-center-services-icon";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item";
 import { Spinner } from "@/components/ui/spinner";
+import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import { authClient } from "@/lib/auth-client";
 import { SIGN_IN_RETURN_PARAM } from "@/lib/auth-redirect";
 import {
@@ -15,6 +25,12 @@ import {
   canPlayRocketHoverAnimation,
   playRocketAnimation,
 } from "@/lib/brand-rocket-animation";
+import {
+  REMEMBERED_ACCOUNTS_KEY,
+  forgetRememberedAccount,
+  parseRememberedAccounts,
+} from "@/lib/remembered-accounts";
+import type { RememberedAccount } from "@/lib/remembered-accounts";
 
 const PLANNING_CENTER_ORIGINS = [
   "https://api.planningcenteronline.com",
@@ -56,6 +72,82 @@ const requestAuthorizationUrl = async (returnPath: string): Promise<string> => {
   return url;
 };
 
+const WHITESPACE = /\s+/u;
+
+const accountInitials = (account: RememberedAccount): string => {
+  const source = account.name.trim() || account.email.trim();
+  const [first = "", second = ""] = source.split(WHITESPACE);
+  const initials =
+    second === "" ? first.slice(0, 2) : `${first[0]}${second[0]}`;
+  return initials.toUpperCase() || "?";
+};
+
+const RememberedAccountRow = ({
+  account,
+  pending,
+  disabled,
+  onSelect,
+  onForget,
+  onIntent,
+}: {
+  account: RememberedAccount;
+  pending: boolean;
+  disabled: boolean;
+  onSelect: () => void;
+  onForget: () => void;
+  onIntent: () => void;
+}) => {
+  const displayName = account.name.trim() || account.email;
+  const detail = account.organizationName ?? account.email;
+  return (
+    <li className="relative">
+      <Item
+        variant="outline"
+        size="xs"
+        className="pr-11"
+        render={
+          <button
+            type="button"
+            aria-label={`Continue as ${displayName}`}
+            aria-busy={pending}
+            disabled={disabled}
+          />
+        }
+        onPointerEnter={onIntent}
+        onFocus={onIntent}
+        onClick={onSelect}
+      >
+        <ItemMedia>
+          <Avatar>
+            {account.image === null ? null : (
+              <AvatarImage src={account.image} alt="" />
+            )}
+            <AvatarFallback>{accountInitials(account)}</AvatarFallback>
+          </Avatar>
+        </ItemMedia>
+        <ItemContent className="min-w-0">
+          <ItemTitle>{displayName}</ItemTitle>
+          <ItemDescription>{detail}</ItemDescription>
+        </ItemContent>
+        {pending ? <Spinner /> : null}
+      </Item>
+      {pending ? null : (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className="absolute top-1/2 right-1.5 -translate-y-1/2"
+          aria-label={`Remove ${displayName} from this device`}
+          disabled={disabled}
+          onClick={onForget}
+        >
+          <X />
+        </Button>
+      )}
+    </li>
+  );
+};
+
 export const AuthSignInCard = ({
   returnPath,
   initialError,
@@ -65,6 +157,10 @@ export const AuthSignInCard = ({
 }) => {
   const [signInError, setSignInError] = useState(initialError ?? "");
   const [redirecting, setRedirecting] = useState(false);
+  // Which quick-access account started the redirect; null for the main button.
+  const [pendingUserId, setPendingUserId] = useState<string | null>(null);
+  const [rememberedRaw] = useBrowserStorage(REMEMBERED_ACCOUNTS_KEY);
+  const rememberedAccounts = parseRememberedAccounts(rememberedRaw);
   const preparedRef = useRef<PreparedAuthorization | null>(null);
   const maskId = useId().replaceAll(":", "");
   const rocketRef = useRef<HTMLDivElement>(null);
@@ -121,12 +217,13 @@ export const AuthSignInCard = ({
     }
   }, [prepareAuthorization]);
 
-  const handleSignIn = async () => {
+  const handleSignIn = async (userId: string | null = null) => {
     if (redirecting) {
       return;
     }
     setSignInError("");
     setRedirecting(true);
+    setPendingUserId(userId);
     captureAnalytics("sign in started");
 
     try {
@@ -139,6 +236,7 @@ export const AuthSignInCard = ({
         error instanceof Error ? error.message : START_SIGN_IN_ERROR
       );
       setRedirecting(false);
+      setPendingUserId(null);
     }
   };
 
@@ -149,6 +247,7 @@ export const AuthSignInCard = ({
       if (event.persisted) {
         preparedRef.current = null;
         setRedirecting(false);
+        setPendingUserId(null);
       }
     };
     window.addEventListener("pageshow", handlePageShow);
@@ -156,6 +255,12 @@ export const AuthSignInCard = ({
       window.removeEventListener("pageshow", handlePageShow);
     };
   }, []);
+
+  const hasRemembered = rememberedAccounts.length > 0;
+  const mainButtonLabel =
+    redirecting && pendingUserId === null
+      ? "Opening Planning Center…"
+      : "Continue with Planning Center";
 
   return (
     <main className="auth-backdrop flex min-h-svh items-center justify-center px-4 py-12">
@@ -179,11 +284,12 @@ export const AuthSignInCard = ({
             <div className="flex flex-col gap-6">
               <div className="flex flex-col gap-1.5 text-center">
                 <h1 className="font-heading text-xl font-semibold tracking-tight">
-                  Sign in
+                  {hasRemembered ? "Welcome back" : "Sign in"}
                 </h1>
                 <p className="text-muted-foreground text-pretty">
-                  Plan services and schedule your team with your Planning Center
-                  account.
+                  {hasRemembered
+                    ? "Pick up where you left off on this device."
+                    : "Plan services and schedule your team with your Planning Center account."}
                 </p>
               </div>
 
@@ -193,9 +299,35 @@ export const AuthSignInCard = ({
                 </Alert>
               )}
 
+              {hasRemembered ? (
+                <ul
+                  className="flex flex-col gap-2"
+                  aria-label="Recent accounts"
+                >
+                  {rememberedAccounts.map((account) => (
+                    <RememberedAccountRow
+                      key={account.userId}
+                      account={account}
+                      pending={pendingUserId === account.userId}
+                      disabled={redirecting}
+                      onIntent={() => {
+                        void warmAuthorization();
+                      }}
+                      onSelect={() => {
+                        void handleSignIn(account.userId);
+                      }}
+                      onForget={() => {
+                        forgetRememberedAccount(account.userId);
+                      }}
+                    />
+                  ))}
+                </ul>
+              ) : null}
+
               <Button
                 type="button"
                 size="lg"
+                variant={hasRemembered ? "outline" : "default"}
                 className="w-full"
                 aria-busy={redirecting}
                 disabled={redirecting}
@@ -210,7 +342,7 @@ export const AuthSignInCard = ({
                   void handleSignIn();
                 }}
               >
-                {redirecting ? (
+                {redirecting && pendingUserId === null ? (
                   <Spinner data-icon="inline-start" />
                 ) : (
                   <PlanningCenterServicesIcon
@@ -218,9 +350,7 @@ export const AuthSignInCard = ({
                     className="size-5"
                   />
                 )}
-                {redirecting
-                  ? "Opening Planning Center…"
-                  : "Continue with Planning Center"}
+                {mainButtonLabel}
               </Button>
             </div>
           </CardContent>
