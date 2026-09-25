@@ -208,11 +208,14 @@ const forgetDeviceAccount = async (userId: string): Promise<void> => {
 export const AuthSignInCard = ({
   returnPath,
   initialError,
+  errorCode,
   deviceAccounts,
   renderedAt,
 }: {
   returnPath: string;
   initialError: string | null;
+  /** The provider callback's `?error=` code, reported so failures show up in analytics. */
+  errorCode: string | null;
   /** Accounts this browser can resume without Planning Center, listed during SSR. */
   deviceAccounts: readonly DeviceAccount[];
   renderedAt: number;
@@ -243,6 +246,12 @@ export const AuthSignInCard = ({
     replayCleanupRef.current?.();
     replayCleanupRef.current = playRocketAnimation(rocket, "replay");
   }, []);
+
+  useEffect(() => {
+    if (errorCode !== null && errorCode !== "") {
+      captureAnalytics("sign in failed", { error_code: errorCode });
+    }
+  }, [errorCode]);
 
   useEffect(
     () => () => {
