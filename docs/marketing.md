@@ -10,7 +10,7 @@ The public site is a separate TanStack Start app at `apps/marketing`, prerendere
 
 Use port 3001 to test the whole journey, including Open app. In development, the product forwards `/api/*` to the local API Worker through its service binding and proxies `/`, `/about`, and `/marketing/*` to port 3002. Marketing uses full document navigation so it never asks the product router to load a marketing page (or vice versa).
 
-The marketing dev server is Vite. Its assets are served under `/marketing/` while its pages route at `/` and `/about`; Start rewrites the page requests internally. Vite's HMR websocket may not survive the product's proxy, so open port 3002 directly for hot reload. Styling uses Tailwind and marketing's own shadcn primitives (`src/components/ui`, Base UI, the same `base-luma` style as the product) on the product's design tokens; the interactive replica keeps its CSS modules. Marketing does not import product UI, authentication, or providers.
+The marketing dev server is Vite. Its assets are served under `/marketing/` while its pages route at `/` and `/about`; Start rewrites the page requests internally. Vite's HMR websocket may not survive the product's proxy, so open port 3002 directly for hot reload. Styling uses Tailwind and marketing's own shadcn primitives (`src/components/ui`, Base UI, the same `base-luma` style as the product) on the product's design tokens; the interactive replica keeps its CSS modules. The phone menu comes from `@pcobooster/ui/mobile-menu`, which the product's phone header uses too. Marketing does not import other product UI, authentication, or providers.
 
 ## Build and deployment
 

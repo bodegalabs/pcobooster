@@ -29,10 +29,10 @@ export const PositionPickerList = ({
   onSelect,
   getSlotIntentProps,
   onAddPosition,
-  clearTabBar = false,
+  clearSafeArea = false,
 }: {
   /** Pad the end so the last rows scroll clear of the floating phone tab bar. */
-  clearTabBar?: boolean;
+  clearSafeArea?: boolean;
   teamPositionsLoading: boolean;
   teamPositionGroups: TeamPositionGroup[] | undefined;
   collapsedTeams: Record<string, boolean>;
@@ -93,7 +93,7 @@ export const PositionPickerList = ({
       <div
         className={cn(
           "flex flex-col py-1",
-          clearTabBar && "pb-tab-bar md:pb-1"
+          clearSafeArea && "pb-safe-4 md:pb-1"
         )}
       >
         {body}

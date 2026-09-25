@@ -77,6 +77,7 @@
         "@hugeicons/react": "^1.1.10",
         "@pcobooster/analytics": "workspace:*",
         "@pcobooster/design-tokens": "workspace:*",
+        "@pcobooster/ui": "workspace:*",
         "@tanstack/react-router": "1.170.39",
         "@tanstack/react-start": "1.168.58",
         "class-variance-authority": "^0.7.1",
@@ -138,6 +139,7 @@
         "@pcobooster/design-tokens": "workspace:*",
         "@pcobooster/marketing": "workspace:*",
         "@pcobooster/planning-center-models": "workspace:*",
+        "@pcobooster/ui": "workspace:*",
         "@tanstack/react-hotkeys": "^0.10.0",
         "@tanstack/react-query": "^5.103.1",
         "@tanstack/react-router": "1.170.39",
@@ -252,6 +254,21 @@
         "@types/node": "^24.13.5",
         "typescript": "^7.0.2",
         "vitest": "^5.0.1",
+      },
+    },
+    "packages/ui": {
+      "name": "@pcobooster/ui",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@pcobooster/config": "workspace:*",
+        "@types/react": "^19.3.0",
+        "lucide-react": "^1.47.0",
+        "react": "19.3.0",
+        "typescript": "^7.0.2",
+      },
+      "peerDependencies": {
+        "lucide-react": "^1.47.0",
+        "react": "19.3.0",
       },
     },
   },
@@ -924,6 +941,8 @@
     "@pcobooster/presentation-mode": ["@pcobooster/presentation-mode@workspace:packages/presentation-mode"],
 
     "@pcobooster/server": ["@pcobooster/server@workspace:apps/server"],
+
+    "@pcobooster/ui": ["@pcobooster/ui@workspace:packages/ui"],
 
     "@pcobooster/web": ["@pcobooster/web@workspace:apps/web"],
 

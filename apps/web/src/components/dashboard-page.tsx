@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 
+import { MobileHeader } from "@/components/mobile-menu";
 import { PlanningCenterServicesIcon } from "@/components/planning-center-services-icon";
 import { LineupTab } from "@/components/schedule/lineup-tab";
 import { PlanTab } from "@/components/schedule/plan-tab";
@@ -175,7 +176,7 @@ const DashboardPlanHeader = ({
   const planDate = formatHeaderPlanDate(sortDate, orgTimeZone);
   return (
     <>
-      <header className="flex shrink-0 items-center gap-1 pt-1.5 pb-2 md:hidden">
+      <MobileHeader className="-mx-4">
         <MobilePlanBack onBack={onBack} />
         <div className="flex min-w-0 flex-1 flex-col">
           <h1 className="min-w-0 text-base leading-tight font-semibold tracking-tight">
@@ -193,7 +194,7 @@ const DashboardPlanHeader = ({
         {isNonEmptyString(planningCenterUrl) ? (
           <PlanningCenterLink href={planningCenterUrl} />
         ) : null}
-      </header>
+      </MobileHeader>
       <header className="mb-3 shrink-0 max-md:hidden sm:mb-5">
         <div className="flex min-w-0 items-start justify-between gap-3">
           <h1 className="truncate text-xl leading-tight font-semibold tracking-tight md:text-2xl">
@@ -220,13 +221,13 @@ const DashboardPlanHeader = ({
 
 const DashboardPlanHeaderFallback = () => (
   <>
-    <header className="flex shrink-0 items-center gap-1 pt-1.5 pb-2 md:hidden">
+    <MobileHeader className="-mx-4">
       <MobilePlanBack onBack={null} />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <Skeleton variant="text" className="h-4 w-40" />
         <Skeleton variant="text" className="h-3 w-28" />
       </div>
-    </header>
+    </MobileHeader>
     <div className="max-md:hidden">
       <PlanHeaderSkeleton />
     </div>
@@ -300,7 +301,7 @@ export const DashboardPage = ({
   }
 
   return (
-    <main className="bg-background flex h-full min-h-0 flex-col overflow-hidden">
+    <main className="bg-background flex flex-1 flex-col md:h-full md:min-h-0 md:overflow-hidden">
       <div
         className={cn(
           "mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-4",

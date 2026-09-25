@@ -106,3 +106,8 @@
   --scrollbar-thumb: oklch(0.67 0.018 132 / 28%);
   --scrollbar-thumb-hover: oklch(0.67 0.018 132 / 44%);
 }
+
+/* Motion shared by the product and marketing. */
+@theme {
+  --ease-snappy: cubic-bezier(0.23, 1, 0.32, 1);
+}

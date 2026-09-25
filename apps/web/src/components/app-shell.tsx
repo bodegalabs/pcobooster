@@ -24,7 +24,7 @@ import type { ReactNode } from "react";
 import { useCallback, useState } from "react";
 
 import { HotkeyChord } from "@/components/hotkey-chord";
-import { MobileTabBar } from "@/components/mobile-nav";
+import { MobileHeader } from "@/components/mobile-menu";
 import { SidebarBrandMark } from "@/components/sidebar-brand-mark";
 import { SidebarChromeTrigger } from "@/components/sidebar-chrome-trigger";
 import { SidebarFeedback } from "@/components/sidebar-feedback";
@@ -632,7 +632,7 @@ const MobileChromeHeader = () => {
   const detail = parseDetailRoute(pathname);
 
   return (
-    <header className="flex h-12 shrink-0 items-center gap-2 px-2 md:hidden">
+    <MobileHeader>
       {detail ? (
         <Link
           to={detail.parentHref}
@@ -646,13 +646,13 @@ const MobileChromeHeader = () => {
           {detail.parentLabel}
         </Link>
       ) : (
-        <p className="px-2 text-lg font-semibold tracking-tight">
+        <p className="text-lg font-semibold tracking-tight">
           {getAppSectionLabel(getAppSection(pathname))}
         </p>
       )}
       <DemoBadge />
       {presentationMode ? <PresentationModeBadge /> : null}
-    </header>
+    </MobileHeader>
   );
 };
 
@@ -675,11 +675,11 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
     <SidebarProvider
       open={sidebarOpen}
       onOpenChange={handleSidebarOpenChange}
-      className="h-dvh min-h-0 overflow-hidden"
+      className="min-h-dvh md:h-dvh md:min-h-0 md:overflow-hidden"
     >
       <SidebarToggleHotkey />
       <AppSidebar peopleNavEnabled={peopleNavEnabled} />
-      <SidebarInset className="min-h-0 overflow-hidden">
+      <SidebarInset className="md:min-h-0 md:overflow-hidden">
         <AppInsetChromeHeader>
           <SidebarChromeTrigger when="inset" />
           <AppTopBar />
@@ -687,8 +687,7 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
           {presentationMode ? <PresentationModeBadge /> : null}
         </AppInsetChromeHeader>
         <MobileChromeHeader />
-        <div className="flex min-h-0 flex-1 flex-col">{children}</div>
-        <MobileTabBar peopleEnabled={peopleNavEnabled} />
+        <div className="flex flex-1 flex-col md:min-h-0">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

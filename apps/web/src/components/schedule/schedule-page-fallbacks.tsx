@@ -17,7 +17,7 @@ const planRowWidths = [
 /** Mirrors the services selector: filters, then the plan table with real headers. */
 export const SchedulePlansFallback = () => (
   <main
-    className="bg-background flex h-full min-h-0 flex-col overflow-hidden"
+    className="bg-background flex flex-1 flex-col md:h-full md:min-h-0 md:overflow-hidden"
     aria-busy
     aria-label="Loading services"
   >
@@ -74,7 +74,7 @@ export const SchedulePlansFallback = () => (
 
 export const SchedulePlanWorkspaceFallback = () => (
   <main
-    className="bg-background flex h-full min-h-0 flex-col overflow-hidden"
+    className="bg-background flex flex-1 flex-col md:h-full md:min-h-0 md:overflow-hidden"
     aria-busy
     aria-label="Loading plan"
   >

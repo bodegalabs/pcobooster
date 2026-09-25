@@ -2,6 +2,10 @@
 @import "shadcn/tailwind.css";
 @import "@pcobooster/design-tokens/tokens.css";
 
+@import "@pcobooster/ui/mobile-menu.css";
+
+@source "../../../../packages/ui/src";
+
 /*
  * The marketing site wears the product's own tokens (from @pcobooster/design-tokens) so the
  * interactive replica sits naturally on the page. Only a few marketing-only surfaces are added.
@@ -54,7 +58,6 @@
   --radius-4xl: calc(var(--radius) + 16px);
   --color-mask-visible: #fff;
   --color-mask-hidden: #000;
-  --ease-snappy: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-glide: cubic-bezier(0.77, 0, 0.175, 1);
 
   /* Marketing type scale: fluid display sizes, then body sizes between the defaults. */
@@ -145,11 +148,6 @@
   @media (width >= 64rem) {
     width: calc(100% - 112px);
   }
-}
-
-/* Fades and slides without animating colors, which snap instantly across the site. */
-@utility transition-fade {
-  transition-property: opacity, transform;
 }
 
 /*

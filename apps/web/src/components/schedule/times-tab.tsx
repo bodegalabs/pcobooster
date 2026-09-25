@@ -76,7 +76,7 @@ const TimesTabCards = ({
   onPersist,
   onDelete,
 }: TimesTabCardsProps) => (
-  <div className="pb-tab-bar mx-auto flex w-full max-w-3xl flex-col gap-2.5 md:pb-6">
+  <div className="pb-safe-4 mx-auto flex w-full max-w-3xl flex-col gap-2.5 md:pb-6">
     {planTimes.map((planTime) => {
       const edit =
         edits[planTime.id] ??
@@ -180,7 +180,7 @@ const TimesTabContent = ({
   if (isLoading) {
     return (
       <>
-        <div className="pb-tab-bar mx-auto flex w-full max-w-3xl flex-col gap-2.5 md:pb-6">
+        <div className="pb-safe-4 mx-auto flex w-full max-w-3xl flex-col gap-2.5 md:pb-6">
           {["a", "b", "c"].map((key) => (
             <PlanTimeCardSkeleton key={key} />
           ))}
@@ -221,7 +221,12 @@ const TimesTabContent = ({
 
   return (
     <>
-      <div className={cn("min-h-0 flex-1 overflow-auto", revealClassName)}>
+      <div
+        className={cn(
+          "flex-1 max-md:overflow-x-auto md:min-h-0 md:overflow-auto",
+          revealClassName
+        )}
+      >
         <TimesTabCards {...cardProps} />
       </div>
       {addTimeDialog}

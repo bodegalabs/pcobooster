@@ -32,17 +32,6 @@ const RootDocument = ({ children }: { children: ReactNode }) => (
     <head>
       <ScriptOnce>{themeInitScript}</ScriptOnce>
       <HeadContent />
-      {/* `head()` keeps one meta per name, so the per-scheme theme colors live here. */}
-      <meta
-        name="theme-color"
-        media="(prefers-color-scheme: light)"
-        content="#eff2ee"
-      />
-      <meta
-        name="theme-color"
-        media="(prefers-color-scheme: dark)"
-        content="#1e221c"
-      />
     </head>
     <body className="antialiased">
       {children}
