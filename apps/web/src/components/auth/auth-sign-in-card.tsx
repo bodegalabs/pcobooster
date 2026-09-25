@@ -12,7 +12,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
-import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import { authClient } from "@/lib/auth-client";
 import { SIGN_IN_RETURN_PARAM } from "@/lib/auth-redirect";
 import {
@@ -20,12 +19,7 @@ import {
   canPlayRocketHoverAnimation,
   playRocketAnimation,
 } from "@/lib/brand-rocket-animation";
-import {
-  REMEMBERED_ACCOUNTS_KEY,
-  forgetRememberedAccount,
-  parseRememberedAccounts,
-} from "@/lib/remembered-accounts";
-import type { RememberedAccount } from "@/lib/remembered-accounts";
+import type { DeviceAccount } from "@/server/session.functions";
 
 const PLANNING_CENTER_ORIGINS = [
   "https://api.planningcenteronline.com",
@@ -69,7 +63,7 @@ const requestAuthorizationUrl = async (returnPath: string): Promise<string> => {
 
 const WHITESPACE = /\s+/u;
 
-const accountInitials = (account: RememberedAccount): string => {
+const accountInitials = (account: DeviceAccount): string => {
   const source = account.name.trim() || account.email.trim();
   const [first = "", second = ""] = source.split(WHITESPACE);
   const initials =
@@ -88,16 +82,13 @@ const RELATIVE_TIME_UNITS = [
   ms: number;
 }[];
 
-/** Rows only render in the browser, so this is when the visitor opened the page. */
-const PAGE_OPENED_AT = Date.now();
-
 const relativeTimeFormat = new Intl.RelativeTimeFormat("en", {
   numeric: "auto",
 });
 
 /** "today", "yesterday", "3 weeks ago": how recently this device used the account. */
-const describeLastUsed = (lastSignedInAt: number, now: number): string => {
-  const elapsed = Math.max(0, now - lastSignedInAt);
+const describeLastUsed = (lastActiveAt: string, now: number): string => {
+  const elapsed = Math.max(0, now - Date.parse(lastActiveAt));
   for (const { unit, ms } of RELATIVE_TIME_UNITS) {
     if (elapsed >= ms) {
       return relativeTimeFormat.format(-Math.floor(elapsed / ms), unit);
@@ -106,20 +97,22 @@ const describeLastUsed = (lastSignedInAt: number, now: number): string => {
   return "just now";
 };
 
-const firstName = (account: RememberedAccount): string | null => {
+const firstName = (account: DeviceAccount): string | null => {
   const [first = ""] = account.name.trim().split(WHITESPACE);
   return first === "" ? null : first;
 };
 
-const RememberedAccountRow = ({
+const DeviceAccountRow = ({
   account,
+  now,
   pending,
   disabled,
   onSelect,
   onForget,
   onIntent,
 }: {
-  account: RememberedAccount;
+  account: DeviceAccount;
+  now: number;
   pending: boolean;
   disabled: boolean;
   onSelect: () => void;
@@ -128,7 +121,7 @@ const RememberedAccountRow = ({
 }) => {
   const displayName = account.name.trim() || account.email;
   const organization = account.organizationName ?? account.email;
-  const lastUsed = describeLastUsed(account.lastSignedInAt, PAGE_OPENED_AT);
+  const lastUsed = describeLastUsed(account.lastActiveAt, now);
   return (
     <li className="group/account relative">
       <Item
@@ -196,19 +189,45 @@ const RememberedAccountRow = ({
   );
 };
 
+const resumeDeviceAccount = async (userId: string): Promise<boolean> => {
+  const result = await authClient.$fetch<{ resumed: boolean }>(
+    "/device-accounts/resume",
+    { method: "POST", body: { userId } }
+  );
+  return result.data?.resumed === true;
+};
+
+const forgetDeviceAccount = async (userId: string): Promise<void> => {
+  // Best effort: the row is already hidden, and the session expires anyway.
+  await authClient.$fetch("/device-accounts/forget", {
+    method: "POST",
+    body: { userId },
+  });
+};
+
 export const AuthSignInCard = ({
   returnPath,
   initialError,
+  deviceAccounts,
+  renderedAt,
 }: {
   returnPath: string;
   initialError: string | null;
+  /** Accounts this browser can resume without Planning Center, listed during SSR. */
+  deviceAccounts: readonly DeviceAccount[];
+  renderedAt: number;
 }) => {
   const [signInError, setSignInError] = useState(initialError ?? "");
   const [redirecting, setRedirecting] = useState(false);
   // Which quick-access account started the redirect; null for the main button.
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
-  const [rememberedRaw] = useBrowserStorage(REMEMBERED_ACCOUNTS_KEY);
-  const rememberedAccounts = parseRememberedAccounts(rememberedRaw);
+  const [forgottenUserIds, setForgottenUserIds] = useState<readonly string[]>(
+    []
+  );
+  const forgotten = new Set(forgottenUserIds);
+  const rememberedAccounts = deviceAccounts.filter(
+    (account) => !forgotten.has(account.userId)
+  );
   const preparedRef = useRef<PreparedAuthorization | null>(null);
   const maskId = useId().replaceAll(":", "");
   const rocketRef = useRef<HTMLDivElement>(null);
@@ -288,6 +307,30 @@ export const AuthSignInCard = ({
     }
   };
 
+  // A remembered account resumes its still-valid session here; only an expired
+  // one goes back through Planning Center.
+  const handleResume = async (userId: string) => {
+    if (redirecting) {
+      return;
+    }
+    setSignInError("");
+    setRedirecting(true);
+    setPendingUserId(userId);
+    captureAnalytics("sign in started");
+    try {
+      const resumed = await resumeDeviceAccount(userId);
+      if (resumed) {
+        // The return path may be outside this router, such as `/admin`.
+        window.location.assign(returnPath);
+        return;
+      }
+    } catch {
+      // Fall through to Planning Center, which always works.
+    }
+    setRedirecting(false);
+    await handleSignIn(userId);
+  };
+
   // Returning with the back button restores this page from the bfcache with
   // the pending state still set; reset it and discard the spent OAuth state.
   useEffect(() => {
@@ -364,19 +407,21 @@ export const AuthSignInCard = ({
                   aria-label="Accounts on this device"
                 >
                   {rememberedAccounts.map((account) => (
-                    <RememberedAccountRow
+                    <DeviceAccountRow
                       key={account.userId}
                       account={account}
+                      now={renderedAt}
                       pending={pendingUserId === account.userId}
                       disabled={redirecting}
                       onIntent={() => {
                         void warmAuthorization();
                       }}
                       onSelect={() => {
-                        void handleSignIn(account.userId);
+                        void handleResume(account.userId);
                       }}
                       onForget={() => {
-                        forgetRememberedAccount(account.userId);
+                        setForgottenUserIds((ids) => [...ids, account.userId]);
+                        void forgetDeviceAccount(account.userId);
                       }}
                     />
                   ))}
@@ -424,7 +469,7 @@ export const AuthSignInCard = ({
 
         <p className="text-muted-foreground max-w-xs text-center text-xs text-pretty">
           {hasRemembered
-            ? "Only your name and organization are saved on this device. Remove an account any time."
+            ? "Accounts you switched away from stay signed in on this browser. Remove one to sign it out."
             : "You’ll sign in on Planning Center, then come right back here. PCOBooster only uses your Services and People access."}
         </p>
       </div>

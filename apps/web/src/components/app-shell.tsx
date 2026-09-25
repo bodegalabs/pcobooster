@@ -7,6 +7,7 @@ import {
   Layout3ColumnIcon,
   ListMusicIcon,
   Logout01Icon,
+  UserSwitchIcon,
   Moon02Icon,
   Settings02Icon,
   Sun01Icon,
@@ -300,6 +301,7 @@ const SidebarAccountPanel = ({
     isSigningOut,
     selectAccount,
     signOut,
+    switchAccount,
   } = useAccountPanel({
     onAccountSwitched: () => {
       setAccountMenuOpen(false);
@@ -417,6 +419,18 @@ const SidebarAccountPanel = ({
             ) : null}
 
             <DropdownMenuSeparator inset />
+
+            {demo ? null : (
+              <DropdownMenuItem
+                disabled={isSigningOut || Boolean(switchingAccountId)}
+                onSelect={() => {
+                  void switchAccount();
+                }}
+              >
+                <SidebarNavIcon icon={UserSwitchIcon} />
+                Switch account
+              </DropdownMenuItem>
+            )}
 
             <DropdownMenuItem
               variant="destructive"

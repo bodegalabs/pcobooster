@@ -19,7 +19,6 @@ import { clearAccountScopedCaches } from "@/lib/account-scoped-caches";
 import { authClient } from "@/lib/auth-client";
 import { writeBrowserStorage } from "@/lib/browser-storage";
 import { queryKeys } from "@/lib/query-keys";
-import { rememberAccount } from "@/lib/remembered-accounts";
 import { orpc } from "@/orpc-client";
 
 export const fetchAccounts = async ({
@@ -35,21 +34,10 @@ export const fetchAccounts = async ({
       response.session.userId
     );
   }
-  const summary = summarizeAccountPanel(response);
-  writeBrowserStorage(ACCOUNT_PANEL_CACHE_KEY, serializeAccountPanel(summary));
-  if (!response.demo) {
-    rememberAccount({
-      userId: response.session.userId,
-      name: response.session.name,
-      email: response.session.email,
-      image: response.session.image,
-      organizationName:
-        response.accounts.find(
-          (account) => account.id === response.selectedAccountId
-        )?.identity?.organizationName ?? null,
-      lastSignedInAt: Date.now(),
-    });
-  }
+  writeBrowserStorage(
+    ACCOUNT_PANEL_CACHE_KEY,
+    serializeAccountPanel(summarizeAccountPanel(response))
+  );
   return response;
 };
 
@@ -60,6 +48,16 @@ const signOutSession = async () => {
   const result = await authClient.signOut();
   if (result.error) {
     throw new Error(result.error.message ?? "Unable to sign out");
+  }
+};
+
+/** Leaves the account signed in on this browser so the sign-in page can resume it. */
+const leaveSession = async () => {
+  const result = await authClient.$fetch("/device-accounts/leave", {
+    method: "POST",
+  });
+  if (result.error) {
+    throw new Error(result.error.message ?? "Unable to switch accounts");
   }
 };
 
@@ -119,14 +117,20 @@ export const useAccountPanel = ({
     setSwitchingAccountId(null);
   };
 
-  const signOut = async () => {
+  const signOut = async ({ keepOnDevice = false } = {}) => {
     if (isSigningOut || switchingAccountId !== null) {
       return;
     }
     setActionError("");
     setIsSigningOut(true);
     try {
-      await (demo ? exitDemoSession() : signOutSession());
+      if (demo) {
+        await exitDemoSession();
+      } else if (keepOnDevice) {
+        await leaveSession();
+      } else {
+        await signOutSession();
+      }
       resetAnalytics();
       queryClient.clear();
       clearAccountScopedCaches();
@@ -154,5 +158,8 @@ export const useAccountPanel = ({
     isSigningOut,
     selectAccount,
     signOut,
+    switchAccount: async () => {
+      await signOut({ keepOnDevice: true });
+    },
   };
 };
