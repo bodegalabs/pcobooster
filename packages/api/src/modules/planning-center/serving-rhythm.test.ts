@@ -52,6 +52,19 @@ describe(buildServingRhythm, () => {
     });
   });
 
+  it("counts today's unanswered request as pending", () => {
+    const rhythm = buildServingRhythm(
+      [served("2026-09-25T23:00:00.000Z", "U")],
+      new Date("2026-09-25T18:00:00.000Z"),
+      "UTC"
+    );
+
+    expect(rhythm).toMatchObject({
+      pendingUpcoming: 1,
+      nextPendingOn: "2026-09-25",
+    });
+  });
+
   it("puts a late-evening service on the org day, not the UTC day", () => {
     // Sunday September 20, 7:00 PM Pacific; September 21 in UTC.
     const rhythm = buildServingRhythm(

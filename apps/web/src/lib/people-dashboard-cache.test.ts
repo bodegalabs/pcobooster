@@ -203,6 +203,7 @@ describe("people dashboard cache", () => {
     writeCachedPeopleDashboardActivity([activity("person-1")]);
     writeCachedPeopleDashboardPerson("person-1", "2026-05", personDetail());
     window.localStorage.setItem("unrelated", "keep");
+    window.localStorage.setItem("pcobooster:people-dashboard:v1:roster", "{}");
 
     clearCachedPeopleDashboards();
 
@@ -212,6 +213,9 @@ describe("people dashboard cache", () => {
       readCachedPeopleDashboardPerson("person-1", "2026-05")
     ).toBeUndefined();
     expect(window.localStorage.getItem("unrelated")).toBe("keep");
+    expect(
+      window.localStorage.getItem("pcobooster:people-dashboard:v1:roster")
+    ).toBeNull();
   });
 
   it("round-trips person detail snapshots with the saved timestamp", () => {

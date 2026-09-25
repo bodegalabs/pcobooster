@@ -121,7 +121,7 @@ const ServingBar = ({
 
 const ReasonBadges = ({ reasons }: { reasons: readonly CheckInReason[] }) => {
   if (reasons.length === 0) {
-    return <span className="text-muted-foreground">—</span>;
+    return <span className="text-muted-foreground">-</span>;
   }
   return (
     <span className="flex flex-wrap gap-1">
@@ -149,7 +149,7 @@ const responsesLabel = ({ rhythm }: TeamMember) => {
   if (rhythm.pendingUpcoming > 0) {
     parts.push(`${rhythm.pendingUpcoming} pending`);
   }
-  return parts.length > 0 ? parts.join(" · ") : "—";
+  return parts.length > 0 ? parts.join(" · ") : "-";
 };
 
 const COLUMN_COUNT = 6;

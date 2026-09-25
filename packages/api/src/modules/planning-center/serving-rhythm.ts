@@ -86,7 +86,8 @@ export const buildServingRhythm = (
       declined += inWindow ? 1 : 0;
       continue;
     }
-    if (scheduleDaysAgo < 0 && isUnconfirmedStatus(schedule.status)) {
+    // Today's unanswered request still needs an answer.
+    if (scheduleDaysAgo <= 0 && isUnconfirmedStatus(schedule.status)) {
       pendingUpcoming += 1;
       if (!nextPending || schedule.sortDate < nextPending) {
         nextPending = schedule.sortDate;

@@ -61,7 +61,7 @@ export const TeamHealthSummary = ({
     progress !== undefined &&
     progress.hydratedPeopleCount < progress.scopePeopleCount;
   const declineRate =
-    health.requests === 0 ? "—" : percent(health.declined / health.requests);
+    health.requests === 0 ? "-" : percent(health.declined / health.requests);
 
   return (
     <Card size="sm">
