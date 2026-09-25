@@ -31,6 +31,14 @@ describe("feature flag registry", () => {
       production: false,
     });
   });
+
+  it("keeps chord charts on locally and off in previews and production", () => {
+    expect(featureFlags.chordCharts.enabled).toStrictEqual({
+      local: true,
+      preview: false,
+      production: false,
+    });
+  });
 });
 
 describe(deploymentTier, () => {
