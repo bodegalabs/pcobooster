@@ -295,7 +295,12 @@ describe(getPeopleDashboardActivity, () => {
     );
 
     expect(getPersonSchedulesAfter.mock.calls).toStrictEqual([
-      ["person-1", "2025-11-23", 2, { includeDeclined: true }],
+      [
+        "person-1",
+        "2025-11-23",
+        2,
+        { includeDeclined: true, newestFirst: true },
+      ],
     ]);
     expect(batch).toMatchObject({
       deferredPersonIds: [],

@@ -46,8 +46,11 @@ import { Effect } from "effect";
 /**
  * 100 schedules per page. The busiest volunteer measured had 23 schedules in
  * the window, so one page is typical and two leave room for heavy servers.
+ * Schedules are read newest first, so a person past the cap loses their
+ * oldest history, never their upcoming dates.
  */
 const SCHEDULE_MAX_PAGES = 2;
+const SCHEDULE_PAGE_SIZE = 100;
 /** Workers allows 6 open connections per invocation; leave headroom. */
 const READ_CONCURRENCY = 4;
 /**
@@ -763,7 +766,7 @@ export const getPeopleDashboardActivity = ({
             personId,
             historyDayKey,
             SCHEDULE_MAX_PAGES,
-            { includeDeclined: true }
+            { includeDeclined: true, newestFirst: true }
           ),
           ({ data, included }): PersonSchedules => ({
             personId,
@@ -872,6 +875,10 @@ export const getPeopleDashboardActivity = ({
         hydratedPeopleCount: people.length,
         deferredPeopleCount: deferred.size,
         unreadFirstPersonServiceTypeCount: unreadFirstPersonTypes,
+        // Full reads may have stopped at the page cap, dropping oldest history.
+        scheduleCapReachedPeopleCount: schedules.filter(
+          ({ data }) => data.length >= SCHEDULE_MAX_PAGES * SCHEDULE_PAGE_SIZE
+        ).length,
       },
       "People dashboard activity read"
     );
