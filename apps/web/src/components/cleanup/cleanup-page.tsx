@@ -341,7 +341,7 @@ export const CleanupPage = () => {
               </TabsList>
             </Tabs>
           </div>
-          <div className="grid shrink-0 grid-cols-1 items-center gap-2 sm:grid-cols-[minmax(0,1fr)_200px]">
+          <div className="grid shrink-0 grid-cols-1 items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
             <InputGroup>
               <InputGroupAddon>
                 <Search />
