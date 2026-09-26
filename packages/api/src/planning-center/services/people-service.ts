@@ -363,19 +363,27 @@ export class PlanningCenterPeopleService {
    * Schedules from `after` (a YYYY-MM-DD day or an ISO instant) onward, with service PlanTimes sideloaded. Like
    * `getPersonSchedules`, it leaves rehearsal PlanTimes for callers to resolve. Planning Center's default scope returns only future schedules, so the explicit
    * `after` filter is what makes past schedules visible. Declined schedules stay excluded
-   * unless `includeDeclined` asks for them (status `D`).
+   * unless `includeDeclined` asks for them (status `D`). `newestFirst` reads the latest
+   * schedules first, so a read cut off at `maxPages` drops the oldest history instead of
+   * upcoming dates.
    */
   getPersonSchedulesAfter(
     personId: string,
     after: string,
     maxPages = 3,
-    { includeDeclined = false }: { readonly includeDeclined?: boolean } = {}
+    {
+      includeDeclined = false,
+      newestFirst = false,
+    }: {
+      readonly includeDeclined?: boolean;
+      readonly newestFirst?: boolean;
+    } = {}
   ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
     const params = {
       filter: includeDeclined ? "after,with_declined" : "after",
       after,
       include: "plan_times",
-      order: "starts_at",
+      order: newestFirst ? "-starts_at" : "starts_at",
     };
     return cachedRead(
       this.caches.collections,

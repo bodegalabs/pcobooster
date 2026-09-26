@@ -301,6 +301,37 @@ describe("PlanningCenterPeopleService.getPersonSchedulesAfter", () => {
       order: "starts_at",
     });
   });
+
+  it("reads newest first when asked, so a capped read keeps upcoming dates", async () => {
+    const core = createBasicPlanningCenterClient(
+      testPlanningCenterToken,
+      unreachableHttpClient
+    );
+    const fetchAllWithIncluded = vi
+      .spyOn(core, "fetchAllWithIncluded")
+      .mockReturnValue(Effect.succeed({ data: [], included: [] }));
+    const service = new PlanningCenterPeopleService(core);
+
+    await Effect.runPromise(
+      service.getPersonSchedulesAfter("person-1", "2026-03-24", 2, {
+        includeDeclined: true,
+      })
+    );
+    await Effect.runPromise(
+      service.getPersonSchedulesAfter("person-1", "2026-03-24", 2, {
+        includeDeclined: true,
+        newestFirst: true,
+      })
+    );
+
+    expect(fetchAllWithIncluded).toHaveBeenCalledTimes(2);
+    expect(fetchAllWithIncluded.mock.calls[1]?.[1]).toStrictEqual({
+      filter: "after,with_declined",
+      after: "2026-03-24",
+      include: "plan_times",
+      order: "-starts_at",
+    });
+  });
 });
 
 describe("PlanningCenterPeopleService.updatePlanPersonStatus", () => {
