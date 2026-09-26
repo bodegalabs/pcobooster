@@ -4,6 +4,7 @@ import { NotFound } from "@pcobooster/api/application/errors/not-found";
 import { featureFlagSubjectFor } from "@pcobooster/api/application/feature-flags";
 import {
   PlanningCenterAccess,
+  explainPlanningCenterDenial,
   withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/planning-center-access";
@@ -35,6 +36,14 @@ import { Effect } from "effect";
 
 type ChordChartRequirements = PlanningCenterAccess | RequestContext | Server;
 
+const viewDenied = explainPlanningCenterDenial(
+  "Your Planning Center account can't view songs in Services. Ask a Services administrator for access."
+);
+
+const editDenied = explainPlanningCenterDenial(
+  "Your Planning Center account can't edit songs in Services. Ask a Services administrator for permission to edit songs."
+);
+
 /** The editor and its writes exist only where the `chordCharts` flag is on for this caller. */
 const requireChordCharts = (access: PlanningCenterRequestAccess) =>
   Effect.gen(function* checkChordChartsFlag() {
@@ -64,7 +73,7 @@ export const readChordChartSong = (
     const access = yield* PlanningCenterAccess;
     yield* requireChordCharts(access);
     return yield* getChordChartSong(input.songId, access.services.songs);
-  }).pipe(withPlanningCenterFaults);
+  }).pipe(viewDenied, withPlanningCenterFaults);
 
 export const prepareChordChartSave = (
   input: ChordChartUpdateInput
@@ -77,7 +86,7 @@ export const prepareChordChartSave = (
     const access = yield* PlanningCenterAccess;
     yield* requireChordCharts(access);
     return yield* prepareChordChartUpdate(input, access.services.songs);
-  }).pipe(withPlanningCenterFaults);
+  }).pipe(viewDenied, withPlanningCenterFaults);
 
 export const commitChordChartSave = (
   prepared: PreparedChordChartUpdate
@@ -89,7 +98,7 @@ export const commitChordChartSave = (
   Effect.gen(function* commitSave() {
     const access = yield* PlanningCenterAccess;
     return yield* commitChordChartUpdate(prepared, access.services.songs);
-  }).pipe(withPlanningCenterFaults);
+  }).pipe(editDenied, withPlanningCenterFaults);
 
 export const createChordChart = (
   input: ChordChartCreateInput
@@ -102,9 +111,8 @@ export const createChordChart = (
     const access = yield* PlanningCenterAccess;
     yield* requireChordCharts(access);
     return yield* createChordChartArrangement(input, access.services.songs);
-  }).pipe(withPlanningCenterFaults);
+  }).pipe(editDenied, withPlanningCenterFaults);
 
-/** Calls the Worker's `fetch` through a wrapper: invoked as a method it loses its binding. */
 export const addChordChartSong = (
   input: ChordChartSongCreateInput
 ): Effect.Effect<
@@ -116,9 +124,12 @@ export const addChordChartSong = (
     const access = yield* PlanningCenterAccess;
     yield* requireChordCharts(access);
     return yield* createChordChartSong(input, access.services.songs);
-  }).pipe(withPlanningCenterFaults);
+  }).pipe(editDenied, withPlanningCenterFaults);
 
-/** Planning Center's own render of the saved chart, so the preview matches it exactly. */
+/**
+ * Planning Center's own render of the saved chart, so the preview matches it exactly. Calls
+ * the Worker's `fetch` through a wrapper: invoked as a method it loses its binding.
+ */
 export const readChordChartPdf = (
   input: ChordChartPdfInput
 ): Effect.Effect<ChordChartPdf, ApplicationFault, ChordChartRequirements> =>
@@ -129,7 +140,7 @@ export const readChordChartPdf = (
       songs: access.services.songs,
       fetch: async (request, init) => await globalThis.fetch(request, init),
     });
-  }).pipe(withPlanningCenterFaults);
+  }).pipe(viewDenied, withPlanningCenterFaults);
 
 const workerLyricsSearch: LyricsSearchDependencies = {
   fetch: async (input, init) => await globalThis.fetch(input, init),

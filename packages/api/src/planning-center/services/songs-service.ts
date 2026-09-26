@@ -217,13 +217,18 @@ export class PlanningCenterSongsService {
 
   /**
    * A short-lived URL for a chart Services renders, such as `chord_chart-{keyId}--` on a
-   * key or `lyric_chart-{arrangementId}` on an arrangement. Opening logs a view.
+   * key or `lyric_chart-{arrangementId}` on an arrangement. Opening logs a view and changes
+   * nothing, so the read-only demo client may send it.
    */
   openChartAttachment(
     attachmentPath: string
   ): Effect.Effect<string, PlanningCenterError> {
     return this.core
-      .fetch(`${attachmentPath}/open`, { method: "POST", body: {} })
+      .fetch(`${attachmentPath}/open`, {
+        method: "POST",
+        body: {},
+        readAction: true,
+      })
       .pipe(
         Effect.map((response) => {
           const url = response.data.attributes.attachment_url;

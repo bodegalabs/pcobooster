@@ -172,6 +172,25 @@ describe(PlanningCenterCoreClient, () => {
     expect(fetch).toHaveBeenCalledOnce();
   });
 
+  it("lets a read-only client send a POST action that only reads", async () => {
+    const fetch = fetchMock().mockResolvedValue(jsonResponse({ data: person }));
+    const client = new PlanningCenterCoreClient(
+      { kind: "basic", applicationId: "demo", secret: "demo-pat" },
+      { httpClient: httpClientFor(fetch), readOnly: true }
+    );
+
+    await expect(
+      run(
+        client.fetch("/services/v2/songs/1/attachments/2/open", {
+          method: "POST",
+          body: {},
+          readAction: true,
+        })
+      )
+    ).resolves.toMatchObject({ data: person });
+    expect(fetch.mock.calls[0]?.[1]?.method).toBe("POST");
+  });
+
   it("accepts empty writes through the transport method", async () => {
     const fetch = fetchMock().mockResolvedValue(
       new Response(null, { status: 204 })

@@ -323,6 +323,8 @@ export const createChordChartSong = (
   });
 
 const PDF_DOWNLOAD_TIMEOUT_MS = 15_000;
+/** Services' charts are tens of kilobytes; the limit keeps a bad link from filling memory. */
+export const CHORD_CHART_PDF_MAX_BYTES = 8 * 1024 * 1024;
 const BASE64_CHUNK_BYTES = 0x80_00;
 
 /** Base64 without Node's Buffer, which Workers only have with compatibility flags. */
@@ -344,6 +346,53 @@ export interface ChordChartPdfDependencies {
 const pdfFailure = (message: string, cause?: unknown) =>
   new ExternalServiceFailure({ message, service: "planning-center", cause });
 
+const pdfTooLarge = () =>
+  pdfFailure("The chart's PDF is too large to preview.");
+
+/** Reads the body up to `CHORD_CHART_PDF_MAX_BYTES`, stopping the download past it. */
+const readPdfBytes = (
+  response: Response
+): Effect.Effect<Uint8Array, ExternalServiceFailure> =>
+  Effect.gen(function* readLimited() {
+    const declared = Number(response.headers.get("Content-Length"));
+    if (declared > CHORD_CHART_PDF_MAX_BYTES) {
+      yield* Effect.promise(async () => await response.body?.cancel());
+      return yield* pdfTooLarge();
+    }
+    const { body } = response;
+    if (body === null) {
+      return new Uint8Array();
+    }
+    const chunks = yield* Effect.tryPromise({
+      try: async () => {
+        const received: Uint8Array[] = [];
+        let total = 0;
+        for await (const chunk of body) {
+          total += chunk.byteLength;
+          if (total > CHORD_CHART_PDF_MAX_BYTES) {
+            // Leaving the loop cancels the rest of the download.
+            return null;
+          }
+          received.push(chunk);
+        }
+        return received;
+      },
+      catch: (cause) => pdfFailure("The chart's PDF could not be read.", cause),
+    });
+    if (chunks === null) {
+      return yield* pdfTooLarge();
+    }
+    const bytes = new Uint8Array(
+      chunks.reduce((sum, chunk) => sum + chunk.byteLength, 0)
+    );
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return bytes;
+  });
+
 /**
  * The PDF Services itself renders from the saved chart: a key's chord chart, or the lyrics
  * sheet. Two requests: Planning Center's `open` action, then the file it points to.
@@ -359,9 +408,9 @@ export const getChordChartPdf = (
         ? `${arrangementPath}/attachments/lyric_chart-${input.arrangementId}`
         : `${arrangementPath}/keys/${input.keyId}/attachments/chord_chart-${input.keyId}--`;
     const url = yield* songs.openChartAttachment(attachmentPath);
-    if (url === "") {
+    if (!url.startsWith("https://")) {
       return yield* pdfFailure(
-        "Planning Center did not return the chart's PDF."
+        "Planning Center did not return a secure link to the chart's PDF."
       );
     }
     const response = yield* Effect.tryPromise({
@@ -380,10 +429,7 @@ export const getChordChartPdf = (
         `The chart's PDF download answered ${String(response.status)}.`
       );
     }
-    const bytes = yield* Effect.tryPromise({
-      try: async () => new Uint8Array(await response.arrayBuffer()),
-      catch: (cause) => pdfFailure("The chart's PDF could not be read.", cause),
-    });
+    const bytes = yield* readPdfBytes(response);
     return {
       filename: input.keyId === undefined ? "lyrics.pdf" : "chord-chart.pdf",
       data: bytesToBase64(bytes),
