@@ -205,7 +205,10 @@ describe("PlanningCenterAccess", () => {
   it("maps paced rate-limit rejections and subrequest limits to tagged faults", () => {
     expect(
       toApplicationFault(
-        new PlanningCenterRateLimitError({ retryAfterSeconds: 12 })
+        new PlanningCenterRateLimitError({
+          retryAfterSeconds: 12,
+          reason: "budget",
+        })
       )
     ).toMatchObject({
       _tag: "RateLimited",

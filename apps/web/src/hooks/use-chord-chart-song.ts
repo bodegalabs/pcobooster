@@ -12,13 +12,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
+import { callForQuery } from "@/lib/request-priority";
 import { orpc } from "@/orpc-client";
 
 /** Editing starts from what Services holds, so the chart is never read from a stale copy. */
 export const createChordChartSongQueryOptions = (songId: string) => ({
   queryKey: queryKeys.chordChartSong(songId),
-  queryFn: async ({ signal }: QueryFunctionContext) =>
-    await orpc.chordCharts.song({ songId }, { signal }),
+  queryFn: async (context: QueryFunctionContext) =>
+    await callForQuery(
+      context,
+      async (options) => await orpc.chordCharts.song({ songId }, options)
+    ),
   staleTime: 30 * 1000,
 });
 

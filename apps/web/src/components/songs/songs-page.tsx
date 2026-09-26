@@ -33,6 +33,7 @@ import {
   parseRecentSongs,
 } from "@/lib/recent-songs";
 import type { RecentSong } from "@/lib/recent-songs";
+import { speculativeQuery } from "@/lib/request-priority";
 import { formatSongLastScheduled } from "@/lib/song-catalog-client";
 
 export const SongsPageSkeleton = () => (
@@ -139,7 +140,9 @@ const useSongIntentPrefetch = () => {
       return isQueryFresh(queryClient, options.queryKey, options.staleTime);
     },
     prefetch: async (songId) => {
-      await queryClient.query(createChordChartSongQueryOptions(songId));
+      await queryClient.query(
+        speculativeQuery(createChordChartSongQueryOptions(songId))
+      );
     },
   });
 };
