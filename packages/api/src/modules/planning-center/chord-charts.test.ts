@@ -325,10 +325,17 @@ describe(getChordChartPdf, () => {
   });
 
   it("refuses a PDF larger than the limit, declared or streamed", async () => {
-    const declared = new Response(pdfBytes, {
-      status: 200,
-      headers: { "Content-Length": String(CHORD_CHART_PDF_MAX_BYTES + 1) },
+    // A body whose cancel fails still reports the size, not a defect.
+    const declaredCancel = vi.fn<() => never>(() => {
+      throw new Error("stream already errored");
     });
+    const declared = new Response(
+      new ReadableStream<Uint8Array>({ cancel: declaredCancel }),
+      {
+        status: 200,
+        headers: { "Content-Length": String(CHORD_CHART_PDF_MAX_BYTES + 1) },
+      }
+    );
     const chunk = new Uint8Array(CHORD_CHART_PDF_MAX_BYTES / 2 + 1);
     const cancel = vi.fn<() => void>();
     const streamed = new Response(
@@ -353,6 +360,7 @@ describe(getChordChartPdf, () => {
       );
       expect(JSON.stringify(exit)).toContain("too large");
     }
+    expect(declaredCancel).toHaveBeenCalledOnce();
     expect(cancel).toHaveBeenCalledOnce();
   });
 });

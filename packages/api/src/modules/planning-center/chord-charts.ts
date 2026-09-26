@@ -356,7 +356,10 @@ const readPdfBytes = (
   Effect.gen(function* readLimited() {
     const declared = Number(response.headers.get("Content-Length"));
     if (declared > CHORD_CHART_PDF_MAX_BYTES) {
-      yield* Effect.promise(async () => await response.body?.cancel());
+      // Stopping the download is best effort; the size already decides the answer.
+      yield* Effect.ignore(
+        Effect.tryPromise(async () => await response.body?.cancel())
+      );
       return yield* pdfTooLarge();
     }
     const { body } = response;
