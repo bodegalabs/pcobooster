@@ -21,6 +21,7 @@
     "./plan-people": "./src/plan-people.ts",
     "./plan-time-schemas": "./src/plan-time-schemas.ts",
     "./plan-times": "./src/plan-times.ts",
+    "./request-priority": "./src/request-priority.ts",
     "./router": "./src/router.ts",
     "./schedule": "./src/schedule.ts",
     "./session": "./src/session.ts",

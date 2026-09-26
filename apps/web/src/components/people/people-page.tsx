@@ -29,6 +29,7 @@ import { usePeopleDashboard } from "@/hooks/use-people-dashboard";
 import { createPeopleDashboardPersonQueryOptions } from "@/hooks/use-people-dashboard-person";
 import { isQueryFresh } from "@/lib/intent-prefetch";
 import type { PeopleDashboardData } from "@/lib/people-dashboard";
+import { speculativeQuery } from "@/lib/request-priority";
 
 const EMPTY_PEOPLE: PeopleDashboardPerson[] = [];
 const EMPTY_TEAMS: string[] = [];
@@ -172,7 +173,9 @@ export const PeoplePage = () => {
         params: { personId: person.id },
       });
       await queryClient.query(
-        createPeopleDashboardPersonQueryOptions(person.id, null)
+        speculativeQuery(
+          createPeopleDashboardPersonQueryOptions(person.id, null)
+        )
       );
     },
     [queryClient, router]
