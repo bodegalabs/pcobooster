@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as VersionRouteImport } from './routes/version'
 import { Route as AdminSplatRouteImport } from './routes/admin/$'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as DemoKeyRouteImport } from './routes/demo/$key'
@@ -20,6 +21,8 @@ import { Route as AppCleanupIndexRouteImport } from './routes/_app/cleanup/index
 import { Route as AppPeopleIndexRouteImport } from './routes/_app/people/index'
 import { Route as AppPeoplePersonIdRouteImport } from './routes/_app/people/$personId'
 import { Route as AppServicesIndexRouteImport } from './routes/_app/services/index'
+import { Route as AppSongsIndexRouteImport } from './routes/_app/songs/index'
+import { Route as AppSongsSongIdRouteImport } from './routes/_app/songs/$songId'
 import { Route as AppServicesServiceTypeIdPlansPlanIdRouteRouteImport } from './routes/_app/services/$serviceTypeId/plans/$planId/route'
 import { Route as AppServicesServiceTypeIdPlansPlanIdIndexRouteImport } from './routes/_app/services/$serviceTypeId/plans/$planId/index'
 import { Route as AppServicesServiceTypeIdPlansPlanIdViewRouteImport } from './routes/_app/services/$serviceTypeId/plans/$planId/$view'
@@ -41,6 +44,11 @@ const AboutRoute = AboutRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VersionRoute = VersionRouteImport.update({
+  id: '/version',
+  path: '/version',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminSplatRoute = AdminSplatRouteImport.update({
@@ -78,6 +86,16 @@ const AppServicesIndexRoute = AppServicesIndexRouteImport.update({
   path: '/services/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSongsIndexRoute = AppSongsIndexRouteImport.update({
+  id: '/songs/',
+  path: '/songs/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSongsSongIdRoute = AppSongsSongIdRouteImport.update({
+  id: '/songs/$songId',
+  path: '/songs/$songId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppServicesServiceTypeIdPlansPlanIdRouteRoute =
   AppServicesServiceTypeIdPlansPlanIdRouteRouteImport.update({
     id: '/services/$serviceTypeId/plans/$planId',
@@ -101,13 +119,16 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/version': typeof VersionRoute
   '/admin/$': typeof AdminSplatRoute
   '/api/$': typeof ApiSplatRoute
   '/demo/$key': typeof DemoKeyRoute
   '/people/$personId': typeof AppPeoplePersonIdRoute
+  '/songs/$songId': typeof AppSongsSongIdRoute
   '/cleanup/': typeof AppCleanupIndexRoute
   '/people/': typeof AppPeopleIndexRoute
   '/services/': typeof AppServicesIndexRoute
+  '/songs/': typeof AppSongsIndexRoute
   '/services/$serviceTypeId/plans/$planId': typeof AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren
   '/services/$serviceTypeId/plans/$planId/$view': typeof AppServicesServiceTypeIdPlansPlanIdViewRoute
   '/services/$serviceTypeId/plans/$planId/': typeof AppServicesServiceTypeIdPlansPlanIdIndexRoute
@@ -116,13 +137,16 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/version': typeof VersionRoute
   '/admin/$': typeof AdminSplatRoute
   '/api/$': typeof ApiSplatRoute
   '/demo/$key': typeof DemoKeyRoute
   '/people/$personId': typeof AppPeoplePersonIdRoute
+  '/songs/$songId': typeof AppSongsSongIdRoute
   '/cleanup': typeof AppCleanupIndexRoute
   '/people': typeof AppPeopleIndexRoute
   '/services': typeof AppServicesIndexRoute
+  '/songs': typeof AppSongsIndexRoute
   '/services/$serviceTypeId/plans/$planId/$view': typeof AppServicesServiceTypeIdPlansPlanIdViewRoute
   '/services/$serviceTypeId/plans/$planId': typeof AppServicesServiceTypeIdPlansPlanIdIndexRoute
 }
@@ -132,13 +156,16 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/version': typeof VersionRoute
   '/admin/$': typeof AdminSplatRoute
   '/api/$': typeof ApiSplatRoute
   '/demo/$key': typeof DemoKeyRoute
   '/_app/people/$personId': typeof AppPeoplePersonIdRoute
+  '/_app/songs/$songId': typeof AppSongsSongIdRoute
   '/_app/cleanup/': typeof AppCleanupIndexRoute
   '/_app/people/': typeof AppPeopleIndexRoute
   '/_app/services/': typeof AppServicesIndexRoute
+  '/_app/songs/': typeof AppSongsIndexRoute
   '/_app/services/$serviceTypeId/plans/$planId': typeof AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren
   '/_app/services/$serviceTypeId/plans/$planId/$view': typeof AppServicesServiceTypeIdPlansPlanIdViewRoute
   '/_app/services/$serviceTypeId/plans/$planId/': typeof AppServicesServiceTypeIdPlansPlanIdIndexRoute
@@ -149,13 +176,16 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/version'
     | '/admin/$'
     | '/api/$'
     | '/demo/$key'
     | '/people/$personId'
+    | '/songs/$songId'
     | '/cleanup/'
     | '/people/'
     | '/services/'
+    | '/songs/'
     | '/services/$serviceTypeId/plans/$planId'
     | '/services/$serviceTypeId/plans/$planId/$view'
     | '/services/$serviceTypeId/plans/$planId/'
@@ -164,13 +194,16 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/version'
     | '/admin/$'
     | '/api/$'
     | '/demo/$key'
     | '/people/$personId'
+    | '/songs/$songId'
     | '/cleanup'
     | '/people'
     | '/services'
+    | '/songs'
     | '/services/$serviceTypeId/plans/$planId/$view'
     | '/services/$serviceTypeId/plans/$planId'
   id:
@@ -179,13 +212,16 @@ export interface FileRouteTypes {
     | '/_app'
     | '/about'
     | '/auth'
+    | '/version'
     | '/admin/$'
     | '/api/$'
     | '/demo/$key'
     | '/_app/people/$personId'
+    | '/_app/songs/$songId'
     | '/_app/cleanup/'
     | '/_app/people/'
     | '/_app/services/'
+    | '/_app/songs/'
     | '/_app/services/$serviceTypeId/plans/$planId'
     | '/_app/services/$serviceTypeId/plans/$planId/$view'
     | '/_app/services/$serviceTypeId/plans/$planId/'
@@ -196,6 +232,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
+  VersionRoute: typeof VersionRoute
   AdminSplatRoute: typeof AdminSplatRoute
   ApiSplatRoute: typeof ApiSplatRoute
   DemoKeyRoute: typeof DemoKeyRoute
@@ -229,6 +266,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/version': {
+      id: '/version'
+      path: '/version'
+      fullPath: '/version'
+      preLoaderRoute: typeof VersionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/$': {
@@ -280,6 +324,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppServicesIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/songs/': {
+      id: '/_app/songs/'
+      path: '/songs'
+      fullPath: '/songs/'
+      preLoaderRoute: typeof AppSongsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/songs/$songId': {
+      id: '/_app/songs/$songId'
+      path: '/songs/$songId'
+      fullPath: '/songs/$songId'
+      preLoaderRoute: typeof AppSongsSongIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/services/$serviceTypeId/plans/$planId': {
       id: '/_app/services/$serviceTypeId/plans/$planId'
       path: '/services/$serviceTypeId/plans/$planId'
@@ -324,17 +382,21 @@ const AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren =
 
 interface AppRouteChildren {
   AppPeoplePersonIdRoute: typeof AppPeoplePersonIdRoute
+  AppSongsSongIdRoute: typeof AppSongsSongIdRoute
   AppCleanupIndexRoute: typeof AppCleanupIndexRoute
   AppPeopleIndexRoute: typeof AppPeopleIndexRoute
   AppServicesIndexRoute: typeof AppServicesIndexRoute
+  AppSongsIndexRoute: typeof AppSongsIndexRoute
   AppServicesServiceTypeIdPlansPlanIdRouteRoute: typeof AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppPeoplePersonIdRoute: AppPeoplePersonIdRoute,
+  AppSongsSongIdRoute: AppSongsSongIdRoute,
   AppCleanupIndexRoute: AppCleanupIndexRoute,
   AppPeopleIndexRoute: AppPeopleIndexRoute,
   AppServicesIndexRoute: AppServicesIndexRoute,
+  AppSongsIndexRoute: AppSongsIndexRoute,
   AppServicesServiceTypeIdPlansPlanIdRouteRoute:
     AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren,
 }
@@ -346,6 +408,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
+  VersionRoute: VersionRoute,
   AdminSplatRoute: AdminSplatRoute,
   ApiSplatRoute: ApiSplatRoute,
   DemoKeyRoute: DemoKeyRoute,

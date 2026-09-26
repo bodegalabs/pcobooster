@@ -1,5 +1,6 @@
 import { Server } from "@pcobooster/api/server";
 import { catalogRouter } from "@pcobooster/api/transport/orpc/catalog";
+import { chordChartsRouter } from "@pcobooster/api/transport/orpc/chord-charts";
 import { cleanupRouter } from "@pcobooster/api/transport/orpc/cleanup";
 import { demoRouter } from "@pcobooster/api/transport/orpc/demo";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
@@ -38,6 +39,7 @@ export const appRouter = rpc.router({
   accounts: identityRouter.accounts,
   admin: identityRouter.admin,
   catalog: catalogRouter,
+  chordCharts: chordChartsRouter,
   cleanup: cleanupRouter,
   demo: demoRouter,
   features: identityRouter.features,

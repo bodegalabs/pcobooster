@@ -1,12 +1,11 @@
 import type { QueryClient } from "@tanstack/react-query";
 
-import { createFeatureQueryOptions, requireFeature } from "@/lib/feature-gate";
-import { queryKeys } from "@/lib/query-keys";
+import { createFeatureQueryOptions, requireFeature } from "@/lib/feature-query";
 import { getCleanupFeature } from "@/server/features.functions";
 
 /** The API's `cleanup` flag answer, loaded with the app layout like People's. */
 export const cleanupFeatureQueryOptions = createFeatureQueryOptions(
-  queryKeys.cleanupFeature(),
+  "cleanup",
   async () => await getCleanupFeature()
 );
 

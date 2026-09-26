@@ -24,10 +24,26 @@ describe("feature flag registry", () => {
     }
   });
 
-  it("keeps People on locally and off in previews and production", () => {
+  it("keeps People on locally and in previews, off in production", () => {
     expect(featureFlags.people.enabled).toStrictEqual({
       local: true,
-      preview: false,
+      preview: true,
+      production: false,
+    });
+  });
+
+  it("keeps chord charts on locally and in previews, off in production", () => {
+    expect(featureFlags.chordCharts.enabled).toStrictEqual({
+      local: true,
+      preview: true,
+      production: false,
+    });
+  });
+
+  it("keeps Data cleanup on locally and in previews, off in production", () => {
+    expect(featureFlags.cleanup.enabled).toStrictEqual({
+      local: true,
+      preview: true,
       production: false,
     });
   });

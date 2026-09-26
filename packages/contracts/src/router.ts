@@ -2,6 +2,7 @@ import { oc } from "@orpc/contract";
 import { accountsContract } from "@pcobooster/contracts/accounts";
 import { adminContract } from "@pcobooster/contracts/admin";
 import { catalogContract } from "@pcobooster/contracts/catalog";
+import { chordChartsContract } from "@pcobooster/contracts/chord-charts";
 import { cleanupContract } from "@pcobooster/contracts/cleanup";
 import { demoContract } from "@pcobooster/contracts/demo";
 import { featuresContract } from "@pcobooster/contracts/features";
@@ -34,6 +35,7 @@ export const appContract = oc.router({
   accounts: accountsContract,
   admin: adminContract,
   catalog: catalogContract,
+  chordCharts: chordChartsContract,
   cleanup: cleanupContract,
   demo: demoContract,
   features: featuresContract,

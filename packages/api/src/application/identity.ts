@@ -434,20 +434,19 @@ const resolveFeatureFlagSubject = (
     };
   });
 
-/** Whether a page's feature flag is on for this visitor. */
-export const getFeature = (
-  name: FeatureFlagName,
+export const getFeatureStatus = (
+  flag: FeatureFlagName,
   overrides?: IdentityDependencies
 ): Effect.Effect<
   { readonly enabled: boolean },
   ApplicationFault,
   RequestContext | Server
 > =>
-  Effect.gen(function* readFeature() {
+  Effect.gen(function* readFeatureStatus() {
     const dependencies = yield* resolveIdentityDependencies(overrides);
     const subject = yield* resolveFeatureFlagSubject(dependencies);
     const { featureFlags } = yield* Server;
-    return { enabled: yield* featureFlags.isEnabled(name, subject) };
+    return { enabled: yield* featureFlags.isEnabled(flag, subject) };
   });
 
 export const getAdminAccounts = Effect.gen(function* readAdminAccounts() {

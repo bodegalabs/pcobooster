@@ -3,17 +3,13 @@ import { QueryClient } from "@tanstack/react-query";
 import { isNotFound } from "@tanstack/react-router";
 import { describe, expect, it, vi } from "vitest";
 
-import { createFeatureQueryOptions, requireFeature } from "@/lib/feature-gate";
-import { queryKeys } from "@/lib/query-keys";
+import { createFeatureQueryOptions, requireFeature } from "@/lib/feature-query";
 
 const setup = (answer: FeatureStatus) => {
   const fetchPeopleFeature = vi
     .fn<() => Promise<FeatureStatus>>()
     .mockResolvedValue(answer);
-  const options = createFeatureQueryOptions(
-    queryKeys.peopleFeature(),
-    fetchPeopleFeature
-  );
+  const options = createFeatureQueryOptions("people", fetchPeopleFeature);
   const queryClient = new QueryClient();
   const guard = async () => {
     try {

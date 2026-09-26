@@ -1,7 +1,8 @@
+export type FeatureName = "people" | "chordCharts" | "cleanup";
+
 export const queryKeys = {
   accounts: () => ["planning-center-accounts"] as const,
-  peopleFeature: () => ["people-feature"] as const,
-  cleanupFeature: () => ["cleanup-feature"] as const,
+  feature: (feature: FeatureName) => ["feature", feature] as const,
   cleanupSongs: (staleMonths: number) =>
     ["cleanup-songs", staleMonths] as const,
   cleanupPeopleRoster: () => ["cleanup-people-roster"] as const,
@@ -48,4 +49,12 @@ export const queryKeys = {
   songSearch: (query: string) => ["song-search", query] as const,
   songOptions: (songId: string | null, serviceTypeId: string | null) =>
     ["song-options", songId, serviceTypeId] as const,
+  chordChartSong: (songId: string) => ["chord-chart-song", songId] as const,
+  lyricsSearch: (query: string) => ["lyrics-search", query] as const,
+  /** Keyed by the saved version, so each save renders again. */
+  chordChartPdf: (
+    arrangementId: string,
+    keyId: string | null,
+    updatedAt: string | null
+  ) => ["chord-chart-pdf", arrangementId, keyId, updatedAt] as const,
 } as const;

@@ -4,13 +4,13 @@ import { env } from "cloudflare:workers";
 
 import { createServerRpcClient } from "@/server/server-rpc";
 
-const featureClient = () => {
+const createRequestRpcClient = () => {
   setResponseHeader("Cache-Control", "private, no-store");
   return createServerRpcClient({
     api: env.API,
     cookie: getRequest().headers.get("cookie") ?? undefined,
     productOrigin: env.PRODUCT_ORIGIN,
-  }).features;
+  });
 };
 
 /**
@@ -18,10 +18,15 @@ const featureClient = () => {
  * the signed-in user and organization on every call.
  */
 export const getPeopleFeature = createServerFn({ method: "GET" }).handler(
-  async () => await featureClient().people({})
+  async () => await createRequestRpcClient().features.people({})
 );
 
-/** Whether the Data cleanup page is on for this visitor (the API's `cleanup` flag). */
+/** Whether the Songs chord chart editor is on for this visitor (the `chordCharts` flag). */
+export const getChordChartsFeature = createServerFn({ method: "GET" }).handler(
+  async () => await createRequestRpcClient().features.chordCharts({})
+);
+
+/** Whether the Data cleanup page is on for this visitor (the `cleanup` flag). */
 export const getCleanupFeature = createServerFn({ method: "GET" }).handler(
-  async () => await featureClient().cleanup({})
+  async () => await createRequestRpcClient().features.cleanup({})
 );

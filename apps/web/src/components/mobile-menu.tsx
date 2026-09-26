@@ -2,6 +2,7 @@ import { useRender } from "@base-ui/react/use-render";
 import {
   LaptopIcon,
   Logout01Icon,
+  UserSwitchIcon,
   Moon02Icon,
   Sun01Icon,
   Tick02Icon,
@@ -30,6 +31,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { signOutLabel, useAccountPanel } from "@/hooks/use-account-panel";
 import { usePlanRoute } from "@/hooks/use-plan-route";
 import { getAppSection, getPlanViewLabel, planViews } from "@/lib/app-routes";
+import { chordChartsFeatureQueryOptions } from "@/lib/chord-charts-route";
 import { cleanupFeatureQueryOptions } from "@/lib/cleanup-route";
 import { getInitials } from "@/lib/format/initials";
 import { peopleFeatureQueryOptions } from "@/lib/people-route";
@@ -75,6 +77,8 @@ const MenuNav = () => {
   const planRoute = usePlanRoute();
   const peopleEnabled =
     useQuery(peopleFeatureQueryOptions).data?.enabled ?? false;
+  const songsEnabled =
+    useQuery(chordChartsFeatureQueryOptions).data?.enabled ?? false;
   const cleanupEnabled =
     useQuery(cleanupFeatureQueryOptions).data?.enabled ?? false;
   const entries: {
@@ -116,6 +120,14 @@ const MenuNav = () => {
       link: <Link to="/people" />,
       label: "People",
       active: section === "people",
+    });
+  }
+  if (songsEnabled) {
+    entries.push({
+      key: "songs",
+      link: <Link to="/songs" />,
+      label: "Songs",
+      active: section === "songs",
     });
   }
   if (cleanupEnabled) {
@@ -181,6 +193,7 @@ const MenuAccount = ({
     isSigningOut,
     selectAccount,
     signOut,
+    switchAccount,
   } = useAccountPanel({ onAccountSwitched });
   const accounts = data?.accounts ?? [];
   const themeOption =
@@ -236,6 +249,18 @@ const MenuAccount = ({
           ))}
         </NativeSelect>
       </div>
+      {demo ? null : (
+        <AccountRow
+          render={<button type="button" aria-label="Switch account" />}
+          disabled={busy}
+          onClick={() => {
+            void switchAccount();
+          }}
+        >
+          <SidebarNavIcon icon={UserSwitchIcon} />
+          Switch account
+        </AccountRow>
+      )}
       <AccountRow
         render={
           <button type="button" aria-label={signOutLabel(demo, isSigningOut)} />

@@ -3,7 +3,7 @@ import {
   RequestContext,
 } from "@pcobooster/api/application/context";
 import {
-  getFeature,
+  getFeatureStatus,
   getPlanningCenterAccounts,
   getSessionStatus,
   selectPlanningCenterAccount,
@@ -232,7 +232,7 @@ const readPeopleFeature = async (
   featureFlags = testFeatureFlags({ people: true })
 ) => {
   const result = await Effect.runPromise(
-    getFeature("people", dependencies).pipe(
+    getFeatureStatus("people", dependencies).pipe(
       Effect.provideService(RequestContext, createRequestContext(request)),
       Effect.provideService(Server, testServer({ featureFlags }))
     )
@@ -240,7 +240,7 @@ const readPeopleFeature = async (
   return { result, evaluations: featureFlags.evaluations };
 };
 
-describe(getFeature, () => {
+describe(getFeatureStatus, () => {
   it("evaluates the flag anonymously for a signed-out visitor", async () => {
     const { result, evaluations } = await readPeopleFeature(
       unauthenticatedDependencies()

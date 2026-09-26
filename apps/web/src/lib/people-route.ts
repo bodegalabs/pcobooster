@@ -1,7 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 
-import { createFeatureQueryOptions, requireFeature } from "@/lib/feature-gate";
-import { queryKeys } from "@/lib/query-keys";
+import { createFeatureQueryOptions, requireFeature } from "@/lib/feature-query";
 import { getPeopleFeature } from "@/server/features.functions";
 
 /**
@@ -9,7 +8,7 @@ import { getPeopleFeature } from "@/server/features.functions";
  * renders with it and never flashes the People link.
  */
 export const peopleFeatureQueryOptions = createFeatureQueryOptions(
-  queryKeys.peopleFeature(),
+  "people",
   async () => await getPeopleFeature()
 );
 

@@ -63,11 +63,14 @@ export const parsePlanRoute = (pathname: string): PlanRoute | null => {
   return { serviceTypeId, planId, view };
 };
 
-export type AppSection = "services" | "people" | "cleanup";
+export type AppSection = "services" | "people" | "songs" | "cleanup";
 
 export const getAppSection = (pathname: string): AppSection => {
   if (pathname.startsWith("/people")) {
     return "people";
+  }
+  if (pathname.startsWith("/songs")) {
+    return "songs";
   }
   if (pathname.startsWith("/cleanup")) {
     return "cleanup";
@@ -78,6 +81,7 @@ export const getAppSection = (pathname: string): AppSection => {
 const appSectionLabels: Record<AppSection, string> = {
   services: "Services",
   people: "People",
+  songs: "Songs",
   cleanup: "Data cleanup",
 };
 
@@ -85,7 +89,7 @@ export const getAppSectionLabel = (section: AppSection): string =>
   appSectionLabels[section];
 
 export interface DetailRoute {
-  parentHref: "/people";
+  parentHref: "/people" | "/songs";
   parentLabel: string;
   label: string;
 }
@@ -94,6 +98,9 @@ export interface DetailRoute {
 export const parseDetailRoute = (pathname: string): DetailRoute | null => {
   if (/^\/people\/[^/]+/u.test(pathname)) {
     return { parentHref: "/people", parentLabel: "People", label: "Person" };
+  }
+  if (/^\/songs\/[^/]+/u.test(pathname)) {
+    return { parentHref: "/songs", parentLabel: "Songs", label: "Chord chart" };
   }
   return null;
 };
