@@ -2,13 +2,14 @@ import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas
 import { Link } from "@tanstack/react-router";
 import { ArrowDown } from "lucide-react";
 import { useMemo, useState } from "react";
-import type { CSSProperties } from "react";
 
+import { CheckInReasonIcon } from "@/components/people/check-in-reason";
 import {
   PersonIdentitySkeleton,
   PersonLineSkeleton,
 } from "@/components/people/people-skeletons";
 import {
+  Meter,
   PersonAvatar,
   PersonRowButton,
 } from "@/components/people/shared-components";
@@ -82,14 +83,6 @@ const SortHeader = ({
   </TableHead>
 );
 
-type ServingBarStyle = CSSProperties & {
-  "--serving-share": string;
-  "--team-pace": string;
-};
-
-const percentOf = (value: number, max: number) =>
-  `${max === 0 ? 0 : (value / max) * 100}%`;
-
 const ServingBar = ({
   days,
   maxDays,
@@ -98,26 +91,16 @@ const ServingBar = ({
   days: number;
   maxDays: number;
   teamPace: number | null;
-}) => {
-  const style: ServingBarStyle = {
-    "--serving-share": percentOf(days, maxDays),
-    "--team-pace": percentOf(teamPace ?? 0, maxDays),
-  };
-  return (
-    <div className="flex items-center gap-2" style={style}>
-      <span className="w-5 shrink-0 text-right tabular-nums">{days}</span>
-      <div className="bg-muted relative h-1.5 flex-1 rounded-full">
-        <div className="bg-primary/70 h-full w-(--serving-share) rounded-full" />
-        {teamPace !== null && maxDays > 0 ? (
-          <div
-            aria-hidden
-            className="bg-foreground/50 absolute -top-0.5 left-(--team-pace) h-2.5 w-px"
-          />
-        ) : null}
-      </div>
-    </div>
-  );
-};
+}) => (
+  <div className="flex items-center gap-2">
+    <span className="w-5 shrink-0 text-right tabular-nums">{days}</span>
+    <Meter
+      value={maxDays === 0 ? 0 : days / maxDays}
+      marker={teamPace === null || maxDays === 0 ? null : teamPace / maxDays}
+      className="flex-1"
+    />
+  </div>
+);
 
 const ReasonBadges = ({ reasons }: { reasons: readonly CheckInReason[] }) => {
   if (reasons.length === 0) {
@@ -133,6 +116,7 @@ const ReasonBadges = ({ reasons }: { reasons: readonly CheckInReason[] }) => {
             label={detail}
             render={<Badge variant="outline" />}
           >
+            <CheckInReasonIcon kind={reason.kind} />
             {label}
           </HoverLabel>
         );
@@ -335,6 +319,7 @@ export const TeamRoster = ({
                   </span>
                   {firstReason === undefined ? null : (
                     <Badge variant="outline" className="shrink-0">
+                      <CheckInReasonIcon kind={firstReason.kind} />
                       {describeCheckInReason(firstReason).label}
                     </Badge>
                   )}
