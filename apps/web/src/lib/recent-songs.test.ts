@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { clearAccountScopedCaches } from "@/lib/account-scoped-caches";
 import {
   matchRecentSongs,
   readRecentSongs,
@@ -10,6 +11,10 @@ const installLocalStorageMock = () => {
   const storage = new Map<string, string>();
   vi.stubGlobal("window", {
     localStorage: {
+      get length() {
+        return storage.size;
+      },
+      key: (index: number) => [...storage.keys()][index] ?? null,
       getItem: (key: string) => storage.get(key) ?? null,
       removeItem: (key: string) => {
         storage.delete(key);
@@ -49,6 +54,12 @@ describe("recent songs", () => {
       "3",
       "2",
     ]);
+  });
+
+  it("forgets the list when the organization changes", () => {
+    rememberRecentSong(song("1", "Build My Life"));
+    clearAccountScopedCaches();
+    expect(readRecentSongs()).toStrictEqual([]);
   });
 
   it("matches every query word against title and writers", () => {

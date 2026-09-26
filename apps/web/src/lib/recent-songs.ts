@@ -45,6 +45,11 @@ export const rememberRecentSong = (song: RecentSong): void => {
   );
 };
 
+/** Songs belong to one organization, so switching accounts starts the list over. */
+export const clearRecentSongs = (): void => {
+  writeBrowserStorage(RECENT_SONGS_STORAGE_KEY, null);
+};
+
 /** Recent songs whose title or writers contain every word of the query. */
 export const matchRecentSongs = (
   songs: readonly RecentSong[],
