@@ -6,6 +6,7 @@ import { clearCachedPeopleDashboards } from "@/lib/people-dashboard-cache";
 import { clearCachedPeopleSearch } from "@/lib/people-search-cache";
 import { clearCachedPlanItems } from "@/lib/plan-items-cache";
 import { clearCachedPositionCandidates } from "@/lib/position-candidates-cache";
+import { clearRecentSongs } from "@/lib/recent-songs";
 import { clearCachedScheduleCatalog } from "@/lib/schedule-catalog-cache";
 import { clearCachedSongOptions } from "@/lib/song-options-cache";
 import { clearCachedSongSearch } from "@/lib/song-search-cache";
@@ -20,6 +21,7 @@ export const clearAccountScopedCaches = (): void => {
   clearCachedMyScheduledPlans();
   clearCachedOrganizationTimeZone();
   clearCachedPlanItems();
+  clearRecentSongs();
   clearCachedScheduleCatalog();
   clearCachedSongOptions();
   clearCachedSongSearch();
