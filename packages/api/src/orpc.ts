@@ -37,7 +37,6 @@ const health = rpc.health.handler(
 
 export const appRouter = rpc.router({
   accounts: identityRouter.accounts,
-  admin: identityRouter.admin,
   catalog: catalogRouter,
   chordCharts: chordChartsRouter,
   cleanup: cleanupRouter,
