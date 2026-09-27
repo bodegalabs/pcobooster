@@ -22,7 +22,7 @@ export const PlanTabToolbar = ({
   const reordering = pendingItemId === "reorder";
 
   return (
-    <div className="border-border/50 bg-background/95 sm:bg-background sticky top-0 z-20 -mx-4 flex shrink-0 items-center gap-1 border-b px-4 py-2 backdrop-blur sm:-mx-0 sm:rounded-md sm:border">
+    <div className="border-border/50 bg-background sticky top-0 z-20 -mx-4 flex shrink-0 items-center gap-1 border-b px-4 py-2 sm:-mx-0 sm:rounded-md sm:border">
       <Button
         type="button"
         variant="ghost"
