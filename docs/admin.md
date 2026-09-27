@@ -10,7 +10,9 @@ Cloudflare Access is the only gate. The admin app has no sign-in of its own and 
 - **Staging and previews:** admin has no public URL; it is served at `/admin` through the product Worker, which sits behind that stage's own Access application admitting the same addresses (see [CI/CD](ci-cd.md#staging)).
 - **Local:** `bun run dev` has no Access; admin is open on `127.0.0.1`.
 
-Add or remove people in `PCOBOOSTER_ADMIN_EMAILS` (comma-separated); the next deploy of each stage updates its policy. The index page shows who Access signed in, read from the headers Access adds (`src/server/access-viewer.ts`); that is display only.
+Every read also checks the Access login itself (`src/server/access-identity.ts`). Deployed stages give the admin Worker `ACCESS_TEAM_DOMAIN`, and its server functions render the not-found page, never data, unless the request carries an Access token (the `Cf-Access-Jwt-Assertion` header or the `CF_Authorization` cookie) signed by that team's keys, issued by the team, and naming a person. Service tokens name no person, so CI's deploy check cannot read admin data. This keeps admin closed even if its Access application were ever missing or failed to deploy, as happened once when the production token lacked the right permission. The index page shows the verified email.
+
+Add or remove people in `PCOBOOSTER_ADMIN_EMAILS` (comma-separated); the next deploy of each stage updates its policy.
 
 Every Worker response carries `X-Robots-Tag: noindex, nofollow`, `Referrer-Policy: no-referrer`, and `Cache-Control: private, no-store` (`src/start.ts`).
 

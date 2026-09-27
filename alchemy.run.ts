@@ -72,6 +72,12 @@ const teamEmails = Config.String("PCOBOOSTER_ADMIN_EMAILS").pipe(
   Config.map(parseTeamEmails)
 );
 
+/**
+ * The account's Zero Trust team. The admin Worker verifies each request's Access login against
+ * this team's signing keys, so admin stays closed even if its Access application were missing.
+ */
+const accessTeamDomain = "polished-math-d3e5.cloudflareaccess.com";
+
 const allowTeam = Effect.gen(function* allowTeam() {
   const emails = yield* teamEmails;
   return {
@@ -174,7 +180,10 @@ export default Alchemy.Stack(
       observability: workerObservability(production),
       dev: { host: "127.0.0.1", port: 3003, strictPort: true },
       memo: viteMemo([]),
-      env: { DB: database },
+      env: {
+        DB: database,
+        ACCESS_TEAM_DOMAIN: local ? "" : accessTeamDomain,
+      },
     });
     // TanStack Start. Its build stages the marketing site into `public/marketing` first.
     const web = yield* Cloudflare.Website.Vite("Web", {

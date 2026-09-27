@@ -49,6 +49,12 @@ const githubOidcSubject = (environment: string) =>
 const accountScope = { [`com.cloudflare.api.account.${accountId}`]: "*" };
 /** Account-level Flagship Write (includes read); Alchemy's typed catalog does not list it yet. */
 const FLAGSHIP_WRITE = { id: "521a41dc78f94eaba5e643528846cb7b" };
+/**
+ * Account-level Access: Apps and Policies Write. Cloudflare has a zone-level group with the same
+ * name, and Alchemy resolves a name to the first match, the zone one, which cannot create
+ * account Access applications. Always reference this group by id.
+ */
+const ACCESS_APPS_WRITE = { id: "1e13c5124ca64b72b1969a67e8829049" };
 
 const deployPermissions: Cloudflare.ApiToken.PermissionGroupRef[] = [
   "Workers Scripts Write",
@@ -60,9 +66,9 @@ const deployPermissions: Cloudflare.ApiToken.PermissionGroupRef[] = [
   "Secrets Store Write",
   // Each deployed stage declares a Flagship app and its flags (`apps/server/src/feature-flags.ts`).
   FLAGSHIP_WRITE,
-  // Staging's product Worker and production's admin Worker each declare a Cloudflare Access
-  // application (`alchemy.run.ts`).
-  "Access: Apps and Policies Write",
+  // Staging's and previews' product Workers and production's admin Worker each declare a
+  // Cloudflare Access application (`alchemy.run.ts`).
+  ACCESS_APPS_WRITE,
 ];
 
 /** One Infisical project per trust level; each GitHub environment reads exactly one. */
