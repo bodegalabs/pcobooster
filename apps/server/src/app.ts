@@ -38,7 +38,18 @@ const preventSharedCaching = (response: Response): Response => {
 
 type AuthHandler = (request: Request) => Promise<Response> | Response;
 
+/** Whether the client at this IP may make another auth write now (a Workers rate limit). */
+export type AuthWriteLimiter = (clientIp: string) => Promise<boolean>;
+
+/** The window, in seconds, the API Worker's auth rate limit counts over. */
+export const AUTH_RATE_LIMIT_PERIOD_SECONDS = 60;
+
 export interface CreateServerAppOptions {
+  /**
+   * Limits auth writes (sign-in, OAuth callbacks, sign-out) per client IP. Session reads, which
+   * every page makes, are never limited. Omitted in tests and wherever no limit applies.
+   */
+  allowAuthWrite?: AuthWriteLimiter;
   server: ServerDependencies;
   /** Defaults to Better Auth's handler; tests substitute their own. */
   authHandler?: AuthHandler;
@@ -48,6 +59,7 @@ export interface CreateServerAppOptions {
 }
 
 export const createServerApp = ({
+  allowAuthWrite,
   server,
   authHandler = async (request) => await server.auth.handler(request),
   enableRequestLogging = true,
@@ -70,15 +82,41 @@ export const createServerApp = ({
     })
   );
 
+  const isOverAuthWriteLimit = async (request: Request): Promise<boolean> => {
+    // Set by Cloudflare at the edge and forwarded unchanged by the product Worker.
+    const clientIp = request.headers.get("cf-connecting-ip");
+    if (
+      request.method !== "POST" ||
+      allowAuthWrite === undefined ||
+      clientIp === null
+    ) {
+      return false;
+    }
+    return !(await allowAuthWrite(clientIp));
+  };
+
+  const handleAuthRequest = async (request: Request): Promise<Response> => {
+    if (await isOverAuthWriteLimit(request)) {
+      return Response.json(
+        { error: "Too many requests" },
+        {
+          headers: { "Retry-After": String(AUTH_RATE_LIMIT_PERIOD_SECONDS) },
+          status: 429,
+        }
+      );
+    }
+    return await authHandler(request);
+  };
+
   app.on(
     ["GET", "POST"],
     "/api/auth/*",
-    async (c) => await authHandler(c.req.raw)
+    async (c) => await handleAuthRequest(c.req.raw)
   );
   app.on(
     ["GET", "POST"],
     "/api/auth",
-    async (c) => await authHandler(c.req.raw)
+    async (c) => await handleAuthRequest(c.req.raw)
   );
 
   const apiHandler = new OpenAPIHandler(router, {
