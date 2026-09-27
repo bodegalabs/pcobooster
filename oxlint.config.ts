@@ -34,6 +34,8 @@ export default defineConfig({
   rules: {
     // Keep icons/buttons from overlapping Input/Textarea text; use InputGroup.
     "local/no-absolute-input-overlay": "error",
+    // Backgrounds stay solid; no blurred/frosted backdrop-filter layers.
+    "local/no-backdrop-blur": "error",
     // Popover shells stay flush; inner sections own spacing.
     "local/no-popover-content-padding": "error",
     // Section dividers use Separator primitives, not border-b headers.

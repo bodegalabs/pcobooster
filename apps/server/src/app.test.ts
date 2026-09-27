@@ -309,4 +309,56 @@ describe(createServerApp, () => {
       authenticated: true,
     });
   });
+
+  it("rejects auth writes from a client over its rate limit", async () => {
+    const authHandler = vi.fn<TestAuthHandler>(() => new Response("signed in"));
+    const allowAuthWrite = vi.fn<(clientIp: string) => Promise<boolean>>(
+      async () => await Promise.resolve(false)
+    );
+    const app = createServerApp({
+      allowAuthWrite,
+      authHandler,
+      server,
+      enableRequestLogging: false,
+      log: { error: vi.fn<TestErrorLogger>() },
+      router: testRouter,
+    });
+
+    const response = await app.request("/api/auth/sign-in/social", {
+      headers: { "cf-connecting-ip": "203.0.113.7" },
+      method: "POST",
+    });
+
+    expect(allowAuthWrite).toHaveBeenCalledExactlyOnceWith("203.0.113.7");
+    expect(authHandler).not.toHaveBeenCalled();
+    expect(response.status).toBe(429);
+    expect(response.headers.get("retry-after")).toBe("60");
+  });
+
+  it("never rate limits session reads or requests without a client IP", async () => {
+    const authHandler = vi.fn<TestAuthHandler>(() => new Response("ok"));
+    const allowAuthWrite = vi.fn<(clientIp: string) => Promise<boolean>>(
+      async () => await Promise.resolve(false)
+    );
+    const app = createServerApp({
+      allowAuthWrite,
+      authHandler,
+      server,
+      enableRequestLogging: false,
+      log: { error: vi.fn<TestErrorLogger>() },
+      router: testRouter,
+    });
+
+    const sessionRead = await app.request("/api/auth/get-session", {
+      headers: { "cf-connecting-ip": "203.0.113.7" },
+    });
+    const anonymousWrite = await app.request("/api/auth/sign-out", {
+      method: "POST",
+    });
+
+    expect(allowAuthWrite).not.toHaveBeenCalled();
+    expect([sessionRead.status, anonymousWrite.status]).toStrictEqual([
+      200, 200,
+    ]);
+  });
 });

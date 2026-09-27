@@ -50,7 +50,7 @@ Deployment and cleanup share a per-stage concurrency group. Reopening the PR cre
 
 Cloudflare Access protects it. `alchemy.run.ts` gives staging's product Worker a dedicated Access application (the Worker's `access` prop) whose policies admit only `jakebodea@gmail.com`, plus the deploy-check service token. It covers the `workers.dev` URL and version preview URLs; the API and admin Workers have no public URL outside production. Access needs a Zero Trust organization on the account, with the One-time PIN login method (or another identity provider) enabled. Change who may sign in by editing `stagingOwnerEmail`.
 
-`alchemy.ci.ts` owns the service token (`pcobooster-staging-deploy-check`) and writes `STAGING_ACCESS_SERVICE_TOKEN_ID`, `CLOUDFLARE_ACCESS_CLIENT_ID`, and `CLOUDFLARE_ACCESS_CLIENT_SECRET` to the preview project. The staging deploy reads the id to admit the token; `verify-deployment.ts` sends the client credentials. A labeled preview can read them too, but that identity can already overwrite staging's Workers, so the token adds no reach. The preview deploy token carries **Access: Apps and Policies Write** so the staging deploy can manage its Access application. `alchemy.cleanup.ts` and the preview sweep never touch `staging`.
+`alchemy.ci.ts` owns the service token (`pcobooster-staging-deploy-check`) and writes `STAGING_ACCESS_SERVICE_TOKEN_ID`, `CLOUDFLARE_ACCESS_CLIENT_ID`, and `CLOUDFLARE_ACCESS_CLIENT_SECRET` to the preview project. The staging deploy reads the id to admit the token; `verify-deployment.ts` sends the client credentials. A labeled preview can read them too, but that identity can already overwrite staging's Workers, so the token adds no reach. Both deploy tokens carry **Access: Apps and Policies Write**: the preview token so the staging deploy can manage its Access application, and the production token for the admin Worker's. `alchemy.cleanup.ts` and the preview sweep never touch `staging`.
 
 ## Production
 
@@ -60,7 +60,9 @@ After verification, the job marks the release on PostHog charts. It skips with a
 
 Infisical's production OIDC identity binds the environment subject and the `ref=refs/heads/main` claim. The production project contains production app secrets and its own Cloudflare token; it excludes development PATs and migration-only `DATABASE_URL`.
 
-`CLOUDFLARE_CUSTOM_DOMAINS=1` in the production GitHub environment attaches pcobooster.com, www, and admin to the production Workers.
+`CLOUDFLARE_CUSTOM_DOMAINS=1` in the production GitHub environment attaches pcobooster.com, www, and admin to the production Workers. `CLOUDFLARE_ADMIN_ACCESS=1` puts Cloudflare Access in front of the admin Worker; see [admin](admin.md#cloudflare-access).
+
+A nightly `Cloudflare drift` workflow (also available through `workflow_dispatch`) runs `scripts/cloudflare/check-drift.ts` for `staging` and `prod`, each in its own GitHub environment. It compares every resource Alchemy manages in that stage with its live Cloudflare state and fails, listing them in the job summary, when any were changed outside a deploy, such as a Flagship flag, DNS record, or Access policy edited in the dashboard. It only reads. The next deploy would overwrite those edits, so either copy the change into code or restore it with `bun alchemy drift --stage <stage> --repair`. Each check shares its stage's deploy concurrency group, so it never observes a half-applied deploy.
 
 To roll back, revert the change on `main`; the revert deploys like any other merge. Schema changes follow [database migrations](database.md#migrations-must-keep-the-running-app-online), so the previous code stays compatible with the migrated database.
 

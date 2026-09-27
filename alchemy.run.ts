@@ -1,5 +1,7 @@
+import { readdirSync } from "node:fs";
 import path from "node:path";
 
+import { parseAdminEmails } from "@pcobooster/api/config/server-config";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import * as Drizzle from "alchemy/Drizzle";
@@ -8,6 +10,7 @@ import * as State from "alchemy/State";
 import { Config, Effect, Layer } from "effect";
 
 import { Database } from "./apps/server/src/database";
+import { workerObservability } from "./apps/server/src/observability";
 import { currentStageSettings } from "./apps/server/src/stage";
 import Api from "./apps/server/src/worker";
 import { prepareCloudflareBuild } from "./scripts/cloudflare/prepare";
@@ -15,6 +18,46 @@ import {
   allowUniversalSslIssuers,
   formerDomainRedirect,
 } from "./scripts/cloudflare/zones";
+
+const workspacePackages = readdirSync(
+  path.join(import.meta.dirname, "packages"),
+  { withFileTypes: true }
+).flatMap((entry) => (entry.isDirectory() ? [`packages/${entry.name}`] : []));
+
+/**
+ * What a product or admin rebuild depends on. The app root's explicit globs also hash the
+ * gitignored `cloudflare-build-inputs.json` stamp (`scripts/cloudflare/prepare.ts`), which
+ * carries the stage and inlined variables that Alchemy's memo cannot see. Every workspace
+ * package, the build scripts, and the root configuration are listed as workspaces: an explicit
+ * list replaces Alchemy's own detection of imported packages, and each entry is hashed with its
+ * gitignore rules, so `node_modules` and build output never count.
+ */
+const viteMemo = (
+  excludeFromApp: readonly string[],
+  extraWorkspaces: readonly string[] = []
+) => ({
+  include: ["**/*"],
+  exclude: [
+    "node_modules/**",
+    "dist/**",
+    ".tanstack/**",
+    ".turbo/**",
+    ".wrangler/**",
+    "*.tsbuildinfo",
+    ...excludeFromApp,
+  ],
+  lockfile: true,
+  workspaces: [
+    ...[...workspacePackages, "scripts", ...extraWorkspaces].map(
+      (directory) => ({ cwd: `../../${directory}` })
+    ),
+    {
+      cwd: "../..",
+      include: ["package.json", "turbo.json", "tsconfig.json"],
+      lockfile: true,
+    },
+  ],
+});
 
 const canAttachDomains = (production: boolean) =>
   production && process.env.CLOUDFLARE_CUSTOM_DOMAINS === "1";
@@ -48,6 +91,32 @@ const stagingAccess = Effect.gen(function* stagingAccess() {
   };
 });
 
+/**
+ * Cloudflare Access in front of the production admin Worker, admitting the same allowlist the
+ * API enforces on every `admin.*` procedure, so a bug in the app's own check cannot expose it.
+ * Off until `CLOUDFLARE_ADMIN_ACCESS=1` reaches the production deploy; see
+ * docs/admin.md#cloudflare-access for the steps that must come first. Preview and local admin
+ * Workers are reached only through the product's service binding, which Access never gates.
+ */
+const adminAccess = (production: boolean) =>
+  Effect.gen(function* adminAccessPolicy() {
+    const emails = parseAdminEmails(
+      yield* Config.String("PCOBOOSTER_ADMIN_EMAILS").pipe(
+        Config.withDefault("")
+      )
+    );
+    const policy: Cloudflare.Workers.WorkerAccessApplication = {
+      name: "pcobooster admin",
+      sessionDuration: "24h",
+      previews: false,
+      policies: [
+        { decision: "allow", include: emails.map((email) => ({ email })) },
+      ],
+    };
+    const enabled = production && process.env.CLOUDFLARE_ADMIN_ACCESS === "1";
+    return enabled ? policy : undefined;
+  });
+
 export default Alchemy.Stack(
   "pcobooster",
   {
@@ -63,6 +132,13 @@ export default Alchemy.Stack(
   Effect.gen(function* infrastructure() {
     const { stage, production, local, staging, publicOrigin } =
       yield* currentStageSettings;
+    if (stage === "test") {
+      return yield* Effect.die(
+        new Error(
+          "The test stage belongs to the API stack test, not this stack"
+        )
+      );
+    }
     process.env.ADMIN_BASE_PATH = production ? "" : "/admin";
     yield* Effect.promise(async () => {
       await prepareCloudflareBuild(stage);
@@ -92,22 +168,11 @@ export default Alchemy.Stack(
       domain: attachDomains
         ? { name: "admin.pcobooster.com", zone }
         : undefined,
+      access: yield* adminAccess(production),
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
+      observability: workerObservability(production),
       dev: { host: "127.0.0.1", port: 3003, strictPort: true },
-      memo: {
-        // Explicit globs also hash the gitignored cloudflare-build-inputs.json stamp,
-        // which carries the stage (and so the base path) into the rebuild key.
-        include: ["**/*"],
-        exclude: [
-          "node_modules/**",
-          "dist/**",
-          ".tanstack/**",
-          ".turbo/**",
-          ".wrangler/**",
-          "*.tsbuildinfo",
-        ],
-        lockfile: true,
-      },
+      memo: viteMemo([]),
       env: {
         API: api,
         PRODUCT_ORIGIN: publicOrigin,
@@ -122,22 +187,10 @@ export default Alchemy.Stack(
         : undefined,
       access: staging ? yield* stagingAccess : undefined,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
+      observability: workerObservability(production),
       dev: { host: "127.0.0.1", port: 3001, strictPort: true },
-      memo: {
-        // Explicit globs also hash the gitignored cloudflare-build-inputs.json stamp, which
-        // carries build-time variables and the marketing sources into the rebuild key.
-        include: ["**/*"],
-        exclude: [
-          "node_modules/**",
-          "dist/**",
-          "public/marketing/**",
-          ".tanstack/**",
-          ".turbo/**",
-          ".wrangler/**",
-          "*.tsbuildinfo",
-        ],
-        lockfile: true,
-      },
+      // The build stages the marketing site, which the product does not import.
+      memo: viteMemo(["public/marketing/**"], ["apps/marketing"]),
       env: {
         API: api,
         ADMIN: admin,

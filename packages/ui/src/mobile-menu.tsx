@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 /**
- * The phone menu shared by marketing and the product (`@pcobooster/ui/mobile-menu`): a full-screen blurred
+ * The phone menu shared by marketing and the product (`@pcobooster/ui/mobile-menu`): a full-screen solid
  * overlay that fades in under a pinned header, with links that rise in a short
  * cascade. Each app owns its header and button primitives; this package owns
  * the open state, the overlay, and the motion.
@@ -76,10 +76,7 @@ export const MobileMenuOverlay = ({
     data-slot="mobile-menu-overlay"
     inert={!open}
     data-open={open ? "" : undefined}
-    className={[
-      "bg-background/70 fixed inset-0 backdrop-blur-lg backdrop-saturate-150 md:hidden",
-      className,
-    ]
+    className={["bg-background fixed inset-0 md:hidden", className]
       .filter(Boolean)
       .join(" ")}
   >

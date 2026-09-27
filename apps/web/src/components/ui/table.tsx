@@ -44,17 +44,11 @@ const TableFooter = ({
   />
 );
 
-const TableRow = ({
-  className,
-  scheduled = false,
-  ...props
-}: React.ComponentProps<"tr"> & { scheduled?: boolean }) => (
+const TableRow = ({ className, ...props }: React.ComponentProps<"tr">) => (
   <tr
     data-slot="table-row"
-    data-scheduled={scheduled ? "" : undefined}
     className={cn(
       "hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted border-b",
-      scheduled && "bg-status-confirmed/5",
       className
     )}
     {...props}

@@ -12,13 +12,21 @@ import { Config, Effect, Redacted } from "effect";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
-import { createServerApp } from "./app";
+import { AUTH_RATE_LIMIT_PERIOD_SECONDS, createServerApp } from "./app";
 import { Database } from "./database";
 import { FeatureFlagApp } from "./feature-flags";
+import { workerObservability } from "./observability";
 import { PlanningCenterCache } from "./planning-center-cache";
 import { currentStageSettings } from "./stage";
 
 const PREVIEW_SECRET_PLACEHOLDER = "minted-by-alchemy-random-at-runtime";
+
+/**
+ * Auth writes (sign-in, OAuth callbacks, sign-out) each client IP may make per minute. A whole
+ * church signing in from one network stays well under it; a script hammering sign-in does not.
+ * Cloudflare counts per location, so it is a brake on abuse, not an exact quota.
+ */
+const AUTH_WRITES_PER_PERIOD = 30;
 
 const secret = (name: string) =>
   Config.Redacted(name).pipe(Config.map(Redacted.value));
@@ -113,13 +121,14 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
 export default class Api extends Cloudflare.Worker<Api>()(
   "Api",
   Effect.gen(function* apiProps() {
-    const { stage } = yield* currentStageSettings;
+    const { stage, production, apiDevPort } = yield* currentStageSettings;
     return {
       name: `pcobooster-${stage}-api`,
       main: import.meta.url,
       workersDev: false,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
-      dev: { host: "127.0.0.1", port: 3000, strictPort: true },
+      observability: workerObservability(production),
+      dev: { host: "127.0.0.1", port: apiDevPort, strictPort: true },
       env: {
         // CI deploys the checked-out commit; post-deploy verification expects it from health.
         // Alchemy's change detection hashes `env` props but not the `Config` reads made in
@@ -140,6 +149,13 @@ export default class Api extends Cloudflare.Worker<Api>()(
       tier === "local"
         ? undefined
         : yield* Cloudflare.Flagship.ReadFlags(yield* FeatureFlagApp(tier));
+    const authRateLimit = yield* Cloudflare.RateLimit("AUTH_RATE_LIMIT", {
+      namespaceId: 1001,
+      simple: {
+        limit: AUTH_WRITES_PER_PERIOD,
+        period: AUTH_RATE_LIMIT_PERIOD_SECONDS,
+      },
+    });
     const resolveEnvironment = yield* readEnvironment;
     // The D1, KV, and Flagship bindings and a runtime-minted secret are only readable inside a
     // request, so the app is built by the first one and shared by the rest of the isolate's
@@ -153,6 +169,7 @@ export default class Api extends Cloudflare.Worker<Api>()(
             ? { kind: "registry", tier: "local" }
             : { kind: "flagship", binding: yield* flags.raw };
         const namespace = yield* planningCenterCache.raw;
+        const rateLimit = yield* authRateLimit.raw;
         const planningCenterReadStore: SharedReadStore = {
           get: async (key) => await namespace.get(key, "text"),
           put: async (key, value, { expirationTtl }) => {
@@ -172,6 +189,10 @@ export default class Api extends Cloudflare.Worker<Api>()(
           await server.auth.$context;
         });
         return createServerApp({
+          allowAuthWrite: async (clientIp) => {
+            const outcome = await rateLimit.limit({ key: clientIp });
+            return outcome.success;
+          },
           server,
           log: logger.for("server"),
           router: appRouter,
@@ -193,6 +214,7 @@ export default class Api extends Cloudflare.Worker<Api>()(
   }).pipe(
     Effect.provide(Cloudflare.D1.QueryDatabaseBinding),
     Effect.provide(Cloudflare.KV.ReadWriteNamespaceBinding),
-    Effect.provide(Cloudflare.Flagship.ReadFlagsBinding)
+    Effect.provide(Cloudflare.Flagship.ReadFlagsBinding),
+    Effect.provide(Cloudflare.Workers.RateLimitBinding)
   )
 ) {}

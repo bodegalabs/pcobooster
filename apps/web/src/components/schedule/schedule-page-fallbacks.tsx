@@ -4,65 +4,29 @@ import {
   PlanHeaderSkeleton,
   PositionPickerSkeleton,
 } from "@/components/schedule/schedule-skeletons";
-import { Separator } from "@/components/ui/separator";
+import { PlanAgendaSkeleton } from "@/components/service-plan-table-selector";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-const planRowWidths = [
-  ["11rem", "7rem", "1.5rem", "6rem"],
-  ["9rem", "7rem", "1.5rem", "5rem"],
-  ["7rem", "7rem", "1.5rem", "10rem"],
-  ["10rem", "7rem", "1.5rem", "8rem"],
-  ["6rem", "7rem", "1.5rem", "7rem"],
-];
-
-/** Mirrors the services selector: filters, then the plan table with real headers. */
+/** Mirrors the services selector: your services, filters, then the plan agenda. */
 export const SchedulePlansFallback = () => (
   <PageShell label="Loading services" busy>
     <section className="flex shrink-0 flex-col gap-2.5">
       <Skeleton variant="text" className="h-3 w-24" />
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="hidden h-24 w-full sm:block" />
-        <Skeleton className="hidden h-24 w-full lg:block" />
+        <Skeleton className="h-[5.25rem] w-full" />
+        <Skeleton className="hidden h-[5.25rem] w-full sm:block" />
+        <Skeleton className="hidden h-[5.25rem] w-full lg:block" />
       </div>
-      <Separator className="mt-1" />
     </section>
-    <div className="grid shrink-0 gap-2 sm:grid-cols-[minmax(0,1fr)_180px_160px]">
-      <Skeleton variant="round" className="h-9" />
-      <Skeleton variant="round" className="h-9" />
-      <Skeleton variant="round" className="h-9" />
-    </div>
-    <div className="border-border/40 min-h-0 flex-1 overflow-hidden rounded-lg border">
-      <div className="text-foreground border-border/40 hidden h-9 grid-cols-[30%_20%_25%_minmax(0,1fr)] items-center border-b px-3 text-sm font-medium md:grid">
-        <span>Service type</span>
-        <span>Date</span>
-        <span>Series</span>
-        <span>Plan</span>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="grid shrink-0 grid-cols-2 gap-2 py-2 md:grid-cols-[minmax(0,1fr)_180px_160px] md:pt-0 md:pb-1">
+        <Skeleton variant="round" className="col-span-2 h-9 md:col-span-1" />
+        <Skeleton variant="round" className="h-9" />
+        <Skeleton variant="round" className="h-9" />
       </div>
-      <div className="divide-border/35 divide-y">
-        {Array.from({ length: 12 }, (_, index) => {
-          const widths = planRowWidths[index % planRowWidths.length];
-          return (
-            <div
-              key={index}
-              className="grid h-10 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 md:grid-cols-[30%_20%_25%_minmax(0,1fr)] md:gap-0"
-            >
-              <Skeleton variant="text" className="h-3" width={widths[0]} />
-              <Skeleton
-                variant="text"
-                className="hidden h-3 md:block"
-                width={widths[1]}
-              />
-              <Skeleton variant="text" className="h-3" width={widths[2]} />
-              <Skeleton
-                variant="text"
-                className="hidden h-3 md:block"
-                width={widths[3]}
-              />
-            </div>
-          );
-        })}
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <PlanAgendaSkeleton />
       </div>
     </div>
   </PageShell>
