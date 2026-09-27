@@ -13,11 +13,7 @@
 
 `alchemy.run.ts` can put Cloudflare Access in front of the production admin Worker (`admin.pcobooster.com` and its workers.dev URL), admitting only the `PCOBOOSTER_ADMIN_EMAILS` allowlist with a 24-hour Access session. It adds a second sign-in at the edge, so a bug in the API's allowlist check cannot expose admin pages. Access never gates service bindings, so preview, staging, and local admin (served through the product's `/admin` route) are unaffected; staging's admin already sits behind staging's own Access application on the product Worker.
 
-It is off until the production deploy sees `CLOUDFLARE_ADMIN_ACCESS=1`. To turn it on, in this order:
-
-1. The account's Zero Trust organization and its One-time PIN login method already exist for staging ([CI/CD](ci-cd.md)).
-2. In `alchemy.ci.ts`, add `"Access: Apps and Policies Write"` to the production deploy token's permission groups (staging granted it only to the preview token), and `CLOUDFLARE_ADMIN_ACCESS: "1"` to the production environment's variables. Apply with `bun run infra:deploy`.
-3. In `.github/workflows/ci.yml`, pass `CLOUDFLARE_ADMIN_ACCESS: ${{ vars.CLOUDFLARE_ADMIN_ACCESS }}` into the production job's `env`, beside `CLOUDFLARE_CUSTOM_DOMAINS`.
+`CLOUDFLARE_ADMIN_ACCESS=1` in the `cloudflare-production` GitHub environment (set by `alchemy.ci.ts`, passed into the production deploy by `ci.yml`) turns it on; without it the admin Worker has no Access application. The production deploy token carries **Access: Apps and Policies Write** for it, and the account's Zero Trust organization and One-time PIN login method already exist for staging. Both land only after `bun run infra:deploy`.
 
 The next production deploy creates the Access application and its policy. Changing `PCOBOOSTER_ADMIN_EMAILS` updates the policy on the following deploy.
 
