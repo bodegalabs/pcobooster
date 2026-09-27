@@ -1,4 +1,3 @@
-import { assert } from "@effect/vitest";
 /**
  * The API Worker as Alchemy runs it under `alchemy dev`: workerd, a migrated local D1, the KV
  * cache, the auth rate limit, and settings bound from `Config`. The unit tests build the Hono
@@ -6,6 +5,9 @@ import { assert } from "@effect/vitest";
  * migration that fails to apply. It runs in the `test` stage, so it never touches `local`'s
  * data or ports, and needs no secrets.
  */
+import path from "node:path";
+
+import { assert } from "@effect/vitest";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import * as Drizzle from "alchemy/Drizzle";
@@ -25,6 +27,9 @@ const testSettings = {
   PCOBOOSTER_ADMIN_EMAILS: "admin@example.com",
 };
 Object.assign(process.env, testSettings);
+// `Drizzle.Schema` resolves the schema and migrations from the working directory, as it does
+// under `alchemy dev` at the repository root; Turborepo runs this package's tests from here.
+process.chdir(path.resolve(import.meta.dirname, "../../.."));
 
 const providers = Layer.mergeAll(Cloudflare.providers(), Drizzle.providers());
 
