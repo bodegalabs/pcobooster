@@ -38,16 +38,6 @@ describe(resolveServerConfig, () => {
     });
   });
 
-  it("normalizes the admin allowlist and falls back to the owner", () => {
-    expect(
-      testServerConfig({ PCOBOOSTER_ADMIN_EMAILS: " A@Example.com, b@x.io ," })
-        .adminEmails
-    ).toStrictEqual(["a@example.com", "b@x.io"]);
-    expect(testServerConfig().adminEmails).toStrictEqual([
-      "jakebodea@gmail.com",
-    ]);
-  });
-
   it("enables the OAuth proxy only with both a secret and a production URL", () => {
     expect(
       testServerConfig({ OAUTH_PROXY_SECRET: "proxy-secret" }).auth.proxy

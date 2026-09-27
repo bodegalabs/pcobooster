@@ -29,7 +29,6 @@ export default defineConfig(({ command, isPreview }) => {
               main: "@tanstack/react-start/server-entry",
               compatibility_date: "2026-09-01",
               compatibility_flags: ["nodejs_compat"],
-              vars: { PRODUCT_ORIGIN: "http://127.0.0.1:3001" },
             },
           }),
       tanstackStart(),

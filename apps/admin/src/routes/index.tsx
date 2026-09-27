@@ -70,7 +70,9 @@ const AdminPage = () => {
               auth activity.
             </p>
           </div>
-          <Badge variant="outline">Only visible to {email}</Badge>
+          {email === null ? null : (
+            <Badge variant="outline">Signed in as {email}</Badge>
+          )}
         </div>
 
         <section className="grid grid-cols-2 gap-2 md:gap-3 lg:grid-cols-4">
