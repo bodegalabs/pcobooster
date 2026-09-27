@@ -7,6 +7,7 @@ import { MobileHeader } from "@/components/mobile-menu";
 import { pageColumnClassName } from "@/components/page-shell";
 import { PlanningCenterServicesIcon } from "@/components/planning-center-services-icon";
 import { LineupTab } from "@/components/schedule/lineup-tab";
+import { PlanOverviewTab } from "@/components/schedule/plan-overview-tab";
 import { PlanTab } from "@/components/schedule/plan-tab";
 import { PlanHeaderSkeleton } from "@/components/schedule/schedule-skeletons";
 import { ScheduleViewTab } from "@/components/schedule/schedule-view-tab";
@@ -322,6 +323,20 @@ export const DashboardPage = ({
 
         {hasPlanUrlSelection ? (
           <Tabs value={activeView} className="flex min-h-0 flex-1 flex-col">
+            <TabsContent
+              value="overview"
+              className="mt-0 flex min-h-0 flex-1 flex-col"
+            >
+              <PlanOverviewTab
+                serviceTypeId={routeServiceTypeId}
+                planId={routePlanId}
+                teamPositionGroups={teamPositionGroups}
+                teamPositionsLoading={teamPositionsLoading}
+                planTimes={planTimes}
+                getSlotIntentProps={getSlotIntentProps}
+              />
+            </TabsContent>
+
             <TabsContent
               value="assign"
               className="mt-0 flex min-h-0 flex-1 flex-col"
