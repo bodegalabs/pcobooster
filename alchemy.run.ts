@@ -1,3 +1,4 @@
+import { readdirSync } from "node:fs";
 import path from "node:path";
 
 import * as Alchemy from "alchemy";
@@ -16,6 +17,46 @@ import {
   allowUniversalSslIssuers,
   formerDomainRedirect,
 } from "./scripts/cloudflare/zones";
+
+const workspacePackages = readdirSync(
+  path.join(import.meta.dirname, "packages"),
+  { withFileTypes: true }
+).flatMap((entry) => (entry.isDirectory() ? [`packages/${entry.name}`] : []));
+
+/**
+ * What a product or admin rebuild depends on. The app root's explicit globs also hash the
+ * gitignored `cloudflare-build-inputs.json` stamp (`scripts/cloudflare/prepare.ts`), which
+ * carries the stage and inlined variables that Alchemy's memo cannot see. Every workspace
+ * package, the build scripts, and the root configuration are listed as workspaces: an explicit
+ * list replaces Alchemy's own detection of imported packages, and each entry is hashed with its
+ * gitignore rules, so `node_modules` and build output never count.
+ */
+const viteMemo = (
+  excludeFromApp: readonly string[],
+  extraWorkspaces: readonly string[] = []
+) => ({
+  include: ["**/*"],
+  exclude: [
+    "node_modules/**",
+    "dist/**",
+    ".tanstack/**",
+    ".turbo/**",
+    ".wrangler/**",
+    "*.tsbuildinfo",
+    ...excludeFromApp,
+  ],
+  lockfile: true,
+  workspaces: [
+    ...[...workspacePackages, "scripts", ...extraWorkspaces].map(
+      (directory) => ({ cwd: `../../${directory}` })
+    ),
+    {
+      cwd: "../..",
+      include: ["package.json", "turbo.json", "tsconfig.json"],
+      lockfile: true,
+    },
+  ],
+});
 
 const canAttachDomains = (production: boolean) =>
   production && process.env.CLOUDFLARE_CUSTOM_DOMAINS === "1";
@@ -96,20 +137,7 @@ export default Alchemy.Stack(
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
       observability: workerObservability(production),
       dev: { host: "127.0.0.1", port: 3003, strictPort: true },
-      memo: {
-        // Explicit globs also hash the gitignored cloudflare-build-inputs.json stamp,
-        // which carries the stage (and so the base path) into the rebuild key.
-        include: ["**/*"],
-        exclude: [
-          "node_modules/**",
-          "dist/**",
-          ".tanstack/**",
-          ".turbo/**",
-          ".wrangler/**",
-          "*.tsbuildinfo",
-        ],
-        lockfile: true,
-      },
+      memo: viteMemo([]),
       env: {
         API: api,
         PRODUCT_ORIGIN: publicOrigin,
@@ -126,21 +154,8 @@ export default Alchemy.Stack(
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
       observability: workerObservability(production),
       dev: { host: "127.0.0.1", port: 3001, strictPort: true },
-      memo: {
-        // Explicit globs also hash the gitignored cloudflare-build-inputs.json stamp, which
-        // carries build-time variables and the marketing sources into the rebuild key.
-        include: ["**/*"],
-        exclude: [
-          "node_modules/**",
-          "dist/**",
-          "public/marketing/**",
-          ".tanstack/**",
-          ".turbo/**",
-          ".wrangler/**",
-          "*.tsbuildinfo",
-        ],
-        lockfile: true,
-      },
+      // The build stages the marketing site, which the product does not import.
+      memo: viteMemo(["public/marketing/**"], ["apps/marketing"]),
       env: {
         API: api,
         ADMIN: admin,
