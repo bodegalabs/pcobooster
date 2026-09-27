@@ -9,6 +9,7 @@ Infisical is the source of truth for application secrets. Alchemy reads them at 
 | Local development | Original project, Development `/` and `/local` | Local Workers and persistent local D1 |
 | Codex cloud | Original project, Development `/` and `/cloud` | Local Workers and local D1 |
 | Previews | `pcobooster-preview`, Staging `/` | Independent `pr-<number>` Workers and D1 |
+| Staging | `pcobooster-preview`, Staging `/` | Persistent `staging` Workers and retained D1, behind Cloudflare Access |
 | Production | Dedicated production deployment project, Production `/` | `prod` Workers and retained D1 |
 
 The preview project ID is `586fd830-7861-4b84-a8a6-d05c9bf7a14a`. Its Viewer identity has no membership in the original project. Infisical Free cannot limit Viewer to an environment; separate projects therefore contain only credentials suitable for that deployment tier. Never copy development PATs, production session secrets, demo credentials, or the source PostgreSQL connection into the preview project.
@@ -33,7 +34,7 @@ Alchemy owns stage origins, `BETTER_AUTH_URL`, `CORS_ORIGIN`, cookie domain, OAu
 
 ## Feature flags
 
-Feature flags are typed infrastructure, not Infisical settings. `packages/api/src/config/feature-flags.ts` is the registry: each flag's name, Flagship key, description, and the value each tier serves (`local`, `preview` for `pr-<number>`, `production`). Today it holds three flags, each on locally and in previews and off in production: `people` (key `people-page`), `chordCharts` (key `chord-charts`), and `cleanup` (key `data-cleanup-page`).
+Feature flags are typed infrastructure, not Infisical settings. `packages/api/src/config/feature-flags.ts` is the registry: each flag's name, Flagship key, description, and the value each tier serves (`local`, `preview` for `pr-<number>`, `production`). Staging uses the `preview` tier, so it always serves the same flags as previews. Today the registry holds three flags, each on locally, in previews, and in staging, and off in production: `people` (key `people-page`), `chordCharts` (key `chord-charts`), and `cleanup` (key `data-cleanup-page`).
 
 - **Deployed stages.** `apps/server/src/feature-flags.ts` declares one [Cloudflare Flagship](https://developers.cloudflare.com/flagship/) app per stage (`pcobooster-<stage>-flags`) and one boolean flag per registry entry, with the tier's value as the default variation plus any targeting rules listed there. The API Worker binds the app with `Cloudflare.Flagship.ReadFlags` and evaluates flags per request through `ServerDependencies.featureFlags`, with the user ID (`userId`, also the rollout `targetingKey`) and the Planning Center organization ID (`organizationId`, recorded at sign-in) when known. An evaluation error, including a missing flag, serves off and logs `Feature flag evaluation failed; serving off`.
 - **Alchemy owns the rules.** Every deploy writes each flag's variations, default, enabled state, and rules. Edits in the Cloudflare dashboard take effect within seconds (Flagship propagates globally in up to 30 seconds) but are overwritten by the next deploy, so change `apps/server/src/feature-flags.ts` instead. Deleting a registry entry deletes the flag on the next deploy; remove its evaluations first.

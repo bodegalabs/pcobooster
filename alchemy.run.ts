@@ -19,6 +19,35 @@ import {
 const canAttachDomains = (production: boolean) =>
   production && process.env.CLOUDFLARE_CUSTOM_DOMAINS === "1";
 
+/** The only person staging admits. */
+const stagingOwnerEmail = "jakebodea@gmail.com";
+
+/**
+ * Cloudflare Access in front of staging's product Worker, which serves the app, the API, and
+ * admin. It covers the `workers.dev` URL and version preview URLs; the API and admin Workers have
+ * no public URL outside production. The deploy-check service token (`alchemy.ci.ts`) lets CI
+ * verify each deploy without a login.
+ */
+const stagingAccess = Effect.gen(function* stagingAccess() {
+  const serviceTokenId = yield* Config.String(
+    "STAGING_ACCESS_SERVICE_TOKEN_ID"
+  );
+  return {
+    name: "pcobooster staging",
+    sessionDuration: "168h",
+    policies: [
+      {
+        decision: "allow" as const,
+        include: [{ email: stagingOwnerEmail }],
+      },
+      {
+        decision: "non_identity" as const,
+        include: [{ serviceToken: serviceTokenId }],
+      },
+    ],
+  };
+});
+
 export default Alchemy.Stack(
   "pcobooster",
   {
@@ -32,7 +61,7 @@ export default Alchemy.Stack(
     ),
   },
   Effect.gen(function* infrastructure() {
-    const { stage, production, local, publicOrigin } =
+    const { stage, production, local, staging, publicOrigin } =
       yield* currentStageSettings;
     process.env.ADMIN_BASE_PATH = production ? "" : "/admin";
     yield* Effect.promise(async () => {
@@ -91,6 +120,7 @@ export default Alchemy.Stack(
       domain: attachDomains
         ? { name: "pcobooster.com", aliases: ["www.pcobooster.com"], zone }
         : undefined,
+      access: staging ? yield* stagingAccess : undefined,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
       dev: { host: "127.0.0.1", port: 3001, strictPort: true },
       memo: {

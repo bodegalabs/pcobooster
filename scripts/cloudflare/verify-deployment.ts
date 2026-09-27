@@ -5,6 +5,9 @@
  * version may answer briefly after `alchemy deploy` returns.
  *
  *   bun scripts/cloudflare/verify-deployment.ts <origin> <commit-sha>
+ *
+ * Behind Cloudflare Access (staging), set `CLOUDFLARE_ACCESS_CLIENT_ID` and
+ * `CLOUDFLARE_ACCESS_CLIENT_SECRET` to a service token the application admits.
  */
 import { setTimeout as sleep } from "node:timers/promises";
 
@@ -121,10 +124,42 @@ export const verifyDeployment = async (
   process.stdout.write(`${origin} serves ${expectedVersion}\n`);
 };
 
+/**
+ * Sends a Cloudflare Access service token with every request when both halves are set, and
+ * refuses a half-configured one rather than failing later as a login redirect.
+ */
+export const withAccessServiceToken = (
+  fetchImpl: Fetch,
+  environment: Readonly<Record<string, string | undefined>>
+): Fetch => {
+  const clientId = environment.CLOUDFLARE_ACCESS_CLIENT_ID ?? "";
+  const clientSecret = environment.CLOUDFLARE_ACCESS_CLIENT_SECRET ?? "";
+  if (clientId === "" && clientSecret === "") {
+    return fetchImpl;
+  }
+  if (clientId === "" || clientSecret === "") {
+    throw new Error(
+      "Set both CLOUDFLARE_ACCESS_CLIENT_ID and CLOUDFLARE_ACCESS_CLIENT_SECRET, or neither."
+    );
+  }
+  const accessFetch = async (
+    input: Parameters<Fetch>[0],
+    init?: Parameters<Fetch>[1]
+  ): Promise<Response> => {
+    const headers = new Headers(init?.headers);
+    headers.set("CF-Access-Client-Id", clientId);
+    headers.set("CF-Access-Client-Secret", clientSecret);
+    return await fetchImpl(input, { ...init, headers });
+  };
+  return Object.assign(accessFetch, fetchImpl);
+};
+
 if (import.meta.main) {
   const [origin, expectedVersion] = process.argv.slice(2);
   if (origin === undefined || expectedVersion === undefined) {
     throw new Error("Usage: verify-deployment.ts <origin> <commit-sha>");
   }
-  await verifyDeployment(origin.replace(/\/$/u, ""), expectedVersion);
+  await verifyDeployment(origin.replace(/\/$/u, ""), expectedVersion, {
+    fetchImpl: withAccessServiceToken(fetch, process.env),
+  });
 }

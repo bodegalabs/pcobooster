@@ -36,6 +36,7 @@
     "cloud:dev": "bash scripts/codex-cloud/with-infisical.sh bun run scripts/cloudflare/dev.ts",
     "cloud:build": "bash scripts/codex-cloud/with-infisical.sh bun run build",
     "deploy": "bun alchemy deploy --no-input",
+    "deploy:staging": "infisical run --env=staging --path=/ --projectId=586fd830-7861-4b84-a8a6-d05c9bf7a14a -- env -u CLOUDFLARE_API_TOKEN -u CLOUDFLARE_ACCOUNT_ID bun alchemy deploy --stage staging",
     "deploy:production": "infisical run --env=prod --path=/ --projectId=2eca20e1-20ac-4f06-a086-99ea5c590483 -- env -u CLOUDFLARE_API_TOKEN -u CLOUDFLARE_ACCOUNT_ID bun alchemy deploy --stage prod",
     "infra:plan": "env -u CLOUDFLARE_API_TOKEN -u CLOUDFLARE_ACCOUNT_ID GITHUB_TOKEN=\"$(gh auth token)\" INFISICAL_API_TOKEN=\"$(infisical user get token --plain)\" bun alchemy deploy alchemy.ci.ts --stage ci --dry-run --detect-drift --no-input",
     "infra:deploy": "env -u CLOUDFLARE_API_TOKEN -u CLOUDFLARE_ACCOUNT_ID GITHUB_TOKEN=\"$(gh auth token)\" INFISICAL_API_TOKEN=\"$(infisical user get token --plain)\" bun alchemy deploy alchemy.ci.ts --stage ci",
