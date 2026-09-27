@@ -7,6 +7,7 @@ import { RateLimited } from "@pcobooster/api/application/errors/rate-limited";
 import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
 import { resolveDemoSession } from "@pcobooster/api/auth/demo-access";
 import { requirePlanningCenterAccessToken } from "@pcobooster/api/auth/planning-center-session";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import { isPlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type {
   PlanningCenterError,
@@ -192,6 +193,24 @@ const toFault = (
   error: PlanningCenterError | ApplicationFault
 ): ApplicationFault =>
   isPlanningCenterError(error) ? planningCenterFault(error) : error;
+
+const PLANNING_CENTER_FORBIDDEN_STATUS = 403;
+
+/**
+ * Reports Planning Center refusing the account (403) as `Forbidden` with a message written
+ * for the person, such as which permission they lack; other failures pass through.
+ */
+export const explainPlanningCenterDenial =
+  (message: string) =>
+  <Value, Failure, Requirements>(
+    effect: Effect.Effect<Value, Failure, Requirements>
+  ): Effect.Effect<Value, Failure | Forbidden, Requirements> =>
+    Effect.mapError(effect, (failure) =>
+      failure instanceof PlanningCenterApiError &&
+      failure.status === PLANNING_CENTER_FORBIDDEN_STATUS
+        ? new Forbidden({ message })
+        : failure
+    );
 
 /** Reports Planning Center failures as application faults; defects stay defects. */
 export const withPlanningCenterFaults = <Value, Requirements>(

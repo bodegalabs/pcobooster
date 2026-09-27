@@ -1,4 +1,5 @@
 import {
+  CHORD_CHART_PDF_MAX_BYTES,
   buildChordChartAttributes,
   commitChordChartUpdate,
   bytesToBase64,
@@ -305,5 +306,61 @@ describe(getChordChartPdf, () => {
       "/services/v2/songs/song-1/arrangements/arr-1/attachments/lyric_chart-arr-1"
     );
     expect(JSON.stringify(exit)).toContain("ExternalServiceFailure");
+  });
+
+  it("downloads only an https link", async () => {
+    const songs = createSongs();
+    vi.mocked(songs.openChartAttachment).mockReturnValue(
+      Effect.succeed("http://files.example/chart.pdf")
+    );
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    const exit = await Effect.runPromiseExit(
+      getChordChartPdf(
+        { songId: "song-1", arrangementId: "arr-1" },
+        { songs, fetch }
+      )
+    );
+    expect(JSON.stringify(exit)).toContain("secure link");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("refuses a PDF larger than the limit, declared or streamed", async () => {
+    // A body whose cancel fails still reports the size, not a defect.
+    const declaredCancel = vi.fn<() => never>(() => {
+      throw new Error("stream already errored");
+    });
+    const declared = new Response(
+      new ReadableStream<Uint8Array>({ cancel: declaredCancel }),
+      {
+        status: 200,
+        headers: { "Content-Length": String(CHORD_CHART_PDF_MAX_BYTES + 1) },
+      }
+    );
+    const chunk = new Uint8Array(CHORD_CHART_PDF_MAX_BYTES / 2 + 1);
+    const cancel = vi.fn<() => void>();
+    const streamed = new Response(
+      new ReadableStream<Uint8Array>({
+        pull: (controller) => {
+          controller.enqueue(chunk);
+        },
+        cancel,
+      }),
+      { status: 200 }
+    );
+    for (const response of [declared, streamed]) {
+      const fetch = vi
+        .fn<typeof globalThis.fetch>()
+        .mockResolvedValue(response);
+      // oxlint-disable-next-line no-await-in-loop -- each case runs alone
+      const exit = await Effect.runPromiseExit(
+        getChordChartPdf(
+          { songId: "song-1", arrangementId: "arr-1", keyId: "key-1" },
+          { songs: createSongs(), fetch }
+        )
+      );
+      expect(JSON.stringify(exit)).toContain("too large");
+    }
+    expect(declaredCancel).toHaveBeenCalledOnce();
+    expect(cancel).toHaveBeenCalledOnce();
   });
 });

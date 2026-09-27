@@ -6,6 +6,7 @@ import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
 import { InvalidInput } from "@pcobooster/api/application/errors/invalid-input";
 import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
 import {
+  explainPlanningCenterDenial,
   resolvePlanningCenterAccess,
   toApplicationFault,
   withPlanningCenterFaults,
@@ -270,6 +271,37 @@ describe("PlanningCenterAccess", () => {
       service: "planning-center",
       retryAfterSeconds: 3,
     });
+  });
+
+  it("explains a Planning Center permission denial in the caller's words", async () => {
+    const denied = await Effect.runPromise(
+      Effect.flip(
+        withPlanningCenterFaults(
+          explainPlanningCenterDenial("You can't edit songs.")(
+            Effect.fail(
+              new PlanningCenterApiError({ message: "Forbidden", status: 403 })
+            )
+          )
+        )
+      )
+    );
+    const failed = await Effect.runPromise(
+      Effect.flip(
+        withPlanningCenterFaults(
+          explainPlanningCenterDenial("You can't edit songs.")(
+            Effect.fail(
+              new PlanningCenterApiError({ message: "Not found", status: 404 })
+            )
+          )
+        )
+      )
+    );
+
+    expect(denied).toMatchObject({
+      _tag: "Forbidden",
+      message: "You can't edit songs.",
+    });
+    expect(failed).toMatchObject({ _tag: "ExternalServiceFailure" });
   });
 
   it("keeps unexpected adapter errors as defects", async () => {

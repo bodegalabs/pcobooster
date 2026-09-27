@@ -471,6 +471,11 @@ export interface PlanningCenterRequestOptions {
   readonly method?: HttpMethod;
   /** Sent as the `application/json` request body. */
   readonly body?: JsonObject;
+  /**
+   * The request is a Planning Center action that only returns data, such as an
+   * attachment's `open`, so a read-only client may send it despite its method.
+   */
+  readonly readAction?: true;
 }
 
 /**
@@ -626,7 +631,7 @@ export class PlanningCenterCoreClient {
     const method = options.method ?? "GET";
     const url = endpointUrl(endpoint);
     const description = describePlanningCenterEndpoint(url);
-    if (this.readOnly && !isReadMethod(method)) {
+    if (this.readOnly && !isReadMethod(method) && options.readAction !== true) {
       return Effect.fail(
         new PlanningCenterReadOnlyError({ method, path: description.path })
       );
