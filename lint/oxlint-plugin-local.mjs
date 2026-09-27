@@ -12,6 +12,10 @@ const OVERLAY_SECTION_BORDER_CLASS = /(^|\s)border-b(\s|$)/;
 const OVERLAY_SECTION_PADDING_CLASS = /(^|\s)px-[345](\s|$)/;
 const LIST_ROW_BORDER_CLASS = /last:border-b-0/;
 const TRANSITION_COLORS_CLASS = /transition-colors|transition-plan-item/;
+// `backdrop-blur`, `backdrop-blur-*`, and the `supports-backdrop-filter:`
+// variant, alone or behind other variants (`md:`, `data-open:`, `group-*:`).
+const BACKDROP_BLUR_CLASS =
+  /(?:^|[\s:!])(?:backdrop-blur(?:$|[\s!-])|supports-backdrop-filter:)/;
 const OVERLAY_SECTION_BORDER_IGNORED_FILES = [
   "components/ui/",
   "components/schedule/plan-tab-toolbar.tsx",
@@ -438,12 +442,56 @@ const noTransitionColorsRule = {
   },
 };
 
+const noBackdropBlurRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow blurred, frosted backgrounds (`backdrop-blur*` and the `supports-backdrop-filter:` variant).",
+    },
+    messages: {
+      backdropBlur:
+        "Avoid blurred/frosted backgrounds; use a solid semantic background such as bg-background or bg-popover.",
+    },
+    schema: [],
+  },
+  create(context) {
+    /**
+     * Class strings reach Tailwind through className, cn(), cva variants,
+     * arrays, and constants, so every string in the file is checked.
+     * @param {import("oxlint/plugins-dev").Node} node
+     * @param {string} text
+     */
+    const reportIfBackdropBlur = (node, text) => {
+      if (!BACKDROP_BLUR_CLASS.test(text)) {
+        return;
+      }
+      context.report({
+        node,
+        messageId: "backdropBlur",
+      });
+    };
+
+    return {
+      Literal(node) {
+        if (typeof node.value === "string") {
+          reportIfBackdropBlur(node, node.value);
+        }
+      },
+      TemplateElement(node) {
+        reportIfBackdropBlur(node, node.value.cooked ?? node.value.raw);
+      },
+    };
+  },
+};
+
 export default {
   meta: {
     name: "local",
   },
   rules: {
     "no-absolute-input-overlay": noAbsoluteInputOverlayRule,
+    "no-backdrop-blur": noBackdropBlurRule,
     "no-popover-content-padding": noPopoverContentPaddingRule,
     "no-overlay-section-border-b": noOverlaySectionBorderRule,
     "no-transition-colors": noTransitionColorsRule,
@@ -453,6 +501,7 @@ export default {
 
 export {
   noAbsoluteInputOverlayRule,
+  noBackdropBlurRule,
   noOverlaySectionBorderRule,
   noPopoverContentPaddingRule,
   noTransitionColorsRule,

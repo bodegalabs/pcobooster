@@ -301,8 +301,8 @@ const MenuAccount = ({
 /**
  * The phone header: a pinned bar with the menu button on the right and the
  * shared full-screen menu (`@pcobooster/ui/mobile-menu`) beneath it. The bar
- * blurs content scrolling under it; the header itself stays filter-free so the
- * fixed overlay is not trapped. `className` places the header (for example,
+ * covers content scrolling under it with a solid background; the header itself
+ * stays filter-free so the fixed overlay is not trapped. `className` places the header (for example,
  * `-mx-4` inside padded pages).
  */
 export const MobileHeader = ({
@@ -330,13 +330,13 @@ export const MobileHeader = ({
       )}
     >
       {/*
-       * The blur sits on an absolute layer, not the sticky header: Safari 26
+       * The background sits on an absolute layer, not the sticky header: Safari 26
        * tints its bars from sticky elements' own backgrounds, while this layer
        * lets the header show through the status bar like the page beneath.
        */}
       <div
         aria-hidden
-        className="bg-background/80 absolute inset-0 backdrop-blur-xl group-data-open/menu:hidden"
+        className="bg-background absolute inset-0 group-data-open/menu:hidden"
       />
       <div className="relative z-10 flex h-14 items-center gap-1 px-4">
         <div className="flex min-w-0 flex-1 items-center gap-1 group-data-open/menu:invisible">

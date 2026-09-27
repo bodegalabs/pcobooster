@@ -3,6 +3,7 @@ import { describe, it } from "vitest";
 
 import {
   noAbsoluteInputOverlayRule,
+  noBackdropBlurRule,
   noOverlaySectionBorderRule,
   noPopoverContentPaddingRule,
   noTransitionColorsRule,
@@ -232,6 +233,70 @@ ruleTester.run(
         const rowVariants = cva("hover:bg-muted transition-colors");
       `,
         errors: [{ messageId: "transitionColors" }],
+      },
+    ],
+  }
+);
+
+ruleTester.run(
+  "no-backdrop-blur",
+  noBackdropBlurRule as Parameters<typeof ruleTester.run>[1],
+  {
+    valid: [
+      {
+        name: "solid semantic background",
+        code: `<header className="bg-background sticky top-0" />`,
+      },
+      {
+        name: "dimmed overlay without blur",
+        code: `<div className="fixed inset-0 bg-black/30" />`,
+      },
+      {
+        name: "content blur filter",
+        code: `<img className="blur-sm" alt="" />`,
+      },
+      {
+        name: "unrelated class containing the word",
+        code: `<div className="my-backdrop-blurb" />`,
+      },
+    ],
+    invalid: [
+      {
+        name: "bare backdrop-blur",
+        code: `<div className="bg-background/95 backdrop-blur" />`,
+        errors: [{ messageId: "backdropBlur" }],
+      },
+      {
+        name: "sized backdrop-blur",
+        code: `<div className="bg-background/80 backdrop-blur-xl" />`,
+        errors: [{ messageId: "backdropBlur" }],
+      },
+      {
+        name: "arbitrary backdrop-blur",
+        code: `<div className="backdrop-blur-[2px]" />`,
+        errors: [{ messageId: "backdropBlur" }],
+      },
+      {
+        name: "variant-prefixed backdrop-blur",
+        code: `<div className="md:backdrop-blur-none" />`,
+        errors: [{ messageId: "backdropBlur" }],
+      },
+      {
+        name: "supports-backdrop-filter variant",
+        code: `<div className="bg-background/90 supports-backdrop-filter:bg-background/75" />`,
+        errors: [{ messageId: "backdropBlur" }],
+      },
+      {
+        name: "class string outside className",
+        code: `
+        const overlayClassName = ["fixed inset-0", "backdrop-blur-lg"].join(" ");
+      `,
+        errors: [{ messageId: "backdropBlur" }],
+      },
+      {
+        name: "template literal",
+        code: "const header = `bg-popover/80 ${tone} backdrop-blur-sm`;",
+        errors: [{ messageId: "backdropBlur" }],
       },
     ],
   }
