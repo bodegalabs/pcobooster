@@ -3,8 +3,10 @@ import { CalendarClock, HeartHandshake } from "lucide-react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 
+import { CheckInReasonIcon } from "@/components/people/check-in-reason";
 import { PersonLineSkeletonList } from "@/components/people/people-skeletons";
 import {
+  Meter,
   PersonAvatar,
   PersonRowButton,
 } from "@/components/people/shared-components";
@@ -28,6 +30,9 @@ import type { CheckIn, DueForSlot, TeamMember } from "@/lib/team-health";
 
 /** The API's role label for someone with no schedules in the window. */
 const NO_RECENT_ROLE = "No recent role";
+
+/** The due list's gap bars share one scale: the six months serving history covers. */
+const GAP_SCALE_DAYS = 180;
 
 /** Rows each list shows before "Show all". */
 const COLLAPSED_ROWS = 6;
@@ -152,6 +157,7 @@ export const TeamCheckIns = ({
           primary === undefined ? null : (
             <>
               <Badge variant="outline">
+                <CheckInReasonIcon kind={primary.kind} />
                 {describeCheckInReason(primary).label}
               </Badge>
               {others.length > 0 ? (
@@ -203,7 +209,8 @@ export const TeamDueList = ({
         </span>
       </CardTitle>
       <CardDescription>
-        Nothing scheduled and past their usual gap, at least six weeks.
+        Nothing scheduled and past their usual gap, at least six weeks. Bars
+        show time since serving; the tick is their usual gap.
       </CardDescription>
       {dueForSlot.length > 0 && !isLoading ? (
         <CardAction>
@@ -218,11 +225,21 @@ export const TeamDueList = ({
         empty="Everyone has served recently or has something scheduled."
         memberOf={(due) => due.member}
         renderDetail={describeDue}
-        renderAside={({ member }) => (
-          <span className="text-muted-foreground max-w-32 truncate text-xs">
-            {member.roles === NO_RECENT_ROLE
-              ? member.teams.join(", ")
-              : member.roles}
+        renderAside={({ member, daysSinceServed, typicalGapDays }) => (
+          <span className="flex w-20 flex-col items-end gap-1.5 sm:w-24">
+            <span className="text-muted-foreground max-w-full truncate text-xs">
+              {member.roles === NO_RECENT_ROLE
+                ? member.teams.join(", ")
+                : member.roles}
+            </span>
+            <Meter
+              value={(daysSinceServed ?? GAP_SCALE_DAYS) / GAP_SCALE_DAYS}
+              marker={
+                typicalGapDays === null ? null : typicalGapDays / GAP_SCALE_DAYS
+              }
+              tone={daysSinceServed === null ? "negative" : "attention"}
+              className="w-full"
+            />
           </span>
         )}
         getPersonIntentProps={getPersonIntentProps}

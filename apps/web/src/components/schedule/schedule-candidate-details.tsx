@@ -223,7 +223,7 @@ export const ScheduleCandidateScore = ({
   return (
     <RecommendationPopover
       reasoning={person.recommendationReasoning}
-      personId={person.id}
+      percentage={percentage}
     >
       <Item
         size="row"

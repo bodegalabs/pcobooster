@@ -1,5 +1,13 @@
 import type { PeopleDashboardPersonDetail } from "@pcobooster/contracts/people-schemas";
-import { CalendarDays, Clock3, Sparkles } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  CalendarCheck,
+  CalendarDays,
+  Clock3,
+  History,
+  MicVocal,
+  Sparkles,
+} from "lucide-react";
 
 import type { CalendarCell } from "@/components/people/calendar";
 import { PersonMonthCalendar } from "@/components/people/person-month-calendar";
@@ -94,6 +102,40 @@ export const PersonDetailBodySkeleton = () => (
   </div>
 );
 
+const RotationStep = ({
+  icon: Icon,
+  label,
+  value,
+  muted = false,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  muted?: boolean;
+}) => (
+  <li className="group/step relative flex gap-3 pb-3 last:pb-0">
+    <span
+      aria-hidden
+      className="bg-border absolute top-7 bottom-0 left-3.5 w-px group-last/step:hidden"
+    />
+    <span className="bg-muted text-muted-foreground relative flex size-7 shrink-0 items-center justify-center rounded-full">
+      <Icon className="size-3.5" />
+    </span>
+    <span className="min-w-0 pt-0.5">
+      <span className="text-muted-foreground block text-xs">{label}</span>
+      <span
+        className={
+          muted
+            ? "text-muted-foreground block text-sm"
+            : "text-foreground block text-sm font-medium"
+        }
+      >
+        {value}
+      </span>
+    </span>
+  </li>
+);
+
 export const PersonDetailBody = ({
   data,
   monthLabel,
@@ -163,26 +205,29 @@ export const PersonDetailBody = ({
               <Clock3 className="text-muted-foreground size-4" />
               Rotation notes
             </CardTitle>
+            <CardAction>
+              <Badge variant="secondary">{person.upcomingCount} upcoming</Badge>
+            </CardAction>
           </CardHeader>
           <CardContent>
-            <p>
-              Last service:{" "}
-              <span className="text-foreground">{person.lastServed}</span>
-            </p>
-            <p>
-              Next service:{" "}
-              <span className="text-foreground">{person.nextScheduled}</span>
-            </p>
-            <p>
-              Next rehearsal:{" "}
-              <span className="text-foreground">
-                {person.nextRehearsal ?? "Not scheduled"}
-              </span>
-            </p>
-            <p>
-              Upcoming services:{" "}
-              <span className="text-foreground">{person.upcomingCount}</span>
-            </p>
+            <ol aria-label="Rotation">
+              <RotationStep
+                icon={History}
+                label="Last service"
+                value={person.lastServed}
+              />
+              <RotationStep
+                icon={MicVocal}
+                label="Next rehearsal"
+                value={person.nextRehearsal ?? "Not scheduled"}
+                muted={person.nextRehearsal === undefined}
+              />
+              <RotationStep
+                icon={CalendarCheck}
+                label="Next service"
+                value={person.nextScheduled}
+              />
+            </ol>
           </CardContent>
         </Card>
 

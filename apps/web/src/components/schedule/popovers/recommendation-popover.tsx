@@ -1,3 +1,13 @@
+import type { LucideIcon } from "lucide-react";
+import {
+  ArrowDown,
+  CalendarCheck,
+  Flame,
+  History,
+  Info,
+  MicVocal,
+  Sparkles,
+} from "lucide-react";
 import type { ReactElement } from "react";
 
 import {
@@ -5,49 +15,94 @@ import {
   ResponsivePopoverContent,
   ResponsivePopoverTrigger,
 } from "@/components/ui/responsive-popover";
+import { groupRankingReasons } from "@/lib/ranking-reasons";
+import type { RankingFact, RankingFactKind } from "@/lib/ranking-reasons";
+import { cn } from "@/lib/utils";
+
+const factIcon: Record<RankingFactKind, LucideIcon> = {
+  history: History,
+  fresh: Sparkles,
+  service: CalendarCheck,
+  rehearsal: MicVocal,
+  load: Flame,
+  note: Info,
+};
+
+const RankingFactRow = ({ fact }: { fact: RankingFact }) => {
+  const Icon = factIcon[fact.kind];
+  return (
+    <li className="flex gap-2.5">
+      <span
+        className={cn(
+          "bg-muted flex size-6 shrink-0 items-center justify-center rounded-full",
+          fact.kind === "load"
+            ? "text-status-scheduled"
+            : "text-muted-foreground"
+        )}
+      >
+        <Icon aria-hidden className="size-3.5" />
+      </span>
+      <span className="min-w-0 pt-0.5">
+        <span className="text-foreground block text-sm leading-snug">
+          {fact.text}
+        </span>
+        {fact.adjustments.map((adjustment) => (
+          <span
+            key={adjustment}
+            className="text-status-scheduled mt-1 flex items-start gap-1 text-xs leading-snug"
+          >
+            <ArrowDown aria-hidden className="mt-px size-3 shrink-0" />
+            {adjustment}
+          </span>
+        ))}
+      </span>
+    </li>
+  );
+};
 
 interface RecommendationPopoverProps {
   reasoning: string[] | undefined;
-  personId: string;
+  percentage: number;
   children: ReactElement;
 }
 
 export const RecommendationPopover = ({
   reasoning,
-  personId,
+  percentage,
   children,
-}: RecommendationPopoverProps) => (
-  <ResponsivePopover>
-    <ResponsivePopoverTrigger render={children} />
-    <ResponsivePopoverContent
-      title="Why this ranking"
-      align="end"
-      sideOffset={6}
-      className="w-80"
-    >
-      <div className="p-3">
-        <p className="text-foreground text-sm font-semibold tracking-tight">
-          Why this ranking
-        </p>
-        {reasoning?.length !== undefined &&
-        reasoning?.length !== 0 &&
-        !Number.isNaN(reasoning?.length) ? (
-          <div className="mt-3 flex flex-col gap-2">
-            {reasoning.map((reason) => (
-              <p
-                key={`${personId}-reason-${reason}`}
-                className="text-muted-foreground text-sm leading-snug"
-              >
-                {reason}
-              </p>
-            ))}
-          </div>
-        ) : (
-          <p className="text-muted-foreground mt-3 text-sm">
-            No reasoning recorded for this score.
+}: RecommendationPopoverProps) => {
+  const facts = groupRankingReasons(reasoning ?? []);
+  return (
+    <ResponsivePopover>
+      <ResponsivePopoverTrigger render={children} />
+      <ResponsivePopoverContent
+        title="Why this ranking"
+        align="end"
+        sideOffset={6}
+        className="w-80"
+      >
+        <div className="p-3">
+          <p className="flex items-baseline justify-between gap-3">
+            <span className="text-foreground text-sm font-semibold tracking-tight">
+              Why this ranking
+            </span>
+            <span className="text-muted-foreground text-xs tabular-nums">
+              {percentage}% fit
+            </span>
           </p>
-        )}
-      </div>
-    </ResponsivePopoverContent>
-  </ResponsivePopover>
-);
+          {facts.length > 0 ? (
+            <ul className="mt-3 flex flex-col gap-3">
+              {facts.map((fact) => (
+                <RankingFactRow key={fact.text} fact={fact} />
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground mt-3 text-sm">
+              No reasoning recorded for this score.
+            </p>
+          )}
+        </div>
+      </ResponsivePopoverContent>
+    </ResponsivePopover>
+  );
+};

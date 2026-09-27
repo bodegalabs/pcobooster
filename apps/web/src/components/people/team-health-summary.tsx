@@ -1,6 +1,6 @@
 import { Activity } from "lucide-react";
 
-import { Metric } from "@/components/people/shared-components";
+import { Meter, Metric } from "@/components/people/shared-components";
 import {
   Card,
   CardContent,
@@ -26,6 +26,37 @@ const statusTone: Record<TeamHealthStatus, string> = {
 };
 
 const percent = (value: number) => `${Math.round(value * 100)}%`;
+
+const share = (count: number, total: number) =>
+  total === 0 ? 0 : count / total;
+
+/** How much of the team's serving the busiest few carried, as one bar. */
+const ServingSpread = ({
+  topCount,
+  topShare,
+  stretched,
+}: {
+  topCount: number;
+  topShare: number;
+  stretched: boolean;
+}) => (
+  <div className="mt-3 flex flex-col gap-1.5">
+    <div className="text-muted-foreground flex items-baseline justify-between gap-3 text-xs tabular-nums">
+      <span>
+        <span className="text-foreground font-medium">
+          Busiest {topCount} · {percent(topShare)}
+        </span>{" "}
+        of serving days
+      </span>
+      <span>Everyone else · {percent(1 - topShare)}</span>
+    </div>
+    <Meter
+      value={topShare}
+      tone={stretched ? "attention" : "neutral"}
+      className="h-2"
+    />
+  </div>
+);
 
 const people = (count: number) => (count === 1 ? "person" : "people");
 
@@ -60,8 +91,8 @@ export const TeamHealthSummary = ({
   const partial =
     progress !== undefined &&
     progress.hydratedPeopleCount < progress.scopePeopleCount;
-  const declineRate =
-    health.requests === 0 ? "-" : percent(health.declined / health.requests);
+  const declineShare =
+    health.requests === 0 ? null : health.declined / health.requests;
 
   return (
     <Card size="sm">
@@ -108,12 +139,24 @@ export const TeamHealthSummary = ({
               <Metric
                 label="Served in 90 days"
                 value={`${health.activeCount} of ${health.memberCount}`}
+                meter={share(health.activeCount, health.memberCount)}
+                tone={health.status === "thin" ? "negative" : "positive"}
               />
               <Metric
                 label="Scheduled next 30 days"
                 value={`${health.scheduledAheadCount} of ${health.memberCount}`}
+                meter={share(health.scheduledAheadCount, health.memberCount)}
               />
-              <Metric label="Declined in 6 months" value={declineRate} />
+              {declineShare === null ? (
+                <Metric label="Declined in 6 months" value="-" />
+              ) : (
+                <Metric
+                  label="Declined in 6 months"
+                  value={percent(declineShare)}
+                  meter={declineShare}
+                  tone="negative"
+                />
+              )}
               <Metric
                 label="Unanswered requests"
                 value={String(health.pendingCount)}
@@ -121,6 +164,13 @@ export const TeamHealthSummary = ({
             </>
           )}
         </div>
+        {health.topShare !== null && !isLoading ? (
+          <ServingSpread
+            topCount={health.topCount}
+            topShare={health.topShare}
+            stretched={health.status === "stretched"}
+          />
+        ) : null}
       </CardContent>
     </Card>
   );

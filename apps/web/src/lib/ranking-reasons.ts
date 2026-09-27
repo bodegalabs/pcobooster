@@ -1,0 +1,53 @@
+/** What a line of ranking reasoning is about, for its icon. */
+export type RankingFactKind =
+  | "history"
+  | "fresh"
+  | "service"
+  | "rehearsal"
+  | "load"
+  | "note";
+
+/** One fact about a candidate, with the ranking adjustments it caused. */
+export interface RankingFact {
+  kind: RankingFactKind;
+  text: string;
+  adjustments: string[];
+}
+
+// Prefixes of the lines `scoreAndNormalizePeople` writes
+// (packages/planning-center-models/src/candidate-scoring.ts).
+const ADJUSTMENT_PATTERN =
+  /^(?:Ranked (?:slightly )?lower|\w+ (?:rehearsal )?penalty):/u;
+/** Recent-load adjustments stand alone: no fact line comes before them. */
+const LOAD_SUFFIX = "before this plan";
+const FACT_PATTERNS: readonly [RegExp, RankingFactKind][] = [
+  [/^Last served/u, "history"],
+  [/^No (?:past services|service history)/u, "fresh"],
+  [/^Upcoming:/u, "service"],
+  [/^Rehearsals? upcoming:/u, "rehearsal"],
+];
+
+const factKind = (reason: string): RankingFactKind =>
+  FACT_PATTERNS.find(([pattern]) => pattern.test(reason))?.[1] ?? "note";
+
+/**
+ * Groups ranking reasons into facts, attaching each adjustment ("Ranked lower: ...")
+ * to the upcoming service or rehearsal it follows. Recent-load adjustments become
+ * their own `load` facts.
+ */
+export const groupRankingReasons = (
+  reasons: readonly string[]
+): RankingFact[] => {
+  const facts: RankingFact[] = [];
+  for (const reason of reasons) {
+    const previous = facts.at(-1);
+    if (reason.endsWith(LOAD_SUFFIX)) {
+      facts.push({ kind: "load", text: reason, adjustments: [] });
+    } else if (ADJUSTMENT_PATTERN.test(reason) && previous !== undefined) {
+      previous.adjustments.push(reason);
+    } else {
+      facts.push({ kind: factKind(reason), text: reason, adjustments: [] });
+    }
+  }
+  return facts;
+};
