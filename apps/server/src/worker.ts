@@ -121,14 +121,14 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
 export default class Api extends Cloudflare.Worker<Api>()(
   "Api",
   Effect.gen(function* apiProps() {
-    const { stage, production } = yield* currentStageSettings;
+    const { stage, production, apiDevPort } = yield* currentStageSettings;
     return {
       name: `pcobooster-${stage}-api`,
       main: import.meta.url,
       workersDev: false,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
       observability: workerObservability(production),
-      dev: { host: "127.0.0.1", port: 3000, strictPort: true },
+      dev: { host: "127.0.0.1", port: apiDevPort, strictPort: true },
       env: {
         // CI deploys the checked-out commit; post-deploy verification expects it from health.
         // Alchemy's change detection hashes `env` props but not the `Config` reads made in

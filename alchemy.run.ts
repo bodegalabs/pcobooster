@@ -132,6 +132,13 @@ export default Alchemy.Stack(
   Effect.gen(function* infrastructure() {
     const { stage, production, local, staging, publicOrigin } =
       yield* currentStageSettings;
+    if (stage === "test") {
+      return yield* Effect.die(
+        new Error(
+          "The test stage belongs to the API stack test, not this stack"
+        )
+      );
+    }
     process.env.ADMIN_BASE_PATH = production ? "" : "/admin";
     yield* Effect.promise(async () => {
       await prepareCloudflareBuild(stage);
