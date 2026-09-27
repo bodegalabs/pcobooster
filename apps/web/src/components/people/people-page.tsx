@@ -8,6 +8,7 @@ import { useNavigate, useRouter } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
 
+import { PageShell } from "@/components/page-shell";
 import { PeopleDashboardProgress } from "@/components/people/dashboard-progress";
 import { PeopleHealthView } from "@/components/people/health-view";
 import { MonthView } from "@/components/people/month-view";
@@ -296,82 +297,80 @@ export const PeoplePage = () => {
   );
 
   return (
-    <main className="bg-background flex flex-1 flex-col md:h-full md:min-h-0 md:overflow-hidden">
-      <div className="pb-safe-4 mx-auto flex w-full max-w-7xl flex-1 flex-col gap-3 px-4 pt-1 md:min-h-0 md:overflow-y-auto md:overscroll-contain md:py-4">
-        <header className="flex shrink-0 flex-col gap-3">
-          <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 max-md:contents">
-            <div className="min-w-0 max-md:hidden">
-              <h1 className="truncate text-xl font-semibold tracking-tight max-md:sr-only md:text-2xl">
-                People
-              </h1>
-              <p className="text-muted-foreground text-sm max-md:hidden">
-                Team health, who to check in with, and who is due to serve.
-              </p>
-            </div>
-            <Tabs
-              value={activeView}
-              onValueChange={(value) => {
-                setActiveView(value === "month" ? "month" : "health");
+    <PageShell>
+      <header className="flex shrink-0 flex-col gap-3">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 max-md:contents">
+          <div className="min-w-0 max-md:hidden">
+            <h1 className="truncate text-xl font-semibold tracking-tight max-md:sr-only md:text-2xl">
+              People
+            </h1>
+            <p className="text-muted-foreground text-sm max-md:hidden">
+              Team health, who to check in with, and who is due to serve.
+            </p>
+          </div>
+          <Tabs
+            value={activeView}
+            onValueChange={(value) => {
+              setActiveView(value === "month" ? "month" : "health");
+            }}
+          >
+            <TabsList className="h-8 max-md:h-10 max-md:w-full">
+              <TabsTrigger value="health">Health</TabsTrigger>
+              <TabsTrigger value="month">Month</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        <div className="grid shrink-0 items-center gap-2 md:grid-cols-[minmax(0,1fr)_16rem]">
+          <InputGroup>
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
               }}
-            >
-              <TabsList className="h-8 max-md:h-10 max-md:w-full">
-                <TabsTrigger value="health">Health</TabsTrigger>
-                <TabsTrigger value="month">Month</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-
-          <div className="grid shrink-0 items-center gap-2 md:grid-cols-[minmax(0,1fr)_16rem]">
-            <InputGroup>
-              <InputGroupAddon>
-                <Search />
-              </InputGroupAddon>
-              <InputGroupInput
-                value={query}
-                onChange={(event) => {
-                  setQuery(event.target.value);
-                }}
-                placeholder="Search people, teams, or roles"
-                aria-label="Search people"
-              />
-            </InputGroup>
-            <ScopeSelect
-              scope={scope}
-              teams={teams}
-              ledTeamIds={ledTeamIds}
-              onChange={setScopeChoice}
+              placeholder="Search people, teams, or roles"
+              aria-label="Search people"
             />
-          </div>
-        </header>
-
-        <LoadingBar
-          active={isFetching && !isError}
-          className="-my-1.5 shrink-0"
-        />
-
-        <PeopleDashboardProgress
-          progress={dashboard?.progress}
-          isLoadingActivity={isLoadingActivity}
-          failedBatchCount={failedBatchCount}
-          canLoadMore={canLoadMore}
-          onRetry={retryFailed}
-          onLoadMore={loadMore}
-        />
-
-        <div className="shrink-0" aria-busy={isLoading}>
-          <PeoplePageContent
-            activeView={activeView}
-            dashboard={dashboard}
-            scopeLabel={scopeLabel}
-            todayKey={todayKey}
-            isError={isError}
-            isLoading={isLoading}
-            visibleMembers={visibleMembers}
-            getPersonIntentProps={getPersonIntentProps}
-            onOpenPerson={openPerson}
+          </InputGroup>
+          <ScopeSelect
+            scope={scope}
+            teams={teams}
+            ledTeamIds={ledTeamIds}
+            onChange={setScopeChoice}
           />
         </div>
+      </header>
+
+      <LoadingBar
+        active={isFetching && !isError}
+        className="-my-1.5 shrink-0"
+      />
+
+      <PeopleDashboardProgress
+        progress={dashboard?.progress}
+        isLoadingActivity={isLoadingActivity}
+        failedBatchCount={failedBatchCount}
+        canLoadMore={canLoadMore}
+        onRetry={retryFailed}
+        onLoadMore={loadMore}
+      />
+
+      <div className="shrink-0" aria-busy={isLoading}>
+        <PeoplePageContent
+          activeView={activeView}
+          dashboard={dashboard}
+          scopeLabel={scopeLabel}
+          todayKey={todayKey}
+          isError={isError}
+          isLoading={isLoading}
+          visibleMembers={visibleMembers}
+          getPersonIntentProps={getPersonIntentProps}
+          onOpenPerson={openPerson}
+        />
       </div>
-    </main>
+    </PageShell>
   );
 };

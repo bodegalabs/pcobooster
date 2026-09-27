@@ -1,3 +1,4 @@
+import { PageShell } from "@/components/page-shell";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const nameWidths = ["8rem", "6rem", "9rem", "7rem", "10rem", "5rem"];
@@ -58,18 +59,12 @@ export const PersonLineSkeletonList = ({
 
 /** Route fallback while the People page's code loads. */
 export const PeoplePageSkeleton = () => (
-  <main className="bg-background flex flex-1 flex-col md:h-full md:min-h-0 md:overflow-hidden">
-    <div
-      className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-3 px-4 pt-1 md:py-4"
-      aria-busy
-      aria-label="Loading people"
-    >
-      <div className="flex flex-col gap-2 max-md:hidden">
-        <Skeleton variant="control" className="h-7 w-28" />
-        <Skeleton variant="text" className="h-3.5 w-80 max-w-full" />
-      </div>
-      <Skeleton variant="control" className="h-9 w-full" />
-      <PersonLineSkeletonList rows={8} />
+  <PageShell label="Loading people" busy>
+    <div className="flex flex-col gap-2 max-md:hidden">
+      <Skeleton variant="control" className="h-7 w-28" />
+      <Skeleton variant="text" className="h-3.5 w-80 max-w-full" />
     </div>
-  </main>
+    <Skeleton variant="control" className="h-9 w-full" />
+    <PersonLineSkeletonList rows={8} />
+  </PageShell>
 );
