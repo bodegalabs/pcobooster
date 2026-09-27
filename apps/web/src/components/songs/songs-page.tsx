@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { ChevronRight, Plus, Search } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 
+import { PageShell } from "@/components/page-shell";
 import { AddSongDialog } from "@/components/songs/add-song-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,12 +38,12 @@ import { speculativeQuery } from "@/lib/request-priority";
 import { formatSongLastScheduled } from "@/lib/song-catalog-client";
 
 export const SongsPageSkeleton = () => (
-  <main className="mx-auto flex w-full max-w-3xl flex-col gap-3 p-4" aria-busy>
+  <PageShell label="Loading songs" busy>
     <Skeleton variant="control" className="h-10 w-full" />
     {Array.from({ length: 6 }, (_, row) => `row-${row}`).map((row) => (
       <Skeleton key={row} variant="control" className="h-14 w-full" />
     ))}
-  </main>
+  </PageShell>
 );
 
 interface SongRow {
@@ -226,73 +227,71 @@ export const SongsPage = () => {
   };
 
   return (
-    <main className="bg-background flex flex-1 flex-col md:min-h-0 md:overflow-y-auto">
-      <div className="pb-safe-4 mx-auto flex w-full max-w-3xl flex-col gap-3 px-4 pt-1 md:py-4">
-        <header className="flex items-center justify-between gap-3">
-          <div className="max-md:sr-only">
-            <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
-              Songs
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              Write and preview chord charts, then save them to Planning Center.
-            </p>
-          </div>
-          <Button size="sm" className="max-md:ml-auto" onClick={openAdd}>
-            <Plus aria-hidden />
-            Add song
-          </Button>
-        </header>
-        <InputGroup>
-          <InputGroupAddon>
-            <Search />
-          </InputGroupAddon>
-          <InputGroupInput
-            autoFocus
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-            }}
-            placeholder="Search songs, writers, or themes"
-            aria-label="Search songs"
-          />
-        </InputGroup>
-        <LoadingBar active={searching && isFetching && songs.length > 0} />
-        {!searching && recentMatches.length > 0 ? (
-          <SongList
-            label="Recent"
-            rows={recentMatches}
-            getIntentProps={getIntentProps}
-          />
-        ) : null}
-        {!searching && recentMatches.length === 0 ? (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle>Find a song</EmptyTitle>
-              <EmptyDescription>
-                Search your Planning Center library to open its chord chart, or
-                add a new song.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        ) : null}
-        {searching && isLoading && rows.length === 0 ? (
-          <SongsPageSkeleton />
-        ) : null}
-        <SearchMessages
-          query={trimmedQuery}
-          failed={searching && isError}
-          nothingFound={nothingFound}
-          onAdd={openAdd}
+    <PageShell>
+      <header className="flex items-center justify-between gap-3">
+        <div className="max-md:sr-only">
+          <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
+            Songs
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Write and preview chord charts, then save them to Planning Center.
+          </p>
+        </div>
+        <Button size="sm" className="max-md:ml-auto" onClick={openAdd}>
+          <Plus aria-hidden />
+          Add song
+        </Button>
+      </header>
+      <InputGroup>
+        <InputGroupAddon>
+          <Search />
+        </InputGroupAddon>
+        <InputGroupInput
+          autoFocus
+          value={query}
+          onChange={(event) => {
+            setQuery(event.target.value);
+          }}
+          placeholder="Search songs, writers, or themes"
+          aria-label="Search songs"
         />
-        {rows.length > 0 ? (
-          <SongList rows={rows} getIntentProps={getIntentProps} />
-        ) : null}
-      </div>
+      </InputGroup>
+      <LoadingBar active={searching && isFetching && songs.length > 0} />
+      {!searching && recentMatches.length > 0 ? (
+        <SongList
+          label="Recent"
+          rows={recentMatches}
+          getIntentProps={getIntentProps}
+        />
+      ) : null}
+      {!searching && recentMatches.length === 0 ? (
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>Find a song</EmptyTitle>
+            <EmptyDescription>
+              Search your Planning Center library to open its chord chart, or
+              add a new song.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : null}
+      {searching && isLoading && rows.length === 0 ? (
+        <SongsPageSkeleton />
+      ) : null}
+      <SearchMessages
+        query={trimmedQuery}
+        failed={searching && isError}
+        nothingFound={nothingFound}
+        onAdd={openAdd}
+      />
+      {rows.length > 0 ? (
+        <SongList rows={rows} getIntentProps={getIntentProps} />
+      ) : null}
       <AddSongDialog
         open={addOpen}
         onOpenChange={setAddOpen}
         initialTitle={trimmedQuery}
       />
-    </main>
+    </PageShell>
   );
 };

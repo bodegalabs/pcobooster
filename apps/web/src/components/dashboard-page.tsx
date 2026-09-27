@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 
 import { MobileHeader } from "@/components/mobile-menu";
+import { pageColumnClassName } from "@/components/page-shell";
 import { PlanningCenterServicesIcon } from "@/components/planning-center-services-icon";
 import { LineupTab } from "@/components/schedule/lineup-tab";
 import { PlanTab } from "@/components/schedule/plan-tab";
@@ -304,7 +305,8 @@ export const DashboardPage = ({
     <main className="bg-background flex flex-1 flex-col md:h-full md:min-h-0 md:overflow-hidden">
       <div
         className={cn(
-          "mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-4",
+          pageColumnClassName,
+          "flex min-h-0 flex-1 flex-col px-4",
           hasPlanUrlSelection ? "py-0 md:py-3" : "py-6"
         )}
       >

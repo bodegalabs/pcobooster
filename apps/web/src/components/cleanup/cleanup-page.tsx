@@ -7,6 +7,7 @@ import { formatCalendarDateLabel } from "@pcobooster/planning-center-models/cale
 import { ExternalLink, Search } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 
+import { PageShell } from "@/components/page-shell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -316,74 +317,72 @@ export const CleanupPage = () => {
   const deferredQuery = useDeferredValue(query).trim().toLowerCase();
 
   return (
-    <main className="bg-background flex flex-1 flex-col md:h-full md:min-h-0 md:overflow-hidden">
-      <div className="pb-safe-4 mx-auto flex w-full max-w-4xl flex-1 flex-col gap-3 px-4 pt-1 md:min-h-0 md:overflow-y-auto md:overscroll-contain md:py-4">
-        <header className="flex shrink-0 flex-col gap-3">
-          <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0 max-md:hidden">
-              <h1 className="truncate text-xl font-semibold tracking-tight md:text-2xl">
-                Data cleanup
-              </h1>
-              <p className="text-muted-foreground text-sm">
-                Suggestions only: nothing changes until you act in Planning
-                Center.
-              </p>
-            </div>
-            <Tabs
-              value={view}
-              onValueChange={(value) => {
-                setView(value === "people" ? "people" : "songs");
-              }}
-            >
-              <TabsList className="h-8 max-md:h-10 max-md:w-full">
-                <TabsTrigger value="songs">Songs</TabsTrigger>
-                <TabsTrigger value="people">People</TabsTrigger>
-              </TabsList>
-            </Tabs>
+    <PageShell>
+      <header className="flex shrink-0 flex-col gap-3">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0 max-md:hidden">
+            <h1 className="truncate text-xl font-semibold tracking-tight md:text-2xl">
+              Data cleanup
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Suggestions only: nothing changes until you act in Planning
+              Center.
+            </p>
           </div>
-          <div className="grid shrink-0 grid-cols-1 items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-            <InputGroup>
-              <InputGroupAddon>
-                <Search />
-              </InputGroupAddon>
-              <InputGroupInput
-                value={query}
-                onChange={(event) => {
-                  setQuery(event.target.value);
-                }}
-                placeholder={
-                  view === "songs"
-                    ? "Search songs or authors"
-                    : "Search people or teams"
-                }
-                aria-label="Search suggestions"
-              />
-            </InputGroup>
-            <NativeSelect
-              className="w-full"
-              aria-label="Unused for at least"
-              value={String(staleMonths)}
+          <Tabs
+            value={view}
+            onValueChange={(value) => {
+              setView(value === "people" ? "people" : "songs");
+            }}
+          >
+            <TabsList className="h-8 max-md:h-10 max-md:w-full">
+              <TabsTrigger value="songs">Songs</TabsTrigger>
+              <TabsTrigger value="people">People</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        <div className="grid shrink-0 grid-cols-1 items-center gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <InputGroup>
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={query}
               onChange={(event) => {
-                const next = parseCleanupStaleMonths(event.target.value);
-                if (next !== null) {
-                  setStaleMonths(next);
-                }
+                setQuery(event.target.value);
               }}
-            >
-              {cleanupStaleMonthOptions.map((option) => (
-                <NativeSelectOption key={option.value} value={option.value}>
-                  Unused for {option.label}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </div>
-        </header>
-        {view === "songs" ? (
-          <SongsSection staleMonths={staleMonths} query={deferredQuery} />
-        ) : (
-          <PeopleSection staleMonths={staleMonths} query={deferredQuery} />
-        )}
-      </div>
-    </main>
+              placeholder={
+                view === "songs"
+                  ? "Search songs or authors"
+                  : "Search people or teams"
+              }
+              aria-label="Search suggestions"
+            />
+          </InputGroup>
+          <NativeSelect
+            className="w-full"
+            aria-label="Unused for at least"
+            value={String(staleMonths)}
+            onChange={(event) => {
+              const next = parseCleanupStaleMonths(event.target.value);
+              if (next !== null) {
+                setStaleMonths(next);
+              }
+            }}
+          >
+            {cleanupStaleMonthOptions.map((option) => (
+              <NativeSelectOption key={option.value} value={option.value}>
+                Unused for {option.label}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </div>
+      </header>
+      {view === "songs" ? (
+        <SongsSection staleMonths={staleMonths} query={deferredQuery} />
+      ) : (
+        <PeopleSection staleMonths={staleMonths} query={deferredQuery} />
+      )}
+    </PageShell>
   );
 };
