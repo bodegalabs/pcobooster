@@ -1,6 +1,7 @@
 import { readdirSync } from "node:fs";
 import path from "node:path";
 
+import { parseAdminEmails } from "@pcobooster/api/config/server-config";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import * as Drizzle from "alchemy/Drizzle";
@@ -90,6 +91,32 @@ const stagingAccess = Effect.gen(function* stagingAccess() {
   };
 });
 
+/**
+ * Cloudflare Access in front of the production admin Worker, admitting the same allowlist the
+ * API enforces on every `admin.*` procedure, so a bug in the app's own check cannot expose it.
+ * Off until `CLOUDFLARE_ADMIN_ACCESS=1` reaches the production deploy; see
+ * docs/admin.md#cloudflare-access for the steps that must come first. Preview and local admin
+ * Workers are reached only through the product's service binding, which Access never gates.
+ */
+const adminAccess = (production: boolean) =>
+  Effect.gen(function* adminAccessPolicy() {
+    const emails = parseAdminEmails(
+      yield* Config.String("PCOBOOSTER_ADMIN_EMAILS").pipe(
+        Config.withDefault("")
+      )
+    );
+    const policy: Cloudflare.Workers.WorkerAccessApplication = {
+      name: "pcobooster admin",
+      sessionDuration: "24h",
+      previews: false,
+      policies: [
+        { decision: "allow", include: emails.map((email) => ({ email })) },
+      ],
+    };
+    const enabled = production && process.env.CLOUDFLARE_ADMIN_ACCESS === "1";
+    return enabled ? policy : undefined;
+  });
+
 export default Alchemy.Stack(
   "pcobooster",
   {
@@ -134,6 +161,7 @@ export default Alchemy.Stack(
       domain: attachDomains
         ? { name: "admin.pcobooster.com", zone }
         : undefined,
+      access: yield* adminAccess(production),
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
       observability: workerObservability(production),
       dev: { host: "127.0.0.1", port: 3003, strictPort: true },

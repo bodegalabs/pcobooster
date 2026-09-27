@@ -9,6 +9,18 @@
 - The API authorizes every `admin.*` procedure against `PCOBOOSTER_ADMIN_EMAILS`. A signed-out request redirects to the product sign-in page, and a signed-in account outside the allowlist gets a 404.
 - Every Worker response carries `X-Robots-Tag: noindex, nofollow`, `Referrer-Policy: no-referrer`, and `Cache-Control: private, no-store` (`src/start.ts`).
 
+## Cloudflare Access
+
+`alchemy.run.ts` can put Cloudflare Access in front of the production admin Worker (`admin.pcobooster.com` and its workers.dev URL), admitting only the `PCOBOOSTER_ADMIN_EMAILS` allowlist with a 24-hour Access session. It adds a second sign-in at the edge, so a bug in the API's allowlist check cannot expose admin pages. Access never gates service bindings, so preview and local admin (served through the product's `/admin` route) are unaffected.
+
+It is off until the production deploy sees `CLOUDFLARE_ADMIN_ACCESS=1`. To turn it on, in this order:
+
+1. Create the account's Zero Trust organization in the Cloudflare dashboard (Zero Trust, free plan) and keep the One-time PIN login method enabled.
+2. In `alchemy.ci.ts`, add `"Access: Apps and Policies Write"` to the production deploy token's permission groups, and `CLOUDFLARE_ADMIN_ACCESS: "1"` to the production environment's variables. Apply with `bun run infra:deploy`.
+3. In `.github/workflows/ci.yml`, pass `CLOUDFLARE_ADMIN_ACCESS: ${{ vars.CLOUDFLARE_ADMIN_ACCESS }}` into the production job's `env`, beside `CLOUDFLARE_CUSTOM_DOMAINS`.
+
+The next production deploy creates the Access application and its policy. Changing `PCOBOOSTER_ADMIN_EMAILS` updates the policy on the following deploy.
+
 ## PostHog
 
 Each user page links to the matching PostHog person. The product identifies PostHog persons by the same Better Auth user ID, and the API sets email, name, and church on sign-in, so the admin page and PostHog describe the same people. See [analytics](analytics.md#server-activity-and-person-profiles).
