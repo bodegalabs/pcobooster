@@ -24,14 +24,14 @@ The production deployment project is `pcobooster-production` (`2eca20e1-20ac-4f0
 | `BETTER_AUTH_SECRET` | Infisical signing secret. Production retains its existing value to preserve sessions. Each preview stage uses its own `Alchemy.Random` key instead, kept in Alchemy state and discarded with the stage; previews do not read this secret. |
 | `OAUTH_PROXY_SECRET` | Shared production/preview broker secret. Preview callbacks use production only to finish the provider exchange; preview accounts and sessions stay in preview D1. |
 | `PLANNING_CENTER_OAUTH_CLIENT_ID`, `PLANNING_CENTER_OAUTH_CLIENT_SECRET` | Planning Center application credentials from Infisical. |
-| `PCOBOOSTER_ADMIN_EMAILS` | Comma-separated admin allowlist. |
+| `PCOBOOSTER_ADMIN_EMAILS` | Comma-separated addresses Cloudflare Access admits to the production admin app and to staging and previews (`alchemy.run.ts`); defaults to the owner. Read at deploy only; the API does not use it. |
 | `AUTH_RATE_LIMIT` | Workers rate limit binding on the API. Each client IP (`CF-Connecting-IP`) may make 30 auth writes (sign-in, OAuth callbacks, sign-out) a minute; more get a 429. Session reads are never limited. Cloudflare counts per location, so it brakes abuse rather than enforcing an exact quota. |
 | `FeatureFlags` | Alchemy Cloudflare Flagship binding (deployed stages only); see [Feature flags](#feature-flags). |
 | `DEMO_ACCESS_KEY`, `DEMO_PLANNING_CENTER_CLIENT`, `DEMO_PLANNING_CENTER_PAT` | Optional production-only read-only demo. |
 | `POSTHOG_PROJECT_KEY` | Optional production analytics key (a public ingestion token), bound to the API. The product's and marketing's `vite.config.ts` inline it as `import.meta.env.VITE_POSTHOG_KEY`. |
 | `PLANNING_CENTER_TIME_ZONE` | Fallback when Planning Center returns no organization zone. The API defaults it to `America/Los_Angeles`; the product build inlines it as `import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE` for the browser while the organization loads. |
 
-Alchemy owns stage origins, `BETTER_AUTH_URL`, `CORS_ORIGIN`, cookie domain, OAuth receiver allowlist, `NODE_ENV`, and service bindings. Production uses parent-domain cookies for `admin.pcobooster.com`; previews use host-only cookies and serve admin at `/admin` on the preview origin. Do not override these derived values in Infisical.
+Alchemy owns stage origins, `BETTER_AUTH_URL`, `CORS_ORIGIN`, OAuth receiver allowlist, `NODE_ENV`, and service bindings. Every stage uses host-only session cookies; staging and previews serve admin at `/admin` on their own origin. Do not override these derived values in Infisical.
 
 ## Feature flags
 
