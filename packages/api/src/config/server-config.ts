@@ -19,6 +19,8 @@ export interface ServerConfig {
   readonly publicOrigin: string;
   readonly auth: {
     readonly secret: string;
+    /** Parent domain for the session cookie, so the admin subdomain shares it. */
+    readonly cookieDomain: string | null;
     /** Wildcard origin of preview product Workers, trusted for OAuth redirects. */
     readonly previewOriginPattern: string | null;
     readonly proxy: {
@@ -30,6 +32,7 @@ export interface ServerConfig {
       readonly clientSecret: string;
     };
   };
+  readonly adminEmails: readonly string[];
   /** Used when Planning Center does not report the organization's time zone. */
   readonly fallbackTimeZone: string;
   /** Present only in production, the one stage that shares the product's PostHog project. */
@@ -49,11 +52,13 @@ export interface ServerEnvironment {
   readonly PCOBOOSTER_VERSION?: string;
   readonly BETTER_AUTH_URL: string;
   readonly BETTER_AUTH_SECRET: string;
+  readonly AUTH_COOKIE_DOMAIN?: string;
   readonly OAUTH_PREVIEW_ORIGIN_PATTERN?: string;
   readonly OAUTH_PROXY_SECRET?: string;
   readonly OAUTH_PROXY_PRODUCTION_URL?: string;
   readonly PLANNING_CENTER_OAUTH_CLIENT_ID: string;
   readonly PLANNING_CENTER_OAUTH_CLIENT_SECRET: string;
+  readonly PCOBOOSTER_ADMIN_EMAILS?: string;
   readonly PLANNING_CENTER_TIME_ZONE?: string;
   readonly POSTHOG_PROJECT_KEY?: string;
   readonly DEMO_ACCESS_KEY?: string;
@@ -66,6 +71,7 @@ export interface ServerEnvironment {
   readonly PRESENTATION_SEED?: string;
 }
 
+const DEFAULT_ADMIN_EMAILS = ["jakebodea@gmail.com"];
 const DEFAULT_TIME_ZONE = "America/Los_Angeles";
 
 const optional = (value: string | undefined): string | null => {
@@ -79,6 +85,15 @@ const required = (value: string, name: string): string => {
     throw new Error(`Missing ${name} environment variable`);
   }
   return present;
+};
+
+/** `PCOBOOSTER_ADMIN_EMAILS` as normalized addresses; the admin app's Access policy uses it too. */
+export const parseAdminEmails = (configured: string | undefined): string[] => {
+  const emails = (configured ?? "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+  return emails.length > 0 ? emails : DEFAULT_ADMIN_EMAILS;
 };
 
 const resolveProxy = (
@@ -116,6 +131,7 @@ export const resolveServerConfig = (
     publicOrigin: required(environment.BETTER_AUTH_URL, "BETTER_AUTH_URL"),
     auth: {
       secret: required(environment.BETTER_AUTH_SECRET, "BETTER_AUTH_SECRET"),
+      cookieDomain: optional(environment.AUTH_COOKIE_DOMAIN),
       previewOriginPattern: optional(environment.OAUTH_PREVIEW_ORIGIN_PATTERN),
       proxy: resolveProxy(environment),
       planningCenter: {
@@ -129,6 +145,7 @@ export const resolveServerConfig = (
         ),
       },
     },
+    adminEmails: parseAdminEmails(environment.PCOBOOSTER_ADMIN_EMAILS),
     fallbackTimeZone:
       optional(environment.PLANNING_CENTER_TIME_ZONE) ?? DEFAULT_TIME_ZONE,
     postHogProjectKey: production

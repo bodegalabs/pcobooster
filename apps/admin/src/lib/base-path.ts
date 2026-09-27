@@ -8,3 +8,19 @@ export const resolveAdminBase = (
   basePath: string | undefined,
   devServer: boolean
 ): string => `${basePath ?? (devServer ? "/admin" : "")}/`;
+
+/**
+ * Product sign-in URL for a signed-out admin request. When the admin app lives under the
+ * product origin, sign-in returns there; the admin subdomain is not a product return path.
+ */
+export const productSignInUrl = (
+  productOrigin: string,
+  adminBase: string
+): string => {
+  const destination = new URL("/auth", productOrigin);
+  const mountPath = adminBase.replace(/\/$/u, "");
+  if (mountPath !== "") {
+    destination.searchParams.set("next", mountPath);
+  }
+  return destination.toString();
+};

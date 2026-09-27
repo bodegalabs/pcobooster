@@ -29,6 +29,7 @@ const testSettings = {
   // test secretless in CI and guarantee it can never reach a real account.
   CLOUDFLARE_ACCOUNT_ID: "00000000000000000000000000000000",
   CLOUDFLARE_API_TOKEN: "stack-test-never-reaches-cloudflare",
+  PCOBOOSTER_ADMIN_EMAILS: "admin@example.com",
 };
 Object.assign(process.env, testSettings);
 // `Drizzle.Schema` resolves the schema and migrations from the working directory, as it does

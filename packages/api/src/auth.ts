@@ -38,7 +38,8 @@ const shouldTrackSessionDeletion = (
 
 export const createAuth = (config: ServerConfig, database: Db) => {
   const authEventLog = logger.for("auth/events");
-  const { planningCenter, previewOriginPattern, proxy } = config.auth;
+  const { cookieDomain, planningCenter, previewOriginPattern, proxy } =
+    config.auth;
 
   const trustedOrigins = [
     ...(previewOriginPattern === null ? [] : [previewOriginPattern]),
@@ -139,6 +140,13 @@ export const createAuth = (config: ServerConfig, database: Db) => {
     baseURL: config.publicOrigin,
     secret: config.auth.secret,
     trustedOrigins,
+    advanced: {
+      // A parent domain (`pcobooster.com`) lets the admin subdomain share the session.
+      crossSubDomainCookies: {
+        enabled: cookieDomain !== null,
+        domain: cookieDomain ?? undefined,
+      },
+    },
     database: drizzleAdapter(database, {
       provider: "sqlite",
       schema,
