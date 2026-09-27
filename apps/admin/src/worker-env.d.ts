@@ -4,9 +4,8 @@
  */
 declare module "cloudflare:workers" {
   interface AdminWorkerEnv {
-    /** Service binding to the API Worker. */
-    API: { fetch: (request: Request) => Promise<Response> };
-    PRODUCT_ORIGIN: string;
+    /** The product's D1 database; the admin app reads account activity from it directly. */
+    DB: WorkersD1Database;
   }
 
   export const env: AdminWorkerEnv;
