@@ -151,8 +151,52 @@ jobs:
       - name: Verify preview serves this commit
         run: bun scripts/cloudflare/verify-deployment.ts "$PREVIEW_ORIGIN" "$GITHUB_SHA"
 
-  production:
+  staging:
     needs: [ci, cloudflare-build]
+    if: >-
+      github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy_production))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    environment:
+      name: cloudflare-staging
+      url: https://pcobooster-staging-web.jakebodea.workers.dev
+    concurrency:
+      group: cloudflare-staging
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Checkout verified staging commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup toolchain
+        uses: ./.github/actions/setup
+      - name: Reject superseded staging revisions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)
+          test "$current" = "$GITHUB_SHA"
+      # The preview project also holds staging's Access service token and its id.
+      - name: Read preview-only secrets
+        uses: ./.github/actions/infisical
+        with:
+          identity-id: ${{ vars.INFISICAL_IDENTITY_ID }}
+          project-id: ${{ vars.INFISICAL_PROJECT_ID }}
+          env-slug: ${{ vars.INFISICAL_ENV_SLUG }}
+      - name: Deploy staging revision
+        run: bun alchemy deploy --stage staging --no-input --yes
+      # Passes Cloudflare Access with CLOUDFLARE_ACCESS_CLIENT_ID and CLOUDFLARE_ACCESS_CLIENT_SECRET.
+      - name: Verify staging serves this commit
+        run: bun scripts/cloudflare/verify-deployment.ts https://pcobooster-staging-web.jakebodea.workers.dev "$GITHUB_SHA"
+
+  production:
+    # Staging deploys the same revision first, so a failing migration or deploy stops here.
+    needs: [ci, cloudflare-build, staging]
     if: >-
       github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy_production))
     runs-on: ubuntu-latest

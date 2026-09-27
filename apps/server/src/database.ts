@@ -19,5 +19,5 @@ export const Database = Effect.gen(function* database() {
     name: `pcobooster-${stage}`,
     primaryLocationHint: "wnam",
     migrations: schema,
-  }).pipe(RemovalPolicy.retain(stage === "prod"));
+  }).pipe(RemovalPolicy.retain(stage === "prod" || stage === "staging"));
 });

@@ -1,7 +1,8 @@
 /**
  * The CI/deploy control plane: repository merge settings, the `main` ruleset, the deployment
- * environments and their variables, Cloudflare deploy tokens, and the Infisical secrets and OIDC
- * bindings that hand those tokens to GitHub Actions. GitHub never stores a Cloudflare token.
+ * environments and their variables, Cloudflare deploy tokens, staging's Access service token, and
+ * the Infisical secrets and OIDC bindings that hand them to GitHub Actions. GitHub never stores a
+ * Cloudflare token.
  *
  * Run it locally with `bun run infra:plan` and `bun run infra:deploy`; see docs/ci-cd.md for the
  * credentials each needs. The stack keeps its state in the shared Cloudflare state store under
@@ -11,8 +12,9 @@ import * as Alchemy from "alchemy";
 import { adopt } from "alchemy/AdoptPolicy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import * as GitHub from "alchemy/GitHub";
+import * as Output from "alchemy/Output";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Redacted } from "effect";
 
 import { existingZoneId, formerDomain } from "./scripts/cloudflare/zones";
 import { accountApiTokenProvider } from "./scripts/infra/cloudflare";
@@ -60,6 +62,15 @@ const deployPermissions: Cloudflare.ApiToken.PermissionGroupRef[] = [
   FLAGSHIP_WRITE,
 ];
 
+/**
+ * The preview token also deploys `staging`, whose product Worker declares its own Cloudflare
+ * Access application (`alchemy.run.ts`).
+ */
+const previewDeployPermissions: Cloudflare.ApiToken.PermissionGroupRef[] = [
+  ...deployPermissions,
+  "Access: Apps and Policies Write",
+];
+
 /** One Infisical project per trust level; each GitHub environment reads exactly one. */
 interface DeployTarget {
   readonly key: "Preview" | "Production";
@@ -76,13 +87,16 @@ const preview: DeployTarget = {
   projectId: "586fd830-7861-4b84-a8a6-d05c9bf7a14a",
   envSlug: "staging",
   identityId: "c569372e-b397-477c-934a-be65f9d982da",
-  // Infisical glob: exactly `cloudflare-preview` and `cloudflare-preview-cleanup`.
-  boundSubject: githubOidcSubject("cloudflare-preview{,-cleanup}"),
+  // Infisical glob: exactly `cloudflare-preview`, `cloudflare-preview-cleanup`, and
+  // `cloudflare-staging`.
+  boundSubject: githubOidcSubject(
+    "{cloudflare-preview,cloudflare-preview-cleanup,cloudflare-staging}"
+  ),
   boundClaims: {},
   policies: [
     {
       effect: "allow",
-      permissionGroups: deployPermissions,
+      permissionGroups: previewDeployPermissions,
       resources: accountScope,
     },
   ],
@@ -130,7 +144,7 @@ const productionZonePolicy = (
 
 /**
  * GitHub deployment environments. Variables name the environment as a string so their props stay
- * resolvable at plan time; all three environments already exist.
+ * resolvable at plan time.
  */
 interface DeployEnvironment {
   readonly id: string;
@@ -156,6 +170,15 @@ const environments: readonly DeployEnvironment[] = [
     name: "cloudflare-preview-cleanup",
     target: preview,
     // Teardown runs only trusted `main` code, so it needs no approval.
+    reviewers: undefined,
+    branches: { customBranchPolicies: ["main"] },
+    variables: {},
+  },
+  {
+    id: "StagingEnvironment",
+    name: "cloudflare-staging",
+    target: preview,
+    // Every push to `main` deploys staging before production.
     reviewers: undefined,
     branches: { customBranchPolicies: ["main"] },
     variables: {},
@@ -219,6 +242,60 @@ const deployTarget = Effect.fn("deployTarget")(function* deployTarget(
   return token.tokenId;
 });
 
+const toRedacted = (value: string) => Redacted.make(value);
+
+/** Cloudflare reveals a client secret only on create and rotate; Alchemy keeps it in state. */
+const requireClientSecret = (
+  secret: Redacted.Redacted | undefined
+): Redacted.Redacted => {
+  if (secret === undefined) {
+    throw new Error(
+      "The staging Access client secret is missing from state; bump clientSecretVersion to rotate it."
+    );
+  }
+  return secret;
+};
+
+/**
+ * Lets the staging deploy job verify the deploy through Cloudflare Access without a login.
+ * `alchemy.run.ts` admits it by id; the client credentials use the names Alchemy's Access client
+ * reads. They live in the preview project, whose identity can already overwrite staging's Workers.
+ * Rotate by bumping `clientSecretVersion`.
+ */
+const stagingAccessServiceToken = Effect.gen(function* stagingAccessToken() {
+  const token = yield* Cloudflare.Access.ServiceToken("StagingDeployCheck", {
+    name: "pcobooster-staging-deploy-check",
+    duration: "8760h",
+    clientSecretVersion: 1,
+  });
+  const location = {
+    projectId: preview.projectId,
+    environment: preview.envSlug,
+    secretPath: "/",
+  };
+  const comment =
+    "Managed by alchemy.ci.ts (pcobooster-staging-deploy-check service token).";
+  yield* InfisicalSecret("StagingAccessServiceTokenId", {
+    ...location,
+    name: "STAGING_ACCESS_SERVICE_TOKEN_ID",
+    value: Output.map(toRedacted)(token.serviceTokenId),
+    comment,
+  });
+  yield* InfisicalSecret("StagingAccessClientId", {
+    ...location,
+    name: "CLOUDFLARE_ACCESS_CLIENT_ID",
+    value: Output.map(toRedacted)(token.clientId),
+    comment,
+  });
+  yield* InfisicalSecret("StagingAccessClientSecret", {
+    ...location,
+    name: "CLOUDFLARE_ACCESS_CLIENT_SECRET",
+    value: Output.map(requireClientSecret)(token.clientSecret),
+    comment,
+  });
+  return token.serviceTokenId;
+});
+
 export default Alchemy.Stack(
   "pcobooster-ci",
   {
@@ -275,6 +352,7 @@ export default Alchemy.Stack(
     }
 
     const previewTokenId = yield* deployTarget(preview);
+    const stagingServiceTokenId = yield* stagingAccessServiceToken;
     const productionZoneIds: string[] = [];
     for (const name of productionZones) {
       productionZoneIds.push(yield* existingZoneId(accountId, name));
@@ -290,6 +368,7 @@ export default Alchemy.Stack(
     return {
       rulesetId: ruleset.rulesetId,
       previewTokenId,
+      stagingServiceTokenId,
       productionTokenId,
     };
   })

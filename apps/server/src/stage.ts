@@ -1,15 +1,17 @@
 import * as Alchemy from "alchemy";
 import { Config, Effect } from "effect";
 
-const supportedStagePattern = /^(?:prod|local|pr-\d+)$/u;
+const supportedStagePattern = /^(?:prod|staging|local|pr-\d+)$/u;
 
 export interface StageSettings {
   readonly stage: string;
   readonly production: boolean;
   readonly local: boolean;
+  /** The persistent pre-production stage, reachable only through Cloudflare Access. */
+  readonly staging: boolean;
   /** The product's browser origin, which also serves the API and (outside production) admin. */
   readonly publicOrigin: string;
-  /** Matches every preview product Worker; they share production's OAuth callback. */
+  /** Matches every preview and staging product Worker; they share production's OAuth callback. */
   readonly previewOriginPattern: string;
 }
 
@@ -32,6 +34,7 @@ export const resolveStageSettings = (
     stage,
     production,
     local,
+    staging: stage === "staging",
     publicOrigin,
     previewOriginPattern: `https://pcobooster-*-web.${workersSubdomain}.workers.dev`,
   };

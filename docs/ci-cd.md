@@ -1,6 +1,6 @@
 # CI/CD
 
-The Cloudflare workflow separates secretless validation from deployment: labeled pull requests deploy previews, and merges to `main` deploy production. `ci` runs dependency review, strict linting, typechecks, and tests. `cloudflare-build` runs the product's and the admin app's Vite Worker builds (with the prerendered marketing site staged into the product) without credentials. Both run for pull requests and merge queue commits; deployment jobs never run for `merge_group`.
+The Cloudflare workflow separates secretless validation from deployment: labeled pull requests deploy previews, and merges to `main` deploy staging and then production. `ci` runs dependency review, strict linting, typechecks, and tests. `cloudflare-build` runs the product's and the admin app's Vite Worker builds (with the prerendered marketing site staged into the product) without credentials. Both run for pull requests and merge queue commits; deployment jobs never run for `merge_group`.
 
 Run the local gates before opening a pull request:
 
@@ -44,9 +44,17 @@ Cleanup runs in the `cloudflare-preview-cleanup` environment. That environment i
 
 Deployment and cleanup share a per-stage concurrency group. Reopening the PR creates a fresh deployment request.
 
+## Staging
+
+`staging` is a persistent pre-production stage at <https://pcobooster-staging-web.jakebodea.workers.dev>. Every push to `main` (and a manual run with `deploy_production`) deploys it first, in the `cloudflare-staging` environment (`main` only, no reviewers); production waits for it, so a failing deploy or migration stops before production. Its D1 database is retained and its data persists across deploys. It runs the preview tier: preview secrets from the `pcobooster-preview` project, preview feature flag values, host-only cookies, admin at `/admin`, and Planning Center sign-in through production's OAuth proxy (its origin matches the preview pattern). Deploy it yourself with `bun run deploy:staging`.
+
+Cloudflare Access protects it. `alchemy.run.ts` gives staging's product Worker a dedicated Access application (the Worker's `access` prop) whose policies admit only `jakebodea@gmail.com`, plus the deploy-check service token. It covers the `workers.dev` URL and version preview URLs; the API and admin Workers have no public URL outside production. Access needs a Zero Trust organization on the account, with the One-time PIN login method (or another identity provider) enabled. Change who may sign in by editing `stagingOwnerEmail`.
+
+`alchemy.ci.ts` owns the service token (`pcobooster-staging-deploy-check`) and writes `STAGING_ACCESS_SERVICE_TOKEN_ID`, `CLOUDFLARE_ACCESS_CLIENT_ID`, and `CLOUDFLARE_ACCESS_CLIENT_SECRET` to the preview project. The staging deploy reads the id to admit the token; `verify-deployment.ts` sends the client credentials. A labeled preview can read them too, but that identity can already overwrite staging's Workers, so the token adds no reach. The preview deploy token carries **Access: Apps and Policies Write** so the staging deploy can manage its Access application. `alchemy.cleanup.ts` and the preview sweep never touch `staging`.
+
 ## Production
 
-Merge equals deploy. A push to `main` deploys production after `ci` and `cloudflare-build` pass. So does a manual CI run on `main` with `deploy_production`. `cloudflare-production` accepts only the `main` branch and has no approval gate. The job rejects a revision superseded by newer `main` before reading production secrets. Post-deploy verification then fails the run unless pcobooster.com serves the merged commit. The merge queue and its required checks are the only gate before production, so keep them strict.
+Merge equals deploy. A push to `main` deploys production after `ci`, `cloudflare-build`, and the `staging` deploy pass. So does a manual CI run on `main` with `deploy_production`. `cloudflare-production` accepts only the `main` branch and has no approval gate. The job rejects a revision superseded by newer `main` before reading production secrets. Post-deploy verification then fails the run unless pcobooster.com serves the merged commit. The merge queue and its required checks are the only gate before production, so keep them strict.
 
 After verification, the job marks the release on PostHog charts. It skips with a warning when `POSTHOG_ANNOTATION_API_KEY` is absent; see [analytics](analytics.md#deploy-annotations). PostHog dashboards are applied separately with `bun run posthog:deploy`, never by CI.
 
@@ -64,7 +72,7 @@ GitHub environment variables are `INFISICAL_PROJECT_ID`, `INFISICAL_IDENTITY_ID`
 
 The issuer/discovery URL is `https://token.actions.githubusercontent.com`; audience is `https://github.com/bodegalabs/pcobooster`. This repository uses immutable OIDC subjects:
 
-- Preview and cleanup: `repo:bodegalabs@305914027/pcobooster@1125110564:environment:cloudflare-preview{,-cleanup}`. This is an Infisical glob that matches exactly those two environments.
+- Preview, cleanup, and staging: `repo:bodegalabs@305914027/pcobooster@1125110564:environment:{cloudflare-preview,cloudflare-preview-cleanup,cloudflare-staging}`. This is an Infisical glob that matches exactly those three environments.
 - Production: `repo:bodegalabs@305914027/pcobooster@1125110564:environment:cloudflare-production`
 
 Access tokens have a one-hour TTL and maximum TTL. The preview identity is Viewer only in `pcobooster-preview`. Its Cloudflare token permits Workers Scripts Write, Workers KV Storage Write, D1 Write, Secrets Store Write, and Flagship Write in the current account. Each stage's API declares a KV namespace for the shared Planning Center read cache (`apps/server/src/planning-center-cache.ts`), which needs Workers KV Storage Write. It has no DNS, registrar, R2, or token-administration permission. These account-level permissions can affect other resources in that account; project separation does not create resource-level Cloudflare isolation. Only revisions on a PR you labeled may deploy previews.
@@ -79,9 +87,10 @@ The production token has the same account-level deployment permissions, plus Zon
 
 - Repository merge settings on `bodegalabs/pcobooster`: squash on, merge commits off, auto-merge on, delete branches on merge. `allowRebaseMerge` is deliberately unmanaged; the ruleset alone keeps `main` squash-only.
 - The `main` ruleset "Protect main via pull requests" (`scripts/infra/main-ruleset.ts`): required checks `ci` and `cloudflare-build` from GitHub Actions, the squash merge queue, squash-only merges, linear history, no deletion or force pushes, and no bypass actors. `main-ruleset.test.ts` compares it with a snapshot of the live ruleset.
-- The `cloudflare-preview` (any branch, no reviewers), `cloudflare-preview-cleanup` (`main` only), and `cloudflare-production` (`main` only, no reviewers) environments and their variables. The repository is public, so GitHub accepts environment protection rules on the Free plan.
+- The `cloudflare-preview` (any branch, no reviewers), `cloudflare-preview-cleanup` (`main` only), `cloudflare-staging` (`main` only, no reviewers), and `cloudflare-production` (`main` only, no reviewers) environments and their variables. The repository is public, so GitHub accepts environment protection rules on the Free plan.
 - The preview and production Cloudflare deploy tokens, as account-owned API tokens.
 - `CLOUDFLARE_API_TOKEN` in each Infisical deployment project (preview `staging`, production `prod`, path `/`), written from the token Alchemy just created.
+- Staging's Access service token and its three secrets in the preview project (see [Staging](#staging)).
 - Both Infisical identities' GitHub OIDC bindings.
 
 Alchemy has no Infisical provider and its GitHub ruleset cannot express merge queues, so `scripts/infra/` adds small providers for the Infisical secret, the OIDC binding, and the ruleset. It also gives Alchemy's GitHub Repository, Environment, and Variable providers a lookup by name. Everything that already existed is adopted: the plan shows it as `adopted`, and the first deploy writes only differences. The ruleset is found by name and adopted explicitly (`adopt(true)`); it is updated in place, never recreated. All adopted GitHub and Infisical objects are retained if their declaration is removed.

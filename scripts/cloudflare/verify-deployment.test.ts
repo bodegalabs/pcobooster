@@ -4,6 +4,7 @@ import {
   readVersion,
   readWebVersion,
   verifyDeployment,
+  withAccessServiceToken,
 } from "./verify-deployment";
 
 const respondWith =
@@ -132,5 +133,45 @@ describe(verifyDeployment, () => {
     ).rejects.toThrow(
       "https://example.test API served 0fc13cc, expected b57ca91"
     );
+  });
+});
+
+const recordHeaders = () => {
+  const seen: Headers[] = [];
+  const fetchImpl: typeof fetch = Object.assign(
+    async (_input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      seen.push(new Headers(init?.headers));
+      return await Promise.resolve(new Response("ok"));
+    },
+    fetch
+  );
+  return { seen, fetchImpl };
+};
+
+describe(withAccessServiceToken, () => {
+  it("sends the service token alongside the request's own headers", async () => {
+    const { seen, fetchImpl } = recordHeaders();
+    const accessFetch = withAccessServiceToken(fetchImpl, {
+      CLOUDFLARE_ACCESS_CLIENT_ID: "client.access",
+      CLOUDFLARE_ACCESS_CLIENT_SECRET: "secret",
+    });
+    await accessFetch("https://example.test/version", {
+      headers: { accept: "application/json" },
+    });
+    expect(seen[0]?.get("CF-Access-Client-Id")).toBe("client.access");
+    expect(seen[0]?.get("CF-Access-Client-Secret")).toBe("secret");
+    expect(seen[0]?.get("accept")).toBe("application/json");
+  });
+
+  it("leaves fetch unchanged without a service token", () => {
+    const { fetchImpl } = recordHeaders();
+    expect(withAccessServiceToken(fetchImpl, {})).toBe(fetchImpl);
+  });
+
+  it("rejects a half-configured service token", () => {
+    const { fetchImpl } = recordHeaders();
+    expect(() =>
+      withAccessServiceToken(fetchImpl, { CLOUDFLARE_ACCESS_CLIENT_ID: "id" })
+    ).toThrow("Set both");
   });
 });

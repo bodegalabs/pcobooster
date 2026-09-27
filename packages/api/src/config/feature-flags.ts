@@ -5,7 +5,10 @@
  * flag's configuration: a deploy overwrites edits made in the Cloudflare dashboard.
  */
 
-/** Where a stage runs: `local` (`alchemy dev`), `preview` (`pr-<number>`), or `production`. */
+/**
+ * Where a stage runs: `local` (`alchemy dev`), `preview` (`pr-<number>` and `staging`), or
+ * `production`.
+ */
 export type DeploymentTier = "local" | "preview" | "production";
 
 /** A boolean flag. Flagship serves `on` (true) or `off` (false). */
