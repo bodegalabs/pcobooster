@@ -62,6 +62,8 @@ Infisical's production OIDC identity binds the environment subject and the `ref=
 
 `CLOUDFLARE_CUSTOM_DOMAINS=1` in the production GitHub environment attaches pcobooster.com, www, and admin to the production Workers.
 
+A nightly `Cloudflare drift` workflow (also available through `workflow_dispatch`) runs `scripts/cloudflare/check-drift.ts prod`. It compares every production resource Alchemy manages with its live Cloudflare state and fails, listing them in the job summary, when any were changed outside a deploy, such as a Flagship flag or DNS record edited in the dashboard. It only reads. The next deploy would overwrite those edits, so either copy the change into code or restore it with `bun alchemy drift --stage prod --repair`. It shares the production deploy's concurrency group, so it never observes a half-applied deploy.
+
 To roll back, revert the change on `main`; the revert deploys like any other merge. Schema changes follow [database migrations](database.md#migrations-must-keep-the-running-app-online), so the previous code stays compatible with the migrated database.
 
 A deploy you run yourself (`bun run deploy:production`, `bun run infra:deploy`) is still a manual production change: confirm it with Jake first.
