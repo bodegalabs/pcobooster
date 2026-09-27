@@ -57,6 +57,12 @@ const { test, beforeAll, deploy } = Test.make({
 // stops workerd when the file finishes.
 const stack = beforeAll(deploy(ApiStack), { timeout: 180_000 });
 
+/**
+ * The first request waits for workerd to finish starting (the harness retries until it answers),
+ * which takes longer than Vitest's 5-second default on CI runners.
+ */
+const requestTimeout = { timeout: 60_000 };
+
 /** The local API Worker's URL; `alchemy dev` always serves one. */
 const apiUrl = stack.pipe(
   Effect.flatMap(({ url }) =>
@@ -101,7 +107,8 @@ test(
     assert.deepStrictEqual(yield* response.json, {
       json: { status: "ok", version: "development" },
     });
-  })
+  }),
+  requestTimeout
 );
 
 test(
@@ -121,5 +128,6 @@ test(
     assert.strictEqual(statuses.last, 429);
     assert.strictEqual(sessionRead, 200);
     assert.notStrictEqual(otherClient, 429);
-  })
+  }),
+  requestTimeout
 );
