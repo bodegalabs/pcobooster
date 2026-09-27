@@ -43,10 +43,10 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
+  BreadcrumbMenuTrigger,
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import {
   Dialog,
@@ -192,18 +192,13 @@ const AppTopBar = () => {
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         render={
-                          <Button
-                            variant="ghost"
-                            size="xs"
+                          <BreadcrumbMenuTrigger
                             aria-label={`Change view from ${planViewLabel}`}
                           />
                         }
                       >
                         <span>{planViewLabel}</span>
-                        <ChevronDown
-                          className="text-muted-foreground size-3.5"
-                          aria-hidden
-                        />
+                        <ChevronDown aria-hidden />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-36">
                         {planViews.map((view) => (
