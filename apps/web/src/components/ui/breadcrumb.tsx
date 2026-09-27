@@ -76,6 +76,31 @@ const BreadcrumbPage = ({
   />
 );
 
+/* A current-page crumb that opens a menu. It inherits the list's type size so a
+   dropdown crumb reads exactly like a plain one. */
+const BreadcrumbMenuTrigger = ({
+  className,
+  render,
+  ...props
+}: useRender.ComponentProps<"button">) =>
+  useRender({
+    defaultTagName: "button",
+    props: mergeProps<"button">(
+      {
+        type: "button",
+        className: cn(
+          "text-foreground hover:bg-muted aria-expanded:bg-muted focus-visible:ring-ring/30 [&>svg]:text-muted-foreground -mx-1 inline-flex items-center gap-1 rounded-md px-1 py-0.5 font-normal outline-none focus-visible:ring-3 [&>svg]:size-3.5 [&>svg]:shrink-0",
+          className
+        ),
+      },
+      props
+    ),
+    render,
+    state: {
+      slot: "breadcrumb-menu-trigger",
+    },
+  });
+
 const BreadcrumbSeparator = ({
   children,
   className,
@@ -117,6 +142,7 @@ export {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbPage,
+  BreadcrumbMenuTrigger,
   BreadcrumbSeparator,
   BreadcrumbEllipsis,
 };
