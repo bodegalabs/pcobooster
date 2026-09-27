@@ -166,12 +166,11 @@ const PlanAgendaDay = ({
   day: PlanDayGroup;
   todayKey: string;
 }) => (
-  <li className="flex gap-3 py-2 md:gap-4">
+  <li className="flex items-center gap-3 py-2 md:gap-4">
     <PlanDateTile
       date={day.date}
       orgTimeZone={orgTimeZone}
       isToday={day.dayKey === todayKey}
-      className="mt-0.5 h-fit"
     />
     <ul className="flex min-w-0 flex-1 flex-col gap-0.5">
       {day.rows.map((row) => (
@@ -195,7 +194,7 @@ const planAgendaSkeletonDays = [2, 1, 3, 1, 2, 1];
 export const PlanAgendaSkeleton = () => (
   <div className="flex flex-col">
     <Skeleton variant="text" className="mt-1 mb-2 h-3 w-24" />
-    <div className="divide-border/40 flex flex-col divide-y">
+    <div className="divide-border flex flex-col divide-y">
       {planAgendaSkeletonDays.map((rowCount, dayIndex) => (
         <div key={dayIndex} className="flex gap-3 py-2 md:gap-4">
           <Skeleton className="h-16 w-12 shrink-0" />
@@ -268,10 +267,10 @@ const PlanAgenda = ({
   return groupPlansByMonthAndDay(visibleRows, dayProps.orgTimeZone).map(
     (month) => (
       <section key={month.heading} aria-label={month.heading}>
-        <h3 className="bg-background/90 text-muted-foreground supports-backdrop-filter:bg-background/75 sticky top-[var(--plan-list-sticky-offset,0px)] z-[5] -mx-4 px-4 pt-4 pb-1.5 text-xs font-semibold tracking-wide uppercase backdrop-blur-md md:top-0 md:mx-0 md:px-0">
+        <h3 className="bg-background text-muted-foreground sticky top-[var(--plan-list-sticky-offset,0px)] z-[5] -mx-4 px-4 pt-4 pb-1.5 text-xs font-semibold tracking-wide uppercase md:top-0 md:mx-0 md:px-0">
           {month.heading}
         </h3>
-        <ul className="divide-border/40 flex flex-col divide-y">
+        <ul className="divide-border flex flex-col divide-y">
           {month.days.map((day) => (
             <PlanAgendaDay
               key={day.dayKey}
@@ -406,7 +405,7 @@ export const ServicePlanTableSelector = ({
       />
 
       <div className="flex flex-col md:min-h-0 md:flex-1">
-        <div className="bg-background/90 supports-backdrop-filter:bg-background/75 sticky top-0 z-10 -mx-4 grid shrink-0 grid-cols-2 gap-2 px-4 py-2 backdrop-blur-md md:static md:mx-0 md:grid-cols-[minmax(0,1fr)_180px_160px] md:bg-transparent md:px-0 md:pt-0 md:pb-1 md:backdrop-blur-none">
+        <div className="bg-background sticky top-0 z-10 -mx-4 grid shrink-0 grid-cols-2 gap-2 px-4 py-2 md:static md:mx-0 md:grid-cols-[minmax(0,1fr)_180px_160px] md:bg-transparent md:px-0 md:pt-0 md:pb-1">
           <InputGroup className="col-span-2 md:col-span-1">
             <InputGroupAddon>
               <Search />
