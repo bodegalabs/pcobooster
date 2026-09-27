@@ -35,7 +35,7 @@ describe(parsePlanRoute, () => {
 
 describe(assertPlanView, () => {
   it("accepts every plan view", () => {
-    for (const view of ["assign", "lineup", "plan", "times"]) {
+    for (const view of ["overview", "assign", "lineup", "plan", "times"]) {
       expect(() => {
         assertPlanView(view);
       }).not.toThrow();

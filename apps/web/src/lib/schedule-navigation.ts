@@ -20,11 +20,11 @@ export const buildPlanMemberPositionId = (
 ): string =>
   `plan-member-position:${teamId}:${encodeURIComponent(positionName.trim().toLowerCase())}`;
 
-/** Opens a plan on its Assign view. */
+/** Opens a plan on its Overview. */
 export const planWorkspaceLink = (serviceTypeId: string, planId: string) =>
   linkOptions({
     to: "/services/$serviceTypeId/plans/$planId/$view",
-    params: { serviceTypeId, planId, view: "assign" },
+    params: { serviceTypeId, planId, view: "overview" },
   });
 
 /**

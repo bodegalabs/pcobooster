@@ -81,12 +81,62 @@ jobs:
       - name: Build Cloudflare bundles without credentials
         run: bun run build:cloudflare
 
-  preview:
-    needs: [ci, cloudflare-build]
-    # Previews deploy only on request: the `preview` label is the approval.
-    # On `labeled` the check jobs are skipped, so the job waits on the head's earlier checks.
+  preview-gate:
+    # On `labeled` the check jobs are skipped, so this waits on the head's earlier checks. A PR
+    # opened with the label also starts an `opened` run that deploys the same head; the gate
+    # leaves the deploy to it instead of deploying twice.
     if: >-
-      !cancelled() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'preview') && (github.event.action != 'labeled' || github.event.label.name == 'preview')
+      github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'preview' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      actions: read
+      checks: read
+      contents: read
+    outputs:
+      deploy: ${{ steps.gate.outputs.deploy }}
+    steps:
+      - name: Require passing checks for the labeled head
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          for _ in $(seq 60); do
+            pending=0
+            for check in ci cloudflare-build; do
+              # Newest non-skipped run of each required check on this head.
+              result=$(gh api "repos/$GITHUB_REPOSITORY/commits/$EXPECTED_HEAD/check-runs?check_name=$check&filter=all" \
+                --jq '[.check_runs[] | select(.conclusion != "skipped")] | sort_by(.started_at) | last | (.conclusion // .status // "missing")')
+              case "$result" in
+                success) ;;
+                queued | requested | in_progress | pending | waiting) pending=1 ;;
+                *) echo "::error::$check is $result for $EXPECTED_HEAD; push or re-run checks before requesting a preview."; exit 1 ;;
+              esac
+            done
+            [ "$pending" = 0 ] && exit 0
+            sleep 20
+          done
+          echo "::error::Checks for $EXPECTED_HEAD did not finish in time."
+          exit 1
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup toolchain
+        uses: ./.github/actions/setup
+      - name: Leave the deploy to a run already deploying this head
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: bun scripts/cloudflare/preview-gate.ts
+
+  preview:
+    needs: [ci, cloudflare-build, preview-gate]
+    # Previews deploy only on request: the `preview` label is the approval. Re-running this job
+    # always deploys, even where the gate left the first attempt's deploy to another run.
+    if: >-
+      !cancelled() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'preview') && (github.event.action != 'labeled' || github.event.label.name == 'preview') && (needs.preview-gate.outputs.deploy != 'false' || github.run_attempt != '1')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -117,29 +167,6 @@ jobs:
         run: |
           current=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '[.state, .head.sha] | join(":")')
           test "$current" = "open:$EXPECTED_HEAD"
-      - name: Require passing checks for the labeled head
-        if: github.event.action == 'labeled'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
-        run: |
-          for _ in $(seq 60); do
-            pending=0
-            for check in ci cloudflare-build; do
-              # Newest non-skipped run of each required check on this head.
-              result=$(gh api "repos/$GITHUB_REPOSITORY/commits/$EXPECTED_HEAD/check-runs?check_name=$check&filter=all" \
-                --jq '[.check_runs[] | select(.conclusion != "skipped")] | sort_by(.started_at) | last | (.conclusion // .status // "missing")')
-              case "$result" in
-                success) ;;
-                queued | requested | in_progress | pending | waiting) pending=1 ;;
-                *) echo "::error::$check is $result for $EXPECTED_HEAD; push or re-run checks before requesting a preview."; exit 1 ;;
-              esac
-            done
-            [ "$pending" = 0 ] && exit 0
-            sleep 20
-          done
-          echo "::error::Checks for $EXPECTED_HEAD did not finish in time."
-          exit 1
       - name: Read preview-only secrets
         uses: ./.github/actions/infisical
         with:

@@ -7,10 +7,10 @@ import {
 } from "@/lib/schedule-navigation";
 
 describe(planWorkspaceLink, () => {
-  it("opens a plan on the assign view", () => {
+  it("opens a plan on its overview", () => {
     expect(planWorkspaceLink("78", "90")).toStrictEqual({
       to: "/services/$serviceTypeId/plans/$planId/$view",
-      params: { serviceTypeId: "78", planId: "90", view: "assign" },
+      params: { serviceTypeId: "78", planId: "90", view: "overview" },
     });
   });
 });

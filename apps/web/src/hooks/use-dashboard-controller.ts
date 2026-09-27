@@ -229,11 +229,13 @@ export const useDashboardController = ({
   ]);
 
   // What the other tabs need waits in the speculative lane, behind the view on screen: the
-  // Plan tab's items, and on the Assign view the plan-window history every position's
-  // candidates are scored with (up to about 40 Planning Center requests cold).
+  // Plan tab's items (the Overview and Plan views load them directly), and on the Assign view
+  // the plan-window history every position's candidates are scored with (up to about 40
+  // Planning Center requests cold).
   useEffect(() => {
     const leave = new AbortController();
-    if (hasPlanUrlSelection && activeView !== "plan") {
+    const viewLoadsItems = activeView === "plan" || activeView === "overview";
+    if (hasPlanUrlSelection && !viewLoadsItems) {
       void requestScheduler.runSpeculative(async () => {
         await queryClient.query(
           speculativeQuery(

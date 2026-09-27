@@ -3,6 +3,7 @@ import {
   Calendar04Icon,
   CleanIcon,
   Clock01Icon,
+  DashboardSquare01Icon,
   KeyboardIcon,
   LaptopIcon,
   Layout3ColumnIcon,
@@ -460,6 +461,7 @@ const servicesRootItem: SidebarTabGroupItem<ServicesSidebarKey> = {
 };
 
 const planViewIcons: Record<PlanView, SidebarTabGroupItem["icon"]> = {
+  overview: DashboardSquare01Icon,
   assign: UserAdd01Icon,
   lineup: Layout3ColumnIcon,
   plan: ListMusicIcon,

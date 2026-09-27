@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState, useTransition } from "react";
 
+import { PageShell } from "@/components/page-shell";
 import { ServicePlanTableSelector } from "@/components/service-plan-table-selector";
 import { planWorkspaceLink } from "@/lib/schedule-navigation";
 
@@ -32,15 +33,13 @@ export const SchedulePlansPage = () => {
   );
 
   return (
-    <main className="bg-background flex flex-1 flex-col md:h-full md:min-h-0 md:overflow-hidden">
-      <div className="pb-safe-4 mx-auto flex w-full max-w-7xl flex-col px-4 pt-1 md:min-h-0 md:flex-1 md:px-4 md:py-4">
-        <ServicePlanTableSelector
-          selectedServiceTypeId={null}
-          selectedPlanId={isOpeningPlan ? openingPlanId : null}
-          isNavigating={isOpeningPlan}
-          onSelect={handleServicePlanSelect}
-        />
-      </div>
-    </main>
+    <PageShell>
+      <ServicePlanTableSelector
+        selectedServiceTypeId={null}
+        selectedPlanId={isOpeningPlan ? openingPlanId : null}
+        isNavigating={isOpeningPlan}
+        onSelect={handleServicePlanSelect}
+      />
+    </PageShell>
   );
 };
