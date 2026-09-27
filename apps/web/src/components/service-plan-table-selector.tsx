@@ -1,6 +1,6 @@
+import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { ChevronRight, Search } from "lucide-react";
-import type { ReactNode } from "react";
 
 import { ServiceTypeMultiSelect } from "@/components/service-type-multi-select";
 import {
@@ -23,19 +23,11 @@ import {
   NativeSelectOption,
 } from "@/components/ui/native-select";
 import { selectionPickerSectionTitleClass } from "@/components/ui/selection-picker-styles";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useServicePlanSelection } from "@/hooks/use-service-plan-selection";
 import type {
+  PlanDayGroup,
   ServicePlanRow,
   ServicePlanTableSelectorProps,
 } from "@/lib/service-plan-selection";
@@ -43,7 +35,8 @@ import {
   dateRangeSchema,
   formatPlanDate,
   formatPlanDateTile,
-  formatPlanMonthHeading,
+  formatPlanRelativeDay,
+  groupPlansByMonthAndDay,
 } from "@/lib/service-plan-selection";
 import { cn } from "@/lib/utils";
 
@@ -58,124 +51,16 @@ interface PlanListProps {
   orgTimeZone: string;
 }
 
-const DesktopPlanRows = ({
-  isInitialLoading,
-  errorMessage,
-  visibleRows,
-  selectedPlanId,
-  myScheduledPlanIdSet,
-  handleSelectRow,
-  getPlanIntentProps,
-  orgTimeZone,
-}: PlanListProps) => {
-  if (isInitialLoading) {
-    return Array.from({ length: 8 }).map((_, index) => (
-      <TableRow key={`loading-${index}`} className="[&>td]:h-10">
-        <TableCell>
-          <Skeleton className="h-3.5 w-40" />
-        </TableCell>
-        <TableCell>
-          <Skeleton className="h-3.5 w-28" />
-        </TableCell>
-        <TableCell>
-          <Skeleton className="h-3.5 w-36" />
-        </TableCell>
-        <TableCell>
-          <Skeleton className="h-3.5 w-48" />
-        </TableCell>
-      </TableRow>
-    ));
-  }
-  if (errorMessage && visibleRows.length === 0) {
-    return (
-      <TableRow>
-        <TableCell colSpan={4}>
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Search />
-              </EmptyMedia>
-              <EmptyTitle>Plans failed to load</EmptyTitle>
-              <EmptyDescription>Refresh and try again.</EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        </TableCell>
-      </TableRow>
-    );
-  }
-  if (visibleRows.length === 0) {
-    return (
-      <TableRow>
-        <TableCell colSpan={4}>
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Search />
-              </EmptyMedia>
-              <EmptyTitle>No matching plans</EmptyTitle>
-              <EmptyDescription>
-                Adjust the search, service type, or date window.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        </TableCell>
-      </TableRow>
-    );
-  }
-  return visibleRows.map((row) => {
-    const isActive = row.planId === selectedPlanId;
-    const isScheduledForCurrentUser = myScheduledPlanIdSet.has(row.planId);
-
-    return (
-      <TableRow
-        key={`${row.serviceTypeId}:${row.planId}`}
-        scheduled={isScheduledForCurrentUser}
-        data-state={isActive ? "selected" : undefined}
-        className="group/row relative cursor-pointer"
-        tabIndex={0}
-        aria-selected={isActive}
-        aria-label={
-          isScheduledForCurrentUser
-            ? `${row.serviceTypeName}: you are scheduled`
-            : undefined
-        }
-        {...getPlanIntentProps(row)}
-        onClick={() => {
-          handleSelectRow(row);
-        }}
-        onKeyDown={(event) => {
-          if (event.key !== "Enter" && event.key !== " ") {
-            return;
-          }
-          event.preventDefault();
-          handleSelectRow(row);
-        }}
-      >
-        <TableCell>{row.serviceTypeName}</TableCell>
-        <TableCell>{formatPlanDate(row.sortDate, orgTimeZone)}</TableCell>
-        <TableCell>
-          {isNonEmptyString(row.seriesTitle) ? (
-            <span className="truncate">{row.seriesTitle}</span>
-          ) : (
-            <span className="opacity-30">-</span>
-          )}
-        </TableCell>
-        <TableCell>
-          <MiddleTruncate text={row.planTitle || "Untitled plan"} />
-        </TableCell>
-      </TableRow>
-    );
-  });
-};
-
 const PlanDateTile = ({
   date,
   orgTimeZone,
-  highlighted,
+  isToday = false,
+  className,
 }: {
   date: Date;
   orgTimeZone: string;
-  highlighted: boolean;
+  isToday?: boolean;
+  className?: string;
 }) => {
   const tile = formatPlanDateTile(date, orgTimeZone);
   return (
@@ -183,9 +68,8 @@ const PlanDateTile = ({
       aria-hidden
       className={cn(
         "flex w-12 shrink-0 flex-col items-center justify-center rounded-xl py-1.5 leading-none tabular-nums",
-        highlighted
-          ? "bg-status-confirmed/12 text-status-confirmed"
-          : "bg-muted text-foreground"
+        isToday ? "bg-foreground text-background" : "bg-muted text-foreground",
+        className
       )}
     >
       <span className="text-xs font-semibold tracking-wide uppercase opacity-70">
@@ -199,7 +83,23 @@ const PlanDateTile = ({
   );
 };
 
-const MobilePlanRow = ({
+/** A pill on wider screens; just the dot on phones, where titles need the room. */
+const ScheduledBadge = () => (
+  <span
+    aria-hidden
+    className="text-status-confirmed sm:bg-status-confirmed/12 inline-flex shrink-0 items-center gap-1.5 rounded-full text-xs font-medium sm:px-2 sm:py-0.5"
+  >
+    <span className="bg-status-confirmed size-2 rounded-full sm:size-1.5" />
+    <span className="max-sm:hidden">You&apos;re on</span>
+  </span>
+);
+
+const planDetailText = (row: ServicePlanRow): string | null => {
+  const parts = [row.planTitle, row.seriesTitle].filter(isNonEmptyString);
+  return parts.length > 0 ? parts.join(" · ") : null;
+};
+
+const PlanAgendaRow = ({
   row,
   isActive,
   isScheduledForCurrentUser,
@@ -213,135 +113,177 @@ const MobilePlanRow = ({
   onSelect: (row: ServicePlanRow) => void;
   getPlanIntentProps: GetIntentPrefetchProps<ServicePlanRow>;
   orgTimeZone: string;
-}) => (
-  <Item
-    size="xs"
-    variant={isActive ? "muted" : "default"}
-    render={
-      <button
-        type="button"
-        aria-current={isActive ? "page" : undefined}
-        aria-label={
-          isScheduledForCurrentUser
-            ? `${row.serviceTypeName}, ${formatPlanDate(row.sortDate, orgTimeZone)}: you are scheduled`
-            : `${row.serviceTypeName}, ${formatPlanDate(row.sortDate, orgTimeZone)}`
-        }
-      />
-    }
-    {...getPlanIntentProps(row)}
-    onClick={() => {
-      onSelect(row);
-    }}
-  >
-    <PlanDateTile
-      date={row.sortDate}
-      orgTimeZone={orgTimeZone}
-      highlighted={isScheduledForCurrentUser}
-    />
-    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-      <span className="text-muted-foreground truncate text-xs font-medium">
-        {row.serviceTypeName}
-      </span>
-      <span className="block min-w-0 text-base leading-snug font-semibold">
-        <MiddleTruncate text={row.planTitle || "Untitled plan"} />
-      </span>
-      {isNonEmptyString(row.seriesTitle) ? (
-        <span className="text-muted-foreground truncate text-xs">
-          {row.seriesTitle}
+}) => {
+  const detail = planDetailText(row);
+  const label = `${row.serviceTypeName}, ${formatPlanDate(row.sortDate, orgTimeZone)}`;
+  return (
+    <Item
+      size="xs"
+      variant={isActive ? "muted" : "default"}
+      className="min-h-12 rounded-xl"
+      render={
+        <button
+          type="button"
+          aria-current={isActive ? "page" : undefined}
+          aria-label={
+            isScheduledForCurrentUser ? `${label}: you are scheduled` : label
+          }
+        />
+      }
+      {...getPlanIntentProps(row)}
+      onClick={() => {
+        onSelect(row);
+      }}
+    >
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="truncate text-sm font-medium">
+          {row.serviceTypeName}
         </span>
-      ) : null}
-    </span>
-    <ChevronRight
-      className="text-muted-foreground/60 size-4 shrink-0"
-      aria-hidden
-    />
-  </Item>
-);
+        {detail === null ? null : (
+          <span className="text-muted-foreground block min-w-0 text-sm">
+            <MiddleTruncate text={detail} />
+          </span>
+        )}
+      </span>
+      {isScheduledForCurrentUser ? <ScheduledBadge /> : null}
+      <ChevronRight
+        className="text-muted-foreground/60 size-4 shrink-0 md:opacity-0 md:group-hover/item:opacity-100 md:group-focus-visible/item:opacity-100"
+        aria-hidden
+      />
+    </Item>
+  );
+};
 
-const MobilePlanRows = ({
-  isInitialLoading,
-  errorMessage,
-  visibleRows,
+const PlanAgendaDay = ({
+  day,
+  todayKey,
   selectedPlanId,
   myScheduledPlanIdSet,
   handleSelectRow,
   getPlanIntentProps,
   orgTimeZone,
+}: Omit<PlanListProps, "isInitialLoading" | "errorMessage" | "visibleRows"> & {
+  day: PlanDayGroup;
+  todayKey: string;
+}) => (
+  <li className="flex gap-3 py-2 md:gap-4">
+    <PlanDateTile
+      date={day.date}
+      orgTimeZone={orgTimeZone}
+      isToday={day.dayKey === todayKey}
+      className="mt-0.5 h-fit"
+    />
+    <ul className="flex min-w-0 flex-1 flex-col gap-0.5">
+      {day.rows.map((row) => (
+        <li key={`${row.serviceTypeId}:${row.planId}`}>
+          <PlanAgendaRow
+            row={row}
+            isActive={row.planId === selectedPlanId}
+            isScheduledForCurrentUser={myScheduledPlanIdSet.has(row.planId)}
+            onSelect={handleSelectRow}
+            getPlanIntentProps={getPlanIntentProps}
+            orgTimeZone={orgTimeZone}
+          />
+        </li>
+      ))}
+    </ul>
+  </li>
+);
+
+const planAgendaSkeletonDays = [2, 1, 3, 1, 2, 1];
+
+export const PlanAgendaSkeleton = () => (
+  <div className="flex flex-col">
+    <Skeleton variant="text" className="mt-1 mb-2 h-3 w-24" />
+    <div className="divide-border/40 flex flex-col divide-y">
+      {planAgendaSkeletonDays.map((rowCount, dayIndex) => (
+        <div key={dayIndex} className="flex gap-3 py-2 md:gap-4">
+          <Skeleton className="h-16 w-12 shrink-0" />
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            {Array.from({ length: rowCount }, (_, rowIndex) => (
+              <div
+                key={rowIndex}
+                className="flex min-h-12 flex-col justify-center gap-2 px-3"
+              >
+                <Skeleton variant="text" className="h-3 w-40 max-w-full" />
+                <Skeleton variant="text" className="h-3 w-56 max-w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const PlanListEmpty = ({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) => (
+  <div className="py-10">
+    <Empty>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Search />
+        </EmptyMedia>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  </div>
+);
+
+const PlanAgenda = ({
+  isInitialLoading,
+  errorMessage,
+  visibleRows,
+  ...dayProps
 }: PlanListProps) => {
   if (isInitialLoading) {
-    return Array.from({ length: 8 }).map((_, index) => (
-      <div
-        key={`mobile-loading-${index}`}
-        className="flex items-center gap-3 px-1 py-2"
-      >
-        <Skeleton className="h-16 w-12 shrink-0" />
-        <div className="min-w-0 flex-1 space-y-2">
-          <Skeleton className="h-3 w-28" />
-          <Skeleton className="h-4 w-48 max-w-full" />
-        </div>
-      </div>
-    ));
+    return <PlanAgendaSkeleton />;
   }
   if (errorMessage && visibleRows.length === 0) {
     return (
-      <div className="px-4 py-10">
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <Search />
-            </EmptyMedia>
-            <EmptyTitle>Plans failed to load</EmptyTitle>
-            <EmptyDescription>Refresh and try again.</EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </div>
+      <PlanListEmpty
+        title="Plans failed to load"
+        description="Refresh and try again."
+      />
     );
   }
   if (visibleRows.length === 0) {
     return (
-      <div className="px-4 py-10">
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <Search />
-            </EmptyMedia>
-            <EmptyTitle>No matching plans</EmptyTitle>
-            <EmptyDescription>
-              Adjust the search, service type, or date window.
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </div>
-    );
-  }
-  const rows: ReactNode[] = [];
-  let previousMonth = "";
-  for (const row of visibleRows) {
-    const month = formatPlanMonthHeading(row.sortDate, orgTimeZone);
-    if (month !== previousMonth) {
-      previousMonth = month;
-      rows.push(
-        <h3
-          key={`month-${month}`}
-          className="bg-background/90 text-muted-foreground supports-backdrop-filter:bg-background/75 sticky top-[var(--plan-list-sticky-offset,0px)] z-[5] -mx-4 px-5 pt-4 pb-1.5 text-xs font-semibold tracking-wide uppercase backdrop-blur-md first:pt-1"
-        >
-          {month}
-        </h3>
-      );
-    }
-    rows.push(
-      <MobilePlanRow
-        key={`mobile-${row.serviceTypeId}:${row.planId}`}
-        row={row}
-        isActive={row.planId === selectedPlanId}
-        isScheduledForCurrentUser={myScheduledPlanIdSet.has(row.planId)}
-        onSelect={handleSelectRow}
-        getPlanIntentProps={getPlanIntentProps}
-        orgTimeZone={orgTimeZone}
+      <PlanListEmpty
+        title="No matching plans"
+        description="Adjust the search, service type, or date window."
       />
     );
   }
-  return rows;
+  const todayKey = formatCalendarDayInTimeZone(
+    new Date(),
+    dayProps.orgTimeZone
+  );
+  return groupPlansByMonthAndDay(visibleRows, dayProps.orgTimeZone).map(
+    (month) => (
+      <section key={month.heading} aria-label={month.heading}>
+        <h3 className="bg-background/90 text-muted-foreground supports-backdrop-filter:bg-background/75 sticky top-[var(--plan-list-sticky-offset,0px)] z-[5] -mx-4 px-4 pt-4 pb-1.5 text-xs font-semibold tracking-wide uppercase backdrop-blur-md md:top-0 md:mx-0 md:px-0">
+          {month.heading}
+        </h3>
+        <ul className="divide-border/40 flex flex-col divide-y">
+          {month.days.map((day) => (
+            <PlanAgendaDay
+              key={day.dayKey}
+              day={day}
+              todayKey={todayKey}
+              {...dayProps}
+            />
+          ))}
+        </ul>
+      </section>
+    )
+  );
 };
 
 interface MyScheduledServiceCardsProps {
@@ -353,7 +295,7 @@ interface MyScheduledServiceCardsProps {
 }
 
 const myScheduledServiceCardClass =
-  "min-h-20 w-[min(17rem,78vw)] shrink-0 snap-start flex-col items-start justify-center gap-1 md:min-h-24 md:w-full md:gap-1.5";
+  "w-[min(18rem,80vw)] shrink-0 snap-start md:w-full";
 
 const MyScheduledServiceCards = ({
   rows,
@@ -366,6 +308,7 @@ const MyScheduledServiceCards = ({
     return null;
   }
 
+  const now = new Date();
   return (
     <section className="flex shrink-0 flex-col gap-2.5">
       <h2 className={selectionPickerSectionTitleClass}>Your services</h2>
@@ -374,41 +317,52 @@ const MyScheduledServiceCards = ({
           ? Array.from({ length: 3 }).map((_, index) => (
               <Skeleton
                 key={`my-service-card-skeleton-${index}`}
-                className="h-20 w-[min(17rem,78vw)] shrink-0 md:h-24 md:w-full"
+                className={cn(myScheduledServiceCardClass, "h-[5.25rem]")}
               />
             ))
-          : rows.map((row) => (
-              <Item
-                key={`${row.serviceTypeId}:${row.planId}`}
-                variant="outline"
-                className={myScheduledServiceCardClass}
-                render={
-                  <button
-                    type="button"
-                    aria-label={`${row.serviceTypeName}, ${formatPlanDate(row.sortDate, orgTimeZone)}`}
-                  />
-                }
-                {...getPlanIntentProps(row)}
-                onClick={() => {
-                  onSelect(row);
-                }}
-              >
-                <span className="w-full truncate text-base font-medium">
-                  {formatPlanDate(row.sortDate, orgTimeZone)}
-                </span>
-                <span className="text-muted-foreground block w-full min-w-0 text-sm">
-                  <MiddleTruncate
-                    text={
-                      row.planTitle
-                        ? `${row.serviceTypeName} · ${row.planTitle}`
-                        : row.serviceTypeName
-                    }
-                  />
-                </span>
-              </Item>
-            ))}
+          : rows.map((row) => {
+              const relativeDay = formatPlanRelativeDay(
+                row.sortDate,
+                now,
+                orgTimeZone
+              );
+              return (
+                <Item
+                  key={`${row.serviceTypeId}:${row.planId}`}
+                  variant="outline"
+                  size="sm"
+                  className={myScheduledServiceCardClass}
+                  render={
+                    <button
+                      type="button"
+                      aria-label={`${row.serviceTypeName}, ${formatPlanDate(row.sortDate, orgTimeZone)}`}
+                    />
+                  }
+                  {...getPlanIntentProps(row)}
+                  onClick={() => {
+                    onSelect(row);
+                  }}
+                >
+                  <PlanDateTile date={row.sortDate} orgTimeZone={orgTimeZone} />
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    {relativeDay === null ? null : (
+                      <span className="text-status-confirmed text-xs font-medium">
+                        {relativeDay}
+                      </span>
+                    )}
+                    <span className="truncate text-sm font-medium">
+                      {row.serviceTypeName}
+                    </span>
+                    {isNonEmptyString(row.planTitle) ? (
+                      <span className="text-muted-foreground block min-w-0 text-sm">
+                        <MiddleTruncate text={row.planTitle} />
+                      </span>
+                    ) : null}
+                  </span>
+                </Item>
+              );
+            })}
       </div>
-      <Separator className="mt-1 max-md:hidden" />
     </section>
   );
 };
@@ -441,18 +395,8 @@ export const ServicePlanTableSelector = ({
     selectedPlanId,
     onSelect,
   });
-  const listProps = {
-    isInitialLoading,
-    errorMessage,
-    visibleRows,
-    selectedPlanId,
-    myScheduledPlanIdSet,
-    handleSelectRow,
-    getPlanIntentProps,
-    orgTimeZone,
-  };
   return (
-    <div className="flex flex-col gap-3 md:h-full md:min-h-0">
+    <div className="flex flex-col gap-4 md:h-full md:min-h-0">
       <MyScheduledServiceCards
         rows={myScheduledRows}
         isLoading={isInitialLoading || myScheduledPlansLoading}
@@ -461,61 +405,56 @@ export const ServicePlanTableSelector = ({
         orgTimeZone={orgTimeZone}
       />
 
-      <div className="bg-background/90 supports-backdrop-filter:bg-background/75 sticky top-0 z-10 -mx-4 grid shrink-0 grid-cols-2 gap-2 px-4 py-2 backdrop-blur-md md:static md:mx-0 md:grid-cols-[minmax(0,1fr)_180px_160px] md:bg-transparent md:p-0 md:backdrop-blur-none">
-        <InputGroup className="col-span-2 md:col-span-1">
-          <InputGroupAddon>
-            <Search />
-          </InputGroupAddon>
-          <InputGroupInput
-            value={searchValue}
-            onChange={(event) => {
-              setSearchValue(event.target.value);
-            }}
-            placeholder="Search plans, series, or dates"
-            aria-label="Search services and plans"
+      <div className="flex flex-col md:min-h-0 md:flex-1">
+        <div className="bg-background/90 supports-backdrop-filter:bg-background/75 sticky top-0 z-10 -mx-4 grid shrink-0 grid-cols-2 gap-2 px-4 py-2 backdrop-blur-md md:static md:mx-0 md:grid-cols-[minmax(0,1fr)_180px_160px] md:bg-transparent md:px-0 md:pt-0 md:pb-1 md:backdrop-blur-none">
+          <InputGroup className="col-span-2 md:col-span-1">
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={searchValue}
+              onChange={(event) => {
+                setSearchValue(event.target.value);
+              }}
+              placeholder="Search plans, series, or dates"
+              aria-label="Search services and plans"
+            />
+          </InputGroup>
+
+          <ServiceTypeMultiSelect
+            options={serviceTypes ?? []}
+            selectedIds={effectiveSelectedServiceTypeIds}
+            onChange={setSelectedServiceTypeIds}
           />
-        </InputGroup>
 
-        <ServiceTypeMultiSelect
-          options={serviceTypes ?? []}
-          selectedIds={effectiveSelectedServiceTypeIds}
-          onChange={setSelectedServiceTypeIds}
-        />
+          <NativeSelect
+            className="w-full"
+            value={dateRangeFilter}
+            onChange={(event) => {
+              setDateRangeFilter(dateRangeSchema.parse(event.target.value));
+            }}
+            aria-label="Filter date range"
+          >
+            <NativeSelectOption value="all">All dates</NativeSelectOption>
+            <NativeSelectOption value="14">Next 14 days</NativeSelectOption>
+            <NativeSelectOption value="30">Next 30 days</NativeSelectOption>
+            <NativeSelectOption value="60">Next 60 days</NativeSelectOption>
+          </NativeSelect>
+        </div>
 
-        <NativeSelect
-          className="w-full"
-          value={dateRangeFilter}
-          onChange={(event) => {
-            setDateRangeFilter(dateRangeSchema.parse(event.target.value));
-          }}
-          aria-label="Filter date range"
-        >
-          <NativeSelectOption value="all">All dates</NativeSelectOption>
-          <NativeSelectOption value="14">Next 14 days</NativeSelectOption>
-          <NativeSelectOption value="30">Next 30 days</NativeSelectOption>
-          <NativeSelectOption value="60">Next 60 days</NativeSelectOption>
-        </NativeSelect>
-      </div>
+        <LoadingBar active={isNavigating} className="shrink-0" />
 
-      <LoadingBar active={isNavigating} className="-my-1.5 shrink-0" />
-
-      <div className="md:border-border/40 [--plan-list-sticky-offset:6.25rem] md:min-h-0 md:flex-1 md:overflow-y-auto md:rounded-lg md:border">
-        <Table className="hidden md:table">
-          <TableHeader className="sticky top-0 z-10">
-            <TableRow className="[&>th]:h-9">
-              <TableHead className="w-[30%]">Service type</TableHead>
-              <TableHead className="w-[20%]">Date</TableHead>
-              <TableHead className="w-[25%]">Series</TableHead>
-              <TableHead>Plan</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <DesktopPlanRows {...listProps} />
-          </TableBody>
-        </Table>
-
-        <div className="flex flex-col md:hidden">
-          <MobilePlanRows {...listProps} />
+        <div className="[--plan-list-sticky-offset:6.25rem] md:min-h-0 md:flex-1 md:overflow-y-auto">
+          <PlanAgenda
+            isInitialLoading={isInitialLoading}
+            errorMessage={errorMessage}
+            visibleRows={visibleRows}
+            selectedPlanId={selectedPlanId}
+            myScheduledPlanIdSet={myScheduledPlanIdSet}
+            handleSelectRow={handleSelectRow}
+            getPlanIntentProps={getPlanIntentProps}
+            orgTimeZone={orgTimeZone}
+          />
         </div>
       </div>
     </div>
