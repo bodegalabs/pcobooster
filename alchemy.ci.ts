@@ -184,7 +184,8 @@ const environments: readonly DeployEnvironment[] = [
     // Merging to `main` is the approval: every push to `main` deploys.
     reviewers: undefined,
     branches: { customBranchPolicies: ["main"] },
-    variables: { CLOUDFLARE_CUSTOM_DOMAINS: "1" },
+    // Puts Cloudflare Access in front of the admin Worker; see docs/admin.md#cloudflare-access.
+    variables: { CLOUDFLARE_CUSTOM_DOMAINS: "1", CLOUDFLARE_ADMIN_ACCESS: "1" },
   },
 ];
 

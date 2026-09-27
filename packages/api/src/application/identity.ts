@@ -15,6 +15,11 @@ import {
 import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
 import { getSelectedPlanningCenterAccountId } from "@pcobooster/api/auth/planning-center-session";
 import type { FeatureFlagName } from "@pcobooster/api/config/feature-flags";
+import { authorizeAdminRequest } from "@pcobooster/api/modules/admin/authorize-admin";
+import {
+  getAccountActivity,
+  getUserAccountDetail,
+} from "@pcobooster/api/modules/admin/get-account-activity";
 import { getDemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
 import type { DemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
 import { anonymousFeatureFlagSubject } from "@pcobooster/api/modules/feature-flags/feature-flags";
@@ -442,4 +447,39 @@ export const getFeatureStatus = (
     const subject = yield* resolveFeatureFlagSubject(dependencies);
     const { featureFlags } = yield* Server;
     return { enabled: yield* featureFlags.isEnabled(flag, subject) };
+  });
+
+export const getAdminAccounts = Effect.gen(function* readAdminAccounts() {
+  const { request } = yield* RequestContext;
+  const server = yield* Server;
+  const session = yield* tryIdentity(
+    async () => await authorizeAdminRequest(server, request),
+    "authorize-admin"
+  );
+  const accounts = yield* tryIdentity(
+    async () => await getAccountActivity(server.database),
+    "get-account-activity"
+  );
+  return { email: session.user.email, accounts };
+});
+
+export const getAdminUser = (input: {
+  readonly userId: string;
+}): Effect.Effect<
+  { readonly user: Awaited<ReturnType<typeof getUserAccountDetail>> },
+  ApplicationFault,
+  RequestContext | Server
+> =>
+  Effect.gen(function* readAdminUser() {
+    const { request } = yield* RequestContext;
+    const server = yield* Server;
+    yield* tryIdentity(
+      async () => await authorizeAdminRequest(server, request),
+      "authorize-admin"
+    );
+    const user = yield* tryIdentity(
+      async () => await getUserAccountDetail(input.userId, server.database),
+      "get-user-account-detail"
+    );
+    return { user };
   });

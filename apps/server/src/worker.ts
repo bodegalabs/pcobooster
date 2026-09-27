@@ -58,6 +58,7 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
     // Bound as a Worker prop (`apiProps`); see there for why it is not read from GITHUB_SHA here.
     PCOBOOSTER_VERSION: yield* optionalString("PCOBOOSTER_VERSION"),
     BETTER_AUTH_URL: publicOrigin,
+    AUTH_COOKIE_DOMAIN: production ? "pcobooster.com" : "",
     OAUTH_PREVIEW_ORIGIN_PATTERN: previewOriginPattern,
     OAUTH_PROXY_SECRET: local
       ? ""
@@ -69,6 +70,7 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
     PLANNING_CENTER_OAUTH_CLIENT_SECRET: yield* secret(
       "PLANNING_CENTER_OAUTH_CLIENT_SECRET"
     ),
+    PCOBOOSTER_ADMIN_EMAILS: yield* secret("PCOBOOSTER_ADMIN_EMAILS"),
     PLANNING_CENTER_TIME_ZONE: yield* Config.String(
       "PLANNING_CENTER_TIME_ZONE"
     ).pipe(Config.withDefault("America/Los_Angeles")),

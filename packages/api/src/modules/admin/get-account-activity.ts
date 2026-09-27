@@ -5,6 +5,7 @@ import type {
   AdminAccountActivity,
   AdminUserAccountDetail,
 } from "@pcobooster/contracts/admin";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 
@@ -57,6 +58,12 @@ const toIsoString = (value: Date | string | number | null): string | null => {
     ? value.toISOString()
     : new Date(value).toISOString();
 };
+
+export const isAdminEmail = (
+  adminEmails: readonly string[],
+  email: string | null | undefined
+): boolean =>
+  isNonEmptyString(email) && adminEmails.includes(email.toLowerCase());
 
 export const getAccountActivity = async (
   database: Db

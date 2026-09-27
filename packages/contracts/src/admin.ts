@@ -1,3 +1,5 @@
+import { oc } from "@orpc/contract";
+import { applicationErrorMap } from "@pcobooster/contracts/errors";
 import { planningCenterIdentitySchema } from "@pcobooster/contracts/identity";
 import { z } from "zod";
 
@@ -50,8 +52,7 @@ export type AdminUserAccountDetail = z.infer<
 >;
 
 export const adminAccountsResponseSchema = z.object({
-  /** Who Cloudflare Access signed in; null where no Access runs (local development). */
-  email: z.string().nullable(),
+  email: z.string(),
   accounts: z.array(adminAccountActivitySchema),
 });
 
@@ -59,10 +60,34 @@ export const adminUserResponseSchema = z.object({
   user: adminUserAccountDetailSchema.nullable(),
 });
 
+export const adminAccountsInputSchema = z.object({});
 export const adminUserInputSchema = z.object({
   userId: z.string().trim().min(1),
 });
 
+const adminProcedure = oc.errors({
+  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
+  FORBIDDEN: applicationErrorMap.FORBIDDEN,
+  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
+});
+
+export const adminContract = {
+  accounts: adminProcedure
+    .route({
+      method: "GET",
+      path: "/admin/accounts",
+      summary: "List account activity for administrators",
+    })
+    .input(adminAccountsInputSchema)
+    .output(adminAccountsResponseSchema),
+  user: adminProcedure
+    .route({
+      method: "GET",
+      path: "/admin/users/{userId}",
+      summary: "Read linked accounts and activity for a user",
+    })
+    .input(adminUserInputSchema)
+    .output(adminUserResponseSchema),
+};
+
 export type AdminUserInput = z.input<typeof adminUserInputSchema>;
-export type AdminAccountsResponse = z.infer<typeof adminAccountsResponseSchema>;
-export type AdminUserResponse = z.infer<typeof adminUserResponseSchema>;

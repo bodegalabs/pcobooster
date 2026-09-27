@@ -1,6 +1,7 @@
 import { readdirSync } from "node:fs";
 import path from "node:path";
 
+import { parseAdminEmails } from "@pcobooster/api/config/server-config";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import * as Drizzle from "alchemy/Drizzle";
@@ -8,7 +9,6 @@ import * as RemovalPolicy from "alchemy/RemovalPolicy";
 import * as State from "alchemy/State";
 import { Config, Effect, Layer } from "effect";
 
-import { parseTeamEmails } from "./apps/server/src/access";
 import { Database } from "./apps/server/src/database";
 import { workerObservability } from "./apps/server/src/observability";
 import { currentStageSettings } from "./apps/server/src/stage";
@@ -62,59 +62,60 @@ const viteMemo = (
 const canAttachDomains = (production: boolean) =>
   production && process.env.CLOUDFLARE_CUSTOM_DOMAINS === "1";
 
-/**
- * `PCOBOOSTER_ADMIN_EMAILS`, the people Cloudflare Access admits to the admin app and to every
- * non-production stage. Access is the only gate: the admin Worker reads D1 itself, and the public
- * API has no admin procedures.
- */
-const teamEmails = Config.String("PCOBOOSTER_ADMIN_EMAILS").pipe(
-  Config.withDefault(""),
-  Config.map(parseTeamEmails)
-);
+/** The only person staging admits. */
+const stagingOwnerEmail = "jakebodea@gmail.com";
 
-const allowTeam = Effect.gen(function* allowTeam() {
-  const emails = yield* teamEmails;
+/**
+ * Cloudflare Access in front of staging's product Worker, which serves the app, the API, and
+ * admin. It covers the `workers.dev` URL and version preview URLs; the API and admin Workers have
+ * no public URL outside production. The deploy-check service token (`alchemy.ci.ts`) lets CI
+ * verify each deploy without a login.
+ */
+const stagingAccess = Effect.gen(function* stagingAccess() {
+  const serviceTokenId = yield* Config.String(
+    "STAGING_ACCESS_SERVICE_TOKEN_ID"
+  );
   return {
-    decision: "allow" as const,
-    include: emails.map((email) => ({ email })),
+    name: "pcobooster staging",
+    sessionDuration: "168h",
+    policies: [
+      {
+        decision: "allow" as const,
+        include: [{ email: stagingOwnerEmail }],
+      },
+      {
+        decision: "non_identity" as const,
+        include: [{ serviceToken: serviceTokenId }],
+      },
+    ],
   };
 });
 
 /**
- * Cloudflare Access in front of a staging or pull request stage's product Worker, which serves
- * the app, the API, and admin. It covers the `workers.dev` URL and version preview URLs; the API
- * and admin Workers have no public URL outside production. The deploy-check service token
- * (`alchemy.ci.ts`) lets CI verify each deploy without a login.
+ * Cloudflare Access in front of the production admin Worker, admitting the same allowlist the
+ * API enforces on every `admin.*` procedure, so a bug in the app's own check cannot expose it.
+ * Off until `CLOUDFLARE_ADMIN_ACCESS=1` reaches the production deploy; see
+ * docs/admin.md#cloudflare-access for the steps that must come first. Preview and local admin
+ * Workers are reached only through the product's service binding, which Access never gates.
  */
-const nonProductionAccess = (stage: string) =>
-  Effect.gen(function* nonProductionAccessPolicy() {
-    const serviceTokenId = yield* Config.String(
-      "STAGING_ACCESS_SERVICE_TOKEN_ID"
+const adminAccess = (production: boolean) =>
+  Effect.gen(function* adminAccessPolicy() {
+    const emails = parseAdminEmails(
+      yield* Config.String("PCOBOOSTER_ADMIN_EMAILS").pipe(
+        Config.withDefault("")
+      )
     );
     const policy: Cloudflare.Workers.WorkerAccessApplication = {
-      name: `pcobooster ${stage}`,
-      sessionDuration: "168h",
+      name: "pcobooster admin",
+      sessionDuration: "24h",
+      previews: false,
       policies: [
-        yield* allowTeam,
-        {
-          decision: "non_identity",
-          include: [{ serviceToken: serviceTokenId }],
-        },
+        { decision: "allow", include: emails.map((email) => ({ email })) },
       ],
     };
-    return policy;
+    const enabled = production && process.env.CLOUDFLARE_ADMIN_ACCESS === "1";
+    return enabled ? policy : undefined;
   });
-
-/** Cloudflare Access in front of the production admin Worker (its domain and workers.dev URL). */
-const productionAdminAccess = Effect.gen(function* productionAdminAccess() {
-  const policy: Cloudflare.Workers.WorkerAccessApplication = {
-    name: "pcobooster admin",
-    sessionDuration: "24h",
-    previews: false,
-    policies: [yield* allowTeam],
-  };
-  return policy;
-});
 
 export default Alchemy.Stack(
   "pcobooster",
@@ -129,7 +130,7 @@ export default Alchemy.Stack(
     ),
   },
   Effect.gen(function* infrastructure() {
-    const { stage, production, local, publicOrigin } =
+    const { stage, production, local, staging, publicOrigin } =
       yield* currentStageSettings;
     if (stage === "test") {
       return yield* Effect.die(
@@ -159,8 +160,7 @@ export default Alchemy.Stack(
     const database = yield* Database;
     // Effect-native: it reads its own settings and binds the database (`apps/server/src/worker.ts`).
     const api = yield* Api;
-    // TanStack Start, full stack: its server functions read D1 directly. Its Vite `base` (and
-    // router basepath) come from ADMIN_BASE_PATH above.
+    // TanStack Start; its Vite `base` (and router basepath) come from ADMIN_BASE_PATH above.
     const admin = yield* Cloudflare.Website.Vite("Admin", {
       name: `pcobooster-${stage}-admin`,
       rootDir: path.join(import.meta.dirname, "apps/admin"),
@@ -168,13 +168,15 @@ export default Alchemy.Stack(
       domain: attachDomains
         ? { name: "admin.pcobooster.com", zone }
         : undefined,
-      // Local admin has no Access; elsewhere it is reachable only behind it (see the web Worker).
-      access: production ? yield* productionAdminAccess : undefined,
+      access: yield* adminAccess(production),
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
       observability: workerObservability(production),
       dev: { host: "127.0.0.1", port: 3003, strictPort: true },
       memo: viteMemo([]),
-      env: { DB: database },
+      env: {
+        API: api,
+        PRODUCT_ORIGIN: publicOrigin,
+      },
     });
     // TanStack Start. Its build stages the marketing site into `public/marketing` first.
     const web = yield* Cloudflare.Website.Vite("Web", {
@@ -183,8 +185,7 @@ export default Alchemy.Stack(
       domain: attachDomains
         ? { name: "pcobooster.com", aliases: ["www.pcobooster.com"], zone }
         : undefined,
-      access:
-        production || local ? undefined : yield* nonProductionAccess(stage),
+      access: staging ? yield* stagingAccess : undefined,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
       observability: workerObservability(production),
       dev: { host: "127.0.0.1", port: 3001, strictPort: true },
