@@ -1,8 +1,9 @@
 import { notFound } from "@tanstack/react-router";
 
-export type PlanView = "assign" | "lineup" | "plan" | "times";
+export type PlanView = "overview" | "assign" | "lineup" | "plan" | "times";
 
 export const planViews: readonly PlanView[] = [
+  "overview",
   "assign",
   "lineup",
   "plan",
@@ -10,6 +11,7 @@ export const planViews: readonly PlanView[] = [
 ];
 
 const planViewLabels: Record<PlanView, string> = {
+  overview: "Overview",
   assign: "Assign",
   lineup: "Lineup",
   plan: "Plan",
