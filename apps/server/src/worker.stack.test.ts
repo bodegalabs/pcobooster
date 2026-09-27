@@ -24,6 +24,10 @@ const testSettings = {
   BETTER_AUTH_SECRET: "stack-test-secret-that-is-long-enough-000",
   PLANNING_CENTER_OAUTH_CLIENT_ID: "stack-test-client",
   PLANNING_CENTER_OAUTH_CLIENT_SECRET: "stack-test-client-secret",
+  // Alchemy resolves Cloudflare credentials even for local providers. Fictional values keep the
+  // test secretless in CI and guarantee it can never reach a real account.
+  CLOUDFLARE_ACCOUNT_ID: "00000000000000000000000000000000",
+  CLOUDFLARE_API_TOKEN: "stack-test-never-reaches-cloudflare",
   PCOBOOSTER_ADMIN_EMAILS: "admin@example.com",
 };
 Object.assign(process.env, testSettings);
