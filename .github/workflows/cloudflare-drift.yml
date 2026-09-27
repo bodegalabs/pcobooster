@@ -8,24 +8,37 @@ on:
 permissions:
   contents: read
 
-# Compares production's live Cloudflare resources with Alchemy's state and fails when any were
-# changed outside a deploy (for example a Flagship flag or DNS record edited in the dashboard),
-# before the next deploy silently overwrites them. It only reads; see scripts/cloudflare/check-drift.ts.
+# Compares each persistent stage's live Cloudflare resources with Alchemy's state and fails when
+# any were changed outside a deploy (for example a Flagship flag, DNS record, or Access policy
+# edited in the dashboard), before the next deploy silently overwrites them. It only reads; see
+# scripts/cloudflare/check-drift.ts.
 
 jobs:
-  production:
+  drift:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - stage: staging
+            environment: cloudflare-staging
+            concurrency: cloudflare-staging
+          - stage: prod
+            environment: cloudflare-production
+            concurrency: cloudflare-prod
+    name: drift (${{ matrix.stage }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
       id-token: write
-    environment: cloudflare-production
+    environment: ${{ matrix.environment }}
     concurrency:
-      # Shares the deploy's group, so a check never observes a half-applied deploy.
-      group: cloudflare-prod
+      # Shares the stage's deploy group, so a check never observes a half-applied deploy.
+      group: ${{ matrix.concurrency }}
       cancel-in-progress: false
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      # Set only in the production environment, as for its deploy.
       CLOUDFLARE_CUSTOM_DOMAINS: ${{ vars.CLOUDFLARE_CUSTOM_DOMAINS }}
     steps:
       - name: Checkout trusted default branch
@@ -35,11 +48,13 @@ jobs:
           persist-credentials: false
       - name: Setup toolchain
         uses: ./.github/actions/setup
-      - name: Read production credentials
+      - name: Read the stage's credentials
         uses: ./.github/actions/infisical
         with:
           identity-id: ${{ vars.INFISICAL_IDENTITY_ID }}
           project-id: ${{ vars.INFISICAL_PROJECT_ID }}
           env-slug: ${{ vars.INFISICAL_ENV_SLUG }}
-      - name: Check production for drift
-        run: bun scripts/cloudflare/check-drift.ts prod
+      - name: Check ${{ matrix.stage }} for drift
+        env:
+          STAGE: ${{ matrix.stage }}
+        run: bun scripts/cloudflare/check-drift.ts "$STAGE"

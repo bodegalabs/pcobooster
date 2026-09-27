@@ -3,8 +3,8 @@ import type * as Cloudflare from "alchemy/Cloudflare";
 /**
  * Share of production invocations that record a trace. Traces count against the same Workers
  * Free quota as logs (200,000 events a day), and one traced request records a span for every
- * Planning Center, D1, and KV subrequest, so production samples while previews trace
- * everything.
+ * Planning Center, D1, and KV subrequest, so production samples while staging and previews,
+ * whose traffic is only the team's, trace everything.
  */
 const productionTraceSamplingRate = 0.2;
 
