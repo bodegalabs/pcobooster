@@ -8,6 +8,7 @@
 import path from "node:path";
 
 import { assert } from "@effect/vitest";
+import { resolveReleaseVersion } from "@pcobooster/api/config/release";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import * as Drizzle from "alchemy/Drizzle";
@@ -105,7 +106,11 @@ test(
     );
     assert.strictEqual(response.status, 200);
     assert.deepStrictEqual(yield* response.json, {
-      json: { status: "ok", version: "development" },
+      // The Worker binds the deploying commit (`GITHUB_SHA`, set in CI) as its release version.
+      json: {
+        status: "ok",
+        version: resolveReleaseVersion(process.env.GITHUB_SHA),
+      },
     });
   }),
   requestTimeout
