@@ -8,6 +8,7 @@ import * as State from "alchemy/State";
 import { Config, Effect, Layer } from "effect";
 
 import { Database } from "./apps/server/src/database";
+import { workerObservability } from "./apps/server/src/observability";
 import { currentStageSettings } from "./apps/server/src/stage";
 import Api from "./apps/server/src/worker";
 import { prepareCloudflareBuild } from "./scripts/cloudflare/prepare";
@@ -93,6 +94,7 @@ export default Alchemy.Stack(
         ? { name: "admin.pcobooster.com", zone }
         : undefined,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
+      observability: workerObservability(production),
       dev: { host: "127.0.0.1", port: 3003, strictPort: true },
       memo: {
         // Explicit globs also hash the gitignored cloudflare-build-inputs.json stamp,
@@ -122,6 +124,7 @@ export default Alchemy.Stack(
         : undefined,
       access: staging ? yield* stagingAccess : undefined,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
+      observability: workerObservability(production),
       dev: { host: "127.0.0.1", port: 3001, strictPort: true },
       memo: {
         // Explicit globs also hash the gitignored cloudflare-build-inputs.json stamp, which

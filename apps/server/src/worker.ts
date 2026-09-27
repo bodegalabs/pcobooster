@@ -15,6 +15,7 @@ import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 import { createServerApp } from "./app";
 import { Database } from "./database";
 import { FeatureFlagApp } from "./feature-flags";
+import { workerObservability } from "./observability";
 import { PlanningCenterCache } from "./planning-center-cache";
 import { currentStageSettings } from "./stage";
 
@@ -113,12 +114,13 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
 export default class Api extends Cloudflare.Worker<Api>()(
   "Api",
   Effect.gen(function* apiProps() {
-    const { stage } = yield* currentStageSettings;
+    const { stage, production } = yield* currentStageSettings;
     return {
       name: `pcobooster-${stage}-api`,
       main: import.meta.url,
       workersDev: false,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
+      observability: workerObservability(production),
       dev: { host: "127.0.0.1", port: 3000, strictPort: true },
       env: {
         // CI deploys the checked-out commit; post-deploy verification expects it from health.
