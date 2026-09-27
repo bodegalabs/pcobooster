@@ -58,6 +58,7 @@
 ## Testing Guidelines
 
 - Framework: Vitest, with tests colocated beside API and web source.
+- `apps/server/src/worker.stack.test.ts` runs the real API Worker through Alchemy's test harness (`alchemy/Test/Vitest`, local workerd, in-memory state, the `test` stage on port 3010). Extend it when a change adds a binding or startup wiring that unit tests of the Hono app cannot reach.
 - Prioritize tests for transforms/matching/sorting logic and Planning Center edge cases.
 - Inject narrow typed service dependencies into feature modules and pass fresh test implementations explicitly. Request paths must not rely on process-global credentials or implicit async context. Preserve exact assertions on optional flags so missing values cannot pass as `false`.
 - Prefer test-driven fixes for regressions: reproduce the bug or edge case with a focused failing test, then implement the smallest code change that makes it pass.

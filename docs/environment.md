@@ -25,6 +25,7 @@ The production deployment project is `pcobooster-production` (`2eca20e1-20ac-4f0
 | `OAUTH_PROXY_SECRET` | Shared production/preview broker secret. Preview callbacks use production only to finish the provider exchange; preview accounts and sessions stay in preview D1. |
 | `PLANNING_CENTER_OAUTH_CLIENT_ID`, `PLANNING_CENTER_OAUTH_CLIENT_SECRET` | Planning Center application credentials from Infisical. |
 | `PCOBOOSTER_ADMIN_EMAILS` | Comma-separated admin allowlist. |
+| `AUTH_RATE_LIMIT` | Workers rate limit binding on the API. Each client IP (`CF-Connecting-IP`) may make 30 auth writes (sign-in, OAuth callbacks, sign-out) a minute; more get a 429. Session reads are never limited. Cloudflare counts per location, so it brakes abuse rather than enforcing an exact quota. |
 | `FeatureFlags` | Alchemy Cloudflare Flagship binding (deployed stages only); see [Feature flags](#feature-flags). |
 | `DEMO_ACCESS_KEY`, `DEMO_PLANNING_CENTER_CLIENT`, `DEMO_PLANNING_CENTER_PAT` | Optional production-only read-only demo. |
 | `POSTHOG_PROJECT_KEY` | Optional production analytics key (a public ingestion token), bound to the API. The product's and marketing's `vite.config.ts` inline it as `import.meta.env.VITE_POSTHOG_KEY`. |
@@ -59,6 +60,6 @@ GitHub Actions retrieves a narrowly scoped Cloudflare token from Infisical using
 
 ## Server logs
 
-Every Worker writes to Cloudflare Workers Logs, which Alchemy enables by default when a Worker sets no `observability` prop. The API's pino output and each request's invocation log (request and response metadata, including client IP and user agent) appear in the Cloudflare dashboard under Workers & Pages, Observability. The account is on the Workers Free plan: 200,000 log events per day across all Workers, kept for 3 days.
+Every Worker writes to Cloudflare Workers Logs and Workers Traces (`workerObservability` in `apps/server/src/observability.ts`). A trace shows each invocation's Planning Center, D1, and KV subrequests, so it is the quickest way to see how close a procedure comes to the 50-subrequest limit; previews and staging trace every request and production samples 20%. The API's pino output and each request's invocation log (request and response metadata, including client IP and user agent) appear in the Cloudflare dashboard under Workers & Pages, Observability. The account is on the Workers Free plan: 200,000 log and trace events per day across all Workers, kept for 3 days.
 
 Log IDs, not content: pino lines should carry request, user, and plan IDs rather than message text or tokens. Exporting logs to PostHog (OTLP) requires Workers Paid; revisit it after upgrading.

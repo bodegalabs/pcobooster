@@ -60,14 +60,8 @@ const deployPermissions: Cloudflare.ApiToken.PermissionGroupRef[] = [
   "Secrets Store Write",
   // Each deployed stage declares a Flagship app and its flags (`apps/server/src/feature-flags.ts`).
   FLAGSHIP_WRITE,
-];
-
-/**
- * The preview token also deploys `staging`, whose product Worker declares its own Cloudflare
- * Access application (`alchemy.run.ts`).
- */
-const previewDeployPermissions: Cloudflare.ApiToken.PermissionGroupRef[] = [
-  ...deployPermissions,
+  // Staging's product Worker and production's admin Worker each declare a Cloudflare Access
+  // application (`alchemy.run.ts`).
   "Access: Apps and Policies Write",
 ];
 
@@ -96,7 +90,7 @@ const preview: DeployTarget = {
   policies: [
     {
       effect: "allow",
-      permissionGroups: previewDeployPermissions,
+      permissionGroups: deployPermissions,
       resources: accountScope,
     },
   ],
@@ -190,7 +184,8 @@ const environments: readonly DeployEnvironment[] = [
     // Merging to `main` is the approval: every push to `main` deploys.
     reviewers: undefined,
     branches: { customBranchPolicies: ["main"] },
-    variables: { CLOUDFLARE_CUSTOM_DOMAINS: "1" },
+    // Puts Cloudflare Access in front of the admin Worker; see docs/admin.md#cloudflare-access.
+    variables: { CLOUDFLARE_CUSTOM_DOMAINS: "1", CLOUDFLARE_ADMIN_ACCESS: "1" },
   },
 ];
 

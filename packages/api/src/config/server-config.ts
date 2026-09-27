@@ -87,7 +87,8 @@ const required = (value: string, name: string): string => {
   return present;
 };
 
-const parseAdminEmails = (configured: string | undefined): string[] => {
+/** `PCOBOOSTER_ADMIN_EMAILS` as normalized addresses; the admin app's Access policy uses it too. */
+export const parseAdminEmails = (configured: string | undefined): string[] => {
   const emails = (configured ?? "")
     .split(",")
     .map((email) => email.trim().toLowerCase())
