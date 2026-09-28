@@ -15,6 +15,7 @@ import {
   collectPlanSongOptionPrefetchIds,
   createOptimisticBasicPlanItem,
   createOptimisticSongPlanItem,
+  insertPlanItem,
   nextPlanItemSequence,
   PLAN_ITEMS_MUTATION_RECONCILE_DELAY_MS,
   planItemDraftChangesItem,
@@ -24,6 +25,7 @@ import {
   reorderPlanItems,
   restorePlanItemsSnapshot,
   settlePlanItemsQuery,
+  shiftPlanItem,
 } from "@/lib/plan-items-query-state";
 import {
   readCachedSongOptions,
@@ -375,5 +377,43 @@ describe("plan item query state", () => {
     expect(readCachedPlanItems("service-1", "plan-1")).toBeUndefined();
     expect(readCachedSongSearch("build")).toBeUndefined();
     expect(readCachedSongOptions("song-1", "service-1")).toBeUndefined();
+  });
+});
+
+const ids = (list: PlanItem[]) => list.map((item) => item.id);
+
+describe("positional plan edits", () => {
+  const items = [createItem("a", 1), createItem("b", 2), createItem("c", 3)];
+
+  it("inserts after an item, at the top, or at the end", () => {
+    const added = createItem("new", 0);
+
+    expect(
+      ids(insertPlanItem(items, added, { afterItemId: "a" }))
+    ).toStrictEqual(["a", "new", "b", "c"]);
+    expect(
+      ids(insertPlanItem(items, added, { afterItemId: null }))
+    ).toStrictEqual(["new", "a", "b", "c"]);
+    expect(ids(insertPlanItem(items, added))).toStrictEqual([
+      "a",
+      "b",
+      "c",
+      "new",
+    ]);
+    expect(
+      ids(insertPlanItem(items, added, { afterItemId: "missing" }))
+    ).toStrictEqual(["a", "b", "c", "new"]);
+    expect(
+      insertPlanItem(items, added, { afterItemId: "a" }).map(
+        (item) => item.sequence
+      )
+    ).toStrictEqual([1, 2, 3, 4]);
+  });
+
+  it("shifts an item by one and keeps the ends in place", () => {
+    expect(ids(shiftPlanItem(items, "b", -1))).toStrictEqual(["b", "a", "c"]);
+    expect(ids(shiftPlanItem(items, "b", 1))).toStrictEqual(["a", "c", "b"]);
+    expect(shiftPlanItem(items, "a", -1)).toBe(items);
+    expect(shiftPlanItem(items, "c", 1)).toBe(items);
   });
 });

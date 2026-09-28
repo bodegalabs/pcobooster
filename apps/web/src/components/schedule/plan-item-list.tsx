@@ -1,280 +1,415 @@
 import {
-  closestCenter,
-  DndContext,
-  DragOverlay,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
-import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { PlanItem } from "@pcobooster/planning-center-models/types";
-import { ChevronRight, FileMusic, Music4, Trash2 } from "lucide-react";
-import { startTransition, useState } from "react";
+import type {
+  ArrangementOption,
+  KeyOption,
+  PlanItem,
+} from "@pcobooster/planning-center-models/types";
+import {
+  AlignLeft,
+  FileMusic,
+  History,
+  Music2,
+  Plus,
+  Trash2,
+  Type,
+} from "lucide-react";
 import type { CSSProperties } from "react";
 
-import { PageScrollArea } from "@/components/page-shell";
 import {
-  formatLength,
-  getItemTone,
-} from "@/components/schedule/plan-tab-helpers";
-import { Badge } from "@/components/ui/badge";
+  ItemLengthEditor,
+  SongKeyPicker,
+} from "@/components/schedule/plan-item-inline-editors";
+import type { RunSheetEntry } from "@/components/schedule/plan-tab-helpers";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DragHandle } from "@/components/ui/drag-handle";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { HoverLabel } from "@/components/ui/hover-card";
 import { Item } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
-import type {
-  GetIntentPrefetchProps,
-  IntentPrefetchProps,
-} from "@/hooks/use-intent-prefetch";
-import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
-import { reorderPlanItems } from "@/lib/plan-items-query-state";
-import { keyLabelOf } from "@/lib/plan-overview";
+import type { IntentPrefetchProps } from "@/hooks/use-intent-prefetch";
+import { formatDuration } from "@/lib/plan-overview";
+import type { KeyTransition } from "@/lib/plan-set-insights";
 import { cn } from "@/lib/utils";
 
-interface PlanItemListProps {
-  items: PlanItem[];
-  isLoading: boolean;
-  pendingItemId: string | null;
-  onAddSong: () => void;
-  onAddHeader: () => void;
-  onAddItem: () => void;
-  onEditItem: (itemId: string) => void;
-  getItemIntentProps?: GetIntentPrefetchProps<string>;
-  onRequestDelete: (itemId: string) => void;
-  onReorderItems: (items: PlanItem[]) => Promise<void> | void;
-}
+export type PlanInsertKind = "song" | "header" | "item";
 
-interface SortablePlanItemProps {
-  item: PlanItem;
-  isBusy: boolean;
-  isDragging: boolean;
-  reorderDisabled: boolean;
-  onEdit: () => void;
-  intentProps?: IntentPrefetchProps;
-  onDelete: () => void;
+/** Where a dragged library song will land, relative to the row under it. */
+export interface PlanDropIndicator {
+  itemId: string;
+  side: "before" | "after";
 }
 
 const planItemSkeletonRows = [
-  { key: "a", header: true, title: "6rem" },
-  { key: "b", header: false, title: "11rem", badge: true },
-  { key: "c", header: false, title: "9rem", badge: true },
-  { key: "d", header: false, title: "7rem" },
-  { key: "e", header: true, title: "5rem" },
-  { key: "f", header: false, title: "10rem", badge: true },
-  { key: "g", header: false, title: "8rem" },
+  { key: "a", header: true, title: "9rem" },
+  { key: "b", header: false, title: "11rem" },
+  { key: "c", header: false, title: "8rem" },
+  { key: "d", header: false, title: "10rem" },
+  { key: "e", header: true, title: "7rem" },
+  { key: "f", header: false, title: "9rem" },
+  { key: "g", header: false, title: "6rem" },
 ];
 
-const PlanItemListSkeleton = () => (
-  <div className="pb-4">
-    <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
-      {planItemSkeletonRows.map((row) => (
+export const PlanItemListSkeleton = () => (
+  <div className="flex w-full max-w-4xl flex-col pb-4 contain-inline-size">
+    {planItemSkeletonRows.map((row) =>
+      row.header ? (
         <div
           key={row.key}
-          className={cn(
-            "flex min-h-11 items-center gap-3 pr-3 pl-2.5",
-            row.header && "bg-muted/40"
-          )}
+          className="bg-muted/50 mt-4 flex h-9 items-center rounded-lg pr-3 pl-8 first:mt-0"
         >
-          <Skeleton variant="text" className="size-4 shrink-0" />
-          <Skeleton variant="text" className="h-3.5" width={row.title} />
-          {row.badge === true ? (
-            <Skeleton variant="text" className="h-5 w-8" />
-          ) : null}
-          <Skeleton variant="control" className="ml-auto size-7 shrink-0" />
+          <Skeleton variant="text" className="h-3" width={row.title} />
         </div>
-      ))}
-    </div>
+      ) : (
+        <div key={row.key} className="flex min-h-13 items-center gap-3 pl-8">
+          <Skeleton variant="text" className="h-3 w-9" />
+          <div className="ml-4 flex flex-col gap-1.5">
+            <Skeleton variant="text" className="h-3.5" width={row.title} />
+            <Skeleton variant="text" className="h-3 w-40" />
+          </div>
+        </div>
+      )
+    )}
   </div>
 );
 
 /**
- * Row controls stay hidden until the row is hovered or focused, except on
+ * Row controls stay hidden until the row is hovered, focused, or selected, except on
  * touch screens (no hover) and on the row being dragged.
  */
-const revealOnRowHover = (isDragged: boolean) =>
+const revealWithRow = (isDragged: boolean) =>
   !isDragged &&
-  "pointer-fine:opacity-0 pointer-fine:group-focus-within/plan-item:opacity-100 pointer-fine:group-hover/plan-item:opacity-100";
+  "pointer-fine:opacity-0 pointer-fine:group-focus-within/plan-item:opacity-100 pointer-fine:group-hover/plan-item:opacity-100 pointer-fine:group-data-[selected=true]/plan-item:opacity-100";
 
-interface PlanItemCardProps {
+/** Where an item off the service clock runs, in place of its start time. */
+const OFF_CLOCK_LABELS = {
+  pre: "before",
+  post: "after",
+  during: "",
+} as const;
+
+const RecentPlayHint = ({ days }: { days: number }) => (
+  <HoverLabel
+    label={`Played ${days} days before this plan`}
+    render={
+      <span className="text-status-scheduled pointer-events-auto inline-flex shrink-0 items-center gap-1 text-xs" />
+    }
+  >
+    <History className="size-3" aria-hidden />
+    {days < 7 ? `${days}d ago` : `${Math.round(days / 7)}w ago`}
+  </HoverLabel>
+);
+
+const HeaderRowContent = ({
+  title,
+  sectionLength,
+}: {
+  title: string;
+  sectionLength: number | null;
+}) => {
+  const lengthLabel =
+    sectionLength === null ? null : formatDuration(sectionLength);
+  return (
+    <span className="flex min-w-0 items-center gap-3">
+      <span className="min-w-0 flex-1 truncate text-xs font-semibold tracking-wide uppercase">
+        {title}
+      </span>
+      {lengthLabel === null ? null : (
+        <span className="text-muted-foreground text-xs tabular-nums">
+          {lengthLabel}
+        </span>
+      )}
+    </span>
+  );
+};
+
+const ItemRowContent = ({
+  item,
+  title,
+  transition,
+  recentPlayDays,
+  serviceTypeId,
+  handlers,
+}: {
   item: PlanItem;
-  isBusy: boolean;
-  isDragged: boolean;
-  dragAttributes?: ReturnType<typeof useSortable>["attributes"];
-  dragListeners?: ReturnType<typeof useSortable>["listeners"];
-  onEdit: () => void;
-  intentProps?: IntentPrefetchProps;
-  onDelete: () => void;
+  title: string;
+  transition: KeyTransition | null;
+  recentPlayDays: number | null;
+  serviceTypeId: string | null;
+  handlers: PlanItemRowHandlers;
+}) => (
+  <>
+    <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+      <span className="min-w-0 truncate text-sm font-medium">{title}</span>
+      {item.itemType === "song" ? (
+        <span className="pointer-events-auto">
+          <SongKeyPicker
+            item={item}
+            serviceTypeId={serviceTypeId}
+            transition={transition}
+            onChange={(arrangement, key) => {
+              handlers.onChangeKey(item, arrangement, key);
+            }}
+          />
+        </span>
+      ) : null}
+      {item.arrangement ? (
+        <span className="text-muted-foreground truncate text-xs max-sm:hidden">
+          {item.arrangement.name}
+        </span>
+      ) : null}
+      {recentPlayDays === null ? null : (
+        <RecentPlayHint days={recentPlayDays} />
+      )}
+    </span>
+    {item.description ? (
+      <span className="text-muted-foreground line-clamp-4 text-xs whitespace-pre-line">
+        {item.description}
+      </span>
+    ) : null}
+  </>
+);
+
+export interface PlanItemRowHandlers {
+  /** Select the row and show its details. */
+  onOpen: (itemId: string) => void;
+  onRemove: (itemId: string) => void;
+  onInsert: (kind: PlanInsertKind, afterItemId: string) => void;
+  onChangeKey: (
+    item: PlanItem,
+    arrangement: ArrangementOption,
+    key: KeyOption
+  ) => void;
+  onChangeLength: (item: PlanItem, length: number | null) => void;
+  onInvalidLength: (message: string) => void;
 }
 
-const PlanItemCard = ({
+interface PlanItemRowProps {
+  item: PlanItem;
+  entry: RunSheetEntry | undefined;
+  transition: KeyTransition | null;
+  recentPlayDays: number | null;
+  selected: boolean;
+  isBusy: boolean;
+  isDragged: boolean;
+  serviceTypeId: string | null;
+  handlers: PlanItemRowHandlers;
+  dragAttributes?: ReturnType<typeof useSortable>["attributes"];
+  dragListeners?: ReturnType<typeof useSortable>["listeners"];
+  intentProps?: IntentPrefetchProps;
+}
+
+const rowSurfaceClassName = (
+  isHeader: boolean,
+  highlighted: boolean
+): string => {
+  if (highlighted) {
+    return "bg-muted";
+  }
+  return isHeader ? "bg-muted/50 hover:bg-muted" : "hover:bg-muted/60";
+};
+
+/**
+ * One run sheet row, laid out like Planning Center's order (grip, length, title and
+ * notes) with the key, length, and start time editable in place. The whole row is one
+ * button that opens the item; its controls sit above that button.
+ */
+export const PlanItemRow = ({
   item,
+  entry,
+  transition,
+  recentPlayDays,
+  selected,
   isBusy,
   isDragged,
+  serviceTypeId,
+  handlers,
   dragAttributes,
   dragListeners,
-  onEdit,
   intentProps,
-  onDelete,
-}: PlanItemCardProps) => {
-  const tone = getItemTone(item);
+}: PlanItemRowProps) => {
+  const isHeader = item.itemType === "header";
   const itemActionLabel = item.title || "plan item";
   const displayTitle = item.title || "Untitled item";
-  const lengthLabel = formatLength(item.length);
+  const startOffset = entry?.startOffset ?? null;
+  const startLabel =
+    startOffset === null
+      ? OFF_CLOCK_LABELS[item.servicePosition]
+      : `at ${formatDuration(startOffset) ?? "0:00"}`;
+
   return (
     <div
       aria-busy={isBusy}
+      data-plan-item-id={item.id}
+      data-selected={selected}
       className={cn(
-        "group/plan-item stale-while-busy",
-        tone.row,
-        !isDragged && tone.hover,
-        isDragged && "bg-muted/80"
+        "group/plan-item stale-while-busy has-[[data-slot=item]:focus-visible]:ring-ring/50 relative flex items-stretch rounded-lg has-[[data-slot=item]:focus-visible]:ring-2",
+        isHeader ? "min-h-9" : "min-h-13",
+        rowSurfaceClassName(isHeader, isDragged || selected)
       )}
     >
-      <div className="hidden min-h-11 items-stretch sm:flex">
-        <div className={cn("flex", revealOnRowHover(isDragged))}>
-          <DragHandle
-            {...dragAttributes}
-            {...dragListeners}
-            disabled={isBusy}
-            aria-label={`Reorder ${itemActionLabel}`}
-          />
-        </div>
-        <Item
-          variant="plain"
-          size="xs"
-          className="min-w-0 flex-1"
-          render={
-            <button type="button" aria-label={`Edit ${itemActionLabel}`} />
-          }
-          {...intentProps}
-          onClick={onEdit}
-        >
-          <div className="flex min-w-0 flex-1 items-center gap-3 text-left">
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="truncate font-semibold">{displayTitle}</p>
-                {item.arrangement ? (
-                  <span className="text-muted-foreground/80 flex items-center gap-1 text-sm">
-                    <span aria-hidden="true" className="opacity-60">
-                      |
-                    </span>
-                    <span>{item.arrangement.name}</span>
-                  </span>
-                ) : null}
-                {item.key ? (
-                  <Badge variant="secondary">
-                    {keyLabelOf(item.key) ?? item.key.name}
-                  </Badge>
-                ) : null}
-                {lengthLabel !== null && lengthLabel !== "" ? (
-                  <Badge variant="outline">{lengthLabel}</Badge>
-                ) : null}
-              </div>
-              <div className="text-muted-foreground mt-1 flex flex-wrap gap-2 text-xs">
-                {item.description ? (
-                  <span className="truncate">{item.description}</span>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        </Item>
-        <div
-          className={cn(
-            "flex items-center px-2 py-1.5",
-            revealOnRowHover(isDragged)
-          )}
-        >
-          <Button
+      <Item
+        variant="plain"
+        size="xs"
+        className="absolute inset-0"
+        render={
+          <button
             type="button"
-            variant="destructive"
-            size="icon-sm"
-            className="group/delete"
-            onPointerDown={(event) => {
-              event.stopPropagation();
-            }}
-            onClick={(event) => {
-              event.stopPropagation();
-              onDelete();
-            }}
-            disabled={isBusy}
-            aria-label={`Delete ${itemActionLabel}`}
-          >
-            <Trash2 className="size-4" />
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex min-h-12 items-stretch sm:hidden">
+            aria-label={`Open ${displayTitle}`}
+            aria-current={selected ? "true" : undefined}
+          />
+        }
+        {...intentProps}
+        onClick={() => {
+          handlers.onOpen(item.id);
+        }}
+      />
+      <div className="relative flex shrink-0">
         <DragHandle
           {...dragAttributes}
           {...dragListeners}
+          size="sm"
           disabled={isBusy}
           aria-label={`Reorder ${itemActionLabel}`}
         />
-        <Item
-          variant="plain"
-          size="xs"
-          className="min-w-0 flex-1 items-start"
-          render={
-            <button type="button" aria-label={`Edit ${itemActionLabel}`} />
-          }
-          {...intentProps}
-          onClick={onEdit}
+      </div>
+      {isHeader ? null : (
+        <div className="relative flex w-16 shrink-0 flex-col items-start justify-center py-1.5">
+          <ItemLengthEditor
+            item={item}
+            onChange={(length) => {
+              handlers.onChangeLength(item, length);
+            }}
+            onInvalid={(message) => {
+              handlers.onInvalidLength(message);
+            }}
+          />
+          {startLabel === "" ? null : (
+            <span className="text-muted-foreground pointer-events-none pl-2.5 text-xs leading-tight tabular-nums">
+              {startLabel}
+            </span>
+          )}
+        </div>
+      )}
+      <div className="pointer-events-none relative flex min-w-0 flex-1 flex-col justify-center gap-1 py-2 pr-2">
+        {isHeader ? (
+          <HeaderRowContent
+            title={displayTitle}
+            sectionLength={entry?.sectionLength ?? null}
+          />
+        ) : (
+          <ItemRowContent
+            item={item}
+            title={displayTitle}
+            transition={transition}
+            recentPlayDays={recentPlayDays}
+            serviceTypeId={serviceTypeId}
+            handlers={handlers}
+          />
+        )}
+      </div>
+      <div
+        className={cn(
+          "relative flex items-center pr-1.5 max-sm:hidden",
+          revealWithRow(isDragged)
+        )}
+      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => {
+            handlers.onRemove(item.id);
+          }}
+          disabled={isBusy}
+          aria-label={`Remove ${itemActionLabel}`}
         >
-          <div className="min-w-0 flex-1 text-left">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="min-w-0 font-semibold break-words">
-                {displayTitle}
-              </p>
-              {item.arrangement ? (
-                <span className="text-muted-foreground/80 flex items-center gap-1 text-sm">
-                  <span aria-hidden="true" className="opacity-60">
-                    |
-                  </span>
-                  <span>{item.arrangement.name}</span>
-                </span>
-              ) : null}
-              {item.key ? (
-                <Badge variant="secondary">
-                  {keyLabelOf(item.key) ?? item.key.name}
-                </Badge>
-              ) : null}
-              {lengthLabel !== null && lengthLabel !== "" ? (
-                <Badge variant="outline">{lengthLabel}</Badge>
-              ) : null}
-            </div>
-            {item.description ? (
-              <div className="text-muted-foreground mt-1 flex flex-wrap gap-2 text-xs">
-                <span className="break-words">{item.description}</span>
-              </div>
-            ) : null}
-          </div>
-        </Item>
-        <ChevronRight
-          className="text-muted-foreground/50 mr-3 size-4 shrink-0 self-center"
-          aria-hidden
-        />
+          <Trash2 className="size-3.5" />
+        </Button>
       </div>
     </div>
   );
 };
 
+/** A line under the row that opens an add menu, for putting something exactly here. */
+const InsertAfter = ({
+  itemTitle,
+  onInsert,
+}: {
+  itemTitle: string;
+  onInsert: (kind: PlanInsertKind) => void;
+}) => (
+  <div className="absolute inset-x-0 -bottom-2 z-10 flex h-4 opacity-0 focus-within:opacity-100 hover:opacity-100 has-data-popup-open:opacity-100 max-sm:hidden pointer-coarse:hidden">
+    <DropdownMenu>
+      {/* The whole strip opens the menu; the plus only marks where it is. */}
+      <DropdownMenuTrigger
+        aria-label={`Add after ${itemTitle}`}
+        className="group/insert flex flex-1 cursor-pointer items-center"
+      >
+        <span
+          aria-hidden
+          className="border-border bg-background text-muted-foreground group-hover/insert:text-foreground flex size-5 shrink-0 items-center justify-center rounded-full border"
+        >
+          <Plus className="size-3" />
+        </span>
+        <span
+          aria-hidden
+          className="bg-primary/40 group-hover/insert:bg-primary/70 ml-1 h-0.5 flex-1 rounded-full"
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuItem
+          onClick={() => {
+            onInsert("song");
+          }}
+        >
+          <Music2 />
+          Song
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            onInsert("header");
+          }}
+        >
+          <Type />
+          Header
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            onInsert("item");
+          }}
+        >
+          <AlignLeft />
+          Item
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
+);
+
+interface SortablePlanItemProps extends Omit<
+  PlanItemRowProps,
+  "dragAttributes" | "dragListeners" | "isDragged"
+> {
+  isDragging: boolean;
+  dropSide: PlanDropIndicator["side"] | null;
+}
+
 const SortablePlanItem = ({
   item,
-  isBusy,
   isDragging,
-  reorderDisabled,
-  onEdit,
-  intentProps,
-  onDelete,
+  dropSide,
+  ...rowProps
 }: SortablePlanItemProps) => {
   const {
     attributes,
@@ -283,25 +418,13 @@ const SortablePlanItem = ({
     transform,
     transition,
     isDragging: isSortableDragging,
-  } = useSortable({
-    id: item.id,
-    disabled: reorderDisabled,
-  });
+  } = useSortable({ id: item.id });
 
   const style: CSSProperties & {
     "--sortable-transform": string;
     "--sortable-transition": string;
   } = {
-    "--sortable-transform":
-      CSS.Transform.toString(
-        transform
-          ? {
-              ...transform,
-              scaleX: isSortableDragging ? 1.01 : 1,
-              scaleY: isSortableDragging ? 1.01 : 1,
-            }
-          : null
-      ) ?? "none",
+    "--sortable-transform": CSS.Translate.toString(transform) ?? "none",
     "--sortable-transition":
       transition ?? "transform 180ms cubic-bezier(0.2, 0, 0, 1)",
   };
@@ -312,175 +435,132 @@ const SortablePlanItem = ({
       style={style}
       className={cn(
         "sortable-plan-item relative",
+        item.itemType === "header" && "pt-3 first:pt-0",
         isSortableDragging && "z-20 opacity-0"
       )}
     >
-      <PlanItemCard
+      {dropSide === "before" ? (
+        <span
+          aria-hidden
+          className="bg-primary absolute inset-x-0 top-0 h-0.5 rounded-full"
+        />
+      ) : null}
+      <PlanItemRow
         item={item}
-        isBusy={isBusy}
+        {...rowProps}
         isDragged={isDragging || isSortableDragging}
         dragAttributes={attributes}
         dragListeners={listeners}
-        onEdit={onEdit}
-        intentProps={intentProps}
-        onDelete={onDelete}
+      />
+      {dropSide === "after" ? (
+        <span
+          aria-hidden
+          className="bg-primary absolute inset-x-0 -bottom-px h-0.5 rounded-full"
+        />
+      ) : null}
+      <InsertAfter
+        itemTitle={item.title || "this item"}
+        onInsert={(kind) => {
+          rowProps.handlers.onInsert(kind, item.id);
+        }}
       />
     </div>
   );
 };
 
+interface PlanItemListProps {
+  items: PlanItem[];
+  runSheet: ReadonlyMap<string, RunSheetEntry>;
+  transitions: ReadonlyMap<string, KeyTransition>;
+  recentPlays: ReadonlyMap<string, number>;
+  selectedItemId: string | null;
+  activeItemId: string | null;
+  dropIndicator: PlanDropIndicator | null;
+  pendingItemId: string | null;
+  serviceTypeId: string | null;
+  handlers: PlanItemRowHandlers;
+  getItemIntentProps?: (itemId: string) => IntentPrefetchProps;
+}
+
+/** The run sheet's rows. The drag context lives in the builder so library songs can drop here. */
 export const PlanItemList = ({
   items,
-  isLoading,
+  runSheet,
+  transitions,
+  recentPlays,
+  selectedItemId,
+  activeItemId,
+  dropIndicator,
   pendingItemId,
+  serviceTypeId,
+  handlers,
+  getItemIntentProps,
+}: PlanItemListProps) => (
+  <SortableContext
+    items={items.map((item) => item.id)}
+    strategy={verticalListSortingStrategy}
+  >
+    {/* Sized by the page, not by long titles, so truncation holds. */}
+    <div className="pb-safe-4 flex w-full max-w-4xl flex-col contain-inline-size md:pb-4">
+      {items.map((item) => (
+        <SortablePlanItem
+          key={item.id}
+          item={item}
+          entry={runSheet.get(item.id)}
+          transition={transitions.get(item.id) ?? null}
+          recentPlayDays={recentPlays.get(item.id) ?? null}
+          selected={selectedItemId === item.id}
+          isBusy={pendingItemId === item.id}
+          isDragging={activeItemId === item.id}
+          dropSide={
+            dropIndicator?.itemId === item.id ? dropIndicator.side : null
+          }
+          serviceTypeId={serviceTypeId}
+          handlers={handlers}
+          intentProps={getItemIntentProps?.(item.id)}
+        />
+      ))}
+    </div>
+  </SortableContext>
+);
+
+export const PlanItemListEmpty = ({
   onAddSong,
   onAddHeader,
   onAddItem,
-  onEditItem,
-  getItemIntentProps,
-  onRequestDelete,
-  onReorderItems,
-}: PlanItemListProps) => {
-  const [activeItemId, setActiveItemId] = useState<string | null>(null);
-  const reorderDisabled = pendingItemId === "reorder";
-  const revealClassName = useRevealOnLoad(isLoading);
-  const activeItem = items.find((item) => item.id === activeItemId) ?? null;
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: { distance: 6 },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: 160, tolerance: 10 },
-    })
-  );
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveItemId(String(event.active.id));
-  };
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    setActiveItemId(null);
-
-    const activeId = String(event.active.id);
-    const overId = event.over ? String(event.over.id) : null;
-
-    if (!(overId !== null && overId !== "") || activeId === overId) {
-      return;
-    }
-
-    const nextItems = reorderPlanItems(items, activeId, overId);
-    if (nextItems === items) {
-      return;
-    }
-
-    await onReorderItems(nextItems);
-  };
-
-  const showEmpty = !isLoading && items.length === 0;
-  const showList = !isLoading && items.length > 0;
-
-  return (
-    <PageScrollArea>
-      {isLoading ? <PlanItemListSkeleton /> : null}
-      {showEmpty ? (
-        <div className="py-1">
-          <Card className="text-center">
-            <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
-              <FileMusic className="text-muted-foreground/70 size-5" />
-              <div>
-                <p className="text-sm font-medium">
-                  This plan has no structure yet
-                </p>
-                <p className="text-muted-foreground mt-0.5 text-xs">
-                  Add a song, header, or item from the toolbar above.
-                </p>
-              </div>
-              <div className="flex flex-wrap justify-center gap-2">
-                <Button type="button" size="sm" onClick={onAddSong}>
-                  <Music4 className="size-4" />
-                  Add Song
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={onAddHeader}
-                >
-                  Add Header
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={onAddItem}
-                >
-                  Add Item
-                </Button>
-              </div>
-            </div>
-          </Card>
+}: {
+  onAddSong: () => void;
+  onAddHeader: () => void;
+  onAddItem: () => void;
+}) => (
+  <div className="max-w-4xl py-1">
+    <Card className="text-center">
+      <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
+        <FileMusic className="text-muted-foreground/70 size-5" />
+        <div>
+          <p className="text-sm font-medium">This plan has no structure yet</p>
+          <p className="text-muted-foreground mt-0.5 text-xs">
+            Pick a song from the library, or start with a header or item.
+          </p>
         </div>
-      ) : null}
-      {showList ? (
-        <div className={cn("relative", revealClassName)}>
-          <DndContext
-            collisionDetection={closestCenter}
-            sensors={sensors}
-            onDragStart={handleDragStart}
-            onDragCancel={() => {
-              setActiveItemId(null);
-            }}
-            onDragEnd={(event) => {
-              startTransition(async () => {
-                await handleDragEnd(event);
-              });
-            }}
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button type="button" size="sm" onClick={onAddSong}>
+            <Music2 className="size-4" />
+            Add song
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onAddHeader}
           >
-            <SortableContext
-              items={items.map((item) => item.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <div className="pb-safe-4 md:pb-4">
-                <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
-                  {items.map((item) => (
-                    <SortablePlanItem
-                      key={item.id}
-                      item={item}
-                      isBusy={pendingItemId === item.id}
-                      isDragging={activeItemId === item.id}
-                      reorderDisabled={reorderDisabled}
-                      onEdit={() => {
-                        onEditItem(item.id);
-                      }}
-                      intentProps={getItemIntentProps?.(item.id)}
-                      onDelete={() => {
-                        onRequestDelete(item.id);
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            </SortableContext>
-            <DragOverlay zIndex={60}>
-              {activeItem ? (
-                <div className="bg-background rotate-[0.2deg] overflow-hidden rounded-lg border shadow-2xl">
-                  <PlanItemCard
-                    item={activeItem}
-                    isBusy={pendingItemId === activeItem.id}
-                    isDragged
-                    onEdit={() => {
-                      onEditItem(activeItem.id);
-                    }}
-                    onDelete={() => {
-                      onRequestDelete(activeItem.id);
-                    }}
-                  />
-                </div>
-              ) : null}
-            </DragOverlay>
-          </DndContext>
+            Add header
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={onAddItem}>
+            Add item
+          </Button>
         </div>
-      ) : null}
-    </PageScrollArea>
-  );
-};
+      </div>
+    </Card>
+  </div>
+);

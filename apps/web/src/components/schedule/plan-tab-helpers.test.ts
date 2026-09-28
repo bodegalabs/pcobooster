@@ -1,7 +1,13 @@
-import type { SongOptionSet } from "@pcobooster/planning-center-models/types";
+import type {
+  PlanItem,
+  SongOptionSet,
+} from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
-import { synchronizeDraftWithSongOptions } from "@/components/schedule/plan-tab-helpers";
+import {
+  buildRunSheet,
+  synchronizeDraftWithSongOptions,
+} from "@/components/schedule/plan-tab-helpers";
 import type { DraftState } from "@/components/schedule/plan-tab-helpers";
 
 const songOptions: SongOptionSet = {
@@ -72,5 +78,72 @@ describe(synchronizeDraftWithSongOptions, () => {
       arrangementId: "arr-1",
       keyId: "key-1",
     });
+  });
+});
+
+const planItem = (
+  id: string,
+  itemType: PlanItem["itemType"],
+  length: number | null,
+  servicePosition: PlanItem["servicePosition"] = "during"
+): PlanItem => ({
+  id,
+  title: id,
+  itemType,
+  sequence: 0,
+  servicePosition,
+  length,
+  description: "",
+  htmlDetails: "",
+  customArrangementSequence: [],
+  song: null,
+  arrangement: null,
+  key: null,
+  layout: null,
+});
+
+describe(buildRunSheet, () => {
+  it("starts each service item where the previous one ended", () => {
+    const sheet = buildRunSheet([
+      planItem("welcome", "item", 120),
+      planItem("song-a", "song", 300),
+      planItem("song-b", "song", null),
+      planItem("sermon", "item", 2400),
+    ]);
+
+    expect(sheet.get("welcome")?.startOffset).toBe(0);
+    expect(sheet.get("song-a")?.startOffset).toBe(120);
+    expect(sheet.get("song-b")?.startOffset).toBe(420);
+    expect(sheet.get("sermon")?.startOffset).toBe(420);
+  });
+
+  it("keeps pre- and post-service items off the service clock", () => {
+    const sheet = buildRunSheet([
+      planItem("warm-up", "item", 600, "pre"),
+      planItem("song", "song", 300),
+      planItem("teardown", "item", 900, "post"),
+    ]);
+
+    expect(sheet.get("warm-up")?.startOffset).toBeNull();
+    expect(sheet.get("song")?.startOffset).toBe(0);
+    expect(sheet.get("teardown")?.startOffset).toBeNull();
+  });
+
+  it("totals each header's items until the next header", () => {
+    const sheet = buildRunSheet([
+      planItem("set", "header", null),
+      planItem("song-a", "song", 300),
+      planItem("song-b", "song", 240),
+      planItem("empty", "header", null),
+      planItem("sermon-header", "header", null),
+      planItem("sermon", "item", 2400),
+    ]);
+
+    expect(sheet.get("set")).toStrictEqual({
+      startOffset: null,
+      sectionLength: 540,
+    });
+    expect(sheet.get("empty")?.sectionLength).toBeNull();
+    expect(sheet.get("sermon-header")?.sectionLength).toBe(2400);
   });
 });

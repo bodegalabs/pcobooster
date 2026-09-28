@@ -381,7 +381,11 @@ export const DashboardPage = ({
             value="plan"
             className="mt-0 flex min-h-0 flex-1 flex-col"
           >
-            <PlanTab serviceTypeId={routeServiceTypeId} planId={routePlanId} />
+            <PlanTab
+              serviceTypeId={routeServiceTypeId}
+              planId={routePlanId}
+              planDate={planReferenceDate}
+            />
           </TabsContent>
 
           <TabsContent

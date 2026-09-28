@@ -21,6 +21,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useHotkey } from "@tanstack/react-hotkeys";
+import type { RegisterableHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
 import { Link, getRouteApi, useLocation } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
@@ -92,7 +93,11 @@ import {
   useAccountsQuery,
 } from "@/hooks/use-account-panel";
 import { usePlanRoute } from "@/hooks/use-plan-route";
-import { APP_SHORTCUTS, SHORTCUTS_PALETTE_HOTKEY } from "@/lib/app-hotkeys";
+import {
+  APP_SHORTCUTS,
+  PLAN_BUILDER_SHORTCUTS,
+  SHORTCUTS_PALETTE_HOTKEY,
+} from "@/lib/app-hotkeys";
 import type { PlanView } from "@/lib/app-routes";
 import {
   getAppSection,
@@ -491,6 +496,30 @@ const useNavFeatures = () => {
   };
 };
 
+const ShortcutList = ({
+  shortcuts,
+}: {
+  shortcuts: readonly {
+    id: string;
+    label: string;
+    binding: RegisterableHotkey;
+  }[];
+}) => (
+  <dl className="grid gap-3 text-sm">
+    {shortcuts.map((shortcut) => (
+      <div
+        key={shortcut.id}
+        className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1"
+      >
+        <dt className="text-muted-foreground">{shortcut.label}</dt>
+        <dd>
+          <HotkeyChord id={shortcut.id} binding={shortcut.binding} />
+        </dd>
+      </div>
+    ))}
+  </dl>
+);
+
 const AppSidebar = ({
   peopleNavEnabled,
   songsNavEnabled,
@@ -600,19 +629,11 @@ const AppSidebar = ({
               Keyboard shortcuts available in pcobooster.com.
             </DialogDescription>
           </DialogHeader>
-          <dl className="grid gap-3 text-sm">
-            {APP_SHORTCUTS.map((shortcut) => (
-              <div
-                key={shortcut.id}
-                className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1"
-              >
-                <dt className="text-muted-foreground">{shortcut.label}</dt>
-                <dd>
-                  <HotkeyChord id={shortcut.id} binding={shortcut.binding} />
-                </dd>
-              </div>
-            ))}
-          </dl>
+          <ShortcutList shortcuts={APP_SHORTCUTS} />
+          <section className="flex flex-col gap-3">
+            <h3 className="text-sm font-medium">Plan builder</h3>
+            <ShortcutList shortcuts={PLAN_BUILDER_SHORTCUTS} />
+          </section>
         </DialogContent>
       </Dialog>
     </>

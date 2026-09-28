@@ -49,6 +49,7 @@ export const queryKeys = {
   planTimes: (serviceTypeId: string | null, planId: string | null) =>
     ["plan-times", serviceTypeId, planId] as const,
   songSearch: (query: string) => ["song-search", query] as const,
+  songSuggestions: () => ["song-suggestions"] as const,
   songOptions: (songId: string | null, serviceTypeId: string | null) =>
     ["song-options", songId, serviceTypeId] as const,
   chordChartSong: (songId: string) => ["chord-chart-song", songId] as const,
