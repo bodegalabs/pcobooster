@@ -1,5 +1,8 @@
 import { deviceAccounts } from "@pcobooster/api/auth/device-accounts";
-import { getPlanningCenterIdentityFromAccessToken } from "@pcobooster/api/auth/planning-center-identity";
+import {
+  getPlanningCenterIdentityFromAccessToken,
+  getPlanningCenterRawUserInfo,
+} from "@pcobooster/api/auth/planning-center-identity";
 import { createPreviewProxy } from "@pcobooster/api/auth/preview-proxy";
 import { parseSignInFailure } from "@pcobooster/api/auth/sign-in-failure";
 import type { ServerConfig } from "@pcobooster/api/config/server-config";
@@ -13,6 +16,7 @@ import { logger } from "@pcobooster/api/logger";
 import { upsertPlanningCenterAccountIdentity } from "@pcobooster/api/modules/admin/planning-center-account-identities";
 import type { PostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-capture";
 import { getPostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-person";
+import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user-agent";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -255,6 +259,13 @@ export const createAuth = (config: ServerConfig, database: Db) => {
               "https://api.planningcenteronline.com/oauth/authorize",
             tokenUrl: "https://api.planningcenteronline.com/oauth/token",
             userInfoUrl: "https://api.planningcenteronline.com/oauth/userinfo",
+            // Planning Center asks every client to identify itself. Better Auth
+            // takes headers for discovery and the code exchange, and a hook for
+            // userinfo. Its refresh-token request has no header option.
+            discoveryHeaders: { "User-Agent": PLANNING_CENTER_USER_AGENT },
+            authorizationHeaders: { "User-Agent": PLANNING_CENTER_USER_AGENT },
+            getUserInfo: async (tokens) =>
+              await getPlanningCenterRawUserInfo(tokens.accessToken),
             clientId: planningCenter.clientId,
             clientSecret: planningCenter.clientSecret,
             scopes: ["openid", "services", "people"],

@@ -1,6 +1,7 @@
 import { createAuth } from "@pcobooster/api/auth";
 import { createDatabase } from "@pcobooster/api/db/client";
 import { account, activityEvents, user } from "@pcobooster/api/db/schema";
+import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user-agent";
 import { testServerConfig } from "@pcobooster/api/testing/server";
 import { eq } from "drizzle-orm";
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
@@ -21,9 +22,13 @@ interface PlanningCenterProfile {
 
 const signInResponseSchema = z.object({ url: z.string() });
 
+/** The `User-Agent` each Planning Center request carried, keyed by path. */
+const userAgentsByPath = new Map<string, string | null>();
+
 /** Serves Planning Center's OIDC endpoints for one profile, like one org login. */
 const stubPlanningCenter = (profile: PlanningCenterProfile): void => {
   const realFetch = globalThis.fetch;
+  userAgentsByPath.clear();
   vi.stubGlobal(
     "fetch",
     async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
@@ -31,6 +36,12 @@ const stubPlanningCenter = (profile: PlanningCenterProfile): void => {
       if (url.hostname !== "api.planningcenteronline.com") {
         return await realFetch(input, init);
       }
+      userAgentsByPath.set(
+        url.pathname,
+        new Headers(
+          init?.headers ?? (input instanceof Request ? input.headers : {})
+        ).get("user-agent")
+      );
       if (url.pathname === "/.well-known/openid-configuration") {
         return Response.json({
           issuer: "https://api.planningcenteronline.com",
@@ -141,6 +152,20 @@ describe("Planning Center sign-in", () => {
       "person-org-a",
       "person-org-b",
     ]);
+  });
+
+  it("identifies itself to Planning Center on every sign-in request", async () => {
+    await signInWithPlanningCenter({
+      sub: "person-user-agent",
+      email: "agent@example.com",
+      organizationId: "org-ua",
+      organizationName: "Agent Church",
+    });
+    expect(Object.fromEntries(userAgentsByPath)).toStrictEqual({
+      "/.well-known/openid-configuration": PLANNING_CENTER_USER_AGENT,
+      "/oauth/token": PLANNING_CENTER_USER_AGENT,
+      "/oauth/userinfo": PLANNING_CENTER_USER_AGENT,
+    });
   });
 
   it("records the parsed failure when the callback redirects with an error", async () => {

@@ -23,6 +23,7 @@ import {
   PlanningCenterSubrequestLimitError,
   isTooManySubrequestsError,
 } from "@pcobooster/api/planning-center/subrequest-limit-error";
+import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user-agent";
 import {
   isNonEmptyString,
   isString,
@@ -654,6 +655,7 @@ export class PlanningCenterCoreClient {
     const headers = HttpClientRequest.setHeaders({
       Accept: "application/json",
       Authorization: this.authorization,
+      "User-Agent": PLANNING_CENTER_USER_AGENT,
     });
     const request =
       options.body === undefined
