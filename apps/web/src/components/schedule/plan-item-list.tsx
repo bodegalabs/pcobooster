@@ -28,7 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DragHandle } from "@/components/ui/drag-handle";
-import { Item, ItemList } from "@/components/ui/item";
+import { Item } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 import type {
   GetIntentPrefetchProps,
@@ -73,7 +73,7 @@ const planItemSkeletonRows = [
 
 const PlanItemListSkeleton = () => (
   <div className="pb-4">
-    <ItemList variant="outline">
+    <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
       {planItemSkeletonRows.map((row) => (
         <div
           key={row.key}
@@ -90,9 +90,17 @@ const PlanItemListSkeleton = () => (
           <Skeleton variant="control" className="ml-auto size-7 shrink-0" />
         </div>
       ))}
-    </ItemList>
+    </div>
   </div>
 );
+
+/**
+ * Row controls stay hidden until the row is hovered or focused, except on
+ * touch screens (no hover) and on the row being dragged.
+ */
+const revealOnRowHover = (isDragged: boolean) =>
+  !isDragged &&
+  "pointer-fine:opacity-0 pointer-fine:group-focus-within/plan-item:opacity-100 pointer-fine:group-hover/plan-item:opacity-100";
 
 interface PlanItemCardProps {
   item: PlanItem;
@@ -119,29 +127,27 @@ const PlanItemCard = ({
   const itemActionLabel = item.title || "plan item";
   const displayTitle = item.title || "Untitled item";
   const lengthLabel = formatLength(item.length);
-  const rowHoverClassName =
-    item.itemType === "header"
-      ? "hover:ring-border/80 hover:ring-1 hover:ring-inset"
-      : null;
-
   return (
     <div
       aria-busy={isBusy}
       className={cn(
         "group/plan-item stale-while-busy",
         tone.row,
-        !isDragged && rowHoverClassName,
+        !isDragged && tone.hover,
         isDragged && "bg-muted/80"
       )}
     >
       <div className="hidden min-h-11 items-stretch sm:flex">
-        <DragHandle
-          {...dragAttributes}
-          {...dragListeners}
-          disabled={isBusy}
-          aria-label={`Reorder ${itemActionLabel}`}
-        />
+        <div className={cn("flex", revealOnRowHover(isDragged))}>
+          <DragHandle
+            {...dragAttributes}
+            {...dragListeners}
+            disabled={isBusy}
+            aria-label={`Reorder ${itemActionLabel}`}
+          />
+        </div>
         <Item
+          variant="plain"
           size="xs"
           className="min-w-0 flex-1"
           render={
@@ -177,7 +183,12 @@ const PlanItemCard = ({
             </div>
           </div>
         </Item>
-        <div className="flex items-center px-2 py-1.5">
+        <div
+          className={cn(
+            "flex items-center px-2 py-1.5",
+            revealOnRowHover(isDragged)
+          )}
+        >
           <Button
             type="button"
             variant="destructive"
@@ -206,6 +217,7 @@ const PlanItemCard = ({
           aria-label={`Reorder ${itemActionLabel}`}
         />
         <Item
+          variant="plain"
           size="xs"
           className="min-w-0 flex-1 items-start"
           render={
@@ -424,7 +436,7 @@ export const PlanItemList = ({
               strategy={verticalListSortingStrategy}
             >
               <div className="pb-safe-4 md:pb-4">
-                <ItemList variant="outline">
+                <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
                   {items.map((item) => (
                     <SortablePlanItem
                       key={item.id}
@@ -441,25 +453,23 @@ export const PlanItemList = ({
                       }}
                     />
                   ))}
-                </ItemList>
+                </div>
               </div>
             </SortableContext>
             <DragOverlay zIndex={60}>
               {activeItem ? (
-                <div className="rotate-[0.2deg] rounded-xl shadow-2xl">
-                  <ItemList variant="outline">
-                    <PlanItemCard
-                      item={activeItem}
-                      isBusy={pendingItemId === activeItem.id}
-                      isDragged
-                      onEdit={() => {
-                        onEditItem(activeItem.id);
-                      }}
-                      onDelete={() => {
-                        onRequestDelete(activeItem.id);
-                      }}
-                    />
-                  </ItemList>
+                <div className="bg-background rotate-[0.2deg] overflow-hidden rounded-lg border shadow-2xl">
+                  <PlanItemCard
+                    item={activeItem}
+                    isBusy={pendingItemId === activeItem.id}
+                    isDragged
+                    onEdit={() => {
+                      onEditItem(activeItem.id);
+                    }}
+                    onDelete={() => {
+                      onRequestDelete(activeItem.id);
+                    }}
+                  />
                 </div>
               ) : null}
             </DragOverlay>

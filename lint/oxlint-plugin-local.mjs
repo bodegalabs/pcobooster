@@ -793,6 +793,8 @@ const STATE_VARIANT =
 /** Interactive `<Item>` rows paint `[button]:hover:bg-*` from the primitive. */
 const ITEM_NAME = "Item";
 const ITEM_LIST_NAME = "ItemList";
+/** `<Item variant="plain">` leaves the hover to the row that contains it. */
+const ITEM_PLAIN_VARIANT = "plain";
 
 /**
  * Class tokens that apply at rest (base or breakpoint), not on hover/state.
@@ -822,15 +824,35 @@ const isFlushRoundedBox = (openingElement) => {
  * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
  */
 const paintsHoverBackground = (openingElement) => {
-  if (
-    getJsxName(openingElement.name) === ITEM_NAME &&
-    hasAttribute(openingElement, "render")
-  ) {
-    return true;
+  if (getJsxName(openingElement.name) === ITEM_NAME) {
+    return (
+      hasAttribute(openingElement, "render") &&
+      stringAttribute(openingElement, "variant") !== ITEM_PLAIN_VARIANT
+    );
   }
   return classTokens(openingClassText(openingElement)).some(
     ({ variant, base }) => variant.includes("hover:") && base.startsWith("bg-")
   );
+};
+
+/**
+ * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ * @param {string} name
+ * @returns {string | null}
+ */
+const stringAttribute = (openingElement, name) => {
+  for (const attribute of openingElement.attributes) {
+    if (
+      attribute.type === "JSXAttribute" &&
+      attribute.name.type === "JSXIdentifier" &&
+      attribute.name.name === name &&
+      attribute.value?.type === "Literal" &&
+      typeof attribute.value.value === "string"
+    ) {
+      return attribute.value.value;
+    }
+  }
+  return null;
 };
 
 /**

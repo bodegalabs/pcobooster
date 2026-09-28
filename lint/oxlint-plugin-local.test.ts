@@ -509,6 +509,16 @@ ruleTester.run(
       `,
       },
       {
+        name: "plain Item leaves the hover to its row",
+        code: `
+        <div className="overflow-hidden rounded-lg border">
+          <div className={cn("group/row", tone.hover)}>
+            <Item variant="plain" render={<button type="button" />}>Row</Item>
+          </div>
+        </div>
+      `,
+      },
+      {
         name: "hover-only radius on a flush row",
         code: `
         <div className="overflow-hidden rounded-xl border">

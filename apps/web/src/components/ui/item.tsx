@@ -78,6 +78,9 @@ const itemVariants = cva(
     variants: {
       variant: {
         default: "border-transparent",
+        /** Rows inside a container that paints the hover for the whole row. */
+        plain:
+          "border-transparent [a]:hover:bg-transparent [button]:hover:bg-transparent [button]:active:bg-transparent",
         outline: "border-border dark:border-input dark:bg-card",
         muted:
           "bg-muted/50 dark:border-border/30 dark:bg-secondary border-transparent",
