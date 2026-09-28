@@ -88,9 +88,7 @@ export const peopleDashboardPersonInputSchema =
       .optional(),
   });
 
-export const peopleMyScheduledPlansInputSchema = z.object({
-  planIds: z.array(z.string().min(1)).max(500),
-});
+export const peopleMyScheduledPlansInputSchema = z.object({});
 
 export const peopleSearchOutputSchema = z.array(peopleSearchResultSchema);
 export const peopleBlockoutsOutputSchema = z.array(blockoutSchema);
@@ -173,9 +171,9 @@ export const peopleContract = {
     .output(peopleDashboardPersonDetailSchema),
   myScheduledPlans: peopleProcedure
     .route({
-      method: "POST",
+      method: "GET",
       path: "/people/my-scheduled-plans",
-      summary: "Find requested plans assigned to the current person",
+      summary: "List upcoming plans the current person is scheduled on",
     })
     .input(peopleMyScheduledPlansInputSchema)
     .output(myScheduledPlansDataSchema),
@@ -197,7 +195,4 @@ export type PeopleDashboardActivityInput = z.input<
 >;
 export type PeopleDashboardPersonInput = z.input<
   typeof peopleDashboardPersonInputSchema
->;
-export type PeopleMyScheduledPlansInput = z.input<
-  typeof peopleMyScheduledPlansInputSchema
 >;

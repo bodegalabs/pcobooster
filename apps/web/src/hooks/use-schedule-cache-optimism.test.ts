@@ -536,7 +536,7 @@ describe("schedule cache optimism", () => {
     installLocalStorageMock();
     const queryClient = createQueryClient();
     const dateKey = "2026-05-24T10:00:00.000Z";
-    writeCachedMyScheduledPlans("plan-1,plan-2", { planIds: ["plan-2"] });
+    writeCachedMyScheduledPlans({ planIds: ["plan-2"] });
     writeCachedPositionCandidates(
       "service-type-1",
       "team-1",
@@ -561,7 +561,7 @@ describe("schedule cache optimism", () => {
       positionId: "position-1",
     });
 
-    expect(readCachedMyScheduledPlans("plan-1,plan-2")).toBeUndefined();
+    expect(readCachedMyScheduledPlans()).toBeUndefined();
     expect(
       readCachedPositionCandidates(
         "service-type-1",

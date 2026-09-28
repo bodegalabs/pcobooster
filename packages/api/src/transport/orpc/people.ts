@@ -52,8 +52,7 @@ const dashboardPerson = rpc.people.dashboardPerson.handler(
 );
 
 const myScheduledPlans = rpc.people.myScheduledPlans.handler(
-  async ({ input, ...call }) =>
-    await readWithPlanningCenter(getMyScheduledPlans(input), call)
+  async (call) => await readWithPlanningCenter(getMyScheduledPlans(), call)
 );
 
 export const peopleRouter = {

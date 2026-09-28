@@ -5,7 +5,7 @@ import type {
 } from "@pcobooster/contracts/people-schemas";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryClient, QueryFunctionContext } from "@tanstack/react-query";
-import { useCallback, useLayoutEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
   assemblePeopleDashboard,
@@ -101,8 +101,8 @@ export const readPeopleDashboardFromQueryCache = (
 
 /**
  * Loads the roster first, then serving activity for the scope's people in
- * small batches, and assembles whatever has arrived so the page fills in
- * progressively. With no `scopeChoice`, a leader sees the teams they lead.
+ * small batches, and shows the scope once every batch has answered. With no
+ * `scopeChoice`, a leader sees the teams they lead.
  */
 export const usePeopleDashboard = (
   scopeChoice: PeopleDashboardScope | null
@@ -137,16 +137,15 @@ export const usePeopleDashboard = (
       ),
     [scopePersonIds, targetPeopleCount]
   );
-  // Layout effect so saved activity lands before the first paint.
-  useLayoutEffect(() => {
-    for (const personIds of batches) {
-      hydrateQueryFromCache(
-        queryClient,
-        queryKeys.peopleDashboardActivity(personIds),
-        () => readCachedPeopleDashboardActivity(personIds)
-      );
-    }
-  }, [batches, queryClient]);
+  // Saved activity seeds its queries before `useQueries` reads them; see
+  // `useHydrateQueryFromCache`.
+  for (const personIds of batches) {
+    hydrateQueryFromCache(
+      queryClient,
+      queryKeys.peopleDashboardActivity(personIds),
+      () => readCachedPeopleDashboardActivity(personIds)
+    );
+  }
 
   const batchQueries = useQueries({
     queries: batches.map((personIds, index) => {
@@ -187,7 +186,16 @@ export const usePeopleDashboard = (
   const failedBatches = batchQueries.filter((query) => query.isError);
   // Pending covers batches waiting their turn as well as ones in flight.
   const isLoadingActivity = batchQueries.some((query) => query.isPending);
-  const hasPeople = (dashboard?.people.length ?? 0) > 0;
+  // Every batch re-sorts the list and changes the health summary, so a scope stays on its
+  // skeleton (with the progress line counting people) until all of its batches have answered.
+  // After that, "Load more" adds people below a list that is already on screen.
+  const [revealedScope, setRevealedScope] =
+    useState<PeopleDashboardScope | null>(null);
+  if (roster !== undefined && !isLoadingActivity && revealedScope !== scope) {
+    setRevealedScope(scope);
+  }
+  const isWaitingForScope =
+    revealedScope !== scope && isLoadingActivity && failedBatches.length === 0;
   const loadMore = useCallback(() => {
     setExtraPeople((current) => ({
       scope,
@@ -205,10 +213,7 @@ export const usePeopleDashboard = (
   return {
     scope,
     dashboard,
-    isLoading:
-      !hasPeople &&
-      (rosterQuery.isPending ||
-        (isLoadingActivity && failedBatches.length === 0)),
+    isLoading: rosterQuery.isPending || isWaitingForScope,
     isError: rosterQuery.isError && !roster,
     isFetching:
       rosterQuery.isFetching || batchQueries.some((query) => query.isFetching),

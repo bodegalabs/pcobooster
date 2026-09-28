@@ -11,7 +11,7 @@ import type {
   QueryFunctionContext,
   UseQueryResult,
 } from "@tanstack/react-query";
-import { useCallback, useLayoutEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { isQueryFresh } from "@/lib/intent-prefetch";
 import {
@@ -327,13 +327,21 @@ const combineDetailQueries = (
   },
 });
 
+/**
+ * How long the list stays on its skeleton after the candidates arrive, waiting for scores.
+ * The list sorts itself by score once history and availability land, so showing it sooner
+ * means showing it in name order and reshuffling it under the pointer. Warm plans usually
+ * score within this; a slow cold load shows the list in name order rather than keep waiting.
+ */
+const SCORE_HOLD_MS = 1500;
+
 export interface PositionCandidateList {
   /** Candidates as far as their parts have arrived; undefined until candidates load. */
   people: ReturnType<typeof assembleCandidateList>["people"] | undefined;
   /** Scores exist and people are sorted; until then the list keeps a stable order. */
   complete: boolean;
   progress: CandidateListProgress | undefined;
-  /** No candidates to show yet. */
+  /** No candidates to show yet, or they are held briefly for their scores. */
   isLoading: boolean;
   /** Candidates are showing while history or availability still loads. */
   isEnriching: boolean;
@@ -345,8 +353,9 @@ export interface PositionCandidateList {
 /**
  * The Assign view's candidate list, loaded progressively: candidates first (about 3 Planning
  * Center requests), then the plan-window history and candidate details in parallel, each
- * split into calls that stay within the per-call budget. The list renders as soon as the
- * candidates arrive and fills in scores, labels, and blocked state as the rest lands.
+ * split into calls that stay within the per-call budget. The list waits briefly for its scores
+ * (`SCORE_HOLD_MS`); past that it renders in a stable order and fills in scores, labels, and
+ * blocked state as the rest lands.
  */
 export const usePositionCandidates = (slot: CandidateSlot | null) => {
   const queryClient = useQueryClient();
@@ -404,11 +413,9 @@ export const usePositionCandidates = (slot: CandidateSlot | null) => {
           ),
     [batches, scheduleHistory, slot]
   );
-  // Layout effect so saved availability lands before the first paint.
-  useLayoutEffect(() => {
-    if (slot === null || scheduleHistory) {
-      return;
-    }
+  // Saved availability seeds its queries before `useQueries` reads them; see
+  // `useHydrateQueryFromCache`.
+  if (slot !== null && !scheduleHistory) {
     for (const [index, personIds] of batches.entries()) {
       const options = detailsOptions[index];
       if (options !== undefined) {
@@ -417,7 +424,7 @@ export const usePositionCandidates = (slot: CandidateSlot | null) => {
         );
       }
     }
-  }, [batches, detailsOptions, queryClient, scheduleHistory, slot]);
+  }
 
   const detailQueries = useQueries({
     queries: detailsOptions.map((options, index) => {
@@ -463,12 +470,28 @@ export const usePositionCandidates = (slot: CandidateSlot | null) => {
 
   const complete = list?.complete ?? false;
   const failedPartCount = (historyFailed ? 1 : 0) + detailQueries.failedCount;
+  const isEnriching = list !== undefined && !complete && failedPartCount === 0;
+  const holdKey =
+    slot === null ? null : `${slot.planId}:${slot.teamId}:${slot.positionId}`;
+  const [releasedHoldKey, setReleasedHoldKey] = useState<string | null>(null);
+  useEffect(() => {
+    // Releases the hold for this slot only if it was still waiting when the time ran out.
+    const timer = setTimeout(() => {
+      if (isEnriching) {
+        setReleasedHoldKey(holdKey);
+      }
+    }, SCORE_HOLD_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [holdKey, isEnriching]);
+  const isHoldingForScores = isEnriching && releasedHoldKey !== holdKey;
   return {
     people: list?.people,
     complete,
     progress: list?.progress,
-    isLoading: candidatesQuery.isLoading,
-    isEnriching: list !== undefined && !complete && failedPartCount === 0,
+    isLoading: candidatesQuery.isLoading || isHoldingForScores,
+    isEnriching,
     isFetching:
       candidatesQuery.isFetching ||
       historyQuery.isFetching ||

@@ -285,7 +285,7 @@ Ranked by expected benefit for the effort. "After rewrite" marks changes to `cor
    - Expected: about 77 to 315 cold drops to about 60 to 65. The 48-person hydration is still the floor. Going further means Workers Paid plus a longer-lived shared tier, or sampling fewer people.
 
 10. **Small fixes.** Low effort.
-    - `myScheduledPlans`: use `filter=future` (1 page instead of up to 5).
+    - Done: `myScheduledPlans` reads upcoming schedules with `filter=after` (1 page instead of up to 5) and no longer takes the plan list, so the browser asks for it alongside the plans.
     - Presentation identity: `presentation.ts:31` keys its organization cache by the per-request catalog service, so every presented request (all demo traffic) makes an extra `GET /services/v2`. Key it by cache scope.
     - Done: the two `per_page=200` plan-time reads now request 100.
     - Paginate `team_positions` past 100.

@@ -446,9 +446,13 @@ describe("PlanningCenterPeopleService.invalidateScheduleReadCaches", () => {
     const service = new PlanningCenterPeopleService(core);
 
     await Effect.runPromise(service.getPlanTeamMembers("st-789", "plan-101"));
-    await Effect.runPromise(service.getPersonSchedules("person-456"));
+    await Effect.runPromise(
+      service.getPersonSchedulesAfter("person-456", "2026-09-28")
+    );
     await Effect.runPromise(service.getPlanTeamMembers("st-789", "plan-101"));
-    await Effect.runPromise(service.getPersonSchedules("person-456"));
+    await Effect.runPromise(
+      service.getPersonSchedulesAfter("person-456", "2026-09-28")
+    );
 
     service.invalidateScheduleReadCaches({
       personId: "person-456",
@@ -457,7 +461,9 @@ describe("PlanningCenterPeopleService.invalidateScheduleReadCaches", () => {
     });
 
     await Effect.runPromise(service.getPlanTeamMembers("st-789", "plan-101"));
-    await Effect.runPromise(service.getPersonSchedules("person-456"));
+    await Effect.runPromise(
+      service.getPersonSchedulesAfter("person-456", "2026-09-28")
+    );
 
     expect(
       fetchAllWithIncluded.mock.calls.filter(([endpoint]) =>

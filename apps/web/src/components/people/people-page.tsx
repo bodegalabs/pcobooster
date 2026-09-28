@@ -200,7 +200,7 @@ const PeoplePageContent = ({
       />
     );
   }
-  if (dashboard) {
+  if (dashboard && !isLoading) {
     return (
       <MonthView
         people={visibleMembers}
