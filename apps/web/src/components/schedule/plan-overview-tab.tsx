@@ -526,8 +526,8 @@ export const PlanOverviewTab = ({
   const isLoading = staffing === null || order === null || schedule === null;
 
   return (
-    <ScrollArea className="min-h-0 flex-1">
-      <div className="pb-safe-4 grid gap-4 pt-1 md:grid-cols-2 md:pb-6">
+    <ScrollArea className="-mx-2 min-h-0 flex-1">
+      <div className="pb-safe-4 grid gap-4 px-2 pt-1 md:grid-cols-2 md:pb-6">
         <ReadinessCard plan={plan} checks={checks} isLoading={isLoading} />
         <PeopleCard
           plan={plan}

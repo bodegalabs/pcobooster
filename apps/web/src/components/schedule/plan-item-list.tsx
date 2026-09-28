@@ -131,7 +131,7 @@ const PlanItemCard = ({
         "group/plan-item stale-while-busy",
         tone.row,
         !isDragged && rowHoverClassName,
-        isDragged && "bg-muted/80 shadow-lg"
+        isDragged && "bg-muted/80"
       )}
     >
       <div className="hidden min-h-11 items-stretch sm:flex">
@@ -366,41 +366,43 @@ export const PlanItemList = ({
     <ScrollArea className="min-h-0 flex-1">
       {isLoading ? <PlanItemListSkeleton /> : null}
       {showEmpty ? (
-        <Card className="mx-0 text-center sm:mr-3">
-          <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
-            <FileMusic className="text-muted-foreground/70 size-5" />
-            <div>
-              <p className="text-sm font-medium">
-                This plan has no structure yet
-              </p>
-              <p className="text-muted-foreground mt-0.5 text-xs">
-                Add a song, header, or item from the toolbar above.
-              </p>
+        <div className="p-1 sm:pr-3">
+          <Card className="text-center">
+            <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
+              <FileMusic className="text-muted-foreground/70 size-5" />
+              <div>
+                <p className="text-sm font-medium">
+                  This plan has no structure yet
+                </p>
+                <p className="text-muted-foreground mt-0.5 text-xs">
+                  Add a song, header, or item from the toolbar above.
+                </p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button type="button" size="sm" onClick={onAddSong}>
+                  <Music4 className="size-4" />
+                  Add Song
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onAddHeader}
+                >
+                  Add Header
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onAddItem}
+                >
+                  Add Item
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-wrap justify-center gap-2">
-              <Button type="button" size="sm" onClick={onAddSong}>
-                <Music4 className="size-4" />
-                Add Song
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onAddHeader}
-              >
-                Add Header
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onAddItem}
-              >
-                Add Item
-              </Button>
-            </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
       ) : null}
       {showList ? (
         <div className={cn("relative", revealClassName)}>

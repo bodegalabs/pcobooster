@@ -36,6 +36,8 @@ export default defineConfig({
     "local/no-absolute-input-overlay": "error",
     // Backgrounds stay solid; no blurred/frosted backdrop-filter layers.
     "local/no-backdrop-blur": "error",
+    // Cards and ringed/shadowed surfaces keep room inside scroll containers.
+    "local/no-clipped-surface": "error",
     // Popover shells stay flush; inner sections own spacing.
     "local/no-popover-content-padding": "error",
     // Section dividers use Separator primitives, not border-b headers.
