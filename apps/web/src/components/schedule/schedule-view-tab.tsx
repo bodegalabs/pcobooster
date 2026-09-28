@@ -129,26 +129,28 @@ const TemporaryFilledPersonRow = ({
         <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
       </Avatar>
 
-      <div className="flex min-w-0 items-center gap-1.5">
+      <div className="min-w-0">
         <p className="text-foreground truncate text-sm leading-tight font-medium sm:text-base">
           {person.name}
         </p>
+      </div>
+
+      <div className="flex items-center gap-2">
         {getSchedulingNotificationState(person.notification) === "unsent" ? (
           <UnsentNotificationMark />
         ) : null}
+        <PlanPersonStatusMenu
+          planPersonId={person.planPersonId}
+          serviceTypeId={serviceTypeId}
+          personId={person.id}
+          planId={planId}
+          teamId={teamId}
+          positionId={positionId}
+          currentStatus={currentStatus}
+          onSuccess={onSuccess}
+          onError={onError}
+        />
       </div>
-
-      <PlanPersonStatusMenu
-        planPersonId={person.planPersonId}
-        serviceTypeId={serviceTypeId}
-        personId={person.id}
-        planId={planId}
-        teamId={teamId}
-        positionId={positionId}
-        currentStatus={currentStatus}
-        onSuccess={onSuccess}
-        onError={onError}
-      />
     </article>
   );
 };

@@ -91,10 +91,10 @@ const teamColumnClass =
 const lineupColumnsRowClassName =
   "flex min-w-max items-stretch gap-4 pt-1 pl-1 pr-4 pb-3";
 const lineupPositionGridClass =
-  "grid w-full grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_2rem] items-center gap-x-2 gap-y-0";
-const lineupPositionRowClass = "col-span-4 grid grid-cols-subgrid items-center";
+  "grid w-full grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_0.875rem_2rem] items-center gap-x-2 gap-y-0";
+const lineupPositionRowClass = "col-span-5 grid grid-cols-subgrid items-center";
 const lineupPositionPeopleClass = cn(
-  "col-span-4 pl-2",
+  "col-span-5 pl-2",
   lineupPositionGridClass,
   "gap-y-0.5"
 );
@@ -163,10 +163,7 @@ const PersonRow = ({
             />
             <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
           </Avatar>
-          <span className="flex min-w-0 items-center gap-1.5">
-            <span className="min-w-0 truncate text-sm">{person.name}</span>
-            {unsent ? <UnsentNotificationMark /> : null}
-          </span>
+          <span className="min-w-0 truncate text-sm">{person.name}</span>
           <div className="text-muted-foreground flex justify-end">
             {planTimes.length > 0 ? (
               <span className="inline-flex items-center gap-1 text-xs tabular-nums">
@@ -175,6 +172,9 @@ const PersonRow = ({
               </span>
             ) : null}
           </div>
+          <span className="flex justify-center">
+            {unsent ? <UnsentNotificationMark /> : null}
+          </span>
           <ScheduleStatusDot
             status={statusDotStatus}
             className="justify-self-center"
@@ -263,8 +263,8 @@ const LineupPositionCard = ({
                   teamName={teamName}
                 />
               </div>
-              {/* Titles also use the time-count column, which only person rows fill. */}
-              <ItemTitle className="col-span-2 min-w-0">
+              {/* Titles also use the time-count and envelope columns, which only person rows fill. */}
+              <ItemTitle className="col-span-3 min-w-0">
                 <span
                   className={cn(
                     "block min-w-0",
@@ -390,7 +390,7 @@ const TeamColumn = ({
             </h3>
             {unsentCount > 0 ? (
               <span
-                className="text-status-info inline-flex shrink-0 items-center gap-1 text-xs font-medium tabular-nums"
+                className="text-muted-foreground inline-flex shrink-0 items-center gap-1 text-xs font-medium tabular-nums"
                 aria-label={`${unsentCount} not notified`}
               >
                 <Mail className="size-3.5" aria-hidden />

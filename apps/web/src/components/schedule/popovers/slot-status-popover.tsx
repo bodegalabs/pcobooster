@@ -58,7 +58,7 @@ const FilledPeopleSection = ({
                 {person.status === "confirmed" ? "Confirmed" : "Pending"}
                 {getSchedulingNotificationState(person.notification) ===
                 "unsent" ? (
-                  <span className="text-status-info"> · Not notified</span>
+                  <span className="text-muted-foreground"> · Not notified</span>
                 ) : null}
               </p>
             </div>

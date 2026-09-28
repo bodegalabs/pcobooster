@@ -3,10 +3,7 @@ import { Mail } from "lucide-react";
 
 import { HoverLabel } from "@/components/ui/hover-card";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
-import {
-  describeSchedulingNotification,
-  getSchedulingNotificationState,
-} from "@/lib/schedule/scheduling-notifications";
+import { describeSchedulingNotification } from "@/lib/schedule/scheduling-notifications";
 import { cn } from "@/lib/utils";
 
 const NOT_NOTIFIED_LABEL = "Not notified yet";
@@ -25,7 +22,7 @@ export const UnsentNotificationMark = ({
     render={
       <span
         className={cn(
-          "text-status-info inline-flex shrink-0 items-center",
+          "text-muted-foreground inline-flex shrink-0 items-center",
           className
         )}
       />
@@ -48,7 +45,6 @@ export const SchedulingNotificationNote = ({
   if (description === null) {
     return null;
   }
-  const unsent = getSchedulingNotificationState(notification) === "unsent";
   return (
     <p
       className={cn(
@@ -56,13 +52,7 @@ export const SchedulingNotificationNote = ({
         className
       )}
     >
-      <Mail
-        className={cn(
-          "mt-px size-3.5 shrink-0",
-          unsent ? "text-status-info" : "opacity-60"
-        )}
-        aria-hidden
-      />
+      <Mail className="mt-px size-3.5 shrink-0" aria-hidden />
       <span>{description}</span>
     </p>
   );
