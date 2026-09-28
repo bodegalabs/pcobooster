@@ -1,4 +1,7 @@
-import { initializeAnalytics } from "@pcobooster/analytics/client";
+import {
+  captureAnalyticsException,
+  initializeAnalytics,
+} from "@pcobooster/analytics/client";
 import { StartClient } from "@tanstack/react-start/client";
 import { StrictMode, startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
@@ -15,6 +18,16 @@ startTransition(() => {
     document,
     <StrictMode>
       <StartClient />
-    </StrictMode>
+    </StrictMode>,
+    {
+      // Errors an error boundary catches never reach the global handlers that exception
+      // autocapture listens to. Uncaught ones do, so React's default handles those.
+      onCaughtError: (error, errorInfo) => {
+        console.error(error, errorInfo.componentStack);
+        captureAnalyticsException(
+          error instanceof Error ? error : new Error(String(error))
+        );
+      },
+    }
   );
 });

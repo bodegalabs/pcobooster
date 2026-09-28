@@ -44,6 +44,7 @@ The shared `@pcobooster/analytics` package owns configuration and the outbound e
 | `app opened` | First authenticated account response in a document, or a different user identified | None |
 | `workflow completed` | A selected oRPC write resolved successfully | `operation`, `duration_ms` |
 | `workflow failed` | A selected oRPC write rejected, excluding cancellation | `operation`, bounded `error_code` |
+| `$exception` | An uncaught browser error or one caught by a React error boundary, on authenticated product routes | `$exception_list`, `$exception_level` |
 
 Tracked writes: schedule assign/remove/status; plan-item create/update/delete/reorder; plan-time create/update/delete; account selection. Background queries and optimistic UI updates do not count as completed writes. Health charts measure client-observed write outcomes; they do not monitor uptime, background query errors, or all browser exceptions. A network failure after a provider committed a write can still appear as a failure from the browser's perspective.
 
@@ -62,6 +63,7 @@ The API mirrors every `activity_events` audit row to PostHog, keyed by the same 
 | `schedule status changed` | `schedule_status_change` | Same as above plus `schedule_status` |
 | `schedule person removed` | `schedule_remove` | Same as assign |
 | `feedback submitted` | `feedback` row (see [Feedback](#feedback)) | `feedback_id`, `message`, `path`, `$session_id`; `$set` like `signed in` |
+| `$exception` | Unexpected API failure (see [Error tracking](#error-tracking)) | `$exception_list`, `$exception_fingerprint`, `error_code`, `path`, `method`, `request_id` |
 
 Activity events also carry `source: server`, `success`, and `status_code`. IP addresses, user agents, and Planning Center person IDs stay in the database only. Person profiles pick up email, name, and church on each new sign-in, so accounts that have not signed in since this shipped remain unlabeled until they do.
 
@@ -71,19 +73,24 @@ Signed-in desktop users send feedback from **Feedback** in the sidebar footer. I
 
 The event includes the message exactly as the user wrote it. It is the only PostHog event with free text. Person-detail paths become `/people/:personId`. Plan and service-type IDs remain, as they do in the schedule events. `$session_id` links the event to the session replay, but a replay exists only if that session was sampled (see below). During launch hypercare, raise replay sampling to 100% so every report has a replay.
 
-### Alert email
+### Alerts
 
-A PostHog Workflow emails each report:
+A PostHog destination posts each `feedback submitted` event to the `#pcobooster-alerts` Slack channel, with the message, path, the author's name, email, and church, and a replay link (`https://us.posthog.com/project/614621/replay/{event.properties.$session_id}`). Slack is connected in [Settings → Integrations](https://us.posthog.com/project/614621/settings/environment-integrations); the destination lives in [Data pipelines](https://us.posthog.com/project/614621/pipeline/destinations). Slack destinations are free on PostHog's free plan; email and generic webhooks are not.
 
-1. In [Workflows → Channels](https://us.posthog.com/project/614621/workflows/channels), add an email sender on `pcobooster.com` (for example `alerts@pcobooster.com`). Then add the SPF and DKIM DNS records PostHog shows and wait for verification.
-2. Create a workflow with an event trigger on `feedback submitted`. Add an email step to your own address. Its body can use `{event.properties.message}`, `{event.properties.path}`, `{person.properties.name}`, `{person.properties.email}`, `{person.properties.organization_name}`, and a replay link: `https://us.posthog.com/project/614621/replay/{event.properties.$session_id}`.
-3. Test-run it, then enable it.
+Feedback forwards to PostHog only from production, so feedback sent from staging, previews, or local stays in that stage's D1 `feedback` table and never alerts.
 
 If PostHog delivery fails, the API logs `Failed to forward feedback to PostHog` with the feedback ID. The database row remains the complete record.
 
+## Error tracking
+
+[Error tracking](https://us.posthog.com/project/614621/error_tracking) groups `$exception` events into issues, and an error-tracking alert posts each new or reopened issue to `#pcobooster-alerts`.
+
+- **API:** the Hono app's oRPC and OpenAPI error interceptors (`apps/server/src/app.ts`) report 5xx failures and anything thrown outside `ORPCError` (`packages/api/src/modules/analytics/posthog-exception.ts`). Expected faults (auth, validation, not found, conflicts, rate limits, cancellations) are not reported. The event carries the root cause's type, message (truncated to 500 characters), and stack frames, plus the procedure path, error code, and request ID for finding the request in Workers Logs. Issues group by procedure and error code. Events use a fixed `pcobooster-api` distinct ID without a person profile. Production only; the capture is awaited on the failed request, bounded by a 1.5-second timeout.
+- **Browser:** exception autocapture (unhandled errors and promise rejections, not console errors) runs under the same gate as replay: authenticated product routes only, started and stopped with the recorder. Errors React catches in an error boundary are reported from `onCaughtError` in `apps/web/src/client.tsx`. The privacy guard drops `$exception` elsewhere and keeps only type, message (truncated), mechanism, and stack frames; frame URLs outside `/assets/` are scrubbed like page URLs, and source context lines are dropped.
+
 ## Privacy and cost boundaries
 
-- No marketing, auth, or demo recordings. No heatmaps, automatic click/form capture, rage clicks, console logs, surveys, web experiments, web-vitals capture, or automatic exception capture.
+- No marketing, auth, or demo recordings. No heatmaps, automatic click/form capture, rage clicks, console logs, surveys, web experiments, or web-vitals capture. Exception capture is limited to authenticated product routes (see [Error tracking](#error-tracking)).
 - PostHog feature flag evaluation is disabled. The web app fetches PostHog remote configuration and the recorder asset for replay; marketing disables both external dependency loading and remote configuration.
 - Analytics event names and property keys are allowlisted. Replay snapshots are separately accepted only on authenticated product routes; rrweb masks their contents before transmission. Both ordinary event properties and the SDK's top-level person `$set`/`$set_once` fields are scrubbed in the browser; only the server sets identifying person properties.
 - URLs lose queries/fragments; external referrers retain only their origin. Product URLs use route placeholders for plan, service-type, and person IDs. Unknown and private routes become `/other`; demo-entry events are rejected entirely.
