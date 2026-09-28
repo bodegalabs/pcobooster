@@ -46,7 +46,15 @@ Deploying Flagship resources needs Flagship access: the deploy tokens need Flags
 
 ## Developer credentials
 
-Development `/local` may contain `DEV_AUTH_BYPASS`, `PLANNING_CENTER_CLIENT`, `PLANNING_CENTER_PAT`, and `PRESENTATION_SEED`. Only local commands read it. Codex cloud reads only Development `/cloud`; never `/local`, Staging, or Production. Alchemy binds these development keys only in stage `local`. The product Worker also receives `DEV_AUTH_BYPASS` there; its sign-in gate honors it only in the development server, never in a production build.
+Development `/local` contains `PLANNING_CENTER_CLIENT` and `PLANNING_CENTER_PAT`, and may contain `PRESENTATION_SEED`. Only local commands read it. Codex cloud reads only Development `/cloud`; never `/local`, Staging, or Production. Alchemy binds these development keys only in stage `local`.
+
+`DEV_AUTH_BYPASS` is process-owned, like `PRESENTATION_MODE`: `scripts/cloudflare/dev.ts` sets it, overriding Infisical. `bun run dev` and `bun run dev:present` turn it on, signing every request in as the token's owner (`packages/api/src/auth/dev-bypass.ts`), and refuse to start without the token. `bun run dev:auth` (and `bun run cloud:dev`) turn it off for real Planning Center OAuth. The product Worker also receives `DEV_AUTH_BYPASS` in stage `local`; its sign-in gate honors it only in the development server, never in a production build. The bypass synthesizes its session on the server and sets no session cookie, so checkouts running side by side on `127.0.0.1` (cookies ignore the port) do not sign each other out; only UI preferences such as `sidebar_state` are shared.
+
+All checkouts share the one token and therefore Planning Center's 100 requests per 20 seconds per user. Each API Worker's pacer (`packages/api/src/planning-center/rate-pacer.ts`) sees only its own requests, so several busy checkouts together can hit 429s.
+
+## Local ports
+
+`DEV_PORT_BASE` places the local stack: the API on the base, then the product, marketing, and admin on the next three ports (`packages/config/src/dev-ports.ts`). `scripts/cloudflare/dev.ts` chooses it, in order: an explicit `DEV_PORT_BASE`; 3000 for `bun run dev:auth`, whose OAuth callback is registered on 3001; the product port the desktop preview tool assigns in `PORT` (`.claude/launch.json` uses `autoPort`); a stable block for a linked worktree, derived from its path (4000 to 4993, in steps of 10); otherwise 3000. It checks the four ports are free before starting and passes the base to every dev server. Stage `local` derives its product origin, `BETTER_AUTH_URL`, CORS origin, and trusted origins from it; the API stack test keeps its own port, 3010. Standalone `vite dev` runs read `DEV_PORT_BASE` too and default to the main ports.
 
 `PRESENTATION_MODE` is process-owned: `bun run dev:present` enables it. Every deployed Worker uses production mode, which disables presentation mode and local authentication bypass.
 

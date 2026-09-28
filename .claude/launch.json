@@ -5,13 +5,15 @@
       "name": "dev",
       "runtimeExecutable": "bun",
       "runtimeArgs": ["run", "dev"],
-      "port": 3000
+      "port": 3001,
+      "autoPort": true
     },
     {
       "name": "marketing",
       "runtimeExecutable": "bun",
       "runtimeArgs": ["run", "--cwd", "apps/marketing", "dev"],
-      "port": 3002
+      "port": 3002,
+      "autoPort": true
     }
   ]
 }
