@@ -481,6 +481,15 @@ export const AuthSignInCard = ({
             ? "Accounts you switched away from stay signed in on this browser. Remove one to sign it out."
             : "You’ll sign in on Planning Center, then come right back here. PCOBooster only uses your Services and People access."}
         </p>
+        <p className="text-muted-foreground text-center text-xs">
+          <a className="underline underline-offset-4" href="/privacy">
+            Privacy
+          </a>
+          {" · "}
+          <a className="underline underline-offset-4" href="/terms">
+            Terms
+          </a>
+        </p>
       </div>
     </main>
   );

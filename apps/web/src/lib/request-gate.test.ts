@@ -37,14 +37,18 @@ describe(decideRequestGate, () => {
     ).toStrictEqual({ action: "redirect", location, status: 308 });
   });
 
-  it.each(["/", "/about", "/about/", "/marketing/assets/index.js"])(
-    "serves the public marketing path %s without a session",
-    (path) => {
-      expect(
-        decideRequestGate(signedOut(`https://pcobooster.com${path}`))
-      ).toStrictEqual({ action: "continue", responseHeaders: {} });
-    }
-  );
+  it.each([
+    "/",
+    "/about",
+    "/about/",
+    "/privacy",
+    "/terms",
+    "/marketing/assets/index.js",
+  ])("serves the public marketing path %s without a session", (path) => {
+    expect(
+      decideRequestGate(signedOut(`https://pcobooster.com${path}`))
+    ).toStrictEqual({ action: "continue", responseHeaders: {} });
+  });
 
   it("keeps private demo links out of indexes and referrers", () => {
     expect(
