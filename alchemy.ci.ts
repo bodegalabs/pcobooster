@@ -120,8 +120,8 @@ const production: DeployTarget = {
 };
 
 /**
- * Zones `alchemy.run.ts` manages in the `prod` stage: its DNS records and the former domain's
- * redirect rule. The token cannot create zones (that needs Zone Write on every zone in the
+ * Zones `alchemy.run.ts` manages in the `prod` stage: its DNS records, the former domain's
+ * redirect rule, and each zone's bot settings and custom WAF rules. The token cannot create zones (that needs Zone Write on every zone in the
  * account), so each is created by hand and must exist before this stack resolves its id by name.
  */
 const productionZones = ["pcobooster.com", formerDomain] as const;
@@ -130,7 +130,13 @@ const productionZonePolicy = (
   zoneIds: readonly string[]
 ): Cloudflare.ApiToken.Policy => ({
   effect: "allow",
-  permissionGroups: ["Zone Read", "DNS Write", "Dynamic URL Redirects Write"],
+  permissionGroups: [
+    "Zone Read",
+    "DNS Write",
+    "Dynamic URL Redirects Write",
+    "Zone WAF Write",
+    "Bot Management Write",
+  ],
   // Zone grants on an account-owned token nest under the account resource.
   resources: {
     [`com.cloudflare.api.account.${accountId}`]: Object.fromEntries(

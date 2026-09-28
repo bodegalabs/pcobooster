@@ -50,6 +50,55 @@ export const existingZoneId = Effect.fn("existingZoneId")(
   }
 );
 
+/** Paths only vulnerability scanners request; neither app serves any of them. */
+const scannerProbePaths = [
+  "/.env",
+  "/.git/",
+  "/.aws",
+  "/wp-",
+  ".php",
+  ".sql",
+  "/@fs/",
+  "/_ignition/",
+] as const;
+
+/** Block requests for scanner probe paths before they reach a Worker. */
+export const scannerProbeRule: Cloudflare.Ruleset.Rule = {
+  description: "Block vulnerability scanner probes",
+  expression: scannerProbePaths
+    .map((probe) => `lower(http.request.uri.path) contains "${probe}"`)
+    .join(" or "),
+  action: "block",
+  enabled: true,
+};
+
+/**
+ * Free-plan edge protection for a zone: Bot Fight Mode and a custom WAF rule for scanner probes.
+ * Blocked requests never invoke a Worker. Bot Fight Mode cannot be bypassed on the Free plan, so
+ * any future inbound webhook must be checked against it.
+ *
+ * The AI crawler policy (block training crawlers; allow AI search and assistant fetches) is set
+ * by hand with `cf bot-management update --ai-training block --ai-search disabled --ai-user
+ * disabled`: Alchemy 2.0.0-beta.79 only exposes the deprecated `aiBotsProtection` toggle. This
+ * resource leaves those fields alone because it never sets them.
+ */
+export const protectZoneEdge = Effect.fn("protectZoneEdge")(
+  function* protectZoneEdge(idPrefix: string, zone: Cloudflare.Zone.Zone) {
+    yield* Cloudflare.BotManagement.BotManagement(`${idPrefix}BotManagement`, {
+      zoneId: zone.zoneId,
+      // Cloudflare rejects Bot Fight Mode unless JavaScript detections are on too.
+      enableJs: true,
+      fightMode: true,
+    });
+    // Owns the zone's whole custom firewall phase.
+    yield* Cloudflare.Ruleset.Ruleset(`${idPrefix}Firewall`, {
+      zone,
+      phase: "http_request_firewall_custom",
+      rules: [scannerProbeRule],
+    });
+  }
+);
+
 /** The product's name until the September 18, 2026 rename; it only redirects now. */
 export const formerDomain = "worshipadmin.com";
 const formerHostnames = [formerDomain, `www.${formerDomain}`] as const;
@@ -93,6 +142,7 @@ export const formerDomainRedirect = Effect.fn("formerDomainRedirect")(
       type: "full",
     }).pipe(adopt(true), RemovalPolicy.retain());
     yield* allowUniversalSslIssuers("Former", zone, formerDomain);
+    yield* protectZoneEdge("Former", zone);
     for (const [id, hostname] of [
       ["FormerApex", formerHostnames[0]],
       ["FormerWww", formerHostnames[1]],
