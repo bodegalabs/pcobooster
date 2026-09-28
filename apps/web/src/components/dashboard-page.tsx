@@ -195,7 +195,7 @@ const PlanStepLink = ({
     return (
       <Button
         type="button"
-        variant="outline"
+        variant="ghost"
         size="icon-sm"
         disabled
         aria-label={`No ${label.toLowerCase()} in the next 60 days`}
@@ -215,7 +215,7 @@ const PlanStepLink = ({
           to="/services/$serviceTypeId/plans/$planId/$view"
           params={{ serviceTypeId, planId: plan.id, view }}
           aria-label={`${label}, ${planDate}`}
-          className={buttonVariants({ variant: "outline", size: "icon-sm" })}
+          className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
         />
       }
     >
@@ -296,37 +296,39 @@ const DashboardPlanHeader = ({
         ) : null}
       </MobileHeader>
       <header className="mb-3 shrink-0 max-md:hidden sm:mb-5">
-        <div className="flex min-w-0 items-start justify-between gap-3">
-          <h1 className="truncate text-xl leading-tight font-semibold tracking-tight md:text-2xl">
-            {serviceTypeName}
-            {isNonEmptyString(planSubtitle) ? (
-              <span className="text-muted-foreground font-normal">
+        <div className="flex min-w-0 items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <h1 className="truncate text-xl leading-tight font-semibold tracking-tight md:text-2xl">
+              {serviceTypeName}
+              {isNonEmptyString(planSubtitle) ? (
+                <span className="text-muted-foreground font-normal">
+                  {" "}
+                  / {planSubtitle}
+                </span>
+              ) : null}
+              <span className="text-muted-foreground font-light tabular-nums">
                 {" "}
-                / {planSubtitle}
+                / {planDate}
               </span>
-            ) : null}
-            <span className="text-muted-foreground font-light tabular-nums">
-              {" "}
-              / {planDate}
-            </span>
-          </h1>
-          <div className="flex shrink-0 items-center gap-1">
-            <PlanStepLink
-              direction="previous"
-              plan={neighbors.previousPlan}
-              serviceTypeId={neighbors.serviceTypeId}
-              view={neighbors.view}
-            />
-            <PlanStepLink
-              direction="next"
-              plan={neighbors.nextPlan}
-              serviceTypeId={neighbors.serviceTypeId}
-              view={neighbors.view}
-            />
-            {isNonEmptyString(planningCenterUrl) ? (
-              <PlanningCenterLink href={planningCenterUrl} />
-            ) : null}
+            </h1>
+            <div className="flex shrink-0 items-center">
+              <PlanStepLink
+                direction="previous"
+                plan={neighbors.previousPlan}
+                serviceTypeId={neighbors.serviceTypeId}
+                view={neighbors.view}
+              />
+              <PlanStepLink
+                direction="next"
+                plan={neighbors.nextPlan}
+                serviceTypeId={neighbors.serviceTypeId}
+                view={neighbors.view}
+              />
+            </div>
           </div>
+          {isNonEmptyString(planningCenterUrl) ? (
+            <PlanningCenterLink href={planningCenterUrl} />
+          ) : null}
         </div>
       </header>
     </>
