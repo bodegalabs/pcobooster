@@ -17,6 +17,7 @@ import { prepareCloudflareBuild } from "./scripts/cloudflare/prepare";
 import {
   allowUniversalSslIssuers,
   formerDomainRedirect,
+  protectZoneEdge,
 } from "./scripts/cloudflare/zones";
 
 const workspacePackages = readdirSync(
@@ -152,6 +153,7 @@ export default Alchemy.Stack(
       : undefined;
     if (zone !== undefined) {
       yield* allowUniversalSslIssuers("", zone, "pcobooster.com");
+      yield* protectZoneEdge("", zone);
     }
     // Serves nothing until the registrar delegates the domain to this zone's nameservers.
     const formerZone = production
