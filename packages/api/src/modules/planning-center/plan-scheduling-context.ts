@@ -9,10 +9,12 @@ import {
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import type {
   PCResource,
+  PlanPersonNotification,
   RawPerson,
   RawPlanPerson,
 } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
+import { z } from "zod";
 
 export type PlanRosterStatus = "confirmed" | "pending" | "declined";
 
@@ -37,6 +39,8 @@ export interface PlanRosterEntry {
   serviceTimeIds: string[];
   /** Services `plan_person.decline_reason` when present. */
   declineReason?: string | null;
+  /** Null when Planning Center omitted `prepare_notification`, so the state is unknown. */
+  notification: PlanPersonNotification | null;
 }
 
 export interface PlanSchedulingContext {
@@ -101,6 +105,35 @@ const normalizeDeclineReason = (raw: JsonValue | undefined): string | null => {
   }
   const t = raw.trim();
   return t.length > 0 ? t : null;
+};
+
+const optionalTrimmedString = z
+  .string()
+  .nullish()
+  .transform((value) => {
+    const trimmed = value?.trim() ?? "";
+    return trimmed === "" ? null : trimmed;
+  });
+
+const planPersonNotificationAttributesSchema = z.object({
+  prepare_notification: z.boolean(),
+  notification_sent_at: optionalTrimmedString,
+  notification_sender_name: optionalTrimmedString,
+});
+
+/** Reads the scheduling email fields; a missing prepared flag is unknown, never "not prepared". */
+export const readPlanPersonNotification = (
+  attributes: Record<string, JsonValue | undefined>
+): PlanPersonNotification | null => {
+  const parsed = planPersonNotificationAttributesSchema.safeParse(attributes);
+  if (!parsed.success) {
+    return null;
+  }
+  return {
+    prepared: parsed.data.prepare_notification,
+    sentAt: parsed.data.notification_sent_at,
+    senderName: parsed.data.notification_sender_name,
+  };
 };
 
 const classifyRosterStatus = (
@@ -252,6 +285,7 @@ const normalizeRosterEntry = (
       member.relationships?.service_times?.data
     ),
     declineReason: normalizeDeclineReason(member.attributes.decline_reason),
+    notification: readPlanPersonNotification(member.attributes),
   };
 };
 

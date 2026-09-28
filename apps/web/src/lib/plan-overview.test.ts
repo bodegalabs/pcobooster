@@ -35,6 +35,17 @@ const band: TeamPositionGroup = {
       neededCount: 2,
       filledConfirmedCount: 0,
       filledPendingCount: 1,
+      filledPeople: [
+        {
+          id: "person-1",
+          planPersonId: "plan-person-1",
+          personId: "person-1",
+          name: "Ben Singer",
+          status: "pending",
+          rawStatus: "U",
+          notification: { prepared: true, sentAt: null, senderName: null },
+        },
+      ],
     },
   ],
 };
@@ -109,6 +120,7 @@ describe(summarizeStaffing, () => {
       pending: 1,
       open: 2,
       total: 4,
+      unnotified: 1,
       teams: [
         {
           teamId: "band",
@@ -208,6 +220,12 @@ describe(buildReadinessChecks, () => {
         state: "todo",
         label: "2 positions need someone",
         view: "assign",
+      },
+      {
+        id: "notifications",
+        state: "todo",
+        label: "1 person hasn't been notified",
+        view: "lineup",
       },
       {
         id: "responses",

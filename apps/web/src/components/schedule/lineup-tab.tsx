@@ -20,13 +20,20 @@ import type {
   TeamPosition,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
-import { CalendarDays, ChevronDown, Clock3, GripVertical } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronDown,
+  Clock3,
+  GripVertical,
+  Mail,
+} from "lucide-react";
 import { startTransition, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 
 import { PlanPersonEditDialog } from "@/components/schedule/plan-person-edit-dialog";
 import { getPlanPersonStatusValue } from "@/components/schedule/plan-person-status";
 import { PositionPickerIcon } from "@/components/schedule/position-picker-icon";
+import { UnsentNotificationMark } from "@/components/schedule/scheduling-notification-mark";
 import { SlotBadgeCluster } from "@/components/schedule/slot-badge-cluster";
 import { ScheduleStatusDot } from "@/components/schedule/status-dot";
 import type { SlotRef } from "@/components/schedule/types";
@@ -62,6 +69,7 @@ import {
   applyLineupColumnOrder,
   reorderLineupColumnIds,
 } from "@/lib/lineup-column-order";
+import { getSchedulingNotificationState } from "@/lib/schedule/scheduling-notifications";
 import { cn } from "@/lib/utils";
 
 interface LineupTabProps {
@@ -129,6 +137,8 @@ const PersonRow = ({
     assignedTimeIdSet.has(planTime.id)
   ).length;
   const statusDotStatus = getStatusDotStatus(person);
+  const unsent =
+    getSchedulingNotificationState(person.notification) === "unsent";
 
   return (
     <>
@@ -139,7 +149,7 @@ const PersonRow = ({
           render={
             <button
               type="button"
-              aria-label={`Edit ${person.name} assignment`}
+              aria-label={`Edit ${person.name} assignment${unsent ? ", not notified yet" : ""}`}
             />
           }
           onClick={() => {
@@ -153,7 +163,10 @@ const PersonRow = ({
             />
             <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
           </Avatar>
-          <span className="min-w-0 truncate text-sm">{person.name}</span>
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="min-w-0 truncate text-sm">{person.name}</span>
+            {unsent ? <UnsentNotificationMark /> : null}
+          </span>
           <div className="text-muted-foreground flex justify-end">
             {planTimes.length > 0 ? (
               <span className="inline-flex items-center gap-1 text-xs tabular-nums">
@@ -325,6 +338,15 @@ const TeamColumn = ({
     (sum, position) => sum + (position.neededCount ?? 0),
     0
   );
+  const unsentCount = group.positions.reduce(
+    (sum, position) =>
+      sum +
+      (position.filledPeople ?? []).filter(
+        (person) =>
+          getSchedulingNotificationState(person.notification) === "unsent"
+      ).length,
+    0
+  );
   const [open, setOpen] = useState(() => openNeededCount > 0);
 
   return (
@@ -366,6 +388,15 @@ const TeamColumn = ({
             <h3 className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight">
               {group.teamName}
             </h3>
+            {unsentCount > 0 ? (
+              <span
+                className="text-status-info inline-flex shrink-0 items-center gap-1 text-xs font-medium tabular-nums"
+                aria-label={`${unsentCount} not notified`}
+              >
+                <Mail className="size-3.5" aria-hidden />
+                {unsentCount}
+              </span>
+            ) : null}
             {openNeededCount > 0 ? (
               <span className="text-status-declined dark:text-status-declined shrink-0 text-xs font-medium tabular-nums">
                 {openNeededCount}

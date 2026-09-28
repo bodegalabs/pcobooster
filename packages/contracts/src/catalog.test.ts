@@ -58,6 +58,11 @@ describe("catalog contracts", () => {
                 photoThumbnailUrl: null,
                 assignedTimeIds: ["time-1", "time-2"],
                 serviceTimeIds: ["time-2"],
+                notification: {
+                  prepared: false,
+                  sentAt: "2026-09-20T15:00:00Z",
+                  senderName: "Sam Scheduler",
+                },
               },
             ],
           },

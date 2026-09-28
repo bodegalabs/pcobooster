@@ -101,6 +101,11 @@ const groups: TeamPositionGroup[] = [
             status: "confirmed",
             rawStatus: "C",
             photoThumbnailUrl: "https://private/photo",
+            notification: {
+              prepared: false,
+              sentAt: "2026-09-10T15:00:00Z",
+              senderName: "Private Sender",
+            },
           },
         ],
       },

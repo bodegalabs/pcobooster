@@ -278,6 +278,9 @@ const upsertFilledPerson = (
 ): TeamPosition => {
   const status = statusToFilledStatus(statusCode);
   const currentPeople = position.filledPeople ?? [];
+  const previous = currentPeople.find(
+    (filledPerson) => filledPerson.planPersonId === planPersonId
+  );
   const filteredPeople = currentPeople.filter(
     (filledPerson) =>
       filledPerson.planPersonId !== planPersonId &&
@@ -298,6 +301,8 @@ const upsertFilledPerson = (
     status,
     rawStatus: statusCode,
     photoThumbnailUrl: person.photoThumbnailUrl ?? null,
+    // A new assignment's email state depends on team settings; the refetch fills it in.
+    notification: previous?.notification ?? null,
   };
 
   const filledPeople = [...filteredPeople, nextPerson].toSorted((a, b) => {

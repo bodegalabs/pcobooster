@@ -6,6 +6,7 @@ import type {
 } from "@pcobooster/planning-center-models/types";
 
 import type { PlanView } from "@/lib/app-routes";
+import { collectUnnotifiedPeople } from "@/lib/schedule/scheduling-notifications";
 
 /** A position that still needs people, as a link target into Assign. */
 export interface OpenPosition {
@@ -31,6 +32,8 @@ export interface PlanStaffing {
   open: number;
   /** Confirmed, pending, and open slots together. */
   total: number;
+  /** People whose scheduling email is prepared but unsent. */
+  unnotified: number;
   teams: TeamStaffing[];
   openPositions: OpenPosition[];
 }
@@ -77,6 +80,7 @@ export const summarizeStaffing = (
     pending,
     open,
     total: confirmed + pending + open,
+    unnotified: collectUnnotifiedPeople(groups).length,
     teams,
     openPositions,
   };
@@ -151,7 +155,7 @@ export const summarizeTimes = (times: readonly PlanTime[]): PlanSchedule => ({
 export type ReadinessState = "done" | "todo";
 
 export interface ReadinessCheck {
-  id: "positions" | "responses" | "songs" | "keys" | "times";
+  id: "positions" | "notifications" | "responses" | "songs" | "keys" | "times";
   state: ReadinessState;
   label: string;
   view: PlanView;
@@ -186,6 +190,14 @@ const staffingChecks = (staffing: PlanStaffing): ReadinessCheck[] => {
           view: "lineup",
         },
   ];
+  if (staffing.unnotified > 0) {
+    checks.push({
+      id: "notifications",
+      state: "todo",
+      label: `${plural(staffing.unnotified, "person hasn't", "people haven't")} been notified`,
+      view: "lineup",
+    });
+  }
   if (staffing.pending > 0) {
     checks.push({
       id: "responses",

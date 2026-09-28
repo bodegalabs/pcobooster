@@ -10,6 +10,7 @@ import {
   ScheduleCandidateScore,
 } from "@/components/schedule/schedule-candidate-details";
 import type { CandidateStatus } from "@/components/schedule/schedule-candidate-details";
+import { UnsentNotificationMark } from "@/components/schedule/scheduling-notification-mark";
 import { Button } from "@/components/ui/button";
 import { useSchedulePlanPerson } from "@/hooks/use-schedule-plan-person";
 import { cn } from "@/lib/utils";
@@ -164,6 +165,8 @@ const ScheduleCandidateAction = ({
 
 export interface ScheduleCandidateTileProps {
   person: PersonWithAvailability;
+  /** Their assignment here has a prepared, unsent scheduling email. */
+  notNotified: boolean;
   serviceTypeId?: string | null;
   planId?: string | null;
   planReferenceDate?: Date | null;
@@ -180,6 +183,7 @@ export interface ScheduleCandidateTileProps {
 
 const ScheduleCandidateIdentityRow = ({
   fullName,
+  notNotified,
   isUnavailableForSlot,
   unavailableSlotLabel,
   isBlocked,
@@ -187,6 +191,7 @@ const ScheduleCandidateIdentityRow = ({
   planReferenceDate,
 }: {
   fullName: string;
+  notNotified: boolean;
   isUnavailableForSlot: boolean;
   unavailableSlotLabel: string | null;
   isBlocked: boolean;
@@ -202,6 +207,7 @@ const ScheduleCandidateIdentityRow = ({
     >
       {fullName}
     </p>
+    {notNotified ? <UnsentNotificationMark /> : null}
     {unavailableSlotLabel === null ? null : (
       <span
         className={cn(
@@ -232,6 +238,7 @@ const ScheduleCandidateIdentityRow = ({
 
 export const ScheduleCandidateTile = ({
   person,
+  notNotified,
   serviceTypeId,
   planId,
   planReferenceDate = null,
@@ -322,6 +329,7 @@ export const ScheduleCandidateTile = ({
 
       <ScheduleCandidateIdentityRow
         fullName={person.fullName}
+        notNotified={notNotified}
         isUnavailableForSlot={isUnavailableForSlot}
         unavailableSlotLabel={unavailableSlotLabel}
         isBlocked={isBlocked}

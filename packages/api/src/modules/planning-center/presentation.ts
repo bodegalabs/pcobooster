@@ -118,6 +118,10 @@ const maskFilledPerson = (
     ? identity(person.personId).fullName
     : "Guest volunteer",
   photoThumbnailUrl: null,
+  notification:
+    person.notification === null
+      ? null
+      : { ...person.notification, senderName: null },
 });
 
 const maskPosition = (

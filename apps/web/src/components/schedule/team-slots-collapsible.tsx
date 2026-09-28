@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { PositionPickerIcon } from "@/components/schedule/position-picker-icon";
 import { PositionPickerRow } from "@/components/schedule/position-picker-row";
+import { UnsentNotificationMark } from "@/components/schedule/scheduling-notification-mark";
 import { SlotBadgeCluster } from "@/components/schedule/slot-badge-cluster";
 import { ScheduleStatusDot } from "@/components/schedule/status-dot";
 import type { SlotRef } from "@/components/schedule/types";
@@ -32,6 +33,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
+import { getSchedulingNotificationState } from "@/lib/schedule/scheduling-notifications";
 import { cn } from "@/lib/utils";
 
 export const TeamSlotsCollapsible = ({
@@ -100,6 +102,12 @@ export const TeamSlotsCollapsible = ({
           >
             <MiddleTruncate text={position.name} />
           </span>
+          {(position.filledPeople ?? []).some(
+            (person) =>
+              getSchedulingNotificationState(person.notification) === "unsent"
+          ) ? (
+            <UnsentNotificationMark />
+          ) : null}
           <SlotBadgeCluster
             position={position}
             teamName={group.teamName}

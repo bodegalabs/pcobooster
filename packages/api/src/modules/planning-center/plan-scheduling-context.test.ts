@@ -1,4 +1,7 @@
-import { buildPlanSchedulingContext } from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
+import {
+  buildPlanSchedulingContext,
+  readPlanPersonNotification,
+} from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
 import type {
   PCResource,
   RawPlanPerson,
@@ -85,5 +88,37 @@ describe("plan scheduling context", () => {
     expect(entry?.positionName).toBe("Vocals");
     expect(entry?.label).toBe("Band - Vocals");
     expect(context.rosterBySlotKey.get("team-band::vocals")).toHaveLength(1);
+  });
+});
+
+describe(readPlanPersonNotification, () => {
+  it("reads a prepared, unsent scheduling email", () => {
+    expect(
+      readPlanPersonNotification({
+        prepare_notification: true,
+        notification_sent_at: null,
+        notification_sender_name: null,
+      })
+    ).toStrictEqual({ prepared: true, sentAt: null, senderName: null });
+  });
+
+  it("keeps the recorded send time and sender", () => {
+    expect(
+      readPlanPersonNotification({
+        prepare_notification: false,
+        notification_sent_at: "2026-09-20T15:00:00Z",
+        notification_sender_name: " Sam Scheduler ",
+      })
+    ).toStrictEqual({
+      prepared: false,
+      sentAt: "2026-09-20T15:00:00Z",
+      senderName: "Sam Scheduler",
+    });
+  });
+
+  it("treats a missing prepared flag as unknown rather than not prepared", () => {
+    expect(
+      readPlanPersonNotification({ notification_sent_at: null })
+    ).toBeNull();
   });
 });

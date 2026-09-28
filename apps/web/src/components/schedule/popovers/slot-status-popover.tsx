@@ -3,6 +3,7 @@ import type { FilledPositionPerson } from "@pcobooster/planning-center-models/ty
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getInitials } from "@/lib/format/initials";
+import { getSchedulingNotificationState } from "@/lib/schedule/scheduling-notifications";
 import { cn } from "@/lib/utils";
 
 const FilledPeopleSection = ({
@@ -55,6 +56,10 @@ const FilledPeopleSection = ({
                 )}
               >
                 {person.status === "confirmed" ? "Confirmed" : "Pending"}
+                {getSchedulingNotificationState(person.notification) ===
+                "unsent" ? (
+                  <span className="text-status-info"> · Not notified</span>
+                ) : null}
               </p>
             </div>
           </li>

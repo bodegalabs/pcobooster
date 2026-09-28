@@ -1,6 +1,7 @@
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
+import type { ReactNode } from "react";
 import { toast } from "sonner";
 
 import { MobileHeader } from "@/components/mobile-menu";
@@ -12,6 +13,7 @@ import { PlanTab } from "@/components/schedule/plan-tab";
 import { PlanHeaderSkeleton } from "@/components/schedule/schedule-skeletons";
 import { ScheduleViewTab } from "@/components/schedule/schedule-view-tab";
 import { TimesTab } from "@/components/schedule/times-tab";
+import { UnsentNotificationsControl } from "@/components/schedule/unsent-notifications-control";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { HoverLabel } from "@/components/ui/hover-card";
@@ -166,12 +168,14 @@ const DashboardPlanHeader = ({
   planSubtitle,
   sortDate,
   planningCenterUrl,
+  actions,
   onBack,
 }: {
   serviceTypeName: string;
   planSubtitle: string | null;
   sortDate: Date | string | undefined;
   planningCenterUrl: string | null | undefined;
+  actions: ReactNode;
   onBack: (() => void) | null;
 }) => {
   const orgTimeZone = useOrganizationTimeZone();
@@ -193,6 +197,7 @@ const DashboardPlanHeader = ({
             {isNonEmptyString(planSubtitle) ? ` · ${serviceTypeName}` : null}
           </p>
         </div>
+        {actions}
         {isNonEmptyString(planningCenterUrl) ? (
           <PlanningCenterLink href={planningCenterUrl} />
         ) : null}
@@ -212,9 +217,12 @@ const DashboardPlanHeader = ({
               / {planDate}
             </span>
           </h1>
-          {isNonEmptyString(planningCenterUrl) ? (
-            <PlanningCenterLink href={planningCenterUrl} />
-          ) : null}
+          <div className="flex shrink-0 items-center gap-2">
+            {actions}
+            {isNonEmptyString(planningCenterUrl) ? (
+              <PlanningCenterLink href={planningCenterUrl} />
+            ) : null}
+          </div>
         </div>
       </header>
     </>
@@ -241,10 +249,12 @@ type DashboardController = ReturnType<typeof useDashboardController>;
 const DashboardPlanHeaderSlot = ({
   serviceType,
   plan,
+  teamPositionGroups,
   onBack,
 }: {
   serviceType: DashboardController["selectedServiceType"];
   plan: DashboardController["selectedPlan"];
+  teamPositionGroups: DashboardController["teamPositionGroups"];
   onBack: (() => void) | null;
 }) => {
   if (!serviceType || !plan) {
@@ -260,6 +270,15 @@ const DashboardPlanHeaderSlot = ({
       )}
       sortDate={plan.sortDate}
       planningCenterUrl={plan.planningCenterUrl}
+      actions={
+        <UnsentNotificationsControl
+          groups={teamPositionGroups}
+          serviceTypeId={serviceType.id}
+          planId={plan.id}
+          seriesId={plan.seriesId ?? null}
+          planningCenterUrl={plan.planningCenterUrl}
+        />
+      }
       onBack={onBack}
     />
   );
@@ -314,6 +333,7 @@ export const DashboardPage = ({
         <DashboardPlanHeaderSlot
           serviceType={hasSelectedPlanMetadata ? selectedServiceType : null}
           plan={hasSelectedPlanMetadata ? selectedPlan : null}
+          teamPositionGroups={teamPositionGroups}
           onBack={
             activeView === "assign" && isNonEmptyString(selectedPosition)
               ? handleSlotClear
