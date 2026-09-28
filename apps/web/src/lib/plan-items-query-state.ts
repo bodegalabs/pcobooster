@@ -211,6 +211,50 @@ export const reorderPlanItems = (
   return movePlanItem(items, fromIndex, toIndex);
 };
 
+/**
+ * Where a new item goes in the plan: after `afterItemId`, at the top when it is null,
+ * or at the end when there is no insertion point.
+ */
+export interface PlanInsertion {
+  afterItemId: string | null;
+}
+
+const renumber = (items: PlanItem[]): PlanItem[] =>
+  items.map((item, index) => ({ ...item, sequence: index + 1 }));
+
+export const insertPlanItem = (
+  items: PlanItem[],
+  item: PlanItem,
+  insertion?: PlanInsertion
+): PlanItem[] => {
+  if (insertion === undefined) {
+    return renumber([...items, item]);
+  }
+  const afterIndex =
+    insertion.afterItemId === null
+      ? -1
+      : items.findIndex((candidate) => candidate.id === insertion.afterItemId);
+  const index =
+    insertion.afterItemId !== null && afterIndex === -1
+      ? items.length
+      : afterIndex + 1;
+  return renumber([...items.slice(0, index), item, ...items.slice(index)]);
+};
+
+/** Moves an item one place up or down; items already at that end stay put. */
+export const shiftPlanItem = (
+  items: PlanItem[],
+  itemId: string,
+  offset: -1 | 1
+): PlanItem[] => {
+  const fromIndex = items.findIndex((item) => item.id === itemId);
+  const toIndex = fromIndex + offset;
+  if (fromIndex === -1 || toIndex < 0 || toIndex >= items.length) {
+    return items;
+  }
+  return movePlanItem(items, fromIndex, toIndex);
+};
+
 export const planItemsHaveSameOrder = (
   currentItems: PlanItem[],
   nextItems: PlanItem[]

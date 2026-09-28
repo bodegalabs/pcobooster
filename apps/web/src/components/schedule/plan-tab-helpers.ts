@@ -106,22 +106,60 @@ export const formatLength = (length: number | null) => {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 };
 
-export const getItemTone = (item: PlanItem) => {
-  if (item.itemType === "header") {
-    return {
-      row: "bg-muted/60",
-      header: "bg-muted/80",
-      hover: "hover:bg-muted",
-      content: "bg-background",
-    };
+/** Where an item sits in the service's running order. */
+export interface RunSheetEntry {
+  /** Seconds from the start of the service; null outside the service. */
+  startOffset: number | null;
+  /** For headers, the total length of the items under them. */
+  sectionLength: number | null;
+}
+
+const positiveLength = (length: number | null) =>
+  length !== null && Number.isFinite(length) && length > 0 ? length : 0;
+
+/**
+ * Runs the service clock down the plan: items during the service start where
+ * the previous one ended, and each header totals the items until the next one.
+ */
+export const buildRunSheet = (
+  items: PlanItem[]
+): Map<string, RunSheetEntry> => {
+  const entries = new Map<string, RunSheetEntry>();
+  const sectionLengths = new Map<string, number>();
+  let currentHeaderId: string | null = null;
+  let elapsed = 0;
+
+  for (const item of items) {
+    if (item.itemType === "header") {
+      currentHeaderId = item.id;
+      sectionLengths.set(item.id, 0);
+      continue;
+    }
+    const length = positiveLength(item.length);
+    const runsDuringService = item.servicePosition === "during";
+    entries.set(item.id, {
+      startOffset: runsDuringService ? elapsed : null,
+      sectionLength: null,
+    });
+    if (runsDuringService) {
+      elapsed += length;
+    }
+    if (currentHeaderId !== null) {
+      sectionLengths.set(
+        currentHeaderId,
+        (sectionLengths.get(currentHeaderId) ?? 0) + length
+      );
+    }
   }
 
-  return {
-    row: "bg-background",
-    header: "bg-background",
-    hover: "hover:bg-muted/60",
-    content: "bg-background",
-  };
+  for (const [headerId, sectionLength] of sectionLengths) {
+    entries.set(headerId, {
+      startOffset: null,
+      sectionLength: sectionLength > 0 ? sectionLength : null,
+    });
+  }
+
+  return entries;
 };
 
 export const getItemTypeLabel = (item: PlanItem) => {

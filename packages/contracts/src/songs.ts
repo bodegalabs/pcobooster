@@ -20,6 +20,15 @@ export const songsOptionsInputSchema = z.object({
 
 export const songsSearchOutputSchema = z.array(songCatalogEntrySchema);
 
+export const songsSuggestionsInputSchema = z.object({});
+
+export const songsSuggestionsOutputSchema = z.object({
+  /** Played most recently first. */
+  recentlyPlayed: z.array(songCatalogEntrySchema),
+  /** Played before, but not in the last few months. */
+  resting: z.array(songCatalogEntrySchema),
+});
+
 const songsProcedure = oc.errors({
   UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
   FORBIDDEN: applicationErrorMap.FORBIDDEN,
@@ -37,6 +46,14 @@ export const songsContract = {
     })
     .input(songsSearchInputSchema)
     .output(songsSearchOutputSchema),
+  suggestions: songsProcedure
+    .route({
+      method: "GET",
+      path: "/songs/suggestions",
+      summary: "Suggest recently played and resting songs from the catalog",
+    })
+    .input(songsSuggestionsInputSchema)
+    .output(songsSuggestionsOutputSchema),
   options: songsProcedure
     .route({
       method: "GET",
@@ -49,3 +66,4 @@ export const songsContract = {
 
 export type SongsSearchInput = z.input<typeof songsSearchInputSchema>;
 export type SongsOptionsInput = z.input<typeof songsOptionsInputSchema>;
+export type SongsSuggestions = z.output<typeof songsSuggestionsOutputSchema>;

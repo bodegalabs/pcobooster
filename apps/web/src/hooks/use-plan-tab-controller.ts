@@ -7,32 +7,34 @@ import type {
   SongOptionSet,
 } from "@pcobooster/planning-center-models/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { getItemTypeLabel } from "@/components/schedule/plan-tab-helpers";
 import type { DraftState } from "@/components/schedule/plan-tab-helpers";
 import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import { usePlanItems } from "@/hooks/use-plan-items";
 import { createSongOptionsQueryOptions } from "@/hooks/use-song-options";
 import { isQueryFresh } from "@/lib/intent-prefetch";
 import {
-  appendPlanItem,
   applyPlanItemDraft,
   applyPlanItemsOptimisticUpdate,
   collectPlanSongOptionPrefetchIds,
   createOptimisticBasicPlanItem,
   createOptimisticSongPlanItem,
+  insertPlanItem,
   nextPlanItemSequence,
   planItemDraftChangesItem,
   planItemsHaveSameOrder,
-  removePlanItem,
   replacePlanItem,
   replacePlanItemById,
   restorePlanItemsSnapshot,
   settlePlanItemsQuery,
+  shiftPlanItem,
 } from "@/lib/plan-items-query-state";
-import type { PlanItemsOptimisticSnapshot } from "@/lib/plan-items-query-state";
+import type {
+  PlanInsertion,
+  PlanItemsOptimisticSnapshot,
+} from "@/lib/plan-items-query-state";
 import { queryKeys } from "@/lib/query-keys";
 import { requestScheduler, speculativeQuery } from "@/lib/request-priority";
 import { orpc } from "@/orpc-client";
@@ -40,9 +42,21 @@ import { orpc } from "@/orpc-client";
 interface UsePlanTabControllerArgs {
   serviceTypeId: string | null;
   planId: string | null;
+  /** Called with a new song's item so the builder can select it. */
+  onSongAdded?: (itemId: string) => void;
 }
 
 const EMPTY_PLAN_ITEMS: PlanItem[] = [];
+/** How long a removed item can be restored before the delete reaches Planning Center. */
+export const DELETE_UNDO_WINDOW_MS = 5000;
+
+interface PendingDelete {
+  item: PlanItem;
+  timer: ReturnType<typeof setTimeout>;
+  toastId: string | number;
+}
+
+const isOptimisticItemId = (itemId: string) => itemId.startsWith("optimistic-");
 
 const toPlanItemServicePosition = (
   value: string
@@ -59,13 +73,25 @@ const toErrorMessage = (error: Error, fallback: string) =>
 export const usePlanTabController = ({
   serviceTypeId,
   planId,
+  onSongAdded,
 }: UsePlanTabControllerArgs) => {
   const queryClient = useQueryClient();
   const queryKey = queryKeys.planItems(serviceTypeId, planId);
   const { data: itemsData, isLoading } = usePlanItems(serviceTypeId, planId);
-  const items = itemsData ?? EMPTY_PLAN_ITEMS;
-
   const planScope = JSON.stringify([serviceTypeId, planId]);
+  // Writes to one plan run one after another, so quick keyboard edits land in order.
+  const mutationScope = { id: `plan-items:${planScope}` };
+  const pendingDeletes = useRef(new Map<string, PendingDelete>());
+  const [pendingDeleteIds, setPendingDeleteIds] = useState<ReadonlySet<string>>(
+    () => new Set()
+  );
+  // A refetch can bring back an item whose delete is still waiting out its undo window.
+  const items =
+    pendingDeleteIds.size === 0
+      ? (itemsData ?? EMPTY_PLAN_ITEMS)
+      : (itemsData ?? EMPTY_PLAN_ITEMS).filter(
+          (item) => !pendingDeleteIds.has(item.id)
+        );
   const [editor, setEditor] = useState<{
     scope: string;
     itemId: string | null;
@@ -150,58 +176,88 @@ export const usePlanTabController = ({
     },
   });
 
+  /**
+   * Planning Center appends new items, so an item inserted mid-plan is moved into place
+   * with a reorder that uses the cache's order, where the optimistic row already sits.
+   */
+  const placeCreatedItem = async (
+    created: PlanItem,
+    optimisticItemId: string,
+    insertion: PlanInsertion | undefined
+  ) => {
+    if (
+      insertion === undefined ||
+      !isNonEmptyString(serviceTypeId) ||
+      !isNonEmptyString(planId)
+    ) {
+      return;
+    }
+    const sequence: string[] = [];
+    for (const item of queryClient.getQueryData<PlanItem[]>(queryKey) ?? []) {
+      const itemId = item.id === optimisticItemId ? created.id : item.id;
+      if (!isOptimisticItemId(itemId)) {
+        sequence.push(itemId);
+      }
+    }
+    if (sequence.at(-1) === created.id) {
+      return;
+    }
+    await orpc.planItems.reorder({ serviceTypeId, planId, sequence });
+  };
+
   const createItemMutation = useMutation<
     PlanItem,
     Error,
-    "header" | "item",
     {
-      snapshot: PlanItemsOptimisticSnapshot | undefined;
+      kind: "header" | "item";
+      insertion?: PlanInsertion;
       optimisticItemId: string;
-    }
+    },
+    { snapshot: PlanItemsOptimisticSnapshot | undefined }
   >({
-    mutationFn: async (kind: "header" | "item") => {
+    scope: mutationScope,
+    mutationFn: async ({ kind, insertion, optimisticItemId }) => {
       if (!isNonEmptyString(serviceTypeId) || !isNonEmptyString(planId)) {
         throw new Error("A service type and plan must be selected.");
       }
 
-      return await orpc.planItems.create({
+      const created = await orpc.planItems.create({
         serviceTypeId,
         planId,
         itemType: kind,
         title: kind === "header" ? "New Header" : "New Item",
       });
+      await placeCreatedItem(created, optimisticItemId, insertion);
+      return created;
     },
-    onMutate: async (kind) => {
+    onMutate: async ({ kind, insertion, optimisticItemId }) => {
       await queryClient.cancelQueries({ queryKey });
-
-      const optimisticItemId = `optimistic-${kind}-${crypto.randomUUID()}`;
       setPendingItemId(optimisticItemId);
 
       return {
-        optimisticItemId,
         snapshot: applyPlanItemsOptimisticUpdate(
           queryClient,
           queryKey,
           (current) =>
-            appendPlanItem(
+            insertPlanItem(
               current,
               createOptimisticBasicPlanItem(
                 optimisticItemId,
                 kind,
                 nextPlanItemSequence(current)
-              )
+              ),
+              insertion
             )
         ),
       };
     },
-    onSuccess: (item, _kind, context) => {
+    onSuccess: (item, { optimisticItemId }) => {
       queryClient.setQueryData<PlanItem[]>(
         queryKey,
         (current = EMPTY_PLAN_ITEMS) =>
-          replacePlanItemById(current, context.optimisticItemId, item)
+          replacePlanItemById(current, optimisticItemId, item)
       );
       setEditingItemId(item.id);
-      toast.success(`${getItemTypeLabel(item)} added.`);
     },
     onError: (error, _kind, context) => {
       restorePlanItemsSnapshot(queryClient, queryKey, context?.snapshot);
@@ -216,13 +272,15 @@ export const usePlanTabController = ({
   const addSongMutation = useMutation<
     PlanItem,
     Error,
-    SongCatalogEntry,
     {
-      snapshot: PlanItemsOptimisticSnapshot | undefined;
+      song: SongCatalogEntry;
+      insertion?: PlanInsertion;
       optimisticItemId: string;
-    }
+    },
+    { snapshot: PlanItemsOptimisticSnapshot | undefined }
   >({
-    mutationFn: async (song: SongCatalogEntry) => {
+    scope: mutationScope,
+    mutationFn: async ({ song, insertion, optimisticItemId }) => {
       if (!isNonEmptyString(serviceTypeId) || !isNonEmptyString(planId)) {
         throw new Error("A service type and plan must be selected.");
       }
@@ -236,7 +294,7 @@ export const usePlanTabController = ({
           songOptionsQuery.queryKey
         ) ?? null;
 
-      return await orpc.planItems.create({
+      const created = await orpc.planItems.create({
         serviceTypeId,
         planId,
         title: songOptions?.song.title ?? song.title,
@@ -245,40 +303,41 @@ export const usePlanTabController = ({
         keyId: songOptions?.suggestedKeyId ?? undefined,
         selectedLayoutId: songOptions?.suggestedLayoutId ?? undefined,
       });
+      await placeCreatedItem(created, optimisticItemId, insertion);
+      return created;
     },
-    onMutate: async (song) => {
+    onMutate: async ({ song, insertion, optimisticItemId }) => {
       await queryClient.cancelQueries({ queryKey });
 
-      const optimisticItemId = `optimistic-song-${song.id}-${crypto.randomUUID()}`;
       setPendingSongId(song.id);
       setPendingItemId(optimisticItemId);
       setSongPickerOpen(false);
+      onSongAdded?.(optimisticItemId);
 
       return {
-        optimisticItemId,
         snapshot: applyPlanItemsOptimisticUpdate(
           queryClient,
           queryKey,
           (current) =>
-            appendPlanItem(
+            insertPlanItem(
               current,
               createOptimisticSongPlanItem(
                 optimisticItemId,
                 song,
                 nextPlanItemSequence(current)
-              )
+              ),
+              insertion
             )
         ),
       };
     },
-    onSuccess: (item, _song, context) => {
+    onSuccess: (item, { optimisticItemId }) => {
       queryClient.setQueryData<PlanItem[]>(
         queryKey,
         (current = EMPTY_PLAN_ITEMS) =>
-          replacePlanItemById(current, context.optimisticItemId, item)
+          replacePlanItemById(current, optimisticItemId, item)
       );
-      setEditingItemId(item.id);
-      toast.success("Song added to plan.");
+      onSongAdded?.(item.id);
     },
     onError: (error, _song, context) => {
       restorePlanItemsSnapshot(queryClient, queryKey, context?.snapshot);
@@ -291,47 +350,109 @@ export const usePlanTabController = ({
     },
   });
 
-  const deleteItemMutation = useMutation<
-    undefined,
-    Error,
-    string,
-    { snapshot: PlanItemsOptimisticSnapshot | undefined; deletedItemId: string }
-  >({
-    mutationFn: async (itemId) => {
+  const deleteItemMutation = useMutation<undefined, Error, PlanItem>({
+    scope: mutationScope,
+    mutationFn: async (item) => {
       if (!isNonEmptyString(serviceTypeId) || !isNonEmptyString(planId)) {
         throw new Error("A service type and plan must be selected.");
       }
 
-      await orpc.planItems.delete({ itemId, serviceTypeId, planId });
+      await orpc.planItems.delete({ itemId: item.id, serviceTypeId, planId });
     },
-    onMutate: async (itemId) => {
-      setPendingItemId(itemId);
-      await queryClient.cancelQueries({ queryKey });
-
-      return {
-        deletedItemId: itemId,
-        snapshot: applyPlanItemsOptimisticUpdate(
-          queryClient,
-          queryKey,
-          (current) => removePlanItem(current, itemId)
-        ),
-      };
-    },
-    onError: (error, _itemId, context) => {
-      restorePlanItemsSnapshot(queryClient, queryKey, context?.snapshot);
+    onError: (error) => {
       toast.error(toErrorMessage(error, "Something went wrong."));
     },
-    onSuccess: (_result, itemId) => {
-      if (editingItemId === itemId) {
-        setEditingItemId(null);
-      }
-      toast.success("Item removed.");
-    },
-    onSettled: () => {
-      setPendingItemId(null);
+    onSettled: (_result, _error, item) => {
+      setPendingDeleteIds((current) => {
+        const next = new Set(current);
+        next.delete(item.id);
+        return next;
+      });
       settlePlanItems();
     },
   });
+
+  const commitDelete = async (itemId: string) => {
+    const pending = pendingDeletes.current.get(itemId);
+    if (pending === undefined) {
+      return;
+    }
+    clearTimeout(pending.timer);
+    pendingDeletes.current.delete(itemId);
+    toast.dismiss(pending.toastId);
+    await deleteItemMutation.mutateAsync(pending.item);
+  };
+
+  /** Sends every delete still in its undo window, so later writes see the plan as shown. */
+  const commitPendingDeletes = async () => {
+    await Promise.all(
+      [...pendingDeletes.current.keys()].map(async (itemId) => {
+        await commitDelete(itemId);
+      })
+    );
+  };
+
+  /** Hides the item now and deletes it once the undo window passes. */
+  const removeItem = (itemId: string) => {
+    const item = items.find((candidate) => candidate.id === itemId);
+    if (item === undefined || isOptimisticItemId(itemId)) {
+      return;
+    }
+    if (editingItemId === itemId) {
+      setEditingItemId(null);
+    }
+    setPendingDeleteIds((current) => new Set(current).add(itemId));
+    const toastId = toast(`Removed “${item.title || "Untitled item"}”`, {
+      duration: DELETE_UNDO_WINDOW_MS,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          const pending = pendingDeletes.current.get(itemId);
+          if (pending === undefined) {
+            return;
+          }
+          clearTimeout(pending.timer);
+          pendingDeletes.current.delete(itemId);
+          setPendingDeleteIds((current) => {
+            const next = new Set(current);
+            next.delete(itemId);
+            return next;
+          });
+        },
+      },
+    });
+    pendingDeletes.current.set(itemId, {
+      item,
+      toastId,
+      timer: setTimeout(() => {
+        void commitDelete(itemId);
+      }, DELETE_UNDO_WINDOW_MS),
+    });
+  };
+
+  // Leaving the plan sends the deletes the user already chose; undo ends with the page.
+  useEffect(() => {
+    const deletes = pendingDeletes.current;
+    return () => {
+      for (const { item, timer } of deletes.values()) {
+        clearTimeout(timer);
+        if (isNonEmptyString(serviceTypeId) && isNonEmptyString(planId)) {
+          void (async () => {
+            try {
+              await orpc.planItems.delete({
+                itemId: item.id,
+                serviceTypeId,
+                planId,
+              });
+            } catch {
+              toast.error(`Could not remove “${item.title}”.`);
+            }
+          })();
+        }
+      }
+      deletes.clear();
+    };
+  }, [planId, serviceTypeId]);
 
   const reorderItemsMutation = useMutation<
     undefined,
@@ -339,6 +460,7 @@ export const usePlanTabController = ({
     PlanItem[],
     { snapshot: PlanItemsOptimisticSnapshot | undefined }
   >({
+    scope: mutationScope,
     mutationFn: async (nextItems) => {
       if (!isNonEmptyString(serviceTypeId) || !isNonEmptyString(planId)) {
         throw new Error("A service type and plan must be selected.");
@@ -366,9 +488,6 @@ export const usePlanTabController = ({
       restorePlanItemsSnapshot(queryClient, queryKey, context?.snapshot);
       toast.error(toErrorMessage(error, "Something went wrong."));
     },
-    onSuccess: () => {
-      toast.success("Plan order saved.");
-    },
     onSettled: () => {
       setPendingItemId(null);
       settlePlanItems();
@@ -387,6 +506,7 @@ export const usePlanTabController = ({
     },
     { snapshot: PlanItemsOptimisticSnapshot | undefined }
   >({
+    scope: mutationScope,
     mutationFn: async ({
       item,
       draft,
@@ -474,22 +594,47 @@ export const usePlanTabController = ({
     songPickerOpen,
     pendingItemId,
     pendingSongId,
+    isReordering: reorderItemsMutation.isPending,
     isCreatingBasicItem: createItemMutation.isPending,
     isSavingItem: updateItemMutation.isPending,
     setEditingItemId,
     setSongPickerOpen,
-    createBasicItem: async (kind: "header" | "item") =>
-      await createItemMutation.mutateAsync(kind),
-    addSongToPlan: async (song: SongCatalogEntry) =>
-      await addSongMutation.mutateAsync(song),
-    deleteItem: async (itemId: string) => {
-      await deleteItemMutation.mutateAsync(itemId);
+    createBasicItem: async (
+      kind: "header" | "item",
+      insertion?: PlanInsertion
+    ) => {
+      await commitPendingDeletes();
+      return await createItemMutation.mutateAsync({
+        kind,
+        insertion,
+        optimisticItemId: `optimistic-${kind}-${crypto.randomUUID()}`,
+      });
     },
+    addSongToPlan: async (
+      song: SongCatalogEntry,
+      insertion?: PlanInsertion
+    ) => {
+      await commitPendingDeletes();
+      return await addSongMutation.mutateAsync({
+        song,
+        insertion,
+        optimisticItemId: `optimistic-song-${song.id}-${crypto.randomUUID()}`,
+      });
+    },
+    removeItem,
     reorderItems: async (nextItems: PlanItem[]) => {
       if (planItemsHaveSameOrder(items, nextItems)) {
         return;
       }
-
+      await commitPendingDeletes();
+      await reorderItemsMutation.mutateAsync(nextItems);
+    },
+    moveItem: async (itemId: string, offset: -1 | 1) => {
+      const nextItems = shiftPlanItem(items, itemId, offset);
+      if (nextItems === items) {
+        return;
+      }
+      await commitPendingDeletes();
       await reorderItemsMutation.mutateAsync(nextItems);
     },
     getItemIntentProps,
@@ -503,7 +648,7 @@ export const usePlanTabController = ({
       if (!planItemDraftChangesItem(input.item, input.draft, input.length)) {
         return;
       }
-
+      await commitPendingDeletes();
       await updateItemMutation.mutateAsync(input);
     },
   };

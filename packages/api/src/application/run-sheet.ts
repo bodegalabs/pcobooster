@@ -25,6 +25,8 @@ import {
 import type { PlanTimeDependencies } from "@pcobooster/api/modules/planning-center/plan-times";
 import { reorderPlanItems } from "@pcobooster/api/modules/planning-center/reorder-plan-items";
 import { searchSongs } from "@pcobooster/api/modules/planning-center/search-songs";
+import { suggestSongs } from "@pcobooster/api/modules/planning-center/song-suggestions";
+import type { SongSuggestions } from "@pcobooster/api/modules/planning-center/song-suggestions";
 import {
   commitUpdatePlanItem,
   prepareUpdatePlanItem,
@@ -276,6 +278,20 @@ export const searchRunSheetSongs = (
       input.query,
       access.services.songs,
       moduleReadCaches.songSearchResults
+    );
+  }).pipe(withPlanningCenterFaults);
+
+export const suggestRunSheetSongs = (): Effect.Effect<
+  SongSuggestions,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
+  Effect.gen(function* suggestFromCatalog() {
+    const access = yield* PlanningCenterAccess;
+    return yield* suggestSongs(
+      access.cacheScope,
+      access.services.songs,
+      new Date()
     );
   }).pipe(withPlanningCenterFaults);
 

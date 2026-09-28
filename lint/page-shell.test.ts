@@ -32,6 +32,10 @@ const panelScrollers = new Map([
     "a dialog body",
   ],
   [
+    "apps/web/src/components/schedule/plan-item-inspector.tsx",
+    "the plan builder's boxed details panel",
+  ],
+  [
     "apps/web/src/components/schedule/plan-person-edit-dialog.tsx",
     "a dialog body",
   ],
