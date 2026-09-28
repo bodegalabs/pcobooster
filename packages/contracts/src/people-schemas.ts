@@ -30,6 +30,7 @@ export const scheduleFrequencySchema = z.object({
 export const serviceHistoryItemSchema = z.object({
   id: z.string(),
   sourceScheduleId: z.string(),
+  planId: z.string().optional(),
   date: z.date(),
   teamPositionName: z.string(),
   teamName: z.string().optional(),
@@ -37,6 +38,15 @@ export const serviceHistoryItemSchema = z.object({
   planTitle: z.string().optional(),
   status: z.string(),
   timeType: z.enum(["service", "rehearsal", "other"]).optional(),
+});
+
+/** A person's Planning Center scheduling preferences for the position. */
+export const schedulingPreferencesSchema = z.object({
+  schedulePreference: z.string().nullable(),
+  preferredWeeks: z.array(z.number().int()),
+  timePreferenceOptionIds: z.array(z.string()),
+  maxPlansPerDay: z.number().int().nullable(),
+  maxPlansPerMonth: z.number().int().nullable(),
 });
 
 /** The selected plan and slot candidates are matched against. */
@@ -64,6 +74,8 @@ export const positionCandidateSchema = z.object({
   archived: z.boolean(),
   selectedPlanRosterLabels: z.array(z.string()),
   selectedPlanSlot: selectedPlanSlotSchema.nullable(),
+  /** Null for people on the selected slot who are not assigned to the position. */
+  schedulingPreferences: schedulingPreferencesSchema.nullable(),
 });
 
 export const positionCandidatesSchema = z.object({

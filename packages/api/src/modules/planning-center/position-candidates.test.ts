@@ -864,6 +864,86 @@ describe("position candidate list", () => {
       isConfirmedForSelectedPlanPosition: false,
       scheduledPlanPersonId: "pp-pending",
       selectedPlanAssignmentLabels: ["Band - Vocals"],
+      schedulingPreferences: null,
+    });
+  });
+
+  it("reads scheduling preferences from the position's assignments and ranks by them", async () => {
+    const teamId = "team-1";
+    const positionId = "pos-1";
+    mocks.getPeopleForTeamPosition.mockReturnValue(
+      Effect.succeed({
+        data: [
+          {
+            ...assignment("a-weeks", "p-weeks"),
+            attributes: {
+              schedule_preference: "Choose Weeks",
+              preferred_weeks: ["1", "3", "nine"],
+            },
+            relationships: {
+              person: { data: { type: "Person", id: "p-weeks" } },
+              time_preference_options: {
+                data: [{ type: "TimePreferenceOption", id: "tpo-9am" }],
+              },
+            },
+          },
+          {
+            ...assignment("a-any", "p-any"),
+            attributes: {
+              schedule_preference: "As often as needed",
+              preferred_weeks: ["1", "2", "3", "4", "5"],
+            },
+          },
+        ],
+        included: [
+          {
+            ...person("p-weeks", "Wren", "Weeks"),
+            attributes: {
+              ...person("p-weeks", "Wren", "Weeks").attributes,
+              preferred_max_plans_per_day: 1,
+              preferred_max_plans_per_month: 2,
+            },
+          },
+          person("p-any", "Avery", "Anytime"),
+          teamPosition(positionId, "Guitar", teamId),
+          team(teamId, "Band"),
+        ],
+      })
+    );
+    mocks.getPersonBlockouts.mockReturnValue(Effect.succeed([]));
+
+    // Sunday February 8, 2026: week 2 of the month.
+    const result = await loadCandidates({
+      serviceTypeId: "st-1",
+      positionId,
+      teamId,
+      planId: "plan-target",
+      date: "2026-02-08T17:00:00Z",
+    });
+
+    expect(mocks.getPeopleForTeamPosition).toHaveBeenCalledOnce();
+    expect(result.map((row) => row.id)).toStrictEqual(["p-any", "p-weeks"]);
+    expect(result[1]).toMatchObject({
+      schedulingPreferences: {
+        schedulePreference: "Choose Weeks",
+        preferredWeeks: [1, 3],
+        timePreferenceOptionIds: ["tpo-9am"],
+        maxPlansPerDay: 1,
+        maxPlansPerMonth: 2,
+      },
+      recommendationReasoning: [
+        "No past services scheduled",
+        "Prefers weeks 1 and 3 of the month",
+        "Ranked lower: this plan is in week 2",
+        "At most 2 plans a month; this plan fits",
+      ],
+    });
+    expect(result[0]?.schedulingPreferences).toStrictEqual({
+      schedulePreference: "As often as needed",
+      preferredWeeks: [],
+      timePreferenceOptionIds: [],
+      maxPlansPerDay: null,
+      maxPlansPerMonth: null,
     });
   });
 

@@ -54,10 +54,17 @@ const resolveSelectedSlot = (
 
   const selectedTeam = selectedTeamGroup?.teamId ?? null;
   const selectedPosition = selectedPositionObj?.id ?? null;
+  const selectedTimePreferenceOptionId =
+    selectedPositionObj?.timePreferenceOptionId ?? null;
   const selectedPositionUsesRoster =
     selectedPositionObj?.source === undefined ||
     selectedPositionObj.source === "team_position";
-  return { selectedTeam, selectedPosition, selectedPositionUsesRoster };
+  return {
+    selectedTeam,
+    selectedPosition,
+    selectedPositionUsesRoster,
+    selectedTimePreferenceOptionId,
+  };
 };
 
 const usePlanWorkspaceData = (
@@ -85,8 +92,12 @@ const usePlanWorkspaceData = (
     );
   const { data: planTimes } = usePlanTimes(routeServiceTypeId, routePlanId);
 
-  const { selectedTeam, selectedPosition, selectedPositionUsesRoster } =
-    resolveSelectedSlot(teamPositionGroups, routeIds);
+  const {
+    selectedTeam,
+    selectedPosition,
+    selectedPositionUsesRoster,
+    selectedTimePreferenceOptionId,
+  } = resolveSelectedSlot(teamPositionGroups, routeIds);
   const planDateKey = toPlanDateKey(selectedPlan?.sortDate ?? null);
   const candidateSlot = useMemo<CandidateSlot | null>(
     () =>
@@ -99,6 +110,7 @@ const usePlanWorkspaceData = (
             positionId: selectedPosition,
             planId: routePlanId,
             dateKey: planDateKey,
+            timePreferenceOptionId: selectedTimePreferenceOptionId,
           }
         : null,
     [
@@ -108,6 +120,7 @@ const usePlanWorkspaceData = (
       selectedPosition,
       selectedPositionUsesRoster,
       selectedTeam,
+      selectedTimePreferenceOptionId,
     ]
   );
   const candidateList = usePositionCandidates(candidateSlot);

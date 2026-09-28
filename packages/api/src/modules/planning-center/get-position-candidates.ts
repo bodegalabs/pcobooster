@@ -6,6 +6,7 @@ import {
 import {
   buildSelectedPlanMatchContext,
   getAssignedPeopleFromAssignments,
+  getSchedulingPreferencesByPerson,
 } from "@pcobooster/api/modules/planning-center/people/transforms";
 import { getPlanSchedulingContext } from "@pcobooster/api/modules/planning-center/plan-scheduling-context";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
@@ -45,7 +46,8 @@ export interface PositionCandidatesDependencies {
 
 /**
  * Who can fill the position: the people assigned to it, plus anyone on the selected slot in the
- * selected plan's roster. The roster is read through its own 30-second cache, so the statuses a
+ * selected plan's roster. The assignments also carry each person's scheduling preferences for the
+ * position, so ranking can honor them at no extra cost. The roster is read through its own 30-second cache, so the statuses a
  * scheduler acts on are fresh. History and availability come from separate calls.
  *
  * About 3 Planning Center requests cold: the time zone, the position's assignments (a page per
@@ -69,6 +71,10 @@ export const getPositionCandidates = (
       positionId,
       teamId,
       planId
+    );
+    const preferences = getSchedulingPreferencesByPerson(
+      assignments.data,
+      assignments.included
     );
     const candidates = mergeAssignedAndSelectedPlanSlotPeople({
       assignedPeople: getAssignedPeopleFromAssignments(
@@ -102,6 +108,7 @@ export const getPositionCandidates = (
                   status: slot.status,
                   declineReason: slot.declineReason ?? null,
                 },
+          schedulingPreferences: preferences.get(person.id) ?? null,
         },
       ];
     });

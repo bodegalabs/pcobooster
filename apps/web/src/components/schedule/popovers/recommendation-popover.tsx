@@ -6,6 +6,7 @@ import {
   History,
   Info,
   MicVocal,
+  SlidersHorizontal,
   Sparkles,
 } from "lucide-react";
 import type { ReactElement } from "react";
@@ -25,6 +26,7 @@ const factIcon: Record<RankingFactKind, LucideIcon> = {
   service: CalendarCheck,
   rehearsal: MicVocal,
   load: Flame,
+  preference: SlidersHorizontal,
   note: Info,
 };
 

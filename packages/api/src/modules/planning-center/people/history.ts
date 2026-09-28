@@ -111,6 +111,7 @@ export const mapSchedulesToServiceHistory = (
     ): ServiceHistoryItem => ({
       id,
       sourceScheduleId: schedule.id,
+      planId: isNonEmptyString(planId) ? planId : undefined,
       date,
       teamPositionName: schedule.attributes.team_position_name ?? "",
       teamName: schedule.attributes.team_name ?? undefined,
