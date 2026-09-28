@@ -2,6 +2,7 @@ import { InformationCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import { useAccessReview } from "@/components/access/access-review";
+import { PageShell } from "@/components/page-shell";
 import {
   Alert,
   AlertAction,
@@ -25,7 +26,7 @@ export const NoServicesAccess = () => {
   const { demo, isSigningOut, switchingAccountId, switchAccount } =
     useAccountPanel();
   return (
-    <main className="flex flex-1 flex-col items-center justify-center p-6">
+    <PageShell layout="center">
       <Empty>
         <EmptyHeader>
           <EmptyTitle>
@@ -49,7 +50,7 @@ export const NoServicesAccess = () => {
           </Button>
         )}
       </Empty>
-    </main>
+    </PageShell>
   );
 };
 
@@ -71,7 +72,7 @@ export const PlanAccessNotice = ({
     return null;
   }
   return (
-    <Alert variant="info" className="mb-3 shrink-0">
+    <Alert variant="info" className="shrink-0">
       <HugeiconsIcon icon={InformationCircleIcon} strokeWidth={2} aria-hidden />
       <AlertTitle>{message.title}</AlertTitle>
       <AlertDescription>{message.description}</AlertDescription>

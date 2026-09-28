@@ -4,6 +4,7 @@ import { describe, it } from "vitest";
 import {
   noAbsoluteInputOverlayRule,
   noBackdropBlurRule,
+  noClippedSurfaceRule,
   noOverlaySectionBorderRule,
   noPopoverContentPaddingRule,
   noTransitionColorsRule,
@@ -350,6 +351,114 @@ ruleTester.run(
         name: "native input and select",
         code: `<><input value={value} /><select value={value} /></>`,
         errors: [{ messageId: "raw" }, { messageId: "raw" }],
+      },
+    ],
+  }
+);
+
+ruleTester.run(
+  "no-clipped-surface",
+  noClippedSurfaceRule as Parameters<typeof ruleTester.run>[1],
+  {
+    valid: [
+      {
+        name: "scroll content padded on every side",
+        code: `
+        <ScrollArea className="-mx-2 min-h-0 flex-1">
+          <div className="grid gap-4 px-2 pt-1 pb-6">
+            <Card>Readiness</Card>
+          </div>
+        </ScrollArea>
+      `,
+      },
+      {
+        name: "overflow container pads itself",
+        code: `
+        <div className="overflow-y-auto p-4">
+          <Card>Details</Card>
+        </div>
+      `,
+      },
+      {
+        name: "inset rings stay inside the box",
+        code: `
+        <ScrollArea>
+          <div className="hover:ring-1 hover:ring-inset">Row</div>
+        </ScrollArea>
+      `,
+      },
+      {
+        name: "focus rings are out of scope",
+        code: `
+        <div className="overflow-auto">
+          <a className="focus-visible:ring-2">Row</a>
+        </div>
+      `,
+      },
+      {
+        name: "drag overlays render fixed, outside the clip",
+        code: `
+        <ScrollArea>
+          <DragOverlay>
+            <div className="shadow-2xl">Dragging</div>
+          </DragOverlay>
+        </ScrollArea>
+      `,
+      },
+      {
+        name: "clip container with its own padding",
+        code: `
+        <div className="overflow-hidden px-2 py-2">
+          <div className="shadow-sm">Tile</div>
+        </div>
+      `,
+      },
+    ],
+    invalid: [
+      {
+        name: "card flush against a scroll area",
+        code: `
+        <ScrollArea className="min-h-0 flex-1">
+          <div className="grid gap-4 pt-1 pb-6">
+            <Card>Readiness</Card>
+          </div>
+        </ScrollArea>
+      `,
+        errors: [{ messageId: "clipped" }],
+      },
+      {
+        name: "ScrollArea padding does not pad its viewport",
+        code: `
+        <ScrollArea className="p-4">
+          <Card>Readiness</Card>
+        </ScrollArea>
+      `,
+        errors: [{ messageId: "clipped" }],
+      },
+      {
+        name: "local component whose root is a card",
+        code: `
+        const ReadinessCard = () => <Card>Readiness</Card>;
+        const Overview = () => (
+          <ScrollArea>
+            <div className="py-2">
+              {checks.map((check) => (
+                <ReadinessCard key={check.id} />
+              ))}
+            </div>
+          </ScrollArea>
+        );
+      `,
+        errors: [{ messageId: "clipped" }],
+      },
+      {
+        name: "shadowed tile in an overflow row",
+        code: `
+        <div className="overflow-x-auto py-2">
+          <div className="rounded-xl shadow-md">Tile</div>
+        </div>
+      `,
+        errors: [{ messageId: "clipped" }],
       },
     ],
   }

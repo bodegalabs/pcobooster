@@ -32,6 +32,24 @@
   );
 }
 
+/*
+ * Side padding that centers page content in the inset. Scroll containers span
+ * the whole inset (scrollbar on its edge) and pad their content by this much.
+ * Registered so it resolves once against the inset, not inside nested containers.
+ */
+@property --page-gutter {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 16px;
+}
+
+@utility page-gutters {
+  --page-gutter: max(
+    --spacing(4),
+    calc((100cqw - var(--container-7xl)) / 2 + --spacing(4))
+  );
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /* Fontsource families imported by the root route. */

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 
+import { PageScrollArea } from "@/components/page-shell";
 import type { SlotRef } from "@/components/schedule/types";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -26,7 +27,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
@@ -526,7 +526,7 @@ export const PlanOverviewTab = ({
   const isLoading = staffing === null || order === null || schedule === null;
 
   return (
-    <ScrollArea className="min-h-0 flex-1">
+    <PageScrollArea>
       <div className="pb-safe-4 grid gap-4 pt-1 md:grid-cols-2 md:pb-6">
         <ReadinessCard plan={plan} checks={checks} isLoading={isLoading} />
         <PeopleCard
@@ -537,6 +537,6 @@ export const PlanOverviewTab = ({
         <SongsCard plan={plan} order={order} />
         <TimesCard plan={plan} schedule={schedule} />
       </div>
-    </ScrollArea>
+    </PageScrollArea>
   );
 };

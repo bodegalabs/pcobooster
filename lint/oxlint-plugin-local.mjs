@@ -442,6 +442,347 @@ const noTransitionColorsRule = {
   },
 };
 
+// Scroll and clip containers cut off anything painted outside a child's box.
+const CLIP_CONTAINER_CLASS =
+  /(?:^|[\s:!])overflow(?:-[xy])?-(?:auto|scroll|hidden|clip)(?=$|[\s!])/;
+/** Primitives whose root paints a ring or shadow outside its box. */
+const RAISED_SURFACE_NAMES = new Set(["Card"]);
+const RAISED_SURFACE_TOKEN =
+  /^(?:shadow(?:-(?:2xs|xs|sm|md|lg|xl|2xl))?|ring(?:-(?:[1-9]\d*|\[[^\]]+\]))?)$/;
+/** Focus rings are a separate concern; this rule covers resting surfaces. */
+const FOCUS_VARIANT =
+  /(?:^|:)(?:group-|peer-)?focus(?:-visible|-within)?(?:\/\w+)?:/;
+const INSET_RING_TOKEN = "ring-inset";
+/** Elements that render outside the clip: portals and fixed-position drag overlays. */
+const ESCAPES_CLIP_NAME =
+  /(?:Portal|Overlay|^(?:AlertDialog|Combobox|ContextMenu|Dialog|Drawer|DropdownMenu|HoverCard|Popover|Select|Sheet)Content)$/;
+const SPACING_TOKEN = /^(p|m)([xytblrse]?)-(.+)$/;
+const ZERO_SPACING = /^(?:0|px|auto)$/;
+const PASCAL_CASE = /^[A-Z]/;
+const SIDE_KEYS = ["top", "right", "bottom", "left"];
+/** Which sides each padding/margin axis letter covers (logical start/end as left/right). */
+const SPACING_SIDES = new Map([
+  ["", SIDE_KEYS],
+  ["x", ["left", "right"]],
+  ["y", ["top", "bottom"]],
+  ["t", ["top"]],
+  ["b", ["bottom"]],
+  ["l", ["left"]],
+  ["s", ["left"]],
+  ["r", ["right"]],
+  ["e", ["right"]],
+]);
+
+/**
+ * @param {string} text
+ * @returns {{ variant: string, base: string }[]}
+ */
+const classTokens = (text) =>
+  text
+    .split(/\s+/u)
+    .filter(Boolean)
+    .map((token) => {
+      const separator = token.lastIndexOf(":");
+      const variant = separator === -1 ? "" : token.slice(0, separator + 1);
+      const base = token.slice(separator + 1).replaceAll("!", "");
+      return { variant, base };
+    });
+
+/**
+ * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ * @returns {string}
+ */
+const openingClassText = (openingElement) =>
+  openingElement.attributes
+    .map((attribute) =>
+      attribute.type === "JSXAttribute" &&
+      attribute.name.type === "JSXIdentifier" &&
+      attribute.name.name === "className" &&
+      attribute.value !== null
+        ? classNameText(attribute.value)
+        : ""
+    )
+    .join(" ");
+
+/**
+ * Sides that get room from padding or positive margin, at any breakpoint.
+ * @param {string} text
+ * @returns {Set<string>}
+ */
+const spacedSides = (text) => {
+  const sides = new Set();
+  for (const { base } of classTokens(text)) {
+    const match = SPACING_TOKEN.exec(base);
+    if (!match || ZERO_SPACING.test(match[3])) {
+      continue;
+    }
+    for (const side of SPACING_SIDES.get(match[2]) ?? []) {
+      sides.add(side);
+    }
+  }
+  return sides;
+};
+
+/**
+ * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ */
+const isRaisedSurface = (openingElement) => {
+  const name = getJsxName(openingElement.name);
+  if (name !== null && RAISED_SURFACE_NAMES.has(name)) {
+    return true;
+  }
+  const tokens = classTokens(openingClassText(openingElement));
+  const ringsAreInset = tokens.some(({ base }) => base === INSET_RING_TOKEN);
+  return tokens.some(
+    ({ variant, base }) =>
+      RAISED_SURFACE_TOKEN.test(base) &&
+      !FOCUS_VARIANT.test(variant) &&
+      !(ringsAreInset && base.startsWith("ring"))
+  );
+};
+
+/**
+ * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ */
+const isClipContainer = (openingElement) =>
+  getJsxName(openingElement.name) === "ScrollArea" ||
+  CLIP_CONTAINER_CLASS.test(openingClassText(openingElement));
+
+/**
+ * JSX a render can produce from an expression: elements, branches, and the
+ * callbacks of `.map()`-style calls.
+ * @param {unknown} node
+ * @param {import("oxlint/plugins-dev").JSXElement[]} out
+ */
+const collectRenderedJsx = (node, out) => {
+  if (!node || typeof node !== "object") {
+    return;
+  }
+  switch (node.type) {
+    case "JSXElement": {
+      out.push(node);
+      return;
+    }
+    case "JSXFragment": {
+      for (const child of node.children) {
+        collectRenderedJsx(child, out);
+      }
+      return;
+    }
+    case "JSXExpressionContainer":
+    case "ParenthesizedExpression": {
+      collectRenderedJsx(node.expression, out);
+      return;
+    }
+    case "ConditionalExpression": {
+      collectRenderedJsx(node.consequent, out);
+      collectRenderedJsx(node.alternate, out);
+      return;
+    }
+    case "LogicalExpression": {
+      collectRenderedJsx(node.left, out);
+      collectRenderedJsx(node.right, out);
+      return;
+    }
+    case "CallExpression": {
+      for (const argument of node.arguments) {
+        collectFunctionJsx(argument, out);
+      }
+      return;
+    }
+    default:
+  }
+};
+
+/**
+ * @param {unknown} statement
+ * @param {import("oxlint/plugins-dev").JSXElement[]} out
+ */
+const collectReturnedJsx = (statement, out) => {
+  if (!statement || typeof statement !== "object") {
+    return;
+  }
+  switch (statement.type) {
+    case "ReturnStatement": {
+      collectRenderedJsx(statement.argument, out);
+      return;
+    }
+    case "BlockStatement": {
+      for (const child of statement.body) {
+        collectReturnedJsx(child, out);
+      }
+      return;
+    }
+    case "IfStatement": {
+      collectReturnedJsx(statement.consequent, out);
+      collectReturnedJsx(statement.alternate, out);
+      return;
+    }
+    default:
+  }
+};
+
+/**
+ * @param {unknown} node
+ * @param {import("oxlint/plugins-dev").JSXElement[]} out
+ */
+const collectFunctionJsx = (node, out) => {
+  if (
+    !node ||
+    typeof node !== "object" ||
+    (node.type !== "ArrowFunctionExpression" &&
+      node.type !== "FunctionExpression" &&
+      node.type !== "FunctionDeclaration")
+  ) {
+    return;
+  }
+  if (node.body.type === "BlockStatement") {
+    collectReturnedJsx(node.body, out);
+  } else {
+    collectRenderedJsx(node.body, out);
+  }
+};
+
+/**
+ * Components declared in this file, by name, with the JSX they render.
+ * @param {import("oxlint/plugins-dev").Program} program
+ * @returns {Map<string, import("oxlint/plugins-dev").JSXElement[]>}
+ */
+const localComponents = (program) => {
+  const components = new Map();
+  /** @param {string} name @param {unknown} fn */
+  const add = (name, fn) => {
+    if (!PASCAL_CASE.test(name)) {
+      return;
+    }
+    const rendered = [];
+    collectFunctionJsx(fn, rendered);
+    if (rendered.length > 0) {
+      components.set(name, rendered);
+    }
+  };
+  for (const topLevel of program.body) {
+    const statement =
+      topLevel.type === "ExportNamedDeclaration" ||
+      topLevel.type === "ExportDefaultDeclaration"
+        ? topLevel.declaration
+        : topLevel;
+    if (statement?.type === "FunctionDeclaration" && statement.id) {
+      add(statement.id.name, statement);
+    }
+    if (statement?.type === "VariableDeclaration") {
+      for (const declarator of statement.declarations) {
+        if (declarator.id.type === "Identifier") {
+          add(declarator.id.name, declarator.init);
+        }
+      }
+    }
+  }
+  return components;
+};
+
+const noClippedSurfaceRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow cards and other ringed or shadowed surfaces flush against a scroll or clip container, which cuts their ring and shadow off.",
+    },
+    messages: {
+      clipped:
+        "`<{{surface}}>` paints a ring or shadow, but it sits flush against the {{container}} scroll/clip edge ({{sides}}), so the edge gets cut off. Give the scroll content padding on those sides (bleed with `-mx-N` + `px-N` to keep alignment).",
+    },
+    schema: [],
+  },
+  create(context) {
+    const filename = context.filename.replaceAll("\\", "/");
+    if (filename.includes(SHARED_UI_DIRECTORY)) {
+      return {};
+    }
+    /** @type {Map<string, import("oxlint/plugins-dev").JSXElement[]>} */
+    let components = new Map();
+    const reported = new Set();
+
+    /**
+     * @param {import("oxlint/plugins-dev").JSXElement} element
+     * @param {Set<string>} sides sides already padded between the container and here
+     * @param {import("oxlint/plugins-dev").JSXElement} reportNode
+     * @param {string} containerName
+     * @param {Set<string>} visiting component names on the current path
+     */
+    const visit = (element, sides, reportNode, containerName, visiting) => {
+      const opening = element.openingElement;
+      const name = getJsxName(opening.name);
+      const here = new Set([
+        ...sides,
+        ...spacedSides(openingClassText(opening)),
+      ]);
+
+      if (isRaisedSurface(opening)) {
+        const missing = SIDE_KEYS.filter((side) => !here.has(side));
+        if (missing.length > 0 && !reported.has(reportNode)) {
+          reported.add(reportNode);
+          context.report({
+            node: reportNode.openingElement,
+            messageId: "clipped",
+            data: {
+              surface: getJsxName(reportNode.openingElement.name) ?? "element",
+              container: containerName,
+              sides: missing.join(", "),
+            },
+          });
+        }
+        return;
+      }
+      // A nested container is checked on its own; portals and overlays escape.
+      if (
+        isClipContainer(opening) ||
+        (name !== null && ESCAPES_CLIP_NAME.test(name))
+      ) {
+        return;
+      }
+      if (name !== null && components.has(name) && !visiting.has(name)) {
+        const nextVisiting = new Set([...visiting, name]);
+        for (const rendered of components.get(name) ?? []) {
+          visit(rendered, here, reportNode, containerName, nextVisiting);
+        }
+      }
+      const children = [];
+      for (const child of element.children) {
+        collectRenderedJsx(child, children);
+      }
+      for (const child of children) {
+        visit(child, here, child, containerName, visiting);
+      }
+    };
+
+    return {
+      Program(node) {
+        components = localComponents(node);
+      },
+      JSXElement(node) {
+        const opening = node.openingElement;
+        if (!isClipContainer(opening)) {
+          return;
+        }
+        const containerName = getJsxName(opening.name) ?? "element";
+        // ScrollArea clips at its viewport, inside the root that takes className.
+        const ownSides =
+          containerName === "ScrollArea"
+            ? new Set()
+            : spacedSides(openingClassText(opening));
+        const children = [];
+        for (const child of node.children) {
+          collectRenderedJsx(child, children);
+        }
+        for (const child of children) {
+          visit(child, ownSides, child, `<${containerName}>`, new Set());
+        }
+      },
+    };
+  },
+};
+
 const noBackdropBlurRule = {
   meta: {
     type: "problem",
@@ -492,6 +833,7 @@ export default {
   rules: {
     "no-absolute-input-overlay": noAbsoluteInputOverlayRule,
     "no-backdrop-blur": noBackdropBlurRule,
+    "no-clipped-surface": noClippedSurfaceRule,
     "no-popover-content-padding": noPopoverContentPaddingRule,
     "no-overlay-section-border-b": noOverlaySectionBorderRule,
     "no-transition-colors": noTransitionColorsRule,
@@ -502,6 +844,7 @@ export default {
 export {
   noAbsoluteInputOverlayRule,
   noBackdropBlurRule,
+  noClippedSurfaceRule,
   noOverlaySectionBorderRule,
   noPopoverContentPaddingRule,
   noTransitionColorsRule,

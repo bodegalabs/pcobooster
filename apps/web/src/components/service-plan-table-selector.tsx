@@ -2,6 +2,7 @@ import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { ChevronRight, Search } from "lucide-react";
 
+import { PageScrollArea } from "@/components/page-shell";
 import { ServiceTypeMultiSelect } from "@/components/service-type-multi-select";
 import {
   Empty,
@@ -404,7 +405,7 @@ export const ServicePlanTableSelector = ({
         orgTimeZone={orgTimeZone}
       />
 
-      <div className="flex flex-col md:min-h-0 md:flex-1">
+      <div className="flex flex-col [--plan-list-sticky-offset:6.25rem] md:min-h-0 md:flex-1">
         <div className="bg-background sticky top-0 z-10 -mx-4 grid shrink-0 grid-cols-2 gap-2 px-4 py-2 md:static md:mx-0 md:grid-cols-[minmax(0,1fr)_180px_160px] md:bg-transparent md:px-0 md:pt-0 md:pb-1">
           <InputGroup className="col-span-2 md:col-span-1">
             <InputGroupAddon>
@@ -443,7 +444,7 @@ export const ServicePlanTableSelector = ({
 
         <LoadingBar active={isNavigating} className="shrink-0" />
 
-        <div className="[--plan-list-sticky-offset:6.25rem] md:min-h-0 md:flex-1 md:overflow-y-auto">
+        <PageScrollArea>
           <PlanAgenda
             isInitialLoading={isInitialLoading}
             errorMessage={errorMessage}
@@ -454,7 +455,7 @@ export const ServicePlanTableSelector = ({
             getPlanIntentProps={getPlanIntentProps}
             orgTimeZone={orgTimeZone}
           />
-        </div>
+        </PageScrollArea>
       </div>
     </div>
   );

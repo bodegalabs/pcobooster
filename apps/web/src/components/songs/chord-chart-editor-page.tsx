@@ -24,6 +24,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { toast } from "sonner";
 
+import { PageShell } from "@/components/page-shell";
 import { ChordChartCreateDialog } from "@/components/songs/chord-chart-create-dialog";
 import { highlightChordChart } from "@/components/songs/chord-chart-highlight";
 import { ChordChartImportDialog } from "@/components/songs/chord-chart-import-dialog";
@@ -338,7 +339,7 @@ const WorkspaceHeader = ({
   const navigate = useNavigate();
   const { copied, copy } = useCopyChart(workspace.draft.chart);
   return (
-    <header className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 px-4 pt-1 pb-3 md:py-3">
+    <header className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2">
       <div className="min-w-0 flex-1">
         <h1 className="truncate text-lg font-semibold tracking-tight md:text-xl">
           {song.title}
@@ -597,7 +598,7 @@ const ChordChartWorkspaceView = ({
   });
 
   return (
-    <main className="bg-background flex min-h-0 flex-1 flex-col">
+    <PageShell layout="fill">
       <WorkspaceHeader
         song={song}
         arrangement={arrangement}
@@ -610,7 +611,7 @@ const ChordChartWorkspaceView = ({
           setCreateOpen(true);
         }}
       />
-      <div className="flex min-h-0 flex-1 gap-3 px-4 pb-4 max-md:min-h-[70svh] md:grid md:grid-cols-2">
+      <div className="flex min-h-0 flex-1 gap-3 max-md:min-h-[70svh] md:grid md:grid-cols-2">
         <EditorPane
           workspace={workspace}
           onFindLyrics={() => {
@@ -678,29 +679,25 @@ const ChordChartWorkspaceView = ({
           });
         }}
       />
-    </main>
+    </PageShell>
   );
 };
 
 export const ChordChartEditorPageSkeleton = () => (
-  <main
-    className="flex min-h-0 flex-1 flex-col gap-3 p-4"
-    aria-busy
-    aria-label="Loading chord chart"
-  >
+  <PageShell layout="fill" label="Loading chord chart" busy>
     <Skeleton variant="text" className="h-6 w-56" />
     <div className="grid min-h-0 flex-1 gap-3 md:grid-cols-2">
       <Skeleton variant="control" className="h-96" />
       <Skeleton variant="control" className="h-96 max-md:hidden" />
     </div>
-  </main>
+  </PageShell>
 );
 
 const NoArrangements = ({ song }: { song: ChordChartSong }) => {
   const navigate = useNavigate();
   const [createOpen, setCreateOpen] = useState(false);
   return (
-    <main className="flex flex-1 flex-col items-center justify-center p-6">
+    <PageShell layout="center">
       <Empty>
         <EmptyHeader>
           <EmptyTitle>{song.title} has no arrangements</EmptyTitle>
@@ -731,7 +728,7 @@ const NoArrangements = ({ song }: { song: ChordChartSong }) => {
           });
         }}
       />
-    </main>
+    </PageShell>
   );
 };
 
@@ -751,7 +748,7 @@ export const ChordChartEditorPage = ({
   }, [openedSong]);
   if (isError && data === undefined) {
     return (
-      <main className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
+      <PageShell layout="center">
         <p className="text-muted-foreground text-sm">
           This song did not load from Planning Center.
         </p>
@@ -764,7 +761,7 @@ export const ChordChartEditorPage = ({
         >
           Try again
         </Button>
-      </main>
+      </PageShell>
     );
   }
   if (data === undefined) {
