@@ -445,7 +445,7 @@ export class PlanningCenterPeopleService {
         this.core
           .fetchAll(
             `/services/v2/plans/${planId}/plan_times`,
-            { per_page: "200" },
+            { per_page: "100" },
             10
           )
           .pipe(

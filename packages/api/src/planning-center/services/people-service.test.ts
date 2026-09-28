@@ -487,7 +487,7 @@ describe("PlanningCenterPeopleService.getPlanPlanTimes", () => {
 
     expect(fetchAll).toHaveBeenCalledExactlyOnceWith(
       "/services/v2/plans/plan-456/plan_times",
-      { per_page: "200" },
+      { per_page: "100" },
       10
     );
   });
