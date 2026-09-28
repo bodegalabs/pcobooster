@@ -15,7 +15,6 @@ import {
   noteName,
   parallelOf,
   pivotChords,
-  relativePivots,
   semitonesUp,
 } from "@/lib/key-theory";
 import type { MusicalKey } from "@/lib/key-theory";
@@ -204,7 +203,7 @@ const dominantSuggestion = (
   };
 };
 
-/** 1. A chord both keys share: the smoothest way across (a worship leader's first choice). */
+/** A chord both keys share: the next song's home chord or V, or a chord that sets it up. */
 const commonChordSuggestion = ({
   fromTitle,
   toTitle,
@@ -246,47 +245,11 @@ const commonChordSuggestion = ({
   };
 };
 
-/** 2. A chord of the old key sliding to its relative in the new key (C to Am shares two notes). */
-const relativeChordSuggestion = ({
-  fromTitle,
-  toTitle,
-  fromKey,
-  toKey,
-}: TransitionSongs): TransitionSuggestion | null => {
-  const [pair] = relativePivots(fromKey, toKey);
-  if (pair === undefined) {
-    return null;
-  }
-  return {
-    id: "relative-chord",
-    title: "Slide to a relative chord",
-    segments: [
-      text(`End ${fromTitle} on `),
-      chord(chordName(pair.from)),
-      text(", move to its relative "),
-      chord(chordName(pair.to)),
-      ...(pair.to.numeral === "V"
-        ? [
-            text(", make it "),
-            chord(chordName(dominantSeventhOf(toKey))),
-            text(`, then start ${toTitle} in `),
-            chord(keyName(toKey)),
-            text("."),
-          ]
-        : [
-            text(` (the ${pair.to.numeral} of ${keyName(toKey)}), then `),
-            chord(chordName(dominantSeventhOf(toKey))),
-            text(` into ${toTitle}.`),
-          ]),
-    ],
-  };
-};
-
 const isHome = (candidate: { numeral: string }) =>
   candidate.numeral === "I" || candidate.numeral === "i";
 
 /**
- * 3. A held note: end on a chord but keep one of its notes ringing, and let it become
+ * A held note: end on a chord but keep one of its notes ringing, and let it become
  * part of the next song's first chord. When the home chords share nothing, the first
  * song can end on a nearby chord instead, or the next can open on a different one.
  */
@@ -399,40 +362,50 @@ const swapSuggestion = ({
 
 /**
  * Concrete ways to connect two songs, most useful first, for the case the rating found.
- * Following a trusted worship leader's order: common chords, then common relative
- * chords, then common tones that turn into one of those, then the case's own fallbacks.
  * Moving the next song to another key on its arrangement is offered separately, because
  * it needs that arrangement's keys.
  */
 const noSuggestions = (): TransitionSuggestion[] => [];
 
 /**
- * Ways out of each rough case once shared chords, relative chords, and held notes
- * (always tried first, in that order) run out.
+ * Suggestions for each rough case, most useful first (docs/research/song-key-transitions.md),
+ * with a held note wherever one connects the songs: first for thirds, where the keys
+ * share a note, and for tritones, where it's the only musical bridge.
  */
-const FALLBACKS_BY_KIND = {
+const SUGGESTIONS_BY_KIND = {
   same: noSuggestions,
   parallel: noSuggestions,
   relative: noSuggestions,
   close: noSuggestions,
   lift: noSuggestions,
   mediant: (songs) => [
+    commonToneSuggestion(songs),
+    commonChordSuggestion(songs),
     borrowedChordSuggestion(songs),
     dominantSuggestion(songs, false),
     padSuggestion(songs),
   ],
   "step-down": (songs) => [
-    dominantSuggestion(songs, false),
+    commonChordSuggestion(songs),
+    commonToneSuggestion(songs),
     swapSuggestion(songs),
+    dominantSuggestion(songs, false),
   ],
   "half-step-down": (songs) => [
     swapSuggestion(songs),
+    commonToneSuggestion(songs),
     padSuggestion(songs),
     dominantSuggestion(songs, true),
   ],
-  tritone: (songs) => [padSuggestion(songs), dominantSuggestion(songs, true)],
+  tritone: (songs) => [
+    commonToneSuggestion(songs),
+    padSuggestion(songs),
+    dominantSuggestion(songs, true),
+  ],
   "distant-mode": (songs) => [
+    commonChordSuggestion(songs),
     borrowedChordSuggestion(songs),
+    commonToneSuggestion(songs),
     dominantSuggestion(songs, false),
     padSuggestion(songs),
   ],
@@ -453,21 +426,14 @@ export const transitionSuggestions = (
   songs: TransitionSongs,
   kind: KeyChangeKind
 ): TransitionSuggestion[] => {
-  const fallbacks = FALLBACKS_BY_KIND[kind](songs);
-  if (fallbacks.length === 0) {
-    return [];
-  }
-  const ordered = [
-    commonChordSuggestion(songs),
-    relativeChordSuggestion(songs),
-    commonToneSuggestion(songs),
-    ...fallbacks,
-  ].filter((suggestion) => suggestion !== null);
-  // A fallback can repeat a common chord (ending on the new key's V), so keep the first.
-  return ordered
+  const found = SUGGESTIONS_BY_KIND[kind](songs).filter(
+    (suggestion) => suggestion !== null
+  );
+  // Ending on the new key's V can come from two builders; keep the first.
+  return found
     .filter(
       (suggestion, index) =>
-        ordered.findIndex((other) => other.id === suggestion.id) === index
+        found.findIndex((other) => other.id === suggestion.id) === index
     )
     .slice(0, MAX_SUGGESTIONS);
 };

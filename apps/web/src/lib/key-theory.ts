@@ -311,61 +311,6 @@ const setupChords = (to: MusicalKey): Chord[] => {
   return dominant === undefined ? ranked : [...ranked, dominant];
 };
 
-const RELATIVE_MINOR_OFFSET = 9;
-const RELATIVE_MAJOR_OFFSET = 3;
-
-export interface RelativePivot {
-  /** A chord of the first key, spelled in that key. */
-  from: Chord;
-  /** Its relative (C and Am share two notes), a setup chord of the new key. */
-  to: Chord;
-}
-
-/**
- * Pairs a chord of the first key with its relative in the new key (they share two
- * notes), so the band can end on one and slide to the other. Chords the new key already
- * has are left out; those are plain common chords.
- */
-export const relativePivots = (
-  from: MusicalKey,
-  to: MusicalKey
-): RelativePivot[] => {
-  const toChords = diatonicTriads(to);
-  // A chord the new key already has is a common chord, not a relative one.
-  const fromChords = diatonicTriads(from).filter(
-    (chord) =>
-      chord.quality !== "dim" &&
-      !toChords.some(
-        (candidate) =>
-          candidate.root.pitch === chord.root.pitch &&
-          candidate.quality === chord.quality
-      )
-  );
-  const pairs: RelativePivot[] = [];
-  for (const toChord of setupChords(to)) {
-    const alreadyShared = fromChords.some(
-      (chord) =>
-        chord.root.pitch === toChord.root.pitch &&
-        chord.quality === toChord.quality
-    );
-    const relativePitch = mod12(
-      toChord.root.pitch +
-        (toChord.quality === "m"
-          ? RELATIVE_MAJOR_OFFSET
-          : RELATIVE_MINOR_OFFSET)
-    );
-    const relativeQuality: ChordQuality = toChord.quality === "m" ? "" : "m";
-    const fromChord = fromChords.find(
-      (chord) =>
-        chord.root.pitch === relativePitch && chord.quality === relativeQuality
-    );
-    if (!alreadyShared && fromChord !== undefined) {
-      pairs.push({ from: fromChord, to: toChord });
-    }
-  }
-  return pairs;
-};
-
 export type ChordTone = "root" | "third" | "fifth";
 const CHORD_TONES: readonly ChordTone[] = ["root", "third", "fifth"];
 

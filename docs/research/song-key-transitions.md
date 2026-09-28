@@ -89,8 +89,6 @@ Row 0 is synthesis. It rests on Kauflin's advice to change key under speaking an
 
 ## Suggestion catalog
 
-> **Superseded order:** the app tries the [practitioner order](#practitioner-guidance-september-28-2026) first: common chords, then common relative chords, then common tones. The templates below are its fallbacks for each case, and the chord spelling rules still apply.
-
 ### Spelling and chord computation
 
 1. **Normalize the stored key.** Take the tonic from the key string and take minor from the boolean, else the suffix. Respell the theoretical major keys `A#`→`B♭`, `D#`→`E♭`, `G#`→`A♭`. Keep every other stored spelling, so `F#` and `Gb`, and `C#` and `Db`, stay as the team entered them. All of Planning Center's minor values are standard signatures.
@@ -136,23 +134,6 @@ Row 0 is synthesis. It rests on Kauflin's advice to change key under speaking an
 **Mixed modes, distant (rows 10 and 11).** Use the pivot template first. Examples: C→Fm: A♭ (borrowed; III of Fm), then C7. Because `vOfBInA` is set (C is I in C), C7 directly also works. C→Gm: F (VII of Gm), then D7. Am→D: Em (ii of D), then A7. When there is no pivot (C→E♭m, C→F♯m), fall back to the alternate key, the pad or spoken transition, and the cold start in that order, as for a tritone.
 
 **Timed item between (row 0; shown even when unflagged).** "Move to {Bkey} under {itemTitle}: pad on {Btonic}, or {dominantOfB} as it ends."
-
-## Practitioner guidance (September 28, 2026)
-
-A worship leader the team trusts ranks the options this way: **common chords, then common relative chords, then common tones** that lead into a relative or common chord. The app follows that order for every flagged change, ahead of the case-specific fallbacks above:
-
-1. **Common chords.** In order of preference:
-   - The next song's home chord is already in the old key: end there and start the next song.
-   - The new key's V is in the old key: end there and make it a 7.
-   - A shared setup chord: ii, IV, or vi of the new key, then its V7.
-2. **Common relative chords.** A chord of the old key slides to its relative in the new key, since they share two notes. Example, D to Gm: Bm slides to D, which becomes D7. Chords the new key already has count as common chords, not relatives.
-3. **Common tones.** End on a chord and hold one of its notes, which becomes part of the next song's first chord. Example: "End on F but hold the A (its third); it becomes the fifth of the opening D chord." The app looks in this order:
-   - both songs' home chords;
-   - the next song opening on a setup chord;
-   - the old song ending on its IV, vi, or V;
-   - both songs changing chords.
-
-   Bb to E, which has no common chord, becomes: end on F, hold A, open on F#m. The held note is named as the band plays it on the first chord, then as the new key writes it (Ab, then G#).
 
 ## Open questions
 

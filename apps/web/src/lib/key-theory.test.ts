@@ -12,7 +12,6 @@ import {
   parseMusicalKey,
   pivotChords,
   predominantOf,
-  relativePivots,
   scaleOf,
   semitonesUp,
 } from "@/lib/key-theory";
@@ -125,21 +124,6 @@ describe("distance between keys", () => {
     expect(circleOfFifthsDistance(key("Bb"), key("E"))).toBe(6);
     expect(circleOfFifthsDistance(key("Am"), key("C"))).toBe(0);
     expect(circleOfFifthsDistance(key("G"), key("D"))).toBe(1);
-  });
-});
-
-describe(relativePivots, () => {
-  it("pairs a chord of the old key with its relative in the new key", () => {
-    expect(
-      relativePivots(key("D"), key("Gm")).map(
-        ({ from, to }) =>
-          `${chordName(from)} -> ${chordName(to)} (${to.numeral})`
-      )
-    ).toStrictEqual(["Bm -> D (V)"]);
-  });
-
-  it("leaves out chords the new key already has", () => {
-    expect(relativePivots(key("Am"), key("E"))).toStrictEqual([]);
   });
 });
 

@@ -73,12 +73,6 @@ describe(transitionSuggestions, () => {
     );
   });
 
-  it("slides to a relative chord when no chord is shared", () => {
-    expect(advice("D", "Gm")).toContain(
-      "End A on Bm, move to its relative D, make it D7, then start B in Gm."
-    );
-  });
-
   it("holds a note from the last chord into the next song's opening chord", () => {
     expect(advice("F", "D")[0]).toBe(
       "End A on F, but hold the A (its third). It becomes the fifth of B's opening D chord."
