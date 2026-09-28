@@ -64,25 +64,51 @@ describe(rateKeyChange, () => {
 });
 
 describe(transitionSuggestions, () => {
-  it("spells out chords for a chromatic mediant", () => {
+  it("leads with a chord both keys share", () => {
+    expect(advice("Am", "E")[0]).toBe(
+      "End A on E (it's already a chord in Am), then start B right there."
+    );
+    expect(advice("D", "C")[0]).toBe(
+      "End A on G (already a chord in D), make it G7, then start B in C."
+    );
+  });
+
+  it("slides to a relative chord when no chord is shared", () => {
+    expect(advice("D", "Gm")).toContain(
+      "End A on Bm, move to its relative D, make it D7, then start B in Gm."
+    );
+  });
+
+  it("holds a note from the last chord into the next song's opening chord", () => {
+    expect(advice("F", "D")[0]).toBe(
+      "End A on F, but hold the A (its third). It becomes the fifth of B's opening D chord."
+    );
     expect(advice("C", "Eb")).toStrictEqual([
-      "Hold G from the last chord of A, then play Bb7 into Eb.",
+      "End A on C, but hold the G (its fifth). It becomes the third of B's opening Eb chord.",
       "End A on Fm (borrowed from Cm; the ii of Eb), then Bb7 into B.",
+      "After A, play Bb7 into B in Eb.",
       "Put a short prayer or reading before B, with a pad moving to Eb.",
     ]);
   });
 
-  it("ends on the new V when the first key already has it", () => {
-    expect(advice("C", "Bb")[0]).toBe(
-      "End A on F (already a chord in C), make it F7, then start B in Bb."
+  it("names a held note as the band plays it, then as the new key writes it", () => {
+    expect(advice("Ab", "E")[0]).toBe(
+      "End A on Ab, but hold the Ab (its root). As G#, it becomes the third of B's opening E chord."
     );
   });
 
-  it("stops cold into the new dominant across a tritone", () => {
+  it("changes the chords to end on and open with when the home chords share nothing", () => {
     expect(advice("Bb", "E")).toStrictEqual([
+      "End A on F (its V) instead of Bb, but hold the A (its third). It becomes the third of F#m: open B on F#m (its ii), then B7 to land in E.",
       "Put a short prayer or reading before B, with a pad moving to E.",
       "Stop fully after A, then play B7 into B in E.",
     ]);
+  });
+
+  it("ends on the new V when the first key already has it", () => {
+    expect(advice("C", "Bb")).toContain(
+      "End A on F (already a chord in C), make it F7, then start B in Bb."
+    );
   });
 
   it("offers nothing when the change is smooth", () => {
