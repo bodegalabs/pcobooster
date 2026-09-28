@@ -182,6 +182,7 @@ const applyPlanTeamMemberSummary = (
       photoThumbnailUrl: rosterEntry.person?.photoThumbnailUrl ?? null,
       assignedTimeIds: rosterEntry.assignedTimeIds,
       serviceTimeIds: rosterEntry.serviceTimeIds,
+      notification: rosterEntry.notification,
     };
 
     if (slot.filledPeople) {

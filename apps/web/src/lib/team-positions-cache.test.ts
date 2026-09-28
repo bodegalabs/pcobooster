@@ -47,6 +47,7 @@ const teamPositionGroups = (): TeamPositionGroup[] => [
             status: "confirmed",
             rawStatus: "C",
             photoThumbnailUrl: null,
+            notification: null,
           },
           {
             id: "person-2",
@@ -55,6 +56,7 @@ const teamPositionGroups = (): TeamPositionGroup[] => [
             status: "pending",
             rawStatus: "U",
             photoThumbnailUrl: "https://example.com/person-2.jpg",
+            notification: null,
           },
         ],
       },
@@ -107,7 +109,7 @@ describe("team positions cache", () => {
 
   it("ignores invalid cache payloads", () => {
     window.localStorage.setItem(
-      "pcobooster:team-positions:v1:st-1:plan-1:series-1",
+      "pcobooster:team-positions:v2:st-1:plan-1:series-1",
       JSON.stringify({ savedAt: Date.now(), data: [{ teamId: "team-1" }] })
     );
 

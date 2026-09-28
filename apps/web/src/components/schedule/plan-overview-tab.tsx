@@ -1,17 +1,22 @@
+import type { Plan } from "@pcobooster/contracts/catalog";
 import { formatCalendarDateLabel } from "@pcobooster/planning-center-models/calendar";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   PlanTime,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
   ChevronRight,
   CircleAlert,
   CircleCheck,
   Clock3,
+  ExternalLink,
   ListMusic,
   Users,
 } from "lucide-react";
+import { useEffect, useEffectEvent, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 import { PageScrollArea } from "@/components/page-shell";
@@ -47,6 +52,7 @@ import {
   summarizeStaffing,
   summarizeTimes,
 } from "@/lib/plan-overview";
+import { queryKeys } from "@/lib/query-keys";
 import { planSlotLink } from "@/lib/schedule-navigation";
 import { cn } from "@/lib/utils";
 
@@ -101,14 +107,133 @@ const describeReadiness = (checks: readonly ReadinessCheck[]): string => {
   return todo === 1 ? "1 thing left to do." : `${todo} things left to do.`;
 };
 
+/**
+ * Planning Center's public API cannot send scheduling emails, so the notifications check hands
+ * off to the plan there and rereads the roster when the scheduler comes back to this tab.
+ */
+const useRecheckRosterOnReturn = (
+  plan: PlanRef & { seriesId: string | null }
+) => {
+  const queryClient = useQueryClient();
+  const [armed, setArmed] = useState(false);
+  const onReturn = useEffectEvent(() => {
+    if (armed && document.visibilityState === "visible") {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.teamPositions(
+          plan.serviceTypeId,
+          plan.planId,
+          plan.seriesId
+        ),
+        exact: true,
+      });
+    }
+  });
+  useEffect(() => {
+    const handleReturn = () => {
+      onReturn();
+    };
+    document.addEventListener("visibilitychange", handleReturn);
+    window.addEventListener("focus", handleReturn);
+    return () => {
+      document.removeEventListener("visibilitychange", handleReturn);
+      window.removeEventListener("focus", handleReturn);
+    };
+  }, []);
+  return () => {
+    setArmed(true);
+  };
+};
+
+const ReadinessCheckIcon = ({ state }: { state: ReadinessCheck["state"] }) =>
+  state === "done" ? (
+    <CircleCheck
+      className="text-status-confirmed size-4 shrink-0"
+      aria-hidden
+    />
+  ) : (
+    <CircleAlert
+      className="text-status-scheduled size-4 shrink-0"
+      aria-hidden
+    />
+  );
+
+const ReadinessCheckTitle = ({ check }: { check: ReadinessCheck }) => (
+  <ItemContent className="min-w-0">
+    <ItemTitle className="min-w-0">
+      <span
+        className={cn(
+          "truncate",
+          check.state === "done" && "text-muted-foreground"
+        )}
+      >
+        {check.label}
+      </span>
+    </ItemTitle>
+  </ItemContent>
+);
+
+const ReadinessCheckItem = ({
+  plan,
+  check,
+  planningCenterUrl,
+  onOpenPlanningCenter,
+}: {
+  plan: PlanRef;
+  check: ReadinessCheck;
+  planningCenterUrl: string | null;
+  onOpenPlanningCenter: () => void;
+}) => {
+  if (check.id === "notifications" && isNonEmptyString(planningCenterUrl)) {
+    return (
+      <Item
+        size="xs"
+        render={
+          <a
+            href={planningCenterUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${check.label}. Send scheduling emails in Planning Center`}
+            onClick={onOpenPlanningCenter}
+          />
+        }
+      >
+        <ReadinessCheckIcon state={check.state} />
+        <ReadinessCheckTitle check={check} />
+        <ExternalLink
+          className="text-muted-foreground size-4 shrink-0"
+          aria-hidden
+        />
+      </Item>
+    );
+  }
+  return (
+    <Item
+      size="xs"
+      render={<Link {...viewLink(plan, check.view)} />}
+      aria-label={`${check.label}. Open ${getPlanViewLabel(check.view)}`}
+    >
+      <ReadinessCheckIcon state={check.state} />
+      <ReadinessCheckTitle check={check} />
+      <ChevronRight
+        className="text-muted-foreground size-4 shrink-0"
+        aria-hidden
+      />
+    </Item>
+  );
+};
+
 const ReadinessCard = ({
   plan,
   checks,
   isLoading,
+  planningCenterUrl,
+  onOpenPlanningCenter,
 }: {
   plan: PlanRef;
   checks: ReadinessCheck[];
   isLoading: boolean;
+  planningCenterUrl: string | null;
+  onOpenPlanningCenter: () => void;
 }) => (
   <Card size="sm" className="md:col-span-2">
     <CardHeader>
@@ -127,39 +252,12 @@ const ReadinessCard = ({
       <ul className="grid gap-1 sm:grid-cols-2">
         {checks.map((check) => (
           <li key={check.id}>
-            <Item
-              size="xs"
-              render={<Link {...viewLink(plan, check.view)} />}
-              aria-label={`${check.label}. Open ${getPlanViewLabel(check.view)}`}
-            >
-              {check.state === "done" ? (
-                <CircleCheck
-                  className="text-status-confirmed size-4 shrink-0"
-                  aria-hidden
-                />
-              ) : (
-                <CircleAlert
-                  className="text-status-scheduled size-4 shrink-0"
-                  aria-hidden
-                />
-              )}
-              <ItemContent className="min-w-0">
-                <ItemTitle className="min-w-0">
-                  <span
-                    className={cn(
-                      "truncate",
-                      check.state === "done" && "text-muted-foreground"
-                    )}
-                  >
-                    {check.label}
-                  </span>
-                </ItemTitle>
-              </ItemContent>
-              <ChevronRight
-                className="text-muted-foreground size-4 shrink-0"
-                aria-hidden
-              />
-            </Item>
+            <ReadinessCheckItem
+              plan={plan}
+              check={check}
+              planningCenterUrl={planningCenterUrl}
+              onOpenPlanningCenter={onOpenPlanningCenter}
+            />
           </li>
         ))}
         {isLoading
@@ -498,6 +596,7 @@ const TimesCard = ({
 interface PlanOverviewTabProps {
   serviceTypeId: string;
   planId: string;
+  selectedPlan: Plan | null;
   teamPositionGroups: TeamPositionGroup[] | undefined;
   teamPositionsLoading: boolean;
   planTimes: PlanTime[] | undefined;
@@ -508,12 +607,18 @@ interface PlanOverviewTabProps {
 export const PlanOverviewTab = ({
   serviceTypeId,
   planId,
+  selectedPlan,
   teamPositionGroups,
   teamPositionsLoading,
   planTimes,
   getSlotIntentProps,
 }: PlanOverviewTabProps) => {
   const plan: PlanRef = { serviceTypeId, planId };
+  const armRosterRecheck = useRecheckRosterOnReturn({
+    ...plan,
+    seriesId: selectedPlan?.seriesId ?? null,
+  });
+  const planningCenterUrl = selectedPlan?.planningCenterUrl ?? null;
   const { data: planItems } = usePlanItems(serviceTypeId, planId);
 
   const staffing =
@@ -528,7 +633,13 @@ export const PlanOverviewTab = ({
   return (
     <PageScrollArea>
       <div className="pb-safe-4 grid gap-4 pt-1 md:grid-cols-2 md:pb-6">
-        <ReadinessCard plan={plan} checks={checks} isLoading={isLoading} />
+        <ReadinessCard
+          plan={plan}
+          checks={checks}
+          isLoading={isLoading}
+          planningCenterUrl={planningCenterUrl}
+          onOpenPlanningCenter={armRosterRecheck}
+        />
         <PeopleCard
           plan={plan}
           staffing={staffing}

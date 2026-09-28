@@ -330,6 +330,7 @@ export const DashboardPage = ({
             <PlanOverviewTab
               serviceTypeId={routeServiceTypeId}
               planId={routePlanId}
+              selectedPlan={selectedPlan}
               teamPositionGroups={teamPositionGroups}
               teamPositionsLoading={teamPositionsLoading}
               planTimes={planTimes}

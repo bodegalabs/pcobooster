@@ -10,6 +10,7 @@ import {
   ScheduleCandidateScore,
 } from "@/components/schedule/schedule-candidate-details";
 import type { CandidateStatus } from "@/components/schedule/schedule-candidate-details";
+import { UnsentNotificationMark } from "@/components/schedule/scheduling-notification-mark";
 import { Button } from "@/components/ui/button";
 import { useSchedulePlanPerson } from "@/hooks/use-schedule-plan-person";
 import { cn } from "@/lib/utils";
@@ -100,6 +101,7 @@ const ScheduleCandidateAction = ({
   isScheduling,
   canSchedule,
   disableReason,
+  notNotified,
   onSchedule,
   onScheduleSuccess,
   onScheduleError,
@@ -115,11 +117,18 @@ const ScheduleCandidateAction = ({
   isScheduling: boolean;
   canSchedule: boolean;
   disableReason?: string;
+  notNotified: boolean;
   onSchedule: () => void;
   onScheduleSuccess?: () => void;
   onScheduleError?: (message: string) => void;
 }) => (
-  <div className="col-start-3 row-span-2 row-start-1 flex w-10 shrink-0 justify-end sm:row-auto sm:w-20">
+  <div
+    className={cn(
+      "col-start-3 row-span-2 row-start-1 flex w-10 shrink-0 items-center justify-end gap-2 sm:row-auto sm:w-20",
+      isScheduled && notNotified && "w-auto"
+    )}
+  >
+    {isScheduled && notNotified ? <UnsentNotificationMark /> : null}
     {isScheduled ? (
       <PlanPersonStatusMenu
         planPersonId={person.scheduledPlanPersonId}
@@ -164,6 +173,8 @@ const ScheduleCandidateAction = ({
 
 export interface ScheduleCandidateTileProps {
   person: PersonWithAvailability;
+  /** Their assignment here has a prepared, unsent scheduling email. */
+  notNotified: boolean;
   serviceTypeId?: string | null;
   planId?: string | null;
   planReferenceDate?: Date | null;
@@ -232,6 +243,7 @@ const ScheduleCandidateIdentityRow = ({
 
 export const ScheduleCandidateTile = ({
   person,
+  notNotified,
   serviceTypeId,
   planId,
   planReferenceDate = null,
@@ -349,6 +361,7 @@ export const ScheduleCandidateTile = ({
         isScheduling={isScheduling}
         canSchedule={canSchedule}
         disableReason={disableReason}
+        notNotified={notNotified}
         onSchedule={() => {
           handleSchedule(person);
         }}

@@ -40,6 +40,7 @@ const rosterEntry = (
     rawStatus: "U",
     assignedTimeIds: [],
     serviceTimeIds: [],
+    notification: null,
     ...rest,
   };
 };

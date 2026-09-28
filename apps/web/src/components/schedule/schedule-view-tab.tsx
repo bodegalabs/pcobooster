@@ -13,6 +13,7 @@ import type { PlanPersonStatusValue } from "@/components/schedule/plan-person-st
 import { PositionPickerList } from "@/components/schedule/position-picker-list";
 import { ScheduleCandidateTile } from "@/components/schedule/schedule-candidate-tile";
 import { CandidateListSkeleton } from "@/components/schedule/schedule-skeletons";
+import { UnsentNotificationMark } from "@/components/schedule/scheduling-notification-mark";
 import { SectionLabel } from "@/components/schedule/section-label";
 import { SelectedPositionHeader } from "@/components/schedule/selected-position-header";
 import { SomeoneElseRow } from "@/components/schedule/someone-else-row";
@@ -38,6 +39,11 @@ import type { PositionCandidateList } from "@/hooks/use-position-candidates";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { getInitials } from "@/lib/format/initials";
 import { partitionPeopleForRecommendationStrip } from "@/lib/people/recommendation-strip-order";
+import {
+  getPositionNotificationStates,
+  getSchedulingNotificationState,
+} from "@/lib/schedule/scheduling-notifications";
+import type { SchedulingNotificationState } from "@/lib/schedule/scheduling-notifications";
 import { cn } from "@/lib/utils";
 
 interface ScheduleViewTabProps {
@@ -129,17 +135,22 @@ const TemporaryFilledPersonRow = ({
         </p>
       </div>
 
-      <PlanPersonStatusMenu
-        planPersonId={person.planPersonId}
-        serviceTypeId={serviceTypeId}
-        personId={person.id}
-        planId={planId}
-        teamId={teamId}
-        positionId={positionId}
-        currentStatus={currentStatus}
-        onSuccess={onSuccess}
-        onError={onError}
-      />
+      <div className="flex items-center gap-2">
+        {getSchedulingNotificationState(person.notification) === "unsent" ? (
+          <UnsentNotificationMark />
+        ) : null}
+        <PlanPersonStatusMenu
+          planPersonId={person.planPersonId}
+          serviceTypeId={serviceTypeId}
+          personId={person.id}
+          planId={planId}
+          teamId={teamId}
+          positionId={positionId}
+          currentStatus={currentStatus}
+          onSuccess={onSuccess}
+          onError={onError}
+        />
+      </div>
     </article>
   );
 };
@@ -148,6 +159,7 @@ interface SchedulePeopleListProps {
   candidateList: PositionCandidateList | null;
   selectedSlotUsesCustomPosition: boolean;
   selectedFilledPeople: FilledPositionPerson[];
+  notificationStates: ReadonlyMap<string, SchedulingNotificationState>;
   filteredActionable: PersonWithAvailability[];
   filteredExceptions: PersonWithAvailability[];
   selectedServiceTypeId: string | null;
@@ -165,6 +177,7 @@ const SchedulePeopleList = ({
   candidateList,
   selectedSlotUsesCustomPosition,
   selectedFilledPeople,
+  notificationStates,
   filteredActionable,
   filteredExceptions,
   selectedServiceTypeId,
@@ -266,6 +279,7 @@ const SchedulePeopleList = ({
             <ScheduleCandidateTile
               key={personTileKey(person)}
               person={person}
+              notNotified={notificationStates.get(person.id) === "unsent"}
               serviceTypeId={selectedServiceTypeId}
               planId={selectedPlanId}
               planReferenceDate={planReferenceDate}
@@ -300,6 +314,7 @@ const SchedulePeopleList = ({
               <ScheduleCandidateTile
                 key={personTileKey(person)}
                 person={person}
+                notNotified={notificationStates.get(person.id) === "unsent"}
                 serviceTypeId={selectedServiceTypeId}
                 planId={selectedPlanId}
                 planReferenceDate={planReferenceDate}
@@ -355,6 +370,15 @@ const ScheduleViewContent = ({
     selectedSlotInfo?.position.source === "plan_member" ||
     selectedSlotInfo?.position.source === "custom";
   const selectedFilledPeople = selectedSlotInfo?.position.filledPeople ?? [];
+  const notificationStates = useMemo(
+    () =>
+      getPositionNotificationStates(
+        teamPositionGroups,
+        selectedTeam,
+        selectedPosition
+      ),
+    [teamPositionGroups, selectedTeam, selectedPosition]
+  );
 
   const hasSelectedPosition =
     selectedPosition !== null && selectedPosition !== "";
@@ -442,6 +466,7 @@ const ScheduleViewContent = ({
                     selectedSlotUsesCustomPosition
                   }
                   selectedFilledPeople={selectedFilledPeople}
+                  notificationStates={notificationStates}
                   filteredActionable={filteredActionable}
                   filteredExceptions={filteredExceptions}
                   selectedServiceTypeId={selectedServiceTypeId}

@@ -112,6 +112,24 @@ export interface FilledPositionPerson {
   photoThumbnailUrl?: string | null;
   assignedTimeIds?: string[];
   serviceTimeIds?: string[];
+  /** Null until Planning Center returns the assignment (for example, right after scheduling). */
+  notification: PlanPersonNotification | null;
+}
+
+/**
+ * Planning Center's record of an assignment's scheduling email, from `PlanPerson`. There is no
+ * public API to send it; a scheduler sends it in Planning Center.
+ */
+export interface PlanPersonNotification {
+  /**
+   * `prepare_notification`: the email is prepared but unsent, so the person cannot see or answer
+   * the request yet.
+   */
+  prepared: boolean;
+  /** `notification_sent_at`: when Planning Center recorded a send. Not proof of delivery. */
+  sentAt: string | null;
+  /** `notification_sender_name`. */
+  senderName: string | null;
 }
 
 export interface RawTeamPosition {
@@ -171,6 +189,9 @@ export interface RawPlanPerson {
     created_at: string;
     team_position_name: string;
     decline_reason?: string;
+    prepare_notification?: boolean;
+    notification_sent_at?: string | null;
+    notification_sender_name?: string | null;
   };
   relationships?: {
     plan?: {

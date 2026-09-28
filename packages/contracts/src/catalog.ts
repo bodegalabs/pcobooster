@@ -18,6 +18,12 @@ export const planSchema = z.object({
   sortDate: z.date().optional(),
 });
 
+export const planPersonNotificationSchema = z.object({
+  prepared: z.boolean(),
+  sentAt: z.string().nullable(),
+  senderName: z.string().nullable(),
+});
+
 export const filledPositionPersonSchema = z.object({
   id: z.string(),
   planPersonId: z.string(),
@@ -28,6 +34,7 @@ export const filledPositionPersonSchema = z.object({
   photoThumbnailUrl: z.string().nullable().optional(),
   assignedTimeIds: z.array(z.string()).optional(),
   serviceTimeIds: z.array(z.string()).optional(),
+  notification: planPersonNotificationSchema.nullable(),
 });
 
 export const teamPositionSchema = z.object({
@@ -114,6 +121,9 @@ export const catalogContract = {
 export type ServiceType = z.output<typeof serviceTypeSchema>;
 export type Plan = z.output<typeof planSchema>;
 export type FilledPositionPerson = z.output<typeof filledPositionPersonSchema>;
+export type PlanPersonNotification = z.output<
+  typeof planPersonNotificationSchema
+>;
 export type TeamPosition = z.output<typeof teamPositionSchema>;
 export type TeamPositionGroup = z.output<typeof teamPositionGroupSchema>;
 export type PlansInput = z.input<typeof plansInputSchema>;

@@ -10,13 +10,9 @@ Every idea must also fit the [request budget](../AGENTS.md#request-budget-worker
 
 ## Up next
 
-### Unsent scheduling notifications
+### Automatic reminders for unsent scheduling emails
 
-Show which assignments on a plan still have a prepared (unsent) notification and link straight to the plan in Planning Center, where the scheduler sends the native email. Never label someone as notified just because the assignment exists.
-
-- Data: `PlanPerson.prepare_notification`, `notification_prepared_at`, `notification_sent_at`; `Team.default_prepare_notifications` explains the default.
-- Background: [scheduling notifications research](research/planning-center-scheduling-notifications.md#recommendation-for-pcobooster).
-- Later option: configure `PlanTime.team_reminders` so Planning Center sends a reminder with Accept/Decline. Needs a controlled write test first.
+Unsent scheduling emails are now flagged on Lineup, Assign, and the plan overview, with a handoff to Planning Center for the native send. A follow-up could configure `PlanTime.team_reminders` so Planning Center sends a reminder with Accept/Decline, which also clears the prepared state. Needs a controlled write test first; see the [scheduling notifications research](research/planning-center-scheduling-notifications.md#recommendation-for-pcobooster).
 
 ### Service home page
 

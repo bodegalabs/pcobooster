@@ -20,7 +20,13 @@ import type {
   TeamPosition,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
-import { CalendarDays, ChevronDown, Clock3, GripVertical } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronDown,
+  Clock3,
+  GripVertical,
+  Mail,
+} from "lucide-react";
 import { startTransition, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 
@@ -28,6 +34,7 @@ import { PageScrollArea } from "@/components/page-shell";
 import { PlanPersonEditDialog } from "@/components/schedule/plan-person-edit-dialog";
 import { getPlanPersonStatusValue } from "@/components/schedule/plan-person-status";
 import { PositionPickerIcon } from "@/components/schedule/position-picker-icon";
+import { UnsentNotificationMark } from "@/components/schedule/scheduling-notification-mark";
 import { SlotBadgeCluster } from "@/components/schedule/slot-badge-cluster";
 import { ScheduleStatusDot } from "@/components/schedule/status-dot";
 import type { SlotRef } from "@/components/schedule/types";
@@ -62,6 +69,7 @@ import {
   applyLineupColumnOrder,
   reorderLineupColumnIds,
 } from "@/lib/lineup-column-order";
+import { getSchedulingNotificationState } from "@/lib/schedule/scheduling-notifications";
 import { cn } from "@/lib/utils";
 
 interface LineupTabProps {
@@ -83,10 +91,10 @@ const teamColumnClass =
 const lineupColumnsRowClassName =
   "flex min-w-max items-stretch gap-4 pt-1 pb-3";
 const lineupPositionGridClass =
-  "grid w-full grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_2rem] items-center gap-x-2 gap-y-0";
-const lineupPositionRowClass = "col-span-4 grid grid-cols-subgrid items-center";
+  "grid w-full grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_0.875rem_2rem] items-center gap-x-2 gap-y-0";
+const lineupPositionRowClass = "col-span-5 grid grid-cols-subgrid items-center";
 const lineupPositionPeopleClass = cn(
-  "col-span-4 pl-2",
+  "col-span-5 pl-2",
   lineupPositionGridClass,
   "gap-y-0.5"
 );
@@ -129,6 +137,8 @@ const PersonRow = ({
     assignedTimeIdSet.has(planTime.id)
   ).length;
   const statusDotStatus = getStatusDotStatus(person);
+  const unsent =
+    getSchedulingNotificationState(person.notification) === "unsent";
 
   return (
     <>
@@ -139,7 +149,7 @@ const PersonRow = ({
           render={
             <button
               type="button"
-              aria-label={`Edit ${person.name} assignment`}
+              aria-label={`Edit ${person.name} assignment${unsent ? ", not notified yet" : ""}`}
             />
           }
           onClick={() => {
@@ -162,6 +172,9 @@ const PersonRow = ({
               </span>
             ) : null}
           </div>
+          <span className="flex justify-center">
+            {unsent ? <UnsentNotificationMark /> : null}
+          </span>
           <ScheduleStatusDot
             status={statusDotStatus}
             className="justify-self-center"
@@ -250,8 +263,8 @@ const LineupPositionCard = ({
                   teamName={teamName}
                 />
               </div>
-              {/* Titles also use the time-count column, which only person rows fill. */}
-              <ItemTitle className="col-span-2 min-w-0">
+              {/* Titles also use the time-count and envelope columns, which only person rows fill. */}
+              <ItemTitle className="col-span-3 min-w-0">
                 <span
                   className={cn(
                     "block min-w-0",
@@ -325,6 +338,15 @@ const TeamColumn = ({
     (sum, position) => sum + (position.neededCount ?? 0),
     0
   );
+  const unsentCount = group.positions.reduce(
+    (sum, position) =>
+      sum +
+      (position.filledPeople ?? []).filter(
+        (person) =>
+          getSchedulingNotificationState(person.notification) === "unsent"
+      ).length,
+    0
+  );
   const [open, setOpen] = useState(() => openNeededCount > 0);
 
   return (
@@ -366,6 +388,15 @@ const TeamColumn = ({
             <h3 className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight">
               {group.teamName}
             </h3>
+            {unsentCount > 0 ? (
+              <span
+                className="text-muted-foreground inline-flex shrink-0 items-center gap-1 text-xs font-medium tabular-nums"
+                aria-label={`${unsentCount} not notified`}
+              >
+                <Mail className="size-3.5" aria-hidden />
+                {unsentCount}
+              </span>
+            ) : null}
             {openNeededCount > 0 ? (
               <span className="text-status-declined dark:text-status-declined shrink-0 text-xs font-medium tabular-nums">
                 {openNeededCount}

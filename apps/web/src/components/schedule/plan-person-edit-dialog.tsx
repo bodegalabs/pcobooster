@@ -15,6 +15,7 @@ import {
 } from "@/components/schedule/plan-person-status";
 import type { PlanPersonStatusValue } from "@/components/schedule/plan-person-status";
 import { formatPlanTimeRangeLabel } from "@/components/schedule/plan-time-display";
+import { SchedulingNotificationNote } from "@/components/schedule/scheduling-notification-mark";
 import { ScheduleStatusDot } from "@/components/schedule/status-dot";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -316,11 +317,14 @@ const PlanPersonEditDialogBody = ({
       </ResponsiveDialogHeader>
       <div className="flex min-h-0 flex-col gap-3 max-md:overflow-y-auto max-md:px-4 max-md:pt-4">
         <div className="flex flex-col gap-4">
-          <PlanPersonStatusPicker
-            value={draftStatus}
-            disabled={isBusy}
-            onChange={setDraftStatus}
-          />
+          <div className="flex flex-col gap-2">
+            <PlanPersonStatusPicker
+              value={draftStatus}
+              disabled={isBusy}
+              onChange={setDraftStatus}
+            />
+            <SchedulingNotificationNote notification={person.notification} />
+          </div>
           {planTimes.length > 0 ? (
             <div className="border-border border-t pt-4">
               <PlanPersonTimesPicker

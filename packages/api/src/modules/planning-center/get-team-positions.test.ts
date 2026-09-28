@@ -108,6 +108,11 @@ const planTeamMember = (params: {
   teamPositionName: string;
   status: string;
   personId?: string;
+  notification?: {
+    prepare_notification: boolean;
+    notification_sent_at: string | null;
+    notification_sender_name: string | null;
+  };
 }): PCResource => ({
   type: "PlanPerson",
   id: params.id,
@@ -115,6 +120,7 @@ const planTeamMember = (params: {
     status: params.status,
     created_at: "2026-01-01T00:00:00Z",
     team_position_name: params.teamPositionName,
+    ...params.notification,
   },
   relationships: {
     team: {
@@ -400,6 +406,11 @@ describe(getNeededTeamPositionsForPlan, () => {
             teamPositionName: "Vocals",
             status: "C",
             personId: "person-1",
+            notification: {
+              prepare_notification: false,
+              notification_sent_at: "2026-01-02T15:00:00Z",
+              notification_sender_name: "Sam Scheduler",
+            },
           }),
           planTeamMember({
             id: "pp-pending",
@@ -407,6 +418,11 @@ describe(getNeededTeamPositionsForPlan, () => {
             teamPositionName: "Vocals",
             status: "U",
             personId: "person-2",
+            notification: {
+              prepare_notification: true,
+              notification_sent_at: null,
+              notification_sender_name: null,
+            },
           }),
           planTeamMember({
             id: "pp-declined",
@@ -443,6 +459,11 @@ describe(getNeededTeamPositionsForPlan, () => {
         photoThumbnailUrl: null,
         assignedTimeIds: [],
         serviceTimeIds: [],
+        notification: {
+          prepared: false,
+          sentAt: "2026-01-02T15:00:00Z",
+          senderName: "Sam Scheduler",
+        },
       },
       {
         id: "person-2",
@@ -454,6 +475,7 @@ describe(getNeededTeamPositionsForPlan, () => {
         photoThumbnailUrl: null,
         assignedTimeIds: [],
         serviceTimeIds: [],
+        notification: { prepared: true, sentAt: null, senderName: null },
       },
     ]);
   });
@@ -561,6 +583,7 @@ describe(getNeededTeamPositionsForPlan, () => {
                 photoThumbnailUrl: null,
                 assignedTimeIds: [],
                 serviceTimeIds: [],
+                notification: null,
               },
             ],
           },
