@@ -32,7 +32,7 @@ Music theory measures how related two keys are by how far apart their key signat
 | Technique | When it applies | Example |
 | --- | --- | --- |
 | Play the new key's 5 chord (V, V7, or Vsus) | Any interval. Strongest when the new key is closely related or a lift | G→D: end on G, play A, land on D ([Cormany](https://www.leadingworshipwell.com/blogposts/3-ways-to-transition-between-song-keys-in-a-worship-set)) |
-| ii–V into the new key | Lifts, and anything that needs a short turnaround | Whole step: C, Em, G/A, A, D. Half step: C, G, E♭m, A♭, D♭ ([Kauflin piano notes](http://www.worshipmatters.com/wp-content/uploads/2012/01/The-Piano-in-Contemporary-Worship-%E2%80%93-Kauflin-FINAL.pdf)). Also C, G/A, D and C, B♭/C, F ([Kauflin, Piano Stylings](https://cdn.sbts.edu/documents/icw/kauflinpianostylings.pdf)) |
+| ii-V into the new key | Lifts, and anything that needs a short turnaround | Whole step: C, Em, G/A, A, D. Half step: C, G, E♭m, A♭, D♭ ([Kauflin piano notes](http://www.worshipmatters.com/wp-content/uploads/2012/01/The-Piano-in-Contemporary-Worship-%E2%80%93-Kauflin-FINAL.pdf)). Also C, G/A, D and C, B♭/C, F ([Kauflin, Piano Stylings](https://cdn.sbts.edu/documents/icw/kauflinpianostylings.pdf)) |
 | Pivot chord | Closely related keys, step down a whole step, some mediants through a borrowed chord | C→B♭: Dm is in both keys; C, Dm, F7, B♭ |
 | V of the new key is already in the old key | C→B♭ (F is IV in C), Am→Cm (G is VII in Am) | End C's song on F, then F7, then B♭ |
 | Common-tone hinge | Chromatic mediants (one shared note) | C→E: hold E, then B7, then E ([Hutchinson 22.7](https://musictheory.pugetsound.edu/mt21c/ModulationsWithoutPivotChords.html)) |
