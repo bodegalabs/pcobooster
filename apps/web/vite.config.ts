@@ -30,7 +30,7 @@ const runBunScript = async (args: readonly string[]): Promise<void> => {
 };
 
 /**
- * `/` and `/about` serve the prerendered marketing site from `public/marketing`, which Vite
+ * `/`, `/about`, `/privacy`, and `/terms` serve the prerendered marketing site from `public/marketing`, which Vite
  * copies into the uploaded client assets. Turborepo builds marketing before a standalone
  * product build; Alchemy has no pre-build hook, so its builds run the marketing build first.
  */
@@ -72,7 +72,7 @@ export default defineConfig(({ command, isPreview }) => {
     server: {
       // The marketing dev server owns these pages locally; builds stage them instead.
       proxy: {
-        "^/(?:about/?)?(?:\\?.*)?$": marketingDevOrigin,
+        "^/(?:(?:about|privacy|terms)/?)?(?:\\?.*)?$": marketingDevOrigin,
         "^/marketing/": marketingDevOrigin,
       },
     },

@@ -7,7 +7,7 @@ import type { Plugin } from "vite";
 import { withPublicBase } from "./src/lib/base-path.ts";
 import { MARKETING_BASE } from "./src/lib/site-head.ts";
 
-/** Lets prerendering fetch `/` and `/about` through the preview server's base guard. */
+/** Lets prerendering fetch `/`, `/about`, `/privacy`, and `/terms` through the preview server's base guard. */
 const previewPagesOutsideBase = (): Plugin => ({
   name: "pcobooster:marketing-preview-pages",
   configurePreviewServer: (server) => {

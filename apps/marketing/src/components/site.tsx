@@ -196,6 +196,12 @@ export const SiteFooter = () => (
         <a className="hover:text-foreground" href="/about">
           Our story
         </a>
+        <a className="hover:text-foreground" href="/privacy">
+          Privacy
+        </a>
+        <a className="hover:text-foreground" href="/terms">
+          Terms
+        </a>
         <a
           className="hover:text-foreground inline-flex items-center gap-1"
           href={CONTACT_URL}

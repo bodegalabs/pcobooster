@@ -19,6 +19,20 @@ const SOCIAL_PREVIEWS = {
     image: "og-about.png",
     alt: "PCOBooster was built for the people who bring the team together",
   },
+  "/privacy": {
+    title: "Privacy Policy | PCOBooster",
+    description:
+      "What PCOBooster collects when you sign in with Planning Center, why, and how to have it deleted.",
+    image: "og-home.png",
+    alt: "PCOBooster helps build a lineup with availability and serving history in view",
+  },
+  "/terms": {
+    title: "Terms of Service | PCOBooster",
+    description:
+      "The terms for using PCOBooster, an independent scheduling workspace for Planning Center Services.",
+    image: "og-home.png",
+    alt: "PCOBooster helps build a lineup with availability and serving history in view",
+  },
 } as const;
 
 export type HeadMeta =
