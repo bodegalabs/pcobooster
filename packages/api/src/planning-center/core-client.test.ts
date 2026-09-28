@@ -203,6 +203,27 @@ describe(PlanningCenterCoreClient, () => {
     expect(response.status).toBe(204);
   });
 
+  it("reads the error code from a JSON:API errors list", async () => {
+    const fetch = fetchMock().mockResolvedValue(
+      jsonResponse(
+        {
+          errors: [
+            {
+              status: "401",
+              code: "TRASH_PANDA",
+              title: "Unauthorized",
+              detail: "You do not have access to this application",
+            },
+          ],
+        },
+        { status: 401 }
+      )
+    );
+    await expect(
+      failureOf(basicClient(fetch).fetch("/services/v2/me"))
+    ).resolves.toMatchObject({ status: 401, code: "TRASH_PANDA" });
+  });
+
   it("rejects an empty response where a JSON resource is required", async () => {
     const fetch = fetchMock().mockResolvedValue(
       new Response(null, { status: 204 })

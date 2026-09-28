@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/router.ts",
+    "./access": "./src/access.ts",
     "./accounts": "./src/accounts.ts",
     "./admin": "./src/admin.ts",
     "./catalog": "./src/catalog.ts",
@@ -35,6 +36,7 @@
   },
   "dependencies": {
     "@orpc/contract": "^1.15.0",
+    "@pcobooster/planning-center-models": "workspace:*",
     "zod": "^4.6.5"
   },
   "devDependencies": {

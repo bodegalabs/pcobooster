@@ -8,6 +8,7 @@ import {
   resolveOrganizationTimeZone,
 } from "@pcobooster/api/planning-center/resolve-organization-timezone";
 import type { OrganizationTimeZoneCache } from "@pcobooster/api/planning-center/resolve-organization-timezone";
+import { PlanningCenterAccessService } from "@pcobooster/api/planning-center/services/access-service";
 import {
   createPlanningCenterCatalogServiceCaches,
   PlanningCenterCatalogService,
@@ -149,6 +150,8 @@ const createServicesForClient = (
 
   return {
     core,
+    /** The signed-in person's own permissions in each product. */
+    access: new PlanningCenterAccessService(core),
     catalog,
     /** The organization's IANA zone, or the configured fallback; cached per isolate. */
     organizationTimeZone,

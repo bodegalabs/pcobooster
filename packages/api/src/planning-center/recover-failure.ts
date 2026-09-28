@@ -5,6 +5,8 @@ import { Cause, Effect } from "effect";
 
 const log = logger.for("planning-center/recover-failure");
 
+const HTTP_UNAUTHORIZED = 401;
+const HTTP_FORBIDDEN = 403;
 const HTTP_NOT_FOUND = 404;
 const HTTP_TOO_MANY_REQUESTS = 429;
 const MAX_LOGGED_ERROR_LENGTH = 280;
@@ -13,6 +15,8 @@ const MAX_LOGGED_ERROR_LENGTH = 280;
  * A Planning Center failure a caller may name as recoverable:
  *
  * - `not-found`: a 404, such as a service type or plan in another organization.
+ * - `permission-denied`: a 401 or 403, when the person's own Planning Center access
+ *   doesn't reach the resource. Listing `provider-failure` recovers these too.
  * - `provider-failure`: any other error status except 429, or a network failure.
  * - `unusable-response`: a defect, such as a response missing the expected resource.
  *
@@ -22,6 +26,7 @@ const MAX_LOGGED_ERROR_LENGTH = 280;
  */
 export type RecoverablePlanningCenterFailure =
   | "not-found"
+  | "permission-denied"
   | "provider-failure"
   | "unusable-response";
 
@@ -49,7 +54,30 @@ const classifyReason = (
   ) {
     return undefined;
   }
-  return error.status === HTTP_NOT_FOUND ? "not-found" : "provider-failure";
+  if (error.status === HTTP_NOT_FOUND) {
+    return "not-found";
+  }
+  if (error.status === HTTP_UNAUTHORIZED || error.status === HTTP_FORBIDDEN) {
+    return "permission-denied";
+  }
+  return "provider-failure";
+};
+
+/**
+ * The listed kind that covers `kind`. A permission denial was a provider failure before it
+ * had its own kind, so reads that list provider failures still recover it.
+ */
+const listedKind = (
+  kind: RecoverablePlanningCenterFailure,
+  listed: ReadonlySet<RecoverablePlanningCenterFailure>
+): RecoverablePlanningCenterFailure | undefined => {
+  if (listed.has(kind)) {
+    return kind;
+  }
+  if (kind === "permission-denied" && listed.has("provider-failure")) {
+    return "provider-failure";
+  }
+  return undefined;
 };
 
 /** The kinds in `cause` when every part of it is recoverable and listed in `kinds`. */
@@ -61,10 +89,11 @@ const listedKindsOf = <Failure>(
   const found = new Set<RecoverablePlanningCenterFailure>();
   for (const reason of cause.reasons) {
     const kind = classifyReason(reason);
-    if (kind === undefined || !listed.has(kind)) {
+    const covered = kind === undefined ? undefined : listedKind(kind, listed);
+    if (covered === undefined) {
       return undefined;
     }
-    found.add(kind);
+    found.add(covered);
   }
   return found.size > 0 ? found : undefined;
 };
@@ -99,7 +128,7 @@ export interface RecoverPlanningCenterFailureOptions<Fallback> {
 
 /**
  * Falls back to `fallback()` after a failure of one of the listed kinds, and
- * logs the reason: `not-found` at `info`, any other kind at `warn`. Rate-limit
+ * logs the reason: `not-found` and `permission-denied` at `info`, any other kind at `warn`. Rate-limit
  * and subrequest-limit failures, read-only rejections, and interruption always
  * propagate, so a spent budget can never read as empty data.
  */
@@ -123,7 +152,10 @@ export const recoverPlanningCenterFailure =
         failure: [...found].join(","),
         error: describePlanningCenterCause(cause),
       };
-      if (found.size === 1 && found.has("not-found")) {
+      const expected = [...found].every(
+        (kind) => kind === "not-found" || kind === "permission-denied"
+      );
+      if (expected) {
         log.info(fields, reason);
       } else {
         log.warn(fields, reason);

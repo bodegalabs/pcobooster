@@ -1,0 +1,86 @@
+import type { AccessSnapshot } from "@pcobooster/contracts/access";
+import {
+  deriveFeatureAccess,
+  serviceTypeAbilities,
+} from "@pcobooster/planning-center-models/access";
+import type {
+  FeatureAccess,
+  ServiceTypeAbilities,
+} from "@pcobooster/planning-center-models/access";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
+
+import { useAccountsQuery } from "@/hooks/use-account-panel";
+import { chordChartsFeatureQueryOptions } from "@/lib/chord-charts-route";
+import { cleanupFeatureQueryOptions } from "@/lib/cleanup-route";
+import { peopleFeatureQueryOptions } from "@/lib/people-route";
+import { visibleFeatureAccess } from "@/lib/planning-center-access";
+import { queryKeys } from "@/lib/query-keys";
+import { callForQuery } from "@/lib/request-priority";
+import { orpc } from "@/orpc-client";
+
+const ACCESS_STALE_TIME_MS = 10 * 60 * 1000;
+
+const usePlanningCenterAccessQuery = () =>
+  useQuery<AccessSnapshot>({
+    queryKey: queryKeys.planningCenterAccess(),
+    queryFn: async (context) =>
+      await callForQuery(
+        context,
+        async (options) => await orpc.access.me({}, options)
+      ),
+    staleTime: ACCESS_STALE_TIME_MS,
+  });
+
+export interface PlanningCenterAccessState {
+  /** Null until Planning Center answers, or when it couldn't be read. */
+  readonly snapshot: AccessSnapshot | null;
+  /** Features this deployment shows, with what this person can do in each. */
+  readonly features: readonly FeatureAccess[];
+  /** The selected account, for remembering what it has seen; null in the demo. */
+  readonly accountId: string | null;
+  readonly demo: boolean;
+}
+
+/** The signed-in person's Planning Center access, per feature this deployment shows. */
+export const usePlanningCenterAccess = (): PlanningCenterAccessState => {
+  const { data: snapshot } = usePlanningCenterAccessQuery();
+  const { data: accounts } = useAccountsQuery();
+  const { data: people } = useQuery(peopleFeatureQueryOptions);
+  const { data: songs } = useQuery(chordChartsFeatureQueryOptions);
+  const { data: cleanup } = useQuery(cleanupFeatureQueryOptions);
+  const peopleEnabled = people?.enabled ?? false;
+  const songsEnabled = songs?.enabled ?? false;
+  const cleanupEnabled = cleanup?.enabled ?? false;
+
+  const features = useMemo(
+    () =>
+      snapshot === undefined
+        ? []
+        : visibleFeatureAccess(deriveFeatureAccess(snapshot), {
+            peopleDashboard: peopleEnabled,
+            songs: songsEnabled,
+            cleanup: cleanupEnabled,
+          }),
+    [snapshot, peopleEnabled, songsEnabled, cleanupEnabled]
+  );
+
+  const demo = accounts?.demo === true;
+  return {
+    snapshot: snapshot ?? null,
+    features,
+    accountId: demo ? null : (accounts?.selectedAccountId ?? null),
+    demo,
+  };
+};
+
+/** What the person can change in one service type; null until access is known. */
+export const useServiceTypeAbilities = (
+  serviceTypeId: string | null
+): ServiceTypeAbilities | null => {
+  const { data: snapshot } = usePlanningCenterAccessQuery();
+  if (snapshot === undefined || serviceTypeId === null) {
+    return null;
+  }
+  return serviceTypeAbilities(snapshot, serviceTypeId);
+};

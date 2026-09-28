@@ -13,6 +13,7 @@ import { describe, expect, it } from "vitest";
 
 const ALL_KINDS: readonly RecoverablePlanningCenterFailure[] = [
   "not-found",
+  "permission-denied",
   "provider-failure",
   "unusable-response",
 ];
@@ -102,6 +103,34 @@ describe(recoverPlanningCenterFailure, () => {
     );
 
     expect(exit).toStrictEqual(Exit.succeed("fallback"));
+  });
+
+  it.each([401, 403])(
+    "falls back after a listed permission denial (%i)",
+    async (status) => {
+      const exit = await recoverTo(["permission-denied"])(
+        Effect.fail(new PlanningCenterApiError({ message: "Denied", status }))
+      );
+
+      expect(exit).toStrictEqual(Exit.succeed("fallback"));
+    }
+  );
+
+  it("keeps recovering permission denials where provider failures are listed", async () => {
+    const exit = await recoverTo(["provider-failure"])(
+      Effect.fail(
+        new PlanningCenterApiError({ message: "Denied", status: 403 })
+      )
+    );
+
+    expect(exit).toStrictEqual(Exit.succeed("fallback"));
+  });
+
+  it("propagates a server error when only permission denials are listed", async () => {
+    const error = new PlanningCenterApiError({ message: "Down", status: 503 });
+    const exit = await recoverTo(["permission-denied"])(Effect.fail(error));
+
+    expect(exit).toStrictEqual(Exit.fail(error));
   });
 
   it("recovers a defect only when unusable responses are listed", async () => {
