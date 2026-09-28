@@ -5,6 +5,7 @@ export type RankingFactKind =
   | "service"
   | "rehearsal"
   | "load"
+  | "preference"
   | "note";
 
 /** One fact about a candidate, with the ranking adjustments it caused. */
@@ -25,6 +26,7 @@ const FACT_PATTERNS: readonly [RegExp, RankingFactKind][] = [
   [/^No (?:past services|service history)/u, "fresh"],
   [/^Upcoming:/u, "service"],
   [/^Rehearsals? upcoming:/u, "rehearsal"],
+  [/^(?:Prefers |At most |Marked Unavailable )/u, "preference"],
 ];
 
 const factKind = (reason: string): RankingFactKind =>

@@ -13,6 +13,7 @@ import {
   Moon02Icon,
   MusicNote03Icon,
   Settings02Icon,
+  ShieldUserIcon,
   Sun01Icon,
   Tick02Icon,
   UserAdd01Icon,
@@ -27,6 +28,11 @@ import { Check, ChevronDown, ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
 import { useCallback, useState } from "react";
 
+import { NoServicesAccess } from "@/components/access/access-notices";
+import {
+  AccessReviewProvider,
+  useAccessReview,
+} from "@/components/access/access-review";
 import { HotkeyChord } from "@/components/hotkey-chord";
 import { MobileHeader } from "@/components/mobile-menu";
 import { SidebarBrandMark } from "@/components/sidebar-brand-mark";
@@ -291,6 +297,7 @@ const SidebarAccountPanel = ({
 }) => {
   const { setTheme, theme } = useTheme();
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const { openReview, restricted } = useAccessReview();
   const {
     data,
     loading,
@@ -394,6 +401,25 @@ const SidebarAccountPanel = ({
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator inset />
+
+            {demo ? null : (
+              <DropdownMenuItem
+                onSelect={() => {
+                  openReview();
+                }}
+              >
+                <SidebarNavIcon
+                  icon={ShieldUserIcon}
+                  className="text-muted-foreground"
+                />
+                <span className="flex-1">Your access</span>
+                {restricted ? (
+                  <span className="text-status-scheduled ml-2 text-xs">
+                    Limited
+                  </span>
+                ) : null}
+              </DropdownMenuItem>
+            )}
 
             <DropdownMenuItem
               onSelect={() => {
@@ -709,6 +735,12 @@ const MobileChromeHeader = () => {
   );
 };
 
+/** The page, unless the account can't open Services and every page would fail. */
+const AppShellContent = ({ children }: { children: ReactNode }): ReactNode => {
+  const { noServicesAccess } = useAccessReview();
+  return noServicesAccess ? <NoServicesAccess /> : children;
+};
+
 /** Navigation chrome around every signed-in product page. */
 export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
   const [storedOpen, setStoredOpen] = useBrowserStorage(
@@ -726,27 +758,31 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
   );
 
   return (
-    <SidebarProvider
-      open={sidebarOpen}
-      onOpenChange={handleSidebarOpenChange}
-      className="min-h-dvh md:h-dvh md:min-h-0 md:overflow-hidden"
-    >
-      <SidebarToggleHotkey />
-      <AppSidebar
-        peopleNavEnabled={peopleNavEnabled}
-        songsNavEnabled={songsNavEnabled}
-        cleanupNavEnabled={cleanupNavEnabled}
-      />
-      <SidebarInset className="md:min-h-0 md:overflow-hidden">
-        <AppInsetChromeHeader>
-          <SidebarChromeTrigger when="inset" />
-          <AppTopBar />
-          <DemoBadge />
-          {presentationMode ? <PresentationModeBadge /> : null}
-        </AppInsetChromeHeader>
-        <MobileChromeHeader />
-        <div className="flex flex-1 flex-col md:min-h-0">{children}</div>
-      </SidebarInset>
-    </SidebarProvider>
+    <AccessReviewProvider>
+      <SidebarProvider
+        open={sidebarOpen}
+        onOpenChange={handleSidebarOpenChange}
+        className="min-h-dvh md:h-dvh md:min-h-0 md:overflow-hidden"
+      >
+        <SidebarToggleHotkey />
+        <AppSidebar
+          peopleNavEnabled={peopleNavEnabled}
+          songsNavEnabled={songsNavEnabled}
+          cleanupNavEnabled={cleanupNavEnabled}
+        />
+        <SidebarInset className="@container md:min-h-0 md:overflow-hidden">
+          <AppInsetChromeHeader>
+            <SidebarChromeTrigger when="inset" />
+            <AppTopBar />
+            <DemoBadge />
+            {presentationMode ? <PresentationModeBadge /> : null}
+          </AppInsetChromeHeader>
+          <MobileChromeHeader />
+          <div className="page-gutters flex flex-1 flex-col md:min-h-0">
+            <AppShellContent>{children}</AppShellContent>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </AccessReviewProvider>
   );
 };

@@ -134,7 +134,19 @@ export const createPlanningCenterAccessDependencies = (
   presentationSeed: getPresentationSeed(server.config.presentation),
 });
 
-/** The fault reported for each expected Planning Center failure. */
+const PLANNING_CENTER_FORBIDDEN_STATUS = 403;
+const PLANNING_CENTER_UNAUTHORIZED_STATUS = 401;
+/** Planning Center's code for a person with no access to the product they called. */
+const PLANNING_CENTER_NO_APP_ACCESS_CODE = "TRASH_PANDA";
+const PERMISSION_DENIED_MESSAGE =
+  "Your Planning Center permissions don't allow this. A Planning Center admin can give you more access.";
+const NO_APP_ACCESS_MESSAGE =
+  "Your Planning Center account doesn't have access to this Planning Center app. A Planning Center admin can add it.";
+
+/**
+ * The fault reported for each expected Planning Center failure. Tokens act with the person's
+ * own permissions, so a denial is theirs to fix with an admin, not a service failure.
+ */
 export const planningCenterFault = (
   error: PlanningCenterError
 ): ApplicationFault => {
@@ -152,6 +164,15 @@ export const planningCenterFault = (
           service: "planning-center",
           retryAfterSeconds: error.retryAfterSeconds,
         });
+      }
+      if (error.status === PLANNING_CENTER_FORBIDDEN_STATUS) {
+        return new Forbidden({ message: PERMISSION_DENIED_MESSAGE });
+      }
+      if (
+        error.status === PLANNING_CENTER_UNAUTHORIZED_STATUS &&
+        error.code === PLANNING_CENTER_NO_APP_ACCESS_CODE
+      ) {
+        return new Forbidden({ message: NO_APP_ACCESS_MESSAGE });
       }
       return new ExternalServiceFailure({
         message: "Planning Center request failed.",
@@ -193,8 +214,6 @@ const toFault = (
   error: PlanningCenterError | ApplicationFault
 ): ApplicationFault =>
   isPlanningCenterError(error) ? planningCenterFault(error) : error;
-
-const PLANNING_CENTER_FORBIDDEN_STATUS = 403;
 
 /**
  * Reports Planning Center refusing the account (403) as `Forbidden` with a message written

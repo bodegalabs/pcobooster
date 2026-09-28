@@ -38,7 +38,9 @@ Planning Center already stores most of the "rules" a scheduler would want, so we
 | Max plans per day and per month | Services `Person.preferred_max_plans_per_day`, `preferred_max_plans_per_month` |
 | Serve with a household member | Services `Person` → `scheduling_preferences` (`household_member`) |
 
-The candidate ranking reads none of these today. Adding them as ranking reasons ("prefers 1st and 3rd weeks", "already at their monthly max", "usually serves with Alex") makes the ranking agree with what the person told Planning Center. Rules Planning Center has no field for (for example "never schedule these two together") stay out until we accept storing them.
+Status: the ranking now honors every row except household members, at no extra requests. The position's assignments call (`include=person`) already returns the assignment preferences, the time preference option IDs, and the person's plan limits; `scoreSchedulingPreferences` (`packages/planning-center-models/src/scheduling-preferences.ts`) scores them against the history the candidate list already loads and explains each one in "Why this ranking". Planning Center also sends an undocumented `schedule_preference` of "Unavailable", which ranks the person far lower.
+
+Household members are left out: `scheduling_preferences` can't be included and would cost one request per candidate. Rules Planning Center has no field for (for example "never schedule these two together") stay out until we accept storing them.
 
 ### Song rotation insights
 

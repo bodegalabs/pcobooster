@@ -155,4 +155,54 @@ describe(scoreAndNormalizePeople, () => {
       "Slight rehearsal penalty: rehearsal 3 days after",
     ]);
   });
+
+  it("ranks people lower when the plan goes against their Planning Center preferences", () => {
+    /** Sunday September 27, 2026, 10:00 AM in Los Angeles. */
+    const referenceDate = new Date("2026-09-27T17:00:00.000Z");
+    const lastServedDate = new Date("2026-09-13T17:00:00.000Z");
+    const history = [
+      {
+        id: "pp-sep13",
+        sourceScheduleId: "pp-sep13",
+        planId: "plan-sep13",
+        date: lastServedDate,
+        teamPositionName: "Electric Guitar",
+        status: "C",
+        timeType: "service" as const,
+      },
+    ];
+    const frequency = baseFrequency({
+      recentServedDays: 1,
+      totalServed: 1,
+      lastServedDate,
+    });
+    const monthly: PersonWithAvailability = {
+      ...person("monthly", frequency),
+      serviceHistory: history,
+      schedulingPreferences: {
+        schedulePreference: "Once a month",
+        preferredWeeks: [],
+        timePreferenceOptionIds: [],
+        maxPlansPerDay: null,
+        maxPlansPerMonth: null,
+      },
+    };
+    const anytime = {
+      ...person("anytime", frequency),
+      serviceHistory: history,
+    };
+    const people = [monthly, anytime];
+
+    scoreAndNormalizePeople(people, referenceDate, "America/Los_Angeles", {
+      planId: "plan-sel",
+    });
+
+    expect(anytime.recommendationScore).toBe(100);
+    expect(monthly.recommendationScore).toBe(0);
+    expect(monthly.recommendationReasoning).toStrictEqual([
+      "Last served 14 days before on Sun, Sep 13, 2026",
+      "Prefers to serve once a month",
+      "Ranked lower: already serving 1 other day in September 2026",
+    ]);
+  });
 });

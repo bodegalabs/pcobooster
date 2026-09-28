@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./access": "./src/access.ts",
     "./calendar": "./src/calendar.ts",
     "./calendar-day": "./src/calendar-day.ts",
     "./candidate-frequency": "./src/candidate-frequency.ts",
@@ -15,6 +16,7 @@
     "./plan-window-history": "./src/plan-window-history.ts",
     "./position-candidates": "./src/position-candidates.ts",
     "./schedule-constants": "./src/schedule-constants.ts",
+    "./scheduling-preferences": "./src/scheduling-preferences.ts",
     "./types": "./src/types.ts"
   },
   "scripts": {

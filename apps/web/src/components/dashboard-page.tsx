@@ -3,8 +3,9 @@ import { Link } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 
+import { PlanAccessNotice } from "@/components/access/access-notices";
 import { MobileHeader } from "@/components/mobile-menu";
-import { pageColumnClassName } from "@/components/page-shell";
+import { PageShell } from "@/components/page-shell";
 import { PlanningCenterServicesIcon } from "@/components/planning-center-services-icon";
 import { LineupTab } from "@/components/schedule/lineup-tab";
 import { PlanOverviewTab } from "@/components/schedule/plan-overview-tab";
@@ -22,7 +23,6 @@ import { useDashboardController } from "@/hooks/use-dashboard-controller";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import type { DashboardView } from "@/lib/schedule-navigation";
 import { formatPlanDate } from "@/lib/service-plan-selection";
-import { cn } from "@/lib/utils";
 
 const formatHeaderPlanDate = (
   date: Date | string | undefined,
@@ -97,7 +97,7 @@ const handleScheduleError = (message: string) => {
 };
 
 const WorkspaceUnavailable = () => (
-  <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6">
+  <PageShell layout="center">
     <h1 className="text-xl font-semibold">Plan unavailable</h1>
     <p className="text-muted-foreground text-sm">
       This plan could not be loaded. Choose a plan from Services.
@@ -105,7 +105,7 @@ const WorkspaceUnavailable = () => (
     <Link to="/services" className={buttonVariants()}>
       Go to Services
     </Link>
-  </main>
+  </PageShell>
 );
 
 const PlanningCenterLink = ({ href }: { href: string }) => (
@@ -303,109 +303,103 @@ export const DashboardPage = ({
   }
 
   return (
-    <main className="bg-background flex flex-1 flex-col md:h-full md:min-h-0 md:overflow-hidden">
-      <div
-        className={cn(
-          pageColumnClassName,
-          "flex min-h-0 flex-1 flex-col px-4",
-          hasPlanUrlSelection ? "py-0 md:py-3" : "py-6"
-        )}
-      >
-        <DashboardPlanHeaderSlot
-          serviceType={hasSelectedPlanMetadata ? selectedServiceType : null}
-          plan={hasSelectedPlanMetadata ? selectedPlan : null}
-          onBack={
-            activeView === "assign" && isNonEmptyString(selectedPosition)
-              ? handleSlotClear
-              : null
-          }
+    <PageShell layout="fill">
+      <DashboardPlanHeaderSlot
+        serviceType={hasSelectedPlanMetadata ? selectedServiceType : null}
+        plan={hasSelectedPlanMetadata ? selectedPlan : null}
+        onBack={
+          activeView === "assign" && isNonEmptyString(selectedPosition)
+            ? handleSlotClear
+            : null
+        }
+      />
+
+      {hasPlanUrlSelection ? (
+        <PlanAccessNotice
+          serviceTypeId={routeServiceTypeId}
+          view={activeView}
         />
+      ) : null}
 
-        {hasPlanUrlSelection ? (
-          <Tabs value={activeView} className="flex min-h-0 flex-1 flex-col">
-            <TabsContent
-              value="overview"
-              className="mt-0 flex min-h-0 flex-1 flex-col"
-            >
-              <PlanOverviewTab
-                serviceTypeId={routeServiceTypeId}
-                planId={routePlanId}
-                selectedPlan={selectedPlan}
-                teamPositionGroups={teamPositionGroups}
-                teamPositionsLoading={teamPositionsLoading}
-                planTimes={planTimes}
-                getSlotIntentProps={getSlotIntentProps}
-              />
-            </TabsContent>
+      {hasPlanUrlSelection ? (
+        <Tabs value={activeView} className="flex min-h-0 flex-1 flex-col">
+          <TabsContent
+            value="overview"
+            className="mt-0 flex min-h-0 flex-1 flex-col"
+          >
+            <PlanOverviewTab
+              serviceTypeId={routeServiceTypeId}
+              planId={routePlanId}
+              selectedPlan={selectedPlan}
+              teamPositionGroups={teamPositionGroups}
+              teamPositionsLoading={teamPositionsLoading}
+              planTimes={planTimes}
+              getSlotIntentProps={getSlotIntentProps}
+            />
+          </TabsContent>
 
-            <TabsContent
-              value="assign"
-              className="mt-0 flex min-h-0 flex-1 flex-col"
-            >
-              <ScheduleViewTab
-                teamPositionsLoading={teamPositionsLoading}
-                teamPositionGroups={teamPositionGroups}
-                collapsedTeams={collapsedTeams}
-                selectedTeam={selectedTeam}
-                selectedPosition={selectedPosition}
-                candidateList={
-                  selectedPositionUsesRoster ? candidateList : null
-                }
-                selectedServiceTypeId={routeServiceTypeId}
-                selectedPlanId={routePlanId}
-                planReferenceDate={planReferenceDate}
-                onToggleTeam={toggleTeamCollapsed}
-                onSelectSlot={handleSlotSelect}
-                onClearSlot={handleSlotClear}
-                getSlotIntentProps={getSlotIntentProps}
-                onAddPosition={handleAddCustomPosition}
-                onScheduleError={handleScheduleError}
-              />
-            </TabsContent>
+          <TabsContent
+            value="assign"
+            className="mt-0 flex min-h-0 flex-1 flex-col"
+          >
+            <ScheduleViewTab
+              teamPositionsLoading={teamPositionsLoading}
+              teamPositionGroups={teamPositionGroups}
+              collapsedTeams={collapsedTeams}
+              selectedTeam={selectedTeam}
+              selectedPosition={selectedPosition}
+              candidateList={selectedPositionUsesRoster ? candidateList : null}
+              selectedServiceTypeId={routeServiceTypeId}
+              selectedPlanId={routePlanId}
+              planReferenceDate={planReferenceDate}
+              onToggleTeam={toggleTeamCollapsed}
+              onSelectSlot={handleSlotSelect}
+              onClearSlot={handleSlotClear}
+              getSlotIntentProps={getSlotIntentProps}
+              onAddPosition={handleAddCustomPosition}
+              onScheduleError={handleScheduleError}
+            />
+          </TabsContent>
 
-            <TabsContent
-              value="lineup"
-              className="mt-0 flex min-h-0 flex-1 flex-col"
-            >
-              <LineupTab
-                groups={teamPositionGroups ?? []}
-                isLoading={teamPositionsLoading}
-                serviceTypeId={routeServiceTypeId}
-                planId={routePlanId}
-                seriesId={selectedPlan?.seriesId ?? null}
-                planTimes={planTimes ?? []}
-                onSelectPosition={handleSlotSelect}
-                getSlotIntentProps={getSlotIntentProps}
-              />
-            </TabsContent>
+          <TabsContent
+            value="lineup"
+            className="mt-0 flex min-h-0 flex-1 flex-col"
+          >
+            <LineupTab
+              groups={teamPositionGroups ?? []}
+              isLoading={teamPositionsLoading}
+              serviceTypeId={routeServiceTypeId}
+              planId={routePlanId}
+              seriesId={selectedPlan?.seriesId ?? null}
+              planTimes={planTimes ?? []}
+              onSelectPosition={handleSlotSelect}
+              getSlotIntentProps={getSlotIntentProps}
+            />
+          </TabsContent>
 
-            <TabsContent
-              value="plan"
-              className="mt-0 flex min-h-0 flex-1 flex-col"
-            >
-              <PlanTab
-                serviceTypeId={routeServiceTypeId}
-                planId={routePlanId}
-              />
-            </TabsContent>
+          <TabsContent
+            value="plan"
+            className="mt-0 flex min-h-0 flex-1 flex-col"
+          >
+            <PlanTab serviceTypeId={routeServiceTypeId} planId={routePlanId} />
+          </TabsContent>
 
-            <TabsContent
-              value="times"
-              className="mt-0 flex min-h-0 flex-1 flex-col"
-            >
-              <TimesTab
-                serviceTypeId={routeServiceTypeId}
-                planId={routePlanId}
-                seriesId={selectedPlan?.seriesId ?? null}
-              />
-            </TabsContent>
-          </Tabs>
-        ) : (
-          <div className="text-muted-foreground flex flex-1 items-center justify-center gap-2 text-sm">
-            <span>No plan selected · use Services to choose one.</span>
-          </div>
-        )}
-      </div>
-    </main>
+          <TabsContent
+            value="times"
+            className="mt-0 flex min-h-0 flex-1 flex-col"
+          >
+            <TimesTab
+              serviceTypeId={routeServiceTypeId}
+              planId={routePlanId}
+              seriesId={selectedPlan?.seriesId ?? null}
+            />
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <div className="text-muted-foreground flex flex-1 items-center justify-center gap-2 text-sm">
+          <span>No plan selected · use Services to choose one.</span>
+        </div>
+      )}
+    </PageShell>
   );
 };

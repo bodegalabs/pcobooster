@@ -1,4 +1,8 @@
-import { rosterPersonSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
+import {
+  personPlanLimitsSchema,
+  personTeamPositionAssignmentSchema,
+  rosterPersonSchema,
+} from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import { blockoutCoversPlanSortInstant } from "@pcobooster/planning-center-models/calendar-day";
 import {
@@ -6,6 +10,7 @@ import {
   isString,
 } from "@pcobooster/planning-center-models/json";
 import type { SelectedPlanMatchContext } from "@pcobooster/planning-center-models/position-candidates";
+import type { SchedulingPreferences } from "@pcobooster/planning-center-models/scheduling-preferences";
 import type {
   Blockout,
   PCResource,
@@ -39,6 +44,43 @@ export const getAssignedPeopleFromAssignments = (
   }
 
   return people;
+};
+
+/**
+ * Each assigned person's scheduling preferences for the position, read from the assignments and
+ * their included Services people: the same response that lists the candidates. A person with
+ * several assignments to the position keeps the first, as `getAssignedPeopleFromAssignments` does.
+ */
+export const getSchedulingPreferencesByPerson = (
+  assignmentsData: PCResource[],
+  assignmentsIncluded: PCResource[]
+): Map<string, SchedulingPreferences> => {
+  const preferences = new Map<string, SchedulingPreferences>();
+  for (const resource of assignmentsData) {
+    const parsed = personTeamPositionAssignmentSchema.safeParse(resource);
+    const personId = parsed.data?.relationships.person.data?.id;
+    if (
+      !parsed.success ||
+      !isNonEmptyString(personId) ||
+      preferences.has(personId)
+    ) {
+      continue;
+    }
+    const { attributes, relationships } = parsed.data;
+    const limits = personPlanLimitsSchema.safeParse(
+      findIncluded(assignmentsIncluded, "Person", personId)
+    ).data?.attributes;
+    const schedulePreference = attributes.schedule_preference;
+    preferences.set(personId, {
+      schedulePreference,
+      preferredWeeks:
+        schedulePreference === "Choose Weeks" ? attributes.preferred_weeks : [],
+      timePreferenceOptionIds: relationships.time_preference_options,
+      maxPlansPerDay: limits?.preferred_max_plans_per_day ?? null,
+      maxPlansPerMonth: limits?.preferred_max_plans_per_month ?? null,
+    });
+  }
+  return preferences;
 };
 
 export const buildSelectedPlanMatchContext = (

@@ -59,6 +59,8 @@ export interface CandidateSlot {
   planId: string;
   /** The plan's sort instant as an ISO string. */
   dateKey: string;
+  /** The service time the slot is needed for; ranks people who prefer other times lower. */
+  timePreferenceOptionId?: string | null;
 }
 
 export const toPlanDateKey = (date: Date | string | null): string | null => {
@@ -444,6 +446,7 @@ export const usePositionCandidates = (slot: CandidateSlot | null) => {
             scheduleHistory,
             details,
             date: slot.dateKey,
+            slotTimePreferenceOptionId: slot.timePreferenceOptionId ?? null,
           }),
     [candidates, details, scheduleHistory, slot, windowHistory]
   );

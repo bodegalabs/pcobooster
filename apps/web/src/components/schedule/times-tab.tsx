@@ -1,6 +1,7 @@
 import type { PlanTime } from "@pcobooster/planning-center-models/types";
 import { Clock3, Plus } from "lucide-react";
 
+import { PageScrollArea } from "@/components/page-shell";
 import { PlanTimeCard } from "@/components/schedule/plan-time-card";
 import { PlanTimeCreateDialog } from "@/components/schedule/plan-time-create-dialog";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,6 @@ import {
   buildEditablePlanTime,
   isValidPlanTimeEdit,
 } from "@/lib/schedule/plan-time-edits";
-import { cn } from "@/lib/utils";
 
 interface TimesTabProps {
   serviceTypeId: string | null;
@@ -221,14 +221,11 @@ const TimesTabContent = ({
 
   return (
     <>
-      <div
-        className={cn(
-          "flex-1 max-md:overflow-x-auto md:min-h-0 md:overflow-auto",
-          revealClassName
-        )}
-      >
-        <TimesTabCards {...cardProps} />
-      </div>
+      <PageScrollArea axis="both">
+        <div className={revealClassName}>
+          <TimesTabCards {...cardProps} />
+        </div>
+      </PageScrollArea>
       {addTimeDialog}
     </>
   );

@@ -241,6 +241,21 @@ const errorTitle = (
   return isString(body.message) ? body.message : undefined;
 };
 
+/** Planning Center reports JSON:API errors as `{ errors: [{ code, title }] }`. */
+const listedErrorCodeSchema = z.object({
+  errors: z.array(z.object({ code: z.string() })).min(1),
+});
+
+const errorCode = (
+  body: z.infer<typeof errorBodySchema>
+): string | undefined => {
+  if (isString(body.code)) {
+    return body.code;
+  }
+  const listed = listedErrorCodeSchema.safeParse(body);
+  return listed.success ? listed.data.errors[0]?.code : undefined;
+};
+
 const parseErrorBody = (
   responseBody: string
 ): z.infer<typeof errorBodySchema> | null => {
@@ -267,7 +282,7 @@ const buildApiError = (
       message += ` - ${responseBody}`;
     }
   } else {
-    code = isString(errorJson.code) ? errorJson.code : undefined;
+    code = errorCode(errorJson);
     details = errorJson;
     const title = errorTitle(errorJson);
     if (isNonEmptyString(title)) {

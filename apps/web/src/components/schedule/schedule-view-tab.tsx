@@ -6,6 +6,7 @@ import type {
 import { CalendarDays } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 
+import { PageScrollArea } from "@/components/page-shell";
 import { CandidateListProgress } from "@/components/schedule/candidate-list-progress";
 import { PlanPersonStatusMenu } from "@/components/schedule/plan-person-status-menu";
 import type { PlanPersonStatusValue } from "@/components/schedule/plan-person-status-menu";
@@ -32,7 +33,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import type { PositionCandidateList } from "@/hooks/use-position-candidates";
@@ -458,8 +458,8 @@ const ScheduleViewContent = ({
               onFilterChange={setFilter}
             />
 
-            <ScrollArea className="-mx-4 min-h-0 w-auto flex-1 lg:mx-0 lg:h-full lg:w-full">
-              <div className="pb-safe-4 px-4 md:pb-0 lg:px-0">
+            <PageScrollArea besidePane>
+              <div className="pb-safe-4 md:pb-0">
                 <SchedulePeopleList
                   candidateList={candidateList}
                   selectedSlotUsesCustomPosition={
@@ -480,7 +480,7 @@ const ScheduleViewContent = ({
                   onScheduleError={onScheduleError}
                 />
               </div>
-            </ScrollArea>
+            </PageScrollArea>
           </>
         ) : (
           <>

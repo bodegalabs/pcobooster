@@ -226,6 +226,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@orpc/contract": "^1.15.0",
+        "@pcobooster/planning-center-models": "workspace:*",
         "zod": "^4.6.5",
       },
       "devDependencies": {

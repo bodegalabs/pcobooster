@@ -78,4 +78,38 @@ describe(groupRankingReasons, () => {
       { kind: "note", text: "Something new", adjustments: [] },
     ]);
   });
+
+  it("gives Planning Center preferences their own facts with their adjustments", () => {
+    expect(
+      groupRankingReasons([
+        "Last served 7 days before on Sun, Sep 20, 2026",
+        "Prefers to serve every other week",
+        "Ranked lower: served 7 days before",
+        "At most 2 plans a month; this plan fits",
+        "Marked Unavailable for this position in Planning Center",
+        "Ranked lower: asked not to be scheduled here",
+      ])
+    ).toStrictEqual([
+      {
+        kind: "history",
+        text: "Last served 7 days before on Sun, Sep 20, 2026",
+        adjustments: [],
+      },
+      {
+        kind: "preference",
+        text: "Prefers to serve every other week",
+        adjustments: ["Ranked lower: served 7 days before"],
+      },
+      {
+        kind: "preference",
+        text: "At most 2 plans a month; this plan fits",
+        adjustments: [],
+      },
+      {
+        kind: "preference",
+        text: "Marked Unavailable for this position in Planning Center",
+        adjustments: ["Ranked lower: asked not to be scheduled here"],
+      },
+    ]);
+  });
 });

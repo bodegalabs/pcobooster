@@ -394,6 +394,8 @@ const createOptimisticCandidate = (
     archived: false,
     selectedPlanRosterLabels: [],
     selectedPlanSlot: slotWithStatus("U", planPersonId),
+    // Unknown until the next candidates read; ranking treats it as no preferences.
+    schedulingPreferences: null,
   };
 };
 

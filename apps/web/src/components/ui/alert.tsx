@@ -11,6 +11,8 @@ const alertVariants = cva(
         default: "bg-card text-card-foreground",
         destructive:
           "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
+        /** Context the person should know before acting, such as missing permissions. */
+        info: "border-info-border bg-info-surface text-foreground *:[svg]:text-status-info",
       },
     },
     defaultVariants: {

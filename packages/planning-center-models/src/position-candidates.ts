@@ -7,6 +7,7 @@ import {
   sortPeopleForSelection,
 } from "@pcobooster/planning-center-models/candidate-scoring";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
+import type { SchedulingPreferences } from "@pcobooster/planning-center-models/scheduling-preferences";
 import type {
   PersonWithAvailability,
   ServiceHistoryItem,
@@ -47,6 +48,8 @@ export interface PositionCandidate {
   /** Labels of the person's non-declined roster entries on the selected plan. */
   selectedPlanRosterLabels: string[];
   selectedPlanSlot: SelectedPlanSlot | null;
+  /** Null for people on the selected slot who are not assigned to the position. */
+  schedulingPreferences: SchedulingPreferences | null;
 }
 
 /**
@@ -209,6 +212,7 @@ const createCandidatePerson = (
   isConfirmedForSelectedPlanPosition: false,
   isDeclinedForSelectedPlanPosition: false,
   selectedPlanAssignmentLabels: [],
+  schedulingPreferences: candidate.schedulingPreferences,
 });
 
 const applySelectedSlot = (
@@ -260,6 +264,8 @@ export interface PositionCandidateSources {
   referenceDate: Date;
   /** The organization's IANA time zone. */
   timeZone: string;
+  /** The service time the selected slot is needed for, when Planning Center says. */
+  slotTimePreferenceOptionId?: string | null;
   /** A candidate's history, or undefined while it is loading. */
   historyFor: (personId: string) => CandidateHistory | undefined;
   /** Whether a blockout covers the plan date, or undefined while loading. */
@@ -286,6 +292,7 @@ export const assemblePositionCandidates = ({
   match,
   referenceDate,
   timeZone,
+  slotTimePreferenceOptionId,
   historyFor,
   blockedFor,
 }: PositionCandidateSources): AssembledPositionCandidates => {
@@ -335,7 +342,10 @@ export const assemblePositionCandidates = ({
   });
 
   if (complete) {
-    scoreAndNormalizePeople(people, referenceDate, timeZone);
+    scoreAndNormalizePeople(people, referenceDate, timeZone, {
+      planId: match.planId,
+      slotTimePreferenceOptionId,
+    });
     sortPeopleForSelection(people);
   }
   return { people, complete };
