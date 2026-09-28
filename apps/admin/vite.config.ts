@@ -1,4 +1,5 @@
 import { cloudflare } from "@cloudflare/vite-plugin";
+import { readDevPorts } from "@pcobooster/config/dev-ports";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
@@ -16,6 +17,12 @@ export default defineConfig(({ command, isPreview }) => {
   );
   return {
     base,
+    // `alchemy dev` passes the same port; this applies to a standalone `vite dev`.
+    server: {
+      host: "127.0.0.1",
+      port: readDevPorts(process.env).admin,
+      strictPort: true,
+    },
     resolve: { tsconfigPaths: true },
     plugins: [
       tailwindcss(),

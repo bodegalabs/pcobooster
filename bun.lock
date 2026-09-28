@@ -15,6 +15,7 @@
         "@effect/vitest": "4.0.0-rc.117",
         "@pcobooster/analytics": "workspace:*",
         "@pcobooster/api": "workspace:*",
+        "@pcobooster/config": "workspace:*",
         "@pcobooster/planning-center-models": "workspace:*",
         "@shadcn/lint": "^0.1.2",
         "@types/node": "^24.13.5",
@@ -110,6 +111,7 @@
         "@orpc/server": "^1.15.0",
         "@orpc/zod": "^1.15.0",
         "@pcobooster/api": "workspace:*",
+        "@pcobooster/config": "workspace:*",
         "alchemy": "2.0.0-beta.79",
         "better-auth": "1.7.5",
         "effect": "4.0.0-rc.117",
@@ -117,7 +119,6 @@
         "zod": "^4.6.5",
       },
       "devDependencies": {
-        "@pcobooster/config": "workspace:*",
         "@types/bun": "^1.3.9",
         "typescript": "^7.0.2",
       },
@@ -220,6 +221,11 @@
     "packages/config": {
       "name": "@pcobooster/config",
       "version": "0.1.0",
+      "devDependencies": {
+        "@types/node": "^24.13.5",
+        "typescript": "^7.0.2",
+        "vitest": "^5.0.1",
+      },
     },
     "packages/contracts": {
       "name": "@pcobooster/contracts",

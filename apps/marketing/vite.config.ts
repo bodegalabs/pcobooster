@@ -1,3 +1,4 @@
+import { readDevPorts } from "@pcobooster/config/dev-ports";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
@@ -20,6 +21,13 @@ const previewPagesOutsideBase = (): Plugin => ({
   },
 });
 
+const marketingDevPort = (): number => {
+  const assigned = Number(process.env.PORT);
+  return Number.isInteger(assigned) && assigned > 0
+    ? assigned
+    : readDevPorts(process.env).marketing;
+};
+
 /**
  * A static site generator: `vite build` prerenders every page into `dist/client`, which
  * `scripts/stage-marketing.ts` copies into the product's `public/marketing`. Assets live under
@@ -34,6 +42,13 @@ export default defineConfig({
     ),
   },
   resolve: { tsconfigPaths: true },
+  // `DEV_PORT_BASE` places marketing beside its checkout's product (`scripts/cloudflare/dev.ts`);
+  // run alone, it takes the port the desktop preview tool assigns in `PORT`.
+  server: {
+    host: "127.0.0.1",
+    port: marketingDevPort(),
+    strictPort: true,
+  },
   plugins: [
     tailwindcss(),
     previewPagesOutsideBase(),

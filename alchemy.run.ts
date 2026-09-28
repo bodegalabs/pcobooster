@@ -136,7 +136,7 @@ export default Alchemy.Stack(
     ),
   },
   Effect.gen(function* infrastructure() {
-    const { stage, production, local, publicOrigin } =
+    const { stage, production, local, publicOrigin, webDevPort, adminDevPort } =
       yield* currentStageSettings;
     if (stage === "test") {
       return yield* Effect.die(
@@ -182,7 +182,7 @@ export default Alchemy.Stack(
       access: production ? yield* productionAdminAccess : undefined,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
       observability: workerObservability(production),
-      dev: { host: "127.0.0.1", port: 3003, strictPort: true },
+      dev: { host: "127.0.0.1", port: adminDevPort, strictPort: true },
       memo: viteMemo([]),
       env: {
         DB: database,
@@ -200,7 +200,7 @@ export default Alchemy.Stack(
         production || local ? undefined : yield* nonProductionAccess(stage),
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
       observability: workerObservability(production),
-      dev: { host: "127.0.0.1", port: 3001, strictPort: true },
+      dev: { host: "127.0.0.1", port: webDevPort, strictPort: true },
       // The build stages the marketing site, which the product does not import.
       memo: viteMemo(["public/marketing/**"], ["apps/marketing"]),
       env: {

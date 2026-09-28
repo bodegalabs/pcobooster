@@ -3,6 +3,7 @@ import { once } from "node:events";
 import path from "node:path";
 
 import { cloudflare } from "@cloudflare/vite-plugin";
+import { devOrigin, readDevPorts } from "@pcobooster/config/dev-ports";
 import { getPresentationCacheScope } from "@pcobooster/presentation-mode";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
@@ -16,8 +17,9 @@ const repositoryRoot = path.resolve(import.meta.dirname, "../..");
 // `alchemy dev`/`deploy` inject their own resource-aware Cloudflare plugin with the Worker's bindings.
 const alchemyInjected = process.env.ALCHEMY_CLOUDFLARE_VITE_INJECTED === "1";
 
-/** `bun run dev` serves the marketing site on this port; see `scripts/cloudflare/dev.ts`. */
-const marketingDevOrigin = "http://127.0.0.1:3002";
+/** `bun run dev` picks the ports (`scripts/cloudflare/dev.ts`); alone, the product uses the defaults. */
+const ports = readDevPorts(process.env);
+const marketingDevOrigin = devOrigin(ports.marketing);
 
 const runBunScript = async (args: readonly string[]): Promise<void> => {
   const child = spawn("bun", args, { cwd: repositoryRoot, stdio: "inherit" });
@@ -88,6 +90,10 @@ export default defineConfig(({ command, isPreview }) => {
     define: publicDefines(devServer),
     resolve: { tsconfigPaths: true },
     server: {
+      // `alchemy dev` passes the same port; these apply to a standalone `vite dev`.
+      host: "127.0.0.1",
+      port: ports.web,
+      strictPort: true,
       // The marketing dev server owns these pages locally; builds stage them instead.
       proxy: {
         "^/(?:(?:about|privacy|terms)/?)?(?:\\?.*)?$": marketingDevOrigin,
@@ -108,7 +114,7 @@ export default defineConfig(({ command, isPreview }) => {
               compatibility_date: "2026-09-01",
               compatibility_flags: ["nodejs_compat"],
               assets: { binding: "ASSETS" },
-              vars: { PRODUCT_ORIGIN: "http://127.0.0.1:3001" },
+              vars: { PRODUCT_ORIGIN: devOrigin(ports.web) },
             },
           }),
       tanstackStart(),
