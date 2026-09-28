@@ -1,4 +1,5 @@
 import { oc } from "@orpc/contract";
+import { accessContract } from "@pcobooster/contracts/access";
 import { accountsContract } from "@pcobooster/contracts/accounts";
 import { catalogContract } from "@pcobooster/contracts/catalog";
 import { chordChartsContract } from "@pcobooster/contracts/chord-charts";
@@ -31,6 +32,7 @@ export const healthContract = oc
   .output(healthOutputSchema);
 
 export const appContract = oc.router({
+  access: accessContract,
   accounts: accountsContract,
   catalog: catalogContract,
   chordCharts: chordChartsContract,

@@ -2,6 +2,9 @@ export type FeatureName = "people" | "chordCharts" | "cleanup";
 
 export const queryKeys = {
   accounts: () => ["planning-center-accounts"] as const,
+  /** The signed-in person's Planning Center permissions in one linked account. */
+  planningCenterAccess: (accountId: string | null) =>
+    ["planning-center-access", accountId] as const,
   feature: (feature: FeatureName) => ["feature", feature] as const,
   cleanupSongs: (staleMonths: number) =>
     ["cleanup-songs", staleMonths] as const,

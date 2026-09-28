@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./access": "./src/access.ts",
     "./calendar": "./src/calendar.ts",
     "./calendar-day": "./src/calendar-day.ts",
     "./candidate-frequency": "./src/candidate-frequency.ts",

@@ -7,6 +7,7 @@ import { InvalidInput } from "@pcobooster/api/application/errors/invalid-input";
 import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
 import {
   explainPlanningCenterDenial,
+  planningCenterFault,
   resolvePlanningCenterAccess,
   toApplicationFault,
   withPlanningCenterFaults,
@@ -302,6 +303,36 @@ describe("PlanningCenterAccess", () => {
       message: "You can't edit songs.",
     });
     expect(failed).toMatchObject({ _tag: "ExternalServiceFailure" });
+  });
+
+  it("explains any Planning Center permission denial as forbidden", () => {
+    expect(
+      planningCenterFault(
+        new PlanningCenterApiError({ message: "Forbidden", status: 403 })
+      )
+    ).toMatchObject({
+      _tag: "Forbidden",
+      message:
+        "Your Planning Center permissions don't allow this. A Planning Center admin can give you more access.",
+    });
+    expect(
+      planningCenterFault(
+        new PlanningCenterApiError({
+          message: "Unauthorized",
+          status: 401,
+          code: "TRASH_PANDA",
+        })
+      )
+    ).toMatchObject({
+      _tag: "Forbidden",
+      message:
+        "Your Planning Center account doesn't have access to this Planning Center app. A Planning Center admin can add it.",
+    });
+    expect(
+      planningCenterFault(
+        new PlanningCenterApiError({ message: "Unauthorized", status: 401 })
+      )
+    ).toMatchObject({ _tag: "ExternalServiceFailure" });
   });
 
   it("keeps unexpected adapter errors as defects", async () => {

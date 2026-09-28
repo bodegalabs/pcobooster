@@ -13,6 +13,7 @@ import { describe, expect, it } from "vitest";
 
 const ALL_KINDS: readonly RecoverablePlanningCenterFailure[] = [
   "not-found",
+  "permission-denied",
   "provider-failure",
   "unusable-response",
 ];
@@ -102,6 +103,49 @@ describe(recoverPlanningCenterFailure, () => {
     );
 
     expect(exit).toStrictEqual(Exit.succeed("fallback"));
+  });
+
+  it.each([
+    { status: 403, code: undefined },
+    { status: 401, code: "TRASH_PANDA" },
+  ])(
+    "falls back after a listed permission denial ($status)",
+    async ({ status, code }) => {
+      const exit = await recoverTo(["permission-denied"])(
+        Effect.fail(
+          new PlanningCenterApiError({ message: "Denied", status, code })
+        )
+      );
+
+      expect(exit).toStrictEqual(Exit.succeed("fallback"));
+    }
+  );
+
+  it("keeps recovering permission denials where provider failures are listed", async () => {
+    const exit = await recoverTo(["provider-failure"])(
+      Effect.fail(
+        new PlanningCenterApiError({ message: "Denied", status: 403 })
+      )
+    );
+
+    expect(exit).toStrictEqual(Exit.succeed("fallback"));
+  });
+
+  it("propagates a rejected token even when permission denials are listed", async () => {
+    const error = new PlanningCenterApiError({
+      message: "Unauthorized",
+      status: 401,
+    });
+    const exit = await recoverTo(["permission-denied"])(Effect.fail(error));
+
+    expect(exit).toStrictEqual(Exit.fail(error));
+  });
+
+  it("propagates a server error when only permission denials are listed", async () => {
+    const error = new PlanningCenterApiError({ message: "Down", status: 503 });
+    const exit = await recoverTo(["permission-denied"])(Effect.fail(error));
+
+    expect(exit).toStrictEqual(Exit.fail(error));
   });
 
   it("recovers a defect only when unusable responses are listed", async () => {

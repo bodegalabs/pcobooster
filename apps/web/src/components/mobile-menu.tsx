@@ -4,6 +4,7 @@ import {
   Logout01Icon,
   UserSwitchIcon,
   Moon02Icon,
+  ShieldUserIcon,
   Sun01Icon,
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
@@ -19,6 +20,7 @@ import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import type { ComponentProps, ReactElement, ReactNode } from "react";
 import { useEffect, useId } from "react";
 
+import { useAccessReview } from "@/components/access/access-review";
 import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
 import { useTheme } from "@/components/theme-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -195,6 +197,7 @@ const MenuAccount = ({
     signOut,
     switchAccount,
   } = useAccountPanel({ onAccountSwitched });
+  const { openReview, restricted } = useAccessReview();
   const accounts = data?.accounts ?? [];
   const themeOption =
     themeOptions.find((option) => option.value === theme) ?? themeOptions[2];
@@ -249,6 +252,21 @@ const MenuAccount = ({
           ))}
         </NativeSelect>
       </div>
+      {demo ? null : (
+        <AccountRow
+          render={<button type="button" aria-label="Your access" />}
+          onClick={() => {
+            onAccountSwitched();
+            openReview();
+          }}
+        >
+          <SidebarNavIcon icon={ShieldUserIcon} />
+          <span className="flex-1">Your access</span>
+          {restricted ? (
+            <span className="text-status-scheduled text-sm">Limited</span>
+          ) : null}
+        </AccountRow>
+      )}
       {demo ? null : (
         <AccountRow
           render={<button type="button" aria-label="Switch account" />}

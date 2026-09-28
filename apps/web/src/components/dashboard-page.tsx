@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 
+import { PlanAccessNotice } from "@/components/access/access-notices";
 import { MobileHeader } from "@/components/mobile-menu";
 import { PageShell } from "@/components/page-shell";
 import { PlanningCenterServicesIcon } from "@/components/planning-center-services-icon";
@@ -312,6 +313,13 @@ export const DashboardPage = ({
             : null
         }
       />
+
+      {hasPlanUrlSelection ? (
+        <PlanAccessNotice
+          serviceTypeId={routeServiceTypeId}
+          view={activeView}
+        />
+      ) : null}
 
       {hasPlanUrlSelection ? (
         <Tabs value={activeView} className="flex min-h-0 flex-1 flex-col">

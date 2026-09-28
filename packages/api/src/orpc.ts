@@ -1,4 +1,5 @@
 import { Server } from "@pcobooster/api/server";
+import { accessRouter } from "@pcobooster/api/transport/orpc/access";
 import { catalogRouter } from "@pcobooster/api/transport/orpc/catalog";
 import { chordChartsRouter } from "@pcobooster/api/transport/orpc/chord-charts";
 import { cleanupRouter } from "@pcobooster/api/transport/orpc/cleanup";
@@ -36,6 +37,7 @@ const health = rpc.health.handler(
 );
 
 export const appRouter = rpc.router({
+  access: accessRouter,
   accounts: identityRouter.accounts,
   catalog: catalogRouter,
   chordCharts: chordChartsRouter,
