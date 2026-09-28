@@ -1,6 +1,8 @@
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
-import { Link } from "@tanstack/react-router";
-import { ChevronLeft } from "lucide-react";
+import type { Plan } from "@pcobooster/planning-center-models/types";
+import { useHotkey } from "@tanstack/react-hotkeys";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 import { PlanAccessNotice } from "@/components/access/access-notices";
@@ -21,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useDashboardController } from "@/hooks/use-dashboard-controller";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
+import { NEXT_PLAN_HOTKEY, PREVIOUS_PLAN_HOTKEY } from "@/lib/app-hotkeys";
 import type { DashboardView } from "@/lib/schedule-navigation";
 import { formatPlanDate } from "@/lib/service-plan-selection";
 
@@ -161,18 +164,113 @@ const MobilePlanBack = ({ onBack }: { onBack: (() => void) | null }) =>
     </Link>
   );
 
+interface PlanNeighbors {
+  serviceTypeId: string;
+  view: DashboardView;
+  previousPlan: Plan | null;
+  nextPlan: Plan | null;
+}
+
+const PLAN_STEP_LABELS = {
+  previous: "Previous plan",
+  next: "Next plan",
+} as const;
+
+/** Steps to the plan before or after this one, staying on the same view. */
+const PlanStepLink = ({
+  direction,
+  plan,
+  serviceTypeId,
+  view,
+}: {
+  direction: "previous" | "next";
+  plan: Plan | null;
+  serviceTypeId: string;
+  view: DashboardView;
+}) => {
+  const orgTimeZone = useOrganizationTimeZone();
+  const Icon = direction === "previous" ? ChevronLeft : ChevronRight;
+  const label = PLAN_STEP_LABELS[direction];
+  if (plan === null) {
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        disabled
+        aria-label={`No ${label.toLowerCase()} in the next 60 days`}
+      >
+        <Icon />
+      </Button>
+    );
+  }
+  const planDate = formatHeaderPlanDate(plan.sortDate, orgTimeZone);
+  return (
+    <HoverLabel
+      label={`${label}: ${planDate}`}
+      side="bottom"
+      sideOffset={8}
+      render={
+        <Link
+          to="/services/$serviceTypeId/plans/$planId/$view"
+          params={{ serviceTypeId, planId: plan.id, view }}
+          aria-label={`${label}, ${planDate}`}
+          className={buttonVariants({ variant: "outline", size: "icon-sm" })}
+        />
+      }
+    >
+      <Icon className="size-4" />
+    </HoverLabel>
+  );
+};
+
+/** `[` and `]` step through the service's plans, like the header's chevrons. */
+const usePlanStepHotkeys = ({
+  serviceTypeId,
+  view,
+  previousPlan,
+  nextPlan,
+}: PlanNeighbors) => {
+  const navigate = useNavigate();
+  const stepTo = (plan: Plan | null) => {
+    if (plan === null) {
+      return;
+    }
+    void navigate({
+      to: "/services/$serviceTypeId/plans/$planId/$view",
+      params: { serviceTypeId, planId: plan.id, view },
+    });
+  };
+  useHotkey(
+    PREVIOUS_PLAN_HOTKEY,
+    () => {
+      stepTo(previousPlan);
+    },
+    { ignoreInputs: true, enabled: previousPlan !== null }
+  );
+  useHotkey(
+    NEXT_PLAN_HOTKEY,
+    () => {
+      stepTo(nextPlan);
+    },
+    { ignoreInputs: true, enabled: nextPlan !== null }
+  );
+};
+
 const DashboardPlanHeader = ({
   serviceTypeName,
   planSubtitle,
   sortDate,
   planningCenterUrl,
   onBack,
+  neighbors,
 }: {
   serviceTypeName: string;
   planSubtitle: string | null;
   sortDate: Date | string | undefined;
   planningCenterUrl: string | null | undefined;
   onBack: (() => void) | null;
+  neighbors: PlanNeighbors;
 }) => {
   const orgTimeZone = useOrganizationTimeZone();
   const planDate = formatHeaderPlanDate(sortDate, orgTimeZone);
@@ -212,9 +310,23 @@ const DashboardPlanHeader = ({
               / {planDate}
             </span>
           </h1>
-          {isNonEmptyString(planningCenterUrl) ? (
-            <PlanningCenterLink href={planningCenterUrl} />
-          ) : null}
+          <div className="flex shrink-0 items-center gap-1">
+            <PlanStepLink
+              direction="previous"
+              plan={neighbors.previousPlan}
+              serviceTypeId={neighbors.serviceTypeId}
+              view={neighbors.view}
+            />
+            <PlanStepLink
+              direction="next"
+              plan={neighbors.nextPlan}
+              serviceTypeId={neighbors.serviceTypeId}
+              view={neighbors.view}
+            />
+            {isNonEmptyString(planningCenterUrl) ? (
+              <PlanningCenterLink href={planningCenterUrl} />
+            ) : null}
+          </div>
         </div>
       </header>
     </>
@@ -242,11 +354,14 @@ const DashboardPlanHeaderSlot = ({
   serviceType,
   plan,
   onBack,
+  neighbors,
 }: {
   serviceType: DashboardController["selectedServiceType"];
   plan: DashboardController["selectedPlan"];
   onBack: (() => void) | null;
+  neighbors: PlanNeighbors;
 }) => {
+  usePlanStepHotkeys(neighbors);
   if (!serviceType || !plan) {
     return <DashboardPlanHeaderFallback />;
   }
@@ -261,6 +376,7 @@ const DashboardPlanHeaderSlot = ({
       sortDate={plan.sortDate}
       planningCenterUrl={plan.planningCenterUrl}
       onBack={onBack}
+      neighbors={neighbors}
     />
   );
 };
@@ -280,6 +396,8 @@ export const DashboardPage = ({
     hasSelectedPlanMetadata,
     selectedServiceType,
     selectedPlan,
+    previousPlan,
+    nextPlan,
     activeView,
     teamPositionsLoading,
     teamPositionGroups,
@@ -312,6 +430,12 @@ export const DashboardPage = ({
             ? handleSlotClear
             : null
         }
+        neighbors={{
+          serviceTypeId: routeServiceTypeId,
+          view: activeView,
+          previousPlan,
+          nextPlan,
+        }}
       />
 
       {hasPlanUrlSelection ? (

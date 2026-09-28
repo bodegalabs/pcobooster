@@ -82,7 +82,14 @@ const usePlanWorkspaceData = (
     ) ?? null;
 
   const { data: plans, isLoading: plansLoading } = usePlans(routeServiceTypeId);
-  const selectedPlan = plans?.find((plan) => plan.id === routePlanId) ?? null;
+  const selectedPlanIndex =
+    plans?.findIndex((plan) => plan.id === routePlanId) ?? -1;
+  const selectedPlan = plans?.[selectedPlanIndex] ?? null;
+  // Plans come sorted by date, so the neighbors are the plans just before and after.
+  const previousPlan =
+    selectedPlanIndex > 0 ? (plans?.[selectedPlanIndex - 1] ?? null) : null;
+  const nextPlan =
+    selectedPlanIndex === -1 ? null : (plans?.[selectedPlanIndex + 1] ?? null);
 
   const { data: teamPositionGroups, isLoading: teamPositionsLoading } =
     useTeamPositions(
@@ -132,6 +139,8 @@ const usePlanWorkspaceData = (
   return {
     selectedServiceType,
     selectedPlan,
+    previousPlan,
+    nextPlan,
     teamPositionGroups,
     teamPositionsLoading,
     planTimes,
@@ -191,6 +200,8 @@ export const useDashboardController = ({
   const {
     selectedServiceType,
     selectedPlan,
+    previousPlan,
+    nextPlan,
     teamPositionGroups,
     teamPositionsLoading,
     planTimes,
@@ -493,6 +504,8 @@ export const useDashboardController = ({
     hasSelectedPlanMetadata,
     selectedServiceType,
     selectedPlan,
+    previousPlan,
+    nextPlan,
     activeView,
     teamPositionsLoading,
     teamPositionGroups,
