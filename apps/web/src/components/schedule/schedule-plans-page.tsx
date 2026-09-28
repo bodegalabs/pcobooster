@@ -33,7 +33,7 @@ export const SchedulePlansPage = () => {
   );
 
   return (
-    <PageShell>
+    <PageShell layout="fill">
       <ServicePlanTableSelector
         selectedServiceTypeId={null}
         selectedPlanId={isOpeningPlan ? openingPlanId : null}

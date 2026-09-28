@@ -24,6 +24,7 @@ import { CalendarDays, ChevronDown, Clock3, GripVertical } from "lucide-react";
 import { startTransition, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 
+import { PageScrollArea } from "@/components/page-shell";
 import { PlanPersonEditDialog } from "@/components/schedule/plan-person-edit-dialog";
 import { getPlanPersonStatusValue } from "@/components/schedule/plan-person-status";
 import { PositionPickerIcon } from "@/components/schedule/position-picker-icon";
@@ -51,7 +52,6 @@ import {
 } from "@/components/ui/hover-card";
 import { Item, ItemContent, ItemGroup, ItemTitle } from "@/components/ui/item";
 import { MiddleTruncate } from "@/components/ui/middle-truncate";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useLineupColumnOrder } from "@/hooks/use-lineup-column-order";
@@ -77,11 +77,11 @@ interface LineupTabProps {
 
 const lineupSkeletonWidths = ["8rem", "6rem", "9rem", "7rem"];
 const lineupColumnWidthClass = "w-[min(22rem,78vw)]";
-const lineupStackClassName = "pb-safe-4 flex flex-col gap-3 px-(--page-gutter)";
+const lineupStackClassName = "pb-safe-4 flex flex-col gap-3";
 const teamColumnClass =
   "bg-background text-foreground shadow-xs ring-foreground/5 dark:ring-foreground/10 flex shrink-0 flex-col rounded-xl ring-1";
 const lineupColumnsRowClassName =
-  "flex min-w-max items-stretch gap-4 px-(--page-gutter) pt-1 pb-3";
+  "flex min-w-max items-stretch gap-4 pt-1 pb-3";
 const lineupPositionGridClass =
   "grid w-full grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_2rem] items-center gap-x-2 gap-y-0";
 const lineupPositionRowClass = "col-span-4 grid grid-cols-subgrid items-center";
@@ -488,7 +488,7 @@ const lineupSkeletonColumns = [
 ];
 
 const LineupLoadingState = ({ stacked }: { stacked: boolean }) => (
-  <ScrollArea className="-mx-(--page-gutter) min-h-0 flex-1">
+  <PageScrollArea axis={stacked ? "y" : "both"}>
     <div className={stacked ? lineupStackClassName : lineupColumnsRowClassName}>
       {lineupSkeletonColumns.map((column) => (
         <div
@@ -544,7 +544,7 @@ const LineupLoadingState = ({ stacked }: { stacked: boolean }) => (
         </div>
       ))}
     </div>
-  </ScrollArea>
+  </PageScrollArea>
 );
 
 export const LineupTab = ({
@@ -636,7 +636,7 @@ export const LineupTab = ({
 
   if (isMobile) {
     return (
-      <ScrollArea className="-mx-(--page-gutter) min-h-0 flex-1">
+      <PageScrollArea>
         <div className={cn(lineupStackClassName, revealClassName)}>
           {orderedGroups.map((group) => (
             <TeamColumn
@@ -652,12 +652,12 @@ export const LineupTab = ({
             />
           ))}
         </div>
-      </ScrollArea>
+      </PageScrollArea>
     );
   }
 
   return (
-    <ScrollArea className="-mx-(--page-gutter) min-h-0 flex-1">
+    <PageScrollArea axis="both">
       <div className={cn("relative", revealClassName)}>
         <DndContext
           collisionDetection={closestCenter}
@@ -698,6 +698,6 @@ export const LineupTab = ({
           </DragOverlay>
         </DndContext>
       </div>
-    </ScrollArea>
+    </PageScrollArea>
   );
 };

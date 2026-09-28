@@ -4,27 +4,39 @@ import { cn } from "@/lib/utils";
 
 /**
  * The one centered column every product page sits in. It spans the whole inset and centers
- * its content with `--page-gutter` padding, so a scroll container here keeps its scrollbar on
- * the inset edge. Pages never pick their own width: `lint/page-width.test.ts` rejects `mx-auto`
- * with a `max-w-*` container width anywhere else.
+ * its content with `--page-gutter` padding (set by the app shell), so the column's scroll box,
+ * and its scrollbar, reach the inset edge. Pages never pick their own width:
+ * `lint/page-width.test.ts` rejects `mx-auto` with a `max-w-*` container width anywhere else.
  */
-export const pageColumnClassName = "w-full px-(--page-gutter)";
-// Scroll containers inside the column bleed out to the inset edge with
-// `-mx-(--page-gutter)` and pad their content back with `px-(--page-gutter)`.
+const pageColumnClassName = "w-full px-(--page-gutter)";
+
+type PageLayout = "scroll" | "fill" | "center";
+
+const pageLayoutClassName: Record<PageLayout, string> = {
+  // The column scrolls on desktop; phones scroll the window.
+  scroll: "md:overflow-y-auto md:overscroll-contain",
+  // Fixed chrome at the top; the page scrolls inside one or more `PageScrollArea`s.
+  fill: "",
+  // Empty, error, and not-found states.
+  center: "items-center justify-center text-center",
+};
 
 /**
- * Inset page layout: a full-height `main` with one centered column that scrolls on desktop.
- * It takes no width or class overrides so every page renders at the same width.
+ * Layout for everything rendered in the sidebar inset: a full-height `main` holding one
+ * centered column. It takes no width or class overrides so every page renders at the same
+ * width; `lint/page-shell.test.ts` rejects any other `main` in the product.
  */
 export const PageShell = ({
   children,
   label,
   busy = false,
+  layout = "scroll",
 }: {
   children: ReactNode;
   /** Accessible name for the landmark, used by loading fallbacks. */
   label?: string;
   busy?: boolean;
+  layout?: PageLayout;
 }) => (
   <main
     className="bg-background flex flex-1 flex-col md:h-full md:min-h-0 md:overflow-hidden"
@@ -34,10 +46,47 @@ export const PageShell = ({
     <div
       className={cn(
         pageColumnClassName,
-        "pb-safe-4 flex flex-1 flex-col gap-3 pt-1 md:min-h-0 md:overflow-y-auto md:overscroll-contain md:py-4"
+        "pb-safe-4 flex flex-1 flex-col gap-3 pt-1 md:min-h-0 md:py-4",
+        pageLayoutClassName[layout]
       )}
     >
       {children}
     </div>
   </main>
+);
+
+/**
+ * A scrolling region inside a `layout="fill"` page. It stretches out to the inset edges so
+ * its scrollbar sits there, and pads its content back into the page column. Desktop scrolls
+ * here; phones scroll the window, so sticky headers inside still stick to the phone screen.
+ */
+export const PageScrollArea = ({
+  children,
+  axis = "y",
+  besidePane = false,
+}: {
+  children: ReactNode;
+  /** `both` also scrolls sideways, for boards wider than the page. */
+  axis?: "y" | "both";
+  /** Sits right of a side pane on wide screens, so it reaches only the right edge there. */
+  besidePane?: boolean;
+}) => (
+  <div
+    className={cn(
+      "-mx-(--page-gutter) flex flex-col md:min-h-0 md:flex-1 md:overscroll-contain",
+      axis === "both"
+        ? "overflow-x-auto md:overflow-y-auto"
+        : "md:overflow-y-auto",
+      besidePane && "lg:ml-0"
+    )}
+  >
+    <div
+      className={cn(
+        "w-fit min-w-full px-(--page-gutter)",
+        besidePane && "lg:pl-0"
+      )}
+    >
+      {children}
+    </div>
+  </div>
 );

@@ -19,6 +19,7 @@ import { ChevronRight, FileMusic, Music4, Trash2 } from "lucide-react";
 import { startTransition, useState } from "react";
 import type { CSSProperties } from "react";
 
+import { PageScrollArea } from "@/components/page-shell";
 import {
   formatLength,
   getItemTone,
@@ -28,7 +29,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DragHandle } from "@/components/ui/drag-handle";
 import { Item } from "@/components/ui/item";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import type {
   GetIntentPrefetchProps,
@@ -72,7 +72,7 @@ const planItemSkeletonRows = [
 ];
 
 const PlanItemListSkeleton = () => (
-  <div className="px-(--page-gutter) pb-4">
+  <div className="pb-4">
     <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
       {planItemSkeletonRows.map((row) => (
         <div
@@ -363,10 +363,10 @@ export const PlanItemList = ({
   const showList = !isLoading && items.length > 0;
 
   return (
-    <ScrollArea className="-mx-(--page-gutter) min-h-0 flex-1">
+    <PageScrollArea>
       {isLoading ? <PlanItemListSkeleton /> : null}
       {showEmpty ? (
-        <div className="px-(--page-gutter) py-1">
+        <div className="py-1">
           <Card className="text-center">
             <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
               <FileMusic className="text-muted-foreground/70 size-5" />
@@ -423,7 +423,7 @@ export const PlanItemList = ({
               items={items.map((item) => item.id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="pb-safe-4 px-(--page-gutter) md:pb-4">
+              <div className="pb-safe-4 md:pb-4">
                 <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
                   {items.map((item) => (
                     <SortablePlanItem
@@ -464,6 +464,6 @@ export const PlanItemList = ({
           </DndContext>
         </div>
       ) : null}
-    </ScrollArea>
+    </PageScrollArea>
   );
 };
