@@ -151,8 +151,8 @@ const headerTabClass = (active: boolean) =>
   cn(
     "relative flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm",
     active
-      ? "text-foreground"
-      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+      ? "text-foreground font-semibold"
+      : "text-muted-foreground hover:text-foreground"
   );
 
 const PlanViewTabs = () => {
@@ -178,7 +178,18 @@ const PlanViewTabs = () => {
             className={headerTabClass(active)}
           >
             <SidebarNavIcon icon={planViewIcons[view]} className="size-4" />
-            <span>{getPlanViewLabel(view)}</span>
+            {/* The hidden bold copy reserves the active width so tabs don't shift. */}
+            <span className="grid">
+              <span
+                aria-hidden
+                className="invisible col-start-1 row-start-1 font-semibold"
+              >
+                {getPlanViewLabel(view)}
+              </span>
+              <span className="col-start-1 row-start-1 text-center">
+                {getPlanViewLabel(view)}
+              </span>
+            </span>
           </Link>
         );
       })}
