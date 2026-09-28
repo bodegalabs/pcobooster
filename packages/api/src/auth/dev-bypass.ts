@@ -10,6 +10,7 @@
  */
 import { logger } from "@pcobooster/api/logger";
 import type { PlanningCenterPersonalAccessToken } from "@pcobooster/api/planning-center/core-client";
+import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user-agent";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { z } from "zod";
 
@@ -119,7 +120,11 @@ const fetchPcResource = async <T>(
   }
   try {
     const response = await fetch(`${PC_BASE_URL}${path}`, {
-      headers: { Authorization: authorization, Accept: "application/json" },
+      headers: {
+        Authorization: authorization,
+        Accept: "application/json",
+        "User-Agent": PLANNING_CENTER_USER_AGENT,
+      },
       cache: "no-store",
     });
     if (!response.ok) {

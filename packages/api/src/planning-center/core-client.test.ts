@@ -15,6 +15,7 @@ import type {
   PlanningCenterLogFields,
   PlanningCenterLogger,
 } from "@pcobooster/api/planning-center/request-accounting";
+import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user-agent";
 import { httpClientFor } from "@pcobooster/api/testing/http-client";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
@@ -94,6 +95,14 @@ describe(PlanningCenterCoreClient, () => {
     expect(headers.has("traceparent")).toBeFalsy();
     expect(client.getCacheScope()).toBe(
       `bearer:${createHash("sha256").update("selected-account-token").digest("hex")}`
+    );
+  });
+
+  it("identifies itself to Planning Center with a User-Agent", async () => {
+    const fetch = fetchMock().mockResolvedValue(jsonResponse({ data: person }));
+    await run(basicClient(fetch).fetch("/services/v2/people/1"));
+    expect(requestHeaders(fetch).get("User-Agent")).toBe(
+      PLANNING_CENTER_USER_AGENT
     );
   });
 
