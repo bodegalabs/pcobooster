@@ -1,4 +1,4 @@
-import { PageShell, pageColumnClassName } from "@/components/page-shell";
+import { PageShell } from "@/components/page-shell";
 import {
   CandidateListSkeleton,
   PlanHeaderSkeleton,
@@ -6,7 +6,6 @@ import {
 } from "@/components/schedule/schedule-skeletons";
 import { PlanAgendaSkeleton } from "@/components/service-plan-table-selector";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 
 /** Mirrors the services selector: your services, filters, then the plan agenda. */
 export const SchedulePlansFallback = () => (
@@ -33,31 +32,20 @@ export const SchedulePlansFallback = () => (
 );
 
 export const SchedulePlanWorkspaceFallback = () => (
-  <main
-    className="bg-background flex flex-1 flex-col md:h-full md:min-h-0 md:overflow-hidden"
-    aria-busy
-    aria-label="Loading plan"
-  >
-    <div
-      className={cn(
-        pageColumnClassName,
-        "flex min-h-0 flex-1 flex-col px-3 py-2 sm:px-4 sm:py-3"
-      )}
-    >
-      <PlanHeaderSkeleton />
+  <PageShell layout="fill" label="Loading plan" busy>
+    <PlanHeaderSkeleton />
 
-      <div className="flex min-h-0 w-full flex-1 flex-col gap-3 sm:gap-4 lg:flex-row">
-        <aside className="border-sidebar-border/40 bg-sidebar/60 hidden min-h-0 w-[min(18rem,28vw)] shrink-0 overflow-hidden rounded-xl border lg:block">
-          <PositionPickerSkeleton />
-        </aside>
-        <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 sm:gap-4">
-          <div className="flex flex-col gap-2 px-1 sm:gap-3">
-            <Skeleton variant="control" className="h-6 w-40 sm:h-7" />
-            <Skeleton variant="round" className="h-8 w-full sm:max-w-sm" />
-          </div>
-          <CandidateListSkeleton />
-        </section>
-      </div>
+    <div className="flex min-h-0 w-full flex-1 flex-col gap-3 sm:gap-4 lg:flex-row">
+      <aside className="border-sidebar-border/40 bg-sidebar/60 hidden min-h-0 w-[min(18rem,28vw)] shrink-0 overflow-hidden rounded-xl border lg:block">
+        <PositionPickerSkeleton />
+      </aside>
+      <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col gap-2 px-1 sm:gap-3">
+          <Skeleton variant="control" className="h-6 w-40 sm:h-7" />
+          <Skeleton variant="round" className="h-8 w-full sm:max-w-sm" />
+        </div>
+        <CandidateListSkeleton />
+      </section>
     </div>
-  </main>
+  </PageShell>
 );
