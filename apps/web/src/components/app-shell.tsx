@@ -149,7 +149,7 @@ const planViewIcons: Record<PlanView, SidebarTabGroupItem["icon"]> = {
 
 const headerTabClass = (active: boolean) =>
   cn(
-    "relative flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm",
+    "hover:bg-accent/60 relative flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm",
     active
       ? "text-foreground font-semibold"
       : "text-muted-foreground hover:text-foreground"
