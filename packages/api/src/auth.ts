@@ -40,6 +40,13 @@ const shouldTrackSessionDeletion = (
   );
 };
 
+/** The local product origin as `localhost`, which browsers treat as a different origin. */
+const localhostAlias = (origin: string): string => {
+  const url = new URL(origin);
+  url.hostname = "localhost";
+  return url.origin;
+};
+
 export const createAuth = (config: ServerConfig, database: Db) => {
   const authEventLog = logger.for("auth/events");
   const { planningCenter, previewOriginPattern, proxy } = config.auth;
@@ -47,9 +54,7 @@ export const createAuth = (config: ServerConfig, database: Db) => {
   const trustedOrigins = [
     ...(previewOriginPattern === null ? [] : [previewOriginPattern]),
     config.publicOrigin,
-    ...(config.localDevelopment
-      ? ["http://localhost:3001", "http://127.0.0.1:3001"]
-      : []),
+    ...(config.localDevelopment ? [localhostAlias(config.publicOrigin)] : []),
   ];
 
   const recordAuthEventSafely = async (

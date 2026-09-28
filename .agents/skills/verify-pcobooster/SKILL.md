@@ -9,8 +9,8 @@ Read [references/feature-map.md](references/feature-map.md) and select every flo
 
 ## Launch
 
-- Public marketing-only changes: run `bun run dev:marketing` and use `http://127.0.0.1:3002`.
-- Integrated product changes: run `bun run dev`. Treat missing Infisical access or provider credentials as a blocked environment, not a product failure.
+- Public marketing-only changes: run `bun run dev:marketing` and use `http://127.0.0.1:3002` (or the port `DEV_PORT_BASE` gives marketing).
+- Integrated product changes: run `bun run dev` and open the product URL it prints; linked worktrees get their own ports. Use `bun run dev:auth` only for sign-in flows. Treat missing Infisical access or provider credentials as a blocked environment, not a product failure.
 - A Cloudflare preview may replace local launch when its deployed revision matches the committed revision being proved. Confirm the Actions run and deployment; a stable per-PR URL alone does not prove the revision.
 
 Completion: the selected surface responds, the rendered page matches the target revision, and the browser console has no startup error.

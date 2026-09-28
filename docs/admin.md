@@ -28,7 +28,7 @@ Each user page links to the matching PostHog person. The product identifies Post
 
 ## Development and deployment
 
-`bun run dev` serves the admin app through `http://127.0.0.1:3001/admin`, and its Vite dev server also listens on 3003. Alchemy binds the same local D1 database the API uses, so admin shows local accounts.
+`bun run dev` serves the admin app through the product's `/admin` (`http://127.0.0.1:3001/admin` in the main checkout), and its Vite dev server also listens on the admin port (3003 there; see [local ports](environment.md#local-ports)). Alchemy binds the same local D1 database the API uses, so admin shows local accounts.
 
 Alchemy deploys a dedicated admin Worker (`Cloudflare.Website.Vite`) bound to its stage's D1 database. Production serves it at `admin.pcobooster.com`. Staging and each preview serve it through the product's `/admin` route; there the admin Worker has no public workers.dev endpoint.
 

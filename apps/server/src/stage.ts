@@ -1,10 +1,15 @@
+import {
+  DEFAULT_DEV_PORT_BASE,
+  devOrigin,
+  devPorts,
+  parseDevPortBase,
+} from "@pcobooster/config/dev-ports";
 import * as Alchemy from "alchemy";
 import { Config, Effect } from "effect";
 
 const supportedStagePattern = /^(?:prod|staging|local|test|pr-\d+)$/u;
 
-/** Where `alchemy dev` serves the API Worker. The stack test gets its own port. */
-const localApiPort = 3000;
+/** Where the API stack test serves the API Worker, clear of every local stage's ports. */
 const testApiPort = 3010;
 
 export interface StageSettings {
@@ -19,29 +24,38 @@ export interface StageSettings {
   readonly staging: boolean;
   /** The port `alchemy dev` serves the API Worker on. */
   readonly apiDevPort: number;
+  /** The ports `alchemy dev` serves the product and admin Vite dev servers on (local stage). */
+  readonly webDevPort: number;
+  readonly adminDevPort: number;
   /** The product's browser origin, which also serves the API and (outside production) admin. */
   readonly publicOrigin: string;
   /** Matches every preview and staging product Worker; they share production's OAuth callback. */
   readonly previewOriginPattern: string;
 }
 
+/**
+ * `devPortBase` is `DEV_PORT_BASE` (`@pcobooster/config/dev-ports`), which only the `local`
+ * stage reads; several checkouts can each run their own `local` stack on different ports.
+ */
 export const resolveStageSettings = (
   stage: string,
-  workersSubdomain: string
+  workersSubdomain: string,
+  devPortBase: number = DEFAULT_DEV_PORT_BASE
 ): StageSettings => {
   if (!supportedStagePattern.test(stage)) {
     throw new Error(`Unsupported deployment stage: ${stage}`);
   }
   const production = stage === "prod";
   const local = stage === "local" || stage === "test";
-  const apiDevPort = stage === "test" ? testApiPort : localApiPort;
+  const ports = devPorts(devPortBase);
+  const apiDevPort = stage === "test" ? testApiPort : ports.api;
   let publicOrigin = `https://pcobooster-${stage}-web.${workersSubdomain}.workers.dev`;
   if (production) {
     publicOrigin = "https://pcobooster.com";
   } else if (stage === "test") {
     publicOrigin = `http://127.0.0.1:${testApiPort}`;
   } else if (local) {
-    publicOrigin = "http://127.0.0.1:3001";
+    publicOrigin = devOrigin(ports.web);
   }
   return {
     stage,
@@ -49,6 +63,8 @@ export const resolveStageSettings = (
     local,
     staging: stage === "staging",
     apiDevPort,
+    webDevPort: ports.web,
+    adminDevPort: ports.admin,
     publicOrigin,
     previewOriginPattern: `https://pcobooster-*-web.${workersSubdomain}.workers.dev`,
   };
@@ -63,8 +79,18 @@ export const currentStageSettings = Effect.gen(function* stageSettings() {
   const workersSubdomain = yield* Config.String(
     "CLOUDFLARE_WORKERS_SUBDOMAIN"
   ).pipe(Config.withDefault("jakebodea"));
+  // Read only locally, so deployed Workers never bind it.
+  const devPortBase =
+    stage === "local"
+      ? yield* Config.String("DEV_PORT_BASE").pipe(Config.withDefault(""))
+      : "";
   return yield* Effect.try({
-    try: () => resolveStageSettings(stage, workersSubdomain),
+    try: () =>
+      resolveStageSettings(
+        stage,
+        workersSubdomain,
+        parseDevPortBase(devPortBase)
+      ),
     catch: (error) =>
       error instanceof Error ? error : new Error(String(error)),
   }).pipe(Effect.orDie);
