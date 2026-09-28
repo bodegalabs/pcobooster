@@ -1,5 +1,7 @@
 import {
+  getCatalogAdjacentPlan,
   getCatalogOrganization,
+  getCatalogPlan,
   getCatalogPlans,
   getCatalogServiceTypes,
   getCatalogTeamPositions,
@@ -16,6 +18,16 @@ const plans = rpc.catalog.plans.handler(
     await readWithPlanningCenter(getCatalogPlans(input), call)
 );
 
+const plan = rpc.catalog.plan.handler(
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(getCatalogPlan(input), call)
+);
+
+const adjacentPlan = rpc.catalog.adjacentPlan.handler(
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(getCatalogAdjacentPlan(input), call)
+);
+
 const organization = rpc.catalog.organization.handler(
   async (call) => await readWithPlanningCenter(getCatalogOrganization, call)
 );
@@ -28,6 +40,8 @@ const teamPositions = rpc.catalog.teamPositions.handler(
 export const catalogRouter = {
   serviceTypes,
   plans,
+  plan,
+  adjacentPlan,
   organization,
   teamPositions,
 };

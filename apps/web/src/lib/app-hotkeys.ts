@@ -6,11 +6,24 @@ export const SIDEBAR_TOGGLE_HOTKEY =
 export const SHORTCUTS_PALETTE_HOTKEY =
   "Mod+/" as const satisfies RegisterableHotkey;
 
+export const PREVIOUS_PLAN_HOTKEY = "[" as const satisfies RegisterableHotkey;
+export const NEXT_PLAN_HOTKEY = "]" as const satisfies RegisterableHotkey;
+
 export const APP_SHORTCUTS = [
   {
     id: "sidebar.toggle",
     label: "Toggle sidebar",
     binding: SIDEBAR_TOGGLE_HOTKEY,
+  },
+  {
+    id: "plan.previousPlan",
+    label: "Previous plan of the same service",
+    binding: PREVIOUS_PLAN_HOTKEY,
+  },
+  {
+    id: "plan.nextPlan",
+    label: "Next plan of the same service",
+    binding: NEXT_PLAN_HOTKEY,
   },
   {
     id: "shortcuts.palette",

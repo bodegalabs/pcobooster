@@ -5,6 +5,11 @@ import {
   withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
 import { requestPresentationDependencies } from "@pcobooster/api/application/presentation";
+import {
+  getAdjacentPlan,
+  getPlanDetails,
+} from "@pcobooster/api/modules/planning-center/get-adjacent-plan";
+import type { PlanDirection } from "@pcobooster/api/modules/planning-center/get-adjacent-plan";
 import { getPlansForServiceType } from "@pcobooster/api/modules/planning-center/get-plans";
 import { getServiceTypes } from "@pcobooster/api/modules/planning-center/get-service-types";
 import { getNeededTeamPositionsForPlan } from "@pcobooster/api/modules/planning-center/get-team-positions";
@@ -40,6 +45,42 @@ export const getCatalogPlans = (input: {
     const access = yield* PlanningCenterAccess;
     return yield* withPlanningCenterFaults(
       getPlansForServiceType(input.serviceTypeId, {
+        plansService: access.services.plans,
+        resolveTimeZone: access.services.organizationTimeZone,
+      })
+    );
+  });
+
+export const getCatalogPlan = (input: {
+  readonly serviceTypeId: string;
+  readonly planId: string;
+}): Effect.Effect<
+  Plan | null,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
+  Effect.gen(function* getPlan() {
+    const access = yield* PlanningCenterAccess;
+    return yield* withPlanningCenterFaults(
+      getPlanDetails(input.serviceTypeId, input.planId, {
+        plansService: access.services.plans,
+      })
+    );
+  });
+
+export const getCatalogAdjacentPlan = (input: {
+  readonly serviceTypeId: string;
+  readonly planId: string;
+  readonly direction: PlanDirection;
+}): Effect.Effect<
+  Plan | null,
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
+  Effect.gen(function* findAdjacentPlan() {
+    const access = yield* PlanningCenterAccess;
+    return yield* withPlanningCenterFaults(
+      getAdjacentPlan(input.serviceTypeId, input.planId, input.direction, {
         plansService: access.services.plans,
         resolveTimeZone: access.services.organizationTimeZone,
       })

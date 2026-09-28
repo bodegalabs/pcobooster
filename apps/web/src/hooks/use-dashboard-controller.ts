@@ -1,5 +1,6 @@
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
+  Plan,
   TeamPosition,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
@@ -12,7 +13,8 @@ import { useCollapsedTeams } from "@/hooks/use-collapsed-teams";
 import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
 import { usePlanTimes } from "@/hooks/use-plan-times";
-import { usePlans } from "@/hooks/use-plans";
+import { usePlanDetails, usePlans } from "@/hooks/use-plans";
+import type { PlanNeighbor } from "@/hooks/use-plans";
 import {
   createPlanWindowHistoryQueryOptions,
   isPositionCandidatesFresh,
@@ -67,6 +69,29 @@ const resolveSelectedSlot = (
   };
 };
 
+/**
+ * Plans come sorted by date, so listed neighbors are the plans just before and after;
+ * past the list's ends, the neighbor is looked up when someone asks for it.
+ */
+interface ListedNeighbors {
+  previousPlan: PlanNeighbor;
+  nextPlan: PlanNeighbor;
+}
+
+const listedNeighbors = (
+  plans: readonly Plan[] | undefined,
+  index: number
+): ListedNeighbors => {
+  const neighborAt = (at: number): PlanNeighbor => {
+    const plan = index === -1 || at < 0 ? undefined : plans?.[at];
+    return plan === undefined ? { kind: "lookup" } : { kind: "known", plan };
+  };
+  return {
+    previousPlan: neighborAt(index - 1),
+    nextPlan: neighborAt(index + 1),
+  };
+};
+
 const usePlanWorkspaceData = (
   serviceTypeId: string,
   planId: string,
@@ -82,7 +107,17 @@ const usePlanWorkspaceData = (
     ) ?? null;
 
   const { data: plans, isLoading: plansLoading } = usePlans(routeServiceTypeId);
-  const selectedPlan = plans?.find((plan) => plan.id === routePlanId) ?? null;
+  const selectedPlanIndex =
+    plans?.findIndex((plan) => plan.id === routePlanId) ?? -1;
+  const listedPlan = plans?.[selectedPlanIndex] ?? null;
+  // Past plans (and ones past the list's window) load on their own.
+  const planDetails = usePlanDetails(
+    routeServiceTypeId,
+    routePlanId,
+    plans !== undefined && listedPlan === null
+  );
+  const selectedPlan = listedPlan ?? planDetails.data ?? null;
+  const { previousPlan, nextPlan } = listedNeighbors(plans, selectedPlanIndex);
 
   const { data: teamPositionGroups, isLoading: teamPositionsLoading } =
     useTeamPositions(
@@ -125,13 +160,17 @@ const usePlanWorkspaceData = (
   );
   const candidateList = usePositionCandidates(candidateSlot);
 
+  const planDetailsSettled =
+    planDetails.isFetched || planDetails.isError || listedPlan !== null;
   const workspaceUnavailable =
     !serviceTypesLoading &&
     !plansLoading &&
-    (!selectedServiceType || !selectedPlan);
+    (!selectedServiceType || (!selectedPlan && planDetailsSettled));
   return {
     selectedServiceType,
     selectedPlan,
+    previousPlan,
+    nextPlan,
     teamPositionGroups,
     teamPositionsLoading,
     planTimes,
@@ -191,6 +230,8 @@ export const useDashboardController = ({
   const {
     selectedServiceType,
     selectedPlan,
+    previousPlan,
+    nextPlan,
     teamPositionGroups,
     teamPositionsLoading,
     planTimes,
@@ -493,6 +534,8 @@ export const useDashboardController = ({
     hasSelectedPlanMetadata,
     selectedServiceType,
     selectedPlan,
+    previousPlan,
+    nextPlan,
     activeView,
     teamPositionsLoading,
     teamPositionGroups,
