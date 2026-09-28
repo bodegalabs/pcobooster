@@ -1,10 +1,12 @@
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { Plan } from "@pcobooster/planning-center-models/types";
 import { useQuery } from "@tanstack/react-query";
+import type { QueryFunctionContext } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
+import { callForQuery } from "@/lib/request-priority";
 import {
   readCachedPlansEntry,
   writeCachedPlans,
@@ -41,3 +43,44 @@ export const usePlans = (serviceTypeId: string | null) => {
 
   return query;
 };
+
+/** A plan next to the open one: already in the loaded list, or to look up on request. */
+export type PlanNeighbor = { kind: "known"; plan: Plan } | { kind: "lookup" };
+
+const PLAN_DETAILS_STALE_TIME_MS = 5 * 60 * 1000;
+
+/** One plan's details, for plans outside the upcoming list (past plans, far-off ones). */
+export const usePlanDetails = (
+  serviceTypeId: string,
+  planId: string,
+  enabled: boolean
+) =>
+  useQuery<Plan | null>({
+    queryKey: queryKeys.planDetails(serviceTypeId, planId),
+    queryFn: async (context) =>
+      await callForQuery(
+        context,
+        async (options) =>
+          await orpc.catalog.plan({ serviceTypeId, planId }, options)
+      ),
+    enabled,
+    staleTime: PLAN_DETAILS_STALE_TIME_MS,
+  });
+
+export const createAdjacentPlanQueryOptions = (
+  serviceTypeId: string,
+  planId: string,
+  direction: "previous" | "next"
+) => ({
+  queryKey: queryKeys.adjacentPlan(serviceTypeId, planId, direction),
+  queryFn: async (context: QueryFunctionContext) =>
+    await callForQuery(
+      context,
+      async (options) =>
+        await orpc.catalog.adjacentPlan(
+          { serviceTypeId, planId, direction },
+          options
+        )
+    ),
+  staleTime: PLAN_DETAILS_STALE_TIME_MS,
+});

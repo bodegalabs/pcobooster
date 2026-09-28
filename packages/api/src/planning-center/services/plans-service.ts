@@ -113,6 +113,19 @@ export class PlanningCenterPlansService {
     );
   }
 
+  /** One page of plans in the given order, for finding the plans next to one plan. */
+  getPlansPage(
+    serviceTypeId: string,
+    params: Record<string, string>,
+    order: "sort_date" | "-sort_date"
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
+    return this.core.fetchAll(
+      `/services/v2/service_types/${serviceTypeId}/plans`,
+      { ...params, order },
+      1
+    );
+  }
+
   /**
    * Fetch plans from `afterDayKey` onward (YYYY-MM-DD in org TZ) via filter=after.
    * Trims to plans whose sort_date falls on [`afterDayKey`, `beforeDayKey`] in the org timezone.

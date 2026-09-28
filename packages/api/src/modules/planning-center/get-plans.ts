@@ -19,7 +19,8 @@ export interface GetPlansDependencies {
   resolveTimeZone: Effect.Effect<string, PlanningCenterError>;
 }
 
-const toPlans = (rawPlans: PCResource[]): Plan[] => {
+/** Plans with a usable date, oldest first. */
+export const toPlans = (rawPlans: PCResource[]): Plan[] => {
   const plans: Plan[] = [];
   for (const raw of rawPlans) {
     const sortDateStr = raw.attributes.sort_date;
