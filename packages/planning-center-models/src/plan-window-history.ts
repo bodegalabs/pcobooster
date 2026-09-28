@@ -95,6 +95,7 @@ const rowToServiceHistory = (
   ): ServiceHistoryItem => ({
     id,
     sourceScheduleId: row.id,
+    planId: row.planId ?? undefined,
     date,
     teamPositionName: positionName || "",
     teamName,

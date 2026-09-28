@@ -188,6 +188,13 @@ describe("people read contracts", () => {
           archived: false,
           selectedPlanRosterLabels: [],
           selectedPlanSlot: null,
+          schedulingPreferences: {
+            schedulePreference: "Choose Weeks",
+            preferredWeeks: [1, 3],
+            timePreferenceOptionIds: ["tpo-9am"],
+            maxPlansPerDay: 1,
+            maxPlansPerMonth: null,
+          },
         },
       ],
     };

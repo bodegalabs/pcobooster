@@ -54,6 +54,7 @@ const person = (
   archived: false,
   selectedPlanRosterLabels: [],
   selectedPlanSlot: null,
+  schedulingPreferences: null,
   ...overrides,
 });
 

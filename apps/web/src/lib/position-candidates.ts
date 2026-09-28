@@ -106,6 +106,7 @@ export const assembleCandidateList = ({
   scheduleHistory,
   details,
   date,
+  slotTimePreferenceOptionId = null,
 }: {
   candidates: PositionCandidates;
   /** Expanded window history; undefined while it loads or when it is not used. */
@@ -114,6 +115,8 @@ export const assembleCandidateList = ({
   scheduleHistory: boolean;
   details: ReadonlyMap<string, CandidateDetail>;
   date: string;
+  /** The service time the selected slot is needed for, when Planning Center says. */
+  slotTimePreferenceOptionId?: string | null;
 }): CandidateList => {
   const historyFor = (personId: string) => {
     if (scheduleHistory) {
@@ -128,6 +131,7 @@ export const assembleCandidateList = ({
     match: candidates.match,
     referenceDate: new Date(date),
     timeZone: candidates.timeZone,
+    slotTimePreferenceOptionId,
     historyFor,
     blockedFor: (personId) => details.get(personId)?.isBlockedForDate,
   });

@@ -121,6 +121,7 @@ const people: PositionCandidatesResult = {
       photoThumbnailUrl: "https://private/photo",
       archived: false,
       selectedPlanRosterLabels: ["Band - Vocals"],
+      schedulingPreferences: null,
       selectedPlanSlot: {
         planPersonId: "plan-person-1",
         status: "declined",

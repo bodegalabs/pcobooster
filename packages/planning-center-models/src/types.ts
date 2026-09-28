@@ -3,6 +3,7 @@ import type {
   JsonObject,
   JsonValue,
 } from "@pcobooster/planning-center-models/json";
+import type { SchedulingPreferences } from "@pcobooster/planning-center-models/scheduling-preferences";
 
 export interface PCApiResponse<T> {
   data: T;
@@ -497,6 +498,8 @@ export interface RawNeededPosition {
 export interface ServiceHistoryItem {
   id: string;
   sourceScheduleId: string;
+  /** The plan the row belongs to, when known; tells same-day plans apart. */
+  planId?: string;
   date: Date;
   teamPositionName: string;
   teamName?: string;
@@ -564,6 +567,8 @@ export interface PersonWithAvailability extends Person {
   selectedPlanDeclineReason?: string | null;
   selectedPlanAssignmentLabels?: string[];
   scheduledPlanPersonId?: string;
+  /** What the person told Planning Center about when and how often to serve this position. */
+  schedulingPreferences?: SchedulingPreferences | null;
   recommendationScore?: number;
   recommendationReasoning?: string[];
 }

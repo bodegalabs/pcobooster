@@ -3,6 +3,8 @@ import {
   orgCalendarDaysBetween,
 } from "@pcobooster/planning-center-models/calendar";
 import { formatPlanHistoryHalfRangeWeeksLabel } from "@pcobooster/planning-center-models/schedule-constants";
+import { scoreSchedulingPreferences } from "@pcobooster/planning-center-models/scheduling-preferences";
+import type { SchedulingPreferenceContext } from "@pcobooster/planning-center-models/scheduling-preferences";
 import type {
   PersonWithAvailability,
   ScheduleFrequency,
@@ -154,7 +156,13 @@ const appendRecentLoadReasoning = (
   }
 };
 
-const calculateRecommendationScore = (
+/** The selected plan and slot, for scoring against Planning Center scheduling preferences. */
+export type ScoringSlot = Omit<
+  SchedulingPreferenceContext,
+  "referenceDate" | "orgTimeZone"
+>;
+
+const calculateHistoryScore = (
   person: PersonWithAvailability,
   referenceDate: Date,
   orgTimeZone: string
@@ -232,16 +240,40 @@ const calculateRecommendationScore = (
   return { score: rawScore, reasoning };
 };
 
+/** History-based score, lowered where it goes against what the person told Planning Center. */
+const calculateRecommendationScore = (
+  person: PersonWithAvailability,
+  referenceDate: Date,
+  orgTimeZone: string,
+  slot: ScoringSlot
+) => {
+  const history = calculateHistoryScore(person, referenceDate, orgTimeZone);
+  if (!person.schedulingPreferences) {
+    return history;
+  }
+  const preferences = scoreSchedulingPreferences(
+    person.schedulingPreferences,
+    person.serviceHistory ?? [],
+    { ...slot, referenceDate, orgTimeZone }
+  );
+  return {
+    score: history.score - preferences.penalty,
+    reasoning: [...history.reasoning, ...preferences.reasoning],
+  };
+};
+
 export const scoreAndNormalizePeople = (
   people: PersonWithAvailability[],
   referenceDate: Date,
-  orgTimeZone: string
+  orgTimeZone: string,
+  slot: ScoringSlot = {}
 ) => {
   for (const person of people) {
     const { score, reasoning } = calculateRecommendationScore(
       person,
       referenceDate,
-      orgTimeZone
+      orgTimeZone,
+      slot
     );
     person.recommendationScore = score;
     person.recommendationReasoning = reasoning;

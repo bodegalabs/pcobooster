@@ -26,6 +26,7 @@ const candidate = (id: string, fullName: string) => ({
   archived: false,
   selectedPlanRosterLabels: [],
   selectedPlanSlot: null,
+  schedulingPreferences: null,
 });
 
 const candidates: PositionCandidates = {

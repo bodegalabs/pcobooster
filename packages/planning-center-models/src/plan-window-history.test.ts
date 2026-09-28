@@ -129,6 +129,7 @@ describe(assemblePositionCandidates, () => {
     photoThumbnailUrl: null,
     archived: false,
     selectedPlanRosterLabels: ["Band - Vocals"],
+    schedulingPreferences: null,
     selectedPlanSlot: {
       planPersonId: "pp-selected",
       status: "confirmed",
