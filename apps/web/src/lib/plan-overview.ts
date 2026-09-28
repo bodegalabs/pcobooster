@@ -102,7 +102,7 @@ export interface PlanOrder {
   itemCount: number;
 }
 
-const keyLabelOf = (key: PlanItem["key"]): string | null => {
+export const keyLabelOf = (key: PlanItem["key"]): string | null => {
   const start = key?.startingKey ?? null;
   if (start === null || start === "") {
     return null;
@@ -111,6 +111,36 @@ const keyLabelOf = (key: PlanItem["key"]): string | null => {
   return end === null || end === "" || end === start
     ? start
     : `${start} to ${end}`;
+};
+
+/**
+ * A key option's key and its description (Planning Center's key name, often whose key it
+ * is), dropping the description when it is missing or only repeats the key.
+ */
+export interface KeyOptionParts {
+  label: string;
+  description: string | null;
+}
+
+export const keyOptionPartsOf = (
+  key: NonNullable<PlanItem["key"]>
+): KeyOptionParts => {
+  const label = keyLabelOf(key);
+  const description = key.name.trim();
+  if (label === null) {
+    return { label: description, description: null };
+  }
+  const repeatsKey =
+    description === "" ||
+    description === label ||
+    description === `${key.startingKey} -> ${key.endingKey}`;
+  return { label, description: repeatsKey ? null : description };
+};
+
+/** Key picker label: "{key}: {description}", dropping whichever part is missing or redundant. */
+export const keyOptionLabelOf = (key: NonNullable<PlanItem["key"]>): string => {
+  const { label, description } = keyOptionPartsOf(key);
+  return description === null ? label : `${label}: ${description}`;
 };
 
 export const summarizeOrder = (items: readonly PlanItem[]): PlanOrder => {

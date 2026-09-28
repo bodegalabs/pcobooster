@@ -9,6 +9,8 @@ import {
   buildReadinessChecks,
   formatDuration,
   formatTimeOfDay,
+  keyOptionLabelOf,
+  keyOptionPartsOf,
   summarizeOrder,
   summarizeStaffing,
   summarizeTimes,
@@ -284,5 +286,45 @@ describe(formatTimeOfDay, () => {
     expect(
       formatTimeOfDay(new Date("2026-09-24T02:00:00Z"), "America/Los_Angeles")
     ).toBe("7:00 PM");
+  });
+});
+
+const keyOption = (
+  name: string,
+  startingKey: string | null,
+  endingKey = startingKey
+) => ({
+  id: "key-1",
+  name,
+  startingKey,
+  endingKey,
+});
+
+describe(keyOptionPartsOf, () => {
+  it("separates the key from whose key it is", () => {
+    expect(
+      keyOptionPartsOf(
+        keyOption("Female lead (highest note is C# at bridge)", "D")
+      )
+    ).toStrictEqual({
+      label: "D",
+      description: "Female lead (highest note is C# at bridge)",
+    });
+    expect(keyOptionLabelOf(keyOption("Emily", "D"))).toBe("D: Emily");
+  });
+
+  it("drops a description that only repeats the key", () => {
+    expect(keyOptionPartsOf(keyOption("Bb", "Bb"))).toStrictEqual({
+      label: "Bb",
+      description: null,
+    });
+    expect(keyOptionPartsOf(keyOption("G -> A", "G", "A"))).toStrictEqual({
+      label: "G to A",
+      description: null,
+    });
+    expect(keyOptionPartsOf(keyOption("Original", null))).toStrictEqual({
+      label: "Original",
+      description: null,
+    });
   });
 });

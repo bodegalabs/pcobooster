@@ -30,6 +30,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useSongOptions } from "@/hooks/use-song-options";
+import { keyOptionLabelOf } from "@/lib/plan-overview";
 
 export interface PlanItemSaveInput {
   item: PlanItem;
@@ -222,7 +223,7 @@ const InspectorFields = ({
                 </NativeSelectOption>
                 {keyOptions.map((key) => (
                   <NativeSelectOption key={key.id} value={key.id}>
-                    {key.name}
+                    {keyOptionLabelOf(key)}
                   </NativeSelectOption>
                 ))}
               </NativeSelect>

@@ -25,27 +25,26 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDraftPopover } from "@/hooks/use-persist-on-close-popover";
 import { useSongOptions } from "@/hooks/use-song-options";
-import { formatDuration } from "@/lib/plan-overview";
+import {
+  formatDuration,
+  keyLabelOf,
+  keyOptionPartsOf,
+} from "@/lib/plan-overview";
 import type { KeyTransition } from "@/lib/plan-set-insights";
 
-const presentText = (value: string | null | undefined) =>
-  value === null || value === undefined || value === "" ? null : value;
-
-/** The key a song is played in, with its ending key when it modulates. */
-const keyLabel = (item: PlanItem) => {
-  const start =
-    presentText(item.key?.startingKey) ?? presentText(item.key?.name);
-  if (start === null) {
-    return null;
-  }
-  const end = presentText(item.key?.endingKey);
-  return end === null || end === start ? start : `${start} → ${end}`;
-};
-
-const keyOptionLabel = (key: KeyOption) => {
-  const start = presentText(key.startingKey) ?? key.name;
-  const end = presentText(key.endingKey);
-  return end === null || end === start ? start : `${start} → ${end}`;
+/** The key first, then whose key it is or how it is sung, on its own line. */
+const KeyOptionContent = ({ keyOption }: { keyOption: KeyOption }) => {
+  const { label, description } = keyOptionPartsOf(keyOption);
+  return (
+    <span className="flex min-w-0 flex-col">
+      <span className="tabular-nums">{label}</span>
+      {description === null ? null : (
+        <span className="text-muted-foreground text-xs font-normal">
+          {description}
+        </span>
+      )}
+    </span>
+  );
 };
 
 const TransitionWarning = ({ transition }: { transition: KeyTransition }) => (
@@ -80,7 +79,8 @@ export const SongKeyPicker = ({
     open ? (item.song?.id ?? null) : null,
     serviceTypeId
   );
-  const label = keyLabel(item);
+  const label =
+    item.key === null ? null : (keyLabelOf(item.key) ?? item.key.name);
   const arrangements =
     options?.arrangements.filter((arrangement) => !arrangement.archived) ?? [];
 
@@ -106,7 +106,7 @@ export const SongKeyPicker = ({
         >
           {label ?? <span className="text-status-scheduled">No key</span>}
         </PopoverTrigger>
-        <PopoverContent align="end" className="w-64">
+        <PopoverContent align="end" className="w-72">
           <Command>
             <CommandList>
               {isLoading && options === undefined ? (
@@ -132,7 +132,7 @@ export const SongKeyPicker = ({
                         onChange(arrangement, key);
                       }}
                     >
-                      {keyOptionLabel(key)}
+                      <KeyOptionContent keyOption={key} />
                     </CommandItem>
                   ))}
                 </CommandGroup>
@@ -197,7 +197,7 @@ export const ItemLengthEditor = ({
         }
       >
         <span className="text-muted-foreground tabular-nums">
-          {current === "" ? "–:––" : current}
+          {current === "" ? "-:--" : current}
         </span>
       </PopoverTrigger>
       <PopoverContent ref={contentRef} align="end" className="w-44">

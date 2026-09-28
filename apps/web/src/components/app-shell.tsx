@@ -23,10 +23,15 @@ import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import type { RegisterableHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import {
+  Link,
+  getRouteApi,
+  useLocation,
+  useNavigate,
+} from "@tanstack/react-router";
 import { Check, ChevronDown, ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 
 import { NoServicesAccess } from "@/components/access/access-notices";
 import {
@@ -93,7 +98,6 @@ import {
   useAccountPanel,
   useAccountsQuery,
 } from "@/hooks/use-account-panel";
-import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import { usePlanRoute } from "@/hooks/use-plan-route";
 import {
   APP_SHORTCUTS,
@@ -115,7 +119,6 @@ import { getInitials } from "@/lib/format/initials";
 import { peopleFeatureQueryOptions } from "@/lib/people-route";
 import { cn } from "@/lib/utils";
 
-const SIDEBAR_OPEN_STORAGE_KEY = "pcobooster:sidebar-open";
 const APP_CHROME_ROW = "flex h-12 shrink-0 items-center gap-2";
 const APP_CHROME_HEADER_CLASS = cn(APP_CHROME_ROW, "px-2");
 
@@ -703,27 +706,18 @@ const AppShellContent = ({ children }: { children: ReactNode }): ReactNode => {
   return noServicesAccess ? <NoServicesAccess /> : children;
 };
 
+const rootRoute = getRouteApi("__root__");
+
 /** Navigation chrome around every signed-in product page. */
 export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
-  const [storedOpen, setStoredOpen] = useBrowserStorage(
-    SIDEBAR_OPEN_STORAGE_KEY
-  );
-  const sidebarOpen = storedOpen !== "false";
+  const { sidebarDefaultOpen } = rootRoute.useLoaderData();
   const { peopleNavEnabled, songsNavEnabled, cleanupNavEnabled } =
     useNavFeatures();
-
-  const handleSidebarOpenChange = useCallback(
-    (nextOpen: boolean) => {
-      setStoredOpen(String(nextOpen));
-    },
-    [setStoredOpen]
-  );
 
   return (
     <AccessReviewProvider>
       <SidebarProvider
-        open={sidebarOpen}
-        onOpenChange={handleSidebarOpenChange}
+        defaultOpen={sidebarDefaultOpen}
         className="min-h-dvh md:h-dvh md:min-h-0 md:overflow-hidden"
       >
         <SidebarToggleHotkey />
