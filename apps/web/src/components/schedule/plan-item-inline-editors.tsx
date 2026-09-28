@@ -3,9 +3,9 @@ import type {
   KeyOption,
   PlanItem,
 } from "@pcobooster/planning-center-models/types";
-import { TriangleAlert } from "lucide-react";
 import { useState } from "react";
 
+import { KeyTransitionPopover } from "@/components/schedule/key-transition-popover";
 import { parseLengthText } from "@/components/schedule/plan-tab-helpers";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +15,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { HoverLabel } from "@/components/ui/hover-card";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -47,18 +46,6 @@ const KeyOptionContent = ({ keyOption }: { keyOption: KeyOption }) => {
   );
 };
 
-const TransitionWarning = ({ transition }: { transition: KeyTransition }) => (
-  <HoverLabel
-    label={`From ${transition.from}: ${transition.description.toLowerCase()}`}
-    render={<span className="text-status-scheduled inline-flex" />}
-  >
-    <TriangleAlert
-      className="size-3.5"
-      aria-label={`Key change from ${transition.from} to ${transition.to}: ${transition.description}`}
-    />
-  </HoverLabel>
-);
-
 interface SongKeyPickerProps {
   item: PlanItem;
   serviceTypeId: string | null;
@@ -87,7 +74,12 @@ export const SongKeyPicker = ({
   return (
     <span className="flex items-center gap-1">
       {transition === null || transition.level === "smooth" ? null : (
-        <TransitionWarning transition={transition} />
+        <KeyTransitionPopover
+          transition={transition}
+          serviceTypeId={serviceTypeId}
+          songId={item.song?.id ?? null}
+          onChangeKey={onChange}
+        />
       )}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger

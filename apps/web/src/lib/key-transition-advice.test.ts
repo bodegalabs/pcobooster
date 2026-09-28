@@ -1,0 +1,107 @@
+import { describe, expect, it } from "vitest";
+
+import { parseMusicalKey } from "@/lib/key-theory";
+import type { MusicalKey } from "@/lib/key-theory";
+import {
+  rankAlternateKeys,
+  rateKeyChange,
+  transitionSuggestions,
+} from "@/lib/key-transition-advice";
+
+const key = (value: string): MusicalKey => {
+  const parsed = parseMusicalKey(value);
+  if (parsed === null) {
+    throw new Error(`Not a key: ${value}`);
+  }
+  return parsed;
+};
+
+const rate = (from: string, to: string) => {
+  const { level, reason } = rateKeyChange(key(from), key(to));
+  return `${level}: ${reason}`;
+};
+
+const advice = (from: string, to: string) => {
+  const fromKey = key(from);
+  const toKey = key(to);
+  return transitionSuggestions(
+    { fromTitle: "A", toTitle: "B", fromKey, toKey },
+    rateKeyChange(fromKey, toKey).kind
+  ).map((suggestion) =>
+    suggestion.segments.map((segment) => segment.text).join("")
+  );
+};
+
+describe(rateKeyChange, () => {
+  it("leaves same, parallel, relative, close, and lifting keys alone", () => {
+    expect(rate("C", "C")).toBe("smooth: Same key");
+    expect(rate("Am", "A")).toBe("smooth: Parallel key: same tonic, brighter");
+    expect(rate("C", "Am")).toBe("smooth: Relative key: same key signature");
+    expect(rate("Am", "G")).toBe("smooth: Closely related key");
+    expect(rate("C", "D")).toBe("smooth: Lift up a whole step");
+  });
+
+  it("asks for a look at thirds and a whole step down", () => {
+    expect(rate("C", "Eb")).toBe(
+      "worth-a-look: Up a minor third: shares only G"
+    );
+    expect(rate("C", "E")).toBe(
+      "worth-a-look: Up a major third: shares only E"
+    );
+    expect(rate("C", "Bb")).toBe("worth-a-look: Down a whole step");
+    expect(rate("C", "Fm")).toBe(
+      "worth-a-look: Distant key with a mode change"
+    );
+  });
+
+  it("calls tritones, half steps down, and distant mode changes rough", () => {
+    expect(rate("Bb", "E")).toBe("rough: Tritone apart: no shared notes");
+    expect(rate("Eb", "D")).toBe(
+      "rough: Down a half step: sounds flat without a setup"
+    );
+    expect(rate("C", "F#m")).toBe("rough: Distant key with a mode change");
+  });
+});
+
+describe(transitionSuggestions, () => {
+  it("spells out chords for a chromatic mediant", () => {
+    expect(advice("C", "Eb")).toStrictEqual([
+      "Hold G from the last chord of A, then play Bb7 into Eb.",
+      "End A on Fm (borrowed from Cm; the ii of Eb), then Bb7 into B.",
+      "Put a short prayer or reading before B, with a pad moving to Eb.",
+    ]);
+  });
+
+  it("ends on the new V when the first key already has it", () => {
+    expect(advice("C", "Bb")[0]).toBe(
+      "End A on F (already a chord in C), make it F7, then start B in Bb."
+    );
+  });
+
+  it("stops cold into the new dominant across a tritone", () => {
+    expect(advice("Bb", "E")).toStrictEqual([
+      "Put a short prayer or reading before B, with a pad moving to E.",
+      "Stop fully after A, then play B7 into B in E.",
+    ]);
+  });
+
+  it("offers nothing when the change is smooth", () => {
+    expect(advice("G", "D")).toStrictEqual([]);
+  });
+});
+
+describe(rankAlternateKeys, () => {
+  it("keeps nearby keys that come in smoothly, smallest move then lower first", () => {
+    const candidates = ["F", "Eb", "D", "C", "Ab"].map((name) => ({
+      key: key(name),
+      value: name,
+    }));
+
+    expect(
+      rankAlternateKeys({ fromKey: key("Bb"), toKey: key("E") }, candidates)
+    ).toStrictEqual(["Eb", "F"]);
+    expect(
+      rankAlternateKeys({ fromKey: key("C"), toKey: key("Eb") }, candidates)
+    ).toStrictEqual(["D", "F"]);
+  });
+});

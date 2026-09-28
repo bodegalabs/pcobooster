@@ -1,124 +1,77 @@
 import type { PlanItem } from "@pcobooster/planning-center-models/types";
 
-const KEY_PATTERN =
-  /^\s*(?<letter>[A-G])(?<accidental>[#♯b♭]?)(?<minor>m(?!aj))?/u;
-const NATURAL_PITCHES = new Map([
-  ["C", 0],
-  ["D", 2],
-  ["E", 4],
-  ["F", 5],
-  ["G", 7],
-  ["A", 9],
-  ["B", 11],
-]);
-const SEMITONES_IN_OCTAVE = 12;
-const RELATIVE_MAJOR_OFFSET = 3;
+import { keyName, parseMusicalKey } from "@/lib/key-theory";
+import { rateKeyChange } from "@/lib/key-transition-advice";
+import type {
+  KeyChangeKind,
+  KeyTransitionLevel,
+  TransitionSongs,
+} from "@/lib/key-transition-advice";
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** Songs played within this many days before the plan count as a repeat. */
 export const RECENT_REPEAT_DAYS = 28;
+/** A timed item this long between two songs gives the band room to change key. */
+export const BRIDGING_ITEM_SECONDS = 60;
 
-export interface ParsedKey {
-  label: string;
-  /** Pitch class of the key's major (or relative major) tonic, 0 = C. */
-  majorPitch: number;
-}
-
-/** Reads "Eb", "F#m", or "Bb" from a Planning Center key field; null for anything else. */
-export const parseKey = (
-  value: string | null | undefined
-): ParsedKey | null => {
-  if (value === null || value === undefined) {
-    return null;
-  }
-  const match = KEY_PATTERN.exec(value);
-  if (match === null) {
-    return null;
-  }
-  const [label] = match;
-  const { letter = "C", accidental = "", minor } = match.groups ?? {};
-  let pitch = NATURAL_PITCHES.get(letter) ?? 0;
-  if (accidental === "#" || accidental === "♯") {
-    pitch += 1;
-  }
-  if (accidental === "b" || accidental === "♭") {
-    pitch -= 1;
-  }
-  if (minor !== undefined) {
-    pitch += RELATIVE_MAJOR_OFFSET;
-  }
-  return {
-    label: label.trim(),
-    majorPitch:
-      ((pitch % SEMITONES_IN_OCTAVE) + SEMITONES_IN_OCTAVE) %
-      SEMITONES_IN_OCTAVE,
-  };
-};
-
-export type KeyTransitionLevel = "smooth" | "noticeable" | "awkward";
-
-export interface KeyTransition {
+export interface KeyTransition extends TransitionSongs {
   fromItemId: string;
   toItemId: string;
   from: string;
   to: string;
   level: KeyTransitionLevel;
+  kind: KeyChangeKind;
   description: string;
+  /** A timed item between the songs that covers the change, so it isn't flagged. */
+  bridgedBy: string | null;
 }
 
-/** Indexed by semitones up from the previous song's key. */
-const INTERVALS = [
-  { level: "smooth", description: "Same key" },
-  { level: "smooth", description: "Up a half step" },
-  { level: "smooth", description: "Up a whole step" },
-  { level: "noticeable", description: "Up a minor third" },
-  { level: "noticeable", description: "Up a major third" },
-  { level: "smooth", description: "Up a fourth" },
-  { level: "awkward", description: "A tritone apart" },
-  { level: "smooth", description: "Up a fifth" },
-  { level: "noticeable", description: "Down a major third" },
-  { level: "noticeable", description: "Down a minor third" },
-  { level: "noticeable", description: "Down a whole step" },
-  { level: "awkward", description: "Down a half step" },
-] as const satisfies readonly {
-  level: KeyTransitionLevel;
-  description: string;
-}[];
-
 const songEndKey = (item: PlanItem) =>
-  parseKey(item.key?.endingKey) ?? parseKey(item.key?.startingKey);
+  parseMusicalKey(item.key?.endingKey) ??
+  parseMusicalKey(item.key?.startingKey);
 
 /**
  * Key changes between songs that follow each other within a section. A header starts a
- * new section, so a sermon or break between sets never counts as a transition.
+ * new section, so a sermon or break between sets never counts, and a timed prayer or
+ * reading of a minute or more between two songs covers the change (research, row 0).
  */
 export const keyTransitions = (items: readonly PlanItem[]): KeyTransition[] => {
   const transitions: KeyTransition[] = [];
   let previousSong: PlanItem | null = null;
+  let bridge: PlanItem | null = null;
   for (const item of items) {
     if (item.itemType === "header") {
       previousSong = null;
+      bridge = null;
       continue;
     }
     if (item.itemType !== "song") {
+      if ((item.length ?? 0) >= BRIDGING_ITEM_SECONDS) {
+        bridge = item;
+      }
       continue;
     }
     const fromKey = previousSong === null ? null : songEndKey(previousSong);
-    const toKey = parseKey(item.key?.startingKey);
+    const toKey = parseMusicalKey(item.key?.startingKey);
     if (previousSong !== null && fromKey !== null && toKey !== null) {
-      const interval =
-        (toKey.majorPitch - fromKey.majorPitch + SEMITONES_IN_OCTAVE) %
-        SEMITONES_IN_OCTAVE;
-      const { level, description } = INTERVALS[interval] ?? INTERVALS[0];
+      const rating = rateKeyChange(fromKey, toKey);
       transitions.push({
         fromItemId: previousSong.id,
         toItemId: item.id,
-        from: fromKey.label,
-        to: toKey.label,
-        level,
-        description,
+        from: keyName(fromKey),
+        to: keyName(toKey),
+        fromKey,
+        toKey,
+        fromTitle: previousSong.title || "the last song",
+        toTitle: item.title || "the next song",
+        level: bridge === null ? rating.level : "smooth",
+        kind: rating.kind,
+        description: rating.reason,
+        bridgedBy: bridge === null ? null : bridge.title || "an item",
       });
     }
     previousSong = item;
+    bridge = null;
   }
   return transitions;
 };
