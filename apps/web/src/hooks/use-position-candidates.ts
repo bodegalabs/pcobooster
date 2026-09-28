@@ -351,6 +351,34 @@ export interface PositionCandidateList {
 }
 
 /**
+ * True while a slot's list waits (up to `SCORE_HOLD_MS`) for its scores. Once the slot's list
+ * has shown, sorted or with a failed part, a Retry that puts a part back to pending keeps it on
+ * screen instead of holding again.
+ */
+const useScoreHold = (
+  holdKey: string | null,
+  hasList: boolean,
+  isEnriching: boolean
+): boolean => {
+  const [releasedHoldKey, setReleasedHoldKey] = useState<string | null>(null);
+  if (hasList && !isEnriching && releasedHoldKey !== holdKey) {
+    setReleasedHoldKey(holdKey);
+  }
+  useEffect(() => {
+    // Releases the hold for this slot only if it was still waiting when the time ran out.
+    const timer = setTimeout(() => {
+      if (isEnriching) {
+        setReleasedHoldKey(holdKey);
+      }
+    }, SCORE_HOLD_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [holdKey, isEnriching]);
+  return isEnriching && releasedHoldKey !== holdKey;
+};
+
+/**
  * The Assign view's candidate list, loaded progressively: candidates first (about 3 Planning
  * Center requests), then the plan-window history and candidate details in parallel, each
  * split into calls that stay within the per-call budget. The list waits briefly for its scores
@@ -471,21 +499,11 @@ export const usePositionCandidates = (slot: CandidateSlot | null) => {
   const complete = list?.complete ?? false;
   const failedPartCount = (historyFailed ? 1 : 0) + detailQueries.failedCount;
   const isEnriching = list !== undefined && !complete && failedPartCount === 0;
-  const holdKey =
-    slot === null ? null : `${slot.planId}:${slot.teamId}:${slot.positionId}`;
-  const [releasedHoldKey, setReleasedHoldKey] = useState<string | null>(null);
-  useEffect(() => {
-    // Releases the hold for this slot only if it was still waiting when the time ran out.
-    const timer = setTimeout(() => {
-      if (isEnriching) {
-        setReleasedHoldKey(holdKey);
-      }
-    }, SCORE_HOLD_MS);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [holdKey, isEnriching]);
-  const isHoldingForScores = isEnriching && releasedHoldKey !== holdKey;
+  const isHoldingForScores = useScoreHold(
+    slot === null ? null : `${slot.planId}:${slot.teamId}:${slot.positionId}`,
+    list !== undefined,
+    isEnriching
+  );
   return {
     people: list?.people,
     complete,
