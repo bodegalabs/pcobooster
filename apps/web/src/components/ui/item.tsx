@@ -18,6 +18,45 @@ const ItemGroup = ({ className, ...props }: React.ComponentProps<"ul">) => (
   />
 );
 
+const itemListVariants = cva(
+  "flex flex-col divide-y overflow-hidden rounded-xl border",
+  {
+    variants: {
+      variant: {
+        default: "border-border/40 bg-card/30 divide-border/25",
+        /** Rows people cannot act on right now, such as unavailable candidates. */
+        dimmed: "border-border/30 bg-card/20 divide-border/20 opacity-80",
+        outline: "border-border/60 bg-background divide-border/60",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+);
+
+/**
+ * A bordered list of flush rows. Rows drop their own radius so the list's
+ * clipped corners are the only corners, and hover backgrounds follow its border.
+ */
+const ItemList = ({
+  className,
+  variant = "default",
+  render,
+  ...props
+}: useRender.ComponentProps<"div"> & VariantProps<typeof itemListVariants>) =>
+  useRender({
+    defaultTagName: "div",
+    props: mergeProps<"div">(
+      {
+        className: cn(itemListVariants({ variant, className })),
+      },
+      props
+    ),
+    render,
+    state: { slot: "item-list", variant },
+  });
+
 const ItemSeparator = ({
   className,
   inset = true,
@@ -34,7 +73,7 @@ const ItemSeparator = ({
 );
 
 const itemVariants = cva(
-  "group/item focus-visible:border-ring focus-visible:ring-ring/50 [a]:hover:bg-muted [button]:hover:bg-muted/60 [button]:active:bg-muted flex w-full flex-wrap items-center rounded-2xl border text-sm outline-none focus-visible:ring-[3px] [button]:flex-nowrap [button]:text-left [button]:disabled:opacity-50",
+  "group/item focus-visible:border-ring focus-visible:ring-ring/50 [a]:hover:bg-muted [button]:hover:bg-muted/60 [button]:active:bg-muted flex w-full flex-wrap items-center rounded-2xl border text-sm outline-none focus-visible:ring-[3px] in-data-[slot=item-list]:rounded-none [button]:flex-nowrap [button]:text-left [button]:disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -185,6 +224,7 @@ export {
   ItemFooter,
   ItemGroup,
   ItemHeader,
+  ItemList,
   ItemMedia,
   ItemSeparator,
   ItemTitle,

@@ -9,7 +9,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
+import {
+  Item,
+  ItemContent,
+  ItemList,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { clearAccountScopedCaches } from "@/lib/account-scoped-caches";
@@ -418,8 +424,10 @@ export const AuthSignInCard = ({
               )}
 
               {hasRemembered ? (
-                <ul
-                  className="bg-background/60 divide-border -mx-1 flex flex-col divide-y overflow-hidden rounded-2xl border"
+                <ItemList
+                  render={<ul />}
+                  variant="outline"
+                  className="-mx-1"
                   aria-label="Accounts on this device"
                 >
                   {rememberedAccounts.map((account) => (
@@ -441,7 +449,7 @@ export const AuthSignInCard = ({
                       }}
                     />
                   ))}
-                </ul>
+                </ItemList>
               ) : null}
 
               {hasRemembered ? (

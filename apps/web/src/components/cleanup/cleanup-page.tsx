@@ -23,6 +23,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { ItemList } from "@/components/ui/item";
 import { LoadingBar } from "@/components/ui/loading-bar";
 import {
   NativeSelect,
@@ -200,11 +201,11 @@ const SongsSection = ({
           }
         />
       ) : (
-        <ul className="border-border/60 divide-border/60 divide-y rounded-xl border">
+        <ItemList render={<ul />} variant="outline">
           {songs.map((song) => (
             <SongRow key={song.id} song={song} orgTimeZone={orgTimeZone} />
           ))}
-        </ul>
+        </ItemList>
       )}
     </section>
   );
@@ -297,11 +298,11 @@ const PeopleSection = ({
         />
       ) : null}
       {people.length > 0 ? (
-        <ul className="border-border/60 divide-border/60 divide-y rounded-xl border">
+        <ItemList render={<ul />} variant="outline">
           {people.map((person) => (
             <PersonRow key={person.id} person={person} />
           ))}
-        </ul>
+        </ItemList>
       ) : null}
       {people.length === 0 && isChecking ? <ListSkeleton /> : null}
     </section>

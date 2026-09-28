@@ -33,6 +33,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { ItemList } from "@/components/ui/item";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import type { PositionCandidateList } from "@/hooks/use-position-candidates";
@@ -215,7 +216,7 @@ const SchedulePeopleList = ({
 
   if (people === undefined || people.length === 0) {
     return (
-      <div className="border-border/40 bg-card/30 divide-border/25 divide-y overflow-hidden rounded-xl border">
+      <ItemList>
         {selectedSlotUsesCustomPosition && selectedFilledPeople.length > 0 ? (
           selectedFilledPeople.map((person) => (
             <TemporaryFilledPersonRow
@@ -253,7 +254,7 @@ const SchedulePeopleList = ({
           onScheduleSuccess={onScheduleSuccess}
           onScheduleError={onScheduleError}
         />
-      </div>
+      </ItemList>
     );
   }
 
@@ -274,7 +275,7 @@ const SchedulePeopleList = ({
             onRetry={handleRetryCandidateList}
           />
         )}
-        <div className="border-border/40 bg-card/30 divide-border/25 divide-y overflow-hidden rounded-xl border">
+        <ItemList>
           {filteredActionable.map((person) => (
             <ScheduleCandidateTile
               key={personTileKey(person)}
@@ -303,13 +304,13 @@ const SchedulePeopleList = ({
             onScheduleSuccess={onScheduleSuccess}
             onScheduleError={onScheduleError}
           />
-        </div>
+        </ItemList>
       </section>
 
       {filteredExceptions.length > 0 ? (
         <section className="flex flex-col gap-2">
           <SectionLabel title="Unavailable" count={filteredExceptions.length} />
-          <div className="border-border/30 bg-card/20 divide-border/20 divide-y overflow-hidden rounded-xl border opacity-80">
+          <ItemList variant="dimmed">
             {filteredExceptions.map((person) => (
               <ScheduleCandidateTile
                 key={personTileKey(person)}
@@ -328,7 +329,7 @@ const SchedulePeopleList = ({
                 onScheduleError={onScheduleError}
               />
             ))}
-          </div>
+          </ItemList>
         </section>
       ) : null}
     </div>

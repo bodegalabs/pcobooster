@@ -28,7 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DragHandle } from "@/components/ui/drag-handle";
-import { Item } from "@/components/ui/item";
+import { Item, ItemList } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 import type {
   GetIntentPrefetchProps,
@@ -73,7 +73,7 @@ const planItemSkeletonRows = [
 
 const PlanItemListSkeleton = () => (
   <div className="pb-4">
-    <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
+    <ItemList variant="outline">
       {planItemSkeletonRows.map((row) => (
         <div
           key={row.key}
@@ -90,7 +90,7 @@ const PlanItemListSkeleton = () => (
           <Skeleton variant="control" className="ml-auto size-7 shrink-0" />
         </div>
       ))}
-    </div>
+    </ItemList>
   </div>
 );
 
@@ -294,7 +294,7 @@ const SortablePlanItem = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "sortable-plan-item relative border-b last:border-b-0",
+        "sortable-plan-item relative",
         isSortableDragging && "z-20 opacity-0"
       )}
     >
@@ -424,7 +424,7 @@ export const PlanItemList = ({
               strategy={verticalListSortingStrategy}
             >
               <div className="pb-safe-4 md:pb-4">
-                <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
+                <ItemList variant="outline">
                   {items.map((item) => (
                     <SortablePlanItem
                       key={item.id}
@@ -441,23 +441,25 @@ export const PlanItemList = ({
                       }}
                     />
                   ))}
-                </div>
+                </ItemList>
               </div>
             </SortableContext>
             <DragOverlay zIndex={60}>
               {activeItem ? (
-                <div className="bg-background rotate-[0.2deg] overflow-hidden rounded-lg border shadow-2xl">
-                  <PlanItemCard
-                    item={activeItem}
-                    isBusy={pendingItemId === activeItem.id}
-                    isDragged
-                    onEdit={() => {
-                      onEditItem(activeItem.id);
-                    }}
-                    onDelete={() => {
-                      onRequestDelete(activeItem.id);
-                    }}
-                  />
+                <div className="rotate-[0.2deg] rounded-xl shadow-2xl">
+                  <ItemList variant="outline">
+                    <PlanItemCard
+                      item={activeItem}
+                      isBusy={pendingItemId === activeItem.id}
+                      isDragged
+                      onEdit={() => {
+                        onEditItem(activeItem.id);
+                      }}
+                      onDelete={() => {
+                        onRequestDelete(activeItem.id);
+                      }}
+                    />
+                  </ItemList>
                 </div>
               ) : null}
             </DragOverlay>
