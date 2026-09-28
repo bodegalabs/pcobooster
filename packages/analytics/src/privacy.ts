@@ -83,6 +83,7 @@ export const safeAnalyticsProperties = [
   "error_code",
   "duration_ms",
   "cta_location",
+  "$exception_level",
 ] as const;
 const SAFE_PROPERTIES = new Set<string>(safeAnalyticsProperties);
 const URL_PROPERTIES = new Set([
@@ -158,6 +159,7 @@ export const canInitializeAnalytics = (
 
 /** The only events the browser sends. */
 export const analyticsEvents = [
+  "$exception",
   "$pageview",
   "$pageleave",
   "$identify",
@@ -180,6 +182,75 @@ export const canRecordSession = (
     pathname === "/people" ||
     PLAN_PATH.test(pathname) ||
     PERSON_PATH.test(pathname));
+
+const EXCEPTION_MESSAGE_MAX_LENGTH = 500;
+const exceptionFrameSchema = z.object({
+  platform: z.string().optional(),
+  filename: z.string().optional(),
+  function: z.string().optional(),
+  lineno: z.number().optional(),
+  colno: z.number().optional(),
+  in_app: z.boolean().optional(),
+});
+const exceptionListSchema = z.array(
+  z.object({
+    type: z.string().optional(),
+    value: z.string().optional(),
+    mechanism: z
+      .object({
+        handled: z.boolean().optional(),
+        synthetic: z.boolean().optional(),
+        type: z.string().optional(),
+      })
+      .optional(),
+    stacktrace: z
+      .object({ type: z.string(), frames: z.array(exceptionFrameSchema) })
+      .optional(),
+  })
+);
+
+/** Bundled script URLs stay intact so stack frames resolve; other URLs are scrubbed. */
+const exceptionFrameFilename = (filename: string): string => {
+  try {
+    const url = new URL(filename);
+    return url.hostname === "pcobooster.com" &&
+      url.pathname.startsWith("/assets/")
+      ? `${url.origin}${url.pathname}`
+      : analyticsUrl(filename);
+  } catch {
+    return "";
+  }
+};
+
+/**
+ * Keeps an exception's type, message, and stack frames. Messages come from code, not from
+ * people, but are truncated in case one embeds a payload.
+ */
+export const sanitizeExceptionList = (
+  properties: CaptureResult["properties"]
+): z.infer<typeof exceptionListSchema> => {
+  const parsed = exceptionListSchema.safeParse(properties.$exception_list);
+  if (!parsed.success) {
+    return [];
+  }
+  return parsed.data.map((exception) => ({
+    ...exception,
+    value: exception.value?.slice(0, EXCEPTION_MESSAGE_MAX_LENGTH),
+    stacktrace:
+      exception.stacktrace === undefined
+        ? undefined
+        : {
+            type: exception.stacktrace.type,
+            frames: exception.stacktrace.frames.map((frame) => ({
+              ...frame,
+              filename:
+                frame.filename === undefined
+                  ? undefined
+                  : exceptionFrameFilename(frame.filename),
+            })),
+          },
+  }));
+};
 
 export const prepareAnalyticsEvent = (
   event: CaptureResult | null,
@@ -219,6 +290,29 @@ export const prepareAnalyticsEvent = (
   const surface = analyticsSurface(pathname);
   if (surface === "app" && !authenticated) {
     return null;
+  }
+  if (event.event === "$exception") {
+    // Exceptions are reported from the same authenticated product routes as replay.
+    const exceptionList = sanitizeExceptionList(event.properties);
+    if (
+      !canRecordSession(pathname, authenticated) ||
+      exceptionList.length === 0
+    ) {
+      return null;
+    }
+    return {
+      uuid: event.uuid,
+      event: event.event,
+      timestamp: event.timestamp,
+      properties: {
+        ...sanitizeAnalyticsProperties({
+          ...event.properties,
+          surface,
+          is_authenticated: authenticated,
+        }),
+        $exception_list: exceptionList,
+      },
+    };
   }
   return {
     uuid: event.uuid,

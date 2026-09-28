@@ -1,4 +1,5 @@
 import { ORPCError, os } from "@orpc/server";
+import type { ReportRequestError } from "@pcobooster/api/modules/analytics/posthog-exception";
 import { appRouter } from "@pcobooster/api/orpc";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { describe, expect, it, vi } from "vitest";
@@ -192,6 +193,52 @@ describe(createServerApp, () => {
         method: "POST",
       }),
       "oRPC request failed"
+    );
+  });
+
+  it("reports unexpected failures, not expected faults, to error tracking", async () => {
+    const reportError = vi.fn<ReportRequestError>(async () => {
+      await Promise.resolve();
+    });
+    const app = createServerApp({
+      authHandler: () => new Response(null, { status: 501 }),
+      server,
+      enableRequestLogging: false,
+      log: { error: vi.fn<TestErrorLogger>() },
+      reportError,
+      router: testRouter,
+    });
+
+    await app.request(rpcRequest("defect", "request-123"));
+
+    expect(reportError).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        path: "/api/rpc/defect",
+        method: "POST",
+        requestId: "request-123",
+      })
+    );
+  });
+
+  it("still answers when error reporting fails", async () => {
+    const log = { error: vi.fn<TestErrorLogger>() };
+    const app = createServerApp({
+      authHandler: () => new Response(null, { status: 501 }),
+      server,
+      enableRequestLogging: false,
+      log,
+      reportError: async () => {
+        await Promise.reject(new Error("PostHog down"));
+      },
+      router: testRouter,
+    });
+
+    const response = await app.request(rpcRequest("defect"));
+
+    expect(response.status).toBe(500);
+    expect(log.error).toHaveBeenCalledWith(
+      expect.objectContaining({ path: "/api/rpc/defect" }),
+      "Failed to report exception to PostHog"
     );
   });
 

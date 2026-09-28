@@ -5,6 +5,11 @@ import type { AnyRouter } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ResponseHeadersPlugin } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
+import {
+  createPostHogExceptionReporter,
+  requestErrorSchema,
+} from "@pcobooster/api/modules/analytics/posthog-exception";
+import type { ReportRequestError } from "@pcobooster/api/modules/analytics/posthog-exception";
 import type { ServerDependencies } from "@pcobooster/api/server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -18,6 +23,7 @@ const requestLogContextSchema = z.object({
   request: z.instanceof(Request),
   requestId: z.string(),
 });
+type RequestLogContext = z.infer<typeof requestLogContextSchema>;
 
 interface ErrorLogger {
   error: (
@@ -55,6 +61,11 @@ export interface CreateServerAppOptions {
   authHandler?: AuthHandler;
   enableRequestLogging?: boolean;
   log: ErrorLogger;
+  /**
+   * Sends unexpected failures to error tracking, which alerts on new issues. Defaults to
+   * PostHog when the stage has a project key (production only); null disables it.
+   */
+  reportError?: ReportRequestError | null;
   router: AnyRouter;
 }
 
@@ -64,9 +75,41 @@ export const createServerApp = ({
   authHandler = async (request) => await server.auth.handler(request),
   enableRequestLogging = true,
   log,
+  reportError = createPostHogExceptionReporter({
+    apiKey: server.config.postHogProjectKey,
+    fetch: globalThis.fetch,
+  }),
   router,
 }: CreateServerAppOptions): Hono => {
   const app = new Hono();
+
+  /** Logs every failed procedure and reports the unexpected ones; never throws. */
+  const handleProcedureError = async (
+    message: string,
+    failure: Error,
+    requestContext: RequestLogContext | null
+  ): Promise<void> => {
+    if (requestContext === null) {
+      log.error({ err: failure }, message);
+      return;
+    }
+    const { request, requestId } = requestContext;
+    const { method } = request;
+    const { pathname: path } = new URL(request.url);
+    log.error({ err: failure, requestId, method, path }, message);
+    if (reportError === null) {
+      return;
+    }
+    try {
+      // Awaited so the Worker keeps the capture alive; it only delays failed responses.
+      await reportError({ error: failure, path, method, requestId });
+    } catch (error) {
+      log.error(
+        { err: error, requestId, method, path },
+        "Failed to report exception to PostHog"
+      );
+    }
+  };
 
   if (enableRequestLogging) {
     app.use("/*", requestLogger());
@@ -128,21 +171,12 @@ export const createServerApp = ({
     ],
     interceptors: [
       // oxlint-disable-next-line promise/prefer-await-to-callbacks -- oRPC exposes error interceptors as callbacks.
-      onError((error, { context }) => {
+      onError(async (error, { context }) => {
         const parsed = requestLogContextSchema.safeParse(context);
-        if (!parsed.success) {
-          log.error({ err: error }, "OpenAPI request failed");
-          return;
-        }
-        const rpcContext = parsed.data;
-        log.error(
-          {
-            err: error,
-            requestId: rpcContext.requestId,
-            method: rpcContext.request.method,
-            path: new URL(rpcContext.request.url).pathname,
-          },
-          "OpenAPI request failed"
+        await handleProcedureError(
+          "OpenAPI request failed",
+          requestErrorSchema.parse(error),
+          parsed.success ? parsed.data : null
         );
       }),
     ],
@@ -152,21 +186,12 @@ export const createServerApp = ({
     plugins: [new ResponseHeadersPlugin()],
     interceptors: [
       // oxlint-disable-next-line promise/prefer-await-to-callbacks -- oRPC exposes error interceptors as callbacks.
-      onError((error, { context }) => {
+      onError(async (error, { context }) => {
         const parsed = requestLogContextSchema.safeParse(context);
-        if (!parsed.success) {
-          log.error({ err: error }, "oRPC request failed");
-          return;
-        }
-        const rpcContext = parsed.data;
-        log.error(
-          {
-            err: error,
-            requestId: rpcContext.requestId,
-            method: rpcContext.request.method,
-            path: new URL(rpcContext.request.url).pathname,
-          },
-          "oRPC request failed"
+        await handleProcedureError(
+          "oRPC request failed",
+          requestErrorSchema.parse(error),
+          parsed.success ? parsed.data : null
         );
       }),
     ],
