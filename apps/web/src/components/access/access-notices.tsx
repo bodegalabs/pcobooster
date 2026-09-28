@@ -23,8 +23,7 @@ import type { DashboardView } from "@/lib/schedule-navigation";
 
 /** Shown instead of the product when the account can't open Services at all. */
 export const NoServicesAccess = () => {
-  const { demo, isSigningOut, switchingAccountId, switchAccount } =
-    useAccountPanel();
+  const { demo, isSigningOut, switchAccount } = useAccountPanel();
   return (
     <PageShell layout="center">
       <Empty>
@@ -41,7 +40,7 @@ export const NoServicesAccess = () => {
         {demo ? null : (
           <Button
             variant="outline"
-            disabled={isSigningOut || switchingAccountId !== null}
+            disabled={isSigningOut}
             onClick={() => {
               void switchAccount();
             }}
