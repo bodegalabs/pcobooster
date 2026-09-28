@@ -15,6 +15,7 @@ import type { ReactNode } from "react";
 import { ProductNotFound } from "@/components/product-not-found";
 import { Providers } from "@/components/providers";
 import { themeInitScript } from "@/lib/theme";
+import { getSidebarDefaultOpen } from "@/server/sidebar.functions";
 
 import "@/styles/globals.css";
 
@@ -48,6 +49,8 @@ const RootComponent = () => (
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   {
+    // Read on the server so the sidebar's first paint matches the visitor's last choice.
+    loader: async () => ({ sidebarDefaultOpen: await getSidebarDefaultOpen() }),
     head: () => ({
       meta: [
         { charSet: "utf-8" },
