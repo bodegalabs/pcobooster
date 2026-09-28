@@ -102,7 +102,7 @@ export interface PlanOrder {
   itemCount: number;
 }
 
-const keyLabelOf = (key: PlanItem["key"]): string | null => {
+export const keyLabelOf = (key: PlanItem["key"]): string | null => {
   const start = key?.startingKey ?? null;
   if (start === null || start === "") {
     return null;
@@ -111,6 +111,20 @@ const keyLabelOf = (key: PlanItem["key"]): string | null => {
   return end === null || end === "" || end === start
     ? start
     : `${start} to ${end}`;
+};
+
+/** Key picker label: "{key}: {description}", dropping whichever part is missing or redundant. */
+export const keyOptionLabelOf = (key: NonNullable<PlanItem["key"]>): string => {
+  const label = keyLabelOf(key);
+  const description = key.name.trim();
+  if (label === null) {
+    return description;
+  }
+  return description === "" ||
+    description === label ||
+    description === `${key.startingKey} -> ${key.endingKey}`
+    ? label
+    : `${label}: ${description}`;
 };
 
 export const summarizeOrder = (items: readonly PlanItem[]): PlanOrder => {
