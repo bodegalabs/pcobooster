@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 
 import {
   analyticsPath,
@@ -87,6 +88,87 @@ describe("analytics privacy boundary", () => {
         false
       )
     ).toBeNull();
+  });
+
+  it("reports exceptions only from authenticated product routes, with scrubbed frames", () => {
+    const event = {
+      uuid: "exception-event",
+      event: "$exception",
+      properties: {
+        $session_id: "session",
+        $exception_level: "error",
+        $current_url: "https://pcobooster.com/people/123?q=secret",
+        $exception_list: [
+          {
+            type: "TypeError",
+            value: `Cannot read properties of undefined${"!".repeat(600)}`,
+            mechanism: { handled: false, synthetic: false, type: "onerror" },
+            stacktrace: {
+              type: "raw",
+              frames: [
+                {
+                  platform: "web:javascript",
+                  filename: "https://pcobooster.com/assets/main-abc.js?v=1",
+                  function: "render",
+                  lineno: 1,
+                  colno: 20,
+                  in_app: true,
+                  context_line: "const secret = person.name",
+                },
+                {
+                  platform: "web:javascript",
+                  filename: "https://pcobooster.com/people/123",
+                  lineno: 2,
+                  colno: 3,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    };
+    for (const pathname of ["/", "/auth", "/demo/key", "/other"]) {
+      expect(prepareAnalyticsEvent(event, pathname, true)).toBeNull();
+    }
+    expect(prepareAnalyticsEvent(event, "/services", false)).toBeNull();
+    expect(
+      prepareAnalyticsEvent(
+        { ...event, properties: { $exception_list: "not a list" } },
+        "/services",
+        true
+      )
+    ).toBeNull();
+
+    const prepared = prepareAnalyticsEvent(event, "/people/123", true);
+    const [exception] = z
+      .array(z.object({ value: z.string(), stacktrace: z.unknown() }))
+      .parse(prepared?.properties.$exception_list);
+    expect(exception?.value).toHaveLength(500);
+    expect(exception?.stacktrace).toStrictEqual({
+      type: "raw",
+      frames: [
+        {
+          platform: "web:javascript",
+          filename: "https://pcobooster.com/assets/main-abc.js",
+          function: "render",
+          lineno: 1,
+          colno: 20,
+          in_app: true,
+        },
+        {
+          platform: "web:javascript",
+          filename: "https://pcobooster.com/people/:personId",
+          lineno: 2,
+          colno: 3,
+        },
+      ],
+    });
+    expect(prepared?.properties).toMatchObject({
+      $session_id: "session",
+      $exception_level: "error",
+      $current_url: "https://pcobooster.com/people/:personId",
+      surface: "app",
+    });
   });
 
   it("collapses provider IDs while preserving the feature being used", () => {

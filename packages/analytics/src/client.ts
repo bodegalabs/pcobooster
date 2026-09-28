@@ -20,12 +20,19 @@ type AnalyticsEvent =
 let initialized = false;
 let currentUserId: string | undefined;
 
+/** Replay and exception capture share one gate: authenticated product routes. */
 const syncSessionRecording = (): void => {
   if (canRecordSession(window.location.pathname, currentUserId !== undefined)) {
     // Respect the project's sampling and minimum-duration controls.
     posthog.startSessionRecording();
+    posthog.startExceptionAutocapture({
+      capture_unhandled_errors: true,
+      capture_unhandled_rejections: true,
+      capture_console_errors: false,
+    });
   } else {
     posthog.stopSessionRecording();
+    posthog.stopExceptionAutocapture();
   }
 };
 
@@ -142,6 +149,22 @@ export const initializeAnalytics = (
   }
 };
 
+/**
+ * Reports an error React caught in an error boundary, which never reaches the global
+ * handlers that exception autocapture listens to. The privacy guard drops it outside
+ * authenticated product routes.
+ */
+export const captureAnalyticsException = (error: Error): void => {
+  if (!initialized) {
+    return;
+  }
+  try {
+    posthog.captureException(error);
+  } catch {
+    // Error reporting is best effort.
+  }
+};
+
 /** Lets server-side events, such as feedback, link to this session's replay. */
 export const getAnalyticsSessionId = (): string | null => {
   if (!initialized) {
@@ -159,6 +182,7 @@ export const resetAnalytics = (): void => {
   if (initialized) {
     try {
       posthog.stopSessionRecording();
+      posthog.stopExceptionAutocapture();
       posthog.reset();
     } catch {
       // Sign-out must work even when browser storage is unavailable.
