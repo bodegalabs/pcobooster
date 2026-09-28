@@ -113,14 +113,26 @@ export const planAccessMessage = (
       description: `Your Planning Center access here is ${level}. Scheduling needs Scheduler (for teams you lead) or Editor.`,
     };
   }
-  if ((view === "plan" || view === "times") && !abilities.editPlans) {
+  if (abilities.editPlans) {
+    return null;
+  }
+  if (view === "plan") {
     return {
       title: "View only",
-      description:
-        view === "plan"
-          ? `Your Planning Center access here is ${level}. Editing the run sheet needs Editor.`
-          : `Your Planning Center access here is ${level}. Changing service times needs Editor.`,
+      description: `Your Planning Center access here is ${level}. Editing the run sheet needs Editor.`,
     };
+  }
+  if (view === "times") {
+    return abilities.scheduleLedTeams
+      ? {
+          title: "Service times need Editor",
+          description:
+            "You can add rehearsal and other times. Changing service times needs Editor access in Planning Center.",
+        }
+      : {
+          title: "View only",
+          description: `Your Planning Center access here is ${level}. Changing times needs Scheduler or Editor.`,
+        };
   }
   return null;
 };

@@ -28,9 +28,9 @@ export interface AccessSnapshotDependencies {
 }
 
 /**
- * Runs a read, reporting a denial as `null`. Planning Center answers 401 (`TRASH_PANDA`)
+ * Runs a read, reporting a denial as `null`. Planning Center answers 401 `TRASH_PANDA`
  * when the person has no access to a product, and 403 when their role is too low to read
- * the resource; every other failure propagates.
+ * the resource; every other failure, including a rejected token, propagates.
  */
 const orDenied = <Value>(
   effect: Effect.Effect<Value, PlanningCenterError>,
@@ -148,9 +148,10 @@ const readPeopleAccess = (
   );
 
 /**
- * Reads the person's Services permissions and whether they can search People: at most four
- * Planning Center requests (the service types list is usually cached). Denials become "no
- * access"; other failures, such as rate limits, fail the read so the product never guesses.
+ * Reads the person's Services permissions and whether they can search People: usually four
+ * Planning Center requests (the service types list is cached; uncached, it pages). Denials
+ * become "no access"; other failures, such as rate limits, fail the read so the product
+ * never guesses.
  */
 export const getAccessSnapshot = (
   dependencies: AccessSnapshotDependencies

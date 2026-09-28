@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import { usePlanningCenterAccess } from "@/hooks/use-planning-center-access";
+import type { PlanningCenterAccessState } from "@/hooks/use-planning-center-access";
 import {
   ACCESS_REVIEW_DISMISSALS_KEY,
   accessFingerprint,
@@ -38,6 +39,7 @@ interface AccessReviewContextValue {
   readonly restricted: boolean;
   /** Whether the person's account can't open Services at all. */
   readonly noServicesAccess: boolean;
+  readonly demo: boolean;
 }
 
 const AccessReviewContext = createContext<AccessReviewContextValue>({
@@ -46,6 +48,7 @@ const AccessReviewContext = createContext<AccessReviewContextValue>({
   },
   restricted: false,
   noServicesAccess: false,
+  demo: false,
 });
 
 /** Opens the access review and reports whether the person's access is limited. */
@@ -105,10 +108,12 @@ const AccessReviewDialog = ({
   open,
   onOpenChange,
   features,
+  status,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   features: readonly FeatureAccess[];
+  status: PlanningCenterAccessState["status"];
 }) => {
   const restricted = hasRestrictedAccess(features);
   return (
@@ -122,17 +127,20 @@ const AccessReviewDialog = ({
               : "Your Planning Center permissions let you use everything here."}
           </DialogDescription>
         </DialogHeader>
-        {features.length === 0 ? (
+        {status === "ready" ? null : (
           <p className="text-muted-foreground text-sm">
-            Checking your permissions…
+            {status === "error"
+              ? "Planning Center didn’t answer, so your permissions couldn’t be checked. Try again in a moment."
+              : "Checking your permissions…"}
           </p>
-        ) : (
+        )}
+        {status === "ready" ? (
           <ul className="divide-border/60 -my-1 divide-y">
             {features.map((entry) => (
               <FeatureAccessRow key={entry.feature} entry={entry} />
             ))}
           </ul>
-        )}
+        ) : null}
         {restricted ? (
           <p className="text-muted-foreground text-xs">
             Permissions are set in Planning Center, in each person’s Services
@@ -153,7 +161,8 @@ const AccessReviewDialog = ({
  * access changes), so people learn what won't work before they run into it.
  */
 export const AccessReviewProvider = ({ children }: { children: ReactNode }) => {
-  const { snapshot, features, accountId, demo } = usePlanningCenterAccess();
+  const { snapshot, status, features, accountId, demo } =
+    usePlanningCenterAccess();
   const [dismissalsRaw, setDismissalsRaw] = useBrowserStorage(
     ACCESS_REVIEW_DISMISSALS_KEY
   );
@@ -192,8 +201,9 @@ export const AccessReviewProvider = ({ children }: { children: ReactNode }) => {
       openReview,
       restricted: hasRestrictedAccess(features),
       noServicesAccess,
+      demo,
     }),
-    [features, noServicesAccess, openReview]
+    [demo, features, noServicesAccess, openReview]
   );
 
   return (
@@ -203,6 +213,7 @@ export const AccessReviewProvider = ({ children }: { children: ReactNode }) => {
         open={open}
         onOpenChange={handleOpenChange}
         features={features}
+        status={status}
       />
     </AccessReviewContext>
   );

@@ -144,6 +144,13 @@ describe(planAccessMessage, () => {
     );
   });
 
+  it("lets a Scheduler add rehearsal times but not service times", () => {
+    expect(planAccessMessage("times", scheduler)?.title).toBe(
+      "Service times need Editor"
+    );
+    expect(planAccessMessage("times", viewer)?.title).toBe("View only");
+  });
+
   it("stays quiet on views that change nothing", () => {
     expect(planAccessMessage("overview", viewer)).toBeNull();
     expect(planAccessMessage("lineup", viewer)).toBeNull();

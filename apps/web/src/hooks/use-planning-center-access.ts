@@ -21,20 +21,31 @@ import { orpc } from "@/orpc-client";
 
 const ACCESS_STALE_TIME_MS = 10 * 60 * 1000;
 
-const usePlanningCenterAccessQuery = () =>
-  useQuery<AccessSnapshot>({
-    queryKey: queryKeys.planningCenterAccess(),
+/**
+ * Keyed by the selected account, so after a switch the previous account's permissions never
+ * stand in for the new one's while they load.
+ */
+const usePlanningCenterAccessQuery = () => {
+  const { data: accounts } = useAccountsQuery();
+  return useQuery<AccessSnapshot>({
+    queryKey: queryKeys.planningCenterAccess(
+      accounts?.selectedAccountId ?? null
+    ),
     queryFn: async (context) =>
       await callForQuery(
         context,
         async (options) => await orpc.access.me({}, options)
       ),
+    enabled: accounts !== undefined,
     staleTime: ACCESS_STALE_TIME_MS,
   });
+};
 
 export interface PlanningCenterAccessState {
   /** Null until Planning Center answers, or when it couldn't be read. */
   readonly snapshot: AccessSnapshot | null;
+  /** Whether the permissions are loading, known, or couldn't be read. */
+  readonly status: "loading" | "ready" | "error";
   /** Features this deployment shows, with what this person can do in each. */
   readonly features: readonly FeatureAccess[];
   /** The selected account, for remembering what it has seen; null in the demo. */
@@ -44,7 +55,7 @@ export interface PlanningCenterAccessState {
 
 /** The signed-in person's Planning Center access, per feature this deployment shows. */
 export const usePlanningCenterAccess = (): PlanningCenterAccessState => {
-  const { data: snapshot } = usePlanningCenterAccessQuery();
+  const { data: snapshot, isError } = usePlanningCenterAccessQuery();
   const { data: accounts } = useAccountsQuery();
   const { data: people } = useQuery(peopleFeatureQueryOptions);
   const { data: songs } = useQuery(chordChartsFeatureQueryOptions);
@@ -66,8 +77,15 @@ export const usePlanningCenterAccess = (): PlanningCenterAccessState => {
   );
 
   const demo = accounts?.demo === true;
+  let status: PlanningCenterAccessState["status"] = "loading";
+  if (snapshot !== undefined) {
+    status = "ready";
+  } else if (isError) {
+    status = "error";
+  }
   return {
     snapshot: snapshot ?? null,
+    status,
     features,
     accountId: demo ? null : (accounts?.selectedAccountId ?? null),
     demo,

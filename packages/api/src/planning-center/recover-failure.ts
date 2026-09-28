@@ -8,6 +8,8 @@ const log = logger.for("planning-center/recover-failure");
 const HTTP_UNAUTHORIZED = 401;
 const HTTP_FORBIDDEN = 403;
 const HTTP_NOT_FOUND = 404;
+/** Planning Center's code for a person with no access to the product they called. */
+const NO_APP_ACCESS_CODE = "TRASH_PANDA";
 const HTTP_TOO_MANY_REQUESTS = 429;
 const MAX_LOGGED_ERROR_LENGTH = 280;
 
@@ -15,7 +17,7 @@ const MAX_LOGGED_ERROR_LENGTH = 280;
  * A Planning Center failure a caller may name as recoverable:
  *
  * - `not-found`: a 404, such as a service type or plan in another organization.
- * - `permission-denied`: a 401 or 403, when the person's own Planning Center access
+ * - `permission-denied`: a 403, or a 401 `TRASH_PANDA`, when the person's own access
  *   doesn't reach the resource. Listing `provider-failure` recovers these too.
  * - `provider-failure`: any other error status except 429, or a network failure.
  * - `unusable-response`: a defect, such as a response missing the expected resource.
@@ -57,7 +59,11 @@ const classifyReason = (
   if (error.status === HTTP_NOT_FOUND) {
     return "not-found";
   }
-  if (error.status === HTTP_UNAUTHORIZED || error.status === HTTP_FORBIDDEN) {
+  // A bare 401 is a rejected token, not the person's permissions.
+  if (
+    error.status === HTTP_FORBIDDEN ||
+    (error.status === HTTP_UNAUTHORIZED && error.code === NO_APP_ACCESS_CODE)
+  ) {
     return "permission-denied";
   }
   return "provider-failure";

@@ -63,8 +63,9 @@ export const PlanAccessNotice = ({
   view: DashboardView;
 }) => {
   const abilities = useServiceTypeAbilities(serviceTypeId);
-  const { openReview } = useAccessReview();
-  if (abilities === null) {
+  const { openReview, demo } = useAccessReview();
+  // The demo is read-only anyway, and says so in its own badge.
+  if (abilities === null || demo) {
     return null;
   }
   const message = planAccessMessage(view, abilities);
