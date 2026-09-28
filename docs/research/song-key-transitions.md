@@ -135,6 +135,23 @@ Row 0 is synthesis. It rests on Kauflin's advice to change key under speaking an
 
 **Timed item between (row 0; shown even when unflagged).** "Move to {Bkey} under {itemTitle}: pad on {Btonic}, or {dominantOfB} as it ends."
 
+## Practitioner guidance (September 28, 2026)
+
+A worship leader the team trusts ranks the options this way: **common chords, then common relative chords, then common tones** that lead into a relative or common chord. The app follows that order for every flagged change, ahead of the case-specific fallbacks above:
+
+1. **Common chords.** In order of preference:
+   - The next song's home chord is already in the old key: end there and start the next song.
+   - The new key's V is in the old key: end there and make it a 7.
+   - A shared setup chord: ii, IV, or vi of the new key, then its V7.
+2. **Common relative chords.** A chord of the old key slides to its relative in the new key, since they share two notes. Example, D to Gm: Bm slides to D, which becomes D7. Chords the new key already has count as common chords, not relatives.
+3. **Common tones.** End on a chord and hold one of its notes, which becomes part of the next song's first chord. Example: "End on F but hold the A (its third); it becomes the fifth of the opening D chord." The app looks in this order:
+   - both songs' home chords;
+   - the next song opening on a setup chord;
+   - the old song ending on its IV, vi, or V;
+   - both songs changing chords.
+
+   Bb to E, which has no common chord, becomes: end on F, hold A, open on F#m. The held note is named as the band plays it on the first chord, then as the new key writes it (Ab, then G#).
+
 ## Open questions
 
 - Can `starting_minor` and the `m` suffix disagree in live data, and is `ending_key` null or equal to `starting_key` when the End dropdown says "Same"? Check a few org records.

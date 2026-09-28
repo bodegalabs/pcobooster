@@ -6,13 +6,16 @@
 import {
   chordName,
   circleOfFifthsDistance,
+  commonToneChords,
   commonTones,
   dominantIsIn,
+  homeChordIsIn,
   dominantSeventhOf,
   keyName,
   noteName,
   parallelOf,
   pivotChords,
+  relativePivots,
   semitonesUp,
 } from "@/lib/key-theory";
 import type { MusicalKey } from "@/lib/key-theory";
@@ -165,13 +168,18 @@ const dominantSuggestion = (
   const dominant = chordName(dominantSeventhOf(toKey));
   if (!cold && dominantIsIn(fromKey, toKey)) {
     const dominantTriad = dominant.replace(/7$/u, "");
+    const endsHome = dominantTriad === keyName(fromKey);
     return {
       id: "dominant",
       title: "End on the chord that leads in",
       segments: [
         text(`End ${fromTitle} on `),
         chord(dominantTriad),
-        text(` (already a chord in ${keyName(fromKey)}), make it `),
+        text(
+          endsHome
+            ? ", make it "
+            : ` (already a chord in ${keyName(fromKey)}), make it `
+        ),
         chord(dominant),
         text(`, then start ${toTitle} in `),
         chord(keyName(toKey)),
@@ -196,53 +204,167 @@ const dominantSuggestion = (
   };
 };
 
-const pivotSuggestion = ({
+/** 1. A chord both keys share: the smoothest way across (a worship leader's first choice). */
+const commonChordSuggestion = ({
   fromTitle,
   toTitle,
   fromKey,
   toKey,
 }: TransitionSongs): TransitionSuggestion | null => {
-  const [pivot] = pivotChords(fromKey, toKey);
-  if (pivot === undefined) {
+  if (homeChordIsIn(fromKey, toKey)) {
+    return {
+      id: "common-chord",
+      title: "End on the next song's home chord",
+      segments: [
+        text(`End ${fromTitle} on `),
+        chord(keyName(toKey)),
+        text(
+          ` (it's already a chord in ${keyName(fromKey)}), then start ${toTitle} right there.`
+        ),
+      ],
+    };
+  }
+  if (dominantIsIn(fromKey, toKey)) {
+    return dominantSuggestion({ fromTitle, toTitle, fromKey, toKey }, false);
+  }
+  const shared = pivotChords(fromKey, toKey).find(
+    (pivot) => !pivot.borrowed
+  )?.chord;
+  if (shared === undefined) {
     return null;
   }
-  const { chord: shared, borrowed } = pivot;
-  const where = borrowed
-    ? `borrowed from ${keyName(parallelOf(fromKey))}; the ${shared.numeral} of ${keyName(toKey)}`
-    : `the ${shared.numeral} of ${keyName(toKey)}`;
   return {
-    id: "pivot",
-    title: "Turn on a shared chord",
+    id: "common-chord",
+    title: "End on a chord both keys share",
     segments: [
       text(`End ${fromTitle} on `),
       chord(chordName(shared)),
-      text(` (${where}), then `),
+      text(` (it's the ${shared.numeral} of ${keyName(toKey)}), then `),
       chord(chordName(dominantSeventhOf(toKey))),
       text(` into ${toTitle}.`),
     ],
   };
 };
 
-const holdToneSuggestion = ({
+/** 2. A chord of the old key sliding to its relative in the new key (C to Am shares two notes). */
+const relativeChordSuggestion = ({
   fromTitle,
+  toTitle,
   fromKey,
   toKey,
 }: TransitionSongs): TransitionSuggestion | null => {
-  const [tone] = commonTones(fromKey, toKey);
-  if (tone === undefined) {
+  const [pair] = relativePivots(fromKey, toKey);
+  if (pair === undefined) {
     return null;
   }
   return {
-    id: "common-tone",
-    title: "Hold the shared note",
+    id: "relative-chord",
+    title: "Slide to a relative chord",
     segments: [
-      text("Hold "),
-      chord(noteName(tone)),
-      text(` from the last chord of ${fromTitle}, then play `),
+      text(`End ${fromTitle} on `),
+      chord(chordName(pair.from)),
+      text(", move to its relative "),
+      chord(chordName(pair.to)),
+      ...(pair.to.numeral === "V"
+        ? [
+            text(", make it "),
+            chord(chordName(dominantSeventhOf(toKey))),
+            text(`, then start ${toTitle} in `),
+            chord(keyName(toKey)),
+            text("."),
+          ]
+        : [
+            text(` (the ${pair.to.numeral} of ${keyName(toKey)}), then `),
+            chord(chordName(dominantSeventhOf(toKey))),
+            text(` into ${toTitle}.`),
+          ]),
+    ],
+  };
+};
+
+const isHome = (candidate: { numeral: string }) =>
+  candidate.numeral === "I" || candidate.numeral === "i";
+
+/**
+ * 3. A held note: end on a chord but keep one of its notes ringing, and let it become
+ * part of the next song's first chord. When the home chords share nothing, the first
+ * song can end on a nearby chord instead, or the next can open on a different one.
+ */
+const commonToneSuggestion = ({
+  fromTitle,
+  toTitle,
+  fromKey,
+  toKey,
+}: TransitionSongs): TransitionSuggestion | null => {
+  const [shared] = commonToneChords(fromKey, toKey);
+  if (shared === undefined) {
+    return null;
+  }
+  const ending: AdviceSegment[] = isHome(shared.from)
+    ? [text(`End ${fromTitle} on `), chord(chordName(shared.from))]
+    : [
+        text(`End ${fromTitle} on `),
+        chord(chordName(shared.from)),
+        text(` (its ${shared.from.numeral}) instead of `),
+        chord(keyName(fromKey)),
+      ];
+  const opening: AdviceSegment[] = isHome(shared.to)
+    ? [
+        text(`${toTitle}'s opening `),
+        chord(chordName(shared.to)),
+        text(" chord."),
+      ]
+    : [
+        chord(chordName(shared.to)),
+        text(`: open ${toTitle} on `),
+        chord(chordName(shared.to)),
+        text(` (its ${shared.to.numeral}), then `),
+        chord(chordName(dominantSeventhOf(toKey))),
+        text(" to land in "),
+        chord(keyName(toKey)),
+        text("."),
+      ];
+  return {
+    id: "common-tone",
+    title: "Hold a note across",
+    segments: [
+      ...ending,
+      text(", but hold the "),
+      chord(noteName(shared.fromTone)),
+      text(
+        noteName(shared.fromTone) === noteName(shared.tone)
+          ? ` (its ${shared.fromRole}). It becomes the ${shared.toRole} of `
+          : ` (its ${shared.fromRole}). As ${noteName(shared.tone)}, it becomes the ${shared.toRole} of `
+      ),
+      ...opening,
+    ],
+  };
+};
+
+/** A chord borrowed from the old key's parallel minor, when nothing is truly shared. */
+const borrowedChordSuggestion = ({
+  fromTitle,
+  toTitle,
+  fromKey,
+  toKey,
+}: TransitionSongs): TransitionSuggestion | null => {
+  const borrowed = pivotChords(fromKey, toKey).find(
+    (pivot) => pivot.borrowed
+  )?.chord;
+  if (borrowed === undefined) {
+    return null;
+  }
+  return {
+    id: "borrowed-chord",
+    title: "Borrow a chord",
+    segments: [
+      text(`End ${fromTitle} on `),
+      chord(chordName(borrowed)),
+      text(
+        ` (borrowed from ${keyName(parallelOf(fromKey))}; the ${borrowed.numeral} of ${keyName(toKey)}), then `
+      ),
       chord(chordName(dominantSeventhOf(toKey))),
-      text(" into "),
-      chord(keyName(toKey)),
-      text("."),
+      text(` into ${toTitle}.`),
     ],
   };
 };
@@ -277,25 +399,30 @@ const swapSuggestion = ({
 
 /**
  * Concrete ways to connect two songs, most useful first, for the case the rating found.
+ * Following a trusted worship leader's order: common chords, then common relative
+ * chords, then common tones that turn into one of those, then the case's own fallbacks.
  * Moving the next song to another key on its arrangement is offered separately, because
  * it needs that arrangement's keys.
  */
 const noSuggestions = (): TransitionSuggestion[] => [];
 
-const SUGGESTIONS_BY_KIND = {
+/**
+ * Ways out of each rough case once shared chords, relative chords, and held notes
+ * (always tried first, in that order) run out.
+ */
+const FALLBACKS_BY_KIND = {
   same: noSuggestions,
   parallel: noSuggestions,
   relative: noSuggestions,
   close: noSuggestions,
   lift: noSuggestions,
   mediant: (songs) => [
-    holdToneSuggestion(songs),
-    pivotSuggestion(songs) ?? dominantSuggestion(songs, false),
+    borrowedChordSuggestion(songs),
+    dominantSuggestion(songs, false),
     padSuggestion(songs),
   ],
   "step-down": (songs) => [
     dominantSuggestion(songs, false),
-    pivotSuggestion(songs),
     swapSuggestion(songs),
   ],
   "half-step-down": (songs) => [
@@ -304,16 +431,18 @@ const SUGGESTIONS_BY_KIND = {
     dominantSuggestion(songs, true),
   ],
   tritone: (songs) => [padSuggestion(songs), dominantSuggestion(songs, true)],
-  "distant-mode": (songs) => {
-    const pivot = pivotSuggestion(songs);
-    return pivot === null
-      ? [padSuggestion(songs), dominantSuggestion(songs, true)]
-      : [pivot, dominantSuggestion(songs, false), padSuggestion(songs)];
-  },
+  "distant-mode": (songs) => [
+    borrowedChordSuggestion(songs),
+    dominantSuggestion(songs, false),
+    padSuggestion(songs),
+  ],
 } as const satisfies Record<
   KeyChangeKind,
   (songs: TransitionSongs) => (TransitionSuggestion | null)[]
 >;
+
+/** The most suggestions one warning shows. */
+const MAX_SUGGESTIONS = 4;
 
 /**
  * Concrete ways to connect two songs, most useful first, for the case the rating found.
@@ -323,8 +452,25 @@ const SUGGESTIONS_BY_KIND = {
 export const transitionSuggestions = (
   songs: TransitionSongs,
   kind: KeyChangeKind
-): TransitionSuggestion[] =>
-  SUGGESTIONS_BY_KIND[kind](songs).filter((suggestion) => suggestion !== null);
+): TransitionSuggestion[] => {
+  const fallbacks = FALLBACKS_BY_KIND[kind](songs);
+  if (fallbacks.length === 0) {
+    return [];
+  }
+  const ordered = [
+    commonChordSuggestion(songs),
+    relativeChordSuggestion(songs),
+    commonToneSuggestion(songs),
+    ...fallbacks,
+  ].filter((suggestion) => suggestion !== null);
+  // A fallback can repeat a common chord (ending on the new key's V), so keep the first.
+  return ordered
+    .filter(
+      (suggestion, index) =>
+        ordered.findIndex((other) => other.id === suggestion.id) === index
+    )
+    .slice(0, MAX_SUGGESTIONS);
+};
 
 /** Semitones a key may move to smooth a change without leaving the leader's range. */
 export const MAX_ALTERNATE_SEMITONES = 2;

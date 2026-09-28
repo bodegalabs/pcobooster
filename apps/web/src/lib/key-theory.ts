@@ -252,6 +252,18 @@ export const pivotChords = (from: MusicalKey, to: MusicalKey): PivotChord[] => {
   }));
 };
 
+/** Whether the first key already has the new key's home chord (E, the V of Am, into E). */
+export const homeChordIsIn = (from: MusicalKey, to: MusicalKey): boolean => {
+  const [home] = diatonicTriads(to);
+  return (
+    home !== undefined &&
+    diatonicTriads(from).some(
+      (chord) =>
+        chord.root.pitch === home.root.pitch && chord.quality === home.quality
+    )
+  );
+};
+
 /** Whether the new key's V chord is already a chord of the first key (F in C, into Bb). */
 export const dominantIsIn = (from: MusicalKey, to: MusicalKey): boolean => {
   const fifth = scaleOf(to).at(FIFTH_DEGREE);
@@ -284,6 +296,153 @@ export const commonTones = (
   return scaleOf(to).filter(
     (note) => fromPitches.has(note.pitch) && toPitches.has(note.pitch)
   );
+};
+
+/** The new key's chords that set it up, best first: the pivot chords, then V. */
+const setupChords = (to: MusicalKey): Chord[] => {
+  const allowed = to.minor ? MINOR_PIVOT_NUMERALS : MAJOR_PIVOT_NUMERALS;
+  const triads = diatonicTriads(to);
+  const ranked = allowed.flatMap((numeral) =>
+    triads.filter((chord) => chord.numeral === numeral)
+  );
+  const dominant = triads.find(
+    (chord) => chord.numeral === "V" && chord.quality === ""
+  );
+  return dominant === undefined ? ranked : [...ranked, dominant];
+};
+
+const RELATIVE_MINOR_OFFSET = 9;
+const RELATIVE_MAJOR_OFFSET = 3;
+
+export interface RelativePivot {
+  /** A chord of the first key, spelled in that key. */
+  from: Chord;
+  /** Its relative (C and Am share two notes), a setup chord of the new key. */
+  to: Chord;
+}
+
+/**
+ * Pairs a chord of the first key with its relative in the new key (they share two
+ * notes), so the band can end on one and slide to the other. Chords the new key already
+ * has are left out; those are plain common chords.
+ */
+export const relativePivots = (
+  from: MusicalKey,
+  to: MusicalKey
+): RelativePivot[] => {
+  const toChords = diatonicTriads(to);
+  // A chord the new key already has is a common chord, not a relative one.
+  const fromChords = diatonicTriads(from).filter(
+    (chord) =>
+      chord.quality !== "dim" &&
+      !toChords.some(
+        (candidate) =>
+          candidate.root.pitch === chord.root.pitch &&
+          candidate.quality === chord.quality
+      )
+  );
+  const pairs: RelativePivot[] = [];
+  for (const toChord of setupChords(to)) {
+    const alreadyShared = fromChords.some(
+      (chord) =>
+        chord.root.pitch === toChord.root.pitch &&
+        chord.quality === toChord.quality
+    );
+    const relativePitch = mod12(
+      toChord.root.pitch +
+        (toChord.quality === "m"
+          ? RELATIVE_MAJOR_OFFSET
+          : RELATIVE_MINOR_OFFSET)
+    );
+    const relativeQuality: ChordQuality = toChord.quality === "m" ? "" : "m";
+    const fromChord = fromChords.find(
+      (chord) =>
+        chord.root.pitch === relativePitch && chord.quality === relativeQuality
+    );
+    if (!alreadyShared && fromChord !== undefined) {
+      pairs.push({ from: fromChord, to: toChord });
+    }
+  }
+  return pairs;
+};
+
+export type ChordTone = "root" | "third" | "fifth";
+const CHORD_TONES: readonly ChordTone[] = ["root", "third", "fifth"];
+
+export interface CommonToneChord {
+  /** The note to hold, spelled in the new key. */
+  tone: SpelledNote;
+  /** The same note as the band plays it on the first song's chord (Eb where the new key says D#). */
+  fromTone: SpelledNote;
+  /** The chord the first song ends on, spelled in its key: its home chord, or a close one. */
+  from: Chord;
+  /** What the held note is in that chord. */
+  fromRole: ChordTone;
+  /** The chord the note carries into: the new song's opening chord, or another to open on. */
+  to: Chord;
+  toRole: ChordTone;
+}
+
+/** Other chords a song can end on or open with: its IV, vi, and V (iv, VI, and V in minor). */
+const ALTERNATE_END_NUMERALS = new Set(["IV", "vi", "V", "iv", "VI"]);
+
+const endingChords = (key: MusicalKey): Chord[] => {
+  const triads = diatonicTriads(key);
+  return [
+    tonicTriad(key),
+    ...triads.filter((chord) => ALTERNATE_END_NUMERALS.has(chord.numeral)),
+  ];
+};
+
+/**
+ * Notes that ring from the first song's last chord into the next song's first one, so
+ * the band can hold one note while the chords change under it: end on F, hold its third
+ * (A), and it becomes the fifth of the opening D. Home chords come first; then the next
+ * song opens on a setup chord, then the first song ends on its IV, vi, or V, and last,
+ * both step off their home chords (Bb into E: end on F, hold A, open on A).
+ */
+export const commonToneChords = (
+  from: MusicalKey,
+  to: MusicalKey
+): CommonToneChord[] => {
+  const spellings = new Map(scaleOf(to).map((note) => [note.pitch, note]));
+  const fromSpellings = new Map(
+    scaleOf(from).map((note) => [note.pitch, note])
+  );
+  const [homeEnd, ...otherEnds] = endingChords(from);
+  const [homeOpen, ...otherOpens] = [tonicTriad(to), ...setupChords(to)];
+  const pairs: [Chord | undefined, Chord | undefined][] = [
+    [homeEnd, homeOpen],
+    ...otherOpens.map((open): [Chord | undefined, Chord] => [homeEnd, open]),
+    ...otherEnds.map((end): [Chord, Chord | undefined] => [end, homeOpen]),
+    // Last resort: both songs step off their home chords.
+    ...otherOpens.flatMap((open) =>
+      otherEnds.map((end): [Chord, Chord] => [end, open])
+    ),
+  ];
+  const found: CommonToneChord[] = [];
+  for (const [fromChord, toChord] of pairs) {
+    if (fromChord === undefined || toChord === undefined) {
+      continue;
+    }
+    const fromPitches = chordPitches(fromChord);
+    for (const [toIndex, pitch] of chordPitches(toChord).entries()) {
+      const tone = spellings.get(pitch);
+      const fromRole = CHORD_TONES[fromPitches.indexOf(pitch)];
+      const toRole = CHORD_TONES[toIndex];
+      if (tone && fromRole && toRole) {
+        found.push({
+          tone,
+          fromTone: fromSpellings.get(pitch) ?? tone,
+          from: fromChord,
+          fromRole,
+          to: toChord,
+          toRole,
+        });
+      }
+    }
+  }
+  return found;
 };
 
 /** Semitones up from one key's tonic to another's, 0 to 11. */
