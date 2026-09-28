@@ -89,6 +89,8 @@ Row 0 is synthesis. It rests on Kauflin's advice to change key under speaking an
 
 ## Suggestion catalog
 
+> **Superseded order:** the app tries the [practitioner order](#practitioner-guidance-september-28-2026) first: common chords, then common relative chords, then common tones. The templates below are its fallbacks for each case, and the chord spelling rules still apply.
+
 ### Spelling and chord computation
 
 1. **Normalize the stored key.** Take the tonic from the key string and take minor from the boolean, else the suffix. Respell the theoretical major keys `A#`→`B♭`, `D#`→`E♭`, `G#`→`A♭`. Keep every other stored spelling, so `F#` and `Gb`, and `C#` and `Db`, stay as the team entered them. All of Planning Center's minor values are standard signatures.
