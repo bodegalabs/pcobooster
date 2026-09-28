@@ -6,7 +6,6 @@ import {
   daysSinceRecentPlay,
   formatPlayedAgo,
   keyTransitions,
-  parseKey,
 } from "@/lib/plan-set-insights";
 
 const item = (
@@ -41,20 +40,6 @@ const item = (
   layout: null,
 });
 
-describe(parseKey, () => {
-  it("reads accidentals and treats minor keys as their relative major", () => {
-    expect(parseKey("Eb")).toStrictEqual({ label: "Eb", majorPitch: 3 });
-    expect(parseKey("F#")).toStrictEqual({ label: "F#", majorPitch: 6 });
-    expect(parseKey("Am")?.majorPitch).toBe(0);
-    expect(parseKey("Cmaj")).toStrictEqual({ label: "C", majorPitch: 0 });
-  });
-
-  it("returns null for names that are not keys", () => {
-    expect(parseKey("(Female Lead) John")).toBeNull();
-    expect(parseKey(null)).toBeNull();
-  });
-});
-
 describe(keyTransitions, () => {
   it("rates each change from one song's ending key to the next song's key", () => {
     const transitions = keyTransitions([
@@ -72,9 +57,31 @@ describe(keyTransitions, () => {
         description,
       }))
     ).toStrictEqual([
-      { from: "Eb", to: "Bb", level: "smooth", description: "Up a fifth" },
-      { from: "C", to: "F#", level: "awkward", description: "A tritone apart" },
+      {
+        from: "Eb",
+        to: "Bb",
+        level: "smooth",
+        description: "Closely related key",
+      },
+      {
+        from: "C",
+        to: "F#",
+        level: "rough",
+        description: "Tritone apart: no shared notes",
+      },
     ]);
+  });
+
+  it("lets a timed prayer of a minute or more cover a rough change", () => {
+    const prayer = { ...item("prayer", "item"), length: 90 };
+    const [transition] = keyTransitions([
+      item("a", "song", { start: "Bb" }),
+      prayer,
+      item("b", "song", { start: "E" }),
+    ]);
+
+    expect(transition?.level).toBe("smooth");
+    expect(transition?.bridgedBy).toBe("prayer");
   });
 
   it("starts over at each header and skips songs without a key", () => {
