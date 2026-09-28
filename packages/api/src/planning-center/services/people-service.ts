@@ -330,42 +330,13 @@ export class PlanningCenterPeopleService {
   }
 
   /**
-   * A person's schedules with service PlanTimes sideloaded. Rehearsal PlanTimes are listed in
-   * `relationships.times` but not sideloaded; callers that need them resolve them within their
-   * request budget.
-   */
-  getPersonSchedules(
-    personId: string,
-    params: Record<string, string> = {},
-    maxPages = 2
-  ): Effect.Effect<ResourceCollectionResponse, PlanningCenterError> {
-    return cachedRead(
-      this.caches.collections,
-      this.buildCacheKey(
-        "person-schedules",
-        personId,
-        stableParams(params),
-        String(maxPages)
-      ),
-      PERSON_READ_CACHE_TTL_MS,
-      () =>
-        this.core
-          .fetchAllWithIncluded(
-            `/services/v2/people/${personId}/schedules`,
-            { include: "plan_times", ...params },
-            maxPages
-          )
-          .pipe(Effect.map(toResourceCollection))
-    ).pipe(Effect.map(cloneResourceCollectionResponse));
-  }
-
-  /**
-   * Schedules from `after` (a YYYY-MM-DD day or an ISO instant) onward, with service PlanTimes sideloaded. Like
-   * `getPersonSchedules`, it leaves rehearsal PlanTimes for callers to resolve. Planning Center's default scope returns only future schedules, so the explicit
-   * `after` filter is what makes past schedules visible. Declined schedules stay excluded
-   * unless `includeDeclined` asks for them (status `D`). `newestFirst` reads the latest
-   * schedules first, so a read cut off at `maxPages` drops the oldest history instead of
-   * upcoming dates.
+   * Schedules from `after` (a YYYY-MM-DD day or an ISO instant) onward, with service PlanTimes
+   * sideloaded. Rehearsal PlanTimes are listed in `relationships.times` but not sideloaded;
+   * callers that need them resolve them within their request budget. Planning Center's default
+   * scope returns only future schedules, so the explicit `after` filter is what makes past
+   * schedules visible. Declined schedules stay excluded unless `includeDeclined` asks for them
+   * (status `D`). `newestFirst` reads the latest schedules first, so a read cut off at
+   * `maxPages` drops the oldest history instead of upcoming dates.
    */
   getPersonSchedulesAfter(
     personId: string,

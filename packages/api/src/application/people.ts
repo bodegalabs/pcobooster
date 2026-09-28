@@ -255,9 +255,7 @@ export const getPeopleDashboardPerson = (input: {
     );
   }).pipe(withPlanningCenterFaults);
 
-export const getMyScheduledPlans = (input: {
-  readonly planIds: readonly string[];
-}): Effect.Effect<
+export const getMyScheduledPlans = (): Effect.Effect<
   { readonly planIds: string[] },
   ApplicationFault,
   PlanningCenterAccess | RequestContext | Server
@@ -270,15 +268,10 @@ export const getMyScheduledPlans = (input: {
       return { planIds: [] };
     }
     const { account } = access.authentication;
-    const uniquePlanIds = [...new Set(input.planIds)];
-    const planIds = yield* getCurrentUserScheduledPlanIds(
-      request,
-      account,
-      uniquePlanIds,
-      {
-        ...(yield* currentUserIdentityDependencies),
-        peopleService: access.services.people,
-      }
-    );
+    const planIds = yield* getCurrentUserScheduledPlanIds(request, account, {
+      ...(yield* currentUserIdentityDependencies),
+      peopleService: access.services.people,
+      resolveTimeZone: access.services.organizationTimeZone,
+    });
     return { planIds };
   }).pipe(withPlanningCenterFaults);

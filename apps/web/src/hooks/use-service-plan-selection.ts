@@ -16,6 +16,7 @@ import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import { useMyScheduledPlans } from "@/hooks/use-my-scheduled-plans";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
+import { createPlanTimesQueryOptions } from "@/hooks/use-plan-times";
 import { useServiceTypes } from "@/hooks/use-service-types";
 import { createTeamPositionsQueryOptions } from "@/hooks/use-team-positions";
 import { isQueryFresh } from "@/lib/intent-prefetch";
@@ -41,6 +42,17 @@ import {
 } from "@/lib/service-plan-selection";
 import { orpc } from "@/orpc-client";
 
+/** The positions, items, and times a plan's Overview is built from. */
+const overviewQueryOptions = (row: ServicePlanRow) => ({
+  teamPositions: createTeamPositionsQueryOptions(
+    row.serviceTypeId,
+    row.planId,
+    row.seriesId
+  ),
+  planItems: createPlanItemsQueryOptions(row.serviceTypeId, row.planId),
+  planTimes: createPlanTimesQueryOptions(row.serviceTypeId, row.planId),
+});
+
 export const useServicePlanSelection = ({
   selectedServiceTypeId,
   onSelect,
@@ -51,6 +63,10 @@ export const useServicePlanSelection = ({
   const orgTimeZone = useOrganizationTimeZone();
   const { data: serviceTypes, isLoading: serviceTypesLoading } =
     useServiceTypes();
+  // Starts with the service types rather than after the plans: it lists every upcoming plan
+  // the person is on, and the rows are matched against it below.
+  const { data: myScheduledPlans, isLoading: myScheduledPlansLoading } =
+    useMyScheduledPlans();
   const [searchValue, setSearchValue] = useState("");
   const deferredSearchValue = useDeferredValue(searchValue);
   const [storedIds, setStoredIds] = useBrowserStorage(
@@ -115,25 +131,17 @@ export const useServicePlanSelection = ({
     [selectedServiceTypeIdSet, serviceTypes]
   );
 
-  const planQueries = useQueries({
-    queries: planQueryOptions,
-  });
-
-  useEffect(() => {
-    if (!serviceTypes) {
-      return;
-    }
-
-    for (const serviceType of serviceTypes) {
-      if (!selectedServiceTypeIdSet.has(serviceType.id)) {
-        continue;
-      }
-
+  // Saved plans seed their queries before `useQueries` reads them; see `useHydrateQueryFromCache`.
+  for (const serviceType of serviceTypes ?? []) {
+    if (selectedServiceTypeIdSet.has(serviceType.id)) {
       hydrateQueryFromCache(queryClient, queryKeys.plans(serviceType.id), () =>
         readCachedPlansEntry(serviceType.id)
       );
     }
-  }, [queryClient, selectedServiceTypeIdSet, serviceTypes]);
+  }
+  const planQueries = useQueries({
+    queries: planQueryOptions,
+  });
 
   const rows = useMemo(() => {
     if (!serviceTypes) {
@@ -187,12 +195,6 @@ export const useServicePlanSelection = ({
     });
   }, [planQueries, selectedServiceTypeIdSet, serviceTypes]);
 
-  const planIdsForLookup = useMemo(
-    () => [...new Set(rows.map((row) => row.planId))],
-    [rows]
-  );
-  const { data: myScheduledPlans, isLoading: myScheduledPlansLoading } =
-    useMyScheduledPlans(planIdsForLookup);
   const myScheduledPlanIdSet = useMemo(
     () => new Set(myScheduledPlans?.planIds),
     [myScheduledPlans?.planIds]
@@ -200,8 +202,19 @@ export const useServicePlanSelection = ({
 
   const plansLoading = planQueries.some((query) => query.isLoading);
   const errorMessage = planQueries.find((query) => query.isError)?.error;
-  const isInitialLoading =
-    serviceTypesLoading || (plansLoading && rows.length === 0);
+  // Service types answer at different times, and each one's plans interleave by date, so
+  // showing rows as they arrive reshuffles the list under the pointer. The page stays on its
+  // skeleton until every selected service type and the "Your services" lookup have answered,
+  // then shows them together. Later, a service type added to the filter keeps the current rows
+  // on screen, with the loading bar, until its plans arrive.
+  const everythingLoaded =
+    !serviceTypesLoading && !plansLoading && !myScheduledPlansLoading;
+  const [hasLoaded, setHasLoaded] = useState(everythingLoaded);
+  if (everythingLoaded && !hasLoaded) {
+    setHasLoaded(true);
+  }
+  const isInitialLoading = !hasLoaded;
+  const isRefreshing = hasLoaded && plansLoading;
 
   const myScheduledRows = useMemo(
     () =>
@@ -270,51 +283,27 @@ export const useServicePlanSelection = ({
     }
   }, [planQueries, serviceTypes]);
 
-  /** On hover: the positions list the plan opens on, and the Plan tab's items. */
+  /** On hover: what the plan's Overview shows, the view a plan opens on. */
   const prefetchPlanData = useCallback(
     async (row: ServicePlanRow) => {
       // Warm the route too, so its code is ready before the click.
       void router.preloadRoute(
         planWorkspaceLink(row.serviceTypeId, row.planId)
       );
+      const { teamPositions, planItems, planTimes } = overviewQueryOptions(row);
       await Promise.allSettled([
-        queryClient.query(
-          speculativeQuery(
-            createTeamPositionsQueryOptions(
-              row.serviceTypeId,
-              row.planId,
-              row.seriesId
-            )
-          )
-        ),
-        queryClient.query(
-          speculativeQuery(
-            createPlanItemsQueryOptions(row.serviceTypeId, row.planId)
-          )
-        ),
+        queryClient.query(speculativeQuery(teamPositions)),
+        queryClient.query(speculativeQuery(planItems)),
+        queryClient.query(speculativeQuery(planTimes)),
       ]);
     },
     [queryClient, router]
   );
   const isPlanDataFresh = useCallback(
-    (row: ServicePlanRow) => {
-      const teamPositions = createTeamPositionsQueryOptions(
-        row.serviceTypeId,
-        row.planId,
-        row.seriesId
-      );
-      const planItems = createPlanItemsQueryOptions(
-        row.serviceTypeId,
-        row.planId
-      );
-      return (
-        isQueryFresh(
-          queryClient,
-          teamPositions.queryKey,
-          teamPositions.staleTime
-        ) && isQueryFresh(queryClient, planItems.queryKey, planItems.staleTime)
-      );
-    },
+    (row: ServicePlanRow) =>
+      Object.values(overviewQueryOptions(row)).every((options) =>
+        isQueryFresh(queryClient, options.queryKey, options.staleTime)
+      ),
     [queryClient]
   );
   const { getIntentProps: getPlanIntentProps, cancelIntent } =
@@ -324,22 +313,19 @@ export const useServicePlanSelection = ({
       prefetch: prefetchPlanData,
     });
   /**
-   * Opening a plan lands on its positions list, so that starts loading at the click, ahead of
-   * the route's code. The workspace warms the rest in the speculative lane once it has loaded.
+   * Opening a plan lands on its Overview, so its data starts loading at the click, ahead of
+   * the route's code. The workspace warms the other views in the speculative lane once it has
+   * loaded.
    */
   const loadOpenedPlan = useCallback(
     async (row: ServicePlanRow) => {
-      try {
-        await queryClient.query(
-          createTeamPositionsQueryOptions(
-            row.serviceTypeId,
-            row.planId,
-            row.seriesId
-          )
-        );
-      } catch {
-        // The workspace's own query owns any visible loading error.
-      }
+      // The workspace's own queries own any visible loading error.
+      const { teamPositions, planItems, planTimes } = overviewQueryOptions(row);
+      await Promise.allSettled([
+        queryClient.query(teamPositions),
+        queryClient.query(planItems),
+        queryClient.query(planTimes),
+      ]);
     },
     [queryClient]
   );
@@ -365,7 +351,7 @@ export const useServicePlanSelection = ({
     dateRangeFilter,
     setDateRangeFilter,
     isInitialLoading,
-    myScheduledPlansLoading,
+    isRefreshing,
     errorMessage,
     visibleRows,
     myScheduledRows,

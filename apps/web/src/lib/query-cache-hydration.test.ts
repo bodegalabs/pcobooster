@@ -1,5 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { hydrateQueryFromCache } from "@/lib/query-cache-hydration";
 
@@ -31,6 +31,18 @@ describe(hydrateQueryFromCache, () => {
     }));
     expect(client.getQueryState(key)).toBe(originalState);
     expect(client.getQueryData(key)).toStrictEqual(["live-plan"]);
+    client.clear();
+  });
+
+  it("does not read storage once the query holds data", () => {
+    const client = new QueryClient();
+    client.setQueryData(key, ["live-plan"]);
+    const readCache = vi.fn<() => { data: string[]; savedAt: number }>(() => ({
+      data: ["saved-plan"],
+      savedAt: 1000,
+    }));
+    hydrateQueryFromCache(client, key, readCache);
+    expect(readCache).not.toHaveBeenCalled();
     client.clear();
   });
 });

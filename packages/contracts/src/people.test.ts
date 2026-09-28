@@ -1,7 +1,6 @@
 import {
   PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE,
   peopleCandidateDetailsInputSchema,
-  peopleMyScheduledPlansInputSchema,
   peoplePlanWindowHistoryInputSchema,
 } from "@pcobooster/contracts/people";
 import {
@@ -245,10 +244,5 @@ describe("people read contracts", () => {
     expect(peopleCandidateDetailsInputSchema.parse(continuation)).toStrictEqual(
       continuation
     );
-    expect(
-      peopleMyScheduledPlansInputSchema.safeParse({
-        planIds: Array.from({ length: 501 }, (_, index) => String(index)),
-      }).success
-    ).toBeFalsy();
   });
 });

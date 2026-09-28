@@ -51,8 +51,11 @@ import { Effect } from "effect";
  */
 const SCHEDULE_MAX_PAGES = 2;
 const SCHEDULE_PAGE_SIZE = 100;
-/** Workers allows 6 open connections per invocation; leave headroom. */
-const READ_CONCURRENCY = 4;
+/**
+ * A Worker keeps at most 6 connections waiting for response headers; more would queue, not
+ * fail. The count of requests is the same at any concurrency, so use every connection.
+ */
+const READ_CONCURRENCY = 6;
 /**
  * Rehearsal times are resolved for the 90-day cadence counts and the month
  * view, plus one day for the org-day boundary; older schedules keep their

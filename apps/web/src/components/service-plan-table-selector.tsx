@@ -382,7 +382,7 @@ export const ServicePlanTableSelector = ({
     dateRangeFilter,
     setDateRangeFilter,
     isInitialLoading,
-    myScheduledPlansLoading,
+    isRefreshing,
     errorMessage,
     visibleRows,
     myScheduledRows,
@@ -399,7 +399,7 @@ export const ServicePlanTableSelector = ({
     <div className="flex flex-col gap-4 md:h-full md:min-h-0">
       <MyScheduledServiceCards
         rows={myScheduledRows}
-        isLoading={isInitialLoading || myScheduledPlansLoading}
+        isLoading={isInitialLoading}
         onSelect={handleSelectRow}
         getPlanIntentProps={getPlanIntentProps}
         orgTimeZone={orgTimeZone}
@@ -442,7 +442,10 @@ export const ServicePlanTableSelector = ({
           </NativeSelect>
         </div>
 
-        <LoadingBar active={isNavigating} className="shrink-0" />
+        <LoadingBar
+          active={isNavigating || isRefreshing}
+          className="shrink-0"
+        />
 
         <PageScrollArea>
           <PlanAgenda

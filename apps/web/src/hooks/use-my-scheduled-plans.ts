@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo } from "react";
 
 import {
   readCachedMyScheduledPlans,
@@ -10,35 +9,19 @@ import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
 import { queryKeys } from "@/lib/query-keys";
 import { orpc } from "@/orpc-client";
 
-export const useMyScheduledPlans = (planIds: string[]) => {
-  const normalizedPlanIds = useMemo(
-    () => [...new Set(planIds)].toSorted((a, b) => a.localeCompare(b)),
-    [planIds]
-  );
-  const planIdsKey = normalizedPlanIds.join(",");
-  const queryKey = queryKeys.myScheduledPlans(planIdsKey);
-  const readCachedPlans = useCallback(
-    () => readCachedMyScheduledPlans(planIdsKey),
-    [planIdsKey]
-  );
-  useHydrateQueryFromCache(queryKey, readCachedPlans);
+const queryKey = queryKeys.myScheduledPlans();
+
+/** Upcoming plans the signed-in person is scheduled on, independent of which plans are loaded. */
+export const useMyScheduledPlans = () => {
+  useHydrateQueryFromCache(queryKey, readCachedMyScheduledPlans);
 
   return useQuery<MyScheduledPlansData>({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (normalizedPlanIds.length === 0) {
-        return { planIds: [] };
-      }
-
-      const scheduledPlans = await orpc.people.myScheduledPlans(
-        { planIds: normalizedPlanIds },
-        { signal }
-      );
-      writeCachedMyScheduledPlans(planIdsKey, scheduledPlans);
+      const scheduledPlans = await orpc.people.myScheduledPlans({}, { signal });
+      writeCachedMyScheduledPlans(scheduledPlans);
       return scheduledPlans;
     },
-    enabled: normalizedPlanIds.length > 0,
-    placeholderData: (previousPlans) => previousPlans,
     staleTime: 60 * 1000,
   });
 };

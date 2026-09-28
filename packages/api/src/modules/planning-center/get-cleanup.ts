@@ -23,8 +23,11 @@ const log = logger.for("planning-center/cleanup");
 
 /** Planning Center pages hold 100 records. */
 const CATALOG_PAGE_SIZE = 100;
-/** Workers allows 6 open connections per invocation; leave headroom. */
-const READ_CONCURRENCY = 4;
+/**
+ * A Worker keeps at most 6 connections waiting for response headers; more would queue, not
+ * fail. The count of requests is the same at any concurrency, so use every connection.
+ */
+const READ_CONCURRENCY = 6;
 /** One page answers "any schedule since the cutoff?"; more would only count higher. */
 const SCHEDULE_PAGES = 1;
 

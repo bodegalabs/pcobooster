@@ -47,4 +47,24 @@ describe(requireFeature, () => {
     await expect(guard()).resolves.toBe("not-found");
     expect(fetchPeopleFeature).not.toHaveBeenCalled();
   });
+
+  it("decides from a stale answer at once and refreshes it in the background", async () => {
+    const { fetchPeopleFeature, options, queryClient, guard } = setup({
+      enabled: false,
+    });
+    queryClient.setQueryData(
+      options.queryKey,
+      { enabled: true },
+      {
+        updatedAt: Date.now() - 60 * 60 * 1000,
+      }
+    );
+    await expect(guard()).resolves.toBe("allowed");
+    expect(fetchPeopleFeature).toHaveBeenCalledOnce();
+    await vi.waitFor(() => {
+      expect(queryClient.getQueryData(options.queryKey)).toStrictEqual({
+        enabled: false,
+      });
+    });
+  });
 });

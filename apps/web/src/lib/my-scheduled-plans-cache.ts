@@ -4,16 +4,13 @@ export interface MyScheduledPlansData {
   planIds: string[];
 }
 
-const CACHE_VERSION = "v1";
-const CACHE_KEY_PREFIX = `pcobooster:my-scheduled-plans:${CACHE_VERSION}:`;
+const CACHE_KEY = "pcobooster:my-scheduled-plans:v2";
+const LEGACY_CACHE_KEY_PREFIX = "pcobooster:my-scheduled-plans:v1:";
 
 interface CachedPayload {
   savedAt: number;
   data: MyScheduledPlansData;
 }
-
-const buildCacheKey = (planIdsKey: string) =>
-  `${CACHE_KEY_PREFIX}${encodeURIComponent(planIdsKey)}`;
 
 const myScheduledPlansDataSchema = z.object({
   planIds: z.array(z.string()),
@@ -29,16 +26,16 @@ export interface MyScheduledPlansCacheEntry {
   data: MyScheduledPlansData;
 }
 
-export const readCachedMyScheduledPlans = (
-  planIdsKey: string
-): MyScheduledPlansCacheEntry | undefined => {
+export const readCachedMyScheduledPlans = ():
+  | MyScheduledPlansCacheEntry
+  | undefined => {
   const storage = globalThis.window?.localStorage;
-  if (planIdsKey.length === 0 || storage === undefined) {
+  if (storage === undefined) {
     return undefined;
   }
 
   try {
-    const raw = storage.getItem(buildCacheKey(planIdsKey));
+    const raw = storage.getItem(CACHE_KEY);
     if (raw === null) {
       return undefined;
     }
@@ -56,18 +53,15 @@ export const readCachedMyScheduledPlans = (
   }
 };
 
-export const writeCachedMyScheduledPlans = (
-  planIdsKey: string,
-  data: MyScheduledPlansData
-) => {
+export const writeCachedMyScheduledPlans = (data: MyScheduledPlansData) => {
   const storage = globalThis.window?.localStorage;
-  if (planIdsKey.length === 0 || storage === undefined) {
+  if (storage === undefined) {
     return;
   }
 
   try {
     storage.setItem(
-      buildCacheKey(planIdsKey),
+      CACHE_KEY,
       JSON.stringify({
         savedAt: Date.now(),
         data,
@@ -85,9 +79,11 @@ export const clearCachedMyScheduledPlans = () => {
   }
 
   try {
+    storage.removeItem(CACHE_KEY);
+    // v1 kept one snapshot per plan-id list; remove any a browser still holds.
     for (let index = storage.length - 1; index >= 0; index -= 1) {
       const key = storage.key(index);
-      if (key?.startsWith(CACHE_KEY_PREFIX) === true) {
+      if (key?.startsWith(LEGACY_CACHE_KEY_PREFIX) === true) {
         storage.removeItem(key);
       }
     }
