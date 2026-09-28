@@ -34,6 +34,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useSongOptions } from "@/hooks/use-song-options";
+import { keyOptionLabelOf } from "@/lib/plan-overview";
 import { cn } from "@/lib/utils";
 
 interface PlanItemEditDialogProps {
@@ -235,7 +236,7 @@ const PlanItemEditContent = ({
                   </NativeSelectOption>
                   {keyOptions.map((key) => (
                     <NativeSelectOption key={key.id} value={key.id}>
-                      {key.name}
+                      {keyOptionLabelOf(key)}
                     </NativeSelectOption>
                   ))}
                 </NativeSelect>
