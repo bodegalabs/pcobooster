@@ -95,6 +95,14 @@ const PlanItemListSkeleton = () => (
   </div>
 );
 
+/**
+ * Row controls stay hidden until the row is hovered or focused, except on
+ * touch screens (no hover) and on the row being dragged.
+ */
+const revealOnRowHover = (isDragged: boolean) =>
+  !isDragged &&
+  "pointer-fine:opacity-0 pointer-fine:group-focus-within/plan-item:opacity-100 pointer-fine:group-hover/plan-item:opacity-100";
+
 interface PlanItemCardProps {
   item: PlanItem;
   isBusy: boolean;
@@ -120,29 +128,27 @@ const PlanItemCard = ({
   const itemActionLabel = item.title || "plan item";
   const displayTitle = item.title || "Untitled item";
   const lengthLabel = formatLength(item.length);
-  const rowHoverClassName =
-    item.itemType === "header"
-      ? "hover:ring-border/80 hover:ring-1 hover:ring-inset"
-      : null;
-
   return (
     <div
       aria-busy={isBusy}
       className={cn(
         "group/plan-item stale-while-busy",
         tone.row,
-        !isDragged && rowHoverClassName,
+        !isDragged && tone.hover,
         isDragged && "bg-muted/80"
       )}
     >
       <div className="hidden min-h-11 items-stretch sm:flex">
-        <DragHandle
-          {...dragAttributes}
-          {...dragListeners}
-          disabled={isBusy}
-          aria-label={`Reorder ${itemActionLabel}`}
-        />
+        <div className={cn("flex", revealOnRowHover(isDragged))}>
+          <DragHandle
+            {...dragAttributes}
+            {...dragListeners}
+            disabled={isBusy}
+            aria-label={`Reorder ${itemActionLabel}`}
+          />
+        </div>
         <Item
+          variant="plain"
           size="xs"
           className="min-w-0 flex-1"
           render={
@@ -180,7 +186,12 @@ const PlanItemCard = ({
             </div>
           </div>
         </Item>
-        <div className="flex items-center px-2 py-1.5">
+        <div
+          className={cn(
+            "flex items-center px-2 py-1.5",
+            revealOnRowHover(isDragged)
+          )}
+        >
           <Button
             type="button"
             variant="destructive"
@@ -209,6 +220,7 @@ const PlanItemCard = ({
           aria-label={`Reorder ${itemActionLabel}`}
         />
         <Item
+          variant="plain"
           size="xs"
           className="min-w-0 flex-1 items-start"
           render={
@@ -299,7 +311,7 @@ const SortablePlanItem = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "sortable-plan-item relative border-b last:border-b-0",
+        "sortable-plan-item relative",
         isSortableDragging && "z-20 opacity-0"
       )}
     >

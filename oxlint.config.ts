@@ -32,6 +32,8 @@ export default defineConfig({
     },
   ],
   rules: {
+    // Flush list rows keep hover backgrounds on the list's rounded border.
+    "local/flush-list-rows": "error",
     // Keep icons/buttons from overlapping Input/Textarea text; use InputGroup.
     "local/no-absolute-input-overlay": "error",
     // Backgrounds stay solid; no blurred/frosted backdrop-filter layers.

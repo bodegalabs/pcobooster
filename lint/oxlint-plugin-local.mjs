@@ -783,6 +783,214 @@ const noClippedSurfaceRule = {
   },
 };
 
+// Rounded corners on the base token or a breakpoint, not `rounded-none`.
+const ROUNDED_TOKEN = /^rounded(?:-[a-z]{1,2})?(?:-(?!none$)[\w.[\]/-]+)?$/;
+const ROUNDED_NONE_TOKEN = /^rounded(?:-[a-z]{1,2})?-none$/;
+const DIVIDE_Y_TOKEN = /^divide-y(?:-\d+)?$/;
+const PADDING_TOKEN = /^p[xytblrse]?-(.+)$/;
+const STATE_VARIANT =
+  /(?:^|:)(?:[\w-]+-)?(?:hover|focus|active|group|peer|data|aria|has|in|not|\*|\[)/;
+/** Interactive `<Item>` rows paint `[button]:hover:bg-*` from the primitive. */
+const ITEM_NAME = "Item";
+const ITEM_LIST_NAME = "ItemList";
+/** `<Item variant="plain">` leaves the hover to the row that contains it. */
+const ITEM_PLAIN_VARIANT = "plain";
+
+/**
+ * Class tokens that apply at rest (base or breakpoint), not on hover/state.
+ * @param {string} text
+ */
+const restingTokens = (text) =>
+  classTokens(text)
+    .filter(({ variant }) => !STATE_VARIANT.test(variant))
+    .map(({ base }) => base);
+
+/**
+ * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ */
+const isFlushRoundedBox = (openingElement) => {
+  const tokens = restingTokens(openingClassText(openingElement));
+  const isRounded =
+    tokens.some((token) => ROUNDED_TOKEN.test(token)) &&
+    !tokens.some((token) => ROUNDED_NONE_TOKEN.test(token));
+  const isPadded = tokens.some((token) => {
+    const match = PADDING_TOKEN.exec(token);
+    return match !== null && !ZERO_SPACING.test(match[1]);
+  });
+  return isRounded && !isPadded;
+};
+
+/**
+ * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ */
+const paintsHoverBackground = (openingElement) => {
+  if (getJsxName(openingElement.name) === ITEM_NAME) {
+    return (
+      hasAttribute(openingElement, "render") &&
+      stringAttribute(openingElement, "variant") !== ITEM_PLAIN_VARIANT
+    );
+  }
+  return classTokens(openingClassText(openingElement)).some(
+    ({ variant, base }) => variant.includes("hover:") && base.startsWith("bg-")
+  );
+};
+
+/**
+ * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ * @param {string} name
+ * @returns {string | null}
+ */
+const stringAttribute = (openingElement, name) => {
+  for (const attribute of openingElement.attributes) {
+    if (
+      attribute.type === "JSXAttribute" &&
+      attribute.name.type === "JSXIdentifier" &&
+      attribute.name.name === name &&
+      attribute.value?.type === "Literal" &&
+      typeof attribute.value.value === "string"
+    ) {
+      return attribute.value.value;
+    }
+  }
+  return null;
+};
+
+/**
+ * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ */
+const hasOwnRadius = (openingElement) =>
+  restingTokens(openingClassText(openingElement)).some((token) =>
+    ROUNDED_TOKEN.test(token)
+  );
+
+/**
+ * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ */
+const hasSquareCorners = (openingElement) =>
+  restingTokens(openingClassText(openingElement)).some((token) =>
+    ROUNDED_NONE_TOKEN.test(token)
+  );
+
+const flushListRowsRule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Keep hover backgrounds of flush list rows on the list's border: rounded row lists use ItemList, and rows inside a rounded clip do not add their own radius.",
+    },
+    messages: {
+      useItemList:
+        "Rounded lists of divided rows should be `<ItemList>`. It clips the rows to its corners and squares `<Item>` rows, so hover backgrounds follow the list's border instead of drawing their own rounded shape.",
+      rowRadius:
+        "`<{{row}}>` paints a hover background with its own radius flush inside a rounded container, so the hover shape does not match the container's border. Drop the row's `rounded-*` and let the container clip it (use `<ItemList>` for row lists).",
+    },
+    schema: [],
+  },
+  create(context) {
+    const filename = context.filename.replaceAll("\\", "/");
+    if (filename.includes(SHARED_UI_DIRECTORY)) {
+      return {};
+    }
+    /** @type {Map<string, import("oxlint/plugins-dev").JSXElement[]>} */
+    let components = new Map();
+    const reported = new Set();
+
+    /**
+     * @param {import("oxlint/plugins-dev").JSXElement} row
+     * @param {import("oxlint/plugins-dev").JSXElement} reportNode
+     * @param {boolean} squaresItems
+     * @param {Set<string>} visiting
+     */
+    const checkRow = (row, reportNode, squaresItems, visiting) => {
+      const opening = row.openingElement;
+      const name = getJsxName(opening.name);
+      if (name !== null && components.has(name) && !visiting.has(name)) {
+        const nextVisiting = new Set([...visiting, name]);
+        for (const rendered of components.get(name) ?? []) {
+          checkRow(rendered, reportNode, squaresItems, nextVisiting);
+        }
+        return;
+      }
+      if (!paintsHoverBackground(opening)) {
+        // Unpadded, unrounded wrappers such as `<li>` keep the row flush.
+        if (isFlushRoundedBox(opening) || !isUnpaddedWrapper(opening)) {
+          return;
+        }
+        for (const child of renderedChildren(row)) {
+          checkRow(child, reportNode, squaresItems, visiting);
+        }
+        return;
+      }
+      // `<Item>` is rounded by default; only ItemList or `rounded-none` squares it.
+      const rounded =
+        hasOwnRadius(opening) ||
+        (name === ITEM_NAME && !squaresItems && !hasSquareCorners(opening));
+      if (!rounded || reported.has(reportNode)) {
+        return;
+      }
+      reported.add(reportNode);
+      context.report({
+        node: reportNode.openingElement,
+        messageId: "rowRadius",
+        data: { row: getJsxName(reportNode.openingElement.name) ?? "element" },
+      });
+    };
+
+    return {
+      Program(node) {
+        components = localComponents(node);
+      },
+      JSXElement(node) {
+        const opening = node.openingElement;
+        const name = getJsxName(opening.name);
+        const isItemList = name === ITEM_LIST_NAME;
+        if (!isItemList) {
+          if (!isFlushRoundedBox(opening)) {
+            return;
+          }
+          const tokens = restingTokens(openingClassText(opening));
+          if (tokens.some((token) => DIVIDE_Y_TOKEN.test(token))) {
+            context.report({ node: opening, messageId: "useItemList" });
+            return;
+          }
+          if (!isClipContainer(opening)) {
+            return;
+          }
+        }
+        for (const child of renderedChildren(node)) {
+          checkRow(child, child, isItemList, new Set());
+        }
+      },
+    };
+  },
+};
+
+/**
+ * @param {import("oxlint/plugins-dev").JSXElement} element
+ * @returns {import("oxlint/plugins-dev").JSXElement[]}
+ */
+const renderedChildren = (element) => {
+  const children = [];
+  for (const child of element.children) {
+    collectRenderedJsx(child, children);
+  }
+  return children;
+};
+
+/**
+ * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ */
+const isUnpaddedWrapper = (openingElement) => {
+  const name = getJsxName(openingElement.name);
+  if (name === null || PASCAL_CASE.test(name)) {
+    return false;
+  }
+  return !restingTokens(openingClassText(openingElement)).some((token) => {
+    const match = PADDING_TOKEN.exec(token);
+    return match !== null && !ZERO_SPACING.test(match[1]);
+  });
+};
+
 const noBackdropBlurRule = {
   meta: {
     type: "problem",
@@ -831,6 +1039,7 @@ export default {
     name: "local",
   },
   rules: {
+    "flush-list-rows": flushListRowsRule,
     "no-absolute-input-overlay": noAbsoluteInputOverlayRule,
     "no-backdrop-blur": noBackdropBlurRule,
     "no-clipped-surface": noClippedSurfaceRule,
@@ -842,6 +1051,7 @@ export default {
 };
 
 export {
+  flushListRowsRule,
   noAbsoluteInputOverlayRule,
   noBackdropBlurRule,
   noClippedSurfaceRule,

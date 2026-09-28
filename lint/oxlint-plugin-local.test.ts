@@ -2,6 +2,7 @@ import { RuleTester } from "oxlint/plugins-dev";
 import { describe, it } from "vitest";
 
 import {
+  flushListRowsRule,
   noAbsoluteInputOverlayRule,
   noBackdropBlurRule,
   noClippedSurfaceRule,
@@ -459,6 +460,121 @@ ruleTester.run(
         </div>
       `,
         errors: [{ messageId: "clipped" }],
+      },
+    ],
+  }
+);
+
+ruleTester.run(
+  "flush-list-rows",
+  flushListRowsRule as Parameters<typeof ruleTester.run>[1],
+  {
+    valid: [
+      {
+        name: "ItemList squares interactive Item rows",
+        code: `
+        <ItemList>
+          <Item render={<button type="button" />}>Someone else</Item>
+        </ItemList>
+      `,
+      },
+      {
+        name: "square hover row flush in a rounded clip",
+        code: `
+        <div className="overflow-hidden rounded-lg border">
+          <article className="hover:bg-muted/30 px-3 py-2.5">Row</article>
+        </div>
+      `,
+      },
+      {
+        name: "padded rounded container insets its rows",
+        code: `
+        <div className="overflow-hidden rounded-xl border p-1">
+          <Item render={<button type="button" />}>Row</Item>
+        </div>
+      `,
+      },
+      {
+        name: "unrounded divided list",
+        code: `<ul className="divide-border flex flex-col divide-y"><li>Row</li></ul>`,
+      },
+      {
+        name: "Item squared explicitly",
+        code: `
+        <div className="overflow-hidden rounded-xl border">
+          <Item className="rounded-none" render={<button type="button" />}>
+            Row
+          </Item>
+        </div>
+      `,
+      },
+      {
+        name: "plain Item leaves the hover to its row",
+        code: `
+        <div className="overflow-hidden rounded-lg border">
+          <div className={cn("group/row", tone.hover)}>
+            <Item variant="plain" render={<button type="button" />}>Row</Item>
+          </div>
+        </div>
+      `,
+      },
+      {
+        name: "hover-only radius on a flush row",
+        code: `
+        <div className="overflow-hidden rounded-xl border">
+          <div className="hover:bg-muted focus-visible:rounded-md">Row</div>
+        </div>
+      `,
+      },
+    ],
+    invalid: [
+      {
+        name: "hand-rolled rounded divided list",
+        code: `
+        <div className="divide-y overflow-hidden rounded-xl border">
+          <Row />
+        </div>
+      `,
+        errors: [{ messageId: "useItemList" }],
+      },
+      {
+        name: "rounded divided list without a clip",
+        code: `<ul className="divide-y rounded-xl border"><li>Row</li></ul>`,
+        errors: [{ messageId: "useItemList" }],
+      },
+      {
+        name: "interactive Item flush in a rounded clip",
+        code: `
+        <div className="overflow-hidden rounded-lg border">
+          <Item render={<button type="button" />}>Row</Item>
+        </div>
+      `,
+        errors: [{ messageId: "rowRadius" }],
+      },
+      {
+        name: "rounded hover row inside ItemList",
+        code: `
+        <ItemList>
+          <div className="hover:bg-muted rounded-2xl px-3 py-2">Row</div>
+        </ItemList>
+      `,
+        errors: [{ messageId: "rowRadius" }],
+      },
+      {
+        name: "Item behind an unpadded wrapper in a local component",
+        code: `
+        const AccountRow = () => (
+          <li className="relative">
+            <Item render={<button type="button" />}>Account</Item>
+          </li>
+        );
+        const Accounts = () => (
+          <div className="overflow-hidden rounded-2xl border">
+            <AccountRow />
+          </div>
+        );
+      `,
+        errors: [{ messageId: "rowRadius" }],
       },
     ],
   }

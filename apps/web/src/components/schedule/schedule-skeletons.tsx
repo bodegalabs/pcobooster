@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 
+import { ItemList } from "@/components/ui/item";
 import { SidebarSeparator } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -47,7 +48,7 @@ export const PositionPickerSkeleton = () => (
 );
 
 export const CandidateListSkeleton = ({ rows = 6 }: { rows?: number }) => (
-  <div className="border-border/40 bg-card/30 divide-border/25 divide-y overflow-hidden rounded-xl border">
+  <ItemList>
     {Array.from({ length: rows }, (_, index) => (
       <div
         key={index}
@@ -69,5 +70,5 @@ export const CandidateListSkeleton = ({ rows = 6 }: { rows?: number }) => (
         />
       </div>
     ))}
-  </div>
+  </ItemList>
 );

@@ -111,7 +111,7 @@ export const getItemTone = (item: PlanItem) => {
     return {
       row: "bg-muted/60",
       header: "bg-muted/80",
-      hover: "hover:ring-border/80 hover:ring-1 hover:ring-inset",
+      hover: "hover:bg-muted",
       content: "bg-background",
     };
   }
@@ -119,7 +119,7 @@ export const getItemTone = (item: PlanItem) => {
   return {
     row: "bg-background",
     header: "bg-background",
-    hover: "hover:bg-accent/50",
+    hover: "hover:bg-muted/60",
     content: "bg-background",
   };
 };
