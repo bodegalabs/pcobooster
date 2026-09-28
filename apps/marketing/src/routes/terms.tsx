@@ -104,9 +104,9 @@ const TermsPage = () => (
 
     <h2>Governing law</h2>
     <p>
-      These terms are governed by the laws of [STATE / COUNTRY, TO BE
-      CONFIRMED], without regard to conflict-of-laws rules, and disputes will be
-      heard in the courts located in [VENUE, TO BE CONFIRMED].
+      These terms are governed by the laws of the State of California, without
+      regard to conflict-of-laws rules, and disputes will be heard in the state
+      and federal courts located in Orange County, California.
     </p>
 
     <LegalContact />
