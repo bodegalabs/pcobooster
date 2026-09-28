@@ -19,7 +19,6 @@ import {
   UserAdd01Icon,
   UsersIcon,
 } from "@hugeicons/core-free-icons";
-import type { PlanningCenterAccountsResponse } from "@pcobooster/contracts/accounts";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
@@ -86,6 +85,7 @@ import {
   SidebarProvider,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import {
   signOutLabel,
@@ -106,26 +106,13 @@ import {
 import { presentationMode } from "@/lib/build-settings";
 import { chordChartsFeatureQueryOptions } from "@/lib/chord-charts-route";
 import { cleanupFeatureQueryOptions } from "@/lib/cleanup-route";
+import { getInitials } from "@/lib/format/initials";
 import { peopleFeatureQueryOptions } from "@/lib/people-route";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_OPEN_STORAGE_KEY = "pcobooster:sidebar-open";
 const APP_CHROME_ROW = "flex h-12 shrink-0 items-center gap-2";
 const APP_CHROME_HEADER_CLASS = cn(APP_CHROME_ROW, "px-2");
-
-const initialsFromName = (name: string | null | undefined): string => {
-  if (!isNonEmptyString(name)) {
-    return "WA";
-  }
-  const parts = name.trim().split(/\s+/u).filter(Boolean);
-  if (parts.length === 0) {
-    return "WA";
-  }
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase();
-  }
-  return `${parts[0][0] ?? ""}${parts[1][0] ?? ""}`.toUpperCase();
-};
 
 const themeOptions = [
   { value: "light", label: "Light", icon: Sun01Icon },
@@ -242,54 +229,6 @@ const AppTopBar = () => {
   );
 };
 
-const AccountSwitcher = ({
-  data,
-  loading,
-  switchingAccountId,
-  isSigningOut,
-  onSelectAccount,
-}: {
-  data: PlanningCenterAccountsResponse | null;
-  loading: boolean;
-  switchingAccountId: string | null;
-  isSigningOut: boolean;
-  onSelectAccount: (accountId: string) => Promise<void>;
-}) =>
-  (loading && !data) || (data !== null && data.accounts.length > 1) ? (
-    <>
-      <DropdownMenuSeparator inset />
-      {loading && !data ? (
-        <DropdownMenuItem disabled>Loading…</DropdownMenuItem>
-      ) : (
-        data?.accounts.map((account) => {
-          const isSelected = account.id === data.selectedAccountId;
-          const orgName =
-            account.identity?.organizationName ?? "Unknown organization";
-          return (
-            <DropdownMenuItem
-              key={account.id}
-              disabled={Boolean(switchingAccountId) || isSigningOut}
-              onSelect={(event) => {
-                event.preventDefault();
-                void onSelectAccount(account.id);
-              }}
-            >
-              <span className="min-w-0 flex-1 truncate">{orgName}</span>
-              {switchingAccountId === account.id ? (
-                <Spinner />
-              ) : (
-                <SidebarNavIcon
-                  icon={Tick02Icon}
-                  className={cn(isSelected ? "opacity-80" : "invisible")}
-                />
-              )}
-            </DropdownMenuItem>
-          );
-        })
-      )}
-    </>
-  ) : null;
-
 const SidebarAccountPanel = ({
   onOpenShortcuts,
 }: {
@@ -300,20 +239,13 @@ const SidebarAccountPanel = ({
   const { openReview, restricted } = useAccessReview();
   const {
     data,
-    loading,
     demo,
-    summary: triggerSummary,
+    summary,
     panelError,
-    switchingAccountId,
     isSigningOut,
-    selectAccount,
     signOut,
     switchAccount,
-  } = useAccountPanel({
-    onAccountSwitched: () => {
-      setAccountMenuOpen(false);
-    },
-  });
+  } = useAccountPanel();
 
   return (
     <SidebarMenu>
@@ -325,20 +257,28 @@ const SidebarAccountPanel = ({
           }}
         >
           <DropdownMenuTrigger render={<SidebarMenuButton />}>
-            <Avatar size="sm">
-              {isNonEmptyString(triggerSummary.image) ? (
-                <AvatarImage
-                  src={triggerSummary.image}
-                  alt={triggerSummary.avatarName ?? "User"}
-                />
-              ) : null}
-              <AvatarFallback>
-                {initialsFromName(triggerSummary.avatarName)}
-              </AvatarFallback>
-            </Avatar>
-            <span className="flex-1 truncate text-left text-sm font-medium">
-              {triggerSummary.organizationName}
-            </span>
+            {summary === null ? (
+              <>
+                <Skeleton variant="round" className="size-6 shrink-0" />
+                <Skeleton variant="text" className="h-4 flex-1" />
+              </>
+            ) : (
+              <>
+                <Avatar size="sm">
+                  {isNonEmptyString(summary.image) ? (
+                    <AvatarImage src={summary.image} alt="" />
+                  ) : null}
+                  {summary.avatarName === null ? null : (
+                    <AvatarFallback>
+                      {getInitials(summary.avatarName)}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <span className="flex-1 truncate text-left text-sm font-medium">
+                  {summary.organizationName ?? summary.avatarName}
+                </span>
+              </>
+            )}
             <SidebarNavIcon
               icon={ArrowDown01Icon}
               className={cn(
@@ -354,21 +294,22 @@ const SidebarAccountPanel = ({
           >
             <DropdownMenuGroup>
               <DropdownMenuLabel className="cursor-default">
-                <span className="text-foreground block truncate text-sm font-semibold">
-                  {data?.session.name ?? "Account"}
-                </span>
-                <span className="text-muted-foreground mt-1 block truncate text-xs">
-                  {demo ? "Read-only demo" : (data?.session.email ?? "")}
-                </span>
+                {data === null ? (
+                  <>
+                    <Skeleton variant="text" className="h-4 w-32" />
+                    <Skeleton variant="text" className="mt-1.5 h-3 w-40" />
+                  </>
+                ) : (
+                  <>
+                    <span className="text-foreground block truncate text-sm font-semibold">
+                      {data.session.name}
+                    </span>
+                    <span className="text-muted-foreground mt-1 block truncate text-xs">
+                      {demo ? "Read-only demo" : data.session.email}
+                    </span>
+                  </>
+                )}
               </DropdownMenuLabel>
-
-              <AccountSwitcher
-                data={data}
-                loading={loading}
-                switchingAccountId={switchingAccountId}
-                isSigningOut={isSigningOut}
-                onSelectAccount={selectAccount}
-              />
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator inset />
@@ -448,7 +389,7 @@ const SidebarAccountPanel = ({
 
             {demo ? null : (
               <DropdownMenuItem
-                disabled={isSigningOut || Boolean(switchingAccountId)}
+                disabled={isSigningOut}
                 onSelect={() => {
                   void switchAccount();
                 }}
@@ -460,7 +401,7 @@ const SidebarAccountPanel = ({
 
             <DropdownMenuItem
               variant="destructive"
-              disabled={isSigningOut || Boolean(switchingAccountId)}
+              disabled={isSigningOut}
               onSelect={() => {
                 void signOut();
               }}

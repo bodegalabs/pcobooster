@@ -41,6 +41,19 @@ describe("account panel cache", () => {
     });
   });
 
+  it("leaves the organization unknown instead of inventing one", () => {
+    const withoutIdentity: AccountPanelSource = {
+      ...source(),
+      accounts: [{ id: "account-2", identity: null }],
+    };
+
+    expect(summarizeAccountPanel(withoutIdentity)).toStrictEqual({
+      organizationName: null,
+      avatarName: "Jake Bodea",
+      image: "https://example.com/avatar.jpg",
+    });
+  });
+
   it("round-trips valid cached summaries", () => {
     const summary = {
       organizationName: "Agape Christian Church",

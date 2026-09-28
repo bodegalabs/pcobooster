@@ -3,7 +3,8 @@ import { z } from "zod";
 export const ACCOUNT_PANEL_CACHE_KEY = "pcobooster:account-panel";
 
 export interface AccountPanelSummary {
-  organizationName: string;
+  /** Null when Planning Center hasn't said which organization this is. */
+  organizationName: string | null;
   avatarName: string | null;
   image: string | null;
 }
@@ -24,19 +25,9 @@ export interface AccountPanelSource {
   }[];
 }
 
-const DEFAULT_SUMMARY: AccountPanelSummary = {
-  organizationName: "pcobooster.com",
-  avatarName: null,
-  image: null,
-};
-
 export const summarizeAccountPanel = (
-  source: AccountPanelSource | null
+  source: AccountPanelSource
 ): AccountPanelSummary => {
-  if (source === null) {
-    return DEFAULT_SUMMARY;
-  }
-
   const selectedAccount =
     source.selectedAccountId !== null && source.selectedAccountId.length > 0
       ? (source.accounts.find(
@@ -53,9 +44,7 @@ export const summarizeAccountPanel = (
   }
 
   return {
-    organizationName:
-      selectedAccount?.identity?.organizationName ??
-      DEFAULT_SUMMARY.organizationName,
+    organizationName: selectedAccount?.identity?.organizationName ?? null,
     avatarName,
     image: source.session.image,
   };

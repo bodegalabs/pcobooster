@@ -5,10 +5,11 @@ import {
 import type { PlanningCenterAccountsResponse } from "@pcobooster/contracts/accounts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
-import { useNavigate, useRouter } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { useBrowserStorage } from "@/hooks/use-browser-storage";
+import type { AccountPanelSummary } from "@/lib/account-panel-cache";
 import {
   ACCOUNT_PANEL_CACHE_KEY,
   parseCachedAccountPanel,
@@ -74,53 +75,27 @@ export const signOutLabel = (demo: boolean, pending: boolean): string => {
   return pending ? "Signing out…" : "Sign out";
 };
 
-/** Account switching and sign-out shared by the sidebar menu and the mobile account sheet. */
-export const useAccountPanel = ({
-  onAccountSwitched,
-}: {
-  onAccountSwitched?: () => void;
-} = {}) => {
-  const router = useRouter();
+/** Account identity and sign-out shared by the sidebar menu and the mobile account sheet. */
+export const useAccountPanel = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const accountsQuery = useAccountsQuery();
-  const data = accountsQuery.data ?? null;
-  const loading = accountsQuery.isPending;
   const [cachedPanel] = useBrowserStorage(ACCOUNT_PANEL_CACHE_KEY);
-  const cachedSummary = parseCachedAccountPanel(cachedPanel);
-  const [switchingAccountId, setSwitchingAccountId] = useState<string | null>(
-    null
-  );
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [actionError, setActionError] = useState("");
   const panelError = actionError || (accountsQuery.error?.message ?? "");
-  const demo = data?.demo === true;
-  const liveSummary = summarizeAccountPanel(data);
-  const summary = data ? liveSummary : (cachedSummary ?? liveSummary);
-
-  const selectAccount = async (accountId: string) => {
-    if (switchingAccountId !== null || isSigningOut) {
-      return;
-    }
-    setActionError("");
-    setSwitchingAccountId(accountId);
-    try {
-      await orpc.accounts.select({ accountId });
-      clearAccountScopedCaches();
-      await accountsQuery.refetch();
-      await queryClient.invalidateQueries();
-      await router.invalidate();
-      onAccountSwitched?.();
-    } catch (error) {
-      setActionError(
-        error instanceof Error ? error.message : "Failed to switch organization"
-      );
-    }
-    setSwitchingAccountId(null);
-  };
+  // Once sign-out starts, nothing about the leaving account is shown again.
+  const data = isSigningOut ? null : (accountsQuery.data ?? null);
+  const demo = accountsQuery.data?.demo === true;
+  let summary: AccountPanelSummary | null = null;
+  if (data !== null) {
+    summary = summarizeAccountPanel(data);
+  } else if (!isSigningOut) {
+    summary = parseCachedAccountPanel(cachedPanel);
+  }
 
   const signOut = async ({ keepOnDevice = false } = {}) => {
-    if (isSigningOut || switchingAccountId !== null) {
+    if (isSigningOut) {
       return;
     }
     setActionError("");
@@ -152,14 +127,12 @@ export const useAccountPanel = ({
 
   return {
     data,
-    loading,
     demo,
     summary,
     panelError,
-    switchingAccountId,
     isSigningOut,
-    selectAccount,
     signOut,
+    /** Leaves this account signed in on the device and opens the account picker. */
     switchAccount: async () => {
       await signOut({ keepOnDevice: true });
     },

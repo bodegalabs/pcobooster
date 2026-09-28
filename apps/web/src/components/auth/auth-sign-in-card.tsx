@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
+import { clearAccountScopedCaches } from "@/lib/account-scoped-caches";
 import { authClient } from "@/lib/auth-client";
 import { SIGN_IN_RETURN_PARAM } from "@/lib/auth-redirect";
 import {
@@ -245,6 +246,12 @@ export const AuthSignInCard = ({
     }
     replayCleanupRef.current?.();
     replayCleanupRef.current = playRocketAnimation(rocket, "replay");
+  }, []);
+
+  // Nobody is signed in here, so the next account must not paint with the
+  // last one's name, organization, or cached pages.
+  useEffect(() => {
+    clearAccountScopedCaches();
   }, []);
 
   useEffect(() => {
