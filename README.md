@@ -123,7 +123,7 @@ For visible or high-risk changes, follow [Proofed delivery](docs/proofed-deliver
 
 Ultracite uses Oxlint and Oxfmt with the strict core, React, TanStack, Vitest, shadcn, anti-slop, and React Doctor presets. `oxlint.config.ts` and `oxfmt.config.ts` are the configuration sources. GitHub CI rejects warnings as well as errors, then runs TypeScript and tests; `cloudflare-build` separately builds the Workers without credentials. Tests use explicit dummy credentials from `vitest.config.ts`; neither gate receives production secrets. Generated route trees, database migrations, and scraped API documentation are excluded from formatting.
 
-The OXC VS Code extension is recommended in `.vscode/extensions.json`; workspace settings enable formatting and explicit fixes on save. `bun install` installs the Lefthook pre-commit hook, which fixes and re-stages supported staged files. Run `bun run ci` before submitting changes and `bun x ultracite doctor` when diagnosing the toolchain.
+The OXC VS Code extension is recommended in `.vscode/extensions.json`; workspace settings enable formatting and explicit fixes on save. `bun install` installs the Lefthook hooks: pre-commit fixes and re-stages supported staged files, and pre-push runs `bun run check` and `bun run typecheck`. Run `bun run ci` before submitting changes and `bun x ultracite doctor` when diagnosing the toolchain.
 
 Shared UI primitives expose appearance through variants, with semantic theme tokens for scheduling states. Call sites own layout.
 
