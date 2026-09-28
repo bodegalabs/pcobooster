@@ -443,7 +443,7 @@ export const ServicePlanTableSelector = ({
 
         <LoadingBar active={isNavigating} className="shrink-0" />
 
-        <div className="[--plan-list-sticky-offset:6.25rem] md:min-h-0 md:flex-1 md:overflow-y-auto">
+        <div className="[--plan-list-sticky-offset:6.25rem] md:-mx-(--page-gutter) md:min-h-0 md:flex-1 md:overflow-y-auto md:px-(--page-gutter)">
           <PlanAgenda
             isInitialLoading={isInitialLoading}
             errorMessage={errorMessage}

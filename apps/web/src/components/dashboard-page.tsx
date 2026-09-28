@@ -307,7 +307,7 @@ export const DashboardPage = ({
       <div
         className={cn(
           pageColumnClassName,
-          "flex min-h-0 flex-1 flex-col px-4",
+          "flex min-h-0 flex-1 flex-col",
           hasPlanUrlSelection ? "py-0 md:py-3" : "py-6"
         )}
       >

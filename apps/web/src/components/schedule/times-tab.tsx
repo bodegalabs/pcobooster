@@ -223,7 +223,7 @@ const TimesTabContent = ({
     <>
       <div
         className={cn(
-          "flex-1 max-md:overflow-x-auto md:min-h-0 md:overflow-auto",
+          "-mx-(--page-gutter) flex-1 px-(--page-gutter) max-md:overflow-x-auto md:min-h-0 md:overflow-auto",
           revealClassName
         )}
       >

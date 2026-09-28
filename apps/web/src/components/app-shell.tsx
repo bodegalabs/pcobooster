@@ -737,7 +737,7 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
         songsNavEnabled={songsNavEnabled}
         cleanupNavEnabled={cleanupNavEnabled}
       />
-      <SidebarInset className="md:min-h-0 md:overflow-hidden">
+      <SidebarInset className="@container md:min-h-0 md:overflow-hidden">
         <AppInsetChromeHeader>
           <SidebarChromeTrigger when="inset" />
           <AppTopBar />
@@ -745,7 +745,9 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
           {presentationMode ? <PresentationModeBadge /> : null}
         </AppInsetChromeHeader>
         <MobileChromeHeader />
-        <div className="flex flex-1 flex-col md:min-h-0">{children}</div>
+        <div className="page-gutters flex flex-1 flex-col md:min-h-0">
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

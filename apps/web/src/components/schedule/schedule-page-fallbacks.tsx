@@ -41,7 +41,7 @@ export const SchedulePlanWorkspaceFallback = () => (
     <div
       className={cn(
         pageColumnClassName,
-        "flex min-h-0 flex-1 flex-col px-3 py-2 sm:px-4 sm:py-3"
+        "flex min-h-0 flex-1 flex-col py-2 sm:py-3"
       )}
     >
       <PlanHeaderSkeleton />

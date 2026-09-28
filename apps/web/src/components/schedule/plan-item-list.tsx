@@ -72,7 +72,7 @@ const planItemSkeletonRows = [
 ];
 
 const PlanItemListSkeleton = () => (
-  <div className="pb-4 sm:pr-3">
+  <div className="px-(--page-gutter) pb-4">
     <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
       {planItemSkeletonRows.map((row) => (
         <div
@@ -363,10 +363,10 @@ export const PlanItemList = ({
   const showList = !isLoading && items.length > 0;
 
   return (
-    <ScrollArea className="min-h-0 flex-1">
+    <ScrollArea className="-mx-(--page-gutter) min-h-0 flex-1">
       {isLoading ? <PlanItemListSkeleton /> : null}
       {showEmpty ? (
-        <div className="p-1 sm:pr-3">
+        <div className="px-(--page-gutter) py-1">
           <Card className="text-center">
             <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
               <FileMusic className="text-muted-foreground/70 size-5" />
@@ -423,7 +423,7 @@ export const PlanItemList = ({
               items={items.map((item) => item.id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="pb-safe-4 sm:pr-3 md:pb-4">
+              <div className="pb-safe-4 px-(--page-gutter) md:pb-4">
                 <div className="border-border/50 bg-background overflow-hidden rounded-lg border">
                   {items.map((item) => (
                     <SortablePlanItem

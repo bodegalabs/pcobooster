@@ -77,11 +77,11 @@ interface LineupTabProps {
 
 const lineupSkeletonWidths = ["8rem", "6rem", "9rem", "7rem"];
 const lineupColumnWidthClass = "w-[min(22rem,78vw)]";
-const lineupStackClassName = "pb-safe-4 flex flex-col gap-3";
+const lineupStackClassName = "pb-safe-4 flex flex-col gap-3 px-(--page-gutter)";
 const teamColumnClass =
   "bg-background text-foreground shadow-xs ring-foreground/5 dark:ring-foreground/10 flex shrink-0 flex-col rounded-xl ring-1";
 const lineupColumnsRowClassName =
-  "flex min-w-max items-stretch gap-4 pt-1 pl-1 pr-4 pb-3";
+  "flex min-w-max items-stretch gap-4 px-(--page-gutter) pt-1 pb-3";
 const lineupPositionGridClass =
   "grid w-full grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_2rem] items-center gap-x-2 gap-y-0";
 const lineupPositionRowClass = "col-span-4 grid grid-cols-subgrid items-center";
@@ -488,7 +488,7 @@ const lineupSkeletonColumns = [
 ];
 
 const LineupLoadingState = ({ stacked }: { stacked: boolean }) => (
-  <ScrollArea className="min-h-0 flex-1">
+  <ScrollArea className="-mx-(--page-gutter) min-h-0 flex-1">
     <div className={stacked ? lineupStackClassName : lineupColumnsRowClassName}>
       {lineupSkeletonColumns.map((column) => (
         <div
@@ -636,8 +636,8 @@ export const LineupTab = ({
 
   if (isMobile) {
     return (
-      <ScrollArea className="-mx-4 min-h-0 flex-1">
-        <div className={cn(lineupStackClassName, "px-4", revealClassName)}>
+      <ScrollArea className="-mx-(--page-gutter) min-h-0 flex-1">
+        <div className={cn(lineupStackClassName, revealClassName)}>
           {orderedGroups.map((group) => (
             <TeamColumn
               key={group.teamId}
@@ -657,7 +657,7 @@ export const LineupTab = ({
   }
 
   return (
-    <ScrollArea className="min-h-0 flex-1">
+    <ScrollArea className="-mx-(--page-gutter) min-h-0 flex-1">
       <div className={cn("relative", revealClassName)}>
         <DndContext
           collisionDetection={closestCenter}
