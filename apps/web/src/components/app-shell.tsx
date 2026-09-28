@@ -22,8 +22,8 @@ import {
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { Check, ChevronDown, ChevronLeft } from "lucide-react";
+import { Link, useLocation } from "@tanstack/react-router";
+import { ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
 import { useCallback, useState } from "react";
 
@@ -49,7 +49,6 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbMenuTrigger,
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
@@ -142,15 +141,71 @@ const AppInsetChromeHeader = ({ children }: { children: ReactNode }) => {
 const usePathname = (): string =>
   useLocation({ select: (location) => location.pathname });
 
+const planViewIcons: Record<PlanView, SidebarTabGroupItem["icon"]> = {
+  overview: DashboardSquare01Icon,
+  assign: UserAdd01Icon,
+  lineup: Layout3ColumnIcon,
+  plan: ListMusicIcon,
+  times: Clock01Icon,
+};
+
+const headerTabClass = (active: boolean) =>
+  cn(
+    "relative flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium",
+    active
+      ? "bg-accent text-foreground"
+      : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+  );
+
+const PlanViewTabs = () => {
+  const planRoute = usePlanRoute();
+  if (planRoute === null) {
+    return null;
+  }
+  return (
+    <nav
+      aria-label="Plan views"
+      className="flex min-w-0 items-center gap-0.5 overflow-x-auto"
+    >
+      {planViews.map((view) => {
+        const active = planRoute.view === view;
+        return (
+          <Link
+            key={view}
+            to="/services/$serviceTypeId/plans/$planId/$view"
+            params={{ ...planRoute, view }}
+            search
+            replace
+            aria-current={active ? "page" : undefined}
+            className={headerTabClass(active)}
+          >
+            <SidebarNavIcon icon={planViewIcons[view]} className="size-4" />
+            <span>{getPlanViewLabel(view)}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+};
+
 const AppTopBar = () => {
-  const navigate = useNavigate();
   const pathname = usePathname();
   const planRoute = usePlanRoute();
-  const hasPlan = planRoute !== null;
-  const planView = planRoute?.view ?? "assign";
-  const planViewLabel = getPlanViewLabel(planView);
   const detail = parseDetailRoute(pathname);
   const pageLabel = getAppSectionLabel(getAppSection(pathname));
+
+  if (planRoute !== null) {
+    return (
+      <div className="flex w-full min-w-0 items-center gap-1">
+        <Link to="/services" className={headerTabClass(false)}>
+          <ChevronLeft className="size-4" aria-hidden />
+          <span>Services</span>
+        </Link>
+        <span aria-hidden className="bg-border mx-1 h-4 w-px shrink-0" />
+        <PlanViewTabs />
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full min-w-0 items-center gap-2 sm:gap-3">
@@ -169,59 +224,9 @@ const AppTopBar = () => {
               </BreadcrumbItem>
             </>
           ) : (
-            <>
-              <BreadcrumbItem>
-                {hasPlan ? (
-                  <BreadcrumbLink render={<Link to="/services" />}>
-                    Services
-                  </BreadcrumbLink>
-                ) : (
-                  <BreadcrumbPage>{pageLabel}</BreadcrumbPage>
-                )}
-              </BreadcrumbItem>
-              {hasPlan ? (
-                <>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <BreadcrumbMenuTrigger
-                            aria-label={`Change view from ${planViewLabel}`}
-                          />
-                        }
-                      >
-                        <span>{planViewLabel}</span>
-                        <ChevronDown aria-hidden />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-36">
-                        {planViews.map((view) => (
-                          <DropdownMenuItem
-                            key={view}
-                            onSelect={() => {
-                              if (planRoute === null) {
-                                return;
-                              }
-                              void navigate({
-                                to: "/services/$serviceTypeId/plans/$planId/$view",
-                                params: { ...planRoute, view },
-                                search: true,
-                                replace: true,
-                              });
-                            }}
-                          >
-                            <span>{getPlanViewLabel(view)}</span>
-                            {planView === view ? (
-                              <Check className="ml-auto size-4" aria-hidden />
-                            ) : null}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </BreadcrumbItem>
-                </>
-              ) : null}
-            </>
+            <BreadcrumbItem>
+              <BreadcrumbPage>{pageLabel}</BreadcrumbPage>
+            </BreadcrumbItem>
           )}
         </BreadcrumbList>
       </Breadcrumb>
@@ -425,14 +430,6 @@ const servicesRootItem: SidebarTabGroupItem<ServicesSidebarKey> = {
   label: "Services",
   link: <Link to="/services" />,
   icon: Calendar04Icon,
-};
-
-const planViewIcons: Record<PlanView, SidebarTabGroupItem["icon"]> = {
-  overview: DashboardSquare01Icon,
-  assign: UserAdd01Icon,
-  lineup: Layout3ColumnIcon,
-  plan: ListMusicIcon,
-  times: Clock01Icon,
 };
 
 const ServicesSidebarMenuItem = () => {
