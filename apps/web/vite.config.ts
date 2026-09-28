@@ -48,6 +48,20 @@ const stageMarketingSite = (): Plugin => ({
   },
 });
 
+/** `/icon.svg` in production; unknown stages (a plain `vite build`) count as local. */
+const faviconForStage = (stage: string | undefined): string => {
+  if (stage === "prod") {
+    return "/icon.svg";
+  }
+  if (stage === "staging") {
+    return "/icon-staging.svg";
+  }
+  if (stage?.startsWith("pr-") === true) {
+    return "/icon-preview.svg";
+  }
+  return "/icon-local.svg";
+};
+
 /** Public values inlined into both the server and browser bundles. */
 const publicDefines = (devServer: boolean) => ({
   // The API reads the same Infisical keys at runtime.
@@ -56,6 +70,10 @@ const publicDefines = (devServer: boolean) => ({
   ),
   "import.meta.env.VITE_PLANNING_CENTER_TIME_ZONE": JSON.stringify(
     process.env.PLANNING_CENTER_TIME_ZONE ?? ""
+  ),
+  // Each non-production stage gets its own favicon so tabs are easy to tell apart.
+  "import.meta.env.VITE_FAVICON": JSON.stringify(
+    faviconForStage(process.env.PCOBOOSTER_STAGE)
   ),
   // `bun run dev:present` sets presentation mode for the dev server; deployed builds are
   // always live.

@@ -7,4 +7,5 @@ interface ImportMetaEnv {
   readonly VITE_PLANNING_CENTER_TIME_ZONE: string;
   /** `live`, or the presentation-mode cache namespace under `bun run dev:present`. */
   readonly VITE_PRESENTATION_SCOPE: string;
+  readonly VITE_FAVICON: string;
 }

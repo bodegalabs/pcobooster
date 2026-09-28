@@ -146,6 +146,8 @@ export default Alchemy.Stack(
       );
     }
     process.env.ADMIN_BASE_PATH = production ? "" : "/admin";
+    // Picks the product favicon (`apps/web/vite.config.ts`); the build stamp hashes the stage.
+    process.env.PCOBOOSTER_STAGE = stage;
     yield* Effect.promise(async () => {
       await prepareCloudflareBuild(stage);
     });
