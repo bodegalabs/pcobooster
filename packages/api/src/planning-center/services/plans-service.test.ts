@@ -107,7 +107,7 @@ describe("PlanningCenterPlansService plan times", () => {
       "/services/v2/service_types/st-1/plans/plan-1/plan_times",
       {
         order: "starts_at",
-        per_page: "200",
+        per_page: "100",
         include: "split_team_rehearsal_assignments",
       },
       10,

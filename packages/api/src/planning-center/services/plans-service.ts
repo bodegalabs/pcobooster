@@ -229,7 +229,7 @@ export class PlanningCenterPlansService {
           `/services/v2/service_types/${serviceTypeId}/plans/${planId}/plan_times`,
           {
             order: "starts_at",
-            per_page: "200",
+            per_page: "100",
             include: "split_team_rehearsal_assignments",
           },
           10

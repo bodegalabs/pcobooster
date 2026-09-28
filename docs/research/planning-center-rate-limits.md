@@ -38,7 +38,7 @@ Primary source: [Rate Limiting](https://api.planningcenteronline.com/docs/overvi
   - **Signed-in users** each have their own bucket. Two schedulers in the same organization do not share a budget, but one scheduler's tabs, hover prefetches, and concurrent procedures all do.
   - **Demo visitors** all use one demo PAT (`planning-center-access.ts:103-107`), so every concurrent demo visitor shares one 100-per-20-seconds budget.
   - **`DEV_AUTH_BYPASS`** uses the developer's PAT, which likely shares a bucket with that developer's own Planning Center use.
-- **Pagination:** the documentation API gives `per_page` as "min=1, max=100, default=25", with `offset` pagination and a `links.next` URL. `people-service.ts:387` and `plans-service.ts:223` request `per_page=200`, which is above the maximum. Nothing depends on 200, but those calls cannot return 200 rows per page.
+- **Pagination:** the documentation API gives `per_page` as "min=1, max=100, default=25", with `offset` pagination and a `links.next` URL. Live check (2026-09-28): `per_page=200` is accepted but clamped to 100 rows, and `links.next` advances by 100 while echoing `per_page=200`, so `fetchAll` lost nothing. The two plan-time reads now request 100.
 - **OAuth token lifetime:** "OAuth access tokens expire after 2 hours" (authentication docs). This matters because every cache scope is a hash of the access token (`core-client.ts:295-301`), so every cache goes cold at least every 2 hours per user. KV entries on the shared-cache branch expire the same way.
 
 Per-edge filters that the code does not use yet (from the documentation API):
@@ -287,7 +287,7 @@ Ranked by expected benefit for the effort. "After rewrite" marks changes to `cor
 10. **Small fixes.** Low effort.
     - `myScheduledPlans`: use `filter=future` (1 page instead of up to 5).
     - Presentation identity: `presentation.ts:31` keys its organization cache by the per-request catalog service, so every presented request (all demo traffic) makes an extra `GET /services/v2`. Key it by cache scope.
-    - Replace `per_page=200` with 100.
+    - Done: the two `per_page=200` plan-time reads now request 100.
     - Paginate `team_positions` past 100.
     - Cache `last_scheduled_item` for a short time.
 
