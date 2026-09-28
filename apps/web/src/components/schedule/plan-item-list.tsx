@@ -36,6 +36,7 @@ import type {
 } from "@/hooks/use-intent-prefetch";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { reorderPlanItems } from "@/lib/plan-items-query-state";
+import { keyLabelOf } from "@/lib/plan-overview";
 import { cn } from "@/lib/utils";
 
 interface PlanItemListProps {
@@ -169,7 +170,9 @@ const PlanItemCard = ({
                   </span>
                 ) : null}
                 {item.key ? (
-                  <Badge variant="secondary">{item.key.name}</Badge>
+                  <Badge variant="secondary">
+                    {keyLabelOf(item.key) ?? item.key.name}
+                  </Badge>
                 ) : null}
                 {lengthLabel !== null && lengthLabel !== "" ? (
                   <Badge variant="outline">{lengthLabel}</Badge>
@@ -240,7 +243,9 @@ const PlanItemCard = ({
                 </span>
               ) : null}
               {item.key ? (
-                <Badge variant="secondary">{item.key.name}</Badge>
+                <Badge variant="secondary">
+                  {keyLabelOf(item.key) ?? item.key.name}
+                </Badge>
               ) : null}
               {lengthLabel !== null && lengthLabel !== "" ? (
                 <Badge variant="outline">{lengthLabel}</Badge>
