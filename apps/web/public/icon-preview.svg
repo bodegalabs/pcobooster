@@ -10,7 +10,7 @@
       <circle cx="176" cy="128" r="13" fill="black"/>
     </mask>
   </defs>
-  <rect x="54" y="50" width="152" height="152" rx="36" fill="#0284c7"/>
+  <rect x="54" y="50" width="152" height="152" rx="36" fill="#d97706"/>
   <g transform="translate(128 128) rotate(-45) scale(0.86) translate(-128 -128)" fill="#ffffff">
     <!-- A single rounded hull and compact tail fins keep the silhouette simple. -->
     <g mask="url(#fin-clearance)">
