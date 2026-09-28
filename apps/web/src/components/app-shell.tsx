@@ -178,7 +178,18 @@ const PlanViewTabs = () => {
             className={headerTabClass(active)}
           >
             <SidebarNavIcon icon={planViewIcons[view]} className="size-4" />
-            <span>{getPlanViewLabel(view)}</span>
+            {/* The hidden bold copy reserves the active width so tabs don't shift. */}
+            <span className="grid">
+              <span
+                aria-hidden
+                className="invisible col-start-1 row-start-1 font-semibold"
+              >
+                {getPlanViewLabel(view)}
+              </span>
+              <span className="col-start-1 row-start-1 text-center">
+                {getPlanViewLabel(view)}
+              </span>
+            </span>
           </Link>
         );
       })}
