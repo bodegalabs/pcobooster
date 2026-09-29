@@ -48,10 +48,6 @@ const panelScrollers = new Map([
     "a dialog body",
   ],
   [
-    "apps/web/src/components/schedule/popovers/schedule-context-popover.tsx",
-    "a popover body",
-  ],
-  [
     "apps/web/src/components/schedule/position-picker-list.tsx",
     "the boxed positions panel",
   ],

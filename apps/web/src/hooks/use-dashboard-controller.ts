@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { SlotRef } from "@/components/schedule/types";
 import { useCollapsedTeams } from "@/hooks/use-collapsed-teams";
 import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
 import { usePlanTimes } from "@/hooks/use-plan-times";
 import {
@@ -38,6 +39,10 @@ import {
   buildPlanMemberPositionId,
   planSlotLink,
 } from "@/lib/schedule-navigation";
+import {
+  findFirstPosition,
+  findNextOpenPosition,
+} from "@/lib/schedule/open-positions";
 
 interface RouteSelectionIds {
   teamId: string | null;
@@ -45,16 +50,37 @@ interface RouteSelectionIds {
   view: DashboardView;
 }
 
+const withFirstPositionDefault = (
+  teamPositionGroups: readonly TeamPositionGroup[],
+  routeIds: RouteSelectionIds
+): Pick<RouteSelectionIds, "teamId" | "positionId"> => {
+  if (isNonEmptyString(routeIds.positionId)) {
+    return routeIds;
+  }
+  const first =
+    findNextOpenPosition(teamPositionGroups, null) ??
+    findFirstPosition(teamPositionGroups);
+  return first ?? routeIds;
+};
+
+/**
+ * The slot the URL names. With `openFirstPosition`, a URL without one opens the first
+ * position that still needs someone (or the first position), so wide layouts never show
+ * an empty pane beside the position list.
+ */
 const resolveSelectedSlot = (
   teamPositionGroups: TeamPositionGroup[] | undefined,
-  routeIds: RouteSelectionIds
+  routeIds: RouteSelectionIds,
+  openFirstPosition: boolean
 ) => {
+  const { teamId, positionId } = openFirstPosition
+    ? withFirstPositionDefault(teamPositionGroups ?? [], routeIds)
+    : routeIds;
   const selectedTeamGroup =
-    teamPositionGroups?.find((group) => group.teamId === routeIds.teamId) ??
-    null;
+    teamPositionGroups?.find((group) => group.teamId === teamId) ?? null;
   const selectedPositionObj =
     selectedTeamGroup?.positions.find(
-      (position) => position.id === routeIds.positionId
+      (position) => position.id === positionId
     ) ?? null;
 
   const selectedTeam = selectedTeamGroup?.teamId ?? null;
@@ -97,11 +123,18 @@ const listedNeighbors = (
   };
 };
 
+/** Assign on wide layouts keeps its position list in a sidebar (Tailwind `lg`). */
+const useOpensFirstPosition = (view: DashboardView): boolean => {
+  const isWideLayout = useMediaQuery("(min-width: 1024px)");
+  return view === "assign" && isWideLayout;
+};
+
 const usePlanWorkspaceData = (
   serviceTypeId: string,
   planId: string,
   routeIds: RouteSelectionIds
 ) => {
+  const opensFirstPosition = useOpensFirstPosition(routeIds.view);
   const { data: serviceTypes, isLoading: serviceTypesLoading } =
     useServiceTypes();
   const routeServiceTypeId = serviceTypeId;
@@ -140,7 +173,7 @@ const usePlanWorkspaceData = (
     selectedPosition,
     selectedPositionUsesRoster,
     selectedTimePreferenceOptionId,
-  } = resolveSelectedSlot(teamPositionGroups, routeIds);
+  } = resolveSelectedSlot(teamPositionGroups, routeIds, opensFirstPosition);
   const planDateKey = toPlanDateKey(selectedPlan?.sortDate ?? null);
   const candidateSlot = useMemo<CandidateSlot | null>(
     () =>

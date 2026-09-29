@@ -28,9 +28,16 @@ const itemListVariants = cva(
         dimmed: "border-border/30 bg-card/20 divide-border/20 opacity-80",
         outline: "border-border/60 bg-background divide-border/60",
       },
+      bleed: {
+        /** Full width on phones: edge to edge past the page gutter, hairlines only. */
+        phone:
+          "max-sm:-mx-(--page-gutter) max-sm:rounded-none max-sm:border-x-0 max-sm:bg-transparent",
+        none: "",
+      },
     },
     defaultVariants: {
       variant: "default",
+      bleed: "none",
     },
   }
 );
@@ -42,6 +49,7 @@ const itemListVariants = cva(
 const ItemList = ({
   className,
   variant = "default",
+  bleed = "none",
   render,
   ...props
 }: useRender.ComponentProps<"div"> & VariantProps<typeof itemListVariants>) =>
@@ -49,12 +57,12 @@ const ItemList = ({
     defaultTagName: "div",
     props: mergeProps<"div">(
       {
-        className: cn(itemListVariants({ variant, className })),
+        className: cn(itemListVariants({ variant, bleed, className })),
       },
       props
     ),
     render,
-    state: { slot: "item-list", variant },
+    state: { slot: "item-list", variant, bleed },
   });
 
 const ItemSeparator = ({

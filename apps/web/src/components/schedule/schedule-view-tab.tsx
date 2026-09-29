@@ -1,9 +1,9 @@
 import type {
   FilledPositionPerson,
   PersonWithAvailability,
+  TeamPosition,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
-import { CalendarDays } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 
 import { PageScrollArea } from "@/components/page-shell";
@@ -19,7 +19,6 @@ import { SectionLabel } from "@/components/schedule/section-label";
 import { SelectedPositionHeader } from "@/components/schedule/selected-position-header";
 import { SomeoneElseRow } from "@/components/schedule/someone-else-row";
 import type { SlotRef } from "@/components/schedule/types";
-import { UnselectedPositionEmpty } from "@/components/schedule/unselected-position-empty";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Drawer,
@@ -28,19 +27,15 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import {
-  Empty,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
 import { ItemList } from "@/components/ui/item";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import type { PositionCandidateList } from "@/hooks/use-position-candidates";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
+import { useShowScheduleHistory } from "@/hooks/use-show-schedule-history";
 import { getInitials } from "@/lib/format/initials";
 import { partitionPeopleForRecommendationStrip } from "@/lib/people/recommendation-strip-order";
+import { openSlotCount } from "@/lib/schedule/open-positions";
 import {
   getPositionNotificationStates,
   getSchedulingNotificationState,
@@ -122,7 +117,7 @@ const TemporaryFilledPersonRow = ({
     person.status === "confirmed" ? "confirmed" : "scheduled";
 
   return (
-    <article className="group/row hover:bg-muted/30 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 sm:py-3">
+    <article className="group/row hover:bg-muted/30 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 sm:py-3">
       <Avatar size="default">
         <AvatarImage
           src={person.photoThumbnailUrl ?? undefined}
@@ -158,13 +153,30 @@ const TemporaryFilledPersonRow = ({
   );
 };
 
+/** The slot's remaining openings, as one quiet row under the people already on it. */
+const OpenSlotsRow = ({ open }: { open: number }) => (
+  <div className="flex items-center gap-2.5 px-4 py-2.5 sm:gap-4 sm:py-3">
+    <span
+      aria-hidden
+      className="border-muted-foreground/40 size-8 shrink-0 rounded-full border border-dashed"
+    />
+    <p className="text-muted-foreground text-sm sm:text-base">
+      {open === 0
+        ? "No open slots"
+        : `${open} open slot${open === 1 ? "" : "s"}`}
+    </p>
+  </div>
+);
+
 interface SchedulePeopleListProps {
+  showHistory: boolean;
   candidateList: PositionCandidateList | null;
   selectedSlotUsesCustomPosition: boolean;
-  selectedFilledPeople: FilledPositionPerson[];
+  position: TeamPosition | null;
   notificationStates: ReadonlyMap<string, SchedulingNotificationState>;
-  filteredActionable: PersonWithAvailability[];
-  filteredExceptions: PersonWithAvailability[];
+  onSlot: PersonWithAvailability[];
+  candidates: PersonWithAvailability[];
+  exceptions: PersonWithAvailability[];
   selectedServiceTypeId: string | null;
   selectedPlanId: string | null;
   planReferenceDate?: Date | null;
@@ -179,10 +191,11 @@ interface SchedulePeopleListProps {
 const SchedulePeopleList = ({
   candidateList,
   selectedSlotUsesCustomPosition,
-  selectedFilledPeople,
+  position,
   notificationStates,
-  filteredActionable,
-  filteredExceptions,
+  onSlot,
+  candidates,
+  exceptions,
   selectedServiceTypeId,
   selectedPlanId,
   planReferenceDate = null,
@@ -192,8 +205,8 @@ const SchedulePeopleList = ({
   positionName,
   onScheduleSuccess,
   onScheduleError,
+  showHistory,
 }: SchedulePeopleListProps) => {
-  const people = candidateList?.people;
   const peopleLoading = candidateList?.isLoading ?? false;
   const scorePending =
     candidateList !== null &&
@@ -216,11 +229,59 @@ const SchedulePeopleList = ({
     return <CandidateListSkeleton />;
   }
 
-  if (people === undefined || people.length === 0) {
-    return (
-      <ItemList>
-        {selectedSlotUsesCustomPosition && selectedFilledPeople.length > 0 ? (
-          selectedFilledPeople.map((person) => (
+  const filledPeople = position?.filledPeople ?? [];
+  const onSlotIds = new Set(onSlot.map((person) => person.id));
+  // People on the slot who are not on the position's roster, such as one-off additions.
+  const offRosterFilled = filledPeople.filter(
+    (person) => !onSlotIds.has(person.personId ?? person.id)
+  );
+  const open = position === null ? 0 : openSlotCount(position);
+  const filledCount = onSlot.length + offRosterFilled.length;
+  const renderTile = (person: PersonWithAvailability) => (
+    <ScheduleCandidateTile
+      key={personTileKey(person)}
+      person={person}
+      notNotified={notificationStates.get(person.id) === "unsent"}
+      serviceTypeId={selectedServiceTypeId}
+      planId={selectedPlanId}
+      planReferenceDate={planReferenceDate}
+      teamId={selectedTeam}
+      positionId={selectedPosition}
+      teamName={teamName}
+      positionName={positionName}
+      oneOff={selectedSlotUsesCustomPosition}
+      scorePending={scorePending}
+      showHistory={showHistory}
+      onScheduleSuccess={onScheduleSuccess}
+      onScheduleError={onScheduleError}
+    />
+  );
+
+  return (
+    <div
+      className={cn(
+        "relative flex min-h-0 flex-col gap-4 pb-4 sm:gap-5 sm:pr-2",
+        revealClassName
+      )}
+    >
+      {candidateList === null ? null : (
+        <CandidateListProgress
+          progress={candidateList.progress}
+          isFetching={candidateList.isFetching}
+          isEnriching={candidateList.isEnriching}
+          failedPartCount={candidateList.failedPartCount}
+          onRetry={handleRetryCandidateList}
+        />
+      )}
+
+      <section className="flex flex-col gap-2">
+        <SectionLabel
+          title="Scheduled"
+          count={`${filledCount}/${filledCount + open}`}
+        />
+        <ItemList bleed="phone">
+          {onSlot.map(renderTile)}
+          {offRosterFilled.map((person) => (
             <TemporaryFilledPersonRow
               key={`${selectedPosition}:${person.planPersonId}`}
               person={person}
@@ -231,71 +292,20 @@ const SchedulePeopleList = ({
               onSuccess={onScheduleSuccess}
               onError={onScheduleError}
             />
-          ))
-        ) : (
-          <Empty className="mx-2">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <CalendarDays />
-              </EmptyMedia>
-              <EmptyTitle>
-                {selectedSlotUsesCustomPosition
-                  ? "No one scheduled"
-                  : "No roster candidates"}
-              </EmptyTitle>
-            </EmptyHeader>
-          </Empty>
-        )}
-        <SomeoneElseRow
-          serviceTypeId={selectedServiceTypeId}
-          planId={selectedPlanId}
-          teamId={selectedTeam}
-          positionId={selectedPosition}
-          teamName={teamName}
-          positionName={positionName}
-          onScheduleSuccess={onScheduleSuccess}
-          onScheduleError={onScheduleError}
-        />
-      </ItemList>
-    );
-  }
-
-  return (
-    <div
-      className={cn(
-        "relative flex min-h-0 flex-col gap-4 pb-4 sm:gap-5 sm:pr-2",
-        revealClassName
-      )}
-    >
-      <section className="flex flex-col gap-2">
-        {candidateList === null ? null : (
-          <CandidateListProgress
-            progress={candidateList.progress}
-            isFetching={candidateList.isFetching}
-            isEnriching={candidateList.isEnriching}
-            failedPartCount={candidateList.failedPartCount}
-            onRetry={handleRetryCandidateList}
-          />
-        )}
-        <ItemList>
-          {filteredActionable.map((person) => (
-            <ScheduleCandidateTile
-              key={personTileKey(person)}
-              person={person}
-              notNotified={notificationStates.get(person.id) === "unsent"}
-              serviceTypeId={selectedServiceTypeId}
-              planId={selectedPlanId}
-              planReferenceDate={planReferenceDate}
-              teamId={selectedTeam}
-              positionId={selectedPosition}
-              teamName={teamName}
-              positionName={positionName}
-              oneOff={selectedSlotUsesCustomPosition}
-              scorePending={scorePending}
-              onScheduleSuccess={onScheduleSuccess}
-              onScheduleError={onScheduleError}
-            />
           ))}
+          {open > 0 || filledCount === 0 ? <OpenSlotsRow open={open} /> : null}
+        </ItemList>
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <SectionLabel title="Add someone" count={candidates.length} />
+        <ItemList bleed="phone">
+          {candidates.map(renderTile)}
+          {candidates.length === 0 && selectedSlotUsesCustomPosition ? (
+            <p className="text-muted-foreground px-4 py-2.5 text-sm">
+              This position has no roster. Search for anyone below.
+            </p>
+          ) : null}
           <SomeoneElseRow
             serviceTypeId={selectedServiceTypeId}
             planId={selectedPlanId}
@@ -309,34 +319,30 @@ const SchedulePeopleList = ({
         </ItemList>
       </section>
 
-      {filteredExceptions.length > 0 ? (
+      {exceptions.length > 0 ? (
         <section className="flex flex-col gap-2">
-          <SectionLabel title="Unavailable" count={filteredExceptions.length} />
-          <ItemList variant="dimmed">
-            {filteredExceptions.map((person) => (
-              <ScheduleCandidateTile
-                key={personTileKey(person)}
-                person={person}
-                notNotified={notificationStates.get(person.id) === "unsent"}
-                serviceTypeId={selectedServiceTypeId}
-                planId={selectedPlanId}
-                planReferenceDate={planReferenceDate}
-                teamId={selectedTeam}
-                positionId={selectedPosition}
-                teamName={teamName}
-                positionName={positionName}
-                oneOff={selectedSlotUsesCustomPosition}
-                scorePending={scorePending}
-                onScheduleSuccess={onScheduleSuccess}
-                onScheduleError={onScheduleError}
-              />
-            ))}
+          <SectionLabel title="Unavailable" count={exceptions.length} />
+          <ItemList variant="dimmed" bleed="phone">
+            {exceptions.map(renderTile)}
           </ItemList>
         </section>
       ) : null}
     </div>
   );
 };
+
+const useNameFilter = (
+  people: PersonWithAvailability[],
+  filter: string
+): PersonWithAvailability[] =>
+  useMemo(() => {
+    const normalized = filter.trim().toLowerCase();
+    return normalized
+      ? people.filter((person) =>
+          person.fullName.toLowerCase().includes(normalized)
+        )
+      : people;
+  }, [people, filter]);
 
 const ScheduleViewContent = ({
   teamPositionsLoading,
@@ -357,6 +363,7 @@ const ScheduleViewContent = ({
   onScheduleError,
 }: ScheduleViewTabProps) => {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [showHistory, setShowHistory] = useShowScheduleHistory();
   const [filter, setFilter] = useState("");
   const deferredFilter = useDeferredValue(filter);
   /** Tailwind `lg`: sidebar visible; sheet only below this width. */
@@ -372,7 +379,6 @@ const ScheduleViewContent = ({
   const selectedSlotUsesCustomPosition =
     selectedSlotInfo?.position.source === "plan_member" ||
     selectedSlotInfo?.position.source === "custom";
-  const selectedFilledPeople = selectedSlotInfo?.position.filledPeople ?? [];
   const notificationStates = useMemo(
     () =>
       getPositionNotificationStates(
@@ -398,30 +404,13 @@ const ScheduleViewContent = ({
 
   const people = candidateList?.people;
   const settled = candidateList?.complete ?? true;
-  const { actionable, exceptions } = useMemo(
+  const { onSlot, candidates, exceptions } = useMemo(
     () => partitionPeopleForRecommendationStrip(people ?? [], { settled }),
     [people, settled]
   );
 
-  const normalizedFilter = deferredFilter.trim().toLowerCase();
-  const filteredActionable = useMemo(
-    () =>
-      normalizedFilter
-        ? actionable.filter((person) =>
-            person.fullName.toLowerCase().includes(normalizedFilter)
-          )
-        : actionable,
-    [actionable, normalizedFilter]
-  );
-  const filteredExceptions = useMemo(
-    () =>
-      normalizedFilter
-        ? exceptions.filter((person) =>
-            person.fullName.toLowerCase().includes(normalizedFilter)
-          )
-        : exceptions,
-    [exceptions, normalizedFilter]
-  );
+  const filteredCandidates = useNameFilter(candidates, deferredFilter);
+  const filteredExceptions = useNameFilter(exceptions, deferredFilter);
 
   const positionPickerList = (
     <PositionPickerList
@@ -462,6 +451,8 @@ const ScheduleViewContent = ({
                 ) : null
               }
               info={selectedSlotInfo}
+              showHistory={showHistory}
+              onShowHistoryChange={setShowHistory}
               onOpenPicker={() => {
                 setPickerOpen(true);
               }}
@@ -475,14 +466,16 @@ const ScheduleViewContent = ({
             <PageScrollArea besidePane>
               <div className="pb-safe-4 md:pb-0">
                 <SchedulePeopleList
+                  showHistory={showHistory}
                   candidateList={candidateList}
                   selectedSlotUsesCustomPosition={
                     selectedSlotUsesCustomPosition
                   }
-                  selectedFilledPeople={selectedFilledPeople}
+                  position={selectedSlotInfo?.position ?? null}
                   notificationStates={notificationStates}
-                  filteredActionable={filteredActionable}
-                  filteredExceptions={filteredExceptions}
+                  onSlot={onSlot}
+                  candidates={filteredCandidates}
+                  exceptions={filteredExceptions}
                   selectedServiceTypeId={selectedServiceTypeId}
                   selectedPlanId={selectedPlanId}
                   planReferenceDate={planReferenceDate}
@@ -515,7 +508,10 @@ const ScheduleViewContent = ({
                 clearSafeArea
               />
             </section>
-            <UnselectedPositionEmpty />
+            {/* Wide layouts open the first position as soon as positions load. */}
+            <div className="max-lg:hidden">
+              <CandidateListSkeleton />
+            </div>
           </>
         )}
       </div>

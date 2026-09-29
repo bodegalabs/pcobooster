@@ -69,19 +69,20 @@ export const PlanPersonStatusMenu = ({
             <Button
               type="button"
               variant="ghost"
-              size="icon"
-              className="size-8 shrink-0 justify-self-center max-sm:size-10"
+              size="sm"
+              data-icon="inline-start"
+              className="shrink-0 max-sm:h-10"
               aria-label={`Change status: ${currentItem.label}`}
-              title={currentItem.label}
               disabled={!hasPlanPersonId || isBusy}
             />
           }
         >
           {isBusy ? (
-            <Loader2 className="size-4 animate-spin" />
+            <Loader2 className="size-3.5 animate-spin" />
           ) : (
             <ScheduleStatusDot status={currentItem.status} aria-hidden />
           )}
+          {currentItem.label}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
           {STATUS_ITEMS.map(({ value, label, status }) => (

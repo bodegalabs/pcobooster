@@ -34,17 +34,16 @@ const RankingFactRow = ({ fact }: { fact: RankingFact }) => {
   const Icon = factIcon[fact.kind];
   return (
     <li className="flex gap-2.5">
-      <span
+      <Icon
+        aria-hidden
         className={cn(
-          "bg-muted flex size-6 shrink-0 items-center justify-center rounded-full",
+          "mt-0.5 size-4 shrink-0",
           fact.kind === "load"
             ? "text-status-scheduled"
             : "text-muted-foreground"
         )}
-      >
-        <Icon aria-hidden className="size-3.5" />
-      </span>
-      <span className="min-w-0 pt-0.5">
+      />
+      <span className="min-w-0">
         <span className="text-foreground block text-sm leading-snug">
           {fact.text}
         </span>
@@ -89,7 +88,7 @@ export const RecommendationPopover = ({
               Why this ranking
             </span>
             <span className="text-muted-foreground text-xs tabular-nums">
-              {percentage}% fit
+              {percentage} fit
             </span>
           </p>
           {facts.length > 0 ? (

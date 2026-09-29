@@ -8,6 +8,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { ItemSeparator } from "@/components/ui/item";
+import { openSlotCount } from "@/lib/schedule/open-positions";
 import { cn } from "@/lib/utils";
 
 export const SlotBadgeCluster = ({
@@ -23,7 +24,7 @@ export const SlotBadgeCluster = ({
 }) => {
   const confirmed = position.filledConfirmedCount ?? 0;
   const pending = position.filledPendingCount ?? 0;
-  const needed = position.neededCount ?? 0;
+  const needed = openSlotCount(position);
   const filled = confirmed + pending;
   const total = filled + needed;
   const confirmedPeople = (position.filledPeople ?? []).filter(
@@ -37,17 +38,17 @@ export const SlotBadgeCluster = ({
 
   return (
     <div className={cn("flex shrink-0 items-center gap-1", className)}>
-      {filled > 0 && !allFilled ? (
+      {needed > 0 && filled > 0 ? (
         <HoverCard>
           <HoverCardTrigger
             render={
               <span
-                className="text-muted-foreground cursor-default text-xs tabular-nums"
-                aria-label={`${filled} of ${total} filled`}
+                className="text-status-declined dark:text-status-declined cursor-default text-xs font-medium tabular-nums"
+                aria-label={`${filled} of ${total} filled, ${needed} open`}
               />
             }
           >
-            {filled}/{total}
+            {needed} open
           </HoverCardTrigger>
           <HoverCardContent
             align="end"
@@ -81,12 +82,12 @@ export const SlotBadgeCluster = ({
           </HoverCardContent>
         </HoverCard>
       ) : null}
-      {needed > 0 ? (
+      {needed > 0 && filled === 0 ? (
         <span
           className="text-status-declined dark:text-status-declined shrink-0 text-xs font-medium tabular-nums"
-          title={`${needed} still needed`}
+          aria-label={`${needed} open`}
         >
-          +{needed}
+          {needed} open
         </span>
       ) : null}
       {needed === 0 && allFilled ? (
