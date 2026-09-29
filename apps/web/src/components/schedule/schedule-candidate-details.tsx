@@ -1,7 +1,7 @@
 import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
 import type { CSSProperties } from "react";
 
-import { AvatarStatusRing } from "@/components/schedule/avatar-status-ring";
+import { AvatarStatus } from "@/components/schedule/avatar-status";
 import { RecommendationPopover } from "@/components/schedule/popovers/recommendation-popover";
 import type { ScheduleStatusDotStatus } from "@/components/schedule/status-dot";
 import {
@@ -97,9 +97,9 @@ export const ScheduleCandidateAvatar = ({
             />
           }
         >
-          <AvatarStatusRing status={slotStatus}>
+          <AvatarStatus status={slotStatus}>
             <Avatar aria-hidden>{avatarInner}</Avatar>
-          </AvatarStatusRing>
+          </AvatarStatus>
         </ResponsivePopoverTrigger>
         <ResponsivePopoverContent
           title="Decline reason"
@@ -160,12 +160,12 @@ export const ScheduleCandidateAvatar = ({
   }
 
   return (
-    <AvatarStatusRing status={slotStatus}>
+    <AvatarStatus status={slotStatus}>
       <span className="relative inline-flex shrink-0 overflow-visible">
         <Avatar title={statusLabel || undefined}>{avatarInner}</Avatar>
         {blockedAvatarTint}
       </span>
-    </AvatarStatusRing>
+    </AvatarStatus>
   );
 };
 

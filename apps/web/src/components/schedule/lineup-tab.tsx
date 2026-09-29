@@ -35,7 +35,7 @@ import { startTransition, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 
 import { PageScrollArea } from "@/components/page-shell";
-import { AvatarStatusRing } from "@/components/schedule/avatar-status-ring";
+import { AvatarStatus } from "@/components/schedule/avatar-status";
 import { PlanPersonEditDialog } from "@/components/schedule/plan-person-edit-dialog";
 import { getPlanPersonStatusValue } from "@/components/schedule/plan-person-status";
 import {
@@ -170,7 +170,7 @@ const PersonRow = ({
           setEditOpen(true);
         }}
       >
-        <AvatarStatusRing status={status}>
+        <AvatarStatus status={status === "confirmed" ? null : status}>
           <Avatar>
             <AvatarImage
               src={person.photoThumbnailUrl ?? undefined}
@@ -178,7 +178,7 @@ const PersonRow = ({
             />
             <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
           </Avatar>
-        </AvatarStatusRing>
+        </AvatarStatus>
         <span
           className={cn(
             "min-w-0 flex-1 truncate text-sm",
