@@ -151,7 +151,10 @@ export const KeyTransitionPopover = ({
           className={KEY_ICON_TONES[transition.level]}
         />
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80">
+      <PopoverContent
+        align="end"
+        className="max-h-(--available-height) w-80 overflow-y-auto"
+      >
         <PopoverHeader className="mx-4 mt-4">
           <PopoverTitle>
             {transition.from} → {transition.to}
@@ -166,8 +169,9 @@ export const KeyTransitionPopover = ({
           </PopoverDescription>
         </PopoverHeader>
         {/* Touch has no hover label, so say what tapping an idea does. */}
-        <p className="text-muted-foreground mx-4 mt-2 text-xs pointer-fine:hidden">
-          Tap an idea to add it to {transition.toTitle}&apos;s notes.
+        <p className="bg-muted text-muted-foreground mx-4 mt-3 flex items-center gap-2 rounded-xl px-3 py-2 text-xs pointer-fine:hidden">
+          <NotebookPen className="size-3.5 shrink-0" aria-hidden />
+          Tap an idea to add it to notes.
         </p>
         <ul className="flex flex-col gap-1 px-4 py-2">
           {suggestions.map((suggestion) => {
