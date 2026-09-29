@@ -35,6 +35,7 @@ import { startTransition, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 
 import { PageScrollArea } from "@/components/page-shell";
+import { AvatarStatusRing } from "@/components/schedule/avatar-status-ring";
 import { PlanPersonEditDialog } from "@/components/schedule/plan-person-edit-dialog";
 import { getPlanPersonStatusValue } from "@/components/schedule/plan-person-status";
 import {
@@ -43,12 +44,7 @@ import {
 } from "@/components/schedule/position-picker-icon";
 import { UnsentNotificationMark } from "@/components/schedule/scheduling-notification-mark";
 import type { SlotRef } from "@/components/schedule/types";
-import {
-  Avatar,
-  AvatarBadge,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
@@ -174,14 +170,15 @@ const PersonRow = ({
           setEditOpen(true);
         }}
       >
-        <Avatar>
-          <AvatarImage
-            src={person.photoThumbnailUrl ?? undefined}
-            alt={person.name}
-          />
-          <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
-          {status === "confirmed" ? null : <AvatarBadge variant={status} />}
-        </Avatar>
+        <AvatarStatusRing status={status}>
+          <Avatar>
+            <AvatarImage
+              src={person.photoThumbnailUrl ?? undefined}
+              alt={person.name}
+            />
+            <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
+          </Avatar>
+        </AvatarStatusRing>
         <span
           className={cn(
             "min-w-0 flex-1 truncate text-sm",

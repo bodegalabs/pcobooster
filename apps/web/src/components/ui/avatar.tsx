@@ -1,6 +1,4 @@
 import { Avatar as AvatarPrimitive } from "@base-ui/react/avatar";
-import { cva } from "class-variance-authority";
-import type { VariantProps } from "class-variance-authority";
 import { cn } from "cn";
 import * as React from "react";
 
@@ -47,36 +45,16 @@ const AvatarFallback = ({
   />
 );
 
-const avatarBadgeVariants = cva(
-  cn(
-    "ring-background absolute right-0 bottom-0 z-10 inline-flex items-center justify-center rounded-full bg-blend-color ring-2 select-none",
-    "group-data-[size=sm]/avatar:size-2 group-data-[size=sm]/avatar:[&>svg]:hidden",
-    "group-data-[size=default]/avatar:size-2.5 group-data-[size=default]/avatar:[&>svg]:size-2",
-    "group-data-[size=lg]/avatar:size-3 group-data-[size=lg]/avatar:[&>svg]:size-2"
-  ),
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground",
-        /** A person's schedule status on their avatar, matching the status dots. */
-        scheduled: "bg-status-scheduled",
-        declined: "bg-status-declined",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-);
-
-const AvatarBadge = ({
-  className,
-  variant,
-  ...props
-}: React.ComponentProps<"span"> & VariantProps<typeof avatarBadgeVariants>) => (
+const AvatarBadge = ({ className, ...props }: React.ComponentProps<"span">) => (
   <span
     data-slot="avatar-badge"
-    className={cn(avatarBadgeVariants({ variant }), className)}
+    className={cn(
+      "bg-primary text-primary-foreground ring-background absolute right-0 bottom-0 z-10 inline-flex items-center justify-center rounded-full bg-blend-color ring-2 select-none",
+      "group-data-[size=sm]/avatar:size-2 group-data-[size=sm]/avatar:[&>svg]:hidden",
+      "group-data-[size=default]/avatar:size-2.5 group-data-[size=default]/avatar:[&>svg]:size-2",
+      "group-data-[size=lg]/avatar:size-3 group-data-[size=lg]/avatar:[&>svg]:size-2",
+      className
+    )}
     {...props}
   />
 );
