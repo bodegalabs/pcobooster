@@ -469,12 +469,17 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
         className="max-h-full"
       />
     );
-  // Like a sheet: pressing outside the card closes it. Rows switch it to themselves.
+  // Like a sheet: pressing outside the card closes it and clears the selection. Rows
+  // switch it to themselves.
   useDismissOnOutsidePress({
     enabled: isWide && pane !== null,
     ref: paneRef,
     ignoreSelector: "[data-plan-item-id]",
-    onDismiss: closeDetails,
+    onDismiss: () => {
+      blurWithin(paneRef.current);
+      setDetailsOpen(false);
+      select(null);
+    },
   });
   const draggedItem =
     items.find((item) => item.id === drag.activeItemId) ?? null;
