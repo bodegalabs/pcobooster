@@ -1,7 +1,7 @@
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { Plan } from "@pcobooster/planning-center-models/types";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, LoaderCircle } from "lucide-react";
 import { useState } from "react";
@@ -19,14 +19,22 @@ import { ScheduleViewTab } from "@/components/schedule/schedule-view-tab";
 import { TimesTab } from "@/components/schedule/times-tab";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
-import { HoverLabel } from "@/components/ui/hover-card";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+  HoverLabel,
+} from "@/components/ui/hover-card";
+import { Item } from "@/components/ui/item";
 import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useDashboardController } from "@/hooks/use-dashboard-controller";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
-import { createAdjacentPlanQueryOptions } from "@/hooks/use-plans";
-import type { PlanNeighbor } from "@/hooks/use-plans";
+import {
+  ADJACENT_PLANS_LIMIT,
+  createAdjacentPlansQueryOptions,
+} from "@/hooks/use-plans";
 import { NEXT_PLAN_HOTKEY, PREVIOUS_PLAN_HOTKEY } from "@/lib/app-hotkeys";
 import { queryKeys } from "@/lib/query-keys";
 import type { DashboardView } from "@/lib/schedule-navigation";
@@ -173,10 +181,12 @@ type PlanDirection = "previous" | "next";
 
 interface PlanNeighbors {
   serviceTypeId: string;
+  serviceTypeName: string;
   planId: string;
   view: DashboardView;
-  previousPlan: PlanNeighbor;
-  nextPlan: PlanNeighbor;
+  /** Listed plans on each side, nearest first; short where the loaded list ends. */
+  previousPlans: readonly Plan[];
+  nextPlans: readonly Plan[];
 }
 
 const PLAN_STEP_LABELS = {
@@ -184,24 +194,31 @@ const PLAN_STEP_LABELS = {
   next: "Next plan",
 } as const;
 
+const listedPlansOn = (neighbors: PlanNeighbors, direction: PlanDirection) =>
+  direction === "previous" ? neighbors.previousPlans : neighbors.nextPlans;
+
 /**
  * Steps to the plan before or after this one on the same view. Listed neighbors are
  * links; past the loaded list, one lookup finds the neighbor when someone asks for it.
  */
-const usePlanStepper = ({
-  serviceTypeId,
-  planId,
-  view,
-  previousPlan,
-  nextPlan,
-}: PlanNeighbors) => {
+const usePlanStepper = (neighbors: PlanNeighbors) => {
+  const { serviceTypeId, planId, view } = neighbors;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [ends, setEnds] = useState<ReadonlySet<string>>(() => new Set());
   const [pending, setPending] = useState<PlanDirection | null>(null);
   const endKey = (direction: PlanDirection) => `${planId}:${direction}`;
 
+  // A plan in hand already has its header details, so its page needn't fetch them.
+  const seedPlanDetails = (plan: Plan) => {
+    queryClient.setQueryData(
+      queryKeys.planDetails(serviceTypeId, plan.id),
+      plan
+    );
+  };
+
   const openPlan = (plan: Plan) => {
+    seedPlanDetails(plan);
     void navigate({
       to: "/services/$serviceTypeId/plans/$planId/$view",
       params: { serviceTypeId, planId: plan.id, view },
@@ -209,19 +226,19 @@ const usePlanStepper = ({
   };
 
   const step = async (direction: PlanDirection) => {
-    const neighbor = direction === "previous" ? previousPlan : nextPlan;
-    if (neighbor.kind === "known") {
-      openPlan(neighbor.plan);
+    const [nearest] = listedPlansOn(neighbors, direction);
+    if (nearest !== undefined) {
+      openPlan(nearest);
       return;
     }
     if (ends.has(endKey(direction)) || pending !== null) {
       return;
     }
     setPending(direction);
-    let plan: Plan | null;
+    let plans: Plan[];
     try {
-      plan = await queryClient.query(
-        createAdjacentPlanQueryOptions(serviceTypeId, planId, direction)
+      plans = await queryClient.query(
+        createAdjacentPlansQueryOptions(serviceTypeId, planId, direction)
       );
     } catch {
       setPending(null);
@@ -229,16 +246,12 @@ const usePlanStepper = ({
       return;
     }
     setPending(null);
-    if (plan === null) {
+    const [plan] = plans;
+    if (plan === undefined) {
       setEnds((current) => new Set(current).add(endKey(direction)));
       toast(`No ${direction === "previous" ? "earlier" : "later"} plan`);
       return;
     }
-    // The lookup already has the plan's header details, so its page needn't fetch them.
-    queryClient.setQueryData(
-      queryKeys.planDetails(serviceTypeId, plan.id),
-      plan
-    );
     openPlan(plan);
   };
 
@@ -254,73 +267,176 @@ const usePlanStepper = ({
     isEnd: (direction: PlanDirection) => ends.has(endKey(direction)),
     pending,
     onRequest,
+    seedPlanDetails,
   };
 };
 
 type PlanStepper = ReturnType<typeof usePlanStepper>;
 
+const planListSkeletonKeys = ["a", "b", "c", "d"];
+
+/**
+ * The plans on one side of the open plan. The loaded list covers the upcoming weeks; where
+ * it runs out on that side, the rest are looked up once the list opens.
+ */
+const PlanNeighborList = ({
+  direction,
+  neighbors,
+  open,
+  onOpenPlan,
+}: {
+  direction: PlanDirection;
+  neighbors: PlanNeighbors;
+  /** False while the list animates out, when the next plan may already be open. */
+  open: boolean;
+  onOpenPlan: (plan: Plan) => void;
+}) => {
+  const orgTimeZone = useOrganizationTimeZone();
+  const listed = listedPlansOn(neighbors, direction);
+  const needsLookup = listed.length < ADJACENT_PLANS_LIMIT;
+  const lookup = useQuery({
+    ...createAdjacentPlansQueryOptions(
+      neighbors.serviceTypeId,
+      neighbors.planId,
+      direction
+    ),
+    enabled: needsLookup && open,
+  });
+  const plans = needsLookup ? (lookup.data ?? listed) : listed;
+  const loadingCount =
+    needsLookup && lookup.isPending ? ADJACENT_PLANS_LIMIT - listed.length : 0;
+  const side = direction === "previous" ? "earlier" : "later";
+
+  return (
+    // Rows bring their own padding, so the list reaches into the panel's.
+    <div className="-m-1.5 flex flex-col gap-0.5">
+      {plans.map((plan) => {
+        const subtitle = buildPlanSubtitle(
+          neighbors.serviceTypeName,
+          plan.title,
+          plan.seriesTitle
+        );
+        return (
+          <Item
+            key={plan.id}
+            size="row"
+            className="flex-col items-start justify-center gap-0"
+            render={
+              <Link
+                to="/services/$serviceTypeId/plans/$planId/$view"
+                params={{
+                  serviceTypeId: neighbors.serviceTypeId,
+                  planId: plan.id,
+                  view: neighbors.view,
+                }}
+                onClick={() => {
+                  onOpenPlan(plan);
+                }}
+              />
+            }
+          >
+            <span className="text-sm font-medium tabular-nums">
+              {formatHeaderPlanDate(plan.sortDate, orgTimeZone)}
+            </span>
+            {isNonEmptyString(subtitle) ? (
+              <span className="text-muted-foreground w-full truncate text-xs">
+                {subtitle}
+              </span>
+            ) : null}
+          </Item>
+        );
+      })}
+      {planListSkeletonKeys.slice(0, loadingCount).map((key) => (
+        <div
+          key={key}
+          className="flex min-h-10 flex-col justify-center gap-1.5 px-1.5"
+        >
+          <Skeleton variant="text" className="h-3.5 w-32" />
+          <Skeleton variant="text" className="h-3 w-24" />
+        </div>
+      ))}
+      {plans.length === 0 && loadingCount === 0 ? (
+        <p className="text-muted-foreground px-1.5 py-2 text-sm">
+          {lookup.isError ? "Couldn't load plans." : `No ${side} plans`}
+        </p>
+      ) : null}
+    </div>
+  );
+};
+
+/** Clicking steps one plan; hovering or right-clicking lists the next few on that side. */
 const PlanStepButton = ({
   direction,
-  neighbor,
   neighbors,
   stepper,
 }: {
   direction: PlanDirection;
-  neighbor: PlanNeighbor;
   neighbors: PlanNeighbors;
   stepper: PlanStepper;
 }) => {
+  const [open, setOpen] = useState(false);
   const orgTimeZone = useOrganizationTimeZone();
   const Icon = direction === "previous" ? ChevronLeft : ChevronRight;
   const label = PLAN_STEP_LABELS[direction];
-  if (neighbor.kind === "known") {
-    const planDate = formatHeaderPlanDate(neighbor.plan.sortDate, orgTimeZone);
-    return (
-      <HoverLabel
-        label={`${label}: ${planDate}`}
-        side="bottom"
-        sideOffset={8}
-        render={
-          <Link
-            to="/services/$serviceTypeId/plans/$planId/$view"
-            params={{
-              serviceTypeId: neighbors.serviceTypeId,
-              planId: neighbor.plan.id,
-              view: neighbors.view,
-            }}
-            aria-label={`${label}, ${planDate}`}
-            className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
-          />
-        }
-      >
-        <Icon className="size-4" />
-      </HoverLabel>
-    );
-  }
+  const [nearest] = listedPlansOn(neighbors, direction);
   const isEnd = stepper.isEnd(direction);
+  const trigger =
+    nearest === undefined ? (
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        disabled={isEnd || stepper.pending !== null}
+        aria-busy={stepper.pending === direction}
+        aria-label={isEnd ? `No ${label.toLowerCase()}` : label}
+        onClick={stepper.onRequest(direction)}
+      />
+    ) : (
+      <Link
+        to="/services/$serviceTypeId/plans/$planId/$view"
+        params={{
+          serviceTypeId: neighbors.serviceTypeId,
+          planId: nearest.id,
+          view: neighbors.view,
+        }}
+        aria-label={`${label}, ${formatHeaderPlanDate(nearest.sortDate, orgTimeZone)}`}
+        className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+      />
+    );
+
   return (
-    <HoverLabel
-      label={isEnd ? `No ${label.toLowerCase()}` : label}
-      side="bottom"
-      sideOffset={8}
-      render={
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          disabled={isEnd || stepper.pending !== null}
-          aria-busy={stepper.pending === direction}
-          aria-label={isEnd ? `No ${label.toLowerCase()}` : label}
-          onClick={stepper.onRequest(direction)}
+    <HoverCard open={open} onOpenChange={setOpen}>
+      <HoverCardTrigger
+        render={trigger}
+        onContextMenu={(event) => {
+          event.preventDefault();
+          setOpen(true);
+        }}
+      >
+        {stepper.pending === direction ? (
+          <LoaderCircle className="size-4 animate-spin" />
+        ) : (
+          <Icon className="size-4" />
+        )}
+      </HoverCardTrigger>
+      <HoverCardContent
+        variant="panel"
+        side="bottom"
+        align="start"
+        sideOffset={8}
+        className="w-64"
+      >
+        <PlanNeighborList
+          direction={direction}
+          neighbors={neighbors}
+          open={open}
+          onOpenPlan={(plan) => {
+            stepper.seedPlanDetails(plan);
+            setOpen(false);
+          }}
         />
-      }
-    >
-      {stepper.pending === direction ? (
-        <LoaderCircle className="size-4 animate-spin" />
-      ) : (
-        <Icon className="size-4" />
-      )}
-    </HoverLabel>
+      </HoverCardContent>
+    </HoverCard>
   );
 };
 
@@ -383,13 +499,11 @@ const DashboardPlanHeader = ({
             <div className="flex shrink-0 items-center">
               <PlanStepButton
                 direction="previous"
-                neighbor={neighbors.previousPlan}
                 neighbors={neighbors}
                 stepper={stepper}
               />
               <PlanStepButton
                 direction="next"
-                neighbor={neighbors.nextPlan}
                 neighbors={neighbors}
                 stepper={stepper}
               />
@@ -468,8 +582,8 @@ export const DashboardPage = ({
     hasSelectedPlanMetadata,
     selectedServiceType,
     selectedPlan,
-    previousPlan,
-    nextPlan,
+    previousPlans,
+    nextPlans,
     activeView,
     teamPositionsLoading,
     teamPositionGroups,
@@ -504,10 +618,11 @@ export const DashboardPage = ({
         }
         neighbors={{
           serviceTypeId: routeServiceTypeId,
+          serviceTypeName: selectedServiceType?.name ?? "",
           planId: routePlanId,
           view: activeView,
-          previousPlan,
-          nextPlan,
+          previousPlans,
+          nextPlans,
         }}
       />
 

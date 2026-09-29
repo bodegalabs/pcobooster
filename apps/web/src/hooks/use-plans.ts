@@ -44,8 +44,8 @@ export const usePlans = (serviceTypeId: string | null) => {
   return query;
 };
 
-/** A plan next to the open one: already in the loaded list, or to look up on request. */
-export type PlanNeighbor = { kind: "known"; plan: Plan } | { kind: "lookup" };
+/** Plans listed on each side of the open plan in the plan header; matches the API's limit. */
+export const ADJACENT_PLANS_LIMIT = 4;
 
 const PLAN_DETAILS_STALE_TIME_MS = 5 * 60 * 1000;
 
@@ -67,17 +67,18 @@ export const usePlanDetails = (
     staleTime: PLAN_DETAILS_STALE_TIME_MS,
   });
 
-export const createAdjacentPlanQueryOptions = (
+/** The nearest plans before or after one plan, nearest first. */
+export const createAdjacentPlansQueryOptions = (
   serviceTypeId: string,
   planId: string,
   direction: "previous" | "next"
 ) => ({
-  queryKey: queryKeys.adjacentPlan(serviceTypeId, planId, direction),
-  queryFn: async (context: QueryFunctionContext) =>
+  queryKey: queryKeys.adjacentPlans(serviceTypeId, planId, direction),
+  queryFn: async (context: QueryFunctionContext): Promise<Plan[]> =>
     await callForQuery(
       context,
       async (options) =>
-        await orpc.catalog.adjacentPlan(
+        await orpc.catalog.adjacentPlans(
           { serviceTypeId, planId, direction },
           options
         )

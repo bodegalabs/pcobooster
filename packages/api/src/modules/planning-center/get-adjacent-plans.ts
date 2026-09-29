@@ -11,9 +11,9 @@ import { Effect } from "effect";
 export type PlanDirection = "previous" | "next";
 
 /**
- * Plans fetched to find a neighbor. The window starts a day wide on the near side, so the
- * page also holds this plan and its same-day services; Planning Center slows down sharply
- * with page size (seconds at 100), so the page stays small.
+ * Plans fetched to find the neighbors. The window starts a day wide on the near side, so
+ * the page also holds this plan and its same-day services; Planning Center slows down
+ * sharply with page size (seconds at 100), so the page stays small.
  */
 export const ADJACENT_PLANS_PAGE_SIZE = 8;
 
@@ -39,23 +39,27 @@ export const getPlanDetails = (
     ({ data }) => toPlans([data])[0] ?? null
   );
 
+/** Plans listed on each side of the open plan in the plan header's menu. */
+export const ADJACENT_PLANS_LIMIT = 4;
+
 /**
- * The plan just before or after one plan in its service type, in two requests: the plan
- * for its date, then one page of plans around that date. Planning Center's before and
- * after filters take whole days, so the window starts a day wide on the near side and
- * the neighbor is picked by exact time, which keeps same-day services in order.
+ * Up to `ADJACENT_PLANS_LIMIT` plans before or after one plan in its service type, nearest
+ * first, in two requests: the plan for its date, then one page of plans around that date.
+ * Planning Center's before and after filters take whole days, so the window starts a day
+ * wide on the near side and neighbors are picked by exact time, which keeps same-day
+ * services in order.
  */
-export const getAdjacentPlan = (
+export const getAdjacentPlans = (
   serviceTypeId: string,
   planId: string,
   direction: PlanDirection,
   dependencies: AdjacentPlanDependencies
-): Effect.Effect<Plan | null, PlanningCenterError> =>
-  Effect.gen(function* findAdjacentPlan() {
+): Effect.Effect<Plan[], PlanningCenterError> =>
+  Effect.gen(function* findAdjacentPlans() {
     const current = yield* getPlanDetails(serviceTypeId, planId, dependencies);
     const currentTime = current?.sortDate?.getTime();
     if (current === null || currentTime === undefined) {
-      return null;
+      return [];
     }
     const timeZone = yield* dependencies.resolveTimeZone;
     const dayKey = formatCalendarDayInTimeZone(
@@ -77,6 +81,7 @@ export const getAdjacentPlan = (
       direction === "previous" ? "-sort_date" : "sort_date",
       ADJACENT_PLANS_PAGE_SIZE
     );
+    // `toPlans` sorts oldest first.
     const candidates = toPlans(rawPlans).filter((plan) => {
       const time = plan.sortDate?.getTime();
       if (time === undefined || plan.id === planId) {
@@ -84,7 +89,7 @@ export const getAdjacentPlan = (
       }
       return direction === "previous" ? time < currentTime : time > currentTime;
     });
-    return (
-      (direction === "previous" ? candidates.at(-1) : candidates[0]) ?? null
-    );
+    const nearestFirst =
+      direction === "previous" ? candidates.toReversed() : candidates;
+    return nearestFirst.slice(0, ADJACENT_PLANS_LIMIT);
   });

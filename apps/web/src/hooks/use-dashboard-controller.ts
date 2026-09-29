@@ -13,8 +13,11 @@ import { useCollapsedTeams } from "@/hooks/use-collapsed-teams";
 import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import { createPlanItemsQueryOptions } from "@/hooks/use-plan-items";
 import { usePlanTimes } from "@/hooks/use-plan-times";
-import { usePlanDetails, usePlans } from "@/hooks/use-plans";
-import type { PlanNeighbor } from "@/hooks/use-plans";
+import {
+  ADJACENT_PLANS_LIMIT,
+  usePlanDetails,
+  usePlans,
+} from "@/hooks/use-plans";
 import {
   createPlanWindowHistoryQueryOptions,
   isPositionCandidatesFresh,
@@ -70,25 +73,27 @@ const resolveSelectedSlot = (
 };
 
 /**
- * Plans come sorted by date, so listed neighbors are the plans just before and after;
- * past the list's ends, the neighbor is looked up when someone asks for it.
+ * Plans come sorted by date, so the listed neighbors are the plans just before and after,
+ * nearest first. Fewer than `ADJACENT_PLANS_LIMIT` on a side means the list ends there and
+ * the rest are looked up when someone asks for them.
  */
 interface ListedNeighbors {
-  previousPlan: PlanNeighbor;
-  nextPlan: PlanNeighbor;
+  previousPlans: readonly Plan[];
+  nextPlans: readonly Plan[];
 }
 
 const listedNeighbors = (
   plans: readonly Plan[] | undefined,
   index: number
 ): ListedNeighbors => {
-  const neighborAt = (at: number): PlanNeighbor => {
-    const plan = index === -1 || at < 0 ? undefined : plans?.[at];
-    return plan === undefined ? { kind: "lookup" } : { kind: "known", plan };
-  };
+  if (plans === undefined || index === -1) {
+    return { previousPlans: [], nextPlans: [] };
+  }
   return {
-    previousPlan: neighborAt(index - 1),
-    nextPlan: neighborAt(index + 1),
+    previousPlans: plans
+      .slice(Math.max(0, index - ADJACENT_PLANS_LIMIT), index)
+      .toReversed(),
+    nextPlans: plans.slice(index + 1, index + 1 + ADJACENT_PLANS_LIMIT),
   };
 };
 
@@ -117,7 +122,10 @@ const usePlanWorkspaceData = (
     plans !== undefined && listedPlan === null
   );
   const selectedPlan = listedPlan ?? planDetails.data ?? null;
-  const { previousPlan, nextPlan } = listedNeighbors(plans, selectedPlanIndex);
+  const { previousPlans, nextPlans } = listedNeighbors(
+    plans,
+    selectedPlanIndex
+  );
 
   const { data: teamPositionGroups, isLoading: teamPositionsLoading } =
     useTeamPositions(
@@ -169,8 +177,8 @@ const usePlanWorkspaceData = (
   return {
     selectedServiceType,
     selectedPlan,
-    previousPlan,
-    nextPlan,
+    previousPlans,
+    nextPlans,
     teamPositionGroups,
     teamPositionsLoading,
     planTimes,
@@ -230,8 +238,8 @@ export const useDashboardController = ({
   const {
     selectedServiceType,
     selectedPlan,
-    previousPlan,
-    nextPlan,
+    previousPlans,
+    nextPlans,
     teamPositionGroups,
     teamPositionsLoading,
     planTimes,
@@ -534,8 +542,8 @@ export const useDashboardController = ({
     hasSelectedPlanMetadata,
     selectedServiceType,
     selectedPlan,
-    previousPlan,
-    nextPlan,
+    previousPlans,
+    nextPlans,
     activeView,
     teamPositionsLoading,
     teamPositionGroups,

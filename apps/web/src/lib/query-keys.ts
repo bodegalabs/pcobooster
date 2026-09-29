@@ -17,11 +17,11 @@ export const queryKeys = {
   plans: (serviceTypeId: string | null) => ["plans", serviceTypeId] as const,
   planDetails: (serviceTypeId: string, planId: string) =>
     ["plan-details", serviceTypeId, planId] as const,
-  adjacentPlan: (
+  adjacentPlans: (
     serviceTypeId: string,
     planId: string,
     direction: "previous" | "next"
-  ) => ["adjacent-plan", serviceTypeId, planId, direction] as const,
+  ) => ["adjacent-plans", serviceTypeId, planId, direction] as const,
   teamPositions: (
     serviceTypeId: string | null,
     planId: string | null,

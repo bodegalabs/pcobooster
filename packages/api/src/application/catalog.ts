@@ -6,10 +6,10 @@ import {
 } from "@pcobooster/api/application/planning-center-access";
 import { requestPresentationDependencies } from "@pcobooster/api/application/presentation";
 import {
-  getAdjacentPlan,
+  getAdjacentPlans,
   getPlanDetails,
-} from "@pcobooster/api/modules/planning-center/get-adjacent-plan";
-import type { PlanDirection } from "@pcobooster/api/modules/planning-center/get-adjacent-plan";
+} from "@pcobooster/api/modules/planning-center/get-adjacent-plans";
+import type { PlanDirection } from "@pcobooster/api/modules/planning-center/get-adjacent-plans";
 import { getPlansForServiceType } from "@pcobooster/api/modules/planning-center/get-plans";
 import { getServiceTypes } from "@pcobooster/api/modules/planning-center/get-service-types";
 import { getNeededTeamPositionsForPlan } from "@pcobooster/api/modules/planning-center/get-team-positions";
@@ -68,19 +68,19 @@ export const getCatalogPlan = (input: {
     );
   });
 
-export const getCatalogAdjacentPlan = (input: {
+export const getCatalogAdjacentPlans = (input: {
   readonly serviceTypeId: string;
   readonly planId: string;
   readonly direction: PlanDirection;
 }): Effect.Effect<
-  Plan | null,
+  Plan[],
   ApplicationFault,
   PlanningCenterAccess | RequestContext
 > =>
-  Effect.gen(function* findAdjacentPlan() {
+  Effect.gen(function* findAdjacentPlans() {
     const access = yield* PlanningCenterAccess;
     return yield* withPlanningCenterFaults(
-      getAdjacentPlan(input.serviceTypeId, input.planId, input.direction, {
+      getAdjacentPlans(input.serviceTypeId, input.planId, input.direction, {
         plansService: access.services.plans,
         resolveTimeZone: access.services.organizationTimeZone,
       })
