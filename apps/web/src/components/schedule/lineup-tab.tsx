@@ -9,7 +9,7 @@ import {
 } from "@dnd-kit/core";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import {
-  horizontalListSortingStrategy,
+  rectSortingStrategy,
   SortableContext,
   useSortable,
 } from "@dnd-kit/sortable";
@@ -33,9 +33,7 @@ import type { CSSProperties } from "react";
 import { PageScrollArea } from "@/components/page-shell";
 import { PlanPersonEditDialog } from "@/components/schedule/plan-person-edit-dialog";
 import { getPlanPersonStatusValue } from "@/components/schedule/plan-person-status";
-import { PositionPickerIcon } from "@/components/schedule/position-picker-icon";
 import { UnsentNotificationMark } from "@/components/schedule/scheduling-notification-mark";
-import { SlotBadgeCluster } from "@/components/schedule/slot-badge-cluster";
 import { ScheduleStatusDot } from "@/components/schedule/status-dot";
 import type { SlotRef } from "@/components/schedule/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -52,12 +50,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
-import { Item, ItemContent, ItemGroup, ItemTitle } from "@/components/ui/item";
+import { HoverLabel } from "@/components/ui/hover-card";
+import { Item } from "@/components/ui/item";
 import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
@@ -83,23 +77,18 @@ interface LineupTabProps {
   getSlotIntentProps?: GetIntentPrefetchProps<SlotRef>;
 }
 
-const lineupSkeletonWidths = ["8rem", "6rem", "9rem", "7rem"];
-const lineupColumnWidthClass = "w-[min(22rem,78vw)]";
-const lineupStackClassName = "pb-safe-4 flex flex-col gap-3";
-const teamColumnClass =
-  "bg-background text-foreground shadow-xs ring-foreground/5 dark:ring-foreground/10 flex shrink-0 flex-col rounded-xl ring-1";
-const lineupColumnsRowClassName =
-  "flex min-w-max items-stretch gap-4 pt-1 pb-3";
-const lineupPositionGridClass =
-  "grid w-full grid-cols-[1.5rem_minmax(0,1fr)_2.75rem_0.875rem_2rem] items-center gap-x-2 gap-y-0";
-const lineupPositionRowClass = "col-span-5 grid grid-cols-subgrid items-center";
-const lineupPositionPeopleClass = cn(
-  "col-span-5 pl-2",
-  lineupPositionGridClass,
-  "gap-y-0.5"
-);
-const lineupTeamHeaderClassName =
-  "group/team-header flex items-stretch gap-0.5 px-1.5 pt-1.5";
+/** Teams fill the width in as many columns as fit; phones get one. */
+const lineupGridClassName =
+  "pb-safe-4 grid grid-cols-[repeat(auto-fill,minmax(min(20rem,100%),1fr))] items-start gap-3";
+const teamPanelClassName =
+  "bg-background text-foreground shadow-xs ring-foreground/5 dark:ring-foreground/10 flex flex-col rounded-xl ring-1";
+const teamHeaderClassName =
+  "group/team-header flex items-stretch gap-0.5 px-1.5 py-1.5";
+/** Positions on the left, their people on the right, so a team reads as one roster. */
+const rosterGridClassName =
+  "border-border/60 divide-border/60 grid grid-cols-[fit-content(10rem)_minmax(0,1fr)] divide-y border-t";
+const rosterPositionClassName =
+  "col-span-2 grid grid-cols-subgrid items-start gap-x-1 px-1.5 py-1";
 
 const getStatusDotStatus = (
   person: FilledPositionPerson
@@ -107,6 +96,14 @@ const getStatusDotStatus = (
   const status = getPlanPersonStatusValue(person);
   return status === "declined" ? "declined" : status;
 };
+
+const isUnsent = (person: FilledPositionPerson) =>
+  getSchedulingNotificationState(person.notification) === "unsent";
+
+const STATUS_LABELS = {
+  scheduled: "Pending",
+  declined: "Declined",
+} as const;
 
 const PersonRow = ({
   person,
@@ -130,58 +127,62 @@ const PersonRow = ({
   positionId: string;
 }) => {
   const [editOpen, setEditOpen] = useState(false);
-  const assignedTimeIdSet = person.assignedTimeIds
-    ? new Set(person.assignedTimeIds)
-    : new Set<string>();
+  const assignedTimeIdSet = new Set(person.assignedTimeIds);
   const assignedTimeCount = planTimes.filter((planTime) =>
     assignedTimeIdSet.has(planTime.id)
   ).length;
-  const statusDotStatus = getStatusDotStatus(person);
-  const unsent =
-    getSchedulingNotificationState(person.notification) === "unsent";
+  // Most people serve every time, so only a partial schedule is worth a mark.
+  const servesSomeTimes =
+    planTimes.length > 1 && assignedTimeCount < planTimes.length;
+  const status = getStatusDotStatus(person);
+  const unsent = isUnsent(person);
+  const statusLabel = status === "confirmed" ? null : STATUS_LABELS[status];
 
   return (
     <>
-      <li className="contents">
-        <Item
-          size="row"
-          className={cn(lineupPositionRowClass, "group/person")}
-          render={
-            <button
-              type="button"
-              aria-label={`Edit ${person.name} assignment${unsent ? ", not notified yet" : ""}`}
-            />
-          }
-          onClick={() => {
-            setEditOpen(true);
-          }}
-        >
-          <Avatar size="sm">
-            <AvatarImage
-              src={person.photoThumbnailUrl ?? undefined}
-              alt={person.name}
-            />
-            <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
-          </Avatar>
-          <span className="min-w-0 truncate text-sm">{person.name}</span>
-          <div className="text-muted-foreground flex justify-end">
-            {planTimes.length > 0 ? (
-              <span className="inline-flex items-center gap-1 text-xs tabular-nums">
-                <Clock3 className="size-3.5 shrink-0" aria-hidden />
-                {assignedTimeCount}/{planTimes.length}
-              </span>
-            ) : null}
-          </div>
-          <span className="flex justify-center">
-            {unsent ? <UnsentNotificationMark /> : null}
-          </span>
-          <ScheduleStatusDot
-            status={statusDotStatus}
-            className="justify-self-center"
-            aria-hidden
+      <Item
+        size="row"
+        className="min-h-9"
+        render={
+          <button
+            type="button"
+            aria-label={[
+              `Edit ${person.name} assignment`,
+              statusLabel?.toLowerCase(),
+              unsent ? "not notified yet" : undefined,
+            ]
+              .filter(Boolean)
+              .join(", ")}
           />
-        </Item>
-      </li>
+        }
+        onClick={() => {
+          setEditOpen(true);
+        }}
+      >
+        <Avatar size="sm">
+          <AvatarImage
+            src={person.photoThumbnailUrl ?? undefined}
+            alt={person.name}
+          />
+          <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
+        </Avatar>
+        <span
+          className={cn(
+            "min-w-0 flex-1 truncate text-sm",
+            status === "declined" && "text-muted-foreground line-through"
+          )}
+        >
+          {person.name}
+        </span>
+        {servesSomeTimes ? (
+          <span className="text-muted-foreground inline-flex shrink-0 items-center gap-1 text-xs tabular-nums">
+            <Clock3 className="size-3.5" aria-hidden />
+            {assignedTimeCount}/{planTimes.length}
+          </span>
+        ) : null}
+        {unsent ? <UnsentNotificationMark /> : null}
+        {status === "confirmed" ? null : <ScheduleStatusDot status={status} />}
+      </Item>
       <PlanPersonEditDialog
         person={person}
         teamName={teamName}
@@ -199,7 +200,7 @@ const PersonRow = ({
   );
 };
 
-const LineupPositionCard = ({
+const PositionRows = ({
   teamId,
   teamName,
   position,
@@ -221,6 +222,7 @@ const LineupPositionCard = ({
   getSlotIntentProps?: GetIntentPrefetchProps<SlotRef>;
 }) => {
   const people = position.filledPeople ?? [];
+  const openCount = position.neededCount ?? 0;
   const isTemporaryPosition =
     !!position.source && position.source !== "team_position";
   const slot = {
@@ -230,88 +232,82 @@ const LineupPositionCard = ({
     positionName: position.name,
     source: position.source,
   };
+  const openInAssign = {
+    ...getSlotIntentProps?.(slot),
+    onClick: () => {
+      onSelectPosition(slot);
+    },
+  };
 
   return (
-    <Item variant="muted" size="sm">
-      <ItemContent>
-        <div className={lineupPositionGridClass}>
-          <HoverCard>
-            <HoverCardTrigger
+    <li className={rosterPositionClassName}>
+      <HoverLabel
+        label="Open in Assign"
+        side="left"
+        render={
+          <Item
+            size="row"
+            className="min-h-9"
+            render={
+              <button
+                type="button"
+                aria-label={`Open ${position.name} in Assign`}
+                {...openInAssign}
+              />
+            }
+          />
+        }
+      >
+        <span
+          className={cn(
+            "text-muted-foreground block min-w-0 text-sm",
+            isTemporaryPosition && "italic"
+          )}
+        >
+          <MiddleTruncate text={position.name} />
+        </span>
+      </HoverLabel>
+      <ul className="flex min-w-0 flex-col">
+        {people.map((person) => (
+          <li key={`${person.id}-${person.rawStatus}`}>
+            <PersonRow
+              person={person}
+              teamName={teamName}
+              positionName={position.name}
+              serviceTypeId={serviceTypeId}
+              planId={planId}
+              seriesId={seriesId}
+              planTimes={planTimes}
+              teamId={teamId}
+              positionId={position.id}
+            />
+          </li>
+        ))}
+        {openCount > 0 ? (
+          <li>
+            <Item
+              size="row"
+              className="min-h-9"
               render={
-                <Item
-                  size="row"
-                  className={cn(
-                    lineupPositionRowClass,
-                    people.length === 0 && "min-h-0 py-0.5"
-                  )}
-                  render={
-                    <button
-                      type="button"
-                      aria-label={`Open ${position.name} in scheduler`}
-                      {...getSlotIntentProps?.(slot)}
-                      onClick={() => {
-                        onSelectPosition(slot);
-                      }}
-                    />
-                  }
+                <button
+                  type="button"
+                  aria-label={`Fill ${openCount} open ${position.name} ${openCount === 1 ? "slot" : "slots"}`}
+                  {...openInAssign}
                 />
               }
             >
-              <div className="flex size-6 items-center justify-center">
-                <PositionPickerIcon
-                  positionName={position.name}
-                  teamName={teamName}
-                />
-              </div>
-              {/* Titles also use the time-count and envelope columns, which only person rows fill. */}
-              <ItemTitle className="col-span-3 min-w-0">
-                <span
-                  className={cn(
-                    "block min-w-0",
-                    isTemporaryPosition && "italic"
-                  )}
-                >
-                  <MiddleTruncate text={position.name} />
-                </span>
-              </ItemTitle>
-              <SlotBadgeCluster
-                className="justify-self-center"
-                position={position}
-                teamName={teamName}
-                positionName={position.name}
-              />
-            </HoverCardTrigger>
-            <HoverCardContent side="left" variant="label">
-              Open in schedule view
-            </HoverCardContent>
-          </HoverCard>
-          {people.length > 0 ? (
-            <div className={lineupPositionPeopleClass}>
-              <ul className="contents">
-                {people.map((person) => (
-                  <PersonRow
-                    key={`${position.id}-${person.id}-${person.rawStatus}`}
-                    person={person}
-                    teamName={teamName}
-                    positionName={position.name}
-                    serviceTypeId={serviceTypeId}
-                    planId={planId}
-                    seriesId={seriesId}
-                    planTimes={planTimes}
-                    teamId={teamId}
-                    positionId={position.id}
-                  />
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </div>
-      </ItemContent>
-    </Item>
+              <span className="border-status-declined/40 text-status-declined rounded-md border border-dashed px-2 py-0.5 text-xs font-medium tabular-nums">
+                {openCount === 1 ? "Open" : `${openCount} open`}
+              </span>
+            </Item>
+          </li>
+        ) : null}
+      </ul>
+    </li>
   );
 };
 
-const TeamColumn = ({
+const TeamPanel = ({
   group,
   serviceTypeId,
   planId,
@@ -321,9 +317,7 @@ const TeamColumn = ({
   getSlotIntentProps,
   dragHandleAttributes,
   dragHandleListeners,
-  stacked = false,
 }: {
-  stacked?: boolean;
   group: TeamPositionGroup;
   serviceTypeId: string | null;
   planId: string | null;
@@ -334,40 +328,27 @@ const TeamColumn = ({
   dragHandleAttributes?: ReturnType<typeof useSortable>["attributes"];
   dragHandleListeners?: ReturnType<typeof useSortable>["listeners"];
 }) => {
-  const openNeededCount = group.positions.reduce(
+  const openCount = group.positions.reduce(
     (sum, position) => sum + (position.neededCount ?? 0),
     0
   );
   const unsentCount = group.positions.reduce(
     (sum, position) =>
-      sum +
-      (position.filledPeople ?? []).filter(
-        (person) =>
-          getSchedulingNotificationState(person.notification) === "unsent"
-      ).length,
+      sum + (position.filledPeople ?? []).filter(isUnsent).length,
     0
   );
-  const [open, setOpen] = useState(() => openNeededCount > 0);
+  const [open, setOpen] = useState(true);
 
   return (
-    <section
-      className={cn(
-        teamColumnClass,
-        stacked ? "w-full rounded-2xl" : lineupColumnWidthClass
-      )}
-    >
-      <Collapsible
-        open={open}
-        onOpenChange={setOpen}
-        className="flex min-h-0 flex-1 flex-col"
-      >
-        <div className={lineupTeamHeaderClassName}>
+    <section className={teamPanelClassName}>
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <div className={teamHeaderClassName}>
           {dragHandleListeners ? (
             <DragHandle
               size="sm"
               {...dragHandleAttributes}
               {...dragHandleListeners}
-              aria-label={`Reorder ${group.teamName} column`}
+              aria-label={`Reorder ${group.teamName}`}
             />
           ) : null}
           <CollapsibleTrigger
@@ -397,13 +378,11 @@ const TeamColumn = ({
                 {unsentCount}
               </span>
             ) : null}
-            {openNeededCount > 0 ? (
-              <span className="text-status-declined dark:text-status-declined shrink-0 text-xs font-medium tabular-nums">
-                {openNeededCount}
+            {openCount > 0 ? (
+              <span className="text-status-declined shrink-0 text-xs font-medium tabular-nums">
+                {openCount} open
               </span>
-            ) : (
-              <ScheduleStatusDot status="confirmed" aria-label="All set" />
-            )}
+            ) : null}
             <ChevronDown
               className={cn(
                 "text-muted-foreground size-3.5 shrink-0 opacity-60",
@@ -412,32 +391,30 @@ const TeamColumn = ({
             />
           </CollapsibleTrigger>
         </div>
-        <CollapsibleContent className="min-h-0 flex-1">
-          <div className="overflow-hidden rounded-b-xl p-2 pt-0">
-            <ItemGroup>
-              {group.positions.map((position) => (
-                <LineupPositionCard
-                  key={position.id}
-                  teamId={group.teamId}
-                  teamName={group.teamName}
-                  position={position}
-                  serviceTypeId={serviceTypeId}
-                  planId={planId}
-                  seriesId={seriesId}
-                  planTimes={planTimes}
-                  onSelectPosition={onSelectPosition}
-                  getSlotIntentProps={getSlotIntentProps}
-                />
-              ))}
-            </ItemGroup>
-          </div>
+        <CollapsibleContent>
+          <ul className={rosterGridClassName}>
+            {group.positions.map((position) => (
+              <PositionRows
+                key={position.id}
+                teamId={group.teamId}
+                teamName={group.teamName}
+                position={position}
+                serviceTypeId={serviceTypeId}
+                planId={planId}
+                seriesId={seriesId}
+                planTimes={planTimes}
+                onSelectPosition={onSelectPosition}
+                getSlotIntentProps={getSlotIntentProps}
+              />
+            ))}
+          </ul>
         </CollapsibleContent>
       </Collapsible>
     </section>
   );
 };
 
-interface SortableTeamColumnProps {
+interface SortableTeamPanelProps {
   group: TeamPositionGroup;
   serviceTypeId: string | null;
   planId: string | null;
@@ -449,12 +426,12 @@ interface SortableTeamColumnProps {
   reorderDisabled: boolean;
 }
 
-const SortableTeamColumn = ({
+const SortableTeamPanel = ({
   group,
   isDragging,
   reorderDisabled,
-  ...columnProps
-}: SortableTeamColumnProps) => {
+  ...panelProps
+}: SortableTeamPanelProps) => {
   const {
     attributes,
     listeners,
@@ -470,7 +447,7 @@ const SortableTeamColumn = ({
     "--sortable-transform": string;
     "--sortable-transition": string;
   } = {
-    "--sortable-transform": CSS.Transform.toString(transform) ?? "none",
+    "--sortable-transform": CSS.Translate.toString(transform) ?? "none",
     "--sortable-transition":
       transition ?? "transform 180ms cubic-bezier(0.2, 0, 0, 1)",
   };
@@ -480,28 +457,22 @@ const SortableTeamColumn = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "sortable-plan-item shrink-0",
+        "sortable-plan-item min-w-0",
         (isDragging || isSortableDragging) && "opacity-0"
       )}
     >
-      <TeamColumn
+      <TeamPanel
         group={group}
         dragHandleAttributes={attributes}
         dragHandleListeners={listeners}
-        {...columnProps}
+        {...panelProps}
       />
     </div>
   );
 };
 
-const TeamColumnOverlay = ({ group }: { group: TeamPositionGroup }) => (
-  <section
-    className={cn(
-      teamColumnClass,
-      lineupColumnWidthClass,
-      "bg-muted/80 shadow-2xl"
-    )}
-  >
+const TeamPanelOverlay = ({ group }: { group: TeamPositionGroup }) => (
+  <section className={cn(teamPanelClassName, "bg-muted/80 shadow-2xl")}>
     <div className="flex items-center gap-2 px-3 py-2.5">
       <GripVertical className="text-muted-foreground size-4 shrink-0" />
       <h3 className="truncate text-sm font-semibold tracking-tight">
@@ -511,77 +482,129 @@ const TeamColumnOverlay = ({ group }: { group: TeamPositionGroup }) => (
   </section>
 );
 
-const lineupSkeletonColumns = [
-  { key: "a", title: "7rem", positions: [2, 1, 1] },
-  { key: "b", title: "5rem", positions: [1, 2] },
-  { key: "c", title: "8rem", positions: [1, 1, 2] },
-  { key: "d", title: "6rem", positions: [2, 1] },
-];
+interface LineupSummary {
+  serving: number;
+  open: number;
+  pending: number;
+  unsent: number;
+}
 
-const LineupLoadingState = ({ stacked }: { stacked: boolean }) => (
-  <PageScrollArea axis={stacked ? "y" : "both"}>
-    <div className={stacked ? lineupStackClassName : lineupColumnsRowClassName}>
-      {lineupSkeletonColumns.map((column) => (
-        <div
-          key={column.key}
-          className={cn(
-            teamColumnClass,
-            "gap-1 p-1.5",
-            stacked ? "w-full" : lineupColumnWidthClass
-          )}
-        >
-          <div className="flex h-9 items-center gap-2 px-2">
-            <Skeleton variant="text" className="size-3.5" />
-            <Skeleton variant="text" className="h-3.5" width={column.title} />
+const summarizeLineup = (groups: TeamPositionGroup[]): LineupSummary => {
+  const summary: LineupSummary = { serving: 0, open: 0, pending: 0, unsent: 0 };
+  for (const group of groups) {
+    for (const position of group.positions) {
+      summary.open += position.neededCount ?? 0;
+      for (const person of position.filledPeople ?? []) {
+        const status = getStatusDotStatus(person);
+        if (status !== "declined") {
+          summary.serving += 1;
+        }
+        if (status === "scheduled") {
+          summary.pending += 1;
+        }
+        if (isUnsent(person)) {
+          summary.unsent += 1;
+        }
+      }
+    }
+  }
+  return summary;
+};
+
+const LineupSummaryLine = ({ summary }: { summary: LineupSummary }) => (
+  <p className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 pb-3 text-sm">
+    <span>
+      <span className="text-foreground font-medium tabular-nums">
+        {summary.serving}
+      </span>{" "}
+      serving
+    </span>
+    {summary.open > 0 ? (
+      <span>
+        <span className="text-status-declined font-medium tabular-nums">
+          {summary.open}
+        </span>{" "}
+        open
+      </span>
+    ) : null}
+    {summary.pending > 0 ? (
+      <span>
+        <span className="text-foreground font-medium tabular-nums">
+          {summary.pending}
+        </span>{" "}
+        pending
+      </span>
+    ) : null}
+    {summary.unsent > 0 ? (
+      <span>
+        <span className="text-foreground font-medium tabular-nums">
+          {summary.unsent}
+        </span>{" "}
+        not notified
+      </span>
+    ) : null}
+  </p>
+);
+
+const lineupSkeletonTeams = [
+  { key: "a", title: "7rem", positions: [2, 1, 1, 1] },
+  { key: "b", title: "5rem", positions: [1, 2, 1] },
+  { key: "c", title: "8rem", positions: [1, 1] },
+];
+const lineupSkeletonWidths = ["8rem", "6rem", "9rem", "7rem"];
+
+const LineupLoadingState = () => (
+  <PageScrollArea>
+    <div className="flex h-8 items-center gap-4 pb-3">
+      <Skeleton variant="text" className="h-3.5 w-20" />
+      <Skeleton variant="text" className="h-3.5 w-14" />
+    </div>
+    <div className={lineupGridClassName}>
+      {lineupSkeletonTeams.map((team) => (
+        <div key={team.key} className={teamPanelClassName}>
+          <div className="flex h-12 items-center px-3.5">
+            <Skeleton variant="text" className="h-3.5" width={team.title} />
           </div>
-          {column.positions.map((people, positionIndex) => (
-            <div
-              key={`${column.key}-${positionIndex}`}
-              className="flex flex-col"
-            >
-              <div className="flex min-h-10 items-center gap-2 px-2">
-                <Skeleton variant="text" className="size-4" />
-                <Skeleton
-                  variant="text"
-                  className="h-3"
-                  width={
-                    lineupSkeletonWidths[
-                      (positionIndex + column.key.length) %
-                        lineupSkeletonWidths.length
-                    ]
-                  }
-                />
-              </div>
-              {Array.from({ length: people }, (_, personIndex) => (
-                <div
-                  key={personIndex}
-                  className="flex min-h-10 items-center gap-2 pr-2 pl-4"
-                >
-                  <Skeleton variant="round" className="size-6" />
-                  <Skeleton
-                    variant="text"
-                    className="h-3"
-                    width={
-                      lineupSkeletonWidths[
-                        (positionIndex + personIndex + 1) %
-                          lineupSkeletonWidths.length
-                      ]
-                    }
-                  />
+          <div className="border-border/60 divide-border/60 divide-y border-t">
+            {team.positions.map((people, positionIndex) => (
+              <div
+                key={`${team.key}-${positionIndex}`}
+                className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-x-1 px-3 py-1"
+              >
+                <div className="flex h-9 items-center">
+                  <Skeleton variant="text" className="h-3 w-16" />
                 </div>
-              ))}
-            </div>
-          ))}
+                <div className="flex flex-col">
+                  {Array.from({ length: people }, (_, personIndex) => (
+                    <div
+                      key={personIndex}
+                      className="flex h-9 items-center gap-2"
+                    >
+                      <Skeleton variant="round" className="size-6" />
+                      <Skeleton
+                        variant="text"
+                        className="h-3"
+                        width={
+                          lineupSkeletonWidths[
+                            (positionIndex + personIndex) %
+                              lineupSkeletonWidths.length
+                          ]
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       ))}
     </div>
   </PageScrollArea>
 );
 
-/** The lineup's columns before anything loads: stacked on phones, side by side otherwise. */
-export const LineupTabSkeleton = () => (
-  <LineupLoadingState stacked={useIsMobile()} />
-);
+/** The lineup's team panels before anything loads. */
+export const LineupTabSkeleton = () => <LineupLoadingState />;
 
 export const LineupTab = ({
   groups,
@@ -607,6 +630,7 @@ export const LineupTab = ({
       columnOrderByServiceType[serviceTypeId]
     );
   }, [columnOrderByServiceType, groups, serviceTypeId]);
+  const summary = useMemo(() => summarizeLineup(groups), [groups]);
   const activeGroup =
     orderedGroups.find((group) => group.teamId === activeTeamId) ?? null;
   const sensors = useSensors(
@@ -651,7 +675,7 @@ export const LineupTab = ({
   };
 
   if (isLoading) {
-    return <LineupLoadingState stacked={isMobile} />;
+    return <LineupLoadingState />;
   }
 
   if (groups.length === 0) {
@@ -670,31 +694,34 @@ export const LineupTab = ({
     );
   }
 
+  const panelProps = {
+    serviceTypeId,
+    planId,
+    seriesId,
+    planTimes,
+    onSelectPosition,
+    getSlotIntentProps,
+  };
+
   if (isMobile) {
     return (
       <PageScrollArea>
-        <div className={cn(lineupStackClassName, revealClassName)}>
-          {orderedGroups.map((group) => (
-            <TeamColumn
-              key={group.teamId}
-              group={group}
-              serviceTypeId={serviceTypeId}
-              planId={planId}
-              seriesId={seriesId}
-              planTimes={planTimes}
-              onSelectPosition={onSelectPosition}
-              getSlotIntentProps={getSlotIntentProps}
-              stacked
-            />
-          ))}
+        <div className={revealClassName}>
+          <LineupSummaryLine summary={summary} />
+          <div className={lineupGridClassName}>
+            {orderedGroups.map((group) => (
+              <TeamPanel key={group.teamId} group={group} {...panelProps} />
+            ))}
+          </div>
         </div>
       </PageScrollArea>
     );
   }
 
   return (
-    <PageScrollArea axis="both">
+    <PageScrollArea>
       <div className={cn("relative", revealClassName)}>
+        <LineupSummaryLine summary={summary} />
         <DndContext
           collisionDetection={closestCenter}
           sensors={sensors}
@@ -710,27 +737,22 @@ export const LineupTab = ({
         >
           <SortableContext
             items={orderedGroups.map((group) => group.teamId)}
-            strategy={horizontalListSortingStrategy}
+            strategy={rectSortingStrategy}
           >
-            <div className={lineupColumnsRowClassName}>
+            <div className={lineupGridClassName}>
               {orderedGroups.map((group) => (
-                <SortableTeamColumn
+                <SortableTeamPanel
                   key={group.teamId}
                   group={group}
-                  serviceTypeId={serviceTypeId}
-                  planId={planId}
-                  seriesId={seriesId}
-                  planTimes={planTimes}
-                  onSelectPosition={onSelectPosition}
-                  getSlotIntentProps={getSlotIntentProps}
                   isDragging={activeTeamId === group.teamId}
                   reorderDisabled={reorderDisabled}
+                  {...panelProps}
                 />
               ))}
             </div>
           </SortableContext>
           <DragOverlay zIndex={60}>
-            {activeGroup ? <TeamColumnOverlay group={activeGroup} /> : null}
+            {activeGroup ? <TeamPanelOverlay group={activeGroup} /> : null}
           </DragOverlay>
         </DndContext>
       </div>
