@@ -1,7 +1,7 @@
 import { addCalendarDaysToDayKey } from "@pcobooster/planning-center-models/calendar";
 import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar-day";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
-import { getScheduleContextHalfRangeWeekOptions } from "@pcobooster/planning-center-models/schedule-constants";
+import { formatPlanHistoryHalfRangeWeeksLabel } from "@pcobooster/planning-center-models/schedule-constants";
 import { describe, expect, it } from "vitest";
 
 describe("browser-safe Planning Center model exports", () => {
@@ -16,8 +16,6 @@ describe("browser-safe Planning Center model exports", () => {
     expect(
       addCalendarDaysToDayKey("2026-05-24", 1, "America/Los_Angeles")
     ).toBe("2026-05-25");
-    expect(getScheduleContextHalfRangeWeekOptions()).toStrictEqual([
-      1, 2, 3, 4,
-    ]);
+    expect(formatPlanHistoryHalfRangeWeeksLabel()).toBe("4 weeks");
   });
 });

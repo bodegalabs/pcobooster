@@ -2,7 +2,10 @@ import { scoreAndNormalizePeople } from "@pcobooster/planning-center-models/cand
 import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
-import { groupRankingReasons } from "@/lib/ranking-reasons";
+import {
+  groupRankingReasons,
+  preferenceConflicts,
+} from "@/lib/ranking-reasons";
 
 const person = (
   frequency?: PersonWithAvailability["frequency"]
@@ -110,6 +113,24 @@ describe(groupRankingReasons, () => {
         text: "Marked Unavailable for this position in Planning Center",
         adjustments: ["Ranked lower: asked not to be scheduled here"],
       },
+    ]);
+  });
+});
+
+describe(preferenceConflicts, () => {
+  it("keeps only the preferences this plan goes against, in short form", () => {
+    expect(
+      preferenceConflicts([
+        "Last served 7 days before on Sun, Sep 20, 2026",
+        "Prefers to serve every other week",
+        "Ranked lower: served 7 days before",
+        "At most 2 plans a month; this plan fits",
+        "Marked Unavailable for this position in Planning Center",
+        "Ranked lower: asked not to be scheduled here",
+      ])
+    ).toStrictEqual([
+      "Prefers every other week",
+      "Marked Unavailable for this position",
     ]);
   });
 });

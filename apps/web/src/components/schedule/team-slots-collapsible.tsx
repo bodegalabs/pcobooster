@@ -33,6 +33,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
+import { openSlotCount } from "@/lib/schedule/open-positions";
 import { getSchedulingNotificationState } from "@/lib/schedule/scheduling-notifications";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +63,7 @@ export const TeamSlotsCollapsible = ({
   const [positionName, setPositionName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const openNeededCount = group.positions.reduce(
-    (sum, position) => sum + (position.neededCount ?? 1),
+    (sum, position) => sum + openSlotCount(position),
     0
   );
   const selectedPositionInGroup =
@@ -159,7 +160,7 @@ export const TeamSlotsCollapsible = ({
           <span className="flex-1 truncate text-left">{group.teamName}</span>
           {openNeededCount > 0 ? (
             <span className="text-status-declined dark:text-status-declined text-xs font-medium tabular-nums">
-              {openNeededCount}
+              {openNeededCount} open
             </span>
           ) : (
             <ScheduleStatusDot status="confirmed" aria-label="All set" />

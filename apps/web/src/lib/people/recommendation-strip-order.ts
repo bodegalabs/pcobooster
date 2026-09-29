@@ -15,26 +15,39 @@ const tailSortKey = (person: PersonWithAvailability): number => {
   return 2;
 };
 
-/** Within actionable: confirmed first, then on-slot (pending), then everyone else. */
-const actionableSortKey = (person: PersonWithAvailability): number => {
-  if (person.isConfirmedForSelectedPlanPosition === true) {
-    return 0;
+const isOnSlot = (person: PersonWithAvailability): boolean =>
+  person.isConfirmedForSelectedPlanPosition === true ||
+  person.isScheduledForSelectedPlanPosition === true;
+
+/** Confirmed before pending. */
+const onSlotSortKey = (person: PersonWithAvailability): number =>
+  person.isConfirmedForSelectedPlanPosition === true ? 0 : 1;
+
+const byScoreThenName = (
+  a: PersonWithAvailability,
+  b: PersonWithAvailability
+): number => {
+  const as = a.recommendationScore ?? 0;
+  const bs = b.recommendationScore ?? 0;
+  if (bs !== as) {
+    return bs - as;
   }
-  if (person.isScheduledForSelectedPlanPosition === true) {
-    return 1;
-  }
-  return 2;
+  return a.fullName.localeCompare(b.fullName);
 };
 
-/** On-slot people first, then everyone else by recommendation, then blocked & declined at the end. */
+/**
+ * People already on the slot, everyone who could be added (by recommendation), and blocked
+ * or declined people at the end.
+ */
 export interface RecommendationStripPartition {
-  actionable: PersonWithAvailability[];
+  onSlot: PersonWithAvailability[];
+  candidates: PersonWithAvailability[];
   exceptions: PersonWithAvailability[];
 }
 
 /**
  * `settled: false` while history or availability is still arriving. Scores do not exist yet
- * (people sort by slot status, then name), and blocked people stay in place with their label
+ * (people sort by name), and blocked people stay in place with their label
  * instead of moving to the tail, so the list reorders once, when everything has arrived.
  * People who declined the slot are known from the first response and go to the tail at once.
  */
@@ -42,7 +55,8 @@ export const partitionPeopleForRecommendationStrip = (
   people: PersonWithAvailability[],
   { settled = true }: { settled?: boolean } = {}
 ): RecommendationStripPartition => {
-  const actionable: PersonWithAvailability[] = [];
+  const onSlot: PersonWithAvailability[] = [];
+  const candidates: PersonWithAvailability[] = [];
   const exceptions: PersonWithAvailability[] = [];
   const belongsInTail = (person: PersonWithAvailability) =>
     settled
@@ -50,38 +64,24 @@ export const partitionPeopleForRecommendationStrip = (
       : person.isDeclinedForSelectedPlanPosition === true;
 
   for (const p of people) {
-    if (belongsInTail(p)) {
+    // Someone on the slot stays with it even when blocked, so the conflict is in view.
+    if (p.isDeclinedForSelectedPlanPosition !== true && isOnSlot(p)) {
+      onSlot.push(p);
+    } else if (belongsInTail(p)) {
       exceptions.push(p);
     } else {
-      actionable.push(p);
+      candidates.push(p);
     }
   }
 
-  actionable.sort((a, b) => {
-    const tk = actionableSortKey(a) - actionableSortKey(b);
-    if (tk !== 0) {
-      return tk;
-    }
-    const as = a.recommendationScore ?? 0;
-    const bs = b.recommendationScore ?? 0;
-    if (bs !== as) {
-      return bs - as;
-    }
-    return a.fullName.localeCompare(b.fullName);
-  });
+  onSlot.sort(
+    (a, b) => onSlotSortKey(a) - onSlotSortKey(b) || byScoreThenName(a, b)
+  );
+  candidates.sort(byScoreThenName);
 
-  exceptions.sort((a, b) => {
-    const tr = tailSortKey(a) - tailSortKey(b);
-    if (tr !== 0) {
-      return tr;
-    }
-    const as = a.recommendationScore ?? 0;
-    const bs = b.recommendationScore ?? 0;
-    if (bs !== as) {
-      return bs - as;
-    }
-    return a.fullName.localeCompare(b.fullName);
-  });
+  exceptions.sort(
+    (a, b) => tailSortKey(a) - tailSortKey(b) || byScoreThenName(a, b)
+  );
 
-  return { actionable, exceptions };
+  return { onSlot, candidates, exceptions };
 };

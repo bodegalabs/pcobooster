@@ -1,8 +1,6 @@
 import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
-import type { CSSProperties } from "react";
 
 import { AvatarStatus } from "@/components/schedule/avatar-status";
-import { RecommendationPopover } from "@/components/schedule/popovers/recommendation-popover";
 import type { ScheduleStatusDotStatus } from "@/components/schedule/status-dot";
 import {
   Avatar,
@@ -10,14 +8,11 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
-import { Item } from "@/components/ui/item";
 import {
   ResponsivePopover,
   ResponsivePopoverContent,
   ResponsivePopoverTrigger,
 } from "@/components/ui/responsive-popover";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 
 export type CandidateStatus =
   | "confirmed"
@@ -25,26 +20,6 @@ export type CandidateStatus =
   | "declined"
   | "blocked"
   | "available";
-
-const recTone = (score: number): string => {
-  if (score >= 80) {
-    return "text-status-confirmed dark:text-status-confirmed";
-  }
-  if (score >= 50) {
-    return "text-status-scheduled dark:text-status-scheduled";
-  }
-  return "text-status-declined dark:text-status-declined";
-};
-
-const recBar = (score: number): string => {
-  if (score >= 80) {
-    return "bg-status-confirmed-bright";
-  }
-  if (score >= 50) {
-    return "bg-status-scheduled-bright";
-  }
-  return "bg-status-declined-bright";
-};
 
 export const ScheduleCandidateAvatar = ({
   person,
@@ -169,65 +144,5 @@ export const ScheduleCandidateAvatar = ({
         {blockedAvatarTint}
       </span>
     </AvatarStatus>
-  );
-};
-
-export const ScheduleCandidateScore = ({
-  person,
-  percentage,
-  pending = false,
-}: {
-  person: PersonWithAvailability;
-  percentage: number | null;
-  /** The score is still being computed from history and availability. */
-  pending?: boolean;
-}) => {
-  if (percentage === null && pending) {
-    return (
-      <div className="flex justify-end" aria-label="Score loading">
-        <Skeleton variant="text" className="h-3.5 w-10 sm:h-5" />
-      </div>
-    );
-  }
-  if (percentage === null) {
-    return <div className="text-muted-foreground text-right text-xs">-</div>;
-  }
-  const progressStyle: CSSProperties & { "--recommendation-width": string } = {
-    "--recommendation-width": `${Math.max(4, percentage)}%`,
-  };
-  return (
-    <RecommendationPopover
-      reasoning={person.recommendationReasoning}
-      percentage={percentage}
-    >
-      <Item
-        size="row"
-        className="sm:flex-col sm:items-end sm:gap-1.5"
-        render={
-          <button type="button" aria-label={`${percentage} percent fit`} />
-        }
-      >
-        <span
-          className={cn(
-            "shrink-0 text-xs leading-none font-semibold tabular-nums sm:text-base",
-            recTone(percentage)
-          )}
-        >
-          {percentage}
-          <span className="text-muted-foreground ml-0.5 text-xs font-normal">
-            %
-          </span>
-        </span>
-        <div className="bg-muted/50 h-1.5 w-full overflow-hidden rounded-full sm:h-1.5">
-          <div
-            className={cn(
-              "recommendation-progress h-full rounded-full",
-              recBar(percentage)
-            )}
-            style={progressStyle}
-          />
-        </div>
-      </Item>
-    </RecommendationPopover>
   );
 };

@@ -1,18 +1,24 @@
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { PersonWithAvailability } from "@pcobooster/planning-center-models/types";
-import { CalendarPlus, Info, Loader2 } from "lucide-react";
+import { CalendarPlus, Loader2 } from "lucide-react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { PlanPersonStatusMenu } from "@/components/schedule/plan-person-status-menu";
 import type { PlanPersonStatusValue } from "@/components/schedule/plan-person-status-menu";
-import { ScheduleContextPopover } from "@/components/schedule/popovers/schedule-context-popover";
-import {
-  ScheduleCandidateAvatar,
-  ScheduleCandidateScore,
-} from "@/components/schedule/schedule-candidate-details";
+import { ScheduleCandidateAvatar } from "@/components/schedule/schedule-candidate-details";
 import type { CandidateStatus } from "@/components/schedule/schedule-candidate-details";
+import { ScheduleDayBars } from "@/components/schedule/schedule-day-bars";
 import { UnsentNotificationMark } from "@/components/schedule/scheduling-notification-mark";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { useSchedulePlanPerson } from "@/hooks/use-schedule-plan-person";
+import { summarizeCandidateSchedule } from "@/lib/people/candidate-summary";
+import {
+  otherPlanAssignments,
+  positionFromLabel,
+} from "@/lib/people/plan-assignment-labels";
+import { preferenceConflicts } from "@/lib/ranking-reasons";
 import { cn } from "@/lib/utils";
 
 const STATUS_META: Record<CandidateStatus, { label: string }> = {
@@ -124,8 +130,8 @@ const ScheduleCandidateAction = ({
 }) => (
   <div
     className={cn(
-      "col-start-3 row-span-2 row-start-1 flex w-10 shrink-0 items-center justify-end gap-2 sm:row-auto sm:w-20",
-      isScheduled && notNotified && "w-auto"
+      "flex w-10 shrink-0 items-center justify-end gap-2 sm:w-20",
+      isScheduled && "w-auto sm:w-auto"
     )}
   >
     {isScheduled && notNotified ? <UnsentNotificationMark /> : null}
@@ -184,91 +190,192 @@ export interface ScheduleCandidateTileProps {
   teamName?: string | null;
   positionName?: string | null;
   oneOff?: boolean;
-  /** History or availability is still loading, so no score exists yet. */
+  /** History or availability is still loading. */
   scorePending?: boolean;
+  /** Show the day bars of their schedule around the plan. */
+  showHistory?: boolean;
   onScheduleSuccess?: () => void;
   onScheduleError?: (message: string) => void;
 }
 
-const ScheduleCandidateIdentityRow = ({
+/**
+ * One muted line under a name: other positions on this plan, Planning Center preferences
+ * this plan goes against, then when they last and next serve.
+ */
+const CandidateFacts = ({
+  person,
+  planReferenceDate,
+  alsoOn,
+  onThisPlan,
+  pending,
+}: {
+  person: PersonWithAvailability;
+  planReferenceDate: Date | null;
+  alsoOn: string[];
+  onThisPlan: boolean;
+  pending: boolean;
+}) => {
+  const orgTimeZone = useOrganizationTimeZone();
+  if (pending && person.frequency === undefined) {
+    return <Skeleton variant="text" className="h-3 w-40" />;
+  }
+  const parts = [
+    ...alsoOn.map((position) => ({
+      text: `Also on ${position}`,
+      className: "text-status-info",
+    })),
+    ...preferenceConflicts(person.recommendationReasoning ?? []).map(
+      (conflict) => ({ text: conflict, className: "text-status-scheduled" })
+    ),
+    ...summarizeCandidateSchedule(
+      person.frequency,
+      planReferenceDate,
+      orgTimeZone,
+      { onThisPlan }
+    ).map((text) => ({ text, className: undefined })),
+  ];
+  if (parts.length === 0) {
+    return null;
+  }
+  return (
+    // Sized by the row, not its text, so a long line truncates instead of widening the list.
+    <p className="text-muted-foreground truncate text-xs leading-snug contain-inline-size">
+      {parts.map((part, index) => (
+        <span key={part.text} className={part.className}>
+          {index > 0 ? " · " : null}
+          {part.text}
+        </span>
+      ))}
+    </p>
+  );
+};
+
+const fitTone = (score: number): string => {
+  if (score >= 80) {
+    return "text-status-confirmed";
+  }
+  return score >= 50 ? "text-status-scheduled" : "text-status-declined";
+};
+
+const fitFill = (score: number): string => {
+  if (score >= 80) {
+    return "bg-status-confirmed-bright";
+  }
+  return score >= 50
+    ? "bg-status-scheduled-bright"
+    : "bg-status-declined-bright";
+};
+
+/** The recommendation score, 0 to 100 with the best candidate at 100, with a bar to match. */
+const CandidateFit = ({
+  score,
+  pending,
+}: {
+  score: number | undefined;
+  pending: boolean;
+}) => {
+  if (score === undefined) {
+    return pending ? <Skeleton variant="text" className="h-5 w-12" /> : null;
+  }
+  const rounded = Math.round(score);
+  const fill: CSSProperties & { "--fit-width": string } = {
+    "--fit-width": `${Math.max(rounded, 3)}%`,
+  };
+  return (
+    <span
+      className="flex w-14 shrink-0 flex-col items-end gap-1 sm:w-20"
+      aria-label={`${rounded} fit`}
+    >
+      <span className="flex items-baseline gap-1">
+        <span
+          className={cn(
+            "text-base leading-none font-semibold tabular-nums",
+            fitTone(rounded)
+          )}
+        >
+          {rounded}
+        </span>
+        <span className="text-muted-foreground text-xs">fit</span>
+      </span>
+      <span className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
+        <span
+          className={cn(
+            "block h-full w-(--fit-width) rounded-full",
+            fitFill(rounded)
+          )}
+          style={fill}
+        />
+      </span>
+    </span>
+  );
+};
+
+/** The row's day bars, inset to line up under the name. */
+const CandidateHistory = ({
+  show,
+  person,
+  planReferenceDate,
+  pending,
+}: {
+  show: boolean;
+  person: PersonWithAvailability;
+  planReferenceDate: Date | null;
+  pending: boolean;
+}) =>
+  show ? (
+    <div className="sm:pl-12">
+      <ScheduleDayBars
+        history={person.serviceHistory ?? []}
+        planReferenceDate={planReferenceDate}
+        pending={pending}
+      />
+    </div>
+  ) : null;
+
+const ScheduleErrorLine = ({ error }: { error: string | null }) =>
+  error === null || error === "" ? null : (
+    <p className="text-destructive text-xs sm:pl-12">{error}</p>
+  );
+
+const ScheduleCandidateIdentity = ({
   fullName,
   isUnavailableForSlot,
   unavailableSlotLabel,
   isBlocked,
-  serviceHistory,
-  planReferenceDate,
+  summary,
 }: {
   fullName: string;
   isUnavailableForSlot: boolean;
   unavailableSlotLabel: string | null;
   isBlocked: boolean;
-  serviceHistory: PersonWithAvailability["serviceHistory"];
-  planReferenceDate: Date | null;
+  summary: ReactNode;
 }) => (
-  <div className="flex min-w-0 flex-1 items-center gap-1">
-    <p
-      className={cn(
-        "text-foreground min-w-0 truncate text-sm leading-tight font-medium sm:text-base",
-        isUnavailableForSlot && "text-muted-foreground line-through"
-      )}
-    >
-      {fullName}
-    </p>
-    {unavailableSlotLabel === null ? null : (
-      <span
+  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+    <div className="flex min-w-0 items-center gap-1">
+      <p
         className={cn(
-          "shrink-0 text-xs font-semibold tracking-wide uppercase",
-          isBlocked
-            ? "text-status-scheduled dark:text-status-scheduled"
-            : "text-status-declined dark:text-status-declined"
+          "text-foreground min-w-0 truncate text-sm leading-tight font-medium sm:text-base",
+          isUnavailableForSlot && "text-muted-foreground line-through"
         )}
       >
-        {unavailableSlotLabel}
-      </span>
-    )}
-    <ScheduleContextPopover
-      serviceHistory={serviceHistory ?? []}
-      referenceDate={planReferenceDate}
-    >
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        className="-my-1 shrink-0 sm:my-0"
-        aria-label="Schedule context"
-      >
-        <Info className="text-muted-foreground" />
-      </Button>
-    </ScheduleContextPopover>
+        {fullName}
+      </p>
+      {unavailableSlotLabel === null ? null : (
+        <span
+          className={cn(
+            "shrink-0 text-xs font-semibold tracking-wide uppercase",
+            isBlocked
+              ? "text-status-scheduled dark:text-status-scheduled"
+              : "text-status-declined dark:text-status-declined"
+          )}
+        >
+          {unavailableSlotLabel}
+        </span>
+      )}
+    </div>
+    {summary}
   </div>
 );
-
-const normalizeLabel = (label: string) => label.trim().toLowerCase();
-
-/**
- * The plan's assignment labels other than this slot, which they include when the person is
- * on it. Labels come from two sources, "Team - Position" and bare "Position", so a bare
- * label that a prefixed one already names is dropped.
- */
-const otherPlanAssignments = (
-  labels: readonly string[],
-  teamName: string | null | undefined,
-  positionName: string | null | undefined
-): string[] => {
-  const thisSlot = new Set(
-    isNonEmptyString(positionName)
-      ? [`${teamName ?? ""} - ${positionName}`, positionName].map(
-          normalizeLabel
-        )
-      : []
-  );
-  const others = labels.filter((label) => !thisSlot.has(normalizeLabel(label)));
-  return others.filter((label) => {
-    const bare = normalizeLabel(label);
-    return !others.some((other) =>
-      normalizeLabel(other).endsWith(` - ${bare}`)
-    );
-  });
-};
 
 export const ScheduleCandidateTile = ({
   person,
@@ -282,6 +389,7 @@ export const ScheduleCandidateTile = ({
   positionName,
   oneOff = false,
   scorePending = false,
+  showHistory = true,
   onScheduleSuccess,
   onScheduleError,
 }: ScheduleCandidateTileProps) => {
@@ -332,10 +440,6 @@ export const ScheduleCandidateTile = ({
   const isUnavailableForSlot = isBlocked || isDeclined;
   const unavailableSlotLabel = isUnavailableForSlot ? statusMeta.label : null;
 
-  const recommendationPercentage =
-    isBlocked || person.recommendationScore === undefined
-      ? null
-      : Math.round(person.recommendationScore);
   const disableReason = getDisableReason(
     missingSelection,
     isBlocked,
@@ -345,68 +449,77 @@ export const ScheduleCandidateTile = ({
 
   const canSchedule = disableReason === undefined;
 
-  const serviceHistory = person.serviceHistory ?? [];
   const slotStatus = getSlotStatus(isScheduled, isConfirmed, isDeclined);
+  const alsoOn = isScheduledElsewhereOnPlan
+    ? selectedPlanAssignments.map(positionFromLabel)
+    : [];
+  const showFit = !isScheduled && !isBlocked;
 
   return (
-    <article
-      className={cn(
-        "group/row relative grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1.5 px-3 py-2.5 sm:flex sm:gap-4 sm:py-3",
-        "hover:bg-muted/30"
-      )}
-    >
-      <ScheduleCandidateAvatar
-        person={person}
-        statusLabel={statusMeta.label}
-        slotStatus={slotStatus}
-        isBlocked={isBlocked}
-        isDeclined={isDeclined}
-        isScheduledElsewhereOnPlan={isScheduledElsewhereOnPlan}
-        selectedPlanAssignments={selectedPlanAssignments}
-      />
-
-      <ScheduleCandidateIdentityRow
-        fullName={person.fullName}
-        isUnavailableForSlot={isUnavailableForSlot}
-        unavailableSlotLabel={unavailableSlotLabel}
-        isBlocked={isBlocked}
-        serviceHistory={serviceHistory}
-        planReferenceDate={planReferenceDate}
-      />
-
-      <div className="col-span-2 col-start-2 row-start-2 min-w-0 sm:col-auto sm:row-auto sm:block sm:w-28 sm:shrink-0">
-        <ScheduleCandidateScore
+    <article className="group/row hover:bg-muted/30 relative flex flex-col gap-2 px-4 py-3 sm:py-3.5">
+      <div className="flex items-center gap-2.5 sm:gap-4">
+        <ScheduleCandidateAvatar
           person={person}
-          percentage={recommendationPercentage}
-          pending={scorePending && !isBlocked}
+          statusLabel={statusMeta.label}
+          slotStatus={slotStatus}
+          isBlocked={isBlocked}
+          isDeclined={isDeclined}
+          isScheduledElsewhereOnPlan={isScheduledElsewhereOnPlan}
+          selectedPlanAssignments={selectedPlanAssignments}
+        />
+
+        <ScheduleCandidateIdentity
+          fullName={person.fullName}
+          isUnavailableForSlot={isUnavailableForSlot}
+          unavailableSlotLabel={unavailableSlotLabel}
+          isBlocked={isBlocked}
+          summary={
+            <CandidateFacts
+              person={person}
+              planReferenceDate={planReferenceDate}
+              alsoOn={alsoOn}
+              onThisPlan={isScheduled || isScheduledElsewhereOnPlan}
+              pending={scorePending}
+            />
+          }
+        />
+
+        {showFit ? (
+          <CandidateFit
+            score={person.recommendationScore}
+            pending={scorePending}
+          />
+        ) : null}
+
+        <ScheduleCandidateAction
+          person={person}
+          serviceTypeId={serviceTypeId}
+          planId={planId}
+          teamId={teamId}
+          positionId={positionId}
+          isScheduled={isScheduled}
+          isConfirmed={isConfirmed}
+          isDeclined={isDeclined}
+          isScheduling={isScheduling}
+          canSchedule={canSchedule}
+          disableReason={disableReason}
+          notNotified={notNotified}
+          onSchedule={() => {
+            handleSchedule(person);
+          }}
+          onScheduleSuccess={onScheduleSuccess}
+          onScheduleError={onScheduleError}
         />
       </div>
 
-      <ScheduleCandidateAction
+      <CandidateHistory
+        show={showHistory}
         person={person}
-        serviceTypeId={serviceTypeId}
-        planId={planId}
-        teamId={teamId}
-        positionId={positionId}
-        isScheduled={isScheduled}
-        isConfirmed={isConfirmed}
-        isDeclined={isDeclined}
-        isScheduling={isScheduling}
-        canSchedule={canSchedule}
-        disableReason={disableReason}
-        notNotified={notNotified}
-        onSchedule={() => {
-          handleSchedule(person);
-        }}
-        onScheduleSuccess={onScheduleSuccess}
-        onScheduleError={onScheduleError}
+        planReferenceDate={planReferenceDate}
+        pending={scorePending}
       />
 
-      {scheduleError !== null && scheduleError !== "" ? (
-        <p className="text-destructive col-span-2 col-start-2 text-xs sm:absolute sm:-bottom-1 sm:left-14">
-          {scheduleError}
-        </p>
-      ) : null}
+      <ScheduleErrorLine error={scheduleError} />
     </article>
   );
 };

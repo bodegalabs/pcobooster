@@ -10,13 +10,17 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Item } from "@/components/ui/item";
+import { Label } from "@/components/ui/label";
 import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 export const SelectedPositionHeader = ({
   slotControls,
   info,
+  showHistory,
+  onShowHistoryChange,
   onOpenPicker,
   onBack,
   hasSlots,
@@ -31,6 +35,8 @@ export const SelectedPositionHeader = ({
     positionName: string;
     position: TeamPosition;
   } | null;
+  showHistory: boolean;
+  onShowHistoryChange: (next: boolean) => void;
   onOpenPicker: () => void;
   onBack: () => void;
   hasSlots: boolean;
@@ -138,6 +144,14 @@ export const SelectedPositionHeader = ({
             </InputGroupAddon>
           ) : null}
         </InputGroup>
+        <Label className="shrink-0">
+          <Switch
+            size="sm"
+            checked={showHistory}
+            onCheckedChange={onShowHistoryChange}
+          />
+          Show history
+        </Label>
       </div>
     </div>
   );

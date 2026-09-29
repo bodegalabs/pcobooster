@@ -42,11 +42,6 @@
   }
 }
 
-@utility recommendation-progress {
-  width: var(--recommendation-width);
-  transition: width 150ms ease;
-}
-
 @utility sortable-plan-item {
   transform: var(--sortable-transform, none);
   transition: var(

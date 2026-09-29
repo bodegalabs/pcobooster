@@ -20,7 +20,7 @@ const basePerson = (
 });
 
 describe(partitionPeopleForRecommendationStrip, () => {
-  it("orders actionable by recommendation score descending, exceptions after divider order", () => {
+  it("orders candidates by recommendation score descending, exceptions after", () => {
     const people = [
       basePerson("1", "A High", { recommendationScore: 90 }),
       basePerson("2", "B Low", { recommendationScore: 10 }),
@@ -30,13 +30,13 @@ describe(partitionPeopleForRecommendationStrip, () => {
       }),
       basePerson("4", "D Mid", { recommendationScore: 50 }),
     ];
-    const { actionable, exceptions } =
+    const { candidates, exceptions } =
       partitionPeopleForRecommendationStrip(people);
-    expect(actionable.map((p) => p.id)).toStrictEqual(["1", "4", "2"]);
+    expect(candidates.map((p) => p.id)).toStrictEqual(["1", "4", "2"]);
     expect(exceptions.map((p) => p.id)).toStrictEqual(["3"]);
   });
 
-  it("places on-slot people first (confirmed before pending), then the rest by score", () => {
+  it("separates on-slot people (confirmed before pending) from candidates", () => {
     const people = [
       basePerson("1", "Scheduled", {
         isScheduledForSelectedPlanPosition: true,
@@ -48,10 +48,26 @@ describe(partitionPeopleForRecommendationStrip, () => {
         recommendationScore: 0,
       }),
     ];
-    const { actionable, exceptions } =
+    const { onSlot, candidates, exceptions } =
       partitionPeopleForRecommendationStrip(people);
-    expect(actionable.map((p) => p.id)).toStrictEqual(["3", "1", "2"]);
+    expect(onSlot.map((p) => p.id)).toStrictEqual(["3", "1"]);
+    expect(candidates.map((p) => p.id)).toStrictEqual(["2"]);
     expect(exceptions.map((p) => p.id)).toStrictEqual([]);
+  });
+
+  it("keeps a blocked person who is on the slot with the slot", () => {
+    const people = [
+      basePerson("1", "Blocked On Slot", {
+        isScheduledForSelectedPlanPosition: true,
+        isBlockedForDate: true,
+      }),
+      basePerson("2", "Blocked", { isBlockedForDate: true }),
+    ];
+    const { onSlot, candidates, exceptions } =
+      partitionPeopleForRecommendationStrip(people);
+    expect(onSlot.map((p) => p.id)).toStrictEqual(["1"]);
+    expect(candidates.map((p) => p.id)).toStrictEqual([]);
+    expect(exceptions.map((p) => p.id)).toStrictEqual(["2"]);
   });
 
   it("places declined after main strip, blocked before declined in tail", () => {
@@ -66,9 +82,9 @@ describe(partitionPeopleForRecommendationStrip, () => {
       }),
       basePerson("o", "Open", { recommendationScore: 50 }),
     ];
-    const { actionable, exceptions } =
+    const { candidates, exceptions } =
       partitionPeopleForRecommendationStrip(people);
-    expect(actionable.map((p) => p.id)).toStrictEqual(["o"]);
+    expect(candidates.map((p) => p.id)).toStrictEqual(["o"]);
     expect(exceptions.map((p) => p.id)).toStrictEqual(["b", "d"]);
   });
 
@@ -87,13 +103,16 @@ describe(partitionPeopleForRecommendationStrip, () => {
         isScheduledForSelectedPlanPosition: true,
       }),
     ];
-    const { actionable, exceptions } = partitionPeopleForRecommendationStrip(
-      people,
-      { settled: false }
-    );
+    const { onSlot, candidates, exceptions } =
+      partitionPeopleForRecommendationStrip(people, { settled: false });
     expect({
-      actionable: actionable.map((p) => p.id),
+      onSlot: onSlot.map((p) => p.id),
+      candidates: candidates.map((p) => p.id),
       exceptions: exceptions.map((p) => p.id),
-    }).toStrictEqual({ actionable: ["4", "2", "1"], exceptions: ["3"] });
+    }).toStrictEqual({
+      onSlot: ["4"],
+      candidates: ["2", "1"],
+      exceptions: ["3"],
+    });
   });
 });

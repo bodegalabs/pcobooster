@@ -53,3 +53,27 @@ export const groupRankingReasons = (
   }
   return facts;
 };
+
+const PREFERENCE_WORDING: readonly [RegExp, string][] = [
+  [/^Prefers to serve /u, "Prefers "],
+  [/ in Planning Center$/u, ""],
+];
+
+/**
+ * Scheduling preferences this plan goes against, as short phrases ("Prefers every 2
+ * weeks", "Marked Unavailable for this position"). Preferences the plan fits are left out.
+ */
+export const preferenceConflicts = (reasons: readonly string[]): string[] => {
+  const conflicts: string[] = [];
+  for (const fact of groupRankingReasons(reasons)) {
+    if (fact.kind !== "preference" || fact.adjustments.length === 0) {
+      continue;
+    }
+    let { text } = fact;
+    for (const [pattern, replacement] of PREFERENCE_WORDING) {
+      text = text.replace(pattern, replacement);
+    }
+    conflicts.push(text);
+  }
+  return conflicts;
+};
