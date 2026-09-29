@@ -445,7 +445,7 @@ const SortablePlanItem = ({
       style={style}
       className={cn(
         "sortable-plan-item relative",
-        item.itemType === "header" && "pt-3 first:pt-0",
+        item.itemType === "header" ? "pt-3 first:pt-0" : "plan-item-divider",
         isSortableDragging && "z-20 opacity-0"
       )}
     >
