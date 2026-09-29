@@ -7,7 +7,12 @@ import type {
 } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
-const SUGGESTION_LIMIT = 30;
+/**
+ * Enough recent songs to reach past the last few weeks, which the library shows as just
+ * sung, to what other services sang a month or two ago.
+ */
+const RECENT_LIMIT = 100;
+const RESTING_LIMIT = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** Songs not played for this long are resting: known to the team, not worn out. */
 export const RESTING_AFTER_DAYS = 90;
@@ -42,10 +47,10 @@ export const suggestFromCatalog = (
   return {
     recentlyPlayed: played
       .filter((song) => (song.lastScheduledAt?.getTime() ?? 0) >= restingBefore)
-      .slice(0, SUGGESTION_LIMIT),
+      .slice(0, RECENT_LIMIT),
     resting: played
       .filter((song) => (song.lastScheduledAt?.getTime() ?? 0) < restingBefore)
-      .slice(0, SUGGESTION_LIMIT),
+      .slice(0, RESTING_LIMIT),
   };
 };
 

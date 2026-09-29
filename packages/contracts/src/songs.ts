@@ -22,6 +22,21 @@ export const songsSearchOutputSchema = z.array(songCatalogEntrySchema);
 
 export const songsSuggestionsInputSchema = z.object({});
 
+export const songsHistoryInputSchema = z.object({ songId: requiredId });
+
+export const songHistoryEntrySchema = z.object({
+  planId: z.string().nullable(),
+  serviceTypeId: z.string().nullable(),
+  serviceTypeName: z.string(),
+  sortDate: z.date(),
+  keyName: z.string().nullable(),
+  startingKey: z.string().nullable(),
+  arrangementName: z.string().nullable(),
+});
+
+/** Every plan in any service type that scheduled the song over the past year, newest first. */
+export const songsHistoryOutputSchema = z.array(songHistoryEntrySchema);
+
 export const songsSuggestionsOutputSchema = z.object({
   /** Played most recently first. */
   recentlyPlayed: z.array(songCatalogEntrySchema),
@@ -54,6 +69,14 @@ export const songsContract = {
     })
     .input(songsSuggestionsInputSchema)
     .output(songsSuggestionsOutputSchema),
+  history: songsProcedure
+    .route({
+      method: "GET",
+      path: "/songs/{songId}/history",
+      summary: "Read where and when a song was sung across every service",
+    })
+    .input(songsHistoryInputSchema)
+    .output(songsHistoryOutputSchema),
   options: songsProcedure
     .route({
       method: "GET",
@@ -67,3 +90,5 @@ export const songsContract = {
 export type SongsSearchInput = z.input<typeof songsSearchInputSchema>;
 export type SongsOptionsInput = z.input<typeof songsOptionsInputSchema>;
 export type SongsSuggestions = z.output<typeof songsSuggestionsOutputSchema>;
+export type SongsHistoryInput = z.input<typeof songsHistoryInputSchema>;
+export type SongHistoryEntry = z.output<typeof songHistoryEntrySchema>;

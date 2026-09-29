@@ -1,4 +1,5 @@
 import {
+  getRunSheetSongHistory,
   getRunSheetSongOptions,
   searchRunSheetSongs,
   suggestRunSheetSongs,
@@ -15,6 +16,11 @@ const suggestions = rpc.songs.suggestions.handler(
   async (call) => await readWithPlanningCenter(suggestRunSheetSongs(), call)
 );
 
+const history = rpc.songs.history.handler(
+  async ({ input, ...call }) =>
+    await readWithPlanningCenter(getRunSheetSongHistory(input), call)
+);
+
 const options = rpc.songs.options.handler(
   async ({ input, ...call }) =>
     await readWithPlanningCenter(getRunSheetSongOptions(input), call)
@@ -23,5 +29,6 @@ const options = rpc.songs.options.handler(
 export const songsRouter = {
   search,
   suggestions,
+  history,
   options,
 };

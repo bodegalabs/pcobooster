@@ -38,14 +38,18 @@ export const PLAN_BUILDER_SHORTCUTS = [
   { id: "plan.previous", label: "Previous row", binding: "K" },
   { id: "plan.moveDown", label: "Move row down", binding: "Alt+ArrowDown" },
   { id: "plan.moveUp", label: "Move row up", binding: "Alt+ArrowUp" },
-  { id: "plan.details", label: "Open the row's details", binding: "Enter" },
-  { id: "plan.addSong", label: "Add a song after the row", binding: "/" },
-  { id: "plan.addHeader", label: "Add a header after the row", binding: "H" },
-  { id: "plan.addItem", label: "Add an item after the row", binding: "I" },
+  {
+    id: "plan.details",
+    label: "Edit the row's details",
+    binding: "Enter",
+  },
+  { id: "plan.addSong", label: "Add a song", binding: "/" },
+  { id: "plan.addHeader", label: "Add a header", binding: "H" },
+  { id: "plan.addItem", label: "Add an item", binding: "I" },
   { id: "plan.remove", label: "Remove the row", binding: "Backspace" },
   {
     id: "plan.clear",
-    label: "Close details, then clear the selection",
+    label: "Leave details, then clear the selection",
     binding: "Escape",
   },
 ] as const satisfies readonly {

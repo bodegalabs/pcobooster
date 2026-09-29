@@ -44,12 +44,6 @@ import { cn } from "@/lib/utils";
 
 export type PlanInsertKind = "song" | "header" | "item";
 
-/** Where a dragged library song will land, relative to the row under it. */
-export interface PlanDropIndicator {
-  itemId: string;
-  side: "before" | "after";
-}
-
 const planItemSkeletonRows = [
   { key: "a", header: true, title: "9rem" },
   { key: "b", header: false, title: "11rem" },
@@ -61,7 +55,7 @@ const planItemSkeletonRows = [
 ];
 
 export const PlanItemListSkeleton = () => (
-  <div className="flex w-full max-w-4xl flex-col pb-4 contain-inline-size">
+  <div className="flex w-full flex-col pb-4 contain-inline-size">
     {planItemSkeletonRows.map((row) =>
       row.header ? (
         <div
@@ -349,7 +343,7 @@ const InsertAfter = ({
   itemTitle: string;
   onInsert: (kind: PlanInsertKind) => void;
 }) => (
-  <div className="absolute inset-x-0 -bottom-2 z-10 flex h-4 opacity-0 focus-within:opacity-100 hover:opacity-100 has-data-popup-open:opacity-100 max-sm:hidden pointer-coarse:hidden">
+  <div className="absolute inset-x-0 -bottom-2 z-10 flex h-4 opacity-0 hover:opacity-100 has-focus-visible:opacity-100 has-data-popup-open:opacity-100 max-sm:hidden pointer-coarse:hidden">
     <DropdownMenu>
       {/* The whole strip opens the menu; the plus only marks where it is. */}
       <DropdownMenuTrigger
@@ -402,13 +396,11 @@ interface SortablePlanItemProps extends Omit<
   "dragAttributes" | "dragListeners" | "isDragged"
 > {
   isDragging: boolean;
-  dropSide: PlanDropIndicator["side"] | null;
 }
 
 const SortablePlanItem = ({
   item,
   isDragging,
-  dropSide,
   ...rowProps
 }: SortablePlanItemProps) => {
   const {
@@ -439,12 +431,6 @@ const SortablePlanItem = ({
         isSortableDragging && "z-20 opacity-0"
       )}
     >
-      {dropSide === "before" ? (
-        <span
-          aria-hidden
-          className="bg-primary absolute inset-x-0 top-0 h-0.5 rounded-full"
-        />
-      ) : null}
       <PlanItemRow
         item={item}
         {...rowProps}
@@ -452,12 +438,6 @@ const SortablePlanItem = ({
         dragAttributes={attributes}
         dragListeners={listeners}
       />
-      {dropSide === "after" ? (
-        <span
-          aria-hidden
-          className="bg-primary absolute inset-x-0 -bottom-px h-0.5 rounded-full"
-        />
-      ) : null}
       <InsertAfter
         itemTitle={item.title || "this item"}
         onInsert={(kind) => {
@@ -475,14 +455,13 @@ interface PlanItemListProps {
   recentPlays: ReadonlyMap<string, number>;
   selectedItemId: string | null;
   activeItemId: string | null;
-  dropIndicator: PlanDropIndicator | null;
   pendingItemId: string | null;
   serviceTypeId: string | null;
   handlers: PlanItemRowHandlers;
   getItemIntentProps?: (itemId: string) => IntentPrefetchProps;
 }
 
-/** The run sheet's rows. The drag context lives in the builder so library songs can drop here. */
+/** The run sheet's rows. The drag context lives in the builder. */
 export const PlanItemList = ({
   items,
   runSheet,
@@ -490,7 +469,6 @@ export const PlanItemList = ({
   recentPlays,
   selectedItemId,
   activeItemId,
-  dropIndicator,
   pendingItemId,
   serviceTypeId,
   handlers,
@@ -501,7 +479,7 @@ export const PlanItemList = ({
     strategy={verticalListSortingStrategy}
   >
     {/* Sized by the page, not by long titles, so truncation holds. */}
-    <div className="pb-safe-4 flex w-full max-w-4xl flex-col contain-inline-size md:pb-4">
+    <div className="pb-safe-4 flex w-full flex-col contain-inline-size md:pb-4">
       {items.map((item) => (
         <SortablePlanItem
           key={item.id}
@@ -512,9 +490,6 @@ export const PlanItemList = ({
           selected={selectedItemId === item.id}
           isBusy={pendingItemId === item.id}
           isDragging={activeItemId === item.id}
-          dropSide={
-            dropIndicator?.itemId === item.id ? dropIndicator.side : null
-          }
           serviceTypeId={serviceTypeId}
           handlers={handlers}
           intentProps={getItemIntentProps?.(item.id)}
@@ -533,7 +508,7 @@ export const PlanItemListEmpty = ({
   onAddHeader: () => void;
   onAddItem: () => void;
 }) => (
-  <div className="max-w-4xl py-1">
+  <div className="py-1">
     <Card className="text-center">
       <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
         <FileMusic className="text-muted-foreground/70 size-5" />

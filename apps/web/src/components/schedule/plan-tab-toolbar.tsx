@@ -64,7 +64,7 @@ export const PlanTabToolbar = ({
   onAddHeader,
   onAddItem,
 }: PlanTabToolbarProps) => (
-  <div className="bg-background sticky top-0 z-20 flex w-full max-w-4xl shrink-0 flex-wrap items-center gap-x-4 gap-y-2 py-1">
+  <div className="bg-background sticky top-0 z-20 flex w-full shrink-0 flex-wrap items-center gap-x-4 gap-y-2 py-1">
     <p className="text-muted-foreground w-full text-sm tabular-nums sm:w-auto sm:flex-1">
       {reordering ? (
         <span className="inline-flex items-center gap-1.5">

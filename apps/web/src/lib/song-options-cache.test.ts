@@ -41,6 +41,8 @@ const optionSet = (): SongOptionSet => ({
       name: "Default",
       sequence: ["Verse", "Chorus"],
       length: 300,
+      bpm: 72,
+      meter: "4/4",
       archived: false,
       keys: [
         {

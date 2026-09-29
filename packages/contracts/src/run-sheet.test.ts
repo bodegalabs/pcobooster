@@ -103,6 +103,8 @@ describe("run-sheet contracts", () => {
           name: "Original",
           sequence: ["V1", "C"],
           length: null,
+          bpm: null,
+          meter: null,
           archived: false,
           keys: [key],
         },

@@ -25,6 +25,8 @@ const songOptions: SongOptionSet = {
       name: "Default",
       sequence: ["Verse 1"],
       length: 240,
+      bpm: null,
+      meter: null,
       archived: false,
       keys: [
         {

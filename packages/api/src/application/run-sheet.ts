@@ -25,6 +25,8 @@ import {
 import type { PlanTimeDependencies } from "@pcobooster/api/modules/planning-center/plan-times";
 import { reorderPlanItems } from "@pcobooster/api/modules/planning-center/reorder-plan-items";
 import { searchSongs } from "@pcobooster/api/modules/planning-center/search-songs";
+import { getSongHistory } from "@pcobooster/api/modules/planning-center/song-history";
+import type { SongHistoryEntry } from "@pcobooster/api/modules/planning-center/song-history";
 import { suggestSongs } from "@pcobooster/api/modules/planning-center/song-suggestions";
 import type { SongSuggestions } from "@pcobooster/api/modules/planning-center/song-suggestions";
 import {
@@ -48,6 +50,7 @@ import type {
   PlanTimesUpdateInput,
 } from "@pcobooster/contracts/plan-times";
 import type {
+  SongsHistoryInput,
   SongsOptionsInput,
   SongsSearchInput,
 } from "@pcobooster/contracts/songs";
@@ -293,6 +296,21 @@ export const suggestRunSheetSongs = (): Effect.Effect<
       access.services.songs,
       new Date()
     );
+  }).pipe(withPlanningCenterFaults);
+
+export const getRunSheetSongHistory = (
+  input: SongsHistoryInput
+): Effect.Effect<
+  SongHistoryEntry[],
+  ApplicationFault,
+  PlanningCenterAccess | RequestContext
+> =>
+  Effect.gen(function* readSongHistory() {
+    const access = yield* PlanningCenterAccess;
+    return yield* getSongHistory(input.songId, new Date(), {
+      songs: access.services.songs,
+      resolveTimeZone: access.services.organizationTimeZone,
+    });
   }).pipe(withPlanningCenterFaults);
 
 export const getRunSheetSongOptions = (

@@ -39,11 +39,16 @@ import { queryKeys } from "@/lib/query-keys";
 import { requestScheduler, speculativeQuery } from "@/lib/request-priority";
 import { orpc } from "@/orpc-client";
 
+export type AddedPlanItemKind = "song" | "header" | "item";
+
 interface UsePlanTabControllerArgs {
   serviceTypeId: string | null;
   planId: string | null;
-  /** Called with a new song's item so the builder can select it. */
-  onSongAdded?: (itemId: string) => void;
+  /**
+   * Called with a new row's id so the builder can select it: first the optimistic id,
+   * then Planning Center's once the item exists.
+   */
+  onItemAdded?: (itemId: string, kind: AddedPlanItemKind) => void;
 }
 
 const EMPTY_PLAN_ITEMS: PlanItem[] = [];
@@ -56,7 +61,8 @@ interface PendingDelete {
   toastId: string | number;
 }
 
-const isOptimisticItemId = (itemId: string) => itemId.startsWith("optimistic-");
+export const isOptimisticItemId = (itemId: string) =>
+  itemId.startsWith("optimistic-");
 
 const toPlanItemServicePosition = (
   value: string
@@ -67,13 +73,16 @@ const toPlanItemServicePosition = (
   return undefined;
 };
 
+const savedLengthOf = (length: number | null) =>
+  length !== null && !Number.isNaN(length) && length > 0 ? length : null;
+
 const toErrorMessage = (error: Error, fallback: string) =>
   error instanceof Error ? error.message : fallback;
 
 export const usePlanTabController = ({
   serviceTypeId,
   planId,
-  onSongAdded,
+  onItemAdded,
 }: UsePlanTabControllerArgs) => {
   const queryClient = useQueryClient();
   const queryKey = queryKeys.planItems(serviceTypeId, planId);
@@ -92,26 +101,11 @@ export const usePlanTabController = ({
       : (itemsData ?? EMPTY_PLAN_ITEMS).filter(
           (item) => !pendingDeleteIds.has(item.id)
         );
-  const [editor, setEditor] = useState<{
-    scope: string;
-    itemId: string | null;
-    pickerOpen: boolean;
-  }>({ scope: planScope, itemId: null, pickerOpen: false });
-  const editingItemId = editor.scope === planScope ? editor.itemId : null;
-  const songPickerOpen = editor.scope === planScope && editor.pickerOpen;
-  const setEditingItemId = (itemId: string | null) => {
-    setEditor((current) => ({
-      scope: planScope,
-      itemId,
-      pickerOpen: current.scope === planScope && current.pickerOpen,
-    }));
-  };
-  const setSongPickerOpen = (pickerOpen: boolean) => {
-    setEditor((current) => ({
-      scope: planScope,
-      pickerOpen,
-      itemId: current.scope === planScope ? current.itemId : null,
-    }));
+  // The phone song picker belongs to one plan, so stepping to another plan closes it.
+  const [pickerScope, setPickerScope] = useState<string | null>(null);
+  const songPickerOpen = pickerScope === planScope;
+  const setSongPickerOpen = (open: boolean) => {
+    setPickerScope(open ? planScope : null);
   };
   const [pendingItemId, setPendingItemId] = useState<string | null>(null);
   const [pendingSongId, setPendingSongId] = useState<string | null>(null);
@@ -233,6 +227,7 @@ export const usePlanTabController = ({
     onMutate: async ({ kind, insertion, optimisticItemId }) => {
       await queryClient.cancelQueries({ queryKey });
       setPendingItemId(optimisticItemId);
+      onItemAdded?.(optimisticItemId, kind);
 
       return {
         snapshot: applyPlanItemsOptimisticUpdate(
@@ -251,13 +246,13 @@ export const usePlanTabController = ({
         ),
       };
     },
-    onSuccess: (item, { optimisticItemId }) => {
+    onSuccess: (item, { kind, optimisticItemId }) => {
       queryClient.setQueryData<PlanItem[]>(
         queryKey,
         (current = EMPTY_PLAN_ITEMS) =>
           replacePlanItemById(current, optimisticItemId, item)
       );
-      setEditingItemId(item.id);
+      onItemAdded?.(item.id, kind);
     },
     onError: (error, _kind, context) => {
       restorePlanItemsSnapshot(queryClient, queryKey, context?.snapshot);
@@ -294,6 +289,11 @@ export const usePlanTabController = ({
           songOptionsQuery.queryKey
         ) ?? null;
 
+      const suggestedArrangement =
+        songOptions?.arrangements.find(
+          (arrangement) => arrangement.id === songOptions.suggestedArrangementId
+        ) ?? null;
+
       const created = await orpc.planItems.create({
         serviceTypeId,
         planId,
@@ -302,6 +302,8 @@ export const usePlanTabController = ({
         arrangementId: songOptions?.suggestedArrangementId ?? undefined,
         keyId: songOptions?.suggestedKeyId ?? undefined,
         selectedLayoutId: songOptions?.suggestedLayoutId ?? undefined,
+        // Without cached options the server fills the arrangement's length itself.
+        length: suggestedArrangement?.length ?? undefined,
       });
       await placeCreatedItem(created, optimisticItemId, insertion);
       return created;
@@ -312,7 +314,7 @@ export const usePlanTabController = ({
       setPendingSongId(song.id);
       setPendingItemId(optimisticItemId);
       setSongPickerOpen(false);
-      onSongAdded?.(optimisticItemId);
+      onItemAdded?.(optimisticItemId, "song");
 
       return {
         snapshot: applyPlanItemsOptimisticUpdate(
@@ -337,7 +339,7 @@ export const usePlanTabController = ({
         (current = EMPTY_PLAN_ITEMS) =>
           replacePlanItemById(current, optimisticItemId, item)
       );
-      onSongAdded?.(item.id);
+      onItemAdded?.(item.id, "song");
     },
     onError: (error, _song, context) => {
       restorePlanItemsSnapshot(queryClient, queryKey, context?.snapshot);
@@ -397,9 +399,6 @@ export const usePlanTabController = ({
     const item = items.find((candidate) => candidate.id === itemId);
     if (item === undefined || isOptimisticItemId(itemId)) {
       return;
-    }
-    if (editingItemId === itemId) {
-      setEditingItemId(null);
     }
     setPendingDeleteIds((current) => new Set(current).add(itemId));
     const toastId = toast(`Removed “${item.title || "Untitled item"}”`, {
@@ -530,10 +529,8 @@ export const usePlanTabController = ({
         planId,
         title: item.song ? item.title : draft.title,
         servicePosition: toPlanItemServicePosition(draft.servicePosition),
-        length:
-          length !== null && length !== 0 && !Number.isNaN(length) && length > 0
-            ? length
-            : null,
+        // Planning Center rejects any length on a header, even an empty one.
+        length: item.itemType === "header" ? undefined : savedLengthOf(length),
         description: draft.description,
         songId: undefined,
         arrangementId: draft.arrangementId || undefined,
@@ -587,17 +584,12 @@ export const usePlanTabController = ({
   return {
     items,
     isLoading,
-    editingItemId,
-    editingItem: isNonEmptyString(editingItemId)
-      ? (items.find((item) => item.id === editingItemId) ?? null)
-      : null,
     songPickerOpen,
     pendingItemId,
     pendingSongId,
     isReordering: reorderItemsMutation.isPending,
     isCreatingBasicItem: createItemMutation.isPending,
     isSavingItem: updateItemMutation.isPending,
-    setEditingItemId,
     setSongPickerOpen,
     createBasicItem: async (
       kind: "header" | "item",

@@ -3,7 +3,6 @@ import type {
   PlanItem,
   SongOptionSet,
 } from "@pcobooster/planning-center-models/types";
-import type { ReactNode } from "react";
 
 export interface DraftState {
   title: string;
@@ -15,11 +14,6 @@ export interface DraftState {
 }
 
 export const NONE_VALUE = "__none__";
-export interface FieldProps {
-  label: string;
-  className?: string;
-  children: ReactNode;
-}
 
 export const buildDraft = (item: PlanItem): DraftState => {
   const length = item.length ?? 0;

@@ -69,6 +69,54 @@ describe("plan item payload helpers", () => {
     });
   });
 
+  it("gives a new song its arrangement's length unless one was chosen", async () => {
+    const options = {
+      song: {
+        id: "song-1",
+        title: "Build My Life",
+        author: "Pat Barrett",
+        themes: "Worship",
+        hidden: false,
+        lastScheduledAt: null,
+      },
+      arrangements: [
+        {
+          id: "arr-1",
+          name: "Default",
+          sequence: [],
+          length: 312,
+          bpm: null,
+          meter: null,
+          archived: false,
+          keys: [],
+        },
+      ],
+      layouts: [],
+      currentLayout: null,
+      suggestedArrangementId: "arr-1",
+      suggestedKeyId: "key-1",
+      suggestedLayoutId: null,
+      layoutMode: "existing-only" as const,
+    };
+    getSongOptionsMock.mockReturnValue(Effect.succeed(options));
+
+    const defaulted = await Effect.runPromise(
+      resolvePlanItemSongDefaults(
+        { serviceTypeId: "service-1", songId: "song-1" },
+        getSongOptionsMock
+      )
+    );
+    const chosen = await Effect.runPromise(
+      resolvePlanItemSongDefaults(
+        { serviceTypeId: "service-1", songId: "song-1", length: null },
+        getSongOptionsMock
+      )
+    );
+
+    expect(defaulted).toHaveLength(312);
+    expect(chosen.length).toBeNull();
+  });
+
   it("does not fetch song defaults when the client already supplied them", async () => {
     const resolved = await Effect.runPromise(
       resolvePlanItemSongDefaults(
