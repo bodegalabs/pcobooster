@@ -156,7 +156,7 @@ describe(rankAlternateKeys, () => {
 });
 
 describe(suggestionNote, () => {
-  it("joins the title and the advice into one line", () => {
+  it("joins the advice into one line, without its title", () => {
     expect(
       suggestionNote({
         id: "borrow",
@@ -167,7 +167,7 @@ describe(suggestionNote, () => {
           { kind: "text", text: ", then C7." },
         ],
       })
-    ).toBe("Borrow a chord: End on Gm, then C7.");
+    ).toBe("End on Gm, then C7.");
   });
 });
 

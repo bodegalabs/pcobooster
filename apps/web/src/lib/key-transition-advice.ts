@@ -151,9 +151,9 @@ export interface TransitionSuggestion {
   segments: AdviceSegment[];
 }
 
-/** A suggestion as one line for a plan item's notes: "Borrow a chord: End … then C7 …". */
+/** A suggestion's advice as one line for a plan item's notes: "End … on Gm, then C7 …". */
 export const suggestionNote = (suggestion: TransitionSuggestion): string =>
-  `${suggestion.title}: ${suggestion.segments.map((segment) => segment.text).join("")}`;
+  suggestion.segments.map((segment) => segment.text).join("");
 
 /** Notes with `line` added on its own line; unchanged when they already have it. */
 export const appendNote = (notes: string, line: string): string => {
