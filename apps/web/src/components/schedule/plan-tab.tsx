@@ -4,7 +4,7 @@ import type {
   SongCatalogEntry,
 } from "@pcobooster/planning-center-models/types";
 import { startTransition, useRef, useState } from "react";
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, ReactNode, RefObject } from "react";
 import { toast } from "sonner";
 
 import { PageScrollArea } from "@/components/page-shell";
@@ -224,6 +224,46 @@ const PlanRunSheet = ({
     <div className={cn("relative pb-20", revealClassName)}>
       <PlanItemList items={items} {...listProps} />
     </div>
+  );
+};
+
+/**
+ * The details beside the run sheet on wide screens. Closing keeps the last details on
+ * screen just long enough to fade them out.
+ */
+const DetailsAside = ({
+  ref,
+  pane,
+}: {
+  ref: RefObject<HTMLElement | null>;
+  pane: ReactNode;
+}) => {
+  const [lastPane, setLastPane] = useState<ReactNode>(pane);
+  if (pane !== null && pane !== lastPane) {
+    setLastPane(pane);
+  }
+  const closing = pane === null;
+  if (closing && lastPane === null) {
+    return null;
+  }
+  return (
+    <aside
+      ref={ref}
+      aria-label="Details"
+      className={cn(
+        "flex min-h-0 w-[min(24rem,34vw)] shrink-0 flex-col pb-4 ease-out",
+        closing
+          ? "animate-out fade-out-0 slide-out-to-right-2 pointer-events-none duration-100"
+          : "animate-in fade-in-0 slide-in-from-right-4 pointer-events-none duration-200 *:pointer-events-auto motion-reduce:animate-none"
+      )}
+      onAnimationEnd={(event) => {
+        if (closing && event.target === event.currentTarget) {
+          setLastPane(null);
+        }
+      }}
+    >
+      {closing ? lastPane : pane}
+    </aside>
   );
 };
 
@@ -557,15 +597,7 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
             }}
           />
         </div>
-        {isWide && pane !== null ? (
-          <aside
-            ref={paneRef}
-            aria-label="Details"
-            className="animate-in fade-in-0 slide-in-from-right-4 pointer-events-none flex min-h-0 w-[min(24rem,34vw)] shrink-0 flex-col pb-4 duration-200 ease-out *:pointer-events-auto motion-reduce:animate-none"
-          >
-            {pane}
-          </aside>
-        ) : null}
+        {isWide ? <DetailsAside ref={paneRef} pane={pane} /> : null}
       </div>
       <PlanBuilderDragPreview
         item={draggedItem}
