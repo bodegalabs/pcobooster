@@ -83,7 +83,7 @@ interface LineupTabProps {
 
 /** Teams fill the width in as many columns as fit; phones get one. */
 const lineupGridClassName =
-  "pb-safe-4 grid grid-cols-[repeat(auto-fill,minmax(min(20rem,100%),1fr))] items-start gap-3";
+  "pb-safe-4 grid grid-cols-[repeat(auto-fill,minmax(min(20rem,100%),1fr))] items-start gap-3 pt-1";
 const teamPanelClassName =
   "bg-background text-foreground shadow-xs ring-foreground/5 dark:ring-foreground/10 flex flex-col rounded-xl ring-1";
 const teamHeaderClassName =
