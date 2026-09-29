@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { parseMusicalKey } from "@/lib/key-theory";
 import type { MusicalKey } from "@/lib/key-theory";
 import {
+  appendNote,
+  suggestionNote,
   rankAlternateKeys,
   rateKeyChange,
   transitionSuggestions,
@@ -150,5 +152,39 @@ describe(rankAlternateKeys, () => {
     expect(
       rankAlternateKeys({ fromKey: key("C"), toKey: key("Eb") }, candidates)
     ).toStrictEqual(["D", "F"]);
+  });
+});
+
+describe(suggestionNote, () => {
+  it("joins the title and the advice into one line", () => {
+    expect(
+      suggestionNote({
+        id: "borrow",
+        title: "Borrow a chord",
+        segments: [
+          { kind: "text", text: "End on " },
+          { kind: "chord", text: "Gm" },
+          { kind: "text", text: ", then C7." },
+        ],
+      })
+    ).toBe("Borrow a chord: End on Gm, then C7.");
+  });
+});
+
+describe(appendNote, () => {
+  it("starts empty notes with the line", () => {
+    expect(appendNote("  ", "Hold the A")).toBe("Hold the A");
+  });
+
+  it("adds the line under existing notes", () => {
+    expect(appendNote("Jamie leads\n", "Hold the A")).toBe(
+      "Jamie leads\nHold the A"
+    );
+  });
+
+  it("leaves notes that already have the line alone", () => {
+    expect(appendNote("Jamie leads\nHold the A", "Hold the A")).toBe(
+      "Jamie leads\nHold the A"
+    );
   });
 });

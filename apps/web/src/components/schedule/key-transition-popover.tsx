@@ -4,6 +4,7 @@ import type {
   ArrangementOption,
   KeyOption,
 } from "@pcobooster/planning-center-models/types";
+import { Check, NotebookPen } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import { keyName, parseMusicalKey } from "@/lib/key-theory";
 import type { MusicalKey } from "@/lib/key-theory";
 import {
   rankAlternateKeys,
+  suggestionNote,
   transitionSuggestions,
 } from "@/lib/key-transition-advice";
 import type {
@@ -80,7 +82,11 @@ interface KeyTransitionPopoverProps {
   transition: KeyTransition;
   serviceTypeId: string | null;
   songId: string | null;
+  /** The song's notes, so an idea already in them shows as added. */
+  notes: string;
   onChangeKey: (arrangement: ArrangementOption, key: KeyOption) => void;
+  /** Adds an idea to the song's notes, for the band. */
+  onAddNote: (note: string) => void;
 }
 
 /**
@@ -91,7 +97,9 @@ export const KeyTransitionPopover = ({
   transition,
   serviceTypeId,
   songId,
+  notes,
   onChangeKey,
+  onAddNote,
 }: KeyTransitionPopoverProps) => {
   const [open, setOpen] = useState(false);
   const tip = transition.level === "smooth";
@@ -151,14 +159,34 @@ export const KeyTransitionPopover = ({
           </PopoverDescription>
         </PopoverHeader>
         <ul className="flex flex-col gap-3 px-4 py-3">
-          {suggestions.map((suggestion) => (
-            <li key={suggestion.id} className="flex flex-col gap-0.5">
-              <span className="text-xs font-medium">{suggestion.title}</span>
-              <span className="text-muted-foreground text-sm">
-                <SegmentText segments={suggestion.segments} />
-              </span>
-            </li>
-          ))}
+          {suggestions.map((suggestion) => {
+            const note = suggestionNote(suggestion);
+            const added = notes.includes(note);
+            return (
+              <li key={suggestion.id} className="flex flex-col gap-0.5">
+                <span className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-medium">
+                    {suggestion.title}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="xs"
+                    disabled={added}
+                    onClick={() => {
+                      onAddNote(note);
+                    }}
+                  >
+                    {added ? <Check /> : <NotebookPen />}
+                    {added ? "In notes" : "Add to notes"}
+                  </Button>
+                </span>
+                <span className="text-muted-foreground text-sm">
+                  <SegmentText segments={suggestion.segments} />
+                </span>
+              </li>
+            );
+          })}
         </ul>
         {tip || alternates.length === 0 ? null : (
           <div className="flex flex-col gap-2 border-t px-4 py-3">

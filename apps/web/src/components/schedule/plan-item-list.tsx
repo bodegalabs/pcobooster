@@ -154,6 +154,9 @@ const ItemRowContent = ({
             onChange={(arrangement, key) => {
               handlers.onChangeKey(item, arrangement, key);
             }}
+            onAddNote={(note) => {
+              handlers.onAddNote(item, note);
+            }}
           />
         </span>
       ) : null}
@@ -185,6 +188,8 @@ export interface PlanItemRowHandlers {
     key: KeyOption
   ) => void;
   onChangeLength: (item: PlanItem, length: number | null) => void;
+  /** Adds a line to the item's notes, such as a key change idea. */
+  onAddNote: (item: PlanItem, note: string) => void;
   onInvalidLength: (message: string) => void;
 }
 

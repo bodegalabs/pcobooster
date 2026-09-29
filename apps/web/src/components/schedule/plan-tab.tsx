@@ -41,6 +41,7 @@ import {
 } from "@/hooks/use-plan-tab-controller";
 import type { AddedPlanItemKind } from "@/hooks/use-plan-tab-controller";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
+import { appendNote } from "@/lib/key-transition-advice";
 import type { PlanInsertion } from "@/lib/plan-items-query-state";
 import { buildPlanInsights } from "@/lib/plan-set-insights";
 import type { PlanInsights } from "@/lib/plan-set-insights";
@@ -117,7 +118,7 @@ const inlineEditHandlers = (
   saveItem: (input: PlanItemSaveInput) => Promise<void>
 ): Pick<
   PlanItemRowHandlers,
-  "onChangeKey" | "onChangeLength" | "onInvalidLength"
+  "onChangeKey" | "onChangeLength" | "onAddNote" | "onInvalidLength"
 > => ({
   onChangeKey: (item, arrangement, key) => {
     runQuietly(async () => {
@@ -146,6 +147,20 @@ const inlineEditHandlers = (
         item,
         draft: buildDraft(item),
         length,
+        optimisticArrangement: item.arrangement,
+        optimisticKey: item.key,
+      });
+    });
+  },
+  onAddNote: (item, note) => {
+    runQuietly(async () => {
+      await saveItem({
+        item,
+        draft: {
+          ...buildDraft(item),
+          description: appendNote(item.description, note),
+        },
+        length: item.length,
         optimisticArrangement: item.arrangement,
         optimisticKey: item.key,
       });

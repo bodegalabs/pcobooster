@@ -47,6 +47,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useSongOptions } from "@/hooks/use-song-options";
+import { appendNote } from "@/lib/key-transition-advice";
 import { keyOptionLabelOf } from "@/lib/plan-overview";
 import type { KeyTransition } from "@/lib/plan-set-insights";
 import { describeKeyChange, tempoLabel } from "@/lib/song-library";
@@ -385,8 +386,21 @@ const SongFields = ({
               transition={transition}
               serviceTypeId={serviceTypeId}
               songId={item.song?.id ?? null}
+              notes={item.description}
               onChangeKey={(arrangement, key) => {
                 onChangeKey(item, arrangement, key);
+              }}
+              onAddNote={(note) => {
+                onSave({
+                  item,
+                  draft: {
+                    ...buildDraft(item),
+                    description: appendNote(item.description, note),
+                  },
+                  length: item.length,
+                  optimisticArrangement: item.arrangement,
+                  optimisticKey: item.key,
+                });
               }}
             />
           )}
@@ -602,6 +616,8 @@ export const PlanItemPane = ({
               id={`pane-notes-${item.id}`}
               placeholder="Who leads, how it starts, where it goes"
               className="min-h-20"
+              // Remounts when notes change elsewhere (an added idea), so the field shows them.
+              key={item.description}
               defaultValue={item.description}
               onBlur={(event) => {
                 persist({ description: event.currentTarget.value });
