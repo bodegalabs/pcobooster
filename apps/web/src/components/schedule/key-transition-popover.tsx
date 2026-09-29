@@ -1,8 +1,9 @@
+import { Key01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type {
   ArrangementOption,
   KeyOption,
 } from "@pcobooster/planning-center-models/types";
-import { Lightbulb, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -21,9 +22,19 @@ import {
   rankAlternateKeys,
   transitionSuggestions,
 } from "@/lib/key-transition-advice";
-import type { AdviceSegment } from "@/lib/key-transition-advice";
+import type {
+  AdviceSegment,
+  KeyTransitionLevel,
+} from "@/lib/key-transition-advice";
 import { keyOptionLabelOf } from "@/lib/plan-overview";
 import type { KeyTransition } from "@/lib/plan-set-insights";
+
+/** One key icon for every key change, toned by how rough the change is. */
+const KEY_ICON_TONES: Record<KeyTransitionLevel, string> = {
+  smooth: "text-muted-foreground",
+  "worth-a-look": "text-status-scheduled",
+  rough: "text-destructive",
+};
 
 interface AlternateKey {
   arrangement: ArrangementOption;
@@ -119,17 +130,11 @@ export const KeyTransitionPopover = ({
           />
         }
       >
-        {tip ? (
-          <Lightbulb className="text-muted-foreground" />
-        ) : (
-          <TriangleAlert
-            className={
-              transition.level === "rough"
-                ? "text-destructive"
-                : "text-status-scheduled"
-            }
-          />
-        )}
+        <HugeiconsIcon
+          icon={Key01Icon}
+          strokeWidth={2}
+          className={KEY_ICON_TONES[transition.level]}
+        />
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80">
         <PopoverHeader className="mx-4 mt-4">

@@ -105,32 +105,6 @@ const planItem = (
 });
 
 describe(buildRunSheet, () => {
-  it("starts each service item where the previous one ended", () => {
-    const sheet = buildRunSheet([
-      planItem("welcome", "item", 120),
-      planItem("song-a", "song", 300),
-      planItem("song-b", "song", null),
-      planItem("sermon", "item", 2400),
-    ]);
-
-    expect(sheet.get("welcome")?.startOffset).toBe(0);
-    expect(sheet.get("song-a")?.startOffset).toBe(120);
-    expect(sheet.get("song-b")?.startOffset).toBe(420);
-    expect(sheet.get("sermon")?.startOffset).toBe(420);
-  });
-
-  it("keeps pre- and post-service items off the service clock", () => {
-    const sheet = buildRunSheet([
-      planItem("warm-up", "item", 600, "pre"),
-      planItem("song", "song", 300),
-      planItem("teardown", "item", 900, "post"),
-    ]);
-
-    expect(sheet.get("warm-up")?.startOffset).toBeNull();
-    expect(sheet.get("song")?.startOffset).toBe(0);
-    expect(sheet.get("teardown")?.startOffset).toBeNull();
-  });
-
   it("totals each header's items until the next header", () => {
     const sheet = buildRunSheet([
       planItem("set", "header", null),
@@ -142,7 +116,6 @@ describe(buildRunSheet, () => {
     ]);
 
     expect(sheet.get("set")).toStrictEqual({
-      startOffset: null,
       sectionLength: 540,
     });
     expect(sheet.get("empty")?.sectionLength).toBeNull();

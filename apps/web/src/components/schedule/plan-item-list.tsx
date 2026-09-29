@@ -67,11 +67,8 @@ export const PlanItemListSkeleton = () => (
         </div>
       ) : (
         <div key={row.key} className="flex min-h-13 items-center gap-3 pl-8">
-          <Skeleton variant="text" className="h-3 w-9" />
-          <div className="ml-4 flex flex-col gap-1.5">
-            <Skeleton variant="text" className="h-3.5" width={row.title} />
-            <Skeleton variant="text" className="h-3 w-40" />
-          </div>
+          <Skeleton variant="text" className="h-3 w-8" />
+          <Skeleton variant="text" className="ml-4 h-3.5" width={row.title} />
         </div>
       )
     )}
@@ -86,7 +83,7 @@ const revealWithRow = (isDragged: boolean) =>
   !isDragged &&
   "pointer-fine:opacity-0 pointer-fine:group-focus-within/plan-item:opacity-100 pointer-fine:group-hover/plan-item:opacity-100 pointer-fine:group-data-[selected=true]/plan-item:opacity-100";
 
-/** Where an item off the service clock runs, in place of its start time. */
+/** Where an item off the service clock runs; nothing for items during it. */
 const OFF_CLOCK_LABELS = {
   pre: "before",
   post: "after",
@@ -238,11 +235,7 @@ export const PlanItemRow = ({
   const isHeader = item.itemType === "header";
   const itemActionLabel = item.title || "plan item";
   const displayTitle = item.title || "Untitled item";
-  const startOffset = entry?.startOffset ?? null;
-  const startLabel =
-    startOffset === null
-      ? OFF_CLOCK_LABELS[item.servicePosition]
-      : `at ${formatDuration(startOffset) ?? "0:00"}`;
+  const startLabel = OFF_CLOCK_LABELS[item.servicePosition];
 
   return (
     <div

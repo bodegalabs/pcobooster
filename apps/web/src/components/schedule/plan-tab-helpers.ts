@@ -102,8 +102,6 @@ export const formatLength = (length: number | null) => {
 
 /** Where an item sits in the service's running order. */
 export interface RunSheetEntry {
-  /** Seconds from the start of the service; null outside the service. */
-  startOffset: number | null;
   /** For headers, the total length of the items under them. */
   sectionLength: number | null;
 }
@@ -111,17 +109,13 @@ export interface RunSheetEntry {
 const positiveLength = (length: number | null) =>
   length !== null && Number.isFinite(length) && length > 0 ? length : 0;
 
-/**
- * Runs the service clock down the plan: items during the service start where
- * the previous one ended, and each header totals the items until the next one.
- */
+/** Each header totals the lengths of the items until the next one. */
 export const buildRunSheet = (
   items: PlanItem[]
 ): Map<string, RunSheetEntry> => {
   const entries = new Map<string, RunSheetEntry>();
   const sectionLengths = new Map<string, number>();
   let currentHeaderId: string | null = null;
-  let elapsed = 0;
 
   for (const item of items) {
     if (item.itemType === "header") {
@@ -130,14 +124,7 @@ export const buildRunSheet = (
       continue;
     }
     const length = positiveLength(item.length);
-    const runsDuringService = item.servicePosition === "during";
-    entries.set(item.id, {
-      startOffset: runsDuringService ? elapsed : null,
-      sectionLength: null,
-    });
-    if (runsDuringService) {
-      elapsed += length;
-    }
+    entries.set(item.id, { sectionLength: null });
     if (currentHeaderId !== null) {
       sectionLengths.set(
         currentHeaderId,
@@ -148,7 +135,6 @@ export const buildRunSheet = (
 
   for (const [headerId, sectionLength] of sectionLengths) {
     entries.set(headerId, {
-      startOffset: null,
       sectionLength: sectionLength > 0 ? sectionLength : null,
     });
   }
