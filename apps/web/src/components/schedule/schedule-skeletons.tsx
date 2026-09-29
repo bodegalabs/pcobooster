@@ -1,5 +1,7 @@
 import { Fragment } from "react";
 
+import { PlanningCenterServicesIcon } from "@/components/planning-center-services-icon";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { ItemList } from "@/components/ui/item";
 import { SidebarSeparator } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,7 +22,17 @@ export const PlanHeaderSkeleton = () => (
         <Skeleton variant="control" className="h-5 w-56 max-w-full sm:h-6" />
         <Skeleton variant="control" className="h-4 w-36 sm:h-6 sm:w-44" />
       </div>
-      <Skeleton variant="control" className="size-7 shrink-0" />
+      {/* The Planning Center link's icon needs no data; its link arrives with the plan. */}
+      <span
+        aria-hidden
+        className={buttonVariants({
+          variant: "outline",
+          size: "icon-sm",
+          className: "shrink-0",
+        })}
+      >
+        <PlanningCenterServicesIcon className="size-4" />
+      </span>
     </div>
   </header>
 );
