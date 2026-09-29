@@ -1,4 +1,5 @@
 import { logger } from "@pcobooster/api/logger";
+import { buildPlanningCenterUrl } from "@pcobooster/api/planning-center/core-client";
 import type {
   PlanningCenterCoreClient,
   PlanningCenterError,
@@ -113,16 +114,25 @@ export class PlanningCenterPlansService {
     );
   }
 
-  /** One page of plans in the given order, for finding the plans next to one plan. */
+  /**
+   * One page of plans in the given order, for finding the plans next to one plan. Planning
+   * Center's response time grows with the page size (a page of 100 past plans takes seconds),
+   * so callers ask only for what they need.
+   */
   getPlansPage(
     serviceTypeId: string,
     params: Record<string, string>,
-    order: "sort_date" | "-sort_date"
+    order: "sort_date" | "-sort_date",
+    perPage: number
   ): Effect.Effect<PCResource[], PlanningCenterError> {
-    return this.core.fetchAll(
-      `/services/v2/service_types/${serviceTypeId}/plans`,
-      { ...params, order },
-      1
+    return Effect.map(
+      this.core.fetchCollection(
+        buildPlanningCenterUrl(
+          `/services/v2/service_types/${serviceTypeId}/plans`,
+          { ...params, order, per_page: String(perPage) }
+        )
+      ),
+      (response) => response.data
     );
   }
 

@@ -1,4 +1,7 @@
-import { getAdjacentPlan } from "@pcobooster/api/modules/planning-center/get-adjacent-plan";
+import {
+  ADJACENT_PLANS_PAGE_SIZE,
+  getAdjacentPlan,
+} from "@pcobooster/api/modules/planning-center/get-adjacent-plan";
 import type { AdjacentPlanDependencies } from "@pcobooster/api/modules/planning-center/get-adjacent-plan";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
@@ -44,7 +47,8 @@ describe(getAdjacentPlan, () => {
     expect(getPlansPage).toHaveBeenCalledWith(
       "st-1",
       { filter: "before", before: "2026-09-28" },
-      "-sort_date"
+      "-sort_date",
+      ADJACENT_PLANS_PAGE_SIZE
     );
   });
 
@@ -63,7 +67,8 @@ describe(getAdjacentPlan, () => {
     expect(getPlansPage).toHaveBeenCalledWith(
       "st-1",
       { filter: "after", after: "2026-09-26" },
-      "sort_date"
+      "sort_date",
+      ADJACENT_PLANS_PAGE_SIZE
     );
   });
 
