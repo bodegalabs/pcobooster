@@ -194,11 +194,6 @@ const PLAN_STEP_LABELS = {
   next: "Next plan",
 } as const;
 
-const PLAN_LIST_LABELS = {
-  previous: "Earlier plans",
-  next: "Later plans",
-} as const;
-
 const listedPlansOn = (neighbors: PlanNeighbors, direction: PlanDirection) =>
   direction === "previous" ? neighbors.previousPlans : neighbors.nextPlans;
 
@@ -315,9 +310,6 @@ const PlanNeighborList = ({
   return (
     // Rows bring their own padding, so the list reaches into the panel's.
     <div className="-m-1.5 flex flex-col gap-0.5">
-      <p className="text-muted-foreground px-1.5 pt-1 pb-1.5 text-xs font-medium">
-        {PLAN_LIST_LABELS[direction]}
-      </p>
       {plans.map((plan) => {
         const subtitle = buildPlanSubtitle(
           neighbors.serviceTypeName,
