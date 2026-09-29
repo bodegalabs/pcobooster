@@ -414,6 +414,16 @@ ruleTester.run(
         </div>
       `,
       },
+      {
+        name: "PageScrollArea pads the sides; content pads top and bottom",
+        code: `
+        <PageScrollArea>
+          <div className="grid gap-3 pt-1 pb-4">
+            <section className="rounded-xl shadow-xs ring-1">Team</section>
+          </div>
+        </PageScrollArea>
+      `,
+      },
     ],
     invalid: [
       {
@@ -458,6 +468,33 @@ ruleTester.run(
         <div className="overflow-x-auto py-2">
           <div className="rounded-xl shadow-md">Tile</div>
         </div>
+      `,
+        errors: [{ messageId: "clipped" }],
+      },
+      {
+        name: "surface flush against the top of a PageScrollArea",
+        code: `
+        <PageScrollArea>
+          <div className="grid gap-3 pb-4">
+            <section className="rounded-xl shadow-xs ring-1">Team</section>
+          </div>
+        </PageScrollArea>
+      `,
+        errors: [{ messageId: "clipped" }],
+      },
+      {
+        name: "surface classes from a file constant",
+        code: `
+        const panelClassName = "rounded-xl shadow-xs ring-1";
+        const gridClassName = "grid gap-3 pb-4";
+        const Panel = () => <section className={cn(panelClassName, "flex")}>Team</section>;
+        const Lineup = () => (
+          <PageScrollArea>
+            <div className={gridClassName}>
+              <Panel />
+            </div>
+          </PageScrollArea>
+        );
       `,
         errors: [{ messageId: "clipped" }],
       },
