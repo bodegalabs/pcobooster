@@ -32,6 +32,10 @@ const panelScrollers = new Map([
     "the song dialog's preview column",
   ],
   [
+    "apps/web/src/components/schedule/key-transition-popover.tsx",
+    "the key change popover, capped to the room beside its trigger",
+  ],
+  [
     "apps/web/src/components/schedule/plan-item-pane.tsx",
     "the plan builder's details pane",
   ],
