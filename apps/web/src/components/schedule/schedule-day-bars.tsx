@@ -2,7 +2,12 @@ import { formatCalendarDateLabel } from "@pcobooster/planning-center-models/cale
 import type { ServiceHistoryItem } from "@pcobooster/planning-center-models/types";
 import type { CSSProperties } from "react";
 
-import { HoverLabel } from "@/components/ui/hover-card";
+import { PositionPickerIcon } from "@/components/schedule/position-picker-icon";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { buildScheduleDays } from "@/lib/people/schedule-days";
@@ -33,16 +38,133 @@ const dayLines = (day: ScheduleDay): string[] => {
   );
 };
 
-const DayLabel = ({ day }: { day: ScheduleDay }) => (
-  <span className="flex flex-col gap-0.5">
-    <span className="font-medium">
-      {dayKeyLabel(day.dayKey, "weekdayMonthDay")}
-      {day.offset === 0 ? " · this plan" : ""}
-    </span>
-    {dayLines(day).map((line) => (
-      <span key={line}>{line}</span>
-    ))}
-  </span>
+const plural = (count: number, noun: string) =>
+  `${count} ${noun}${count === 1 ? "" : "s"}`;
+
+/** "3 days before", "This plan", "the next day". */
+const distanceFromPlan = (offset: number): string => {
+  if (offset === 0) {
+    return "This plan";
+  }
+  const days = plural(Math.abs(offset), "day");
+  return offset < 0 ? `${days} before` : `${days} after`;
+};
+
+interface DayEntry {
+  key: string;
+  item: ServiceHistoryItem;
+  rehearsal: boolean;
+  confirmed: boolean;
+}
+
+/** One entry per position, service, and kind; services before rehearsals. */
+const dayEntries = (day: ScheduleDay): DayEntry[] => {
+  const entries = new Map<string, DayEntry>();
+  for (const item of day.items) {
+    const rehearsal = item.timeType === "rehearsal";
+    const key = [
+      item.teamPositionName,
+      item.serviceTypeName ?? "",
+      item.planId ?? "",
+      rehearsal ? "r" : "s",
+    ].join("|");
+    if (!entries.has(key)) {
+      const status = item.status.trim().toLowerCase();
+      entries.set(key, {
+        key,
+        item,
+        rehearsal,
+        confirmed: status === "c" || status === "confirmed",
+      });
+    }
+  }
+  return [...entries.values()].toSorted(
+    (a, b) => Number(a.rehearsal) - Number(b.rehearsal)
+  );
+};
+
+const entryTone = (entry: DayEntry) => {
+  if (entry.rehearsal) {
+    return {
+      dot: "bg-muted-foreground/75",
+      text: "text-muted-foreground",
+      label: "Rehearsal",
+    };
+  }
+  return entry.confirmed
+    ? {
+        dot: "bg-status-confirmed",
+        text: "text-status-confirmed",
+        label: "Confirmed",
+      }
+    : {
+        dot: "bg-status-scheduled",
+        text: "text-status-scheduled",
+        label: "Pending",
+      };
+};
+
+const DayEntryRow = ({ entry }: { entry: DayEntry }) => {
+  const tone = entryTone(entry);
+  const { item } = entry;
+  const detail = [item.serviceTypeName, item.planTitle]
+    .filter((part) => part !== undefined && part !== "")
+    .join(" · ");
+  return (
+    <li className="flex items-center gap-2.5">
+      <span className="text-muted-foreground flex shrink-0">
+        <PositionPickerIcon
+          positionName={item.teamPositionName}
+          teamName={item.teamName ?? ""}
+        />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-foreground truncate text-sm font-medium">
+          {item.teamPositionName}
+        </span>
+        {detail === "" ? null : (
+          <span className="text-muted-foreground truncate text-xs">
+            {detail}
+          </span>
+        )}
+      </span>
+      <span
+        className={cn(
+          "flex shrink-0 items-center gap-1.5 text-xs font-medium",
+          tone.text
+        )}
+      >
+        <span aria-hidden className={cn("size-1.5 rounded-full", tone.dot)} />
+        {tone.label}
+      </span>
+    </li>
+  );
+};
+
+/** The day's date and distance from the plan, then everything they're on that day. */
+const DayPanel = ({ day }: { day: ScheduleDay }) => (
+  <div className="flex flex-col gap-3">
+    <div className="flex items-baseline justify-between gap-3">
+      <span className="text-foreground text-sm font-semibold tracking-tight">
+        {dayKeyLabel(day.dayKey, "weekdayMonthDay")}
+      </span>
+      <span
+        className={cn(
+          "text-xs",
+          day.offset === 0
+            ? "text-status-info font-medium"
+            : "text-muted-foreground"
+        )}
+      >
+        {distanceFromPlan(day.offset)}
+      </span>
+    </div>
+    <ul className="flex flex-col gap-2.5">
+      {dayEntries(day).map((entry) => (
+        <DayEntryRow key={entry.key} entry={entry} />
+      ))}
+    </ul>
+  </div>
 );
 
 const barClassName = (day: ScheduleDay): string => {
@@ -79,13 +201,18 @@ const DayBar = ({ day }: { day: ScheduleDay }) => {
     );
   }
   return (
-    <HoverLabel
-      label={<DayLabel day={day} />}
-      className="max-w-72 text-left whitespace-normal"
-      render={<span className="flex min-w-0 flex-1 items-end justify-center" />}
-    >
-      {content}
-    </HoverLabel>
+    <HoverCard>
+      <HoverCardTrigger
+        render={
+          <span className="flex min-w-0 flex-1 items-end justify-center" />
+        }
+      >
+        {content}
+      </HoverCardTrigger>
+      <HoverCardContent variant="panel" side="top" className="w-80">
+        <DayPanel day={day} />
+      </HoverCardContent>
+    </HoverCard>
   );
 };
 
