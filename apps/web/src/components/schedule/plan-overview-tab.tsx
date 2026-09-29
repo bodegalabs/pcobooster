@@ -56,7 +56,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { planSlotLink } from "@/lib/schedule-navigation";
 import { cn } from "@/lib/utils";
 
-interface PlanRef {
+export interface PlanRef {
   serviceTypeId: string;
   planId: string;
 }
@@ -603,6 +603,43 @@ interface PlanOverviewTabProps {
   getSlotIntentProps: GetIntentPrefetchProps<SlotRef>;
 }
 
+const overviewGridClassName =
+  "pb-safe-4 grid gap-4 pt-1 md:grid-cols-2 md:pb-6";
+
+/** A stand-in for handlers the loading overview never calls. */
+const ignore = () => {
+  // Nothing to prefetch or open while the plan loads.
+};
+
+const noIntent: GetIntentPrefetchProps<SlotRef> = () => ({
+  onPointerEnter: ignore,
+  onPointerLeave: ignore,
+  onFocus: ignore,
+  onBlur: ignore,
+});
+
+/** The overview's cards as they look before anything loads, for the route fallback. */
+export const PlanOverviewSkeleton = ({ plan }: { plan: PlanRef }) => (
+  <PageScrollArea>
+    <div className={overviewGridClassName}>
+      <ReadinessCard
+        plan={plan}
+        checks={buildReadinessChecks({
+          staffing: null,
+          order: null,
+          schedule: null,
+        })}
+        isLoading
+        planningCenterUrl={null}
+        onOpenPlanningCenter={ignore}
+      />
+      <PeopleCard plan={plan} staffing={null} getSlotIntentProps={noIntent} />
+      <SongsCard plan={plan} order={null} />
+      <TimesCard plan={plan} schedule={null} />
+    </div>
+  </PageScrollArea>
+);
+
 /** A plan's home: what's ready, what isn't, and a way into each view. */
 export const PlanOverviewTab = ({
   serviceTypeId,
@@ -632,7 +669,7 @@ export const PlanOverviewTab = ({
 
   return (
     <PageScrollArea>
-      <div className="pb-safe-4 grid gap-4 pt-1 md:grid-cols-2 md:pb-6">
+      <div className={overviewGridClassName}>
         <ReadinessCard
           plan={plan}
           checks={checks}

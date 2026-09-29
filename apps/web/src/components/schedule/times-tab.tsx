@@ -60,6 +60,15 @@ const PlanTimeCardSkeleton = () => (
   </div>
 );
 
+/** Plan time cards before they load. */
+export const TimesTabSkeleton = () => (
+  <div className="pb-safe-4 mx-auto flex w-full max-w-3xl flex-col gap-2.5 md:pb-6">
+    {["a", "b", "c"].map((key) => (
+      <PlanTimeCardSkeleton key={key} />
+    ))}
+  </div>
+);
+
 const TimesTabCards = ({
   planTimes,
   edits,
@@ -180,11 +189,7 @@ const TimesTabContent = ({
   if (isLoading) {
     return (
       <>
-        <div className="pb-safe-4 mx-auto flex w-full max-w-3xl flex-col gap-2.5 md:pb-6">
-          {["a", "b", "c"].map((key) => (
-            <PlanTimeCardSkeleton key={key} />
-          ))}
-        </div>
+        <TimesTabSkeleton />
         {addTimeDialog}
       </>
     );

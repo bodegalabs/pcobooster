@@ -1,12 +1,16 @@
 import { useParams } from "@tanstack/react-router";
 
 import { PageShell } from "@/components/page-shell";
+import { LineupTabSkeleton } from "@/components/schedule/lineup-tab";
 import { PlanItemListSkeleton } from "@/components/schedule/plan-item-list";
+import { PlanOverviewSkeleton } from "@/components/schedule/plan-overview-tab";
+import type { PlanRef } from "@/components/schedule/plan-overview-tab";
 import {
   CandidateListSkeleton,
   PlanHeaderSkeleton,
   PositionPickerSkeleton,
 } from "@/components/schedule/schedule-skeletons";
+import { TimesTabSkeleton } from "@/components/schedule/times-tab";
 import { PlanAgendaSkeleton } from "@/components/service-plan-table-selector";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -35,34 +39,57 @@ export const SchedulePlansFallback = () => (
 );
 
 /** The plan builder: its header, then the run sheet. */
-const PlanBuilderFallback = () => (
-  <PageShell layout="fill" label="Loading plan" busy>
-    <PlanHeaderSkeleton />
-    <PlanItemListSkeleton />
-  </PageShell>
+const AssignSkeleton = () => (
+  <div className="flex min-h-0 w-full flex-1 flex-col gap-3 sm:gap-4 lg:flex-row">
+    <aside className="border-sidebar-border/40 bg-sidebar/60 hidden min-h-0 w-[min(18rem,28vw)] shrink-0 overflow-hidden rounded-xl border lg:block">
+      <PositionPickerSkeleton />
+    </aside>
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 sm:gap-4">
+      <div className="flex flex-col gap-2 px-1 sm:gap-3">
+        <Skeleton variant="control" className="h-6 w-40 sm:h-7" />
+        <Skeleton variant="round" className="h-8 w-full sm:max-w-sm" />
+      </div>
+      <CandidateListSkeleton />
+    </section>
+  </div>
 );
 
-const AssignFallback = () => (
-  <PageShell layout="fill" label="Loading plan" busy>
-    <PlanHeaderSkeleton />
+/** Each view's own loading state, so the page doesn't change shape as it loads. */
+const ViewSkeleton = ({
+  view,
+  plan,
+}: {
+  view: string | undefined;
+  plan: PlanRef;
+}) => {
+  if (view === "plan") {
+    return <PlanItemListSkeleton />;
+  }
+  if (view === "lineup") {
+    return <LineupTabSkeleton />;
+  }
+  if (view === "times") {
+    return <TimesTabSkeleton />;
+  }
+  if (view === "assign") {
+    return <AssignSkeleton />;
+  }
+  return <PlanOverviewSkeleton plan={plan} />;
+};
 
-    <div className="flex min-h-0 w-full flex-1 flex-col gap-3 sm:gap-4 lg:flex-row">
-      <aside className="border-sidebar-border/40 bg-sidebar/60 hidden min-h-0 w-[min(18rem,28vw)] shrink-0 overflow-hidden rounded-xl border lg:block">
-        <PositionPickerSkeleton />
-      </aside>
-      <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 sm:gap-4">
-        <div className="flex flex-col gap-2 px-1 sm:gap-3">
-          <Skeleton variant="control" className="h-6 w-40 sm:h-7" />
-          <Skeleton variant="round" className="h-8 w-full sm:max-w-sm" />
-        </div>
-        <CandidateListSkeleton />
-      </section>
-    </div>
-  </PageShell>
-);
-
-/** Mirrors the plan view being opened, so the page doesn't change shape as it loads. */
+/** The plan header, then the skeleton of the view being opened. */
 export const SchedulePlanWorkspaceFallback = () => {
-  const { view } = useParams({ strict: false });
-  return view === "plan" ? <PlanBuilderFallback /> : <AssignFallback />;
+  const {
+    serviceTypeId = "",
+    planId = "",
+    view,
+  } = useParams({ strict: false });
+  return (
+    <PageShell layout="fill" label="Loading plan" busy>
+      <PlanHeaderSkeleton />
+      <div className="flex min-h-0 flex-1 flex-col">
+        <ViewSkeleton view={view} plan={{ serviceTypeId, planId }} />
+      </div>
+    </PageShell>
+  );
 };
