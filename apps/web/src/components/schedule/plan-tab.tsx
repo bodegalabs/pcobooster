@@ -222,7 +222,7 @@ const PlanRunSheet = ({
     );
   }
   return (
-    <div className={cn("relative", revealClassName)}>
+    <div className={cn("relative pb-20", revealClassName)}>
       <PlanItemList items={items} {...listProps} />
     </div>
   );
@@ -517,26 +517,7 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
         </DetailsSheet>
       )}
       <div className="flex h-full min-h-0 gap-6">
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
-          <PlanTabToolbar
-            order={
-              isLoading || items.length === 0 ? null : summarizeOrder(items)
-            }
-            keyJumps={insights.keyJumps}
-            repeats={insights.recentPlays.size}
-            isReordering={controller.isReordering}
-            isCreatingBasicItem={controller.isCreatingBasicItem}
-            disabled={isLoading}
-            onAddSong={() => {
-              openSongPicker();
-            }}
-            onAddHeader={() => {
-              addBasicItem("header");
-            }}
-            onAddItem={() => {
-              addBasicItem("item");
-            }}
-          />
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           <PageScrollArea>
             <PlanRunSheet
               isLoading={isLoading}
@@ -557,6 +538,25 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
               onAddBasic={addBasicItem}
             />
           </PageScrollArea>
+          <PlanTabToolbar
+            order={
+              isLoading || items.length === 0 ? null : summarizeOrder(items)
+            }
+            keyJumps={insights.keyJumps}
+            repeats={insights.recentPlays.size}
+            isReordering={controller.isReordering}
+            isCreatingBasicItem={controller.isCreatingBasicItem}
+            disabled={isLoading}
+            onAddSong={() => {
+              openSongPicker();
+            }}
+            onAddHeader={() => {
+              addBasicItem("header");
+            }}
+            onAddItem={() => {
+              addBasicItem("item");
+            }}
+          />
         </div>
         {isWide && pane !== null ? (
           <aside
