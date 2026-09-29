@@ -93,9 +93,19 @@ describe(transitionSuggestions, () => {
 
   it("changes the chords to end on and open with when the home chords share nothing", () => {
     expect(advice("Bb", "E")).toStrictEqual([
+      "End A on F (its V) instead of Bb, but hold the A (its third). It becomes the root of A: open B on A (its IV), then B to land in E.",
       "End A on F (its V) instead of Bb, but hold the A (its third). It becomes the third of F#m: open B on F#m (its ii), then B7 to land in E.",
       "Put a short prayer or reading before B, with a pad moving to E.",
       "Stop fully after A, then play B7 into B in E.",
+    ]);
+  });
+
+  it("holds a note that becomes the next song's root first, then offers the other chord", () => {
+    expect(advice("F", "E")).toStrictEqual([
+      "End A on F, but hold the A (its third). It becomes the root of A: open B on A (its IV), then B to land in E.",
+      "End A on F, but hold the A (its third). It becomes the third of F#m: open B on F#m (its ii), then B7 to land in E.",
+      "Sing B before A, so the same change becomes a lift up.",
+      "Put a short prayer or reading before B, with a pad moving to E.",
     ]);
   });
 

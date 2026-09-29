@@ -344,7 +344,8 @@ const endingChords = (key: MusicalKey): Chord[] => {
  * the band can hold one note while the chords change under it: end on F, hold its third
  * (A), and it becomes the fifth of the opening D. Home chords come first; then the next
  * song opens on a setup chord, then the first song ends on its IV, vi, or V, and last,
- * both step off their home chords (Bb into E: end on F, hold A, open on A).
+ * both step off their home chords (Bb into E: end on F, hold A, open on A). Within each
+ * of those, notes that land as the opening chord's root come first.
  */
 export const commonToneChords = (
   from: MusicalKey,
@@ -356,6 +357,8 @@ export const commonToneChords = (
   );
   const [homeEnd, ...otherEnds] = endingChords(from);
   const [homeOpen, ...otherOpens] = [tonicTriad(to), ...setupChords(to)];
+  const pairTier = (fromChord: Chord, toChord: Chord) =>
+    Number(fromChord !== homeEnd) * 2 + Number(toChord !== homeOpen);
   const pairs: [Chord | undefined, Chord | undefined][] = [
     [homeEnd, homeOpen],
     ...otherOpens.map((open): [Chord | undefined, Chord] => [homeEnd, open]),
@@ -365,11 +368,12 @@ export const commonToneChords = (
       otherEnds.map((end): [Chord, Chord] => [end, open])
     ),
   ];
-  const found: CommonToneChord[] = [];
+  const found: (CommonToneChord & { tier: number })[] = [];
   for (const [fromChord, toChord] of pairs) {
     if (fromChord === undefined || toChord === undefined) {
       continue;
     }
+    const tier = pairTier(fromChord, toChord);
     const fromPitches = chordPitches(fromChord);
     for (const [toIndex, pitch] of chordPitches(toChord).entries()) {
       const tone = spellings.get(pitch);
@@ -377,6 +381,7 @@ export const commonToneChords = (
       const toRole = CHORD_TONES[toIndex];
       if (tone && fromRole && toRole) {
         found.push({
+          tier,
           tone,
           fromTone: fromSpellings.get(pitch) ?? tone,
           from: fromChord,
@@ -387,7 +392,15 @@ export const commonToneChords = (
       }
     }
   }
-  return found;
+  // Within a tier, a held note that is the opening chord's root comes first: the band
+  // holds it in unison and the new chord lands right on it (hold A from F, play A in E).
+  return found
+    .toSorted(
+      (a, b) =>
+        a.tier - b.tier ||
+        Number(a.toRole !== "root") - Number(b.toRole !== "root")
+    )
+    .map(({ tier: _tier, ...shared }) => shared);
 };
 
 /** Semitones up from one key's tonic to another's, 0 to 11. */

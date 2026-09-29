@@ -17,7 +17,7 @@ import {
   pivotChords,
   semitonesUp,
 } from "@/lib/key-theory";
-import type { MusicalKey } from "@/lib/key-theory";
+import type { CommonToneChord, MusicalKey } from "@/lib/key-theory";
 
 export type KeyTransitionLevel = "smooth" | "worth-a-look" | "rough";
 
@@ -248,21 +248,17 @@ const commonChordSuggestion = ({
 const isHome = (candidate: { numeral: string }) =>
   candidate.numeral === "I" || candidate.numeral === "i";
 
-/**
- * A held note: end on a chord but keep one of its notes ringing, and let it become
- * part of the next song's first chord. When the home chords share nothing, the first
- * song can end on a nearby chord instead, or the next can open on a different one.
- */
-const commonToneSuggestion = ({
-  fromTitle,
-  toTitle,
-  fromKey,
-  toKey,
-}: TransitionSongs): TransitionSuggestion | null => {
-  const [shared] = commonToneChords(fromKey, toKey);
-  if (shared === undefined) {
-    return null;
-  }
+/** The chord that follows an opening chord into the new key: plain V after IV (IV-V-I), V7 otherwise. */
+const leadInto = (opening: CommonToneChord, toKey: MusicalKey) => {
+  const dominant = chordName(dominantSeventhOf(toKey));
+  return opening.to.numeral === "IV" ? dominant.replace(/7$/u, "") : dominant;
+};
+
+const commonToneSuggestion = (
+  { fromTitle, toTitle, fromKey, toKey }: TransitionSongs,
+  shared: CommonToneChord,
+  first: boolean
+): TransitionSuggestion => {
   const ending: AdviceSegment[] = isHome(shared.from)
     ? [text(`End ${fromTitle} on `), chord(chordName(shared.from))]
     : [
@@ -282,14 +278,16 @@ const commonToneSuggestion = ({
         text(`: open ${toTitle} on `),
         chord(chordName(shared.to)),
         text(` (its ${shared.to.numeral}), then `),
-        chord(chordName(dominantSeventhOf(toKey))),
+        chord(leadInto(shared, toKey)),
         text(" to land in "),
         chord(keyName(toKey)),
         text("."),
       ];
   return {
-    id: "common-tone",
-    title: "Hold a note across",
+    id: first ? "common-tone" : "common-tone-alternate",
+    title: first
+      ? "Hold a note across"
+      : `Or hold it into ${chordName(shared.to)}`,
     segments: [
       ...ending,
       text(", but hold the "),
@@ -302,6 +300,37 @@ const commonToneSuggestion = ({
       ...opening,
     ],
   };
+};
+
+/**
+ * A held note: end on a chord but keep one of its notes ringing, and let it become
+ * part of the next song's first chord. When the home chords share nothing, the first
+ * song can end on a nearby chord instead, or the next can open on a different one.
+ * When the next song must open on another chord, offers two, root-held first.
+ */
+const commonToneSuggestions = (
+  songs: TransitionSongs
+): TransitionSuggestion[] => {
+  const [best, ...rest] = commonToneChords(songs.fromKey, songs.toKey);
+  if (best === undefined) {
+    return [];
+  }
+  // Another opening only competes when neither is the new home chord and both hold a
+  // note from the same ending (from F into E: open on A or on F#m).
+  const alternate = isHome(best.to)
+    ? undefined
+    : rest.find(
+        (shared) =>
+          !isHome(shared.to) &&
+          chordName(shared.from) === chordName(best.from) &&
+          chordName(shared.to) !== chordName(best.to)
+      );
+  return alternate === undefined
+    ? [commonToneSuggestion(songs, best, true)]
+    : [
+        commonToneSuggestion(songs, best, true),
+        commonToneSuggestion(songs, alternate, false),
+      ];
 };
 
 /** A chord borrowed from the old key's parallel minor, when nothing is truly shared. */
@@ -370,7 +399,7 @@ const noSuggestions = (): TransitionSuggestion[] => [];
 /**
  * Suggestions for each rough case, most useful first (docs/research/song-key-transitions.md),
  * with a held note wherever one connects the songs: first for thirds, where the keys
- * share a note, and for tritones, where it's the only musical bridge.
+ * share a note, for half steps down, and for tritones, where it's the only musical bridge.
  */
 const SUGGESTIONS_BY_KIND = {
   same: noSuggestions,
@@ -379,7 +408,7 @@ const SUGGESTIONS_BY_KIND = {
   close: noSuggestions,
   lift: noSuggestions,
   mediant: (songs) => [
-    commonToneSuggestion(songs),
+    ...commonToneSuggestions(songs),
     commonChordSuggestion(songs),
     borrowedChordSuggestion(songs),
     dominantSuggestion(songs, false),
@@ -387,25 +416,25 @@ const SUGGESTIONS_BY_KIND = {
   ],
   "step-down": (songs) => [
     commonChordSuggestion(songs),
-    commonToneSuggestion(songs),
+    ...commonToneSuggestions(songs),
     swapSuggestion(songs),
     dominantSuggestion(songs, false),
   ],
   "half-step-down": (songs) => [
+    ...commonToneSuggestions(songs),
     swapSuggestion(songs),
-    commonToneSuggestion(songs),
     padSuggestion(songs),
     dominantSuggestion(songs, true),
   ],
   tritone: (songs) => [
-    commonToneSuggestion(songs),
+    ...commonToneSuggestions(songs),
     padSuggestion(songs),
     dominantSuggestion(songs, true),
   ],
   "distant-mode": (songs) => [
     commonChordSuggestion(songs),
     borrowedChordSuggestion(songs),
-    commonToneSuggestion(songs),
+    ...commonToneSuggestions(songs),
     dominantSuggestion(songs, false),
     padSuggestion(songs),
   ],
