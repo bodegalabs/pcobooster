@@ -7,6 +7,8 @@ import { describeSchedulingNotification } from "@/lib/schedule/scheduling-notifi
 import { cn } from "@/lib/utils";
 
 const NOT_NOTIFIED_LABEL = "Not notified yet";
+/** Planning Center has no public API to send the scheduling email, so it's sent there. */
+const SEND_IN_PLANNING_CENTER_HINT = "Send the email in Planning Center";
 
 /**
  * Planning Center marks an unsent scheduling email with an envelope beside the person, so we
@@ -18,7 +20,7 @@ export const UnsentNotificationMark = ({
   className?: string;
 }) => (
   <HoverLabel
-    label={NOT_NOTIFIED_LABEL}
+    label={`${NOT_NOTIFIED_LABEL}. ${SEND_IN_PLANNING_CENTER_HINT}.`}
     render={
       <span
         className={cn(

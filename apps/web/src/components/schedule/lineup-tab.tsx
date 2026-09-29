@@ -393,13 +393,19 @@ const TeamPanel = ({
               {group.teamName}
             </h3>
             {unsentCount > 0 ? (
-              <Badge
-                variant="outline"
-                aria-label={`${unsentCount} not notified`}
+              <HoverLabel
+                label={`${unsentCount} not notified yet. Send the emails in Planning Center.`}
+                side="bottom"
+                render={
+                  <Badge
+                    variant="outline"
+                    aria-label={`${unsentCount} not notified`}
+                  />
+                }
               >
                 <Mail aria-hidden />
                 {unsentCount}
-              </Badge>
+              </HoverLabel>
             ) : null}
             <ChevronDown
               className={cn(
