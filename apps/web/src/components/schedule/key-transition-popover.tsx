@@ -8,6 +8,13 @@ import { Check, NotebookPen } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { HoverLabel } from "@/components/ui/hover-card";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemTitle,
+} from "@/components/ui/item";
 import {
   Popover,
   PopoverContent,
@@ -158,32 +165,50 @@ export const KeyTransitionPopover = ({
               : ` ${transition.bridgedBy} gives the band room to change.`}
           </PopoverDescription>
         </PopoverHeader>
-        <ul className="flex flex-col gap-3 px-4 py-3">
+        {/* Touch has no hover label, so say what tapping an idea does. */}
+        <p className="text-muted-foreground mx-4 mt-2 text-xs pointer-fine:hidden">
+          Tap an idea to add it to {transition.toTitle}&apos;s notes.
+        </p>
+        <ul className="flex flex-col gap-1 px-4 py-2">
           {suggestions.map((suggestion) => {
             const note = suggestionNote(suggestion);
             const added = notes.includes(note);
             return (
-              <li key={suggestion.id} className="flex flex-col gap-0.5">
-                <span className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-medium">
-                    {suggestion.title}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="xs"
-                    disabled={added}
-                    onClick={() => {
-                      onAddNote(note);
-                    }}
-                  >
-                    {added ? <Check /> : <NotebookPen />}
-                    {added ? "In notes" : "Add to notes"}
-                  </Button>
-                </span>
-                <span className="text-muted-foreground text-sm">
-                  <SegmentText segments={suggestion.segments} />
-                </span>
+              <li key={suggestion.id}>
+                <HoverLabel
+                  label={added ? "In notes" : "Add to notes"}
+                  side="left"
+                  render={
+                    <Item
+                      size="xs"
+                      className="-mx-3 w-[calc(100%+1.5rem)] py-2"
+                      render={
+                        <button
+                          type="button"
+                          aria-label={`${suggestion.title}: ${added ? "in notes" : "add to notes"}`}
+                          disabled={added}
+                        />
+                      }
+                      onClick={() => {
+                        onAddNote(note);
+                      }}
+                    />
+                  }
+                >
+                  <ItemContent>
+                    <ItemTitle>{suggestion.title}</ItemTitle>
+                    <span className="text-muted-foreground text-sm">
+                      <SegmentText segments={suggestion.segments} />
+                    </span>
+                  </ItemContent>
+                  <ItemActions className="self-start">
+                    {added ? (
+                      <Check className="text-muted-foreground size-3.5" />
+                    ) : (
+                      <NotebookPen className="text-muted-foreground size-3.5 pointer-fine:opacity-0 pointer-fine:group-hover/item:opacity-100 pointer-fine:group-focus-visible/item:opacity-100" />
+                    )}
+                  </ItemActions>
+                </HoverLabel>
               </li>
             );
           })}
