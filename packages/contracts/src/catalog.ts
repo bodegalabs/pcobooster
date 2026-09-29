@@ -67,7 +67,7 @@ export const plansInputSchema = z.object({
 export const planInputSchema = plansInputSchema.extend({
   planId: z.string().trim().min(1),
 });
-export const adjacentPlanInputSchema = planInputSchema.extend({
+export const adjacentPlansInputSchema = planInputSchema.extend({
   direction: z.enum(["previous", "next"]),
 });
 export const organizationInputSchema = z.object({});
@@ -78,8 +78,10 @@ export const teamPositionsInputSchema = plansInputSchema.extend({
 
 export const serviceTypesOutputSchema = z.array(serviceTypeSchema);
 export const plansOutputSchema = z.array(planSchema);
-/** Null when the plan (or its neighbor on that side) doesn't exist. */
+/** Null when the plan doesn't exist. */
 export const planOutputSchema = planSchema.nullable();
+/** Nearest first; empty when the plan doesn't exist or nothing is on that side. */
+export const adjacentPlansOutputSchema = z.array(planSchema);
 export const organizationOutputSchema = z.object({ timeZone: z.string() });
 export const teamPositionsOutputSchema = z.array(teamPositionGroupSchema);
 
@@ -116,14 +118,15 @@ export const catalogContract = {
     })
     .input(planInputSchema)
     .output(planOutputSchema),
-  adjacentPlan: catalogProcedure
+  adjacentPlans: catalogProcedure
     .route({
       method: "GET",
       path: "/catalog/plans/{planId}/adjacent",
-      summary: "Get the plan just before or after a plan in its service type",
+      summary:
+        "List the nearest plans before or after a plan in its service type",
     })
-    .input(adjacentPlanInputSchema)
-    .output(planOutputSchema),
+    .input(adjacentPlansInputSchema)
+    .output(adjacentPlansOutputSchema),
   organization: catalogProcedure
     .route({
       method: "GET",
@@ -152,5 +155,5 @@ export type TeamPosition = z.output<typeof teamPositionSchema>;
 export type TeamPositionGroup = z.output<typeof teamPositionGroupSchema>;
 export type PlansInput = z.input<typeof plansInputSchema>;
 export type PlanInput = z.input<typeof planInputSchema>;
-export type AdjacentPlanInput = z.input<typeof adjacentPlanInputSchema>;
+export type AdjacentPlansInput = z.input<typeof adjacentPlansInputSchema>;
 export type TeamPositionsInput = z.input<typeof teamPositionsInputSchema>;

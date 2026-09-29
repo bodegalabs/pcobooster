@@ -1,8 +1,8 @@
 import {
   ADJACENT_PLANS_PAGE_SIZE,
-  getAdjacentPlan,
-} from "@pcobooster/api/modules/planning-center/get-adjacent-plan";
-import type { AdjacentPlanDependencies } from "@pcobooster/api/modules/planning-center/get-adjacent-plan";
+  getAdjacentPlans,
+} from "@pcobooster/api/modules/planning-center/get-adjacent-plans";
+import type { AdjacentPlanDependencies } from "@pcobooster/api/modules/planning-center/get-adjacent-plans";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
@@ -30,8 +30,10 @@ const createFixture = (current: PCResource, page: PCResource[]) => {
 
 const sunday = plan("sun-am", "2026-09-27T17:00:00Z");
 
-describe(getAdjacentPlan, () => {
-  it("finds the latest plan before this one, same-day services included", async () => {
+const ids = (plans: readonly { id: string }[]) => plans.map(({ id }) => id);
+
+describe(getAdjacentPlans, () => {
+  it("lists plans before this one nearest first, same-day services included", async () => {
     const { dependencies, getPlansPage } = createFixture(sunday, [
       plan("sun-pm", "2026-09-28T01:00:00Z"),
       sunday,
@@ -40,10 +42,10 @@ describe(getAdjacentPlan, () => {
     ]);
 
     const previous = await Effect.runPromise(
-      getAdjacentPlan("st-1", "sun-am", "previous", dependencies)
+      getAdjacentPlans("st-1", "sun-am", "previous", dependencies)
     );
 
-    expect(previous?.id).toBe("sun-early");
+    expect(ids(previous)).toStrictEqual(["sun-early", "last-week"]);
     expect(getPlansPage).toHaveBeenCalledWith(
       "st-1",
       { filter: "before", before: "2026-09-28" },
@@ -52,7 +54,7 @@ describe(getAdjacentPlan, () => {
     );
   });
 
-  it("finds the earliest plan after this one", async () => {
+  it("lists plans after this one nearest first", async () => {
     const { dependencies, getPlansPage } = createFixture(sunday, [
       sunday,
       plan("sun-pm", "2026-09-28T01:00:00Z"),
@@ -60,10 +62,10 @@ describe(getAdjacentPlan, () => {
     ]);
 
     const next = await Effect.runPromise(
-      getAdjacentPlan("st-1", "sun-am", "next", dependencies)
+      getAdjacentPlans("st-1", "sun-am", "next", dependencies)
     );
 
-    expect(next?.id).toBe("sun-pm");
+    expect(ids(next)).toStrictEqual(["sun-pm", "next-week"]);
     expect(getPlansPage).toHaveBeenCalledWith(
       "st-1",
       { filter: "after", after: "2026-09-26" },
@@ -72,13 +74,30 @@ describe(getAdjacentPlan, () => {
     );
   });
 
-  it("returns null when nothing is on that side", async () => {
+  it("keeps the four nearest", async () => {
+    const { dependencies } = createFixture(sunday, [
+      sunday,
+      plan("w1", "2026-10-04T17:00:00Z"),
+      plan("w2", "2026-10-11T17:00:00Z"),
+      plan("w3", "2026-10-18T17:00:00Z"),
+      plan("w4", "2026-10-25T17:00:00Z"),
+      plan("w5", "2026-11-01T17:00:00Z"),
+    ]);
+
+    const next = await Effect.runPromise(
+      getAdjacentPlans("st-1", "sun-am", "next", dependencies)
+    );
+
+    expect(ids(next)).toStrictEqual(["w1", "w2", "w3", "w4"]);
+  });
+
+  it("returns nothing when nothing is on that side", async () => {
     const { dependencies } = createFixture(sunday, [sunday]);
 
     await expect(
       Effect.runPromise(
-        getAdjacentPlan("st-1", "sun-am", "previous", dependencies)
+        getAdjacentPlans("st-1", "sun-am", "previous", dependencies)
       )
-    ).resolves.toBeNull();
+    ).resolves.toStrictEqual([]);
   });
 });
