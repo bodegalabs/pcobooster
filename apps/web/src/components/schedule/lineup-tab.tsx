@@ -32,7 +32,7 @@ import {
   Users,
 } from "lucide-react";
 import { startTransition, useMemo, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { PageScrollArea } from "@/components/page-shell";
 import { AvatarStatus } from "@/components/schedule/avatar-status";
@@ -61,7 +61,6 @@ import {
 } from "@/components/ui/empty";
 import { HoverLabel } from "@/components/ui/hover-card";
 import { Item } from "@/components/ui/item";
-import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useLineupColumnOrder } from "@/hooks/use-lineup-column-order";
@@ -95,10 +94,10 @@ const teamHeaderClassName =
   "group/team-header bg-muted/40 flex items-stretch gap-0.5 rounded-t-xl px-1.5 py-1.5";
 /** Positions on the left, their people on the right, so a team reads as one roster. */
 const rosterGridClassName =
-  "border-border/60 divide-border/60 grid grid-cols-[fit-content(10rem)_minmax(0,1fr)] divide-y border-t";
+  "border-border/60 divide-border/60 grid grid-cols-[auto_minmax(0,1fr)] divide-y border-t";
 const rosterPositionClassName =
   "col-span-2 grid grid-cols-subgrid items-start gap-x-1 px-1.5 py-1.5";
-/** Person and open-seat rows share one height so a position's rows line up with its label. */
+/** Person and open-seat rows share one height so a position's rows line up with its icon. */
 const rosterRowClassName = "min-h-11";
 
 const getStatusDotStatus = (
@@ -117,6 +116,7 @@ const STATUS_LABELS = {
 } as const;
 
 const PersonRow = ({
+  positionLabel,
   person,
   teamName,
   positionName,
@@ -127,6 +127,8 @@ const PersonRow = ({
   teamId,
   positionId,
 }: {
+  /** The position's name, on the first person's row. */
+  positionLabel: ReactNode;
   person: FilledPositionPerson;
   teamName: string;
   positionName: string;
@@ -194,6 +196,7 @@ const PersonRow = ({
           </span>
         ) : null}
         {unsent ? <UnsentNotificationMark /> : null}
+        {positionLabel}
       </Item>
       <PlanPersonEditDialog
         person={person}
@@ -211,6 +214,24 @@ const PersonRow = ({
     </>
   );
 };
+
+/** The position's name at the end of its first row; the icon column carries the rest. */
+const TrailingPositionName = ({
+  name,
+  isTemporary,
+}: {
+  name: string;
+  isTemporary: boolean;
+}) => (
+  <span
+    className={cn(
+      "text-muted-foreground ml-auto max-w-[45%] shrink-0 truncate text-xs",
+      isTemporary && "italic"
+    )}
+  >
+    {name}
+  </span>
+);
 
 const PositionRows = ({
   teamId,
@@ -254,12 +275,12 @@ const PositionRows = ({
   return (
     <li className={rosterPositionClassName}>
       <HoverLabel
-        label="Open in Assign"
+        label={`Open ${position.name} in Assign`}
         side="left"
         render={
           <Item
             size="row"
-            className={rosterRowClassName}
+            className={cn(rosterRowClassName, "w-9 justify-center")}
             render={
               <button
                 type="button"
@@ -271,19 +292,19 @@ const PositionRows = ({
         }
       >
         <PositionPickerIcon positionName={position.name} teamName={teamName} />
-        <span
-          className={cn(
-            "text-muted-foreground block min-w-0 text-sm",
-            isTemporaryPosition && "italic"
-          )}
-        >
-          <MiddleTruncate text={position.name} />
-        </span>
       </HoverLabel>
       <ul className="flex min-w-0 flex-col">
-        {people.map((person) => (
+        {people.map((person, index) => (
           <li key={`${person.id}-${person.rawStatus}`}>
             <PersonRow
+              positionLabel={
+                index === 0 ? (
+                  <TrailingPositionName
+                    name={position.name}
+                    isTemporary={isTemporaryPosition}
+                  />
+                ) : null
+              }
               person={person}
               teamName={teamName}
               positionName={position.name}
@@ -315,6 +336,12 @@ const PositionRows = ({
               <span className="text-status-declined text-sm font-medium tabular-nums">
                 {openCount === 1 ? "Open" : `${openCount} open`}
               </span>
+              {people.length === 0 ? (
+                <TrailingPositionName
+                  name={position.name}
+                  isTemporary={isTemporaryPosition}
+                />
+              ) : null}
             </Item>
           </li>
         ) : null}
