@@ -23,12 +23,9 @@ import type {
 import {
   CalendarDays,
   ChevronDown,
-  CircleDashed,
-  Clock3,
   GripVertical,
   Mail,
   UserPlus,
-  Users,
 } from "lucide-react";
 import { startTransition, useMemo, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
@@ -503,62 +500,6 @@ const TeamPanelOverlay = ({ group }: { group: TeamPositionGroup }) => (
   </section>
 );
 
-interface LineupSummary {
-  serving: number;
-  open: number;
-  pending: number;
-  unsent: number;
-}
-
-const summarizeLineup = (groups: TeamPositionGroup[]): LineupSummary => {
-  const summary: LineupSummary = { serving: 0, open: 0, pending: 0, unsent: 0 };
-  for (const group of groups) {
-    for (const position of group.positions) {
-      summary.open += position.neededCount ?? 0;
-      for (const person of position.filledPeople ?? []) {
-        const status = getStatusDotStatus(person);
-        if (status !== "declined") {
-          summary.serving += 1;
-        }
-        if (status === "scheduled") {
-          summary.pending += 1;
-        }
-        if (isUnsent(person)) {
-          summary.unsent += 1;
-        }
-      }
-    }
-  }
-  return summary;
-};
-
-const LineupSummaryLine = ({ summary }: { summary: LineupSummary }) => (
-  <div className="flex flex-wrap items-center gap-1.5 pb-3">
-    <Badge variant="secondary">
-      <Users aria-hidden />
-      {summary.serving} serving
-    </Badge>
-    {summary.open > 0 ? (
-      <Badge variant="destructive">
-        <CircleDashed aria-hidden />
-        {summary.open} open
-      </Badge>
-    ) : null}
-    {summary.pending > 0 ? (
-      <Badge variant="outline">
-        <Clock3 aria-hidden />
-        {summary.pending} pending
-      </Badge>
-    ) : null}
-    {summary.unsent > 0 ? (
-      <Badge variant="outline">
-        <Mail aria-hidden />
-        {summary.unsent} not notified
-      </Badge>
-    ) : null}
-  </div>
-);
-
 const lineupSkeletonTeams = [
   { key: "a", title: "7rem", positions: [2, 1, 1, 1] },
   { key: "b", title: "5rem", positions: [1, 2, 1] },
@@ -568,10 +509,6 @@ const lineupSkeletonWidths = ["8rem", "6rem", "9rem", "7rem"];
 
 const LineupLoadingState = () => (
   <PageScrollArea>
-    <div className="flex h-8 items-center gap-4 pb-3">
-      <Skeleton variant="text" className="h-3.5 w-20" />
-      <Skeleton variant="text" className="h-3.5 w-14" />
-    </div>
     <div className={lineupGridClassName}>
       {lineupSkeletonTeams.map((team) => (
         <div key={team.key} className={teamPanelClassName}>
@@ -643,7 +580,6 @@ export const LineupTab = ({
       columnOrderByServiceType[serviceTypeId]
     );
   }, [columnOrderByServiceType, groups, serviceTypeId]);
-  const summary = useMemo(() => summarizeLineup(groups), [groups]);
   const activeGroup =
     orderedGroups.find((group) => group.teamId === activeTeamId) ?? null;
   const sensors = useSensors(
@@ -720,7 +656,6 @@ export const LineupTab = ({
     return (
       <PageScrollArea>
         <div className={revealClassName}>
-          <LineupSummaryLine summary={summary} />
           <div className={lineupGridClassName}>
             {orderedGroups.map((group) => (
               <TeamPanel key={group.teamId} group={group} {...panelProps} />
@@ -734,7 +669,6 @@ export const LineupTab = ({
   return (
     <PageScrollArea>
       <div className={cn("relative", revealClassName)}>
-        <LineupSummaryLine summary={summary} />
         <DndContext
           collisionDetection={closestCenter}
           sensors={sensors}
