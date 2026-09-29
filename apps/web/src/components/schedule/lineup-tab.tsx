@@ -23,7 +23,6 @@ import type {
 import {
   CalendarDays,
   ChevronDown,
-  CircleCheck,
   CircleDashed,
   Clock3,
   GripVertical,
@@ -144,9 +143,7 @@ const PersonRow = ({
   const assignedTimeCount = planTimes.filter((planTime) =>
     assignedTimeIdSet.has(planTime.id)
   ).length;
-  // Most people serve every time, so only a partial schedule is worth a mark.
-  const servesSomeTimes =
-    planTimes.length > 1 && assignedTimeCount < planTimes.length;
+  const servesSomeTimes = assignedTimeCount < planTimes.length;
   const status = getStatusDotStatus(person);
   const unsent = isUnsent(person);
   const statusLabel = status === "confirmed" ? null : STATUS_LABELS[status];
@@ -172,7 +169,7 @@ const PersonRow = ({
           setEditOpen(true);
         }}
       >
-        <AvatarStatus status={status === "confirmed" ? null : status}>
+        <AvatarStatus status={status}>
           <Avatar>
             <AvatarImage
               src={person.photoThumbnailUrl ?? undefined}
@@ -189,8 +186,15 @@ const PersonRow = ({
         >
           {person.name}
         </span>
-        {servesSomeTimes ? (
-          <span className="text-muted-foreground inline-flex shrink-0 items-center gap-1 text-xs tabular-nums">
+        {planTimes.length > 0 ? (
+          <span
+            className={cn(
+              "inline-flex shrink-0 items-center gap-1 text-xs tabular-nums",
+              servesSomeTimes
+                ? "text-status-scheduled"
+                : "text-muted-foreground"
+            )}
+          >
             <Clock3 className="size-3.5" aria-hidden />
             {assignedTimeCount}/{planTimes.length}
           </span>
@@ -371,10 +375,6 @@ const TeamPanel = ({
   dragHandleAttributes?: ReturnType<typeof useSortable>["attributes"];
   dragHandleListeners?: ReturnType<typeof useSortable>["listeners"];
 }) => {
-  const openCount = group.positions.reduce(
-    (sum, position) => sum + (position.neededCount ?? 0),
-    0
-  );
   const unsentCount = group.positions.reduce(
     (sum, position) =>
       sum + (position.filledPeople ?? []).filter(isUnsent).length,
@@ -409,9 +409,7 @@ const TeamPanel = ({
               />
             }
           >
-            <span className="bg-background ring-foreground/5 dark:ring-foreground/10 flex size-7 shrink-0 items-center justify-center rounded-lg ring-1">
-              <TeamPickerIcon teamName={group.teamName} />
-            </span>
+            <TeamPickerIcon teamName={group.teamName} />
             <h3 className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight">
               {group.teamName}
             </h3>
@@ -424,17 +422,6 @@ const TeamPanel = ({
                 {unsentCount}
               </Badge>
             ) : null}
-            {openCount > 0 ? (
-              <Badge variant="destructive">
-                <CircleDashed aria-hidden />
-                {openCount} open
-              </Badge>
-            ) : (
-              <Badge variant="secondary">
-                <CircleCheck aria-hidden />
-                Full
-              </Badge>
-            )}
             <ChevronDown
               className={cn(
                 "text-muted-foreground size-3.5 shrink-0 opacity-60",
