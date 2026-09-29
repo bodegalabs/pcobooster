@@ -3,6 +3,7 @@ import type { PlanItem } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
 import {
+  songHistoryCountLabel,
   describeKeyChange,
   formatCompactAgo,
   previousSongBefore,
@@ -136,6 +137,29 @@ describe(summarizeSongHistory, () => {
       timesHere: 2,
       keys: ["G", "E", "F"],
     });
+  });
+});
+
+describe(songHistoryCountLabel, () => {
+  it("counts the past year, then the plan's service type by name", () => {
+    expect(
+      songHistoryCountLabel({ timesThisYear: 4, timesHere: 2 }, "Youth")
+    ).toBe("Sung 4 times in the past year · 2 at Youth");
+    expect(
+      songHistoryCountLabel({ timesThisYear: 1, timesHere: 0 }, "Youth")
+    ).toBe("Sung once in the past year · 0 at Youth");
+  });
+
+  it("leaves out the service type when its name is unknown", () => {
+    expect(
+      songHistoryCountLabel({ timesThisYear: 3, timesHere: 1 }, null)
+    ).toBe("Sung 3 times in the past year");
+  });
+
+  it("says when the song wasn't sung in the past year", () => {
+    expect(
+      songHistoryCountLabel({ timesThisYear: 0, timesHere: 0 }, "Youth")
+    ).toBe("Not sung in the past year");
   });
 });
 

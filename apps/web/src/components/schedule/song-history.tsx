@@ -8,8 +8,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
+import { useServiceTypes } from "@/hooks/use-service-types";
 import { useSongHistory } from "@/hooks/use-song-history";
-import { summarizeSongHistory } from "@/lib/song-library";
+import {
+  songHistoryCountLabel,
+  summarizeSongHistory,
+} from "@/lib/song-library";
 
 /** The calendar year in the org's zone, from its "YYYY-MM-DD" day. */
 const yearOf = (instant: Date, timeZone: string) =>
@@ -85,6 +89,9 @@ export const SongHistory = ({
 }: SongHistoryProps) => {
   const timeZone = useOrganizationTimeZone();
   const history = useSongHistory(songId);
+  const serviceTypes = useServiceTypes();
+  const serviceTypeName =
+    serviceTypes.data?.find((type) => type.id === serviceTypeId)?.name ?? null;
   const [showAll, setShowAll] = useState(false);
   if (history.data === undefined) {
     return history.isError ? (
@@ -102,7 +109,7 @@ export const SongHistory = ({
   return (
     <div className="flex flex-col gap-1.5">
       <p className="text-muted-foreground text-xs tabular-nums">
-        {summary.timesThisYear} before this plan · {summary.timesHere} here
+        {songHistoryCountLabel(summary, serviceTypeName)}
       </p>
       {rows.length === 0 ? (
         <p className="text-muted-foreground text-sm">

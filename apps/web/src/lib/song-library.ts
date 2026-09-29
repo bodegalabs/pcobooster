@@ -155,6 +155,25 @@ export const summarizeSongHistory = (
   };
 };
 
+/**
+ * "Sung 4 times in the past year · 2 at Youth": how often the song came before the
+ * plan, and how many of those were at the plan's service type, by name when known.
+ */
+export const songHistoryCountLabel = (
+  summary: Pick<SongHistorySummary, "timesThisYear" | "timesHere">,
+  serviceTypeName: string | null
+): string => {
+  const { timesThisYear, timesHere } = summary;
+  if (timesThisYear === 0) {
+    return "Not sung in the past year";
+  }
+  const times = timesThisYear === 1 ? "once" : `${timesThisYear} times`;
+  const sung = `Sung ${times} in the past year`;
+  return serviceTypeName === null || serviceTypeName === ""
+    ? sung
+    : `${sung} · ${timesHere} at ${serviceTypeName}`;
+};
+
 /** "78 bpm · 6/8", or "" when the arrangement sets neither. */
 export const tempoLabel = (
   arrangement: Pick<ArrangementOption, "bpm" | "meter"> | undefined
