@@ -139,7 +139,11 @@ describe(commonToneChords, () => {
     expect(describeTone("F", "D")).toBe("A, third of F -> fifth of D");
   });
 
+  it("prefers a held note that lands as the opening chord's root", () => {
+    expect(describeTone("F", "E")).toBe("A, third of F -> root of A");
+  });
+
   it("then steps both songs off their home chords", () => {
-    expect(describeTone("Bb", "E")).toBe("A, third of F -> third of F#m");
+    expect(describeTone("Bb", "E")).toBe("A, third of F -> root of A");
   });
 });
