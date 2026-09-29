@@ -587,7 +587,6 @@ export const usePlanTabController = ({
     songPickerOpen,
     pendingItemId,
     pendingSongId,
-    isReordering: reorderItemsMutation.isPending,
     isCreatingBasicItem: createItemMutation.isPending,
     isSavingItem: updateItemMutation.isPending,
     setSongPickerOpen,

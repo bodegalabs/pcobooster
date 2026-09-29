@@ -149,7 +149,7 @@ describe(formatPlayedAgo, () => {
 });
 
 describe(buildPlanInsights, () => {
-  it("counts rough key changes and recent repeats", () => {
+  it("maps key changes and recent repeats", () => {
     const insights = buildPlanInsights(
       [
         item("a", "song", { start: "C" }, new Date("2026-09-27T17:00:00Z")),
@@ -159,7 +159,6 @@ describe(buildPlanInsights, () => {
       new Date("2026-10-04T17:00:00Z")
     );
 
-    expect(insights.keyJumps).toBe(1);
     expect([...insights.transitions.keys()]).toStrictEqual(["b", "c"]);
     expect([...insights.recentPlays]).toStrictEqual([["a", 7]]);
   });

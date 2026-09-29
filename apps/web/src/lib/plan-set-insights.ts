@@ -119,8 +119,6 @@ export const formatPlayedAgo = (playedAt: Date, now: Date): string => {
 export interface PlanInsights {
   /** Key changes into each song, by the song's item id. */
   transitions: ReadonlyMap<string, KeyTransition>;
-  /** Rough key changes worth a second look. */
-  keyJumps: number;
   /** Days since each recently repeated song was last played, by item id. */
   recentPlays: ReadonlyMap<string, number>;
 }
@@ -130,12 +128,8 @@ export const buildPlanInsights = (
   planDate: Date | null
 ): PlanInsights => {
   const transitions = new Map<string, KeyTransition>();
-  let keyJumps = 0;
   for (const transition of keyTransitions(items)) {
     transitions.set(transition.toItemId, transition);
-    if (transition.level !== "smooth") {
-      keyJumps += 1;
-    }
   }
   const recentPlays = new Map<string, number>();
   for (const item of items) {
@@ -144,5 +138,5 @@ export const buildPlanInsights = (
       recentPlays.set(item.id, days);
     }
   }
-  return { transitions, keyJumps, recentPlays };
+  return { transitions, recentPlays };
 };

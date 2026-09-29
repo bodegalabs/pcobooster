@@ -42,7 +42,6 @@ import {
 import type { AddedPlanItemKind } from "@/hooks/use-plan-tab-controller";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import type { PlanInsertion } from "@/lib/plan-items-query-state";
-import { summarizeOrder } from "@/lib/plan-overview";
 import { buildPlanInsights } from "@/lib/plan-set-insights";
 import type { PlanInsights } from "@/lib/plan-set-insights";
 import { previousSongBefore } from "@/lib/song-library";
@@ -539,12 +538,6 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
             />
           </PageScrollArea>
           <PlanTabToolbar
-            order={
-              isLoading || items.length === 0 ? null : summarizeOrder(items)
-            }
-            keyJumps={insights.keyJumps}
-            repeats={insights.recentPlays.size}
-            isReordering={controller.isReordering}
             isCreatingBasicItem={controller.isCreatingBasicItem}
             disabled={isLoading}
             onAddSong={() => {
