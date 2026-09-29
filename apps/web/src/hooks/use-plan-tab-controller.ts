@@ -361,6 +361,14 @@ export const usePlanTabController = ({
 
       await orpc.planItems.delete({ itemId: item.id, serviceTypeId, planId });
     },
+    onSuccess: async (_result, item) => {
+      // Drop it from the cache before it stops being hidden, or it shows again until
+      // the delayed refetch lands; a read already in flight could still hold it.
+      await queryClient.cancelQueries({ queryKey });
+      queryClient.setQueryData<PlanItem[]>(queryKey, (current) =>
+        current?.filter((candidate) => candidate.id !== item.id)
+      );
+    },
     onError: (error) => {
       toast.error(toErrorMessage(error, "Something went wrong."));
     },
