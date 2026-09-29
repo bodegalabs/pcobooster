@@ -253,7 +253,7 @@ const DetailsAside = ({
       className={cn(
         "flex min-h-0 w-[min(24rem,34vw)] shrink-0 flex-col pb-4 ease-out",
         closing
-          ? "animate-out fade-out-0 slide-out-to-right-2 pointer-events-none duration-100"
+          ? "animate-out fade-out-0 slide-out-to-right-2 fill-mode-forwards pointer-events-none duration-100"
           : "animate-in fade-in-0 slide-in-from-right-4 pointer-events-none duration-200 *:pointer-events-auto motion-reduce:animate-none"
       )}
       onAnimationEnd={(event) => {
