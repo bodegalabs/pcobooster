@@ -139,11 +139,6 @@ const PersonRow = ({
   positionId: string;
 }) => {
   const [editOpen, setEditOpen] = useState(false);
-  const assignedTimeIdSet = new Set(person.assignedTimeIds);
-  const assignedTimeCount = planTimes.filter((planTime) =>
-    assignedTimeIdSet.has(planTime.id)
-  ).length;
-  const servesSomeTimes = assignedTimeCount < planTimes.length;
   const status = getStatusDotStatus(person);
   const unsent = isUnsent(person);
   const statusLabel = status === "confirmed" ? null : STATUS_LABELS[status];
@@ -186,19 +181,6 @@ const PersonRow = ({
         >
           {person.name}
         </span>
-        {planTimes.length > 0 ? (
-          <span
-            className={cn(
-              "inline-flex shrink-0 items-center gap-1 text-xs tabular-nums",
-              servesSomeTimes
-                ? "text-status-scheduled"
-                : "text-muted-foreground"
-            )}
-          >
-            <Clock3 className="size-3.5" aria-hidden />
-            {assignedTimeCount}/{planTimes.length}
-          </span>
-        ) : null}
         {unsent ? <UnsentNotificationMark /> : null}
         {positionLabel}
       </Item>

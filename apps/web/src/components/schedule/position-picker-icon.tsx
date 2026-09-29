@@ -5,7 +5,7 @@ import {
   GuitarIcon,
   LiveStreaming01Icon,
   MicVocalIcon,
-  MusicIcon,
+  Music01Icon,
   MusicNote01Icon,
   Speaker01Icon,
 } from "@hugeicons/core-free-icons";
@@ -29,7 +29,7 @@ const POSITION_ICONS = {
   livestream: LiveStreaming01Icon,
   "mic-vocal": MicVocalIcon,
   sound: Speaker01Icon,
-  music: MusicIcon,
+  music: Music01Icon,
   "music-note": MusicNote01Icon,
 } satisfies Record<Exclude<PositionIconId, "piano">, typeof Camera01Icon>;
 
