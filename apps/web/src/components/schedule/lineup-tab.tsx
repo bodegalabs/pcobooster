@@ -23,9 +23,13 @@ import type {
 import {
   CalendarDays,
   ChevronDown,
+  CircleCheck,
+  CircleDashed,
   Clock3,
   GripVertical,
   Mail,
+  UserPlus,
+  Users,
 } from "lucide-react";
 import { startTransition, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
@@ -33,10 +37,19 @@ import type { CSSProperties } from "react";
 import { PageScrollArea } from "@/components/page-shell";
 import { PlanPersonEditDialog } from "@/components/schedule/plan-person-edit-dialog";
 import { getPlanPersonStatusValue } from "@/components/schedule/plan-person-status";
+import {
+  PositionPickerIcon,
+  TeamPickerIcon,
+} from "@/components/schedule/position-picker-icon";
 import { UnsentNotificationMark } from "@/components/schedule/scheduling-notification-mark";
-import { ScheduleStatusDot } from "@/components/schedule/status-dot";
 import type { SlotRef } from "@/components/schedule/types";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Avatar,
+  AvatarBadge,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
   CollapsibleContent,
@@ -83,12 +96,14 @@ const lineupGridClassName =
 const teamPanelClassName =
   "bg-background text-foreground shadow-xs ring-foreground/5 dark:ring-foreground/10 flex flex-col rounded-xl ring-1";
 const teamHeaderClassName =
-  "group/team-header flex items-stretch gap-0.5 px-1.5 py-1.5";
+  "group/team-header bg-muted/40 flex items-stretch gap-0.5 rounded-t-xl px-1.5 py-1.5";
 /** Positions on the left, their people on the right, so a team reads as one roster. */
 const rosterGridClassName =
   "border-border/60 divide-border/60 grid grid-cols-[fit-content(10rem)_minmax(0,1fr)] divide-y border-t";
 const rosterPositionClassName =
-  "col-span-2 grid grid-cols-subgrid items-start gap-x-1 px-1.5 py-1";
+  "col-span-2 grid grid-cols-subgrid items-start gap-x-1 px-1.5 py-1.5";
+/** Person and open-seat rows share one height so a position's rows line up with its label. */
+const rosterRowClassName = "min-h-11";
 
 const getStatusDotStatus = (
   person: FilledPositionPerson
@@ -142,7 +157,7 @@ const PersonRow = ({
     <>
       <Item
         size="row"
-        className="min-h-9"
+        className={rosterRowClassName}
         render={
           <button
             type="button"
@@ -159,12 +174,13 @@ const PersonRow = ({
           setEditOpen(true);
         }}
       >
-        <Avatar size="sm">
+        <Avatar>
           <AvatarImage
             src={person.photoThumbnailUrl ?? undefined}
             alt={person.name}
           />
           <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
+          {status === "confirmed" ? null : <AvatarBadge variant={status} />}
         </Avatar>
         <span
           className={cn(
@@ -181,7 +197,6 @@ const PersonRow = ({
           </span>
         ) : null}
         {unsent ? <UnsentNotificationMark /> : null}
-        {status === "confirmed" ? null : <ScheduleStatusDot status={status} />}
       </Item>
       <PlanPersonEditDialog
         person={person}
@@ -247,7 +262,7 @@ const PositionRows = ({
         render={
           <Item
             size="row"
-            className="min-h-9"
+            className={rosterRowClassName}
             render={
               <button
                 type="button"
@@ -258,6 +273,7 @@ const PositionRows = ({
           />
         }
       >
+        <PositionPickerIcon positionName={position.name} teamName={teamName} />
         <span
           className={cn(
             "text-muted-foreground block min-w-0 text-sm",
@@ -287,7 +303,7 @@ const PositionRows = ({
           <li>
             <Item
               size="row"
-              className="min-h-9"
+              className={rosterRowClassName}
               render={
                 <button
                   type="button"
@@ -296,7 +312,10 @@ const PositionRows = ({
                 />
               }
             >
-              <span className="border-status-declined/40 text-status-declined rounded-md border border-dashed px-2 py-0.5 text-xs font-medium tabular-nums">
+              <span className="border-status-declined/50 text-status-declined flex size-8 shrink-0 items-center justify-center rounded-full border border-dashed">
+                <UserPlus className="size-3.5" aria-hidden />
+              </span>
+              <span className="text-status-declined text-sm font-medium tabular-nums">
                 {openCount === 1 ? "Open" : `${openCount} open`}
               </span>
             </Item>
@@ -366,23 +385,32 @@ const TeamPanel = ({
               />
             }
           >
+            <span className="bg-background ring-foreground/5 dark:ring-foreground/10 flex size-7 shrink-0 items-center justify-center rounded-lg ring-1">
+              <TeamPickerIcon teamName={group.teamName} />
+            </span>
             <h3 className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight">
               {group.teamName}
             </h3>
             {unsentCount > 0 ? (
-              <span
-                className="text-muted-foreground inline-flex shrink-0 items-center gap-1 text-xs font-medium tabular-nums"
+              <Badge
+                variant="outline"
                 aria-label={`${unsentCount} not notified`}
               >
-                <Mail className="size-3.5" aria-hidden />
+                <Mail aria-hidden />
                 {unsentCount}
-              </span>
+              </Badge>
             ) : null}
             {openCount > 0 ? (
-              <span className="text-status-declined shrink-0 text-xs font-medium tabular-nums">
+              <Badge variant="destructive">
+                <CircleDashed aria-hidden />
                 {openCount} open
-              </span>
-            ) : null}
+              </Badge>
+            ) : (
+              <Badge variant="secondary">
+                <CircleCheck aria-hidden />
+                Full
+              </Badge>
+            )}
             <ChevronDown
               className={cn(
                 "text-muted-foreground size-3.5 shrink-0 opacity-60",
@@ -512,38 +540,30 @@ const summarizeLineup = (groups: TeamPositionGroup[]): LineupSummary => {
 };
 
 const LineupSummaryLine = ({ summary }: { summary: LineupSummary }) => (
-  <p className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 pb-3 text-sm">
-    <span>
-      <span className="text-foreground font-medium tabular-nums">
-        {summary.serving}
-      </span>{" "}
-      serving
-    </span>
+  <div className="flex flex-wrap items-center gap-1.5 pb-3">
+    <Badge variant="secondary">
+      <Users aria-hidden />
+      {summary.serving} serving
+    </Badge>
     {summary.open > 0 ? (
-      <span>
-        <span className="text-status-declined font-medium tabular-nums">
-          {summary.open}
-        </span>{" "}
-        open
-      </span>
+      <Badge variant="destructive">
+        <CircleDashed aria-hidden />
+        {summary.open} open
+      </Badge>
     ) : null}
     {summary.pending > 0 ? (
-      <span>
-        <span className="text-foreground font-medium tabular-nums">
-          {summary.pending}
-        </span>{" "}
-        pending
-      </span>
+      <Badge variant="outline">
+        <Clock3 aria-hidden />
+        {summary.pending} pending
+      </Badge>
     ) : null}
     {summary.unsent > 0 ? (
-      <span>
-        <span className="text-foreground font-medium tabular-nums">
-          {summary.unsent}
-        </span>{" "}
-        not notified
-      </span>
+      <Badge variant="outline">
+        <Mail aria-hidden />
+        {summary.unsent} not notified
+      </Badge>
     ) : null}
-  </p>
+  </div>
 );
 
 const lineupSkeletonTeams = [
