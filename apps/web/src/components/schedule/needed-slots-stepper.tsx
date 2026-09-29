@@ -1,5 +1,6 @@
+import { MinusSignIcon, PlusSignIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TeamPosition } from "@pcobooster/planning-center-models/types";
-import { Minus, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { HoverLabel } from "@/components/ui/hover-card";
@@ -27,14 +28,14 @@ export const NeededSlotsStepper = ({
   const hasOpenSlots = open > 0;
 
   return (
-    <div className="flex shrink-0 items-center gap-1">
+    <div className="border-border bg-background inline-flex h-7 shrink-0 items-center rounded-full border p-0.5">
       <HoverLabel
         label={hasOpenSlots ? "One fewer open slot" : "No open slots to remove"}
         side="bottom"
         render={
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="icon-xs"
             aria-label={`Remove an open ${position.name} slot`}
             disabled={!hasOpenSlots}
@@ -44,10 +45,10 @@ export const NeededSlotsStepper = ({
           />
         }
       >
-        <Minus />
+        <HugeiconsIcon icon={MinusSignIcon} strokeWidth={2} />
       </HoverLabel>
       <span
-        className="min-w-9 text-center text-sm font-medium tabular-nums"
+        className="min-w-8 px-1 text-center text-xs font-medium tabular-nums"
         aria-label={`${filled} of ${total} filled`}
       >
         {filled}/{total}
@@ -62,7 +63,7 @@ export const NeededSlotsStepper = ({
         render={
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="icon-xs"
             aria-label={`Add an open ${position.name} slot`}
             disabled={!hasOpenSlots}
@@ -72,7 +73,7 @@ export const NeededSlotsStepper = ({
           />
         }
       >
-        <Plus />
+        <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} />
       </HoverLabel>
     </div>
   );
