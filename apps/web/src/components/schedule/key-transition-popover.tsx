@@ -2,7 +2,7 @@ import type {
   ArrangementOption,
   KeyOption,
 } from "@pcobooster/planning-center-models/types";
-import { TriangleAlert } from "lucide-react";
+import { Lightbulb, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -72,7 +72,10 @@ interface KeyTransitionPopoverProps {
   onChangeKey: (arrangement: ArrangementOption, key: KeyOption) => void;
 }
 
-/** The warning beside a rough key change, opening ways to connect the two songs. */
+/**
+ * Ideas for connecting two songs, behind a warning when the key change is rough or worth a
+ * look, and behind a quiet lightbulb when it is already smooth.
+ */
 export const KeyTransitionPopover = ({
   transition,
   serviceTypeId,
@@ -80,8 +83,12 @@ export const KeyTransitionPopover = ({
   onChangeKey,
 }: KeyTransitionPopoverProps) => {
   const [open, setOpen] = useState(false);
-  const { data: options } = useSongOptions(open ? songId : null, serviceTypeId);
+  const tip = transition.level === "smooth";
   const suggestions = transitionSuggestions(transition, transition.kind);
+  const { data: options } = useSongOptions(
+    open && !tip ? songId : null,
+    serviceTypeId
+  );
   const alternates = rankAlternateKeys(
     transition,
     arrangementKeys(options?.arrangements ?? [])
@@ -92,6 +99,10 @@ export const KeyTransitionPopover = ({
       ) === index
   );
 
+  if (tip && suggestions.length === 0) {
+    return null;
+  }
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
@@ -100,17 +111,25 @@ export const KeyTransitionPopover = ({
             type="button"
             variant="ghost"
             size="icon-xs"
-            aria-label={`Key change from ${transition.from} to ${transition.to}: ${transition.description}. Show ways to connect the songs.`}
+            aria-label={
+              tip
+                ? `Key change from ${transition.from} to ${transition.to}: ${transition.description}. Show ideas to connect the songs.`
+                : `Key change from ${transition.from} to ${transition.to}: ${transition.description}. Show ways to connect the songs.`
+            }
           />
         }
       >
-        <TriangleAlert
-          className={
-            transition.level === "rough"
-              ? "text-destructive"
-              : "text-status-scheduled"
-          }
-        />
+        {tip ? (
+          <Lightbulb className="text-muted-foreground" />
+        ) : (
+          <TriangleAlert
+            className={
+              transition.level === "rough"
+                ? "text-destructive"
+                : "text-status-scheduled"
+            }
+          />
+        )}
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80">
         <PopoverHeader className="mx-4 mt-4">
@@ -121,6 +140,9 @@ export const KeyTransitionPopover = ({
             {transition.fromTitle} into {transition.toTitle}:{" "}
             {transition.description.charAt(0).toLowerCase()}
             {transition.description.slice(1)}.
+            {transition.bridgedBy === null
+              ? null
+              : ` ${transition.bridgedBy} gives the band room to change.`}
           </PopoverDescription>
         </PopoverHeader>
         <ul className="flex flex-col gap-3 px-4 py-3">
@@ -133,7 +155,7 @@ export const KeyTransitionPopover = ({
             </li>
           ))}
         </ul>
-        {alternates.length === 0 ? null : (
+        {tip || alternates.length === 0 ? null : (
           <div className="flex flex-col gap-2 border-t px-4 py-3">
             <span className="text-xs font-medium">
               Or play {transition.toTitle} in

@@ -49,7 +49,7 @@ const KeyOptionContent = ({ keyOption }: { keyOption: KeyOption }) => {
 interface SongKeyPickerProps {
   item: PlanItem;
   serviceTypeId: string | null;
-  /** A rough change from the previous song's key, flagged beside the key. */
+  /** The change from the previous song's key: rough ones are flagged, smooth ones get ideas. */
   transition: KeyTransition | null;
   onChange: (arrangement: ArrangementOption, key: KeyOption) => void;
 }
@@ -73,7 +73,7 @@ export const SongKeyPicker = ({
 
   return (
     <span className="flex items-center gap-1">
-      {transition === null || transition.level === "smooth" ? null : (
+      {transition === null ? null : (
         <KeyTransitionPopover
           transition={transition}
           serviceTypeId={serviceTypeId}
