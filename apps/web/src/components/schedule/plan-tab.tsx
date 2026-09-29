@@ -228,8 +228,8 @@ const PlanRunSheet = ({
 };
 
 /**
- * The details beside the run sheet on wide screens. Closing keeps the last details on
- * screen just long enough to fade them out.
+ * The details beside the run sheet on wide screens. Closing mirrors opening: the run
+ * sheet takes the room back at once while the last details fade out over it.
  */
 const DetailsAside = ({
   ref,
@@ -253,7 +253,7 @@ const DetailsAside = ({
       className={cn(
         "flex min-h-0 w-[min(24rem,34vw)] shrink-0 flex-col pb-4 ease-out",
         closing
-          ? "animate-out fade-out-0 slide-out-to-right-2 fill-mode-forwards pointer-events-none duration-100"
+          ? "animate-out fade-out-0 slide-out-to-right-4 fill-mode-forwards pointer-events-none absolute inset-y-0 right-0 duration-150"
           : "animate-in fade-in-0 slide-in-from-right-4 pointer-events-none duration-200 *:pointer-events-auto motion-reduce:animate-none"
       )}
       onAnimationEnd={(event) => {
@@ -561,7 +561,7 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
           {pane}
         </DetailsSheet>
       )}
-      <div className="flex h-full min-h-0 gap-6">
+      <div className="relative flex h-full min-h-0 gap-6">
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           <PageScrollArea>
             <PlanRunSheet
