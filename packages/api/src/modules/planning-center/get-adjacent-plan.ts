@@ -10,6 +10,13 @@ import { Effect } from "effect";
 
 export type PlanDirection = "previous" | "next";
 
+/**
+ * Plans fetched to find a neighbor. The window starts a day wide on the near side, so the
+ * page also holds this plan and its same-day services; Planning Center slows down sharply
+ * with page size (seconds at 100), so the page stays small.
+ */
+export const ADJACENT_PLANS_PAGE_SIZE = 8;
+
 export interface AdjacentPlanDependencies {
   plansService: Pick<
     PlanningCenterPlansService,
@@ -67,7 +74,8 @@ export const getAdjacentPlan = (
             filter: "after",
             after: addCalendarDaysToDayKey(dayKey, -1, timeZone),
           },
-      direction === "previous" ? "-sort_date" : "sort_date"
+      direction === "previous" ? "-sort_date" : "sort_date",
+      ADJACENT_PLANS_PAGE_SIZE
     );
     const candidates = toPlans(rawPlans).filter((plan) => {
       const time = plan.sortDate?.getTime();

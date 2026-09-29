@@ -28,6 +28,7 @@ import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { createAdjacentPlanQueryOptions } from "@/hooks/use-plans";
 import type { PlanNeighbor } from "@/hooks/use-plans";
 import { NEXT_PLAN_HOTKEY, PREVIOUS_PLAN_HOTKEY } from "@/lib/app-hotkeys";
+import { queryKeys } from "@/lib/query-keys";
 import type { DashboardView } from "@/lib/schedule-navigation";
 import { formatPlanDate } from "@/lib/service-plan-selection";
 
@@ -233,6 +234,11 @@ const usePlanStepper = ({
       toast(`No ${direction === "previous" ? "earlier" : "later"} plan`);
       return;
     }
+    // The lookup already has the plan's header details, so its page needn't fetch them.
+    queryClient.setQueryData(
+      queryKeys.planDetails(serviceTypeId, plan.id),
+      plan
+    );
     openPlan(plan);
   };
 
