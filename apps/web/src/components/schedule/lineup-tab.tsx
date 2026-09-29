@@ -578,6 +578,11 @@ const LineupLoadingState = ({ stacked }: { stacked: boolean }) => (
   </PageScrollArea>
 );
 
+/** The lineup's columns before anything loads: stacked on phones, side by side otherwise. */
+export const LineupTabSkeleton = () => (
+  <LineupLoadingState stacked={useIsMobile()} />
+);
+
 export const LineupTab = ({
   groups,
   isLoading,
