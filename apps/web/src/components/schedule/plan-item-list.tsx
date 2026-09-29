@@ -18,6 +18,7 @@ import {
   Trash2,
   Type,
 } from "lucide-react";
+import { useMemo, useRef } from "react";
 import type { CSSProperties } from "react";
 
 import {
@@ -344,54 +345,76 @@ const InsertAfter = ({
 }: {
   itemTitle: string;
   onInsert: (kind: PlanInsertKind) => void;
-}) => (
-  <div className="absolute inset-x-0 -bottom-2 z-10 flex h-4 opacity-0 hover:opacity-100 has-focus-visible:opacity-100 has-data-popup-open:opacity-100 max-sm:hidden pointer-coarse:hidden">
-    <DropdownMenu>
-      {/* The whole strip opens the menu; the plus only marks where it is. */}
-      <DropdownMenuTrigger
-        aria-label={`Add after ${itemTitle}`}
-        className="group/insert flex flex-1 cursor-pointer items-center"
-      >
-        <span
-          aria-hidden
-          className="border-border bg-background text-muted-foreground group-hover/insert:text-foreground flex size-5 shrink-0 items-center justify-center rounded-full border"
-        >
-          <Plus className="size-3" />
-        </span>
-        <span
-          aria-hidden
-          className="bg-primary/40 group-hover/insert:bg-primary/70 ml-1 h-0.5 flex-1 rounded-full"
-        />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuItem
-          onClick={() => {
-            onInsert("song");
+}) => {
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  // Where the pointer pressed the strip, so the menu opens there; the plus otherwise.
+  const pressedX = useRef<number | null>(null);
+  const anchor = useMemo(
+    () => ({
+      getBoundingClientRect: () => {
+        const strip = triggerRef.current?.getBoundingClientRect();
+        const x = pressedX.current ?? strip?.left ?? 0;
+        return new DOMRect(x, strip?.top ?? 0, 0, strip?.height ?? 0);
+      },
+    }),
+    []
+  );
+  return (
+    <div className="absolute inset-x-0 -bottom-2 z-10 flex h-4 opacity-0 hover:opacity-100 has-focus-visible:opacity-100 has-data-popup-open:opacity-100 max-sm:hidden pointer-coarse:hidden">
+      <DropdownMenu>
+        {/* The whole strip opens the menu; the plus only marks where it is. */}
+        <DropdownMenuTrigger
+          ref={triggerRef}
+          aria-label={`Add after ${itemTitle}`}
+          className="group/insert flex flex-1 cursor-pointer items-center"
+          onPointerDown={(event) => {
+            pressedX.current = event.clientX;
+          }}
+          onKeyDown={() => {
+            pressedX.current = null;
           }}
         >
-          <Music2 />
-          Song
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => {
-            onInsert("header");
-          }}
-        >
-          <Type />
-          Header
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => {
-            onInsert("item");
-          }}
-        >
-          <AlignLeft />
-          Item
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  </div>
-);
+          <span
+            aria-hidden
+            className="border-border bg-background text-muted-foreground group-hover/insert:text-foreground flex size-5 shrink-0 items-center justify-center rounded-full border"
+          >
+            <Plus className="size-3" />
+          </span>
+          <span
+            aria-hidden
+            className="bg-primary/40 group-hover/insert:bg-primary/70 ml-1 h-0.5 flex-1 rounded-full"
+          />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" anchor={anchor}>
+          <DropdownMenuItem
+            onClick={() => {
+              onInsert("song");
+            }}
+          >
+            <Music2 />
+            Song
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              onInsert("header");
+            }}
+          >
+            <Type />
+            Header
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              onInsert("item");
+            }}
+          >
+            <AlignLeft />
+            Item
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+};
 
 interface SortablePlanItemProps extends Omit<
   PlanItemRowProps,
