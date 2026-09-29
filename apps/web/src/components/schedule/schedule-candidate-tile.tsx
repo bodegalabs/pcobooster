@@ -242,6 +242,34 @@ const ScheduleCandidateIdentityRow = ({
   </div>
 );
 
+const normalizeLabel = (label: string) => label.trim().toLowerCase();
+
+/**
+ * The plan's assignment labels other than this slot, which they include when the person is
+ * on it. Labels come from two sources, "Team - Position" and bare "Position", so a bare
+ * label that a prefixed one already names is dropped.
+ */
+const otherPlanAssignments = (
+  labels: readonly string[],
+  teamName: string | null | undefined,
+  positionName: string | null | undefined
+): string[] => {
+  const thisSlot = new Set(
+    isNonEmptyString(positionName)
+      ? [`${teamName ?? ""} - ${positionName}`, positionName].map(
+          normalizeLabel
+        )
+      : []
+  );
+  const others = labels.filter((label) => !thisSlot.has(normalizeLabel(label)));
+  return others.filter((label) => {
+    const bare = normalizeLabel(label);
+    return !others.some((other) =>
+      normalizeLabel(other).endsWith(` - ${bare}`)
+    );
+  });
+};
+
 export const ScheduleCandidateTile = ({
   person,
   notNotified,
@@ -285,9 +313,13 @@ export const ScheduleCandidateTile = ({
 
   const isScheduled = fromServerScheduled || scheduleSuccess;
 
-  const selectedPlanAssignments = person.selectedPlanAssignmentLabels ?? [];
+  const selectedPlanAssignments = otherPlanAssignments(
+    person.selectedPlanAssignmentLabels ?? [],
+    teamName,
+    positionName
+  );
   const isScheduledElsewhereOnPlan =
-    !isScheduled && !isDeclined && selectedPlanAssignments.length > 0;
+    !isDeclined && selectedPlanAssignments.length > 0;
 
   const statusVariant = getStatusVariant(
     isBlocked,
