@@ -579,6 +579,55 @@
 }
 
 /*
+ * Assign day bars. Each bar grows up from the baseline in a wave that starts at the
+ * plan's day (`--day-distance: 0`) and spreads to both ends, so the eye lands on the
+ * plan first. The row space behind them opens and closes with the Show history switch.
+ */
+@utility day-bars-reveal {
+  & [data-day-bar] {
+    transform-origin: bottom;
+    animation: day-bar-grow 180ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    animation-delay: calc(var(--day-distance, 0) * 3ms);
+  }
+}
+
+@utility history-collapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows 200ms cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 160ms cubic-bezier(0.23, 1, 0.32, 1);
+
+  & > * {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  &[data-open="false"] {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+
+@keyframes day-bar-grow {
+  from {
+    opacity: 0;
+    transform: scaleY(0.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .day-bars-reveal [data-day-bar] {
+    animation-name: fade-in-only;
+    animation-delay: 0ms;
+  }
+
+  .history-collapse {
+    transition: opacity 160ms ease;
+  }
+}
+
+/*
  * Loading choreography. Skeletons wait before appearing so fast responses never
  * flash, shimmer instead of pulsing, and hand off to content with a short fade.
  */

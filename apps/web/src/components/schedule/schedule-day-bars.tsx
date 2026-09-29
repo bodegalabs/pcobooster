@@ -1,4 +1,5 @@
 import { formatCalendarDateLabel } from "@pcobooster/planning-center-models/calendar";
+import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { ServiceHistoryItem } from "@pcobooster/planning-center-models/types";
 import type { CSSProperties } from "react";
 
@@ -23,11 +24,21 @@ const dayKeyLabel = (
 ): string =>
   formatCalendarDateLabel(new Date(`${dayKey}T12:00:00Z`), "UTC", style);
 
+/**
+ * The position as Planning Center names it. History splits names on " - " into a team and
+ * a position, which also splits positions named like "Rhythm - AM"; joining them back
+ * shows the name leaders know.
+ */
+const positionLabel = (item: ServiceHistoryItem): string =>
+  isNonEmptyString(item.teamName)
+    ? `${item.teamName} - ${item.teamPositionName}`
+    : item.teamPositionName;
+
 /** "Sun, Oct 25 · Keys, Agape Worship Services"; a rehearsal-only line says so. */
 const dayLines = (day: ScheduleDay): string[] => {
   const lines = new Map<string, boolean>();
   for (const item of day.items) {
-    const what = [item.teamPositionName, item.serviceTypeName]
+    const what = [positionLabel(item), item.serviceTypeName]
       .filter((part) => part !== undefined && part !== "")
       .join(", ");
     const rehearsalOnly = item.timeType === "rehearsal";
@@ -120,7 +131,7 @@ const DayEntryRow = ({ entry }: { entry: DayEntry }) => {
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="text-foreground truncate text-sm font-medium">
-          {item.teamPositionName}
+          {positionLabel(item)}
         </span>
         {detail === "" ? null : (
           <span className="text-muted-foreground truncate text-xs">
@@ -179,12 +190,24 @@ const barClassName = (day: ScheduleDay): string => {
 };
 
 const DayBar = ({ day }: { day: ScheduleDay }) => {
+  // How far the reveal wave travels before reaching this day.
+  const wave: CSSProperties & { "--day-distance": number } = {
+    "--day-distance": Math.abs(day.offset),
+  };
   const bar = (
-    <span className={cn("block w-1 rounded-full", barClassName(day))} />
+    <span
+      data-day-bar={day.offset === 0 ? undefined : ""}
+      className={cn("block w-1 rounded-full", barClassName(day))}
+      style={day.offset === 0 ? undefined : wave}
+    />
   );
   const content =
     day.offset === 0 ? (
-      <span className="border-status-info/80 flex h-8 w-3 items-end justify-center rounded-sm border border-dashed pb-0.5">
+      <span
+        data-day-bar=""
+        className="border-status-info/80 flex h-8 w-3 items-end justify-center rounded-sm border border-dashed pb-0.5"
+        style={wave}
+      >
         {day.kind === "free" ? null : bar}
       </span>
     ) : (
@@ -259,11 +282,14 @@ export const ScheduleDayBars = ({
   history,
   planReferenceDate,
   pending = false,
+  reveal = true,
 }: {
   history: readonly ServiceHistoryItem[];
   planReferenceDate: Date | null;
   /** History is still loading. */
   pending?: boolean;
+  /** Play the bars' entrance wave when they appear. */
+  reveal?: boolean;
 }) => {
   const orgTimeZone = useOrganizationTimeZone();
   if (planReferenceDate === null || (pending && history.length === 0)) {
@@ -283,7 +309,7 @@ export const ScheduleDayBars = ({
               )
               .join(". ")}
       </p>
-      <div className="flex h-8 items-end">
+      <div className={cn("flex h-8 items-end", reveal && "day-bars-reveal")}>
         {days.map((day) => (
           <DayBar key={day.dayKey} day={day} />
         ))}

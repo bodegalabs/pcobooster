@@ -5,11 +5,13 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { PlanPersonStatusMenu } from "@/components/schedule/plan-person-status-menu";
 import type { PlanPersonStatusValue } from "@/components/schedule/plan-person-status-menu";
+import { RecommendationPopover } from "@/components/schedule/popovers/recommendation-popover";
 import { ScheduleCandidateAvatar } from "@/components/schedule/schedule-candidate-details";
 import type { CandidateStatus } from "@/components/schedule/schedule-candidate-details";
 import { ScheduleDayBars } from "@/components/schedule/schedule-day-bars";
 import { UnsentNotificationMark } from "@/components/schedule/scheduling-notification-mark";
 import { Button } from "@/components/ui/button";
+import { Item } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { useSchedulePlanPerson } from "@/hooks/use-schedule-plan-person";
@@ -269,9 +271,11 @@ const fitFill = (score: number): string => {
 /** The recommendation score, 0 to 100 with the best candidate at 100, with a bar to match. */
 const CandidateFit = ({
   score,
+  reasoning,
   pending,
 }: {
   score: number | undefined;
+  reasoning: string[] | undefined;
   pending: boolean;
 }) => {
   if (score === undefined) {
@@ -282,35 +286,46 @@ const CandidateFit = ({
     "--fit-width": `${Math.max(rounded, 3)}%`,
   };
   return (
-    <span
-      className="flex w-14 shrink-0 flex-col items-end gap-1 sm:w-20"
-      aria-label={`${rounded} fit`}
-    >
-      <span className="flex items-baseline gap-1">
-        <span
-          className={cn(
-            "text-base leading-none font-semibold tabular-nums",
-            fitTone(rounded)
-          )}
-        >
-          {rounded}
+    <RecommendationPopover reasoning={reasoning} percentage={rounded}>
+      <Item
+        size="row"
+        className="w-14 shrink-0 flex-col items-end gap-1 rounded-4xl in-data-[slot=item-list]:rounded-4xl sm:w-20"
+        render={
+          <button
+            type="button"
+            aria-label={`${rounded} fit. Why this ranking`}
+          />
+        }
+      >
+        <span className="flex items-baseline gap-1">
+          <span
+            className={cn(
+              "text-base leading-none font-semibold tabular-nums",
+              fitTone(rounded)
+            )}
+          >
+            {rounded}
+          </span>
+          <span className="text-muted-foreground text-xs">fit</span>
         </span>
-        <span className="text-muted-foreground text-xs">fit</span>
-      </span>
-      <span className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
-        <span
-          className={cn(
-            "block h-full w-(--fit-width) rounded-full",
-            fitFill(rounded)
-          )}
-          style={fill}
-        />
-      </span>
-    </span>
+        <span className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
+          <span
+            className={cn(
+              "block h-full w-(--fit-width) rounded-full",
+              fitFill(rounded)
+            )}
+            style={fill}
+          />
+        </span>
+      </Item>
+    </RecommendationPopover>
   );
 };
 
-/** The row's day bars, inset to line up under the name. */
+/**
+ * The row's day bars, inset to line up under the name. They stay mounted while hidden
+ * so the Show history switch can open and close the space behind them.
+ */
 const CandidateHistory = ({
   show,
   person,
@@ -321,20 +336,24 @@ const CandidateHistory = ({
   person: PersonWithAvailability;
   planReferenceDate: Date | null;
   pending: boolean;
-}) =>
-  show ? (
-    <div className="sm:pl-12">
-      <ScheduleDayBars
-        history={person.serviceHistory ?? []}
-        planReferenceDate={planReferenceDate}
-        pending={pending}
-      />
+}) => (
+  <div className="history-collapse" data-open={show} inert={!show}>
+    <div>
+      <div className="pt-2 sm:pl-12">
+        <ScheduleDayBars
+          history={person.serviceHistory ?? []}
+          planReferenceDate={planReferenceDate}
+          pending={pending}
+          reveal={show}
+        />
+      </div>
     </div>
-  ) : null;
+  </div>
+);
 
 const ScheduleErrorLine = ({ error }: { error: string | null }) =>
   error === null || error === "" ? null : (
-    <p className="text-destructive text-xs sm:pl-12">{error}</p>
+    <p className="text-destructive mt-2 text-xs sm:pl-12">{error}</p>
   );
 
 const ScheduleCandidateIdentity = ({
@@ -456,7 +475,7 @@ export const ScheduleCandidateTile = ({
   const showFit = !isScheduled && !isBlocked;
 
   return (
-    <article className="group/row hover:bg-muted/30 relative flex flex-col gap-2 px-4 py-3 sm:py-3.5">
+    <article className="group/row hover:bg-muted/30 relative flex flex-col px-4 py-3 sm:py-3.5">
       <div className="flex items-center gap-2.5 sm:gap-4">
         <ScheduleCandidateAvatar
           person={person}
@@ -487,6 +506,7 @@ export const ScheduleCandidateTile = ({
         {showFit ? (
           <CandidateFit
             score={person.recommendationScore}
+            reasoning={person.recommendationReasoning}
             pending={scorePending}
           />
         ) : null}
