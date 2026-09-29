@@ -320,7 +320,7 @@ export const PlanItemRow = ({
       >
         <Button
           type="button"
-          variant="ghost"
+          variant="ghost-destructive"
           size="icon-sm"
           onClick={() => {
             handlers.onRemove(item.id);

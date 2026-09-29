@@ -194,7 +194,7 @@ const PaneHeader = ({
           render={
             <Button
               type="button"
-              variant="ghost"
+              variant="ghost-destructive"
               size="icon-sm"
               aria-label={`Remove ${item.title || "this item"}`}
               onClick={() => {

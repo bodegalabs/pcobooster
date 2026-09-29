@@ -19,6 +19,7 @@ import { SchedulingNotificationNote } from "@/components/schedule/scheduling-not
 import { ScheduleStatusDot } from "@/components/schedule/status-dot";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import { MiddleTruncate } from "@/components/ui/middle-truncate";
 import {
   ResponsiveDialog,
@@ -194,6 +195,7 @@ const PlanPersonEditDialogBody = ({
   const [draftTimeIds, setDraftTimeIds] = useState(initialTimeIds);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [confirmUnscheduleOpen, setConfirmUnscheduleOpen] = useState(false);
 
   const mutationContext: ScheduleMutationInvalidateContext & {
     personId?: string | null;
@@ -353,7 +355,7 @@ const PlanPersonEditDialogBody = ({
             className="max-md:h-11"
             disabled={isBusy}
             onClick={() => {
-              handleUnschedule(person.planPersonId, mutationContext);
+              setConfirmUnscheduleOpen(true);
             }}
           >
             {isUnscheduling ? (
@@ -393,6 +395,17 @@ const PlanPersonEditDialogBody = ({
           </div>
         </div>
       </div>
+      <DeleteConfirmationDialog
+        open={confirmUnscheduleOpen}
+        onOpenChange={setConfirmUnscheduleOpen}
+        onConfirm={() => {
+          setConfirmUnscheduleOpen(false);
+          handleUnschedule(person.planPersonId, mutationContext);
+        }}
+        title={`Unschedule ${person.name}?`}
+        description="They come off this position in Planning Center."
+        confirmLabel="Unschedule"
+      />
     </ResponsiveDialogContent>
   );
 };

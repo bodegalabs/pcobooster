@@ -24,12 +24,14 @@ import {
 } from "@/components/schedule/plan-tab-helpers";
 import type { RunSheetEntry } from "@/components/schedule/plan-tab-helpers";
 import { PlanTabToolbar } from "@/components/schedule/plan-tab-toolbar";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
   ResponsiveDialog,
   ResponsiveDialogContent,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from "@/components/ui/responsive-dialog";
+import { useDismissOnOutsidePress } from "@/hooks/use-dismiss-on-outside-press";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { usePlanBuilderDrag } from "@/hooks/use-plan-builder-drag";
 import { usePlanBuilderHotkeys } from "@/hooks/use-plan-builder-hotkeys";
@@ -246,6 +248,45 @@ const DetailsSheet = ({
   </ResponsiveDialog>
 );
 
+/** Plan hotkeys wait while loading, dragging, or a dialog is up. */
+const nothingInTheWay = (blockers: boolean[]) => !blockers.includes(true);
+
+/** Blurs the focused field inside `container`, so it saves before the container unmounts. */
+const blurWithin = (container: HTMLElement | null) => {
+  const focused = document.activeElement;
+  if (focused instanceof HTMLElement && container?.contains(focused) === true) {
+    focused.blur();
+  }
+};
+
+/** Confirms removing a run sheet item before it comes off the plan. */
+const RemoveItemDialog = ({
+  item,
+  onCancel,
+  onConfirm,
+}: {
+  item: PlanItem | null;
+  onCancel: () => void;
+  onConfirm: (itemId: string) => void;
+}) => (
+  <DeleteConfirmationDialog
+    open={item !== null}
+    onOpenChange={(open) => {
+      if (!open) {
+        onCancel();
+      }
+    }}
+    onConfirm={() => {
+      if (item !== null) {
+        onConfirm(item.id);
+      }
+    }}
+    title={`Remove “${item === null || item.title === "" ? "Untitled item" : item.title}”?`}
+    description="It comes off this plan in Planning Center."
+    confirmLabel="Remove"
+  />
+);
+
 /**
  * The plan builder: the run sheet, with an opened row's details sliding in beside it.
  * New songs come from the add-song dialog and land after the selected row.
@@ -258,6 +299,8 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
   const [titleFocusItemId, setTitleFocusItemId] = useState<string | null>(null);
   // The song the dialog is choosing a replacement for, if any.
   const [replacingItemId, setReplacingItemId] = useState<string | null>(null);
+  // The item waiting on the remove confirmation, if any.
+  const [removingItemId, setRemovingItemId] = useState<string | null>(null);
   const paneRef = useRef<HTMLElement>(null);
   const isWide = useMediaQuery(WIDE_LAYOUT_QUERY);
   const onItemAdded = (itemId: string, kind: AddedPlanItemKind) => {
@@ -318,6 +361,7 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
     setDetailsOpen(true);
   };
   const closeDetails = () => {
+    blurWithin(paneRef.current);
     setDetailsOpen(false);
     if (selectedItemId !== null) {
       focusRow(selectedItemId);
@@ -345,7 +389,12 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
   });
 
   usePlanBuilderHotkeys({
-    enabled: !isLoading && !songPickerOpen && drag.activeItemId === null,
+    enabled: nothingInTheWay([
+      isLoading,
+      songPickerOpen,
+      removingItemId !== null,
+      drag.activeItemId !== null,
+    ]),
     items,
     selectedItemId: selectedItem?.id ?? null,
     onSelect: selectAndFocus,
@@ -363,7 +412,7 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
           ?.focus();
       });
     },
-    onRemove: removeAndSelectNeighbor,
+    onRemove: setRemovingItemId,
     onAddSong: () => {
       openSongPicker();
     },
@@ -381,7 +430,7 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
 
   const handlers: PlanItemRowHandlers = {
     onOpen: openDetails,
-    onRemove: removeAndSelectNeighbor,
+    onRemove: setRemovingItemId,
     onInsert: (kind, afterItemId) => {
       select(afterItemId);
       if (kind === "song") {
@@ -414,12 +463,19 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
         onChangeKey={(item, arrangement, key) => {
           handlers.onChangeKey(item, arrangement, key);
         }}
-        onRemove={removeAndSelectNeighbor}
+        onRemove={setRemovingItemId}
         onReplaceSong={openSongPicker}
         onClose={closeDetails}
         className="max-h-full"
       />
     );
+  // Like a sheet: pressing outside the card closes it. Rows switch it to themselves.
+  useDismissOnOutsidePress({
+    enabled: isWide && pane !== null,
+    ref: paneRef,
+    ignoreSelector: "[data-plan-item-id]",
+    onDismiss: closeDetails,
+  });
   const draggedItem =
     items.find((item) => item.id === drag.activeItemId) ?? null;
 
@@ -444,6 +500,16 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
         )}
         pendingSongId={controller.pendingSongId}
         onChooseSong={chooseSong}
+      />
+      <RemoveItemDialog
+        item={items.find((item) => item.id === removingItemId) ?? null}
+        onCancel={() => {
+          setRemovingItemId(null);
+        }}
+        onConfirm={(itemId) => {
+          setRemovingItemId(null);
+          removeAndSelectNeighbor(itemId);
+        }}
       />
       {isWide ? null : (
         <DetailsSheet open={pane !== null} onOpenChange={setDetailsOpen}>
@@ -496,7 +562,7 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
           <aside
             ref={paneRef}
             aria-label="Details"
-            className="animate-in fade-in-0 slide-in-from-right-4 flex min-h-0 w-[min(24rem,34vw)] shrink-0 flex-col pb-4 duration-200 ease-out motion-reduce:animate-none"
+            className="animate-in fade-in-0 slide-in-from-right-4 pointer-events-none flex min-h-0 w-[min(24rem,34vw)] shrink-0 flex-col pb-4 duration-200 ease-out *:pointer-events-auto motion-reduce:animate-none"
           >
             {pane}
           </aside>

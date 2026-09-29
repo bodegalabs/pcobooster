@@ -144,6 +144,7 @@ const TemporaryFilledPersonRow = ({
           planPersonId={person.planPersonId}
           serviceTypeId={serviceTypeId}
           personId={person.id}
+          personName={person.name}
           planId={planId}
           teamId={teamId}
           positionId={positionId}

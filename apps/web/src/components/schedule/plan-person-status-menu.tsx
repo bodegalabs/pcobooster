@@ -1,4 +1,5 @@
 import { Check, Loader2, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 import {
   getPlanPersonStatusMeta,
@@ -8,6 +9,7 @@ import {
 import type { PlanPersonStatusValue } from "@/components/schedule/plan-person-status";
 import { ScheduleStatusDot } from "@/components/schedule/status-dot";
 import { Button } from "@/components/ui/button";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +30,7 @@ export interface PlanPersonStatusMenuProps {
   planId?: string | null;
   teamId?: string | null;
   positionId?: string | null;
+  personName: string;
   onSuccess?: () => void;
   onError?: (message: string) => void;
 }
@@ -40,9 +43,11 @@ export const PlanPersonStatusMenu = ({
   planId,
   teamId,
   positionId,
+  personName,
   onSuccess,
   onError,
 }: PlanPersonStatusMenuProps) => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const { isUpdating, handleUpdate } = useUpdatePlanPersonStatus({
     onSuccess,
     onError,
@@ -57,65 +62,78 @@ export const PlanPersonStatusMenu = ({
     planPersonId !== null && planPersonId !== undefined && planPersonId !== "";
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8 shrink-0 justify-self-center max-sm:size-10"
-            aria-label={`Change status: ${currentItem.label}`}
-            title={currentItem.label}
-            disabled={!hasPlanPersonId || isBusy}
-          />
-        }
-      >
-        {isBusy ? (
-          <Loader2 className="size-4 animate-spin" />
-        ) : (
-          <ScheduleStatusDot status={currentItem.status} aria-hidden />
-        )}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
-        {STATUS_ITEMS.map(({ value, label, status }) => (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0 justify-self-center max-sm:size-10"
+              aria-label={`Change status: ${currentItem.label}`}
+              title={currentItem.label}
+              disabled={!hasPlanPersonId || isBusy}
+            />
+          }
+        >
+          {isBusy ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <ScheduleStatusDot status={currentItem.status} aria-hidden />
+          )}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-40">
+          {STATUS_ITEMS.map(({ value, label, status }) => (
+            <DropdownMenuItem
+              key={value}
+              disabled={currentStatus === value}
+              onSelect={() => {
+                handleUpdate(planPersonId, STATUS_TO_CODE[value], {
+                  serviceTypeId,
+                  personId,
+                  planId,
+                  teamId,
+                  positionId,
+                });
+              }}
+            >
+              <ScheduleStatusDot status={status} aria-hidden />
+              <span className="flex-1">{label}</span>
+              {currentStatus === value ? (
+                <Check className="size-3.5 opacity-70" aria-hidden />
+              ) : null}
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator inset />
           <DropdownMenuItem
-            key={value}
-            disabled={currentStatus === value}
+            variant="destructive"
             onSelect={() => {
-              handleUpdate(planPersonId, STATUS_TO_CODE[value], {
-                serviceTypeId,
-                personId,
-                planId,
-                teamId,
-                positionId,
-              });
+              setConfirmOpen(true);
             }}
           >
-            <ScheduleStatusDot status={status} aria-hidden />
-            <span className="flex-1">{label}</span>
-            {currentStatus === value ? (
-              <Check className="size-3.5 opacity-70" aria-hidden />
-            ) : null}
+            <Trash2 className="size-3.5" aria-hidden />
+            <span className="flex-1">Unschedule</span>
           </DropdownMenuItem>
-        ))}
-        <DropdownMenuSeparator inset />
-        <DropdownMenuItem
-          variant="destructive"
-          onSelect={() => {
-            handleUnschedule(planPersonId, {
-              serviceTypeId,
-              personId,
-              planId,
-              teamId,
-              positionId,
-            });
-          }}
-        >
-          <Trash2 className="size-3.5" aria-hidden />
-          <span className="flex-1">Unschedule</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <DeleteConfirmationDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirm={() => {
+          setConfirmOpen(false);
+          handleUnschedule(planPersonId, {
+            serviceTypeId,
+            personId,
+            planId,
+            teamId,
+            positionId,
+          });
+        }}
+        title={`Unschedule ${personName}?`}
+        description="They come off this position in Planning Center."
+        confirmLabel="Unschedule"
+      />
+    </>
   );
 };

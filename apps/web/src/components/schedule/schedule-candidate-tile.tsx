@@ -134,6 +134,7 @@ const ScheduleCandidateAction = ({
         planPersonId={person.scheduledPlanPersonId}
         serviceTypeId={serviceTypeId}
         personId={person.id}
+        personName={person.fullName}
         planId={planId}
         teamId={teamId}
         positionId={positionId}
