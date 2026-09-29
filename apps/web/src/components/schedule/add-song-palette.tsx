@@ -1,12 +1,13 @@
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { SongCatalogEntry } from "@pcobooster/planning-center-models/types";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check } from "lucide-react";
+import { Check, ChevronLeft } from "lucide-react";
 import { useDeferredValue, useState } from "react";
 import type { ReactNode } from "react";
 
 import { SongHistory } from "@/components/schedule/song-history";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandDialog,
@@ -21,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
 import type { IntentPrefetchProps } from "@/hooks/use-intent-prefetch";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { useSettledValue } from "@/hooks/use-settled-value";
 import { useSongHistory } from "@/hooks/use-song-history";
 import {
@@ -39,6 +41,8 @@ import { cn } from "@/lib/utils";
 const PREVIEW_SETTLE_MS = 250;
 /** History rows the preview shows before "Show all". */
 const PREVIEW_HISTORY_ROWS = 8;
+/** Wide enough for the preview beside the list; narrower screens preview on tap. */
+const SIDE_PREVIEW_QUERY = "(min-width: 768px)";
 
 const Property = ({
   label,
@@ -235,6 +239,51 @@ const PaletteFooter = () => (
   </div>
 );
 
+/**
+ * On a phone, a tapped song's preview takes the list's place, with a way back and a
+ * button that adds it.
+ */
+const TappedSongPreview = ({
+  song,
+  pending,
+  onBack,
+  onAdd,
+  ...previewProps
+}: {
+  song: SongCatalogEntry;
+  pending: boolean;
+  onBack: () => void;
+  onAdd: (song: SongCatalogEntry) => void;
+  serviceTypeId: string | null;
+  planId: string | null;
+  planDate: Date;
+  previousSong: PreviousSong | null;
+}) => (
+  <div className="flex h-[min(34rem,60svh)] min-h-0 flex-col">
+    <div className="p-1">
+      <Button type="button" variant="ghost" size="sm" onClick={onBack}>
+        <ChevronLeft />
+        Songs
+      </Button>
+    </div>
+    <div className="min-h-0 flex-1 overflow-y-auto">
+      <SongPreview song={song} {...previewProps} />
+    </div>
+    <div className="p-3">
+      <Button
+        type="button"
+        className="h-11 w-full"
+        disabled={pending}
+        onClick={() => {
+          onAdd(song);
+        }}
+      >
+        Add to plan
+      </Button>
+    </div>
+  </div>
+);
+
 interface AddSongPaletteProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -269,6 +318,8 @@ export const AddSongPalette = ({
 }: AddSongPaletteProps) => {
   const [query, setQuery] = useState("");
   const [highlightedSongId, setHighlightedSongId] = useState("");
+  const [tappedSong, setTappedSong] = useState<SongCatalogEntry | null>(null);
+  const sidePreview = useMediaQuery(SIDE_PREVIEW_QUERY);
   const deferredQuery = useDeferredValue(query).trim();
   const search = useSongSearch(deferredQuery);
   const suggestions = useSongSuggestions();
@@ -293,6 +344,7 @@ export const AddSongPalette = ({
     if (!nextOpen) {
       setQuery("");
       setHighlightedSongId("");
+      setTappedSong(null);
     }
     onOpenChange(nextOpen);
   };
@@ -309,7 +361,23 @@ export const AddSongPalette = ({
       description="Search the song catalog"
       className="sm:max-w-2xl"
     >
+      {tappedSong === null ? null : (
+        <TappedSongPreview
+          key={tappedSong.id}
+          song={tappedSong}
+          pending={pendingSongId === tappedSong.id}
+          onBack={() => {
+            setTappedSong(null);
+          }}
+          onAdd={chooseAndClose}
+          serviceTypeId={serviceTypeId}
+          planId={planId}
+          planDate={serviceDate}
+          previousSong={previousSong}
+        />
+      )}
       <Command
+        className={cn(tappedSong !== null && "hidden")}
         shouldFilter={false}
         value={activeSongId}
         onValueChange={setHighlightedSongId}
@@ -346,7 +414,7 @@ export const AddSongPalette = ({
                       pending={pendingSongId === song.id}
                       planDate={serviceDate}
                       intentProps={getIntentProps(song.id)}
-                      onAdd={chooseAndClose}
+                      onAdd={sidePreview ? chooseAndClose : setTappedSong}
                     />
                   ))}
                 </CommandGroup>

@@ -27,6 +27,7 @@ import {
   CardAction,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -112,11 +113,13 @@ const PaneHeader = ({
   onRemove,
   onReplaceSong,
   onClose,
+  inSheet,
 }: Pick<
   PlanItemPaneProps,
   "item" | "focusTitle" | "onRemove" | "onReplaceSong" | "onClose"
 > & {
   persist: Persist;
+  inSheet: boolean;
 }) => {
   const titleRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -153,78 +156,130 @@ const PaneHeader = ({
           />
         </CardTitle>
       )}
-      <CardAction className="flex items-center">
-        {item.song ? (
-          <>
-            <HoverLabel
-              label="Replace song"
-              render={
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={`Replace ${item.song.title}`}
-                  onClick={() => {
-                    onReplaceSong(item.id);
-                  }}
-                />
-              }
-            >
-              <Replace />
-            </HoverLabel>
-            <HoverLabel
-              label="Open in Planning Center"
-              render={
-                <a
-                  href={`https://services.planningcenteronline.com/songs/${item.song.id}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Open in Planning Center"
-                  className={buttonVariants({
-                    variant: "ghost",
-                    size: "icon-sm",
-                  })}
-                />
-              }
-            >
-              <ExternalLink />
-            </HoverLabel>
-          </>
-        ) : null}
-        <HoverLabel
-          label="Remove"
-          render={
-            <Button
-              type="button"
-              variant="ghost-destructive"
-              size="icon-sm"
-              aria-label={`Remove ${item.title || "this item"}`}
-              onClick={() => {
-                onRemove(item.id);
-              }}
-            />
-          }
-        >
-          <Trash2 />
-        </HoverLabel>
-        <HoverLabel
-          label="Close"
-          render={
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Close details"
-              onClick={onClose}
-            />
-          }
-        >
-          <X />
-        </HoverLabel>
-      </CardAction>
+      {inSheet ? null : (
+        <CardAction className="flex items-center">
+          {item.song ? (
+            <>
+              <HoverLabel
+                label="Replace song"
+                render={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Replace ${item.song.title}`}
+                    onClick={() => {
+                      onReplaceSong(item.id);
+                    }}
+                  />
+                }
+              >
+                <Replace />
+              </HoverLabel>
+              <HoverLabel
+                label="Open in Planning Center"
+                render={
+                  <a
+                    href={`https://services.planningcenteronline.com/songs/${item.song.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open in Planning Center"
+                    className={buttonVariants({
+                      variant: "ghost",
+                      size: "icon-sm",
+                    })}
+                  />
+                }
+              >
+                <ExternalLink />
+              </HoverLabel>
+            </>
+          ) : null}
+          <HoverLabel
+            label="Remove"
+            render={
+              <Button
+                type="button"
+                variant="ghost-destructive"
+                size="icon-sm"
+                aria-label={`Remove ${item.title || "this item"}`}
+                onClick={() => {
+                  onRemove(item.id);
+                }}
+              />
+            }
+          >
+            <Trash2 />
+          </HoverLabel>
+          <HoverLabel
+            label="Close"
+            render={
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Close details"
+                onClick={onClose}
+              />
+            }
+          >
+            <X />
+          </HoverLabel>
+        </CardAction>
+      )}
     </CardHeader>
   );
 };
+
+/** On a phone, the pane's actions as full-width buttons at the bottom of the sheet. */
+const SheetActions = ({
+  item,
+  onRemove,
+  onReplaceSong,
+}: Pick<PlanItemPaneProps, "item" | "onRemove" | "onReplaceSong">) => (
+  <CardFooter>
+    <div className="flex w-full flex-col gap-2">
+      {item.song ? (
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full"
+            onClick={() => {
+              onReplaceSong(item.id);
+            }}
+          >
+            <Replace />
+            Replace song
+          </Button>
+          <a
+            href={`https://services.planningcenteronline.com/songs/${item.song.id}`}
+            target="_blank"
+            rel="noreferrer"
+            className={buttonVariants({
+              variant: "outline",
+              className: "h-11 w-full",
+            })}
+          >
+            <ExternalLink />
+            Open in Planning Center
+          </a>
+        </>
+      ) : null}
+      <Button
+        type="button"
+        variant="destructive"
+        className="h-11 w-full"
+        onClick={() => {
+          onRemove(item.id);
+        }}
+      >
+        <Trash2 />
+        Remove
+      </Button>
+    </div>
+  </CardFooter>
+);
 
 /** Arrangement and key as dropdowns, saved as soon as one is picked. */
 const SongFields = ({
@@ -522,6 +577,7 @@ export const PlanItemPane = ({
         onRemove={onRemove}
         onReplaceSong={onReplaceSong}
         onClose={onClose}
+        inSheet={inSheet}
       />
       <CardContent className="min-h-0 overflow-y-auto">
         <div className="flex flex-col gap-4">
@@ -565,6 +621,13 @@ export const PlanItemPane = ({
           ) : null}
         </div>
       </CardContent>
+      {inSheet ? (
+        <SheetActions
+          item={item}
+          onRemove={onRemove}
+          onReplaceSong={onReplaceSong}
+        />
+      ) : null}
     </Card>
   );
 };
