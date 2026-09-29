@@ -9,15 +9,27 @@ const statusDotClassName: Record<ScheduleStatusDotStatus, string> = {
   declined: "bg-status-declined",
 };
 
-/** Marks an avatar's corner with a person's schedule status; no status leaves it bare. */
+/**
+ * Marks an avatar with a person's schedule: a corner dot for this assignment's status,
+ * and a blue ring when they also serve elsewhere on the plan. The two combine.
+ */
 export const AvatarStatus = ({
   status,
+  alsoScheduled = false,
   children,
 }: {
   status?: ScheduleStatusDotStatus | null;
+  /** Scheduled for another position on the same plan. */
+  alsoScheduled?: boolean;
   children: ReactNode;
 }) => (
-  <span className="relative inline-flex shrink-0 rounded-full">
+  <span
+    className={cn(
+      "relative inline-flex shrink-0 rounded-full",
+      alsoScheduled &&
+        "ring-status-info ring-offset-background ring-2 ring-offset-2"
+    )}
+  >
     {children}
     {status === null || status === undefined ? null : (
       <span

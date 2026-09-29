@@ -32,6 +32,11 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { PageScrollArea } from "@/components/page-shell";
 import { AvatarStatus } from "@/components/schedule/avatar-status";
+import {
+  collectPlanAssignments,
+  otherPlanAssignments,
+} from "@/components/schedule/plan-assignments";
+import type { PlanAssignment } from "@/components/schedule/plan-assignments";
 import { PlanPersonEditDialog } from "@/components/schedule/plan-person-edit-dialog";
 import { getPlanPersonStatusValue } from "@/components/schedule/plan-person-status";
 import {
@@ -111,8 +116,22 @@ const STATUS_LABELS = {
   declined: "Declined",
 } as const;
 
+const ASSIGNMENT_STATUS_LABELS = {
+  confirmed: "confirmed",
+  scheduled: "pending",
+} as const;
+
+const describeOtherAssignments = (assignments: readonly PlanAssignment[]) =>
+  `Also on ${assignments
+    .map(
+      ({ positionName, status }) =>
+        `${positionName} · ${ASSIGNMENT_STATUS_LABELS[status]}`
+    )
+    .join(", ")}`;
+
 const PersonRow = ({
   positionLabel,
+  otherAssignments,
   person,
   teamName,
   positionName,
@@ -125,6 +144,8 @@ const PersonRow = ({
 }: {
   /** The position's name, on the first person's row. */
   positionLabel: ReactNode;
+  /** The person's other positions on this plan. */
+  otherAssignments: readonly PlanAssignment[];
   person: FilledPositionPerson;
   teamName: string;
   positionName: string;
@@ -139,6 +160,15 @@ const PersonRow = ({
   const status = getStatusDotStatus(person);
   const unsent = isUnsent(person);
   const statusLabel = status === "confirmed" ? null : STATUS_LABELS[status];
+  const avatar = (
+    <Avatar>
+      <AvatarImage
+        src={person.photoThumbnailUrl ?? undefined}
+        alt={person.name}
+      />
+      <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
+    </Avatar>
+  );
 
   return (
     <>
@@ -151,6 +181,9 @@ const PersonRow = ({
             aria-label={[
               `Edit ${person.name} assignment`,
               statusLabel?.toLowerCase(),
+              otherAssignments.length > 0
+                ? describeOtherAssignments(otherAssignments).toLowerCase()
+                : undefined,
               unsent ? "not notified yet" : undefined,
             ]
               .filter(Boolean)
@@ -161,15 +194,19 @@ const PersonRow = ({
           setEditOpen(true);
         }}
       >
-        <AvatarStatus status={status}>
-          <Avatar>
-            <AvatarImage
-              src={person.photoThumbnailUrl ?? undefined}
-              alt={person.name}
-            />
-            <AvatarFallback>{getInitials(person.name)}</AvatarFallback>
-          </Avatar>
-        </AvatarStatus>
+        {otherAssignments.length > 0 ? (
+          <HoverLabel
+            label={describeOtherAssignments(otherAssignments)}
+            side="bottom"
+            render={<span className="inline-flex shrink-0 rounded-full" />}
+          >
+            <AvatarStatus status={status} alsoScheduled>
+              {avatar}
+            </AvatarStatus>
+          </HoverLabel>
+        ) : (
+          <AvatarStatus status={status}>{avatar}</AvatarStatus>
+        )}
         <span
           className={cn(
             "min-w-0 flex-1 truncate text-sm",
@@ -217,6 +254,7 @@ const TrailingPositionName = ({
 );
 
 const PositionRows = ({
+  assignments,
   teamId,
   teamName,
   position,
@@ -227,6 +265,7 @@ const PositionRows = ({
   onSelectPosition,
   getSlotIntentProps,
 }: {
+  assignments: ReadonlyMap<string, PlanAssignment[]>;
   teamId: string;
   teamName: string;
   position: TeamPosition;
@@ -288,6 +327,10 @@ const PositionRows = ({
                   />
                 ) : null
               }
+              otherAssignments={otherPlanAssignments(assignments, person, {
+                teamId,
+                positionId: position.id,
+              })}
               person={person}
               teamName={teamName}
               positionName={position.name}
@@ -335,6 +378,7 @@ const PositionRows = ({
 
 const TeamPanel = ({
   group,
+  assignments,
   serviceTypeId,
   planId,
   seriesId,
@@ -345,6 +389,7 @@ const TeamPanel = ({
   dragHandleListeners,
 }: {
   group: TeamPositionGroup;
+  assignments: ReadonlyMap<string, PlanAssignment[]>;
   serviceTypeId: string | null;
   planId: string | null;
   seriesId: string | null;
@@ -420,6 +465,7 @@ const TeamPanel = ({
             {group.positions.map((position) => (
               <PositionRows
                 key={position.id}
+                assignments={assignments}
                 teamId={group.teamId}
                 teamName={group.teamName}
                 position={position}
@@ -440,6 +486,7 @@ const TeamPanel = ({
 
 interface SortableTeamPanelProps {
   group: TeamPositionGroup;
+  assignments: ReadonlyMap<string, PlanAssignment[]>;
   serviceTypeId: string | null;
   planId: string | null;
   seriesId: string | null;
@@ -586,6 +633,7 @@ export const LineupTab = ({
       columnOrderByServiceType[serviceTypeId]
     );
   }, [columnOrderByServiceType, groups, serviceTypeId]);
+  const assignments = useMemo(() => collectPlanAssignments(groups), [groups]);
   const activeGroup =
     orderedGroups.find((group) => group.teamId === activeTeamId) ?? null;
   const sensors = useSensors(
@@ -650,6 +698,7 @@ export const LineupTab = ({
   }
 
   const panelProps = {
+    assignments,
     serviceTypeId,
     planId,
     seriesId,

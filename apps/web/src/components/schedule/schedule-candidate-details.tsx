@@ -128,14 +128,17 @@ export const ScheduleCandidateAvatar = ({
         <ResponsivePopoverTrigger
           render={
             <AvatarButton
-              emphasis="info"
               aria-label={`${person.fullName}. ${assignmentsLabel}`}
               title={assignmentsLabel}
             />
           }
         >
-          <Avatar aria-hidden>{avatarInner}</Avatar>
-          {blockedAvatarTint}
+          <AvatarStatus status={slotStatus} alsoScheduled>
+            <span className="relative inline-flex shrink-0 overflow-visible">
+              <Avatar aria-hidden>{avatarInner}</Avatar>
+              {blockedAvatarTint}
+            </span>
+          </AvatarStatus>
         </ResponsivePopoverTrigger>
         <ResponsivePopoverContent
           title="Also scheduled"
