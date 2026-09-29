@@ -465,6 +465,7 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
         onRemove={setRemovingItemId}
         onReplaceSong={openSongPicker}
         onClose={closeDetails}
+        inSheet={!isWide}
         className="max-h-full"
       />
     );

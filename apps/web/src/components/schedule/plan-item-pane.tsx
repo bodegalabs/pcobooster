@@ -100,6 +100,8 @@ interface PlanItemPaneProps {
   onReplaceSong: (itemId: string) => void;
   /** Close the pane; Escape does too, handing the keyboard back to the run sheet. */
   onClose: () => void;
+  /** Inside the narrow-screen sheet, which already draws the surface. */
+  inSheet?: boolean;
   className?: string;
 }
 
@@ -478,6 +480,7 @@ export const PlanItemPane = ({
   onRemove,
   onReplaceSong,
   onClose,
+  inSheet = false,
   className,
 }: PlanItemPaneProps) => {
   const paneRef = useRef<HTMLDivElement>(null);
@@ -508,6 +511,7 @@ export const PlanItemPane = ({
     <Card
       ref={paneRef}
       size="sm"
+      variant={inSheet ? "plain" : "default"}
       aria-label={`${item.title || "Item"} details`}
       className={cn("min-h-0", className)}
     >

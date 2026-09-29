@@ -115,7 +115,7 @@ const HeaderRowContent = ({
     sectionLength === null ? null : formatDuration(sectionLength);
   return (
     <span className="flex min-w-0 items-center gap-3">
-      <span className="min-w-0 flex-1 truncate text-xs font-semibold tracking-wide uppercase">
+      <span className="min-w-0 flex-1 text-xs font-semibold tracking-wide uppercase max-sm:line-clamp-2 sm:truncate">
         {title}
       </span>
       {lengthLabel === null ? null : (
@@ -144,7 +144,9 @@ const ItemRowContent = ({
 }) => (
   <>
     <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-      <span className="min-w-0 truncate text-sm font-medium">{title}</span>
+      <span className="min-w-0 text-sm font-medium max-sm:line-clamp-2 sm:truncate">
+        {title}
+      </span>
       {item.itemType === "song" ? (
         <span className="pointer-events-auto">
           <SongKeyPicker
