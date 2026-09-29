@@ -8,6 +8,7 @@ import {
   circleOfFifthsDistance,
   commonToneChords,
   commonTones,
+  diatonicTriads,
   dominantIsIn,
   homeChordIsIn,
   dominantSeventhOf,
@@ -15,6 +16,8 @@ import {
   noteName,
   parallelOf,
   pivotChords,
+  predominantOf,
+  scaleOf,
   semitonesUp,
 } from "@/lib/key-theory";
 import type { CommonToneChord, MusicalKey } from "@/lib/key-theory";
@@ -50,6 +53,7 @@ const HALF_STEP_DOWN = 11;
 const LIFT_LIMIT = 2;
 const DISTANT = 3;
 const OCTAVE = 12;
+const FIFTH_DEGREE = 4;
 
 const rateSameMode = (
   from: MusicalKey,
@@ -390,23 +394,127 @@ const swapSuggestion = ({
 });
 
 /**
- * Concrete ways to connect two songs, most useful first, for the case the rating found.
- * Moving the next song to another key on its arrangement is offered separately, because
- * it needs that arrangement's keys.
+ * A whole-step lift through the chord both keys hang on: the old key's V is the new
+ * key's IV, so Bb into C walks F, G, C (IV-V-I).
  */
-const noSuggestions = (): TransitionSuggestion[] => [];
+const walkUpSuggestion = ({
+  fromTitle,
+  toTitle,
+  fromKey,
+  toKey,
+}: TransitionSongs): TransitionSuggestion | null => {
+  const fifth = scaleOf(fromKey).at(FIFTH_DEGREE);
+  const four = diatonicTriads(toKey).find(
+    (candidate) =>
+      candidate.numeral === "IV" &&
+      candidate.quality === "" &&
+      candidate.root.pitch === fifth?.pitch
+  );
+  if (four === undefined) {
+    return null;
+  }
+  return {
+    id: "walk-up",
+    title: "Walk up",
+    segments: [
+      text(`End ${fromTitle} on `),
+      chord(keyName(fromKey)),
+      text(", play "),
+      chord(chordName(four)),
+      text(
+        ` (the V of ${keyName(fromKey)} and the IV of ${keyName(toKey)}), then `
+      ),
+      chord(chordName(dominantSeventhOf(toKey)).replace(/7$/u, "")),
+      text(` into ${toTitle} in `),
+      chord(keyName(toKey)),
+      text("."),
+    ],
+  };
+};
+
+/** The new key's ii-V as a short turnaround (Kauflin): Bb, Dm, G7, C. */
+const turnaroundSuggestion = ({
+  fromTitle,
+  toTitle,
+  fromKey,
+  toKey,
+}: TransitionSongs): TransitionSuggestion => ({
+  id: "turnaround",
+  title: "Turn it around",
+  segments: [
+    text(`End ${fromTitle} on `),
+    chord(keyName(fromKey)),
+    text(", play "),
+    chord(chordName(predominantOf(toKey))),
+    text(" then "),
+    chord(chordName(dominantSeventhOf(toKey))),
+    text(` into ${toTitle} in `),
+    chord(keyName(toKey)),
+    text("."),
+  ],
+});
+
+/** A lift works cold: the jump up is the point (the truck driver's gear change). */
+const jumpSuggestion = ({
+  fromTitle,
+  toTitle,
+  toKey,
+}: TransitionSongs): TransitionSuggestion => ({
+  id: "jump",
+  title: "Or just go up",
+  segments: [
+    text(`End ${fromTitle} cleanly and start ${toTitle} in `),
+    chord(keyName(toKey)),
+    text(" on the downbeat. A step up sounds intentional on its own."),
+  ],
+});
+
+/** The same key needs nothing, but a turnaround gives the band a clean restart. */
+const sameKeySuggestion = ({
+  fromTitle,
+  toTitle,
+  toKey,
+}: TransitionSongs): TransitionSuggestion => ({
+  id: "same-key",
+  title: "Keep it going",
+  segments: [
+    text(`Stay in `),
+    chord(keyName(toKey)),
+    text(` and go straight from ${fromTitle} into ${toTitle}, or play `),
+    chord(chordName(dominantSeventhOf(toKey))),
+    text(" to lead back to the top."),
+  ],
+});
 
 /**
- * Suggestions for each rough case, most useful first (docs/research/song-key-transitions.md),
+ * Suggestions for each case, most useful first (docs/research/song-key-transitions.md).
+ * Smooth changes get optional ideas (a shared chord, a walk up into a lift, row 5); rough
+ * ones get fixes,
  * with a held note wherever one connects the songs: first for thirds, where the keys
  * share a note, for half steps down, and for tritones, where it's the only musical bridge.
  */
 const SUGGESTIONS_BY_KIND = {
-  same: noSuggestions,
-  parallel: noSuggestions,
-  relative: noSuggestions,
-  close: noSuggestions,
-  lift: noSuggestions,
+  same: (songs) => [sameKeySuggestion(songs)],
+  parallel: (songs) => [
+    ...commonToneSuggestions(songs),
+    commonChordSuggestion(songs),
+    dominantSuggestion(songs, false),
+  ],
+  relative: (songs) => [
+    commonChordSuggestion(songs),
+    ...commonToneSuggestions(songs),
+    dominantSuggestion(songs, false),
+  ],
+  close: (songs) => [
+    commonChordSuggestion(songs),
+    ...commonToneSuggestions(songs),
+    dominantSuggestion(songs, false),
+  ],
+  lift: (songs) => [
+    walkUpSuggestion(songs),
+    turnaroundSuggestion(songs),
+    jumpSuggestion(songs),
+  ],
   mediant: (songs) => [
     ...commonToneSuggestions(songs),
     commonChordSuggestion(songs),

@@ -115,8 +115,25 @@ describe(transitionSuggestions, () => {
     );
   });
 
-  it("offers nothing when the change is smooth", () => {
-    expect(advice("G", "D")).toStrictEqual([]);
+  it("offers optional ways to walk up into a lift", () => {
+    expect(advice("Bb", "C")).toStrictEqual([
+      "End A on Bb, play F (the V of Bb and the IV of C), then G into B in C.",
+      "End A on Bb, play Dm then G7 into B in C.",
+      "End A cleanly and start B in C on the downbeat. A step up sounds intentional on its own.",
+    ]);
+    expect(advice("C", "Db")).toStrictEqual([
+      "End A on C, play Ebm then Ab7 into B in Db.",
+      "End A cleanly and start B in Db on the downbeat. A step up sounds intentional on its own.",
+    ]);
+  });
+
+  it("offers ideas for other smooth changes too", () => {
+    expect(advice("G", "D")[0]).toBe(
+      "End A on D (it's already a chord in G), then start B right there."
+    );
+    expect(advice("C", "C")).toStrictEqual([
+      "Stay in C and go straight from A into B, or play G7 to lead back to the top.",
+    ]);
   });
 });
 
