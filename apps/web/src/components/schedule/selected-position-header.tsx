@@ -1,5 +1,6 @@
 import type { TeamPosition } from "@pcobooster/planning-center-models/types";
 import { ChevronLeft, ChevronsUpDown, Search, X } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export const SelectedPositionHeader = ({
+  slotControls,
   info,
   onOpenPicker,
   onBack,
@@ -22,6 +24,8 @@ export const SelectedPositionHeader = ({
   filter,
   onFilterChange,
 }: {
+  /** Controls for the position's slot count, beside its name. */
+  slotControls?: ReactNode;
   info: {
     teamName: string;
     positionName: string;
@@ -88,20 +92,24 @@ export const SelectedPositionHeader = ({
             aria-hidden
           />
         </Item>
+        {slotControls}
       </div>
 
-      {nameLoading ? (
-        <Skeleton variant="control" className="h-7 w-40 max-lg:hidden" />
-      ) : (
-        <p
-          className={cn(
-            "min-w-0 truncate text-2xl leading-tight font-semibold tracking-tight max-lg:hidden",
-            isTemporaryPosition && "italic"
-          )}
-        >
-          {info?.positionName ?? "Position"}
-        </p>
-      )}
+      <div className="flex items-center gap-3 max-lg:hidden">
+        {nameLoading ? (
+          <Skeleton variant="control" className="h-7 w-40" />
+        ) : (
+          <p
+            className={cn(
+              "min-w-0 truncate text-2xl leading-tight font-semibold tracking-tight",
+              isTemporaryPosition && "italic"
+            )}
+          >
+            {info?.positionName ?? "Position"}
+          </p>
+        )}
+        {slotControls}
+      </div>
 
       <div className="flex items-center gap-3">
         <InputGroup className="w-full flex-1 sm:max-w-sm">
