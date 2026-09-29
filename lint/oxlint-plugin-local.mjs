@@ -58,35 +58,43 @@ const getJsxName = (node) => {
 
 /**
  * @param {unknown} value
+ * @param {(name: string) => string} [resolveIdentifier] class text of a named constant
  * @returns {string}
  */
-const classNameText = (value) => {
+const classNameText = (value, resolveIdentifier) => {
   if (!value || typeof value !== "object") {
     return "";
   }
   if (value.type === "Literal" && typeof value.value === "string") {
     return value.value;
   }
+  if (value.type === "Identifier") {
+    return resolveIdentifier?.(value.name) ?? "";
+  }
   if (value.type === "JSXExpressionContainer") {
-    return classNameText(value.expression);
+    return classNameText(value.expression, resolveIdentifier);
   }
   if (value.type === "TemplateLiteral") {
     return value.quasis.map((quasi) => quasi.value.cooked ?? "").join(" ");
   }
   if (value.type === "BinaryExpression" && value.operator === "+") {
-    return `${classNameText(value.left)} ${classNameText(value.right)}`;
+    return `${classNameText(value.left, resolveIdentifier)} ${classNameText(value.right, resolveIdentifier)}`;
   }
   if (value.type === "CallExpression") {
-    return value.arguments.map((argument) => classNameText(argument)).join(" ");
+    return value.arguments
+      .map((argument) => classNameText(argument, resolveIdentifier))
+      .join(" ");
   }
   if (value.type === "ConditionalExpression") {
-    return `${classNameText(value.consequent)} ${classNameText(value.alternate)}`;
+    return `${classNameText(value.consequent, resolveIdentifier)} ${classNameText(value.alternate, resolveIdentifier)}`;
   }
   if (value.type === "LogicalExpression") {
-    return `${classNameText(value.left)} ${classNameText(value.right)}`;
+    return `${classNameText(value.left, resolveIdentifier)} ${classNameText(value.right, resolveIdentifier)}`;
   }
   if (value.type === "ArrayExpression") {
-    return value.elements.map((element) => classNameText(element)).join(" ");
+    return value.elements
+      .map((element) => classNameText(element, resolveIdentifier))
+      .join(" ");
   }
   if (value.type === "ObjectExpression") {
     return value.properties
@@ -490,19 +498,61 @@ const classTokens = (text) =>
 
 /**
  * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ * @param {(name: string) => string} [resolveIdentifier]
  * @returns {string}
  */
-const openingClassText = (openingElement) =>
+const openingClassText = (openingElement, resolveIdentifier) =>
   openingElement.attributes
     .map((attribute) =>
       attribute.type === "JSXAttribute" &&
       attribute.name.type === "JSXIdentifier" &&
       attribute.name.name === "className" &&
       attribute.value !== null
-        ? classNameText(attribute.value)
+        ? classNameText(attribute.value, resolveIdentifier)
         : ""
     )
     .join(" ");
+
+/**
+ * Class strings held in top-level constants, so `className={panelClassName}` reads like
+ * the literal it names.
+ * @param {import("oxlint/plugins-dev").Program} program
+ * @returns {(name: string) => string}
+ */
+const classConstantResolver = (program) => {
+  /** @type {Map<string, unknown>} */
+  const initializers = new Map();
+  for (const topLevel of program.body) {
+    const statement =
+      topLevel.type === "ExportNamedDeclaration"
+        ? topLevel.declaration
+        : topLevel;
+    if (
+      statement?.type !== "VariableDeclaration" ||
+      statement.kind !== "const"
+    ) {
+      continue;
+    }
+    for (const declarator of statement.declarations) {
+      if (declarator.id.type === "Identifier" && declarator.init) {
+        initializers.set(declarator.id.name, declarator.init);
+      }
+    }
+  }
+  /** @type {Set<string>} */
+  const resolving = new Set();
+  /** @param {string} name */
+  const resolve = (name) => {
+    if (resolving.has(name)) {
+      return "";
+    }
+    resolving.add(name);
+    const text = classNameText(initializers.get(name), resolve);
+    resolving.delete(name);
+    return text;
+  };
+  return resolve;
+};
 
 /**
  * Sides that get room from padding or positive margin, at any breakpoint.
@@ -525,13 +575,16 @@ const spacedSides = (text) => {
 
 /**
  * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ * @param {(name: string) => string} [resolveIdentifier]
  */
-const isRaisedSurface = (openingElement) => {
+const isRaisedSurface = (openingElement, resolveIdentifier) => {
   const name = getJsxName(openingElement.name);
   if (name !== null && RAISED_SURFACE_NAMES.has(name)) {
     return true;
   }
-  const tokens = classTokens(openingClassText(openingElement));
+  const tokens = classTokens(
+    openingClassText(openingElement, resolveIdentifier)
+  );
   const ringsAreInset = tokens.some(({ base }) => base === INSET_RING_TOKEN);
   return tokens.some(
     ({ variant, base }) =>
@@ -542,11 +595,26 @@ const isRaisedSurface = (openingElement) => {
 };
 
 /**
- * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ * `PageScrollArea` (components/page-shell.tsx) scrolls through its own overflow and pads
+ * its content by the page gutter on the left and right only.
  */
-const isClipContainer = (openingElement) =>
-  getJsxName(openingElement.name) === "ScrollArea" ||
-  CLIP_CONTAINER_CLASS.test(openingClassText(openingElement));
+const PAGE_SCROLL_AREA_NAME = "PageScrollArea";
+const PAGE_SCROLL_AREA_PADDED_SIDES = ["left", "right"];
+
+/**
+ * @param {import("oxlint/plugins-dev").JSXOpeningElement} openingElement
+ * @param {(name: string) => string} [resolveIdentifier]
+ */
+const isClipContainer = (openingElement, resolveIdentifier) => {
+  const name = getJsxName(openingElement.name);
+  return (
+    name === "ScrollArea" ||
+    name === PAGE_SCROLL_AREA_NAME ||
+    CLIP_CONTAINER_CLASS.test(
+      openingClassText(openingElement, resolveIdentifier)
+    )
+  );
+};
 
 /**
  * JSX a render can produce from an expression: elements, branches, and the
@@ -681,6 +749,23 @@ const localComponents = (program) => {
   return components;
 };
 
+/**
+ * Sides a clip container pads for its content. ScrollArea clips at its viewport, inside
+ * the root that takes className; PageScrollArea pads by the page gutter on the sides.
+ * @param {string} containerName
+ * @param {string} classText
+ * @returns {Set<string>}
+ */
+const clipContainerPaddedSides = (containerName, classText) => {
+  if (containerName === "ScrollArea") {
+    return new Set();
+  }
+  if (containerName === PAGE_SCROLL_AREA_NAME) {
+    return new Set(PAGE_SCROLL_AREA_PADDED_SIDES);
+  }
+  return spacedSides(classText);
+};
+
 const noClippedSurfaceRule = {
   meta: {
     type: "problem",
@@ -701,6 +786,8 @@ const noClippedSurfaceRule = {
     }
     /** @type {Map<string, import("oxlint/plugins-dev").JSXElement[]>} */
     let components = new Map();
+    /** @type {(name: string) => string} */
+    let resolveClass = () => "";
     const reported = new Set();
 
     /**
@@ -715,10 +802,10 @@ const noClippedSurfaceRule = {
       const name = getJsxName(opening.name);
       const here = new Set([
         ...sides,
-        ...spacedSides(openingClassText(opening)),
+        ...spacedSides(openingClassText(opening, resolveClass)),
       ]);
 
-      if (isRaisedSurface(opening)) {
+      if (isRaisedSurface(opening, resolveClass)) {
         const missing = SIDE_KEYS.filter((side) => !here.has(side));
         if (missing.length > 0 && !reported.has(reportNode)) {
           reported.add(reportNode);
@@ -736,7 +823,7 @@ const noClippedSurfaceRule = {
       }
       // A nested container is checked on its own; portals and overlays escape.
       if (
-        isClipContainer(opening) ||
+        isClipContainer(opening, resolveClass) ||
         (name !== null && ESCAPES_CLIP_NAME.test(name))
       ) {
         return;
@@ -759,18 +846,18 @@ const noClippedSurfaceRule = {
     return {
       Program(node) {
         components = localComponents(node);
+        resolveClass = classConstantResolver(node);
       },
       JSXElement(node) {
         const opening = node.openingElement;
-        if (!isClipContainer(opening)) {
+        if (!isClipContainer(opening, resolveClass)) {
           return;
         }
         const containerName = getJsxName(opening.name) ?? "element";
-        // ScrollArea clips at its viewport, inside the root that takes className.
-        const ownSides =
-          containerName === "ScrollArea"
-            ? new Set()
-            : spacedSides(openingClassText(opening));
+        const ownSides = clipContainerPaddedSides(
+          containerName,
+          openingClassText(opening, resolveClass)
+        );
         const children = [];
         for (const child of node.children) {
           collectRenderedJsx(child, children);
