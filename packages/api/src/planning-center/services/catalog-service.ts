@@ -3,6 +3,7 @@ import type {
   PlanningCenterCoreClient,
   PlanningCenterError,
 } from "@pcobooster/api/planning-center/core-client";
+import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import { cachedRead } from "@pcobooster/api/planning-center/services/cached-read";
 import { PlanningCenterReadCache } from "@pcobooster/api/planning-center/services/read-cache";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
@@ -212,6 +213,64 @@ export class PlanningCenterCatalogService {
           this.invalidateNeededPositionsCache(serviceTypeId, planId);
           return response.data;
         })
+      );
+  }
+
+  /** Sets how many open slots one needed-position record asks for. */
+  updateServiceTypePlanNeededPositionQuantity(
+    serviceTypeId: string,
+    planId: string,
+    neededPositionId: string,
+    quantity: number
+  ): Effect.Effect<void, PlanningCenterError> {
+    return this.core
+      .fetch(
+        `/services/v2/service_types/${serviceTypeId}/plans/${planId}/needed_positions/${neededPositionId}`,
+        {
+          method: "PATCH",
+          body: {
+            data: {
+              type: "NeededPosition",
+              id: neededPositionId,
+              attributes: { quantity },
+            },
+          },
+        }
+      )
+      .pipe(
+        Effect.asVoid,
+        Effect.tap(() =>
+          Effect.sync(() => {
+            this.invalidateNeededPositionsCache(serviceTypeId, planId);
+          })
+        )
+      );
+  }
+
+  /** A needed-position record Planning Center no longer has is already deleted. */
+  deleteServiceTypePlanNeededPosition(
+    serviceTypeId: string,
+    planId: string,
+    neededPositionId: string
+  ): Effect.Effect<void, PlanningCenterError> {
+    return this.core
+      .request(
+        `/services/v2/service_types/${serviceTypeId}/plans/${planId}/needed_positions/${neededPositionId}`,
+        { method: "DELETE" }
+      )
+      .pipe(
+        recoverPlanningCenterFailure({
+          kinds: ["not-found"],
+          reason: "Needed position not found; it is already deleted",
+          details: { planId, neededPositionId },
+          fallback: () => null,
+        }),
+        Effect.asVoid,
+        Effect.tap(() =>
+          Effect.sync(() => {
+            this.invalidateNeededPositionsCache(serviceTypeId, planId);
+          })
+        )
       );
   }
 

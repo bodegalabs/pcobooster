@@ -8,6 +8,7 @@ import { useDeferredValue, useMemo, useState } from "react";
 
 import { PageScrollArea } from "@/components/page-shell";
 import { CandidateListProgress } from "@/components/schedule/candidate-list-progress";
+import { NeededSlotsStepper } from "@/components/schedule/needed-slots-stepper";
 import { PlanPersonStatusMenu } from "@/components/schedule/plan-person-status-menu";
 import type { PlanPersonStatusValue } from "@/components/schedule/plan-person-status-menu";
 import { PositionPickerList } from "@/components/schedule/position-picker-list";
@@ -449,6 +450,17 @@ const ScheduleViewContent = ({
         {hasSelectedPosition ? (
           <>
             <SelectedPositionHeader
+              slotControls={
+                selectedSlotInfo &&
+                selectedServiceTypeId !== null &&
+                selectedPlanId !== null ? (
+                  <NeededSlotsStepper
+                    serviceTypeId={selectedServiceTypeId}
+                    planId={selectedPlanId}
+                    position={selectedSlotInfo.position}
+                  />
+                ) : null
+              }
               info={selectedSlotInfo}
               onOpenPicker={() => {
                 setPickerOpen(true);

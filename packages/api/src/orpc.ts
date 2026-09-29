@@ -11,6 +11,7 @@ import {
   applicationRuntime,
   rpc,
 } from "@pcobooster/api/transport/orpc/implementation";
+import { neededPositionsRouter } from "@pcobooster/api/transport/orpc/needed-positions";
 import { peopleRouter } from "@pcobooster/api/transport/orpc/people";
 import { planItemsRouter } from "@pcobooster/api/transport/orpc/plan-items";
 import {
@@ -46,6 +47,7 @@ export const appRouter = rpc.router({
   features: identityRouter.features,
   feedback: feedbackRouter,
   health,
+  neededPositions: neededPositionsRouter,
   people: peopleRouter,
   planItems: planItemsRouter,
   planPeople: planPeopleRouter,

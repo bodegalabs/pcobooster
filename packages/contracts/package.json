@@ -22,6 +22,7 @@
     "./plan-items": "./src/plan-items.ts",
     "./plan-people": "./src/plan-people.ts",
     "./plan-time-schemas": "./src/plan-time-schemas.ts",
+    "./needed-positions": "./src/needed-positions.ts",
     "./plan-times": "./src/plan-times.ts",
     "./request-priority": "./src/request-priority.ts",
     "./router": "./src/router.ts",
