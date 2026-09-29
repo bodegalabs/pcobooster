@@ -1,4 +1,7 @@
+import { useParams } from "@tanstack/react-router";
+
 import { PageShell } from "@/components/page-shell";
+import { PlanItemListSkeleton } from "@/components/schedule/plan-item-list";
 import {
   CandidateListSkeleton,
   PlanHeaderSkeleton,
@@ -31,7 +34,15 @@ export const SchedulePlansFallback = () => (
   </PageShell>
 );
 
-export const SchedulePlanWorkspaceFallback = () => (
+/** The plan builder: its header, then the run sheet. */
+const PlanBuilderFallback = () => (
+  <PageShell layout="fill" label="Loading plan" busy>
+    <PlanHeaderSkeleton />
+    <PlanItemListSkeleton />
+  </PageShell>
+);
+
+const AssignFallback = () => (
   <PageShell layout="fill" label="Loading plan" busy>
     <PlanHeaderSkeleton />
 
@@ -49,3 +60,9 @@ export const SchedulePlanWorkspaceFallback = () => (
     </div>
   </PageShell>
 );
+
+/** Mirrors the plan view being opened, so the page doesn't change shape as it loads. */
+export const SchedulePlanWorkspaceFallback = () => {
+  const { view } = useParams({ strict: false });
+  return view === "plan" ? <PlanBuilderFallback /> : <AssignFallback />;
+};

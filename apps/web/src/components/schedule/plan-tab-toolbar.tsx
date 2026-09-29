@@ -1,16 +1,13 @@
-import { LoaderCircle, Music2, Plus, Type } from "lucide-react";
+import type { RegisterableHotkey } from "@tanstack/react-hotkeys";
+import { Music2, Plus, Type } from "lucide-react";
+import type { ReactNode } from "react";
 
+import { HotkeyChord } from "@/components/hotkey-chord";
 import { Button } from "@/components/ui/button";
-import { formatDuration } from "@/lib/plan-overview";
-import type { PlanOrder } from "@/lib/plan-overview";
+import { HoverLabel } from "@/components/ui/hover-card";
+import { PLAN_BUILDER_SHORTCUTS } from "@/lib/app-hotkeys";
 
 interface PlanTabToolbarProps {
-  order: PlanOrder | null;
-  /** Rough key changes between back-to-back songs. */
-  keyJumps: number;
-  /** Songs sung in the weeks before this plan. */
-  repeats: number;
-  isReordering: boolean;
   isCreatingBasicItem?: boolean;
   disabled?: boolean;
   onAddSong: () => void;
@@ -18,100 +15,98 @@ interface PlanTabToolbarProps {
   onAddItem: () => void;
 }
 
-const pluralize = (count: number, noun: string) =>
-  `${count} ${noun}${count === 1 ? "" : "s"}`;
+const bindingOf = (id: "plan.addSong" | "plan.addHeader" | "plan.addItem") =>
+  PLAN_BUILDER_SHORTCUTS.find((entry) => entry.id === id)?.binding ?? null;
 
-const describeOrder = (order: PlanOrder) => {
-  const parts = [
-    pluralize(order.songs.length, "song"),
-    pluralize(order.itemCount, "item"),
-  ];
-  const length = formatDuration(order.serviceLength);
-  if (length !== null) {
-    parts.push(`${length} service`);
-  }
-  return parts.join(" · ");
-};
-
-const Insights = ({
-  keyJumps,
-  repeats,
-  songsWithoutKey,
+/** A toolbar button whose hover label names it and shows its shortcut. */
+const ShortcutButton = ({
+  label,
+  binding,
+  render,
+  children,
 }: {
-  keyJumps: number;
-  repeats: number;
-  songsWithoutKey: number;
-}) => {
-  const notes = [
-    keyJumps > 0 ? pluralize(keyJumps, "key jump") : null,
-    repeats > 0 ? pluralize(repeats, "recent repeat") : null,
-    songsWithoutKey > 0 ? `${songsWithoutKey} without a key` : null,
-  ].filter((note) => note !== null);
-  if (notes.length === 0) {
-    return null;
-  }
-  return <span className="text-status-scheduled"> · {notes.join(" · ")}</span>;
-};
+  label: string;
+  binding: RegisterableHotkey | null;
+  render: React.ReactElement;
+  children: ReactNode;
+}) => (
+  <HoverLabel
+    label={
+      <span className="inline-flex items-center gap-2">
+        {label}
+        {binding === null ? null : <HotkeyChord binding={binding} id={label} />}
+      </span>
+    }
+    render={render}
+  >
+    {children}
+  </HoverLabel>
+);
 
+/**
+ * The plan's add actions, floating over the bottom of the run
+ * sheet so they stay in reach while scrolling.
+ */
 export const PlanTabToolbar = ({
-  order,
-  keyJumps,
-  repeats,
-  isReordering: reordering,
   isCreatingBasicItem = false,
   disabled = false,
   onAddSong,
   onAddHeader,
   onAddItem,
 }: PlanTabToolbarProps) => (
-  <div className="bg-background sticky top-0 z-20 flex w-full max-w-4xl shrink-0 flex-wrap items-center gap-x-4 gap-y-2 py-1">
-    <p className="text-muted-foreground w-full text-sm tabular-nums sm:w-auto sm:flex-1">
-      {reordering ? (
-        <span className="inline-flex items-center gap-1.5">
-          <LoaderCircle className="size-3.5 animate-spin" />
-          Saving order…
-        </span>
-      ) : null}
-      {!reordering && order !== null ? describeOrder(order) : null}
-      {!reordering && order !== null ? (
-        <Insights
-          keyJumps={keyJumps}
-          repeats={repeats}
-          songsWithoutKey={order.songsWithoutKey}
-        />
-      ) : null}
-    </p>
-    <div className="flex items-center gap-1">
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={onAddHeader}
-        disabled={disabled || isCreatingBasicItem}
+  <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center px-4 max-md:fixed max-md:bottom-[calc(env(safe-area-inset-bottom)+1rem)]">
+    <div
+      role="toolbar"
+      aria-label="Add to plan"
+      className="bg-popover text-popover-foreground ring-foreground/5 dark:ring-foreground/10 pointer-events-auto flex items-center gap-1 rounded-full p-1 shadow-lg ring-1"
+    >
+      <ShortcutButton
+        label="Add a header"
+        binding={bindingOf("plan.addHeader")}
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onAddHeader}
+            disabled={disabled || isCreatingBasicItem}
+          />
+        }
       >
         <Type className="size-4 opacity-70" />
         Header
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={onAddItem}
-        disabled={disabled || isCreatingBasicItem}
+      </ShortcutButton>
+      <ShortcutButton
+        label="Add an item"
+        binding={bindingOf("plan.addItem")}
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onAddItem}
+            disabled={disabled || isCreatingBasicItem}
+          />
+        }
       >
         <Plus className="size-4 opacity-70" />
         Item
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={onAddSong}
-        disabled={disabled}
+      </ShortcutButton>
+      <ShortcutButton
+        label="Add a song"
+        binding={bindingOf("plan.addSong")}
+        render={
+          <Button
+            type="button"
+            size="sm"
+            onClick={onAddSong}
+            disabled={disabled}
+          />
+        }
       >
         <Music2 className="size-4" />
         Add song
-      </Button>
+      </ShortcutButton>
     </div>
   </div>
 );

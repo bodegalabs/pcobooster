@@ -20,22 +20,22 @@ interface UsePlanBuilderHotkeysOptions {
   selectedItemId: string | null;
   onSelect: (itemId: string | null) => void;
   onMove: (itemId: string, offset: -1 | 1) => void;
-  onOpenDetails: (itemId: string) => void;
+  onToggleDetails: (itemId: string) => void;
   onRemove: (itemId: string) => void;
   onAddSong: () => void;
   onAddBasic: (kind: "header" | "item") => void;
-  /** Escape closes the details panel first, then clears the selection. */
+  /** Escape hides the details first, then clears the selection. */
   onEscape: () => void;
 }
 
-/** The run sheet's keyboard: move through rows, rearrange them, and add after the selection. */
+/** The run sheet's keyboard: move through rows, rearrange them, and add at the insertion line. */
 export const usePlanBuilderHotkeys = ({
   enabled,
   items,
   selectedItemId,
   onSelect,
   onMove,
-  onOpenDetails,
+  onToggleDetails,
   onRemove,
   onAddSong,
   onAddBasic,
@@ -119,7 +119,7 @@ export const usePlanBuilderHotkeys = ({
     }),
     onRow
   );
-  useHotkey(bindingOf("plan.details"), withSelection(onOpenDetails), onRow);
+  useHotkey(bindingOf("plan.details"), withSelection(onToggleDetails), onRow);
   useHotkey(bindingOf("plan.remove"), removeSelected, onRow);
   useHotkey("Delete", removeSelected, onRow);
   useHotkey(bindingOf("plan.addSong"), onAddSong, anywhere);

@@ -472,6 +472,10 @@ export interface ArrangementOption {
   name: string;
   sequence: string[];
   length: number | null;
+  /** Tempo in beats per minute, when the arrangement sets one. */
+  bpm: number | null;
+  /** Time signature, such as "6/8". */
+  meter: string | null;
   archived: boolean;
   keys: KeyOption[];
 }

@@ -52,6 +52,7 @@ interface SongKeyPickerProps {
   /** The change from the previous song's key: rough ones are flagged, smooth ones get ideas. */
   transition: KeyTransition | null;
   onChange: (arrangement: ArrangementOption, key: KeyOption) => void;
+  onAddNote: (note: string) => void;
 }
 
 /** The song's key as a chip; picking another key or arrangement saves right away. */
@@ -60,6 +61,7 @@ export const SongKeyPicker = ({
   serviceTypeId,
   transition,
   onChange,
+  onAddNote,
 }: SongKeyPickerProps) => {
   const [open, setOpen] = useState(false);
   const { data: options, isLoading } = useSongOptions(
@@ -78,7 +80,9 @@ export const SongKeyPicker = ({
           transition={transition}
           serviceTypeId={serviceTypeId}
           songId={item.song?.id ?? null}
+          notes={item.description}
           onChangeKey={onChange}
+          onAddNote={onAddNote}
         />
       )}
       <Popover open={open} onOpenChange={setOpen}>

@@ -1,11 +1,20 @@
+import { Key01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type {
   ArrangementOption,
   KeyOption,
 } from "@pcobooster/planning-center-models/types";
-import { Lightbulb, TriangleAlert } from "lucide-react";
+import { Check, NotebookPen } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { HoverLabel } from "@/components/ui/hover-card";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemTitle,
+} from "@/components/ui/item";
 import {
   Popover,
   PopoverContent,
@@ -19,11 +28,22 @@ import { keyName, parseMusicalKey } from "@/lib/key-theory";
 import type { MusicalKey } from "@/lib/key-theory";
 import {
   rankAlternateKeys,
+  suggestionNote,
   transitionSuggestions,
 } from "@/lib/key-transition-advice";
-import type { AdviceSegment } from "@/lib/key-transition-advice";
+import type {
+  AdviceSegment,
+  KeyTransitionLevel,
+} from "@/lib/key-transition-advice";
 import { keyOptionLabelOf } from "@/lib/plan-overview";
 import type { KeyTransition } from "@/lib/plan-set-insights";
+
+/** One key icon for every key change, toned by how rough the change is. */
+const KEY_ICON_TONES: Record<KeyTransitionLevel, string> = {
+  smooth: "text-muted-foreground",
+  "worth-a-look": "text-status-scheduled",
+  rough: "text-destructive",
+};
 
 interface AlternateKey {
   arrangement: ArrangementOption;
@@ -69,7 +89,11 @@ interface KeyTransitionPopoverProps {
   transition: KeyTransition;
   serviceTypeId: string | null;
   songId: string | null;
+  /** The song's notes, so an idea already in them shows as added. */
+  notes: string;
   onChangeKey: (arrangement: ArrangementOption, key: KeyOption) => void;
+  /** Adds an idea to the song's notes, for the band. */
+  onAddNote: (note: string) => void;
 }
 
 /**
@@ -80,7 +104,9 @@ export const KeyTransitionPopover = ({
   transition,
   serviceTypeId,
   songId,
+  notes,
   onChangeKey,
+  onAddNote,
 }: KeyTransitionPopoverProps) => {
   const [open, setOpen] = useState(false);
   const tip = transition.level === "smooth";
@@ -119,19 +145,16 @@ export const KeyTransitionPopover = ({
           />
         }
       >
-        {tip ? (
-          <Lightbulb className="text-muted-foreground" />
-        ) : (
-          <TriangleAlert
-            className={
-              transition.level === "rough"
-                ? "text-destructive"
-                : "text-status-scheduled"
-            }
-          />
-        )}
+        <HugeiconsIcon
+          icon={Key01Icon}
+          strokeWidth={2}
+          className={KEY_ICON_TONES[transition.level]}
+        />
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80">
+      <PopoverContent
+        align="end"
+        className="max-h-(--available-height) w-80 overflow-y-auto"
+      >
         <PopoverHeader className="mx-4 mt-4">
           <PopoverTitle>
             {transition.from} → {transition.to}
@@ -145,15 +168,54 @@ export const KeyTransitionPopover = ({
               : ` ${transition.bridgedBy} gives the band room to change.`}
           </PopoverDescription>
         </PopoverHeader>
-        <ul className="flex flex-col gap-3 px-4 py-3">
-          {suggestions.map((suggestion) => (
-            <li key={suggestion.id} className="flex flex-col gap-0.5">
-              <span className="text-xs font-medium">{suggestion.title}</span>
-              <span className="text-muted-foreground text-sm">
-                <SegmentText segments={suggestion.segments} />
-              </span>
-            </li>
-          ))}
+        {/* Touch has no hover label, so say what tapping an idea does. */}
+        <p className="bg-muted text-muted-foreground mx-4 mt-3 flex items-center gap-2 rounded-xl px-3 py-2 text-xs pointer-fine:hidden">
+          <NotebookPen className="size-3.5 shrink-0" aria-hidden />
+          Tap an idea to add it to notes.
+        </p>
+        <ul className="flex flex-col gap-1 px-4 py-2">
+          {suggestions.map((suggestion) => {
+            const note = suggestionNote(suggestion);
+            const added = notes.includes(note);
+            return (
+              <li key={suggestion.id}>
+                <HoverLabel
+                  label={added ? "In notes" : "Add to notes"}
+                  side="left"
+                  render={
+                    <Item
+                      size="xs"
+                      className="-mx-3 w-[calc(100%+1.5rem)] py-2"
+                      render={
+                        <button
+                          type="button"
+                          aria-label={`${suggestion.title}: ${added ? "in notes" : "add to notes"}`}
+                          disabled={added}
+                        />
+                      }
+                      onClick={() => {
+                        onAddNote(note);
+                      }}
+                    />
+                  }
+                >
+                  <ItemContent>
+                    <ItemTitle>{suggestion.title}</ItemTitle>
+                    <span className="text-muted-foreground text-sm">
+                      <SegmentText segments={suggestion.segments} />
+                    </span>
+                  </ItemContent>
+                  <ItemActions className="self-start">
+                    {added ? (
+                      <Check className="text-muted-foreground size-3.5" />
+                    ) : (
+                      <NotebookPen className="text-muted-foreground size-3.5 pointer-fine:opacity-0 pointer-fine:group-hover/item:opacity-100 pointer-fine:group-focus-visible/item:opacity-100" />
+                    )}
+                  </ItemActions>
+                </HoverLabel>
+              </li>
+            );
+          })}
         </ul>
         {tip || alternates.length === 0 ? null : (
           <div className="flex flex-col gap-2 border-t px-4 py-3">

@@ -28,12 +28,16 @@ const outsideInset = new Map([
 const panelScrollers = new Map([
   ["apps/web/src/components/mobile-menu.tsx", "the phone menu overlay"],
   [
-    "apps/web/src/components/schedule/plan-item-edit-dialog.tsx",
-    "a dialog body",
+    "apps/web/src/components/schedule/add-song-palette.tsx",
+    "the song dialog's preview column",
   ],
   [
-    "apps/web/src/components/schedule/plan-item-inspector.tsx",
-    "the plan builder's boxed details panel",
+    "apps/web/src/components/schedule/key-transition-popover.tsx",
+    "the key change popover, capped to the room beside its trigger",
+  ],
+  [
+    "apps/web/src/components/schedule/plan-item-pane.tsx",
+    "the plan builder's details pane",
   ],
   [
     "apps/web/src/components/schedule/plan-person-edit-dialog.tsx",

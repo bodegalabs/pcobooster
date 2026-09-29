@@ -4,13 +4,19 @@ import * as React from "react";
 const Card = ({
   className,
   size = "default",
+  variant = "default",
   ...props
-}: React.ComponentProps<"div"> & { size?: "default" | "sm" }) => (
+}: React.ComponentProps<"div"> & {
+  size?: "default" | "sm";
+  /** `plain` drops the surface, for card content already inside a sheet or dialog. */
+  variant?: "default" | "plain";
+}) => (
   <div
     data-slot="card"
     data-size={size}
+    data-variant={variant}
     className={cn(
-      "group/card bg-card text-card-foreground ring-foreground/5 dark:ring-foreground/10 flex flex-col gap-(--card-spacing) overflow-hidden rounded-4xl py-(--card-spacing) text-sm shadow-md ring-1 [--card-spacing:--spacing(6)] has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(4)] max-md:rounded-3xl max-md:shadow-sm max-md:[--card-spacing:--spacing(4)] *:[img:first-child]:rounded-t-4xl *:[img:last-child]:rounded-b-4xl",
+      "group/card bg-card text-card-foreground ring-foreground/5 dark:ring-foreground/10 flex flex-col gap-(--card-spacing) overflow-hidden rounded-4xl py-(--card-spacing) text-sm shadow-md ring-1 [--card-spacing:--spacing(6)] has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(4)] data-[variant=plain]:bg-transparent data-[variant=plain]:shadow-none data-[variant=plain]:ring-0 max-md:rounded-3xl max-md:shadow-sm max-md:[--card-spacing:--spacing(4)] *:[img:first-child]:rounded-t-4xl *:[img:last-child]:rounded-b-4xl",
       className
     )}
     {...props}

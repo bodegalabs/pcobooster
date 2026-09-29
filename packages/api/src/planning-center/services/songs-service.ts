@@ -16,6 +16,10 @@ const log = logger.for("planning-center/songs");
 const DEFAULT_CATALOG_TTL_MS = 60 * 60 * 1000;
 export const DEFAULT_CATALOG_MAX_PAGES = 15;
 const SONG_DETAILS_CACHE_TTL_MS = 5 * 60 * 1000;
+/** Schedules change as plans are built, but not while someone reads one song's history. */
+const SONG_SCHEDULES_CACHE_TTL_MS = 10 * 60 * 1000;
+/** A year of weekly services, twice over, fits in one page. */
+const SONG_SCHEDULES_PAGES = 1;
 
 interface LastScheduledItem {
   data: PCResource | null;
@@ -44,6 +48,7 @@ export interface PlanningCenterSongsServiceCaches {
   readonly catalogs: PlanningCenterReadCache<PCResource[]>;
   readonly songs: PlanningCenterReadCache<PCResource>;
   readonly arrangements: PlanningCenterReadCache<SongArrangementsResponse>;
+  readonly schedules: PlanningCenterReadCache<PCResource[]>;
 }
 
 export const createPlanningCenterSongsServiceCaches =
@@ -51,6 +56,7 @@ export const createPlanningCenterSongsServiceCaches =
     catalogs: new PlanningCenterReadCache<PCResource[]>(),
     songs: new PlanningCenterReadCache<PCResource>(),
     arrangements: new PlanningCenterReadCache<SongArrangementsResponse>(),
+    schedules: new PlanningCenterReadCache<PCResource[]>(),
   });
 
 export class PlanningCenterSongsService {
@@ -237,6 +243,27 @@ export class PlanningCenterSongsService {
       );
   }
 
+  /**
+   * Every plan, in any service type, that scheduled the song from `afterDayKey` on,
+   * newest first. Without a filter Planning Center lists only upcoming ones.
+   */
+  getSongSchedules(
+    songId: string,
+    afterDayKey: string
+  ): Effect.Effect<PCResource[], PlanningCenterError> {
+    return cachedRead(
+      this.caches.schedules,
+      this.buildSongCacheKey("schedules", songId, afterDayKey),
+      SONG_SCHEDULES_CACHE_TTL_MS,
+      () =>
+        this.core.fetchAll(
+          `/services/v2/songs/${songId}/song_schedules`,
+          { filter: "after", after: afterDayKey, order: "-plan_sort_date" },
+          SONG_SCHEDULES_PAGES
+        )
+    ).pipe(Effect.map((schedules) => structuredClone(schedules)));
+  }
+
   /** A song never scheduled for the service type has no last item. */
   getSongLastScheduledItem(
     songId: string,
@@ -267,7 +294,7 @@ export class PlanningCenterSongsService {
   }
 
   private buildSongCacheKey(
-    kind: "catalog" | "song" | "arrangements",
+    kind: "catalog" | "song" | "arrangements" | "schedules",
     ...parts: string[]
   ): string {
     return [

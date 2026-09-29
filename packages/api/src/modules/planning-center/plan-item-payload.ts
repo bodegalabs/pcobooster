@@ -56,6 +56,7 @@ export const resolvePlanItemSongDefaults = (
     let arrangementId = input.arrangementId ?? undefined;
     let keyId = input.keyId ?? undefined;
     let selectedLayoutId = input.selectedLayoutId ?? undefined;
+    let { length } = input;
 
     if (
       isNonEmptyString(input.songId) &&
@@ -71,6 +72,13 @@ export const resolvePlanItemSongDefaults = (
       arrangementId ??= options.suggestedArrangementId ?? undefined;
       keyId ??= options.suggestedKeyId ?? undefined;
       selectedLayoutId ??= options.suggestedLayoutId ?? undefined;
+      // A new song runs as long as its arrangement, so the service clock counts it.
+      // `null` is a chosen "no length", so only a missing one is filled.
+      if (length === undefined) {
+        length = options.arrangements.find(
+          (arrangement) => arrangement.id === arrangementId
+        )?.length;
+      }
     }
 
     return {
@@ -79,6 +87,7 @@ export const resolvePlanItemSongDefaults = (
       arrangementId,
       keyId,
       selectedLayoutId,
+      length,
     };
   });
 

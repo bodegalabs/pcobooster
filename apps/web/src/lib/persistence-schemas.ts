@@ -89,6 +89,8 @@ const arrangementOptionSchema = z.object({
   name: z.string(),
   sequence: z.array(z.string()),
   length: z.number().nullable(),
+  bpm: z.number().nullable(),
+  meter: z.string().nullable(),
   archived: z.boolean(),
   keys: z.array(keyOptionSchema),
 });

@@ -151,6 +151,18 @@ export interface TransitionSuggestion {
   segments: AdviceSegment[];
 }
 
+/** A suggestion's advice as one line for a plan item's notes: "End … on Gm, then C7 …". */
+export const suggestionNote = (suggestion: TransitionSuggestion): string =>
+  suggestion.segments.map((segment) => segment.text).join("");
+
+/** Notes with `line` added on its own line; unchanged when they already have it. */
+export const appendNote = (notes: string, line: string): string => {
+  if (notes.includes(line)) {
+    return notes;
+  }
+  return notes.trim() === "" ? line : `${notes.trimEnd()}\n${line}`;
+};
+
 export interface TransitionSongs {
   fromTitle: string;
   toTitle: string;

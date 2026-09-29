@@ -18,6 +18,7 @@ import {
   Trash2,
   Type,
 } from "lucide-react";
+import { useMemo, useRef } from "react";
 import type { CSSProperties } from "react";
 
 import {
@@ -44,12 +45,6 @@ import { cn } from "@/lib/utils";
 
 export type PlanInsertKind = "song" | "header" | "item";
 
-/** Where a dragged library song will land, relative to the row under it. */
-export interface PlanDropIndicator {
-  itemId: string;
-  side: "before" | "after";
-}
-
 const planItemSkeletonRows = [
   { key: "a", header: true, title: "9rem" },
   { key: "b", header: false, title: "11rem" },
@@ -61,7 +56,7 @@ const planItemSkeletonRows = [
 ];
 
 export const PlanItemListSkeleton = () => (
-  <div className="flex w-full max-w-4xl flex-col pb-4 contain-inline-size">
+  <div className="flex w-full flex-col pb-4 contain-inline-size">
     {planItemSkeletonRows.map((row) =>
       row.header ? (
         <div
@@ -72,11 +67,8 @@ export const PlanItemListSkeleton = () => (
         </div>
       ) : (
         <div key={row.key} className="flex min-h-13 items-center gap-3 pl-8">
-          <Skeleton variant="text" className="h-3 w-9" />
-          <div className="ml-4 flex flex-col gap-1.5">
-            <Skeleton variant="text" className="h-3.5" width={row.title} />
-            <Skeleton variant="text" className="h-3 w-40" />
-          </div>
+          <Skeleton variant="text" className="h-3 w-8" />
+          <Skeleton variant="text" className="ml-4 h-3.5" width={row.title} />
         </div>
       )
     )}
@@ -91,7 +83,7 @@ const revealWithRow = (isDragged: boolean) =>
   !isDragged &&
   "pointer-fine:opacity-0 pointer-fine:group-focus-within/plan-item:opacity-100 pointer-fine:group-hover/plan-item:opacity-100 pointer-fine:group-data-[selected=true]/plan-item:opacity-100";
 
-/** Where an item off the service clock runs, in place of its start time. */
+/** Where an item off the service clock runs; nothing for items during it. */
 const OFF_CLOCK_LABELS = {
   pre: "before",
   post: "after",
@@ -121,7 +113,7 @@ const HeaderRowContent = ({
     sectionLength === null ? null : formatDuration(sectionLength);
   return (
     <span className="flex min-w-0 items-center gap-3">
-      <span className="min-w-0 flex-1 truncate text-xs font-semibold tracking-wide uppercase">
+      <span className="min-w-0 flex-1 text-xs font-semibold tracking-wide uppercase max-sm:line-clamp-2 sm:truncate">
         {title}
       </span>
       {lengthLabel === null ? null : (
@@ -150,7 +142,9 @@ const ItemRowContent = ({
 }) => (
   <>
     <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-      <span className="min-w-0 truncate text-sm font-medium">{title}</span>
+      <span className="min-w-0 text-sm font-medium max-sm:line-clamp-2 sm:truncate">
+        {title}
+      </span>
       {item.itemType === "song" ? (
         <span className="pointer-events-auto">
           <SongKeyPicker
@@ -159,6 +153,9 @@ const ItemRowContent = ({
             transition={transition}
             onChange={(arrangement, key) => {
               handlers.onChangeKey(item, arrangement, key);
+            }}
+            onAddNote={(note) => {
+              handlers.onAddNote(item, note);
             }}
           />
         </span>
@@ -191,6 +188,8 @@ export interface PlanItemRowHandlers {
     key: KeyOption
   ) => void;
   onChangeLength: (item: PlanItem, length: number | null) => void;
+  /** Adds a line to the item's notes, such as a key change idea. */
+  onAddNote: (item: PlanItem, note: string) => void;
   onInvalidLength: (message: string) => void;
 }
 
@@ -241,11 +240,7 @@ export const PlanItemRow = ({
   const isHeader = item.itemType === "header";
   const itemActionLabel = item.title || "plan item";
   const displayTitle = item.title || "Untitled item";
-  const startOffset = entry?.startOffset ?? null;
-  const startLabel =
-    startOffset === null
-      ? OFF_CLOCK_LABELS[item.servicePosition]
-      : `at ${formatDuration(startOffset) ?? "0:00"}`;
+  const startLabel = OFF_CLOCK_LABELS[item.servicePosition];
 
   return (
     <div
@@ -326,7 +321,7 @@ export const PlanItemRow = ({
       >
         <Button
           type="button"
-          variant="ghost"
+          variant="ghost-destructive"
           size="icon-sm"
           onClick={() => {
             handlers.onRemove(item.id);
@@ -348,67 +343,87 @@ const InsertAfter = ({
 }: {
   itemTitle: string;
   onInsert: (kind: PlanInsertKind) => void;
-}) => (
-  <div className="absolute inset-x-0 -bottom-2 z-10 flex h-4 opacity-0 focus-within:opacity-100 hover:opacity-100 has-data-popup-open:opacity-100 max-sm:hidden pointer-coarse:hidden">
-    <DropdownMenu>
-      {/* The whole strip opens the menu; the plus only marks where it is. */}
-      <DropdownMenuTrigger
-        aria-label={`Add after ${itemTitle}`}
-        className="group/insert flex flex-1 cursor-pointer items-center"
-      >
-        <span
-          aria-hidden
-          className="border-border bg-background text-muted-foreground group-hover/insert:text-foreground flex size-5 shrink-0 items-center justify-center rounded-full border"
-        >
-          <Plus className="size-3" />
-        </span>
-        <span
-          aria-hidden
-          className="bg-primary/40 group-hover/insert:bg-primary/70 ml-1 h-0.5 flex-1 rounded-full"
-        />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuItem
-          onClick={() => {
-            onInsert("song");
+}) => {
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  // Where the pointer pressed the strip, so the menu opens there; the plus otherwise.
+  const pressedX = useRef<number | null>(null);
+  const anchor = useMemo(
+    () => ({
+      getBoundingClientRect: () => {
+        const strip = triggerRef.current?.getBoundingClientRect();
+        const x = pressedX.current ?? strip?.left ?? 0;
+        return new DOMRect(x, strip?.top ?? 0, 0, strip?.height ?? 0);
+      },
+    }),
+    []
+  );
+  return (
+    <div className="absolute inset-x-0 -bottom-2 z-10 flex h-4 opacity-0 hover:opacity-100 has-focus-visible:opacity-100 has-data-popup-open:opacity-100 max-sm:hidden pointer-coarse:hidden">
+      <DropdownMenu>
+        {/* The whole strip opens the menu; the plus only marks where it is. */}
+        <DropdownMenuTrigger
+          ref={triggerRef}
+          aria-label={`Add after ${itemTitle}`}
+          className="group/insert flex flex-1 cursor-pointer items-center"
+          onPointerDown={(event) => {
+            pressedX.current = event.clientX;
+          }}
+          onKeyDown={() => {
+            pressedX.current = null;
           }}
         >
-          <Music2 />
-          Song
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => {
-            onInsert("header");
-          }}
-        >
-          <Type />
-          Header
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => {
-            onInsert("item");
-          }}
-        >
-          <AlignLeft />
-          Item
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  </div>
-);
+          <span
+            aria-hidden
+            className="border-border bg-background text-muted-foreground group-hover/insert:text-foreground flex size-5 shrink-0 items-center justify-center rounded-full border"
+          >
+            <Plus className="size-3" />
+          </span>
+          <span
+            aria-hidden
+            className="bg-primary/40 group-hover/insert:bg-primary/70 ml-1 h-0.5 flex-1 rounded-full"
+          />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" anchor={anchor}>
+          <DropdownMenuItem
+            onClick={() => {
+              onInsert("song");
+            }}
+          >
+            <Music2 />
+            Song
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              onInsert("header");
+            }}
+          >
+            <Type />
+            Header
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              onInsert("item");
+            }}
+          >
+            <AlignLeft />
+            Item
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+};
 
 interface SortablePlanItemProps extends Omit<
   PlanItemRowProps,
   "dragAttributes" | "dragListeners" | "isDragged"
 > {
   isDragging: boolean;
-  dropSide: PlanDropIndicator["side"] | null;
 }
 
 const SortablePlanItem = ({
   item,
   isDragging,
-  dropSide,
   ...rowProps
 }: SortablePlanItemProps) => {
   const {
@@ -435,16 +450,10 @@ const SortablePlanItem = ({
       style={style}
       className={cn(
         "sortable-plan-item relative",
-        item.itemType === "header" && "pt-3 first:pt-0",
+        item.itemType === "header" ? "pt-3 first:pt-0" : "plan-item-divider",
         isSortableDragging && "z-20 opacity-0"
       )}
     >
-      {dropSide === "before" ? (
-        <span
-          aria-hidden
-          className="bg-primary absolute inset-x-0 top-0 h-0.5 rounded-full"
-        />
-      ) : null}
       <PlanItemRow
         item={item}
         {...rowProps}
@@ -452,12 +461,6 @@ const SortablePlanItem = ({
         dragAttributes={attributes}
         dragListeners={listeners}
       />
-      {dropSide === "after" ? (
-        <span
-          aria-hidden
-          className="bg-primary absolute inset-x-0 -bottom-px h-0.5 rounded-full"
-        />
-      ) : null}
       <InsertAfter
         itemTitle={item.title || "this item"}
         onInsert={(kind) => {
@@ -475,14 +478,13 @@ interface PlanItemListProps {
   recentPlays: ReadonlyMap<string, number>;
   selectedItemId: string | null;
   activeItemId: string | null;
-  dropIndicator: PlanDropIndicator | null;
   pendingItemId: string | null;
   serviceTypeId: string | null;
   handlers: PlanItemRowHandlers;
   getItemIntentProps?: (itemId: string) => IntentPrefetchProps;
 }
 
-/** The run sheet's rows. The drag context lives in the builder so library songs can drop here. */
+/** The run sheet's rows. The drag context lives in the builder. */
 export const PlanItemList = ({
   items,
   runSheet,
@@ -490,7 +492,6 @@ export const PlanItemList = ({
   recentPlays,
   selectedItemId,
   activeItemId,
-  dropIndicator,
   pendingItemId,
   serviceTypeId,
   handlers,
@@ -501,7 +502,7 @@ export const PlanItemList = ({
     strategy={verticalListSortingStrategy}
   >
     {/* Sized by the page, not by long titles, so truncation holds. */}
-    <div className="pb-safe-4 flex w-full max-w-4xl flex-col contain-inline-size md:pb-4">
+    <div className="pb-safe-4 flex w-full flex-col contain-inline-size md:pb-4">
       {items.map((item) => (
         <SortablePlanItem
           key={item.id}
@@ -512,9 +513,6 @@ export const PlanItemList = ({
           selected={selectedItemId === item.id}
           isBusy={pendingItemId === item.id}
           isDragging={activeItemId === item.id}
-          dropSide={
-            dropIndicator?.itemId === item.id ? dropIndicator.side : null
-          }
           serviceTypeId={serviceTypeId}
           handlers={handlers}
           intentProps={getItemIntentProps?.(item.id)}
@@ -533,7 +531,7 @@ export const PlanItemListEmpty = ({
   onAddHeader: () => void;
   onAddItem: () => void;
 }) => (
-  <div className="max-w-4xl py-1">
+  <div className="py-1">
     <Card className="text-center">
       <div className="mx-auto flex max-w-sm flex-col items-center gap-3">
         <FileMusic className="text-muted-foreground/70 size-5" />

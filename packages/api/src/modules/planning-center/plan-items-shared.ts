@@ -136,11 +136,14 @@ export const normalizeArrangementOption = (
     }
   }
 
+  const meter = toText(attributes.meter).trim();
   return {
     id: resource.id,
     name: toText(attributes.name),
     sequence: toStringArray(attributes.sequence),
     length: toNumberOrNull(attributes.length),
+    bpm: toNumberOrNull(attributes.bpm),
+    meter: meter === "" ? null : meter,
     archived: isNonEmptyString(attributes.archived_at),
     keys,
   };
@@ -173,7 +176,7 @@ export const normalizeLayoutOption = (
   };
 };
 
-const getSingleRelationshipId = (
+export const getSingleRelationshipId = (
   relationship: PCRelationship | undefined
 ): string | null => {
   const data = relationship?.data;
@@ -273,6 +276,10 @@ export const scoreSongSearch = (
   const themes = normalizeSearchText(entry.themes);
   const haystack = `${title} ${author} ${themes}`.trim();
   const tokens = normalizedQuery.split(/\s+/u).filter(Boolean);
+  // Every word has to match somewhere, so "way maker" doesn't bring up "Always".
+  if (!tokens.every((token) => haystack.includes(token))) {
+    return 0;
+  }
 
   let score = 0;
   if (title === normalizedQuery) {
@@ -304,7 +311,8 @@ export const scoreSongSearch = (
     }
   }
 
-  if (entry.lastScheduledAt) {
+  // Recency only breaks ties between songs that match; alone it isn't a match.
+  if (score > 0 && entry.lastScheduledAt) {
     const ageMs = Date.now() - entry.lastScheduledAt.getTime();
     const ageDays = ageMs / (24 * 60 * 60 * 1000);
     if (ageDays < 180) {

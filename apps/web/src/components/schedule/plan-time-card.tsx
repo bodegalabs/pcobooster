@@ -59,7 +59,7 @@ export const PlanTimeCard = ({
         </div>
         <Button
           type="button"
-          variant="ghost"
+          variant="ghost-destructive"
           size="icon-sm"
           className="shrink-0"
           aria-label={`Delete ${edit.name || "time"}`}

@@ -3,15 +3,12 @@ import type {
   PlanItem,
   SongCatalogEntry,
 } from "@pcobooster/planning-center-models/types";
-import { Music2 } from "lucide-react";
 import { startTransition, useRef, useState } from "react";
-import type { ReactNode, RefObject } from "react";
+import type { ComponentProps, ReactNode, RefObject } from "react";
 import { toast } from "sonner";
 
 import { PageScrollArea } from "@/components/page-shell";
-import { PlanItemEditDialog } from "@/components/schedule/plan-item-edit-dialog";
-import { PlanItemInspector } from "@/components/schedule/plan-item-inspector";
-import type { PlanItemSaveInput } from "@/components/schedule/plan-item-inspector";
+import { AddSongPalette } from "@/components/schedule/add-song-palette";
 import {
   PlanItemList,
   PlanItemListEmpty,
@@ -19,23 +16,36 @@ import {
   PlanItemRow,
 } from "@/components/schedule/plan-item-list";
 import type { PlanItemRowHandlers } from "@/components/schedule/plan-item-list";
-import { PlanSongLibrary } from "@/components/schedule/plan-song-library";
+import { PlanItemPane } from "@/components/schedule/plan-item-pane";
+import type { PlanItemSaveInput } from "@/components/schedule/plan-item-pane";
 import {
   buildDraft,
   buildRunSheet,
 } from "@/components/schedule/plan-tab-helpers";
 import type { RunSheetEntry } from "@/components/schedule/plan-tab-helpers";
 import { PlanTabToolbar } from "@/components/schedule/plan-tab-toolbar";
-import { SongPickerDialog } from "@/components/schedule/song-picker-dialog";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/ui/responsive-dialog";
+import { useDismissOnOutsidePress } from "@/hooks/use-dismiss-on-outside-press";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { usePlanBuilderDrag } from "@/hooks/use-plan-builder-drag";
 import { usePlanBuilderHotkeys } from "@/hooks/use-plan-builder-hotkeys";
-import { usePlanTabController } from "@/hooks/use-plan-tab-controller";
+import {
+  isOptimisticItemId,
+  usePlanTabController,
+} from "@/hooks/use-plan-tab-controller";
+import type { AddedPlanItemKind } from "@/hooks/use-plan-tab-controller";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
+import { appendNote } from "@/lib/key-transition-advice";
 import type { PlanInsertion } from "@/lib/plan-items-query-state";
-import { summarizeOrder } from "@/lib/plan-overview";
 import { buildPlanInsights } from "@/lib/plan-set-insights";
 import type { PlanInsights } from "@/lib/plan-set-insights";
+import { previousSongBefore } from "@/lib/song-library";
 import { cn } from "@/lib/utils";
 
 interface PlanTabProps {
@@ -45,7 +55,7 @@ interface PlanTabProps {
   planDate: Date | null;
 }
 
-/** The library sits beside the run sheet only where there is room for both. */
+/** The details slide in beside the run sheet only where there is room for both. */
 const WIDE_LAYOUT_QUERY = "(min-width: 1024px)";
 
 /** Runs a plan write; mutations report their own failures and restore the plan. */
@@ -73,14 +83,12 @@ const focusRow = (itemId: string) => {
 
 const PlanBuilderDragPreview = ({
   item,
-  song,
   entry,
   insights,
   serviceTypeId,
   handlers,
 }: {
   item: PlanItem | null;
-  song: SongCatalogEntry | null;
   entry: RunSheetEntry | undefined;
   insights: PlanInsights;
   serviceTypeId: string | null;
@@ -102,106 +110,15 @@ const PlanBuilderDragPreview = ({
         />
       </div>
     ) : null}
-    {song ? (
-      <div className="bg-background flex w-64 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium shadow-2xl">
-        <Music2 className="text-primary size-4 shrink-0" aria-hidden />
-        <span className="truncate">{song.title}</span>
-      </div>
-    ) : null}
   </DragOverlay>
 );
 
-interface PlanBuilderPanelProps {
-  items: PlanItem[];
-  selectedIndex: number;
-  inspecting: boolean;
-  serviceTypeId: string | null;
-  librarySearchRef: RefObject<HTMLInputElement | null>;
-  pendingSongId: string | null;
-  onSelect: (itemId: string | null) => void;
-  onClose: () => void;
-  onRemove: (itemId: string) => void;
-  onSave: (input: PlanItemSaveInput) => void;
-  onAddSong: (song: SongCatalogEntry) => void;
-  onSongDragStart: (song: SongCatalogEntry) => void;
-}
-
-/** The right panel: the opened row's details, or the song library. */
-const PlanBuilderPanel = ({
-  items,
-  selectedIndex,
-  inspecting,
-  serviceTypeId,
-  librarySearchRef,
-  pendingSongId,
-  onSelect,
-  onClose,
-  onRemove,
-  onSave,
-  onAddSong,
-  onSongDragStart,
-}: PlanBuilderPanelProps) => {
-  const selectedItem = items[selectedIndex] ?? null;
-  const previousItem = items[selectedIndex - 1] ?? null;
-  const nextItem =
-    selectedIndex === -1 ? null : (items[selectedIndex + 1] ?? null);
-  return (
-    <aside className="flex min-h-0 w-[min(22rem,32vw)] shrink-0 flex-col pb-4">
-      {inspecting && selectedItem !== null ? (
-        <PlanItemInspector
-          item={selectedItem}
-          serviceTypeId={serviceTypeId}
-          positionLabel={`${selectedIndex + 1} of ${items.length}`}
-          onPrevious={
-            previousItem === null
-              ? null
-              : () => {
-                  onSelect(previousItem.id);
-                }
-          }
-          onNext={
-            nextItem === null
-              ? null
-              : () => {
-                  onSelect(nextItem.id);
-                }
-          }
-          onClose={onClose}
-          onRemove={onRemove}
-          onSave={onSave}
-        />
-      ) : (
-        <PlanSongLibrary
-          searchInputRef={librarySearchRef}
-          planSongIds={
-            new Set(items.flatMap((item) => (item.song ? [item.song.id] : [])))
-          }
-          insertionLabel={
-            selectedItem === null
-              ? "to the end"
-              : `after “${selectedItem.title || "Untitled item"}”`
-          }
-          pendingSongId={pendingSongId}
-          onAddSong={onAddSong}
-          onSongDragStart={onSongDragStart}
-          onLeave={() => {
-            librarySearchRef.current?.blur();
-            if (selectedItem !== null) {
-              focusRow(selectedItem.id);
-            }
-          }}
-        />
-      )}
-    </aside>
-  );
-};
-
-/** Saves a key or length picked right on a row. */
+/** Saves a key or length picked on a row or in the details. */
 const inlineEditHandlers = (
   saveItem: (input: PlanItemSaveInput) => Promise<void>
 ): Pick<
   PlanItemRowHandlers,
-  "onChangeKey" | "onChangeLength" | "onInvalidLength"
+  "onChangeKey" | "onChangeLength" | "onAddNote" | "onInvalidLength"
 > => ({
   onChangeKey: (item, arrangement, key) => {
     runQuietly(async () => {
@@ -235,80 +152,284 @@ const inlineEditHandlers = (
       });
     });
   },
+  onAddNote: (item, note) => {
+    runQuietly(async () => {
+      await saveItem({
+        item,
+        draft: {
+          ...buildDraft(item),
+          description: appendNote(item.description, note),
+        },
+        length: item.length,
+        optimisticArrangement: item.arrangement,
+        optimisticKey: item.key,
+      });
+    });
+  },
   onInvalidLength: (message) => {
     toast.error(message);
   },
 });
 
+/** The song right before `item` in its section, for how their keys meet. */
+const songBefore = (items: readonly PlanItem[], item: PlanItem) => {
+  const before = items[items.findIndex((other) => other.id === item.id) - 1];
+  return before === undefined ? null : previousSongBefore(items, before.id);
+};
+
+/** The item whose details show: the selection once it exists in Planning Center. */
+const detailItemOf = (detailsOpen: boolean, selectedItem: PlanItem | null) =>
+  detailsOpen && selectedItem !== null && !isOptimisticItemId(selectedItem.id)
+    ? selectedItem
+    : null;
+
 /**
- * The plan builder: an editable run sheet with the song library beside it. Everything
- * happens in place: select a row, then add after it, rearrange it, or edit its key and
- * length without leaving the sheet.
+ * What the song dialog needs: its title, the song a chosen one would follow (the one
+ * before the song being replaced, else before the insertion point), and what's in the plan.
+ */
+const paletteContextOf = (
+  items: readonly PlanItem[],
+  selectedItem: PlanItem | null,
+  replacing: PlanItem | null
+) => ({
+  title:
+    replacing === null
+      ? "Add song"
+      : `Replace ${replacing.title || "this song"}`,
+  previousSong:
+    replacing === null
+      ? previousSongBefore(items, selectedItem?.id ?? null)
+      : songBefore(items, replacing),
+  planSongIds: new Set(
+    items.flatMap((item) => (item.song === null ? [] : [item.song.id]))
+  ),
+});
+
+const PlanRunSheet = ({
+  isLoading,
+  revealClassName,
+  items,
+  onAddSong,
+  onAddBasic,
+  ...listProps
+}: Omit<ComponentProps<typeof PlanItemList>, "items"> & {
+  isLoading: boolean;
+  revealClassName: string | undefined;
+  items: PlanItem[];
+  onAddSong: () => void;
+  onAddBasic: (kind: "header" | "item") => void;
+}) => {
+  if (isLoading) {
+    return <PlanItemListSkeleton />;
+  }
+  if (items.length === 0) {
+    return (
+      <PlanItemListEmpty
+        onAddSong={onAddSong}
+        onAddHeader={() => {
+          onAddBasic("header");
+        }}
+        onAddItem={() => {
+          onAddBasic("item");
+        }}
+      />
+    );
+  }
+  return (
+    <div className={cn("relative pb-20", revealClassName)}>
+      <PlanItemList items={items} {...listProps} />
+    </div>
+  );
+};
+
+/**
+ * The details beside the run sheet on wide screens. Closing mirrors opening: the run
+ * sheet takes the room back at once while the last details fade out over it.
+ */
+const DetailsAside = ({
+  ref,
+  pane,
+}: {
+  ref: RefObject<HTMLElement | null>;
+  pane: ReactNode;
+}) => {
+  const [lastPane, setLastPane] = useState<ReactNode>(pane);
+  if (pane !== null && pane !== lastPane) {
+    setLastPane(pane);
+  }
+  const closing = pane === null;
+  if (closing && lastPane === null) {
+    return null;
+  }
+  return (
+    <aside
+      ref={ref}
+      aria-label="Details"
+      className={cn(
+        "flex min-h-0 w-[min(24rem,34vw)] shrink-0 flex-col pb-4 ease-out",
+        closing
+          ? "animate-out fade-out-0 slide-out-to-right-4 fill-mode-forwards pointer-events-none absolute inset-y-0 right-0 duration-150"
+          : "animate-in fade-in-0 slide-in-from-right-4 pointer-events-none duration-200 *:pointer-events-auto motion-reduce:animate-none"
+      )}
+      onAnimationEnd={(event) => {
+        if (closing && event.target === event.currentTarget) {
+          setLastPane(null);
+        }
+      }}
+    >
+      {closing ? lastPane : pane}
+    </aside>
+  );
+};
+
+/** The details as a sheet, on screens too narrow to slide them in beside the run sheet. */
+const DetailsSheet = ({
+  open,
+  onOpenChange,
+  children,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: ReactNode;
+}) => (
+  <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+    <ResponsiveDialogContent mobileClassName="max-h-[85svh]">
+      <ResponsiveDialogHeader className="sr-only">
+        <ResponsiveDialogTitle>Details</ResponsiveDialogTitle>
+      </ResponsiveDialogHeader>
+      <div className="flex min-h-0 flex-col px-3 pb-3">{children}</div>
+    </ResponsiveDialogContent>
+  </ResponsiveDialog>
+);
+
+/** Plan hotkeys wait while loading, dragging, or a dialog is up. */
+const nothingInTheWay = (blockers: boolean[]) => !blockers.includes(true);
+
+/** Blurs the focused field inside `container`, so it saves before the container unmounts. */
+const blurWithin = (container: HTMLElement | null) => {
+  const focused = document.activeElement;
+  if (focused instanceof HTMLElement && container?.contains(focused) === true) {
+    focused.blur();
+  }
+};
+
+/** Confirms removing a run sheet item before it comes off the plan. */
+const RemoveItemDialog = ({
+  item,
+  onCancel,
+  onConfirm,
+}: {
+  item: PlanItem | null;
+  onCancel: () => void;
+  onConfirm: (itemId: string) => void;
+}) => (
+  <DeleteConfirmationDialog
+    open={item !== null}
+    onOpenChange={(open) => {
+      if (!open) {
+        onCancel();
+      }
+    }}
+    onConfirm={() => {
+      if (item !== null) {
+        onConfirm(item.id);
+      }
+    }}
+    title={`Remove “${item === null || item.title === "" ? "Untitled item" : item.title}”?`}
+    description="It comes off this plan in Planning Center."
+    confirmLabel="Remove"
+  />
+);
+
+/**
+ * The plan builder: the run sheet, with an opened row's details sliding in beside it.
+ * New songs come from the add-song dialog and land after the selected row.
  */
 export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  // The right panel shows the song library, or the opened row's details.
-  const [panel, setPanel] = useState<"library" | "inspector">("library");
+  // Details follow the selection while open; nothing is reserved for them while closed.
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  // A header or item just added, whose title is selected so typing names it.
+  const [titleFocusItemId, setTitleFocusItemId] = useState<string | null>(null);
+  // The song the dialog is choosing a replacement for, if any.
+  const [replacingItemId, setReplacingItemId] = useState<string | null>(null);
+  // The item waiting on the remove confirmation, if any.
+  const [removingItemId, setRemovingItemId] = useState<string | null>(null);
+  const paneRef = useRef<HTMLElement>(null);
+  const isWide = useMediaQuery(WIDE_LAYOUT_QUERY);
+  const onItemAdded = (itemId: string, kind: AddedPlanItemKind) => {
+    setSelectedItemId(itemId);
+    if (kind !== "song" && !isOptimisticItemId(itemId)) {
+      setTitleFocusItemId(itemId);
+      setDetailsOpen(true);
+    }
+  };
   const controller = usePlanTabController({
     serviceTypeId,
     planId,
-    onSongAdded: setSelectedItemId,
+    onItemAdded,
   });
-  const { items, isLoading, editingItemId, songPickerOpen, saveItem } =
-    controller;
-  const isWide = useMediaQuery(WIDE_LAYOUT_QUERY);
-  const librarySearchRef = useRef<HTMLInputElement>(null);
+  const { items, isLoading, songPickerOpen, saveItem } = controller;
   const revealClassName = useRevealOnLoad(isLoading);
 
-  const selectedIndex = items.findIndex((item) => item.id === selectedItemId);
-  const selectedItem = items[selectedIndex] ?? null;
-  const inspecting = isWide && panel === "inspector" && selectedItem !== null;
-  const insertion: PlanInsertion | undefined =
-    selectedItem === null ? undefined : { afterItemId: selectedItem.id };
+  const selectedItem = items.find((item) => item.id === selectedItemId) ?? null;
   const runSheet = buildRunSheet(items);
   const insights = buildPlanInsights(items, planDate);
+  const insertion: PlanInsertion | undefined =
+    selectedItem === null ? undefined : { afterItemId: selectedItem.id };
 
-  const addSong = (song: SongCatalogEntry, at?: PlanInsertion) => {
-    runQuietly(async () => {
-      await controller.addSongToPlan(song, at);
-    });
-  };
-  const addBasicItem = (kind: "header" | "item", at?: PlanInsertion) => {
+  const addBasicItem = (kind: "header" | "item", at = insertion) => {
     runQuietly(async () => {
       await controller.createBasicItem(kind, at);
     });
   };
-  const startSongSearch = () => {
-    if (isWide) {
-      setPanel("library");
-      requestAnimationFrame(() => {
-        librarySearchRef.current?.focus();
-      });
-      return;
-    }
+  /** Opens the song dialog to add a song, or to swap `replaceItemId` for another. */
+  const openSongPicker = (replaceItemId: string | null = null) => {
+    setReplacingItemId(replaceItemId);
     controller.setSongPickerOpen(true);
   };
-  const selectAndFocus = (itemId: string | null) => {
+  const chooseSong = (song: SongCatalogEntry) => {
+    const replaceItemId = replacingItemId;
+    runQuietly(async () => {
+      if (replaceItemId === null) {
+        await controller.addSongToPlan(song, insertion);
+        return;
+      }
+      // The new song takes the old one's place; the old one leaves with an undo.
+      await controller.addSongToPlan(song, { afterItemId: replaceItemId });
+      controller.removeItem(replaceItemId);
+    });
+  };
+  const select = (itemId: string | null) => {
     setSelectedItemId(itemId);
+    setTitleFocusItemId(null);
+  };
+  const selectAndFocus = (itemId: string | null) => {
+    select(itemId);
     if (itemId !== null) {
       focusRow(itemId);
     }
   };
-  /** Wide screens show details in the panel; phones get the details sheet. */
-  const openItem = (itemId: string) => {
-    setSelectedItemId(itemId);
-    if (isWide) {
-      setPanel("inspector");
-      return;
+  const openDetails = (itemId: string) => {
+    select(itemId);
+    setDetailsOpen(true);
+  };
+  const closeDetails = () => {
+    blurWithin(paneRef.current);
+    setDetailsOpen(false);
+    if (selectedItemId !== null) {
+      focusRow(selectedItemId);
     }
-    controller.setEditingItemId(itemId);
   };
   const removeAndSelectNeighbor = (itemId: string) => {
     const index = items.findIndex((item) => item.id === itemId);
     const neighbor = items[index + 1] ?? items[index - 1] ?? null;
     controller.removeItem(itemId);
     if (selectedItemId === itemId) {
-      setSelectedItemId(neighbor?.id ?? null);
+      select(neighbor?.id ?? null);
+    }
+    if (neighbor === null) {
+      setDetailsOpen(false);
     }
   };
 
@@ -319,15 +440,15 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
         await controller.reorderItems(nextItems);
       });
     },
-    onDropSong: addSong,
   });
 
   usePlanBuilderHotkeys({
-    enabled:
-      !isLoading &&
-      editingItemId === null &&
-      !songPickerOpen &&
-      drag.activeItemId === null,
+    enabled: nothingInTheWay([
+      isLoading,
+      songPickerOpen,
+      removingItemId !== null,
+      drag.activeItemId !== null,
+    ]),
     items,
     selectedItemId: selectedItem?.id ?? null,
     onSelect: selectAndFocus,
@@ -337,28 +458,37 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
       });
       focusRow(itemId);
     },
-    onOpenDetails: openItem,
-    onRemove: controller.removeItem,
-    onAddSong: startSongSearch,
+    onToggleDetails: (itemId) => {
+      openDetails(itemId);
+      requestAnimationFrame(() => {
+        paneRef.current
+          ?.querySelector<HTMLElement>("button, input, textarea, select")
+          ?.focus();
+      });
+    },
+    onRemove: setRemovingItemId,
+    onAddSong: () => {
+      openSongPicker();
+    },
     onAddBasic: (kind) => {
-      addBasicItem(kind, insertion);
+      addBasicItem(kind);
     },
     onEscape: () => {
-      if (inspecting) {
-        setPanel("library");
+      if (detailsOpen) {
+        closeDetails();
         return;
       }
-      setSelectedItemId(null);
+      select(null);
     },
   });
 
   const handlers: PlanItemRowHandlers = {
-    onOpen: openItem,
-    onRemove: removeAndSelectNeighbor,
+    onOpen: openDetails,
+    onRemove: setRemovingItemId,
     onInsert: (kind, afterItemId) => {
-      setSelectedItemId(afterItemId);
+      select(afterItemId);
       if (kind === "song") {
-        startSongSearch();
+        openSongPicker();
         return;
       }
       addBasicItem(kind, { afterItemId });
@@ -366,134 +496,131 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
     ...inlineEditHandlers(saveItem),
   };
 
-  let sheet: ReactNode = <PlanItemListSkeleton />;
-  if (!isLoading && items.length === 0) {
-    sheet = (
-      <PlanItemListEmpty
-        onAddSong={startSongSearch}
-        onAddHeader={() => {
-          addBasicItem("header");
+  const detailItem = detailItemOf(detailsOpen, selectedItem);
+  const serviceDate = planDate ?? new Date();
+  const pane =
+    detailItem === null ? null : (
+      <PlanItemPane
+        key={detailItem.id}
+        item={detailItem}
+        serviceTypeId={serviceTypeId}
+        planId={planId}
+        planDate={serviceDate}
+        previousSong={songBefore(items, detailItem)}
+        transition={insights.transitions.get(detailItem.id) ?? null}
+        focusTitle={titleFocusItemId === detailItem.id}
+        onSave={(input) => {
+          runQuietly(async () => {
+            await saveItem(input);
+          });
         }}
-        onAddItem={() => {
-          addBasicItem("item");
+        onChangeKey={(item, arrangement, key) => {
+          handlers.onChangeKey(item, arrangement, key);
         }}
+        onRemove={setRemovingItemId}
+        onReplaceSong={openSongPicker}
+        onClose={closeDetails}
+        inSheet={!isWide}
+        className="max-h-full"
       />
     );
-  } else if (!isLoading) {
-    sheet = (
-      <div className={cn("relative", revealClassName)}>
-        <PlanItemList
-          items={items}
-          runSheet={runSheet}
-          transitions={insights.transitions}
-          recentPlays={insights.recentPlays}
-          selectedItemId={selectedItem?.id ?? null}
-          activeItemId={drag.activeItemId}
-          dropIndicator={drag.dropIndicator}
-          pendingItemId={controller.pendingItemId}
-          serviceTypeId={serviceTypeId}
-          handlers={handlers}
-          getItemIntentProps={controller.getItemIntentProps}
-        />
-      </div>
-    );
-  }
+  // Like a sheet: pressing outside the card closes it and clears the selection. Rows
+  // switch it to themselves.
+  useDismissOnOutsidePress({
+    enabled: isWide && pane !== null,
+    ref: paneRef,
+    ignoreSelector: "[data-plan-item-id]",
+    onDismiss: () => {
+      blurWithin(paneRef.current);
+      setDetailsOpen(false);
+      select(null);
+    },
+  });
   const draggedItem =
     items.find((item) => item.id === drag.activeItemId) ?? null;
 
   return (
-    <>
-      <SongPickerDialog
+    <DndContext
+      collisionDetection={closestCenter}
+      sensors={drag.sensors}
+      {...drag.dragHandlers}
+    >
+      <AddSongPalette
         open={songPickerOpen}
         onOpenChange={(open) => {
           controller.setSongPickerOpen(open);
         }}
         serviceTypeId={serviceTypeId}
-        onSelectSong={(song) => {
-          addSong(song, insertion);
-        }}
+        planId={planId}
+        planDate={planDate}
+        {...paletteContextOf(
+          items,
+          selectedItem,
+          items.find((item) => item.id === replacingItemId) ?? null
+        )}
         pendingSongId={controller.pendingSongId}
+        onChooseSong={chooseSong}
       />
-
-      <PlanItemEditDialog
-        item={controller.editingItem}
-        open={Boolean(editingItemId)}
-        serviceTypeId={serviceTypeId}
-        onOpenChange={(open) => {
-          if (!open) {
-            controller.setEditingItemId(null);
-          }
+      <RemoveItemDialog
+        item={items.find((item) => item.id === removingItemId) ?? null}
+        onCancel={() => {
+          setRemovingItemId(null);
         }}
-        onSave={async (input) => {
-          await saveItem(input);
-        }}
-        onDelete={(itemId) => {
-          controller.removeItem(itemId);
+        onConfirm={(itemId) => {
+          setRemovingItemId(null);
+          removeAndSelectNeighbor(itemId);
         }}
       />
-
-      <DndContext
-        collisionDetection={closestCenter}
-        sensors={drag.sensors}
-        {...drag.dragHandlers}
-      >
-        <div className="flex h-full min-h-0 gap-6">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2">
-            <PlanTabToolbar
-              order={
-                isLoading || items.length === 0 ? null : summarizeOrder(items)
-              }
-              keyJumps={insights.keyJumps}
-              repeats={insights.recentPlays.size}
-              isReordering={controller.isReordering}
-              isCreatingBasicItem={controller.isCreatingBasicItem}
-              disabled={isLoading}
-              onAddSong={startSongSearch}
-              onAddHeader={() => {
-                addBasicItem("header", insertion);
-              }}
-              onAddItem={() => {
-                addBasicItem("item", insertion);
-              }}
-            />
-            <PageScrollArea>{sheet}</PageScrollArea>
-          </div>
-          {isWide ? (
-            <PlanBuilderPanel
+      {isWide ? null : (
+        <DetailsSheet open={pane !== null} onOpenChange={setDetailsOpen}>
+          {pane}
+        </DetailsSheet>
+      )}
+      <div className="relative flex h-full min-h-0 gap-6">
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+          <PageScrollArea>
+            <PlanRunSheet
+              isLoading={isLoading}
+              revealClassName={revealClassName}
               items={items}
-              selectedIndex={selectedIndex}
-              inspecting={inspecting}
+              runSheet={runSheet}
+              transitions={insights.transitions}
+              recentPlays={insights.recentPlays}
+              selectedItemId={selectedItem?.id ?? null}
+              activeItemId={drag.activeItemId}
+              pendingItemId={controller.pendingItemId}
               serviceTypeId={serviceTypeId}
-              librarySearchRef={librarySearchRef}
-              pendingSongId={controller.pendingSongId}
-              onSelect={selectAndFocus}
-              onClose={() => {
-                setPanel("library");
+              handlers={handlers}
+              getItemIntentProps={controller.getItemIntentProps}
+              onAddSong={() => {
+                openSongPicker();
               }}
-              onRemove={removeAndSelectNeighbor}
-              onSave={(input) => {
-                runQuietly(async () => {
-                  await saveItem(input);
-                });
-              }}
-              onAddSong={(song) => {
-                addSong(song, insertion);
-              }}
-              onSongDragStart={(song) => {
-                drag.startSongDrag(song);
-              }}
+              onAddBasic={addBasicItem}
             />
-          ) : null}
+          </PageScrollArea>
+          <PlanTabToolbar
+            isCreatingBasicItem={controller.isCreatingBasicItem}
+            disabled={isLoading}
+            onAddSong={() => {
+              openSongPicker();
+            }}
+            onAddHeader={() => {
+              addBasicItem("header");
+            }}
+            onAddItem={() => {
+              addBasicItem("item");
+            }}
+          />
         </div>
-        <PlanBuilderDragPreview
-          item={draggedItem}
-          song={drag.draggingSong}
-          entry={draggedItem ? runSheet.get(draggedItem.id) : undefined}
-          insights={insights}
-          serviceTypeId={serviceTypeId}
-          handlers={handlers}
-        />
-      </DndContext>
-    </>
+        {isWide ? <DetailsAside ref={paneRef} pane={pane} /> : null}
+      </div>
+      <PlanBuilderDragPreview
+        item={draggedItem}
+        entry={draggedItem ? runSheet.get(draggedItem.id) : undefined}
+        insights={insights}
+        serviceTypeId={serviceTypeId}
+        handlers={handlers}
+      />
+    </DndContext>
   );
 };

@@ -19,6 +19,29 @@
   transition-property: transform, box-shadow, opacity;
 }
 
+/*
+ * A hairline between back-to-back run sheet items, starting under the length
+ * (past the drag handle). Headers already separate sections, so none beside
+ * them, and none beside a hovered or selected row, whose highlight is enough.
+ */
+@utility plan-item-divider {
+  & + &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: --spacing(3);
+    left: calc(var(--plan-item-handle-width, 2rem) + --spacing(2.5));
+    z-index: 1;
+    height: 1px;
+    background: color-mix(in oklch, var(--border) 70%, transparent);
+    pointer-events: none;
+  }
+  &:has(> [data-plan-item-id]:is(:hover, [data-selected="true"]))::before,
+  &:has(> [data-plan-item-id]:is(:hover, [data-selected="true"])) + &::before {
+    display: none;
+  }
+}
+
 @utility recommendation-progress {
   width: var(--recommendation-width);
   transition: width 150ms ease;
