@@ -42,7 +42,20 @@ const ApiStack = Alchemy.Stack(
   { providers, state: State.inMemoryState() },
   Effect.gen(function* apiOnly() {
     const api = yield* Api;
-    return { url: api.url };
+    const proxy = yield* Cloudflare.Worker("RequestProxy", {
+      name: "pcobooster-test-request-proxy",
+      script: `export default { async fetch(request, env) {
+        const bytes = new Uint8Array(await request.arrayBuffer());
+        const body = new ReadableStream({ start(controller) {
+          controller.enqueue(bytes.slice(0, 1));
+          setTimeout(() => { controller.enqueue(bytes.slice(1)); controller.close(); }, 30);
+        } });
+        return await env.API.fetch(new Request(request, { redirect: "manual", body }));
+      } };`,
+      env: { API: api },
+      dev: { port: 3014 },
+    });
+    return { url: api.url, proxyUrl: proxy.url };
   })
 );
 
@@ -93,6 +106,40 @@ const repeatedSignOuts = (url: string, clientIp: string, count: number) =>
       rateLimited: statuses.filter((status) => status === 429).length,
     }))
   );
+
+test(
+  "keeps concurrent request bodies in their own workerd invocation",
+  Effect.gen(function* concurrentBodies() {
+    const { proxyUrl: url } = yield* stack;
+    assert.ok(url !== undefined);
+    const responses = yield* Effect.all(
+      Array.from({ length: 24 }, () =>
+        Test.executeWhenReady(
+          HttpClientRequest.post(`${url}/api/rpc/health`).pipe(
+            HttpClientRequest.bodyJsonUnsafe({ json: {} })
+          )
+        ).pipe(
+          Effect.flatMap((response) =>
+            response.json.pipe(
+              Effect.map((body) => ({ status: response.status, body }))
+            )
+          )
+        )
+      ),
+      { concurrency: "unbounded" }
+    );
+    for (const response of responses) {
+      assert.strictEqual(response.status, 200);
+      assert.deepStrictEqual(response.body, {
+        json: {
+          status: "ok",
+          version: resolveReleaseVersion(process.env.GITHUB_SHA),
+        },
+      });
+    }
+  }),
+  requestTimeout
+);
 
 test(
   "serves health through oRPC with its bindings wired",

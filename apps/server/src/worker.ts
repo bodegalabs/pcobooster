@@ -17,6 +17,7 @@ import { Database } from "./database";
 import { FeatureFlagApp } from "./feature-flags";
 import { workerObservability } from "./observability";
 import { PlanningCenterCache } from "./planning-center-cache";
+import { prepareRpcRequest } from "./request-body";
 import { currentStageSettings } from "./stage";
 
 const PREVIEW_SECRET_PLACEHOLDER = "minted-by-alchemy-random-at-runtime";
@@ -199,12 +200,15 @@ export default class Api extends Cloudflare.Worker<Api>()(
     );
     return {
       fetch: Effect.gen(function* fetch() {
-        const request = yield* HttpServerRequest.toWeb(
+        const incoming = yield* HttpServerRequest.toWeb(
           yield* HttpServerRequest.HttpServerRequest
         ).pipe(Effect.orDie);
+        const prepared = yield* Effect.promise(
+          async () => await prepareRpcRequest(incoming)
+        );
         const handler = yield* app;
         const response = yield* Effect.promise(
-          async () => await handler.fetch(request)
+          async () => await handler.fetch(prepared.request())
         );
         return HttpServerResponse.fromWeb(response);
       }),
