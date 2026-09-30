@@ -273,6 +273,7 @@ export const useTimesTabController = ({
 
   return {
     planTimes,
+    planTimesQuery,
     edits,
     timeZone,
     teamPositionGroups: teamPositionsQuery.data,

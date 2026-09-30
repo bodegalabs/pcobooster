@@ -3,8 +3,18 @@ import { z } from "zod";
 
 const PLAN_PATH =
   /^\/services\/[^/]+\/plans\/[^/]+(?:\/(?<view>assign|lineup|plan|times))?\/?$/u;
+const OVERVIEW_PATH = /^\/services\/[^/]+\/plans\/[^/]+\/overview\/?$/u;
+const SONG_PATH = /^\/songs\/[^/]+\/?$/u;
 const PERSON_PATH = /^\/people\/[^/]+\/?$/u;
-const PUBLIC_PATHS = new Set(["/", "/about", "/auth", "/services", "/people"]);
+const PUBLIC_PATHS = new Set([
+  "/",
+  "/about",
+  "/auth",
+  "/services",
+  "/people",
+  "/songs",
+  "/cleanup",
+]);
 
 export const analyticsPath = (pathname: string): string => {
   const path = pathname.length > 1 ? pathname.replace(/\/$/u, "") : pathname;
@@ -14,6 +24,12 @@ export const analyticsPath = (pathname: string): string => {
   const plan = PLAN_PATH.exec(path);
   if (plan) {
     return `/services/:serviceTypeId/plans/:planId/${plan.groups?.view ?? "assign"}`;
+  }
+  if (OVERVIEW_PATH.test(path)) {
+    return "/services/:serviceTypeId/plans/:planId/overview";
+  }
+  if (SONG_PATH.test(path)) {
+    return "/songs/:songId";
   }
   if (PERSON_PATH.test(path)) {
     return "/people/:personId";
@@ -183,6 +199,14 @@ export const canRecordSession = (
     PLAN_PATH.test(pathname) ||
     PERSON_PATH.test(pathname));
 
+/** Error reporting covers every authenticated product surface without expanding replay. */
+export const canReportException = (
+  pathname: string,
+  authenticated: boolean
+): boolean =>
+  authenticated &&
+  /^\/(?:services|people|songs|cleanup)(?:\/|$)/u.test(pathname);
+
 const EXCEPTION_MESSAGE_MAX_LENGTH = 500;
 const exceptionFrameSchema = z.object({
   platform: z.string().optional(),
@@ -292,10 +316,10 @@ export const prepareAnalyticsEvent = (
     return null;
   }
   if (event.event === "$exception") {
-    // Exceptions are reported from the same authenticated product routes as replay.
+    // Exception capture covers all authenticated product routes; replay has its own gate.
     const exceptionList = sanitizeExceptionList(event.properties);
     if (
-      !canRecordSession(pathname, authenticated) ||
+      !canReportException(pathname, authenticated) ||
       exceptionList.length === 0
     ) {
       return null;

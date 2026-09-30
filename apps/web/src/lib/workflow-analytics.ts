@@ -14,6 +14,12 @@ const OPERATIONS = new Set([
   "planTimes.update",
   "planTimes.delete",
   "accounts.select",
+  "neededPositions.adjust",
+  "planPeople.updateTimes",
+  "chordCharts.update",
+  "chordCharts.create",
+  "chordCharts.createSong",
+  "feedback.submit",
 ]);
 const errorCodeSchema = z.enum([
   "UNAUTHORIZED",
@@ -22,6 +28,9 @@ const errorCodeSchema = z.enum([
   "BAD_REQUEST",
   "ALREADY_SCHEDULED",
   "POSITION_MISMATCH",
+  "CONFLICT",
+  "SERVICE_UNAVAILABLE",
+  "GATEWAY_TIMEOUT",
   "TOO_MANY_REQUESTS",
   "BAD_GATEWAY",
   "INTERNAL_SERVER_ERROR",
@@ -49,12 +58,10 @@ export const measureWorkflow = async <T>(
     const errorCode = errorCodeSchema.safeParse(
       error instanceof ORPCError ? error.code : undefined
     );
-    if (!(error instanceof Error && error.name === "AbortError")) {
-      capture("workflow failed", {
-        operation,
-        error_code: errorCode.success ? errorCode.data : "UNKNOWN",
-      });
-    }
+    capture("workflow failed", {
+      operation,
+      error_code: errorCode.success ? errorCode.data : "UNKNOWN",
+    });
     throw error;
   }
 };

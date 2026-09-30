@@ -6,6 +6,7 @@ import {
   analyticsUrl,
   canInitializeAnalytics,
   canRecordSession,
+  canReportException,
   prepareAnalyticsEvent,
 } from "./privacy";
 import { replayOptions } from "./replay";
@@ -20,18 +21,23 @@ type AnalyticsEvent =
 let initialized = false;
 let currentUserId: string | undefined;
 
-/** Replay and exception capture share one gate: authenticated product routes. */
+/** Replay retains its own route gate; errors cover every authenticated product route. */
 const syncSessionRecording = (): void => {
   if (canRecordSession(window.location.pathname, currentUserId !== undefined)) {
     // Respect the project's sampling and minimum-duration controls.
     posthog.startSessionRecording();
+  } else {
+    posthog.stopSessionRecording();
+  }
+  if (
+    canReportException(window.location.pathname, currentUserId !== undefined)
+  ) {
     posthog.startExceptionAutocapture({
       capture_unhandled_errors: true,
       capture_unhandled_rejections: true,
       capture_console_errors: false,
     });
   } else {
-    posthog.stopSessionRecording();
     posthog.stopExceptionAutocapture();
   }
 };
@@ -85,7 +91,7 @@ export const initializeAnalytics = (
   try {
     const productDocument =
       window.location.pathname === "/auth" ||
-      canRecordSession(window.location.pathname, true);
+      canReportException(window.location.pathname, true);
     currentUserId = userId;
     if (!initialized) {
       posthog.init(key, {
@@ -154,12 +160,15 @@ export const initializeAnalytics = (
  * handlers that exception autocapture listens to. The privacy guard drops it outside
  * authenticated product routes.
  */
-export const captureAnalyticsException = (error: Error): void => {
+export const captureAnalyticsException = (
+  error: Error,
+  properties: Record<string, string | number | boolean> = {}
+): void => {
   if (!initialized) {
     return;
   }
   try {
-    posthog.captureException(error);
+    posthog.captureException(error, properties);
   } catch {
     // Error reporting is best effort.
   }

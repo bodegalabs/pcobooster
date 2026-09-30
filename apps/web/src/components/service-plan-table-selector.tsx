@@ -3,6 +3,7 @@ import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { ChevronRight, Search } from "lucide-react";
 
 import { PageScrollArea } from "@/components/page-shell";
+import { QueryDataBoundary } from "@/components/query-data-boundary";
 import { ServiceTypeMultiSelect } from "@/components/service-type-multi-select";
 import {
   Empty,
@@ -246,12 +247,7 @@ const PlanAgenda = ({
     return <PlanAgendaSkeleton />;
   }
   if (errorMessage && visibleRows.length === 0) {
-    return (
-      <PlanListEmpty
-        title="Plans failed to load"
-        description="Refresh and try again."
-      />
-    );
+    return null;
   }
   if (visibleRows.length === 0) {
     return (
@@ -384,6 +380,7 @@ export const ServicePlanTableSelector = ({
     isInitialLoading,
     isRefreshing,
     errorMessage,
+    failedQueries,
     visibleRows,
     myScheduledRows,
     myScheduledPlanIdSet,
@@ -397,6 +394,11 @@ export const ServicePlanTableSelector = ({
   });
   return (
     <div className="flex flex-col gap-4 md:h-full md:min-h-0">
+      {failedQueries.map(({ title, query }) => (
+        <QueryDataBoundary key={title} title={title} query={query}>
+          {null}
+        </QueryDataBoundary>
+      ))}
       <MyScheduledServiceCards
         rows={myScheduledRows}
         isLoading={isInitialLoading}

@@ -61,12 +61,14 @@ export const useServicePlanSelection = ({
   const router = useRouter();
   const cachedPlanWritesRef = useRef(new Map<string, number>());
   const orgTimeZone = useOrganizationTimeZone();
+  const serviceTypesQuery = useServiceTypes();
   const { data: serviceTypes, isLoading: serviceTypesLoading } =
-    useServiceTypes();
+    serviceTypesQuery;
   // Starts with the service types rather than after the plans: it lists every upcoming plan
   // the person is on, and the rows are matched against it below.
+  const myScheduledPlansQuery = useMyScheduledPlans();
   const { data: myScheduledPlans, isLoading: myScheduledPlansLoading } =
-    useMyScheduledPlans();
+    myScheduledPlansQuery;
   const [searchValue, setSearchValue] = useState("");
   const deferredSearchValue = useDeferredValue(searchValue);
   const [storedIds, setStoredIds] = useBrowserStorage(
@@ -201,7 +203,18 @@ export const useServicePlanSelection = ({
   );
 
   const plansLoading = planQueries.some((query) => query.isLoading);
-  const errorMessage = planQueries.find((query) => query.isError)?.error;
+  const failedQueries = [
+    { title: "Couldn't load service types", query: serviceTypesQuery },
+    { title: "Couldn't load your services", query: myScheduledPlansQuery },
+    ...planQueries.flatMap((query, index) => {
+      const serviceType = serviceTypes?.[index];
+      return serviceType !== undefined &&
+        selectedServiceTypeIdSet.has(serviceType.id)
+        ? [{ title: `Couldn't load ${serviceType.name} plans`, query }]
+        : [];
+    }),
+  ].filter(({ query }) => query.error !== null);
+  const errorMessage = failedQueries[0]?.query.error ?? undefined;
   // Service types answer at different times, and each one's plans interleave by date, so
   // showing rows as they arrive reshuffles the list under the pointer. The page stays on its
   // skeleton until every selected service type and the "Your services" lookup have answered,
@@ -353,6 +366,7 @@ export const useServicePlanSelection = ({
     isInitialLoading,
     isRefreshing,
     errorMessage,
+    failedQueries,
     visibleRows,
     myScheduledRows,
     myScheduledPlanIdSet,

@@ -1,8 +1,10 @@
+import { captureAnalyticsException } from "@pcobooster/analytics/client";
 import { QueryClient, hashKey } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 
 import { INTENT_PREFETCH_DWELL_MS } from "@/lib/intent-prefetch";
+import { createReadErrorCache } from "@/lib/read-error-analytics";
 import { parseSearch, stringifySearch } from "@/lib/search-params";
 import { routeTree } from "@/routeTree.gen";
 
@@ -14,6 +16,7 @@ const QUERY_GC_TIME_MS = 30 * 60 * 1000;
  */
 const createQueryClient = (presentationScope: string): QueryClient =>
   new QueryClient({
+    queryCache: createReadErrorCache(captureAnalyticsException),
     defaultOptions: {
       queries: {
         gcTime: QUERY_GC_TIME_MS,
