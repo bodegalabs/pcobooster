@@ -40,7 +40,7 @@ describe("workflow analytics", () => {
     });
   });
 
-  it("does not bill events for background reads or aborted operations", async () => {
+  it("does not count reads as writes and reports rejected write cancellations", async () => {
     const capture = vi.fn<typeof captureAnalytics>();
     await measureWorkflow(
       ["people", "list"],
@@ -56,6 +56,9 @@ describe("workflow analytics", () => {
         capture
       )
     ).rejects.toBe(error);
-    expect(capture).not.toHaveBeenCalled();
+    expect(capture).toHaveBeenCalledExactlyOnceWith("workflow failed", {
+      operation: "planItems.update",
+      error_code: "UNKNOWN",
+    });
   });
 });

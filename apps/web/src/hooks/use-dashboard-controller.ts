@@ -1,6 +1,7 @@
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   Plan,
+  ServiceType,
   TeamPosition,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
@@ -8,6 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
+import type { ReadQueryState } from "@/components/query-data-boundary";
 import type { SlotRef } from "@/components/schedule/types";
 import { useCollapsedTeams } from "@/hooks/use-collapsed-teams";
 import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
@@ -129,14 +131,31 @@ const useOpensFirstPosition = (view: DashboardView): boolean => {
   return view === "assign" && isWideLayout;
 };
 
+const findFailedWorkspaceQuery = (
+  selectedServiceType: ServiceType | null,
+  selectedPlan: Plan | null,
+  serviceTypesQuery: ReadQueryState<unknown>,
+  plansQuery: ReadQueryState<unknown>,
+  planDetails: ReadQueryState<unknown>
+): ReadQueryState<unknown> | undefined => {
+  const requiredQueries = [
+    ...(selectedServiceType === null ? [serviceTypesQuery] : []),
+    ...(selectedPlan === null ? [plansQuery, planDetails] : []),
+  ];
+  return requiredQueries.find(
+    (query) => query.error !== null && query.data === undefined
+  );
+};
+
 const usePlanWorkspaceData = (
   serviceTypeId: string,
   planId: string,
   routeIds: RouteSelectionIds
 ) => {
   const opensFirstPosition = useOpensFirstPosition(routeIds.view);
+  const serviceTypesQuery = useServiceTypes();
   const { data: serviceTypes, isLoading: serviceTypesLoading } =
-    useServiceTypes();
+    serviceTypesQuery;
   const routeServiceTypeId = serviceTypeId;
   const routePlanId = planId;
   const selectedServiceType =
@@ -144,7 +163,8 @@ const usePlanWorkspaceData = (
       (serviceType) => serviceType.id === routeServiceTypeId
     ) ?? null;
 
-  const { data: plans, isLoading: plansLoading } = usePlans(routeServiceTypeId);
+  const plansQuery = usePlans(routeServiceTypeId);
+  const { data: plans, isLoading: plansLoading } = plansQuery;
   const selectedPlanIndex =
     plans?.findIndex((plan) => plan.id === routePlanId) ?? -1;
   const listedPlan = plans?.[selectedPlanIndex] ?? null;
@@ -160,13 +180,15 @@ const usePlanWorkspaceData = (
     selectedPlanIndex
   );
 
+  const teamPositionsQuery = useTeamPositions(
+    routeServiceTypeId,
+    routePlanId,
+    selectedPlan?.seriesId ?? null
+  );
   const { data: teamPositionGroups, isLoading: teamPositionsLoading } =
-    useTeamPositions(
-      routeServiceTypeId,
-      routePlanId,
-      selectedPlan?.seriesId ?? null
-    );
-  const { data: planTimes } = usePlanTimes(routeServiceTypeId, routePlanId);
+    teamPositionsQuery;
+  const planTimesQuery = usePlanTimes(routeServiceTypeId, routePlanId);
+  const { data: planTimes } = planTimesQuery;
 
   const {
     selectedTeam,
@@ -203,6 +225,13 @@ const usePlanWorkspaceData = (
 
   const planDetailsSettled =
     planDetails.isFetched || planDetails.isError || listedPlan !== null;
+  const workspaceFailedQuery = findFailedWorkspaceQuery(
+    selectedServiceType,
+    selectedPlan,
+    serviceTypesQuery,
+    plansQuery,
+    planDetails
+  );
   const workspaceUnavailable =
     !serviceTypesLoading &&
     !plansLoading &&
@@ -214,12 +243,15 @@ const usePlanWorkspaceData = (
     nextPlans,
     teamPositionGroups,
     teamPositionsLoading,
+    teamPositionsQuery,
+    planTimesQuery,
     planTimes,
     selectedTeam,
     selectedPosition,
     selectedPositionUsesRoster,
     candidateList,
     workspaceUnavailable,
+    workspaceFailedQuery,
   };
 };
 
@@ -275,12 +307,15 @@ export const useDashboardController = ({
     nextPlans,
     teamPositionGroups,
     teamPositionsLoading,
+    teamPositionsQuery,
+    planTimesQuery,
     planTimes,
     selectedTeam,
     selectedPosition,
     selectedPositionUsesRoster,
     candidateList,
     workspaceUnavailable,
+    workspaceFailedQuery,
   } = usePlanWorkspaceData(serviceTypeId, planId, routeIds);
   const routeServiceTypeId = serviceTypeId;
   const routePlanId = planId;
@@ -571,6 +606,7 @@ export const useDashboardController = ({
 
   return {
     workspaceUnavailable,
+    workspaceFailedQuery,
     hasPlanUrlSelection,
     hasSelectedPlanMetadata,
     selectedServiceType,
@@ -578,6 +614,8 @@ export const useDashboardController = ({
     previousPlans,
     nextPlans,
     activeView,
+    teamPositionsQuery,
+    planTimesQuery,
     teamPositionsLoading,
     teamPositionGroups,
     collapsedTeams,

@@ -11,6 +11,7 @@ import { PlanAccessNotice } from "@/components/access/access-notices";
 import { MobileHeader } from "@/components/mobile-menu";
 import { PageShell } from "@/components/page-shell";
 import { PlanningCenterServicesIcon } from "@/components/planning-center-services-icon";
+import { QueryDataBoundary } from "@/components/query-data-boundary";
 import { LineupTab } from "@/components/schedule/lineup-tab";
 import { PlanOverviewTab } from "@/components/schedule/plan-overview-tab";
 import { PlanTab } from "@/components/schedule/plan-tab";
@@ -578,6 +579,7 @@ export const DashboardPage = ({
 }) => {
   const {
     workspaceUnavailable,
+    workspaceFailedQuery,
     hasPlanUrlSelection,
     hasSelectedPlanMetadata,
     selectedServiceType,
@@ -585,6 +587,8 @@ export const DashboardPage = ({
     previousPlans,
     nextPlans,
     activeView,
+    teamPositionsQuery,
+    planTimesQuery,
     teamPositionsLoading,
     teamPositionGroups,
     collapsedTeams,
@@ -602,6 +606,18 @@ export const DashboardPage = ({
     planTimes,
   } = useDashboardController({ serviceTypeId, planId, view });
   const planReferenceDate = selectedPlan?.sortDate ?? null;
+  if (workspaceFailedQuery !== undefined) {
+    return (
+      <PageShell layout="center">
+        <QueryDataBoundary
+          query={workspaceFailedQuery}
+          title="Couldn't load this plan"
+        >
+          {null}
+        </QueryDataBoundary>
+      </PageShell>
+    );
+  }
   if (workspaceUnavailable) {
     return <WorkspaceUnavailable />;
   }
@@ -643,9 +659,8 @@ export const DashboardPage = ({
               serviceTypeId={routeServiceTypeId}
               planId={routePlanId}
               selectedPlan={selectedPlan}
-              teamPositionGroups={teamPositionGroups}
-              teamPositionsLoading={teamPositionsLoading}
-              planTimes={planTimes}
+              teamPositionsQuery={teamPositionsQuery}
+              planTimesQuery={planTimesQuery}
               getSlotIntentProps={getSlotIntentProps}
             />
           </TabsContent>
@@ -654,39 +669,53 @@ export const DashboardPage = ({
             value="assign"
             className="mt-0 flex min-h-0 flex-1 flex-col"
           >
-            <ScheduleViewTab
-              teamPositionsLoading={teamPositionsLoading}
-              teamPositionGroups={teamPositionGroups}
-              collapsedTeams={collapsedTeams}
-              selectedTeam={selectedTeam}
-              selectedPosition={selectedPosition}
-              candidateList={selectedPositionUsesRoster ? candidateList : null}
-              selectedServiceTypeId={routeServiceTypeId}
-              selectedPlanId={routePlanId}
-              planReferenceDate={planReferenceDate}
-              onToggleTeam={toggleTeamCollapsed}
-              onSelectSlot={handleSlotSelect}
-              onClearSlot={handleSlotClear}
-              getSlotIntentProps={getSlotIntentProps}
-              onAddPosition={handleAddCustomPosition}
-              onScheduleError={handleScheduleError}
-            />
+            <QueryDataBoundary
+              query={teamPositionsQuery}
+              title="Couldn't load people"
+              className="min-h-0 flex-1"
+            >
+              <ScheduleViewTab
+                teamPositionsLoading={teamPositionsLoading}
+                teamPositionGroups={teamPositionGroups}
+                collapsedTeams={collapsedTeams}
+                selectedTeam={selectedTeam}
+                selectedPosition={selectedPosition}
+                candidateList={
+                  selectedPositionUsesRoster ? candidateList : null
+                }
+                selectedServiceTypeId={routeServiceTypeId}
+                selectedPlanId={routePlanId}
+                planReferenceDate={planReferenceDate}
+                onToggleTeam={toggleTeamCollapsed}
+                onSelectSlot={handleSlotSelect}
+                onClearSlot={handleSlotClear}
+                getSlotIntentProps={getSlotIntentProps}
+                onAddPosition={handleAddCustomPosition}
+                onScheduleError={handleScheduleError}
+              />
+            </QueryDataBoundary>
           </TabsContent>
 
           <TabsContent
             value="lineup"
             className="mt-0 flex min-h-0 flex-1 flex-col"
           >
-            <LineupTab
-              groups={teamPositionGroups ?? []}
-              isLoading={teamPositionsLoading}
-              serviceTypeId={routeServiceTypeId}
-              planId={routePlanId}
-              seriesId={selectedPlan?.seriesId ?? null}
-              planTimes={planTimes ?? []}
-              onSelectPosition={handleSlotSelect}
-              getSlotIntentProps={getSlotIntentProps}
-            />
+            <QueryDataBoundary
+              query={teamPositionsQuery}
+              title="Couldn't load people"
+              className="min-h-0 flex-1"
+            >
+              <LineupTab
+                groups={teamPositionGroups ?? []}
+                isLoading={teamPositionsLoading}
+                serviceTypeId={routeServiceTypeId}
+                planId={routePlanId}
+                seriesId={selectedPlan?.seriesId ?? null}
+                planTimes={planTimes ?? []}
+                onSelectPosition={handleSlotSelect}
+                getSlotIntentProps={getSlotIntentProps}
+              />
+            </QueryDataBoundary>
           </TabsContent>
 
           <TabsContent

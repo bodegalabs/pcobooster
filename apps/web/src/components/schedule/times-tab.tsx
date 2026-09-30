@@ -2,6 +2,7 @@ import type { PlanTime } from "@pcobooster/planning-center-models/types";
 import { Clock3, Plus } from "lucide-react";
 
 import { PageScrollArea } from "@/components/page-shell";
+import { QueryDataBoundary } from "@/components/query-data-boundary";
 import { PlanTimeCard } from "@/components/schedule/plan-time-card";
 import { PlanTimeCreateDialog } from "@/components/schedule/plan-time-create-dialog";
 import { Button } from "@/components/ui/button";
@@ -136,6 +137,7 @@ const TimesTabContent = ({
 }: TimesTabProps) => {
   const {
     planTimes,
+    planTimesQuery,
     edits,
     timeZone,
     teamPositionGroups,
@@ -186,6 +188,14 @@ const TimesTabContent = ({
     />
   );
 
+  if (planTimesQuery.data === undefined && planTimesQuery.error !== null) {
+    return (
+      <QueryDataBoundary query={planTimesQuery} title="Couldn't load times">
+        {null}
+      </QueryDataBoundary>
+    );
+  }
+
   if (isLoading) {
     return (
       <>
@@ -197,7 +207,11 @@ const TimesTabContent = ({
 
   if (planTimes.length === 0) {
     return (
-      <>
+      <QueryDataBoundary
+        query={planTimesQuery}
+        title="Couldn't refresh times"
+        className="min-h-0 flex-1"
+      >
         <div className="flex min-h-0 flex-1 items-center justify-center px-4 pb-6">
           <Empty className="max-w-sm">
             <EmptyHeader>
@@ -220,7 +234,7 @@ const TimesTabContent = ({
           </Empty>
         </div>
         {addTimeDialog}
-      </>
+      </QueryDataBoundary>
     );
   }
 
@@ -228,7 +242,12 @@ const TimesTabContent = ({
     <>
       <PageScrollArea axis="both">
         <div className={revealClassName}>
-          <TimesTabCards {...cardProps} />
+          <QueryDataBoundary
+            query={planTimesQuery}
+            title="Couldn't refresh times"
+          >
+            <TimesTabCards {...cardProps} />
+          </QueryDataBoundary>
         </div>
       </PageScrollArea>
       {addTimeDialog}

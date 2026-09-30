@@ -86,7 +86,8 @@ export const usePlanTabController = ({
 }: UsePlanTabControllerArgs) => {
   const queryClient = useQueryClient();
   const queryKey = queryKeys.planItems(serviceTypeId, planId);
-  const { data: itemsData, isLoading } = usePlanItems(serviceTypeId, planId);
+  const planItemsQuery = usePlanItems(serviceTypeId, planId);
+  const { data: itemsData, isLoading } = planItemsQuery;
   const planScope = JSON.stringify([serviceTypeId, planId]);
   // Writes to one plan run one after another, so quick keyboard edits land in order.
   const mutationScope = { id: `plan-items:${planScope}` };
@@ -592,6 +593,7 @@ export const usePlanTabController = ({
   return {
     items,
     isLoading,
+    planItemsQuery,
     songPickerOpen,
     pendingItemId,
     pendingSongId,

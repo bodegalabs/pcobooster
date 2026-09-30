@@ -8,6 +8,7 @@ import type { ComponentProps, ReactNode, RefObject } from "react";
 import { toast } from "sonner";
 
 import { PageScrollArea } from "@/components/page-shell";
+import { QueryDataBoundary } from "@/components/query-data-boundary";
 import { AddSongPalette } from "@/components/schedule/add-song-palette";
 import {
   PlanItemList,
@@ -369,7 +370,10 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
     planId,
     onItemAdded,
   });
-  const { items, isLoading, songPickerOpen, saveItem } = controller;
+  const { items, isLoading, planItemsQuery, songPickerOpen, saveItem } =
+    controller;
+  const initialLoadFailed =
+    planItemsQuery.data === undefined && planItemsQuery.error !== null;
   const revealClassName = useRevealOnLoad(isLoading);
 
   const selectedItem = items.find((item) => item.id === selectedItemId) ?? null;
@@ -445,6 +449,7 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
   usePlanBuilderHotkeys({
     enabled: nothingInTheWay([
       isLoading,
+      initialLoadFailed,
       songPickerOpen,
       removingItemId !== null,
       drag.activeItemId !== null,
@@ -539,6 +544,14 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
   const draggedItem =
     items.find((item) => item.id === drag.activeItemId) ?? null;
 
+  if (initialLoadFailed) {
+    return (
+      <QueryDataBoundary query={planItemsQuery} title="Couldn't load the plan">
+        {null}
+      </QueryDataBoundary>
+    );
+  }
+
   return (
     <DndContext
       collisionDetection={closestCenter}
@@ -579,24 +592,29 @@ export const PlanTab = ({ serviceTypeId, planId, planDate }: PlanTabProps) => {
       <div className="relative flex h-full min-h-0 gap-6">
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           <PageScrollArea>
-            <PlanRunSheet
-              isLoading={isLoading}
-              revealClassName={revealClassName}
-              items={items}
-              runSheet={runSheet}
-              transitions={insights.transitions}
-              recentPlays={insights.recentPlays}
-              selectedItemId={selectedItem?.id ?? null}
-              activeItemId={drag.activeItemId}
-              pendingItemId={controller.pendingItemId}
-              serviceTypeId={serviceTypeId}
-              handlers={handlers}
-              getItemIntentProps={controller.getItemIntentProps}
-              onAddSong={() => {
-                openSongPicker();
-              }}
-              onAddBasic={addBasicItem}
-            />
+            <QueryDataBoundary
+              query={planItemsQuery}
+              title="Couldn't refresh the plan"
+            >
+              <PlanRunSheet
+                isLoading={isLoading}
+                revealClassName={revealClassName}
+                items={items}
+                runSheet={runSheet}
+                transitions={insights.transitions}
+                recentPlays={insights.recentPlays}
+                selectedItemId={selectedItem?.id ?? null}
+                activeItemId={drag.activeItemId}
+                pendingItemId={controller.pendingItemId}
+                serviceTypeId={serviceTypeId}
+                handlers={handlers}
+                getItemIntentProps={controller.getItemIntentProps}
+                onAddSong={() => {
+                  openSongPicker();
+                }}
+                onAddBasic={addBasicItem}
+              />
+            </QueryDataBoundary>
           </PageScrollArea>
           <PlanTabToolbar
             isCreatingBasicItem={controller.isCreatingBasicItem}

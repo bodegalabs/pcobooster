@@ -20,6 +20,8 @@ import { useEffect, useEffectEvent, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 import { PageScrollArea } from "@/components/page-shell";
+import { QueryDataBoundary } from "@/components/query-data-boundary";
+import type { ReadQueryState } from "@/components/query-data-boundary";
 import type { SlotRef } from "@/components/schedule/types";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -222,16 +224,32 @@ const ReadinessCheckItem = ({
   );
 };
 
+const renderReadinessDescription = (
+  checks: readonly ReadinessCheck[],
+  isLoading: boolean,
+  incomplete: boolean
+): ReactNode => {
+  if (incomplete) {
+    return "Readiness could not be fully checked.";
+  }
+  if (checks.length === 0 && isLoading) {
+    return <Skeleton variant="text" className="mt-0.5 h-3.5 w-48" />;
+  }
+  return describeReadiness(checks);
+};
+
 const ReadinessCard = ({
   plan,
   checks,
   isLoading,
+  incomplete,
   planningCenterUrl,
   onOpenPlanningCenter,
 }: {
   plan: PlanRef;
   checks: ReadinessCheck[];
   isLoading: boolean;
+  incomplete: boolean;
   planningCenterUrl: string | null;
   onOpenPlanningCenter: () => void;
 }) => (
@@ -241,11 +259,7 @@ const ReadinessCard = ({
         Readiness
       </SectionTitle>
       <CardDescription>
-        {checks.length === 0 ? (
-          <Skeleton variant="text" className="mt-0.5 h-3.5 w-48" />
-        ) : (
-          describeReadiness(checks)
-        )}
+        {renderReadinessDescription(checks, isLoading, incomplete)}
       </CardDescription>
     </CardHeader>
     <CardContent>
@@ -597,9 +611,8 @@ interface PlanOverviewTabProps {
   serviceTypeId: string;
   planId: string;
   selectedPlan: Plan | null;
-  teamPositionGroups: TeamPositionGroup[] | undefined;
-  teamPositionsLoading: boolean;
-  planTimes: PlanTime[] | undefined;
+  teamPositionsQuery: ReadQueryState<TeamPositionGroup[]>;
+  planTimesQuery: ReadQueryState<PlanTime[]>;
   getSlotIntentProps: GetIntentPrefetchProps<SlotRef>;
 }
 
@@ -630,6 +643,7 @@ export const PlanOverviewSkeleton = ({ plan }: { plan: PlanRef }) => (
           schedule: null,
         })}
         isLoading
+        incomplete={false}
         planningCenterUrl={null}
         onOpenPlanningCenter={ignore}
       />
@@ -645,9 +659,8 @@ export const PlanOverviewTab = ({
   serviceTypeId,
   planId,
   selectedPlan,
-  teamPositionGroups,
-  teamPositionsLoading,
-  planTimes,
+  teamPositionsQuery,
+  planTimesQuery,
   getSlotIntentProps,
 }: PlanOverviewTabProps) => {
   const plan: PlanRef = { serviceTypeId, planId };
@@ -656,16 +669,23 @@ export const PlanOverviewTab = ({
     seriesId: selectedPlan?.seriesId ?? null,
   });
   const planningCenterUrl = selectedPlan?.planningCenterUrl ?? null;
-  const { data: planItems } = usePlanItems(serviceTypeId, planId);
+  const planItemsQuery = usePlanItems(serviceTypeId, planId);
+  const { data: planItems } = planItemsQuery;
+  const { data: teamPositionGroups } = teamPositionsQuery;
+  const { data: planTimes } = planTimesQuery;
 
   const staffing =
-    teamPositionsLoading || teamPositionGroups === undefined
+    teamPositionGroups === undefined
       ? null
       : summarizeStaffing(teamPositionGroups);
   const order = planItems === undefined ? null : summarizeOrder(planItems);
   const schedule = planTimes === undefined ? null : summarizeTimes(planTimes);
   const checks = buildReadinessChecks({ staffing, order, schedule });
-  const isLoading = staffing === null || order === null || schedule === null;
+  const queries = [teamPositionsQuery, planItemsQuery, planTimesQuery];
+  const isLoading = queries.some(
+    (query) => query.data === undefined && query.error === null
+  );
+  const incomplete = queries.some((query) => query.error !== null);
 
   return (
     <PageScrollArea>
@@ -674,16 +694,27 @@ export const PlanOverviewTab = ({
           plan={plan}
           checks={checks}
           isLoading={isLoading}
+          incomplete={incomplete}
           planningCenterUrl={planningCenterUrl}
           onOpenPlanningCenter={armRosterRecheck}
         />
-        <PeopleCard
-          plan={plan}
-          staffing={staffing}
-          getSlotIntentProps={getSlotIntentProps}
-        />
-        <SongsCard plan={plan} order={order} />
-        <TimesCard plan={plan} schedule={schedule} />
+        <QueryDataBoundary
+          query={teamPositionsQuery}
+          title="Couldn't load people"
+          className="md:row-span-2"
+        >
+          <PeopleCard
+            plan={plan}
+            staffing={staffing}
+            getSlotIntentProps={getSlotIntentProps}
+          />
+        </QueryDataBoundary>
+        <QueryDataBoundary query={planItemsQuery} title="Couldn't load songs">
+          <SongsCard plan={plan} order={order} />
+        </QueryDataBoundary>
+        <QueryDataBoundary query={planTimesQuery} title="Couldn't load times">
+          <TimesCard plan={plan} schedule={schedule} />
+        </QueryDataBoundary>
       </div>
     </PageScrollArea>
   );

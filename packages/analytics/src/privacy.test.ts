@@ -6,6 +6,7 @@ import {
   analyticsUrl,
   canInitializeAnalytics,
   canRecordSession,
+  canReportException,
   prepareAnalyticsEvent,
   sanitizeAnalyticsProperties,
 } from "./privacy";
@@ -171,6 +172,51 @@ describe("analytics privacy boundary", () => {
     });
   });
 
+  it("keeps handled read failures on Overview, Songs, and Cleanup linked to the person and session", () => {
+    const event = {
+      uuid: "read-failure",
+      event: "$exception",
+      properties: {
+        distinct_id: "app-user",
+        $session_id: "session",
+        operation: "plan-items",
+        error_code: "BAD_GATEWAY",
+        outcome: "read_failed",
+        $exception_list: [
+          {
+            type: "DataLoadError",
+            value: "Failed to load plan-items (BAD_GATEWAY)",
+          },
+        ],
+        queryKey: ["plan-items", "private-plan"],
+      },
+    };
+    for (const pathname of [
+      "/services/123/plans/456/overview",
+      "/songs/123",
+      "/cleanup",
+    ]) {
+      expect(canReportException(pathname, true)).toBeTruthy();
+      expect(
+        prepareAnalyticsEvent(event, pathname, true)?.properties
+      ).toStrictEqual({
+        distinct_id: "app-user",
+        $session_id: "session",
+        operation: "plan-items",
+        error_code: "BAD_GATEWAY",
+        outcome: "read_failed",
+        $exception_list: event.properties.$exception_list.map((exception) => ({
+          ...exception,
+          stacktrace: undefined,
+        })),
+        surface: "app",
+        is_authenticated: true,
+      });
+    }
+    expect(canReportException("/demo/private", true)).toBeFalsy();
+    expect(canReportException("/services", false)).toBeFalsy();
+  });
+
   it("collapses provider IDs while preserving the feature being used", () => {
     expect(analyticsPath("/services/123/plans/456/lineup")).toBe(
       "/services/:serviceTypeId/plans/:planId/lineup"
@@ -181,6 +227,18 @@ describe("analytics privacy boundary", () => {
     expect(analyticsPath("/people/987")).toBe("/people/:personId");
     expect(analyticsPath("/demo/private-key")).toBe("/other");
     expect(analyticsPath("/admin/users/private-id")).toBe("/other");
+  });
+
+  it("preserves Overview, Songs, and Cleanup error locations without IDs or expanding replay", () => {
+    expect(analyticsPath("/services/123/plans/456/overview")).toBe(
+      "/services/:serviceTypeId/plans/:planId/overview"
+    );
+    expect(analyticsPath("/songs/private-song")).toBe("/songs/:songId");
+    expect(analyticsPath("/cleanup")).toBe("/cleanup");
+    expect(
+      canRecordSession("/services/123/plans/456/overview", true)
+    ).toBeFalsy();
+    expect(canRecordSession("/songs/private-song", true)).toBeFalsy();
   });
 
   it("removes query strings, fragments, and external referrer paths", () => {
