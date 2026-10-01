@@ -713,8 +713,11 @@ export const DashboardPage = ({
                 planId={routePlanId}
                 seriesId={selectedPlan?.seriesId ?? null}
                 planTimes={planTimes ?? []}
+                collapsedTeams={collapsedTeams}
+                onToggleTeam={toggleTeamCollapsed}
                 onSelectPosition={handleSlotSelect}
                 getSlotIntentProps={getSlotIntentProps}
+                onAddPosition={handleAddCustomPosition}
               />
             </QueryDataBoundary>
           </TabsContent>

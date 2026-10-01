@@ -8,8 +8,8 @@ import type { PlanRef } from "@/components/schedule/plan-overview-tab";
 import {
   CandidateListSkeleton,
   PlanHeaderSkeleton,
-  PositionPickerSkeleton,
 } from "@/components/schedule/schedule-skeletons";
+import { TeamRosterSkeleton } from "@/components/schedule/team-roster";
 import { TimesTabSkeleton } from "@/components/schedule/times-tab";
 import { PlanAgendaSkeleton } from "@/components/service-plan-table-selector";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -41,8 +41,8 @@ export const SchedulePlansFallback = () => (
 /** The plan builder: its header, then the run sheet. */
 const AssignSkeleton = () => (
   <div className="flex min-h-0 w-full flex-1 flex-col gap-3 sm:gap-4 lg:flex-row">
-    <aside className="border-sidebar-border/40 bg-sidebar/60 hidden min-h-0 w-[min(18rem,28vw)] shrink-0 overflow-hidden rounded-xl border lg:block">
-      <PositionPickerSkeleton />
+    <aside className="hidden min-h-0 w-[min(22rem,34vw)] shrink-0 overflow-hidden lg:block">
+      <TeamRosterSkeleton layout="stack" />
     </aside>
     <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 sm:gap-4">
       <div className="flex flex-col gap-2 px-1 sm:gap-3">

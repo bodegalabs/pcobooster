@@ -9,14 +9,15 @@ import styles from "./demo-control.module.css";
 export type DemoButtonVariant =
   | "nav"
   | "tab"
-  | "team"
+  | "team-header"
+  | "roster-position"
+  | "roster-row"
   | "row"
   | "icon"
   | "outline"
   | "status"
   | "menu-item"
   | "destructive-menu-item"
-  | "open-slot"
   | "hover-trigger";
 
 export const DemoButton = ({

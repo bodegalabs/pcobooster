@@ -26,6 +26,7 @@ export interface DemoPosition {
 export interface DemoTeam {
   readonly id: string;
   readonly name: string;
+  readonly icon: PositionIcon;
   readonly positions: readonly DemoPosition[];
 }
 
@@ -70,6 +71,7 @@ export const teams: readonly DemoTeam[] = [
   {
     id: "band",
     name: "Band",
+    icon: "guitar",
     positions: [
       { id: "acoustic", name: "Acoustic Guitar", icon: "guitar", slots: 2 },
       { id: "bass", name: "Bass Guitar", icon: "bass", slots: 1 },
@@ -81,6 +83,7 @@ export const teams: readonly DemoTeam[] = [
   {
     id: "vocals",
     name: "Vocals",
+    icon: "mic",
     positions: [
       { id: "lead", name: "Worship Leader", icon: "mic", slots: 1 },
       { id: "alto", name: "Alto", icon: "mic", slots: 2 },
@@ -90,6 +93,7 @@ export const teams: readonly DemoTeam[] = [
   {
     id: "production",
     name: "Production",
+    icon: "sound",
     positions: [
       { id: "sound", name: "Sound", icon: "sound", slots: 1 },
       { id: "lyrics", name: "Lyrics", icon: "lyrics", slots: 1 },
@@ -100,6 +104,7 @@ export const teams: readonly DemoTeam[] = [
   {
     id: "hospitality",
     name: "Hospitality",
+    icon: "coffee",
     positions: [
       { id: "coffee", name: "Coffee", icon: "coffee", slots: 2 },
       { id: "greeter", name: "Greeter", icon: "greeter", slots: 2 },

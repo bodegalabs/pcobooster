@@ -159,23 +159,111 @@
 
 .assign {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: clamp(240px, 38%, 300px) minmax(0, 1fr);
   gap: 20px;
   flex: 1;
   min-height: 0;
 }
-.position-picker {
-  align-self: start;
-  max-height: 100%;
+.assign-roster {
+  min-height: 0;
   overflow: auto;
-  padding: 4px 8px;
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 4px);
-  background: var(--card);
+  padding: 1px 1px 20px;
   scrollbar-color: var(--scrollbar-thumb) transparent;
 }
-.team-group + .team-group {
-  border-top: 1px solid var(--border);
+.position-pills {
+  display: none;
+}
+
+/* Team roster, shared by Lineup (grid) and Assign (stack) */
+
+.team-roster[data-layout="row"] {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 260px;
+  align-items: start;
+  gap: 12px;
+  margin-inline: -16px;
+  padding: 1px 16px 20px;
+  overflow-x: auto;
+  scroll-padding-inline: 16px;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+.team-roster[data-layout="stack"] {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.team-panel {
+  overflow: hidden;
+  border-radius: calc(var(--radius) + 4px);
+  background: var(--background);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.05),
+    0 0 0 1px color-mix(in oklab, var(--foreground) 6%, transparent);
+}
+.team-panel h3 {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.team-chevron {
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  opacity: 0.6;
+}
+.team-chevron[data-collapsed] {
+  rotate: -90deg;
+}
+.roster {
+  border-top: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+}
+.roster-position {
+  display: grid;
+  padding: 6px;
+}
+.roster-position + .roster-position {
+  border-top: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+}
+.roster-position[data-active] {
+  background: var(--muted);
+}
+/* People sit under the position's name, past its icon. */
+.roster-people {
+  display: grid;
+  min-width: 0;
+  padding-left: 24px;
+}
+.avatar-status {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.avatar-status > .avatar {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+.avatar-status > .dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  box-shadow: 0 0 0 2px var(--background);
+}
+.open-seat {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1px dashed
+    color-mix(in oklab, var(--status-declined) 50%, transparent);
+  border-radius: 50%;
+  color: var(--status-declined);
+}
+.open-label {
+  font-weight: 500;
+  color: var(--status-declined);
+  font-variant-numeric: tabular-nums;
 }
 .open-count {
   font-size: 12px;
@@ -183,26 +271,12 @@
   color: var(--destructive);
   font-variant-numeric: tabular-nums;
 }
-.position-list {
-  padding-bottom: 6px;
-}
 .position-icon {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
   color: var(--muted-foreground);
   opacity: 0.8;
-}
-.slot-count {
-  display: flex;
-  gap: 5px;
-  font-size: 12px;
-  color: var(--muted-foreground);
-  font-variant-numeric: tabular-nums;
-}
-.slot-count strong {
-  font-weight: 500;
-  color: var(--destructive);
 }
 .dot {
   width: 9px;
@@ -530,64 +604,10 @@
   display: grid;
 }
 
-/* Lineup */
-
-.lineup {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(240px, 1fr);
-  align-items: start;
-  gap: 12px;
-  padding-bottom: 20px;
-}
-.lineup-column {
-  display: grid;
-  gap: 8px;
-  padding: 8px;
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 4px);
-  background: var(--card);
-}
-.lineup-team {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 8px 4px;
-  font-size: 14px;
-  font-weight: 600;
-}
-.lineup-card {
-  display: grid;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: var(--radius);
-  background: var(--muted);
-}
-.lineup-card header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-}
-.lineup-card ul {
-  display: grid;
-  gap: 6px;
-}
-.lineup-card ul:empty {
-  display: none;
-}
-.lineup-card li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-}
-.lineup-card li > .grow {
-  flex: 1;
-}
 .truncate {
   flex: 1;
 }
+
 /* Plan */
 
 .plan-items {
@@ -657,13 +677,13 @@
   overflow: visible;
 }
 .embedded .content {
+  /* Visible overflow brings back min-width: auto; keep the phone swipe row inside the frame. */
+  min-width: 0;
   padding: 16px;
   overflow: visible;
 }
-.embedded .lineup {
-  grid-auto-flow: row;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  padding-bottom: 0;
+.embedded .team-roster[data-layout="row"] {
+  padding-bottom: 6px;
 }
 
 /* Narrow containers: tabs replace the sidebar, panes stack */
@@ -761,22 +781,14 @@
     grid-template-rows: auto minmax(0, 1fr);
     gap: 14px;
   }
-  .position-picker {
+  .assign-roster {
+    display: none;
+  }
+  .position-pills {
     display: flex;
     gap: 6px;
-    max-height: none;
-    padding: 0;
     overflow-x: auto;
-    border: 0;
-    background: none;
-  }
-  .team-group {
-    display: contents;
-  }
-  .position-list {
-    display: flex;
-    gap: 6px;
-    padding: 0;
+    scrollbar-width: none;
   }
   .assign-main {
     overflow: auto;
@@ -789,7 +801,7 @@
     display: none;
   }
   /* Stacked team columns run very tall on phones; swipe between them instead. */
-  .embedded .lineup {
+  .embedded .team-roster[data-layout="row"] {
     grid-auto-flow: column;
     grid-template-columns: none;
     grid-auto-columns: minmax(240px, 84%);
@@ -801,10 +813,10 @@
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
   }
-  .embedded .lineup::-webkit-scrollbar {
+  .embedded .team-roster[data-layout="row"]::-webkit-scrollbar {
     display: none;
   }
-  .embedded .lineup-column {
+  .embedded .team-panel {
     scroll-snap-align: start;
   }
 }
