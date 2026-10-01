@@ -556,6 +556,8 @@ const WorkspaceHeader = ({
  */
 const ConflictNotice = ({ workspace }: { workspace: ChordChartWorkspace }) => {
   const [confirming, setConfirming] = useState(false);
+  // Taking theirs discards this editor's text, so it can be copied out first.
+  const { copied, copy } = useCopyChart(workspace.draft.chart);
   const theirsLoaded = (workspace.conflict?.theirs ?? null) !== null;
   return (
     <>
@@ -565,9 +567,19 @@ const ConflictNotice = ({ workspace }: { workspace: ChordChartWorkspace }) => {
         <AlertDescription>
           <p>
             Saving is paused so neither version is lost. Keep theirs, or replace
-            it with yours.
+            it with yours. Copy yours first to keep it either way.
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                void copy();
+              }}
+            >
+              {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
+              {copied ? "Copied" : "Copy mine"}
+            </Button>
             <Button
               variant="outline"
               size="sm"
