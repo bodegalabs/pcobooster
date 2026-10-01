@@ -18,10 +18,7 @@ export const readSongLibrary = (): Effect.Effect<
 > =>
   Effect.gen(function* readLibrary() {
     const access = yield* PlanningCenterAccess;
-    yield* requireFeatureFlag(access, "chordCharts", {
-      message: "The Songs page is not enabled.",
-      resource: "song-library",
-    });
+    yield* requireFeatureFlag(access, "chordCharts");
     return yield* getSongLibrary({
       cacheScope: access.cacheScope,
       songsService: access.services.songs,

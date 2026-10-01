@@ -16,7 +16,6 @@ import {
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import type { RegisterableHotkey } from "@tanstack/react-hotkeys";
-import { useQuery } from "@tanstack/react-query";
 import { Link, getRouteApi, useLocation } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
@@ -87,6 +86,7 @@ import {
   useAccountPanel,
   useAccountsQuery,
 } from "@/hooks/use-account-panel";
+import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
 import { usePersonName } from "@/hooks/use-people-dashboard-person";
 import { usePlanRoute } from "@/hooks/use-plan-route";
 import {
@@ -103,9 +103,7 @@ import {
   planViews,
 } from "@/lib/app-routes";
 import { presentationMode } from "@/lib/build-settings";
-import { chordChartsFeatureQueryOptions } from "@/lib/chord-charts-route";
 import { getInitials } from "@/lib/format/initials";
-import { peopleFeatureQueryOptions } from "@/lib/people-route";
 import { cn } from "@/lib/utils";
 
 const APP_CHROME_ROW = "flex h-12 shrink-0 items-center gap-2";
@@ -484,14 +482,10 @@ const ServicesSidebarMenuItem = () => {
   );
 };
 
-const useNavFeatures = () => {
-  const peopleFeatureQuery = useQuery(peopleFeatureQueryOptions);
-  const chordChartsFeatureQuery = useQuery(chordChartsFeatureQueryOptions);
-  return {
-    peopleNavEnabled: peopleFeatureQuery.data?.enabled ?? false,
-    songsNavEnabled: chordChartsFeatureQuery.data?.enabled ?? false,
-  };
-};
+const useNavFeatures = () => ({
+  peopleNavEnabled: useFeatureEnabled("people"),
+  songsNavEnabled: useFeatureEnabled("chordCharts"),
+});
 
 const ShortcutList = ({
   shortcuts,

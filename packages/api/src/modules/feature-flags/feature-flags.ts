@@ -3,10 +3,8 @@ import type {
   FlagshipEvaluationContext,
 } from "@cloudflare/workers-types";
 import { featureFlags } from "@pcobooster/api/config/feature-flags";
-import type {
-  DeploymentTier,
-  FeatureFlagName,
-} from "@pcobooster/api/config/feature-flags";
+import type { DeploymentTier } from "@pcobooster/api/config/feature-flags";
+import type { FeatureFlagName } from "@pcobooster/contracts/features";
 import { Effect } from "effect";
 
 /** Who a flag is evaluated for. Null when the request has no signed-in user or account. */

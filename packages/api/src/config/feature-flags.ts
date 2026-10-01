@@ -1,8 +1,11 @@
+import type { FeatureFlagName } from "@pcobooster/contracts/features";
+
 /**
- * Every feature flag the product evaluates. Infrastructure (`apps/server/src/feature-flags.ts`)
- * declares one Cloudflare Flagship flag per entry, and the API evaluates flags only by these
- * names, so code and infrastructure cannot disagree about which flags exist. Alchemy owns each
- * flag's configuration: a deploy overwrites edits made in the Cloudflare dashboard.
+ * Every feature flag the product evaluates, one entry per name in the contracts' flag list.
+ * Infrastructure (`apps/server/src/feature-flags.ts`) declares one Cloudflare Flagship flag per
+ * entry, and the API and browser evaluate flags only by these names, so code and infrastructure
+ * cannot disagree about which flags exist. Alchemy owns each flag's configuration: a deploy
+ * overwrites edits made in the Cloudflare dashboard.
  */
 
 /**
@@ -31,16 +34,10 @@ export const featureFlags = {
   chordCharts: {
     key: "chord-charts",
     description:
-      "Shows the Songs chord chart editor and serves its API, which writes arrangement chord charts to Planning Center. Managed by Alchemy; dashboard edits are overwritten on deploy.",
+      "Shows the Songs pages (the song library and chord chart editor) and serves their API, which writes arrangement chord charts to Planning Center. Managed by Alchemy; dashboard edits are overwritten on deploy.",
     enabled: { local: true, preview: true, production: false },
   },
-} as const satisfies Readonly<Record<string, BooleanFeatureFlag>>;
-
-export type FeatureFlagName = keyof typeof featureFlags;
-
-export const featureFlagNames = Object.keys(featureFlags).filter(
-  (name): name is FeatureFlagName => Object.hasOwn(featureFlags, name)
-);
+} as const satisfies Readonly<Record<FeatureFlagName, BooleanFeatureFlag>>;
 
 export const deploymentTier = (stage: {
   readonly production: boolean;

@@ -14,14 +14,9 @@ const createRequestRpcClient = () => {
 };
 
 /**
- * Whether the People pages are on for this visitor. The API evaluates the `people` flag for
- * the signed-in user and organization on every call.
+ * Whether each flag is on for this visitor. The API evaluates every flag for the signed-in user
+ * and organization on each call.
  */
-export const getPeopleFeature = createServerFn({ method: "GET" }).handler(
-  async () => await createRequestRpcClient().features.people({})
-);
-
-/** Whether the Songs chord chart editor is on for this visitor (the `chordCharts` flag). */
-export const getChordChartsFeature = createServerFn({ method: "GET" }).handler(
-  async () => await createRequestRpcClient().features.chordCharts({})
+export const getEnabledFeatures = createServerFn({ method: "GET" }).handler(
+  async () => await createRequestRpcClient().features.status()
 );

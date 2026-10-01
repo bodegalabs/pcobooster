@@ -1,4 +1,3 @@
-import type { FeatureFlagName } from "@pcobooster/api/config/feature-flags";
 import { resolveServerConfig } from "@pcobooster/api/config/server-config";
 import type {
   ServerConfig,
@@ -12,6 +11,7 @@ import { createModuleReadCaches } from "@pcobooster/api/modules/read-caches";
 import type { PlanningCenterPersonalAccessToken } from "@pcobooster/api/planning-center/core-client";
 import { createPlanningCenterReadCaches } from "@pcobooster/api/planning-center/services/factory";
 import type { ServerDependencies } from "@pcobooster/api/server";
+import type { FeatureFlagName } from "@pcobooster/contracts/features";
 import { Effect } from "effect";
 
 /** Credentials that only ever reach mocked `fetch` calls. */

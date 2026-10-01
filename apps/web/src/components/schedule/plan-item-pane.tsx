@@ -7,7 +7,6 @@ import type {
   SongOptionSet,
 } from "@pcobooster/planning-center-models/types";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
   ChevronRight,
@@ -55,8 +54,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
 import { useSongOptions } from "@/hooks/use-song-options";
-import { chordChartsFeatureQueryOptions } from "@/lib/chord-charts-route";
 import { appendNote } from "@/lib/key-transition-advice";
 import { keyOptionLabelOf } from "@/lib/plan-overview";
 import type { KeyTransition } from "@/lib/plan-set-insights";
@@ -118,10 +117,6 @@ interface PlanItemPaneProps {
   className?: string;
 }
 
-/** Whether the Songs chord chart editor is on, so a song can link to its chart. */
-const useChordChartsEnabled = (): boolean =>
-  useQuery(chordChartsFeatureQueryOptions).data?.enabled ?? false;
-
 const PaneHeader = ({
   item,
   focusTitle,
@@ -137,7 +132,7 @@ const PaneHeader = ({
   persist: Persist;
   inSheet: boolean;
 }) => {
-  const chordChartsEnabled = useChordChartsEnabled();
+  const chordChartsEnabled = useFeatureEnabled("chordCharts");
   const titleRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (focusTitle) {
@@ -273,7 +268,7 @@ const SheetActions = ({
   onRemove,
   onReplaceSong,
 }: Pick<PlanItemPaneProps, "item" | "onRemove" | "onReplaceSong">) => {
-  const chordChartsEnabled = useChordChartsEnabled();
+  const chordChartsEnabled = useFeatureEnabled("chordCharts");
   return (
     <CardFooter>
       <div className="flex w-full flex-col gap-2">

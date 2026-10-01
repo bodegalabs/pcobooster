@@ -3,10 +3,10 @@ import type {
   PlanningCenterRequestAccess,
   RequestAuthentication,
 } from "@pcobooster/api/application/planning-center-access";
-import type { FeatureFlagName } from "@pcobooster/api/config/feature-flags";
 import { anonymousFeatureFlagSubject } from "@pcobooster/api/modules/feature-flags/feature-flags";
 import type { FeatureFlagSubject } from "@pcobooster/api/modules/feature-flags/feature-flags";
 import { Server } from "@pcobooster/api/server";
+import type { FeatureFlagName } from "@pcobooster/contracts/features";
 import { Effect } from "effect";
 
 /** A demo visitor is anonymous; a signed-in user carries their selected account. */
@@ -20,14 +20,27 @@ export const featureFlagSubjectFor = (
         planningCenterAccountId: authentication.accountId,
       };
 
-/**
- * Fails with `NotFound` unless the flag is on for this caller, so a flagged-off feature's
- * procedures look like they don't exist.
- */
+/** What a flagged-off feature's procedures answer: as if the feature did not exist. */
+const featureNotFound: Readonly<
+  Record<
+    FeatureFlagName,
+    { readonly message: string; readonly resource: string }
+  >
+> = {
+  people: {
+    message: "People dashboard is not enabled.",
+    resource: "people-dashboard",
+  },
+  chordCharts: {
+    message: "The Songs pages are not enabled.",
+    resource: "songs",
+  },
+};
+
+/** Fails with `NotFound` unless the flag is on for this caller. */
 export const requireFeatureFlag = (
   access: PlanningCenterRequestAccess,
-  name: FeatureFlagName,
-  missing: { readonly message: string; readonly resource: string }
+  name: FeatureFlagName
 ): Effect.Effect<void, NotFound, Server> =>
   Effect.gen(function* checkFeatureFlag() {
     const { featureFlags } = yield* Server;
@@ -36,6 +49,6 @@ export const requireFeatureFlag = (
       featureFlagSubjectFor(access.authentication)
     );
     if (!enabled) {
-      yield* Effect.fail(new NotFound(missing));
+      yield* Effect.fail(new NotFound(featureNotFound[name]));
     }
   });

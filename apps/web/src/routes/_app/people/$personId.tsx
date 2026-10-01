@@ -4,7 +4,7 @@ import {
   PersonDetailPage,
   PersonDetailPageSkeleton,
 } from "@/components/people/person-detail-page";
-import { assertPeoplePageEnabled } from "@/lib/people-route";
+import { featureGuard } from "@/lib/features";
 import { personSearchSchema } from "@/lib/route-search";
 
 const PersonRoute = () => {
@@ -16,7 +16,7 @@ const PersonRoute = () => {
 export const Route = createFileRoute("/_app/people/$personId")({
   validateSearch: personSearchSchema,
   ssr: "data-only",
-  beforeLoad: assertPeoplePageEnabled,
+  beforeLoad: featureGuard("people"),
   pendingComponent: PersonDetailPageSkeleton,
   component: PersonRoute,
 });

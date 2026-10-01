@@ -6,7 +6,7 @@ import { z } from "zod";
 const readOperationSchema = z.enum([
   "planning-center-accounts",
   "planning-center-access",
-  "feature",
+  "features",
   "planning-center-organization-time-zone",
   "service-types",
   "plans",

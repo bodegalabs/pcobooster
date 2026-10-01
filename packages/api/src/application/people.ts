@@ -1,7 +1,6 @@
 import { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
-import { NotFound } from "@pcobooster/api/application/errors/not-found";
-import { featureFlagSubjectFor } from "@pcobooster/api/application/feature-flags";
+import { requireFeatureFlag } from "@pcobooster/api/application/feature-flags";
 import {
   PlanningCenterAccess,
   withPlanningCenterFaults,
@@ -80,24 +79,6 @@ const currentUserPersonId = (access: PlanningCenterRequestAccess) =>
       access.authentication.account,
       yield* currentUserIdentityDependencies
     );
-  });
-
-/** The People dashboard exists only where the `people` flag is on for this caller. */
-const requirePeopleDashboard = (access: PlanningCenterRequestAccess) =>
-  Effect.gen(function* checkPeopleFlag() {
-    const { featureFlags } = yield* Server;
-    const enabled = yield* featureFlags.isEnabled(
-      "people",
-      featureFlagSubjectFor(access.authentication)
-    );
-    if (!enabled) {
-      yield* Effect.fail(
-        new NotFound({
-          message: "People dashboard is not enabled.",
-          resource: "people-dashboard",
-        })
-      );
-    }
   });
 
 export const getPeoplePositionCandidates = (input: {
@@ -195,7 +176,7 @@ export const getPeopleDashboardRoster = (): Effect.Effect<
 > =>
   Effect.gen(function* readPeopleDashboardRoster() {
     const access = yield* PlanningCenterAccess;
-    yield* requirePeopleDashboard(access);
+    yield* requireFeatureFlag(access, "people");
     const roster = yield* getPeopleDashboardRosterData({
       peopleService: access.services.people,
       resolveTimeZone: access.services.organizationTimeZone,
@@ -216,7 +197,7 @@ export const getPeopleDashboardActivity = (input: {
 > =>
   Effect.gen(function* readPeopleDashboardActivity() {
     const access = yield* PlanningCenterAccess;
-    yield* requirePeopleDashboard(access);
+    yield* requireFeatureFlag(access, "people");
     return yield* getPeopleDashboardActivityData({
       personIds: input.personIds,
       dependencies: {
@@ -237,7 +218,7 @@ export const getPeopleDashboardPerson = (input: {
 > =>
   Effect.gen(function* readPeopleDashboardPerson() {
     const access = yield* PlanningCenterAccess;
-    yield* requirePeopleDashboard(access);
+    yield* requireFeatureFlag(access, "people");
     const detail = yield* getPeopleDashboardPersonDetail({
       personId: input.personId,
       month: input.month,
