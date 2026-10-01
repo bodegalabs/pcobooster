@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { PlanAccessNotice } from "@/components/access/access-notices";
 import { MobileHeader } from "@/components/mobile-menu";
 import { PageShell } from "@/components/page-shell";
+import { MobilePlanViewTabs } from "@/components/plan-view-tabs";
 import { PlanningCenterServicesIcon } from "@/components/planning-center-services-icon";
 import { QueryDataBoundary } from "@/components/query-data-boundary";
 import { LineupTab } from "@/components/schedule/lineup-tab";
@@ -462,7 +463,7 @@ const DashboardPlanHeader = ({
   const planDate = formatHeaderPlanDate(sortDate, orgTimeZone);
   return (
     <>
-      <MobileHeader className="-mx-4">
+      <MobileHeader className="-mx-4" subbar={<MobilePlanViewTabs />}>
         <MobilePlanBack onBack={onBack} />
         <div className="flex min-w-0 flex-1 flex-col">
           <h1 className="min-w-0 text-base leading-tight font-semibold tracking-tight">
@@ -521,7 +522,7 @@ const DashboardPlanHeader = ({
 
 const DashboardPlanHeaderFallback = () => (
   <>
-    <MobileHeader className="-mx-4">
+    <MobileHeader className="-mx-4" subbar={<MobilePlanViewTabs />}>
       <MobilePlanBack onBack={null} />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <Skeleton variant="text" className="h-4 w-40" />

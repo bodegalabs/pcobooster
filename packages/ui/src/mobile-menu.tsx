@@ -3,9 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 /**
- * The phone menu shared by marketing and the product (`@pcobooster/ui/mobile-menu`): a full-screen solid
- * overlay that fades in under a pinned header, with links that rise in a short
- * cascade. Each app owns its header and button primitives; this package owns
+ * The phone menu shared by marketing and the product (`@pcobooster/ui/mobile-menu`): a full-screen
+ * frosted overlay that fades in under a pinned header. Every entry rolls in
+ * top to bottom and rolls back out bottom to top. Each app owns its header and button primitives; this package owns
  * the open state, the overlay, and the motion.
  *
  * Each app's stylesheet imports `@pcobooster/ui/mobile-menu.css` and
@@ -55,10 +55,14 @@ export const useMobileMenu = (): MobileMenuState => {
 export const MobileMenuIcon = ({ open }: { open: boolean }) =>
   open ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />;
 
+const ITEM_DELAY_MS = 20;
+/** Entries past this share the last delay, so long menus still land fast. */
+const MAX_STAGGER_STEPS = 6;
+const ITEM_EXIT_DELAY_MS = 10;
+
 /**
- * The overlay; `className` sets its top padding to clear the header bar. Its
- * enter and exit motion lives in `@pcobooster/ui/mobile-menu.css`, which each
- * app imports.
+ * The overlay; `className` sets its top padding to clear the header bar.
+ * Its enter and exit motion lives in `@pcobooster/ui/mobile-menu.css`, which each app imports.
  */
 export const MobileMenuOverlay = ({
   id,
@@ -76,7 +80,13 @@ export const MobileMenuOverlay = ({
     data-slot="mobile-menu-overlay"
     inert={!open}
     data-open={open ? "" : undefined}
-    className={["bg-background fixed inset-0 md:hidden", className]
+    className={[
+      // The one frosted surface: the page stays faintly visible behind the
+      // menu so opening it reads as a layer, not a new page.
+      // oxlint-disable-next-line local/no-backdrop-blur
+      "bg-background/75 fixed inset-0 backdrop-blur-xl backdrop-saturate-150 md:hidden",
+      className,
+    ]
       .filter(Boolean)
       .join(" ")}
   >
@@ -84,24 +94,33 @@ export const MobileMenuOverlay = ({
   </div>
 );
 
-const ITEM_DELAY_MS = 40;
+type MenuItemStyle = CSSProperties & {
+  "--menu-item-delay": string;
+  "--menu-item-exit-delay": string;
+};
 
-type MenuItemStyle = CSSProperties & { "--menu-item-delay": string };
-
-/** One menu entry; `index` staggers its rise so the list cascades in. */
+/**
+ * One menu entry; `index` (of `count`) staggers it so the list cascades in
+ * from the top and lifts back out from the bottom. `as` renders a `div` outside lists.
+ */
 export const MobileMenuItem = ({
   index,
+  count,
+  as: Element = "li",
   children,
 }: {
   index: number;
+  count: number;
+  as?: "li" | "div";
   children: ReactNode;
 }) => {
   const style: MenuItemStyle = {
-    "--menu-item-delay": `${index * ITEM_DELAY_MS}ms`,
+    "--menu-item-delay": `${Math.min(index, MAX_STAGGER_STEPS) * ITEM_DELAY_MS}ms`,
+    "--menu-item-exit-delay": `${Math.max(0, count - 1 - index) * ITEM_EXIT_DELAY_MS}ms`,
   };
   return (
-    <li style={style} data-slot="mobile-menu-item">
+    <Element style={style} data-slot="mobile-menu-item">
       {children}
-    </li>
+    </Element>
   );
 };

@@ -1,0 +1,18 @@
+import {
+  Clock01Icon,
+  DashboardSquare01Icon,
+  Layout3ColumnIcon,
+  ListMusicIcon,
+  UserAdd01Icon,
+} from "@hugeicons/core-free-icons";
+import type { IconSvgElement } from "@hugeicons/react";
+
+import type { PlanView } from "@/lib/app-routes";
+
+export const planViewIcons: Record<PlanView, IconSvgElement> = {
+  overview: DashboardSquare01Icon,
+  assign: UserAdd01Icon,
+  lineup: Layout3ColumnIcon,
+  plan: ListMusicIcon,
+  times: Clock01Icon,
+};
