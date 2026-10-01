@@ -25,7 +25,8 @@ export const AvatarStatus = ({
 }) => (
   <span
     className={cn(
-      "relative inline-flex shrink-0 rounded-full",
+      // `isolate` keeps the dot's z-index inside the avatar, so sticky headers cover it.
+      "relative isolate inline-flex shrink-0 rounded-full",
       alsoScheduled &&
         "ring-status-info ring-offset-background ring-2 ring-offset-2"
     )}
