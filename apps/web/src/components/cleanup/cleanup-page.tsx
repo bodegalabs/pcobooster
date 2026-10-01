@@ -37,9 +37,9 @@ import type { CleanupRosterPerson } from "@/lib/cleanup";
 import {
   cleanupStaleMonthOptions,
   parseCleanupStaleMonths,
-  planningCenterPersonUrl,
   planningCenterSongUrl,
 } from "@/lib/cleanup";
+import { planningCenterPersonUrl } from "@/lib/people/planning-center-person-url";
 
 type CleanupView = "songs" | "people";
 

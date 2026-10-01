@@ -63,6 +63,3 @@ export const assembleCleanupPeople = (
 /** Planning Center's own pages, where songs are hidden and people archived. */
 export const planningCenterSongUrl = (songId: string) =>
   `https://services.planningcenteronline.com/songs/${encodeURIComponent(songId)}`;
-
-export const planningCenterPersonUrl = (personId: string) =>
-  `https://people.planningcenteronline.com/people/AC${encodeURIComponent(personId)}`;
