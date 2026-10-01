@@ -1,9 +1,7 @@
-import {
-  normalizeSongCatalogEntry,
-  scoreSongSearch,
-} from "@pcobooster/api/modules/planning-center/plan-items-shared";
+import { normalizeSongCatalogEntry } from "@pcobooster/api/modules/planning-center/plan-items-shared";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterSongsService } from "@pcobooster/api/planning-center/services/songs-service";
+import { scoreSongSearch } from "@pcobooster/planning-center-models/song-search";
 import type {
   PCResource,
   SongCatalogEntry,

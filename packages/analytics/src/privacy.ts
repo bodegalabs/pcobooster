@@ -13,7 +13,6 @@ const PUBLIC_PATHS = new Set([
   "/services",
   "/people",
   "/songs",
-  "/cleanup",
 ]);
 
 export const analyticsPath = (pathname: string): string => {
@@ -204,8 +203,7 @@ export const canReportException = (
   pathname: string,
   authenticated: boolean
 ): boolean =>
-  authenticated &&
-  /^\/(?:services|people|songs|cleanup)(?:\/|$)/u.test(pathname);
+  authenticated && /^\/(?:services|people|songs)(?:\/|$)/u.test(pathname);
 
 const EXCEPTION_MESSAGE_MAX_LENGTH = 500;
 const exceptionFrameSchema = z.object({

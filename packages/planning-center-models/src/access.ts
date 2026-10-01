@@ -105,8 +105,7 @@ export type AppFeature =
   | "planEditing"
   | "peopleSearch"
   | "peopleDashboard"
-  | "songs"
-  | "cleanup";
+  | "songs";
 
 export type FeatureAvailability = "full" | "limited" | "none";
 
@@ -128,7 +127,6 @@ export const APP_FEATURES = [
   "peopleSearch",
   "peopleDashboard",
   "songs",
-  "cleanup",
 ] as const satisfies readonly AppFeature[];
 
 export const APP_FEATURE_LABELS: Record<AppFeature, string> = {
@@ -138,7 +136,6 @@ export const APP_FEATURE_LABELS: Record<AppFeature, string> = {
   peopleSearch: "Schedule anyone in your church",
   peopleDashboard: "People dashboard",
   songs: "Chord charts",
-  cleanup: "Data cleanup",
 };
 
 const feature = (
@@ -334,36 +331,6 @@ const songsAccess = (services: GrantedServices): FeatureAccess => {
   );
 };
 
-const cleanupAccess = (services: GrantedServices): FeatureAccess => {
-  const songLevel = services.organizationAdministrator
-    ? "Administrator"
-    : services.songLevel;
-  const seesAllPeople =
-    services.organizationAdministrator || services.canViewAllPeople;
-  const seesSongs = hasServicesLevel(songLevel, "Viewer");
-  if (seesAllPeople && seesSongs) {
-    return feature("cleanup", "full");
-  }
-  if (seesSongs || hasServicesLevel(services.maxPlanLevel, "Viewer")) {
-    return feature(
-      "cleanup",
-      "limited",
-      seesAllPeople
-        ? "You can't review songs."
-        : "You'll review only people on your own teams.",
-      seesAllPeople
-        ? "Viewer for songs in Services"
-        : "Access to all people in Services"
-    );
-  }
-  return feature(
-    "cleanup",
-    "none",
-    "There's nothing here you have access to review.",
-    "Viewer in Services"
-  );
-};
-
 /**
  * Each feature's availability for this person. Without Services access nothing works, so
  * every feature is unavailable; the product shows that as one message instead of a list.
@@ -389,7 +356,6 @@ export const deriveFeatureAccess = (
     peopleSearchAccess(people),
     peopleDashboardAccess(services),
     songsAccess(services),
-    cleanupAccess(services),
   ];
 };
 

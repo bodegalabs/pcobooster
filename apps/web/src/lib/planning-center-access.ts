@@ -8,15 +8,12 @@ import { z } from "zod";
 import type { DashboardView } from "@/lib/schedule-navigation";
 
 /** Features behind a deployment flag; the others are always in the product. */
-export type FlaggedFeature = Extract<
-  AppFeature,
-  "peopleDashboard" | "songs" | "cleanup"
->;
+export type FlaggedFeature = Extract<AppFeature, "peopleDashboard" | "songs">;
 
 export type EnabledFlaggedFeatures = Readonly<Record<FlaggedFeature, boolean>>;
 
 const isFlagged = (feature: AppFeature): feature is FlaggedFeature =>
-  feature === "peopleDashboard" || feature === "songs" || feature === "cleanup";
+  feature === "peopleDashboard" || feature === "songs";
 
 /** Leaves out features this deployment doesn't show, so the review never mentions them. */
 export const visibleFeatureAccess = (

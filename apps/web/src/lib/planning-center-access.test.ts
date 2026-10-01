@@ -33,7 +33,6 @@ describe(visibleFeatureAccess, () => {
       visibleFeatureAccess(limited, {
         peopleDashboard: true,
         songs: false,
-        cleanup: true,
       }).map((item) => item.feature)
     ).toStrictEqual(["plans", "scheduling"]);
   });

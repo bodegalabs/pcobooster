@@ -1,4 +1,4 @@
-export type FeatureName = "people" | "chordCharts" | "cleanup";
+export type FeatureName = "people" | "chordCharts";
 
 export const queryKeys = {
   accounts: () => ["planning-center-accounts"] as const,
@@ -6,11 +6,6 @@ export const queryKeys = {
   planningCenterAccess: (accountId: string | null) =>
     ["planning-center-access", accountId] as const,
   feature: (feature: FeatureName) => ["feature", feature] as const,
-  cleanupSongs: (staleMonths: number) =>
-    ["cleanup-songs", staleMonths] as const,
-  cleanupPeopleRoster: () => ["cleanup-people-roster"] as const,
-  cleanupPeopleActivity: (staleMonths: number, personIds: readonly string[]) =>
-    ["cleanup-people-activity", staleMonths, ...personIds] as const,
   organizationTimeZone: () =>
     ["planning-center-organization-time-zone"] as const,
   serviceTypes: () => ["service-types"] as const,
@@ -56,6 +51,7 @@ export const queryKeys = {
   planTimes: (serviceTypeId: string | null, planId: string | null) =>
     ["plan-times", serviceTypeId, planId] as const,
   songSearch: (query: string) => ["song-search", query] as const,
+  songLibrary: () => ["song-library"] as const,
   songSuggestions: () => ["song-suggestions"] as const,
   songHistory: (songId: string | null) => ["song-history", songId] as const,
   songOptions: (songId: string | null, serviceTypeId: string | null) =>

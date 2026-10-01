@@ -31,6 +31,12 @@ export const personSearchSchema = z.object({
   month: optionalParam,
 });
 
+/** Songs library: which songs it lists and their order; unknown values fall back. */
+export const songsSearchSchema = z.object({
+  show: optionalParam,
+  sort: optionalParam,
+});
+
 /** Song chord chart: the arrangement being edited; unknown ids fall back to the first. */
 export const songChartSearchSchema = z.object({
   arrangement: optionalParam,

@@ -22,6 +22,26 @@ export const songsSearchOutputSchema = z.array(songCatalogEntrySchema);
 
 export const songsSuggestionsInputSchema = z.object({});
 
+export const songLibraryEntrySchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  author: z.string(),
+  themes: z.string(),
+  /** Null when Planning Center has never scheduled the song. */
+  lastScheduledAt: z.date().nullable(),
+  createdAt: z.date().nullable(),
+});
+
+/** Every visible song in the organization's library, A to Z. */
+export const songLibrarySchema = z.object({
+  songs: z.array(songLibraryEntrySchema),
+  /**
+   * The catalog read stopped at its page limit, so songs later in the alphabet are missing.
+   * Hidden songs count toward the limit but aren't listed.
+   */
+  truncated: z.boolean(),
+});
+
 export const songsHistoryInputSchema = z.object({ songId: requiredId });
 
 export const songHistoryEntrySchema = z.object({
@@ -69,6 +89,14 @@ export const songsContract = {
     })
     .input(songsSuggestionsInputSchema)
     .output(songsSuggestionsOutputSchema),
+  library: songsProcedure
+    .route({
+      method: "GET",
+      path: "/songs/library",
+      summary: "List every visible song with when it was last scheduled",
+    })
+    .errors({ NOT_FOUND: applicationErrorMap.NOT_FOUND })
+    .output(songLibrarySchema),
   history: songsProcedure
     .route({
       method: "GET",
@@ -90,5 +118,7 @@ export const songsContract = {
 export type SongsSearchInput = z.input<typeof songsSearchInputSchema>;
 export type SongsOptionsInput = z.input<typeof songsOptionsInputSchema>;
 export type SongsSuggestions = z.output<typeof songsSuggestionsOutputSchema>;
+export type SongLibraryEntry = z.output<typeof songLibraryEntrySchema>;
+export type SongLibrary = z.output<typeof songLibrarySchema>;
 export type SongsHistoryInput = z.input<typeof songsHistoryInputSchema>;
 export type SongHistoryEntry = z.output<typeof songHistoryEntrySchema>;

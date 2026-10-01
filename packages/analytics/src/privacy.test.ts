@@ -172,7 +172,7 @@ describe("analytics privacy boundary", () => {
     });
   });
 
-  it("keeps handled read failures on Overview, Songs, and Cleanup linked to the person and session", () => {
+  it("keeps handled read failures on Overview and Songs linked to the person and session", () => {
     const event = {
       uuid: "read-failure",
       event: "$exception",
@@ -194,7 +194,7 @@ describe("analytics privacy boundary", () => {
     for (const pathname of [
       "/services/123/plans/456/overview",
       "/songs/123",
-      "/cleanup",
+      "/songs",
     ]) {
       expect(canReportException(pathname, true)).toBeTruthy();
       expect(
@@ -229,12 +229,11 @@ describe("analytics privacy boundary", () => {
     expect(analyticsPath("/admin/users/private-id")).toBe("/other");
   });
 
-  it("preserves Overview, Songs, and Cleanup error locations without IDs or expanding replay", () => {
+  it("preserves Overview and Songs error locations without IDs or expanding replay", () => {
     expect(analyticsPath("/services/123/plans/456/overview")).toBe(
       "/services/:serviceTypeId/plans/:planId/overview"
     );
     expect(analyticsPath("/songs/private-song")).toBe("/songs/:songId");
-    expect(analyticsPath("/cleanup")).toBe("/cleanup");
     expect(
       canRecordSession("/services/123/plans/456/overview", true)
     ).toBeFalsy();

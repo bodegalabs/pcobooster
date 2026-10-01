@@ -33,7 +33,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { signOutLabel, useAccountPanel } from "@/hooks/use-account-panel";
 import { getAppSection } from "@/lib/app-routes";
 import { chordChartsFeatureQueryOptions } from "@/lib/chord-charts-route";
-import { cleanupFeatureQueryOptions } from "@/lib/cleanup-route";
 import { getInitials } from "@/lib/format/initials";
 import { peopleFeatureQueryOptions } from "@/lib/people-route";
 import { cn } from "@/lib/utils";
@@ -84,8 +83,6 @@ const useMenuEntries = (): MenuEntry[] => {
     useQuery(peopleFeatureQueryOptions).data?.enabled ?? false;
   const songsEnabled =
     useQuery(chordChartsFeatureQueryOptions).data?.enabled ?? false;
-  const cleanupEnabled =
-    useQuery(cleanupFeatureQueryOptions).data?.enabled ?? false;
   const entries: MenuEntry[] = [
     {
       key: "services",
@@ -108,14 +105,6 @@ const useMenuEntries = (): MenuEntry[] => {
       link: <Link to="/songs" />,
       label: "Songs",
       active: section === "songs",
-    });
-  }
-  if (cleanupEnabled) {
-    entries.push({
-      key: "cleanup",
-      link: <Link to="/cleanup" />,
-      label: "Data cleanup",
-      active: section === "cleanup",
     });
   }
   return entries;

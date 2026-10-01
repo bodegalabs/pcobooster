@@ -1,7 +1,6 @@
 import {
   ArrowDown01Icon,
   Calendar04Icon,
-  CleanIcon,
   KeyboardIcon,
   LaptopIcon,
   Logout01Icon,
@@ -104,7 +103,6 @@ import {
 } from "@/lib/app-routes";
 import { presentationMode } from "@/lib/build-settings";
 import { chordChartsFeatureQueryOptions } from "@/lib/chord-charts-route";
-import { cleanupFeatureQueryOptions } from "@/lib/cleanup-route";
 import { getInitials } from "@/lib/format/initials";
 import { peopleFeatureQueryOptions } from "@/lib/people-route";
 import { cn } from "@/lib/utils";
@@ -476,11 +474,9 @@ const ServicesSidebarMenuItem = () => {
 const useNavFeatures = () => {
   const peopleFeatureQuery = useQuery(peopleFeatureQueryOptions);
   const chordChartsFeatureQuery = useQuery(chordChartsFeatureQueryOptions);
-  const cleanupFeatureQuery = useQuery(cleanupFeatureQueryOptions);
   return {
     peopleNavEnabled: peopleFeatureQuery.data?.enabled ?? false,
     songsNavEnabled: chordChartsFeatureQuery.data?.enabled ?? false,
-    cleanupNavEnabled: cleanupFeatureQuery.data?.enabled ?? false,
   };
 };
 
@@ -511,11 +507,9 @@ const ShortcutList = ({
 const AppSidebar = ({
   peopleNavEnabled,
   songsNavEnabled,
-  cleanupNavEnabled,
 }: {
   peopleNavEnabled: boolean;
   songsNavEnabled: boolean;
-  cleanupNavEnabled: boolean;
 }) => {
   const pathname = usePathname();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -565,18 +559,6 @@ const AppSidebar = ({
                     >
                       <SidebarNavIcon icon={MusicNote03Icon} />
                       <span>Songs</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ) : null}
-                {cleanupNavEnabled ? (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      render={<Link to="/cleanup" />}
-                      isActive={pathname.startsWith("/cleanup")}
-                      tooltip="Data cleanup"
-                    >
-                      <SidebarNavIcon icon={CleanIcon} />
-                      <span>Data cleanup</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ) : null}
@@ -702,8 +684,7 @@ const rootRoute = getRouteApi("__root__");
 /** Navigation chrome around every signed-in product page. */
 export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
   const { sidebarDefaultOpen } = rootRoute.useLoaderData();
-  const { peopleNavEnabled, songsNavEnabled, cleanupNavEnabled } =
-    useNavFeatures();
+  const { peopleNavEnabled, songsNavEnabled } = useNavFeatures();
 
   return (
     <AccessReviewProvider>
@@ -715,7 +696,6 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
         <AppSidebar
           peopleNavEnabled={peopleNavEnabled}
           songsNavEnabled={songsNavEnabled}
-          cleanupNavEnabled={cleanupNavEnabled}
         />
         <SidebarInset className="@container md:min-h-0 md:overflow-hidden">
           <AppInsetChromeHeader>
