@@ -1,25 +1,37 @@
-import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
-import { CalendarDays } from "lucide-react";
-import { useState } from "react";
+import type {
+  PeopleDashboardMonth,
+  PeopleDashboardMonthDay,
+  PeopleDashboardPerson,
+  PeopleDashboardRosterPerson,
+} from "@pcobooster/contracts/people-schemas";
+import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import { useMemo, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import {
   buildCalendarCells,
-  commitmentMarkerClass,
+  commitmentDot,
+  commitmentDotClassName,
+  commitmentStatusLabel,
   engagementLabel,
+  formatMonthDay,
+  formatWeekdayMonthDay,
   heatLevelTone,
   pickCalendarMarker,
+  weekDayNames,
 } from "@/components/people/calendar";
 import type { CalendarCell } from "@/components/people/calendar";
+import { PersonLineSkeletonList } from "@/components/people/people-skeletons";
 import {
   CommitmentEntryText,
-  LegendDot,
+  CommitmentLegend,
   PersonAvatar,
   PersonRowButton,
 } from "@/components/people/shared-components";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -31,281 +43,297 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { MonthGridDay } from "@/components/ui/month-grid-day";
+import {
+  ResponsivePopover,
+  ResponsivePopoverContent,
+  ResponsivePopoverTrigger,
+} from "@/components/ui/responsive-popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  buildMonthDays,
+  MATRIX_DAY_COUNT,
+  matrixPageStart,
+  serviceDays,
+} from "@/lib/people-dashboard";
 import type { PeopleDashboardDay } from "@/lib/people-dashboard";
 import { cn } from "@/lib/utils";
 
-interface Month {
-  year: number;
-  monthIndex: number;
-  label: string;
-  daysInMonth: number;
-  startsOnWeekday: number;
+interface PersonCallbacks {
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardRosterPerson>;
+  onOpenPerson: (person: PeopleDashboardRosterPerson) => void;
 }
 
-interface MonthViewProps {
-  people: PeopleDashboardPerson[];
-  month: Month;
-  monthDays: PeopleDashboardDay[];
-  matrixDays: number[];
-  onSelectPerson: (person: PeopleDashboardPerson) => void;
-  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
-}
+const peopleCount = (count: number) =>
+  `${count} ${count === 1 ? "person" : "people"}`;
 
-const weekDayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-const SelectedDayPanel = ({
-  month,
-  selectedDay,
-  scheduledPeople,
-  onSelectPerson,
-  getPersonIntentProps,
-}: {
-  month: Month;
-  selectedDay: number;
-  scheduledPeople: PeopleDashboardPerson[];
-  onSelectPerson: (person: PeopleDashboardPerson) => void;
-  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
-}) => (
-  <aside className="flex min-w-0 flex-col gap-2 pb-1">
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          {month.label.split(" ")[0]} {selectedDay}
-        </CardTitle>
-        <CardDescription>Selected service day snapshot.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {scheduledPeople.length === 0 ? (
-          <p className="text-muted-foreground px-2 py-1.5 text-sm">
-            No scheduled people on this date.
-          </p>
-        ) : (
-          scheduledPeople.map((person) => (
-            <PersonRowButton
-              key={`day-${person.id}`}
-              person={person}
-              getPersonIntentProps={getPersonIntentProps}
-              onOpenPerson={onSelectPerson}
-            >
-              <PersonAvatar person={person} />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium">
-                  {person.name}
-                </span>
-                <span className="text-muted-foreground block truncate text-xs">
-                  {person.roles}
-                </span>
-              </span>
-            </PersonRowButton>
-          ))
-        )}
-      </CardContent>
-    </Card>
-    <Card>
-      <CardHeader>
-        <CardTitle>Legend</CardTitle>
-        <CardDescription>
-          Calendar markers match person detail markers.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <LegendDot className="bg-status-confirmed-bright" label="Confirmed" />
-        <LegendDot className="bg-status-scheduled-bright" label="Potential" />
-        <LegendDot className="bg-muted-foreground/70" label="Rehearsal" />
-        <LegendDot className="bg-border" label="No service shown" />
-      </CardContent>
-    </Card>
-  </aside>
+const Dot = ({ entry }: { entry: PeopleDashboardMonthDay }) => (
+  <span
+    aria-hidden
+    className={cn(
+      "size-2 shrink-0 rounded-full",
+      commitmentDotClassName[commitmentDot(entry.kind, entry.status)]
+    )}
+  />
 );
 
-const MonthDayCount = ({
-  count,
-  label,
-  kind = "service",
-  status,
-}: {
-  count: number;
-  label: string;
-  kind?: "service" | "rehearsal";
-  status?: string;
-}) => (
-  <div className="flex items-center gap-2">
-    <span
-      className={cn(
-        "size-1.5 rounded-full",
-        commitmentMarkerClass(kind, status)
-      )}
-    />
-    <span>
-      {count} {label}
-    </span>
-  </div>
-);
+/** "5 serving · 2 pending · 3 at rehearsal" for a day. */
+const describeDay = (day: PeopleDashboardDay | undefined) => {
+  if (
+    day === undefined ||
+    (day.serviceCount === 0 && day.rehearsalCount === 0)
+  ) {
+    return "No one is scheduled.";
+  }
+  const parts: string[] = [];
+  if (day.serviceCount > 0) {
+    parts.push(`${day.serviceCount} serving`);
+  }
+  if (day.pendingServiceCount > 0) {
+    parts.push(`${day.pendingServiceCount} pending`);
+  }
+  if (day.rehearsalCount > 0) {
+    parts.push(`${day.rehearsalCount} at rehearsal`);
+  }
+  return parts.join(" · ");
+};
 
-const MonthDayDetails = ({
-  serviceCount,
-  confirmedServiceCount,
-  potentialServiceCount,
-  rehearsalCount,
-}: {
-  serviceCount: number;
-  confirmedServiceCount: number;
-  potentialServiceCount: number;
-  rehearsalCount: number;
+/** Everyone scheduled on a day, services first, with their position and status. */
+const DayPeople = ({
+  people,
+  day,
+  ...callbacks
+}: PersonCallbacks & {
+  people: readonly PeopleDashboardPerson[];
+  day: number;
 }) => {
-  const hasCommitments = serviceCount > 0 || rehearsalCount > 0;
-  if (!hasCommitments) {
+  const scheduled = people.flatMap((person) => {
+    const entries = person.monthDays.filter((entry) => entry.day === day);
+    const marker = pickCalendarMarker(entries);
+    return marker === null ? [] : [{ person, marker }];
+  });
+  if (scheduled.length === 0) {
     return (
-      <p className="text-muted-foreground mt-1 text-xs">
-        No scheduled commitments.
+      <p className="text-muted-foreground px-1.5 py-1 text-sm">
+        No one is scheduled on this day.
       </p>
     );
   }
+  const ordered = scheduled.toSorted(
+    (a, b) =>
+      Number(a.marker.kind === "rehearsal") -
+      Number(b.marker.kind === "rehearsal")
+  );
   return (
-    <div className="text-muted-foreground mt-1 grid gap-1 text-xs">
-      {confirmedServiceCount > 0 ? (
-        <MonthDayCount
-          count={confirmedServiceCount}
-          label="confirmed service commitments"
-          status="C"
-        />
-      ) : null}
-      {potentialServiceCount > 0 ? (
-        <MonthDayCount
-          count={potentialServiceCount}
-          label="potential service commitments"
-          status="U"
-        />
-      ) : null}
-      {rehearsalCount > 0 ? (
-        <MonthDayCount
-          count={rehearsalCount}
-          label="rehearsal commitments"
-          kind="rehearsal"
-        />
-      ) : null}
+    <div className="flex flex-col">
+      {ordered.map(({ person, marker }) => (
+        <PersonRowButton
+          key={person.id}
+          person={person}
+          size="row"
+          {...callbacks}
+        >
+          <PersonAvatar person={person} />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-medium">
+              {person.name}
+            </span>
+            <span className="text-muted-foreground block truncate text-xs">
+              {marker.kind === "rehearsal"
+                ? `Rehearsal · ${marker.positionName ?? "Scheduled"}`
+                : (marker.positionName ?? "Scheduled")}
+            </span>
+          </span>
+          <span className="text-muted-foreground flex shrink-0 items-center gap-1.5 text-xs">
+            <Dot entry={marker} />
+            {marker.kind === "rehearsal"
+              ? null
+              : commitmentStatusLabel(marker.status)}
+          </span>
+        </PersonRowButton>
+      ))}
     </div>
+  );
+};
+
+/** A heatmap day: its number, how many serve, and a dot when some have not confirmed. */
+const HeatmapDayContent = ({
+  day,
+  monthDay,
+}: {
+  day: number;
+  monthDay: PeopleDashboardDay | undefined;
+}) => {
+  const serviceCount = monthDay?.serviceCount ?? 0;
+  const rehearsalOnly =
+    serviceCount === 0 && (monthDay?.rehearsalCount ?? 0) > 0;
+  return (
+    <>
+      <span className="text-muted-foreground text-xs tabular-nums">{day}</span>
+      <span className="flex items-center gap-1 text-sm font-semibold tabular-nums">
+        {serviceCount > 0 ? serviceCount : null}
+        {(monthDay?.pendingServiceCount ?? 0) > 0 ? (
+          <span
+            aria-hidden
+            className={cn(
+              "size-1.5 rounded-full",
+              commitmentDotClassName.pending
+            )}
+          />
+        ) : null}
+        {rehearsalOnly ? (
+          <span
+            aria-hidden
+            className={cn(
+              "size-1.5 rounded-full",
+              commitmentDotClassName.rehearsal
+            )}
+          />
+        ) : null}
+      </span>
+    </>
   );
 };
 
 const HeatmapCell = ({
   cell,
   month,
-  monthDays,
+  monthDay,
+  people,
   selectedDay,
   onSelectDay,
-}: {
+  ...callbacks
+}: PersonCallbacks & {
   cell: CalendarCell;
-  month: Month;
-  monthDays: PeopleDashboardDay[];
+  month: PeopleDashboardMonth;
+  monthDay: PeopleDashboardDay | undefined;
+  people: readonly PeopleDashboardPerson[];
   selectedDay: number;
   onSelectDay: (day: number) => void;
 }) => {
+  // Phones cannot hover, so a tap opens the day's people as a sheet instead.
+  const isMobile = useIsMobile();
   if (cell.day === null) {
     return <div className="aspect-square min-h-10 sm:min-h-16" />;
   }
   const { day } = cell;
-  const monthDay = monthDays.find((entry) => entry.day === day);
-  const serviceCount = monthDay?.serviceCount ?? 0;
-  const confirmedServiceCount = monthDay?.confirmedServiceCount ?? 0;
-  const potentialServiceCount = monthDay?.potentialServiceCount ?? 0;
-  const rehearsalCount = monthDay?.rehearsalCount ?? 0;
-
+  const label = `${formatWeekdayMonthDay(month, day)}: ${describeDay(monthDay)}`;
+  const button = (
+    <MonthGridDay
+      size="lg"
+      tone={heatLevelTone(
+        monthDay?.serviceCount ?? 0,
+        monthDay?.rehearsalCount ?? 0
+      )}
+      selected={!isMobile && day === selectedDay}
+      aria-label={label}
+      onClick={() => {
+        onSelectDay(day);
+      }}
+    >
+      <HeatmapDayContent day={day} monthDay={monthDay} />
+    </MonthGridDay>
+  );
+  if (isMobile) {
+    return (
+      <ResponsivePopover>
+        <ResponsivePopoverTrigger render={button} />
+        <ResponsivePopoverContent
+          title={formatWeekdayMonthDay(month, day)}
+          description={describeDay(monthDay)}
+          showTitle
+        >
+          <div className="px-2 pb-4">
+            <DayPeople people={people} day={day} {...callbacks} />
+          </div>
+        </ResponsivePopoverContent>
+      </ResponsivePopover>
+    );
+  }
   return (
     <HoverCard>
-      <HoverCardTrigger
-        render={
-          <MonthGridDay
-            size="lg"
-            tone={heatLevelTone(serviceCount, rehearsalCount)}
-            selected={day === selectedDay}
-            aria-label={`${month.label.split(" ")[0]} ${day}`}
-            onClick={() => {
-              onSelectDay(day);
-            }}
-          />
-        }
-      >
-        <span className="text-muted-foreground text-xs tabular-nums">
-          {day}
-        </span>
-        <span className="flex items-center gap-1">
-          {confirmedServiceCount > 0 ? (
-            <Badge variant="secondary">{confirmedServiceCount}</Badge>
-          ) : null}
-          {potentialServiceCount > 0 ? (
-            <Badge variant="outline">{potentialServiceCount}</Badge>
-          ) : null}
-          {rehearsalCount > 0 ? (
-            <span
-              className={cn(
-                "size-1.5 rounded-full",
-                commitmentMarkerClass("rehearsal")
-              )}
-            />
-          ) : null}
-        </span>
-      </HoverCardTrigger>
-      <HoverCardContent side="top" variant="panel" className="w-52">
-        <p className="text-xs font-medium">
-          {month.label.split(" ")[0]} {day}
-        </p>
-        <MonthDayDetails
-          serviceCount={serviceCount}
-          confirmedServiceCount={confirmedServiceCount}
-          potentialServiceCount={potentialServiceCount}
-          rehearsalCount={rehearsalCount}
-        />
+      <HoverCardTrigger render={button} />
+      <HoverCardContent side="top" variant="label">
+        {label}
       </HoverCardContent>
     </HoverCard>
   );
 };
 
+const heatmapLegendLabels = {
+  confirmed: "Everyone confirmed",
+  pending: "Someone pending",
+  rehearsal: "Rehearsal only",
+};
+
 const MonthHeatmap = ({
   month,
   monthDays,
-  calendarCells,
+  people,
   selectedDay,
   onSelectDay,
-}: {
-  month: Month;
-  monthDays: PeopleDashboardDay[];
-  calendarCells: CalendarCell[];
+  coverageNote,
+  ...callbacks
+}: PersonCallbacks & {
+  month: PeopleDashboardMonth;
+  monthDays: readonly PeopleDashboardDay[];
+  people: readonly PeopleDashboardPerson[];
   selectedDay: number;
   onSelectDay: (day: number) => void;
-}) => (
-  <Card>
-    <CardHeader>
-      <CardTitle>
-        <CalendarDays className="text-muted-foreground size-4" />
-        {month.label} serving rhythm
-      </CardTitle>
-      <CardDescription>
-        Heatmap of scheduled people across all service days.
-      </CardDescription>
-    </CardHeader>
-    <CardContent>
-      <div className="text-muted-foreground grid grid-cols-7 gap-1.5 pb-2 text-center text-xs">
-        {weekDayNames.map((dayName) => (
-          <div key={dayName}>{dayName}</div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 gap-1.5">
-        {calendarCells.map((cell) => (
-          <HeatmapCell
-            key={cell.key}
-            cell={cell}
-            month={month}
-            monthDays={monthDays}
-            selectedDay={selectedDay}
-            onSelectDay={onSelectDay}
-          />
-        ))}
-      </div>
-    </CardContent>
-  </Card>
-);
+  coverageNote: ReactNode;
+}) => {
+  const calendarCells = buildCalendarCells(
+    month.startsOnWeekday,
+    month.daysInMonth
+  );
+  return (
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle>
+          <span className="flex items-center gap-2">
+            <CalendarDays
+              className="text-muted-foreground size-4"
+              aria-hidden
+            />
+            {month.label}
+          </span>
+        </CardTitle>
+        <CardDescription>
+          How many people serve each day. {coverageNote}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="text-muted-foreground grid grid-cols-7 gap-1.5 pb-2 text-center text-xs">
+          {weekDayNames.map((dayName) => (
+            <div key={dayName}>{dayName}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1.5">
+          {calendarCells.map((cell) => (
+            <HeatmapCell
+              key={cell.key}
+              cell={cell}
+              month={month}
+              monthDay={cell.day === null ? undefined : monthDays[cell.day - 1]}
+              people={people}
+              selectedDay={selectedDay}
+              onSelectDay={onSelectDay}
+              {...callbacks}
+            />
+          ))}
+        </div>
+        <CommitmentLegend
+          dots={["pending", "rehearsal"]}
+          labels={heatmapLegendLabels}
+          className="mt-3"
+        >
+          <span>Numbers count people serving.</span>
+        </CommitmentLegend>
+      </CardContent>
+    </Card>
+  );
+};
 
 const MatrixDay = ({
   person,
@@ -313,166 +341,293 @@ const MatrixDay = ({
   day,
 }: {
   person: PeopleDashboardPerson;
-  month: Month;
+  month: PeopleDashboardMonth;
   day: number;
 }) => {
-  const entries = person.monthDays.filter((entry) => entry.day === day);
-  const marker = pickCalendarMarker(entries);
-  const dot = marker ? (
-    <span
-      className={cn(
-        "size-2 rounded-full",
-        commitmentMarkerClass(marker.kind, marker.status)
-      )}
-    />
-  ) : (
-    <span className="bg-border/60 size-2 rounded-full" />
+  const isMobile = useIsMobile();
+  const marker = pickCalendarMarker(
+    person.monthDays.filter((entry) => entry.day === day)
   );
-
+  if (marker === null) {
+    return (
+      <div className="flex justify-center px-2 py-2">
+        <span aria-hidden className="bg-border/60 size-2 rounded-full" />
+      </div>
+    );
+  }
+  const description = `${person.name}, ${formatMonthDay(month, day)}: ${engagementLabel(marker.kind, marker.status)}`;
+  if (isMobile) {
+    return (
+      <div className="flex justify-center px-2 py-2">
+        <Dot entry={marker} />
+        <span className="sr-only">{description}</span>
+      </div>
+    );
+  }
   return (
-    <div className="flex justify-center px-3 py-2">
-      {marker ? (
-        <HoverCard>
-          <HoverCardTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                aria-label={`${person.name} ${month.label.split(" ")[0]} ${day}`}
-              />
-            }
-          >
-            {dot}
-          </HoverCardTrigger>
-          <HoverCardContent side="top" variant="panel" className="w-64">
-            <p className="text-xs font-medium">{person.name}</p>
-            <div className="text-muted-foreground mt-1 flex items-start gap-2 text-xs">
-              <span
-                className={cn(
-                  "mt-1.5 size-1.5 shrink-0 rounded-full",
-                  commitmentMarkerClass(marker.kind, marker.status)
-                )}
-              />
-              <p>
-                {month.label.split(" ")[0]} {day}
-                {" · "}
-                <span className="text-foreground font-medium">
-                  {engagementLabel(marker.kind, marker.status)}
-                </span>
-                {" · "}
-                <CommitmentEntryText entry={marker} />
-              </p>
-            </div>
-          </HoverCardContent>
-        </HoverCard>
-      ) : (
-        dot
-      )}
+    <div className="flex justify-center px-2 py-1">
+      <HoverCard>
+        <HoverCardTrigger
+          render={
+            <Button variant="ghost" size="icon-xs" aria-label={description} />
+          }
+        >
+          <Dot entry={marker} />
+        </HoverCardTrigger>
+        <HoverCardContent side="top" variant="panel" className="w-64">
+          <p className="text-xs font-medium">{person.name}</p>
+          <p className="text-muted-foreground mt-1 text-xs">
+            {formatWeekdayMonthDay(month, day)}
+            {" · "}
+            <span className="text-foreground font-medium">
+              {engagementLabel(marker.kind, marker.status)}
+            </span>
+            {" · "}
+            <CommitmentEntryText entry={marker} />
+          </p>
+        </HoverCardContent>
+      </HoverCard>
     </div>
   );
 };
 
-const MatrixPersonRow = ({
-  person,
-  month,
-  matrixDays,
-  onSelectPerson,
-  getPersonIntentProps,
-}: {
-  person: PeopleDashboardPerson;
-  month: Month;
-  matrixDays: number[];
-  onSelectPerson: (person: PeopleDashboardPerson) => void;
-  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
-}) => (
-  <div className="group/matrix-row hover:bg-muted/50 grid w-full grid-cols-[minmax(10.5rem,1.2fr)_repeat(5,minmax(4rem,1fr))] items-center text-left">
-    <div className="bg-background group-hover/matrix-row:bg-muted/50 border-border/40 sticky left-0 z-[1] min-w-0 max-md:border-r md:static md:bg-transparent">
-      <PersonRowButton
-        person={person}
-        getPersonIntentProps={getPersonIntentProps}
-        onOpenPerson={onSelectPerson}
-      >
-        <PersonAvatar person={person} />
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium">{person.name}</p>
-          <p className="text-muted-foreground truncate text-xs">
-            {person.teams.join(", ")}
-          </p>
-        </div>
-      </PersonRowButton>
-    </div>
-    {matrixDays.map((day) => (
-      <MatrixDay
-        key={`${person.id}-${day}`}
-        person={person}
-        month={month}
-        day={day}
-      />
-    ))}
-  </div>
-);
+type MatrixStyle = CSSProperties & { "--matrix-days": number };
 
+/** A person column, then one column per service day on the page. */
+const matrixGridClassName =
+  "grid grid-cols-[minmax(10.5rem,1.2fr)_repeat(var(--matrix-days),minmax(3.5rem,1fr))]";
+
+/** People against a page of service days, paged with the selected day. */
 const PeopleMonthMatrix = ({
   people,
   month,
-  matrixDays,
-  onSelectPerson,
-  getPersonIntentProps,
-}: {
-  people: PeopleDashboardPerson[];
-  month: Month;
-  matrixDays: number[];
-  onSelectPerson: (person: PeopleDashboardPerson) => void;
-  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
-}) => (
-  <div className="border-border/40 overflow-x-auto rounded-lg border">
-    <div className="min-w-[31rem]">
-      <div className="border-border/40 bg-background text-muted-foreground grid grid-cols-[minmax(10.5rem,1.2fr)_repeat(5,minmax(4rem,1fr))] border-b text-xs font-medium">
-        <div className="bg-background border-border/40 sticky left-0 z-[1] px-4 py-2 max-md:border-r md:static">
-          Person
-        </div>
-        {matrixDays.map((day) => (
-          <div key={day} className="px-3 py-2 text-center tabular-nums">
-            {month.label.split(" ")[0]} {day}
+  days,
+  selectedDay,
+  onSelectDay,
+  ...callbacks
+}: PersonCallbacks & {
+  people: readonly PeopleDashboardPerson[];
+  month: PeopleDashboardMonth;
+  days: readonly number[];
+  selectedDay: number;
+  onSelectDay: (day: number) => void;
+}) => {
+  const start = matrixPageStart(days, selectedDay);
+  const pageDays = days.slice(start, start + MATRIX_DAY_COUNT);
+  const scheduled = people.filter((person) => person.monthDays.length > 0);
+  const unscheduledCount = people.length - scheduled.length;
+  const previousDay = days[start - MATRIX_DAY_COUNT];
+  const nextDay = days[start + MATRIX_DAY_COUNT];
+  const columns: MatrixStyle = { "--matrix-days": pageDays.length };
+
+  return (
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle>Who serves when</CardTitle>
+        <CardDescription>
+          {days.length <= MATRIX_DAY_COUNT
+            ? `${days.length} service ${days.length === 1 ? "day" : "days"} this month.`
+            : `Service days ${start + 1} to ${start + pageDays.length} of ${days.length}.`}
+        </CardDescription>
+        {days.length > MATRIX_DAY_COUNT ? (
+          <CardAction>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon-sm"
+                aria-label="Earlier service days"
+                disabled={previousDay === undefined}
+                onClick={() => {
+                  if (previousDay !== undefined) {
+                    onSelectDay(previousDay);
+                  }
+                }}
+              >
+                <ChevronLeft />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                aria-label="Later service days"
+                disabled={nextDay === undefined}
+                onClick={() => {
+                  if (nextDay !== undefined) {
+                    onSelectDay(nextDay);
+                  }
+                }}
+              >
+                <ChevronRight />
+              </Button>
+            </div>
+          </CardAction>
+        ) : null}
+      </CardHeader>
+      <CardContent>
+        {pageDays.length === 0 || scheduled.length === 0 ? (
+          <p className="text-muted-foreground px-1.5 py-1 text-sm">
+            No one is scheduled this month.
+          </p>
+        ) : (
+          <div className="overflow-x-auto" style={columns}>
+            <div className="min-w-fit">
+              <div
+                className={cn(
+                  matrixGridClassName,
+                  "border-border/40 text-muted-foreground border-b text-xs font-medium"
+                )}
+              >
+                <div className="bg-card border-border/40 sticky left-0 z-[1] px-3 py-2 max-md:border-r md:static">
+                  Person
+                </div>
+                {pageDays.map((day) => (
+                  <div
+                    key={day}
+                    className={cn(
+                      "px-2 py-2 text-center tabular-nums",
+                      day === selectedDay && "text-foreground"
+                    )}
+                  >
+                    {formatMonthDay(month, day)}
+                  </div>
+                ))}
+              </div>
+              <div className="divide-border/30 divide-y">
+                {scheduled.map((person) => (
+                  <div
+                    key={person.id}
+                    className={cn(
+                      matrixGridClassName,
+                      "group/matrix-row hover:bg-muted/50 w-full items-center text-left"
+                    )}
+                  >
+                    <div className="bg-card group-hover/matrix-row:bg-muted/50 border-border/40 sticky left-0 z-[1] min-w-0 max-md:border-r md:static md:bg-transparent">
+                      <PersonRowButton person={person} {...callbacks}>
+                        <PersonAvatar person={person} />
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-medium">
+                            {person.name}
+                          </span>
+                          <span className="text-muted-foreground block truncate text-xs">
+                            {person.roles.join(", ")}
+                          </span>
+                        </span>
+                      </PersonRowButton>
+                    </div>
+                    {pageDays.map((day) => (
+                      <MatrixDay
+                        key={day}
+                        person={person}
+                        month={month}
+                        day={day}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        ))}
-      </div>
-      <div className="divide-border/30 divide-y">
-        {people.map((person) => (
-          <MatrixPersonRow
-            key={person.id}
-            person={person}
-            month={month}
-            matrixDays={matrixDays}
-            onSelectPerson={onSelectPerson}
-            getPersonIntentProps={getPersonIntentProps}
-          />
-        ))}
-      </div>
+        )}
+        <CommitmentLegend className="mt-3">
+          {unscheduledCount > 0 ? (
+            <span>
+              Not shown: {peopleCount(unscheduledCount)} with nothing this
+              month.
+            </span>
+          ) : null}
+        </CommitmentLegend>
+      </CardContent>
+    </Card>
+  );
+};
+
+const SelectedDayPanel = ({
+  month,
+  day,
+  monthDay,
+  people,
+  ...callbacks
+}: PersonCallbacks & {
+  month: PeopleDashboardMonth;
+  day: number;
+  monthDay: PeopleDashboardDay | undefined;
+  people: readonly PeopleDashboardPerson[];
+}) => (
+  <Card size="sm" className="max-md:hidden">
+    <CardHeader>
+      <CardTitle>{formatWeekdayMonthDay(month, day)}</CardTitle>
+      <CardDescription>{describeDay(monthDay)}</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <DayPeople people={people} day={day} {...callbacks} />
+    </CardContent>
+  </Card>
+);
+
+/** Before any activity loads: the month's shape with placeholders. */
+export const MonthViewSkeleton = () => (
+  <div
+    className="grid shrink-0 items-start gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]"
+    aria-busy
+    aria-label="Loading month view"
+  >
+    <div className="flex flex-col gap-3">
+      <Card size="sm">
+        <CardHeader>
+          <Skeleton variant="text" className="h-4 w-36" />
+          <Skeleton variant="text" className="mt-1 h-3.5 w-56 max-w-full" />
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-7 gap-1.5">
+            {Array.from({ length: 35 }, (_, index) => (
+              <Skeleton
+                key={index}
+                variant="control"
+                className="aspect-square min-h-10 sm:min-h-16"
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
+    <Card size="sm" className="max-md:hidden">
+      <CardHeader>
+        <Skeleton variant="text" className="h-4 w-28" />
+      </CardHeader>
+      <CardContent>
+        <PersonLineSkeletonList rows={5} />
+      </CardContent>
+    </Card>
   </div>
 );
 
+interface MonthViewProps extends PersonCallbacks {
+  /** People to show, after search. */
+  people: readonly PeopleDashboardPerson[];
+  month: PeopleDashboardMonth;
+  /** Today's day of the month, when the month is the current one. */
+  today: number | null;
+  /** "Based on 16 of 40 people so far", when the month covers only some of the scope. */
+  coverageNote: ReactNode;
+}
+
+/** The month at a glance: how many serve each day, who serves when, and who is on a day. */
 export const MonthView = ({
   people,
   month,
-  monthDays,
-  matrixDays,
-  onSelectPerson,
-  getPersonIntentProps,
+  today,
+  coverageNote,
+  ...callbacks
 }: MonthViewProps) => {
-  const [selectedDay, setSelectedDay] = useState(
-    () => monthDays.find((day) => day.serviceCount > 0)?.day ?? 1
-  );
-  const calendarCells = buildCalendarCells(
-    month.startsOnWeekday,
-    month.daysInMonth
-  );
-  const scheduledPeople = people.filter((person) =>
-    person.monthDays.some(
-      (entry) => entry.day === selectedDay && entry.kind === "service"
-    )
-  );
+  const monthDays = useMemo(() => buildMonthDays(people), [people]);
+  const days = useMemo(() => serviceDays(monthDays), [monthDays]);
+  const [chosenDay, setChosenDay] = useState<number | null>(null);
+  // Until the viewer picks a day: the next service day from today, else the first.
+  const selectedDay =
+    chosenDay ??
+    days.find((day) => today === null || day >= today) ??
+    days[0] ??
+    today ??
+    1;
 
   return (
     <div className="grid shrink-0 items-start gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -480,24 +635,27 @@ export const MonthView = ({
         <MonthHeatmap
           month={month}
           monthDays={monthDays}
-          calendarCells={calendarCells}
+          people={people}
           selectedDay={selectedDay}
-          onSelectDay={setSelectedDay}
+          onSelectDay={setChosenDay}
+          coverageNote={coverageNote}
+          {...callbacks}
         />
         <PeopleMonthMatrix
           people={people}
           month={month}
-          matrixDays={matrixDays}
-          onSelectPerson={onSelectPerson}
-          getPersonIntentProps={getPersonIntentProps}
+          days={days}
+          selectedDay={selectedDay}
+          onSelectDay={setChosenDay}
+          {...callbacks}
         />
       </section>
       <SelectedDayPanel
         month={month}
-        selectedDay={selectedDay}
-        scheduledPeople={scheduledPeople}
-        onSelectPerson={onSelectPerson}
-        getPersonIntentProps={getPersonIntentProps}
+        day={selectedDay}
+        monthDay={monthDays[selectedDay - 1]}
+        people={people}
+        {...callbacks}
       />
     </div>
   );

@@ -61,12 +61,14 @@ describe("app sections", () => {
       parentHref: "/people",
       parentLabel: "People",
       label: "Person",
+      personId: "99",
     });
     expect(parseDetailRoute("/people")).toBeNull();
     expect(parseDetailRoute("/songs/12")).toStrictEqual({
       parentHref: "/songs",
       parentLabel: "Songs",
       label: "Chord chart",
+      personId: null,
     });
     expect(parseDetailRoute("/songs")).toBeNull();
   });

@@ -7,14 +7,20 @@ import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryClient, QueryFunctionContext } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 
+import { useSettledValue } from "@/hooks/use-settled-value";
 import {
   assemblePeopleDashboard,
+  chunkPersonIds,
   defaultPeopleDashboardScope,
   initialScopeLoadCount,
+  matchesPeopleQuery,
+  normalizePeopleQuery,
+  orderActivityBatches,
   PEOPLE_DASHBOARD_BATCH_CONCURRENCY,
   PEOPLE_DASHBOARD_SAMPLE_SIZE,
   planPeopleDashboardBatches,
   resolveScopePersonIds,
+  unrequestedMatchIds,
 } from "@/lib/people-dashboard";
 import type {
   PeopleDashboardData,
@@ -35,6 +41,9 @@ import { orpc } from "@/orpc-client";
 
 const ROSTER_STALE_TIME_MS = 5 * 60 * 1000;
 const ACTIVITY_STALE_TIME_MS = 2 * 60 * 1000;
+/** A search loads its unloaded matches once typing pauses this long. */
+const SEARCH_LOAD_DELAY_MS = 400;
+const NO_BATCHES: readonly string[][] = [];
 
 const fetchRoster = async ({
   signal,
@@ -66,15 +75,27 @@ const fetchActivity = async (
   return [...batch.people, ...(await fetchActivity(deferred, signal))];
 };
 
+const activityState = (
+  queryClient: QueryClient,
+  personIds: readonly string[]
+) => queryClient.getQueryState(queryKeys.peopleDashboardActivity(personIds));
+
 /** Settled: loaded or failed, and not refetching. */
 const isSettled = (queryClient: QueryClient, personIds: readonly string[]) => {
-  const state = queryClient.getQueryState(
-    queryKeys.peopleDashboardActivity(personIds)
-  );
+  const state = activityState(queryClient, personIds);
   return (
     state !== undefined &&
     state.status !== "pending" &&
     state.fetchStatus !== "fetching"
+  );
+};
+
+/** Answered once, or fetching now. */
+const hasStarted = (queryClient: QueryClient, personIds: readonly string[]) => {
+  const state = activityState(queryClient, personIds);
+  return (
+    state !== undefined &&
+    (state.status !== "pending" || state.fetchStatus === "fetching")
   );
 };
 
@@ -95,18 +116,32 @@ export const readPeopleDashboardFromQueryCache = (
     .flatMap(([, data]) => data ?? []);
   return assemblePeopleDashboard(roster, activities, {
     scopePersonIds: roster.people.map((person) => person.id),
-    requestedPeopleCount: activities.length,
+    samplePeopleCount: roster.people.length,
+    loadingPersonIds: new Set(),
   });
 };
 
+interface SearchLoad {
+  scope: PeopleDashboardScope;
+  /** The settled query these batches were planned for. */
+  query: string;
+  /** Activity calls for search matches outside the sample, in the order they were asked. */
+  batches: readonly string[][];
+}
+
 /**
- * Loads the roster first, then serving activity for the scope's people in
- * small batches, and shows the scope once every batch has answered. With no
- * `scopeChoice`, a leader sees the teams they lead.
+ * Loads the roster first, then serving activity for the scope's first people in small batches,
+ * and assembles the dashboard from whatever has answered so far. A search matches the whole
+ * scope; its unloaded matches load one batch at a time. With no `scopeChoice`, a leader sees the
+ * teams they lead.
  */
-export const usePeopleDashboard = (
-  scopeChoice: PeopleDashboardScope | null
-) => {
+export const usePeopleDashboard = ({
+  scopeChoice,
+  searchQuery,
+}: {
+  scopeChoice: PeopleDashboardScope | null;
+  searchQuery: string;
+}) => {
   const queryClient = useQueryClient();
   const rosterKey = queryKeys.peopleDashboardRoster();
   useHydrateQueryFromCache(rosterKey, readCachedPeopleDashboardRoster);
@@ -124,29 +159,48 @@ export const usePeopleDashboard = (
   );
   // "Load more" belongs to the scope it was asked in.
   const [extraPeople, setExtraPeople] = useState({ scope, count: 0 });
-  const targetPeopleCount =
+  const samplePeopleCount = Math.min(
+    scopePersonIds.length,
     initialScopeLoadCount(scope, scopePersonIds.length) +
-    (extraPeople.scope === scope ? extraPeople.count : 0);
-
-  const batches = useMemo(
+      (extraPeople.scope === scope ? extraPeople.count : 0)
+  );
+  const sampleBatches = useMemo(
     () =>
       planPeopleDashboardBatches(
         scopePersonIds,
-        targetPeopleCount,
+        samplePeopleCount,
         PEOPLE_DASHBOARD_ACTIVITY_BATCH_SIZE
       ),
-    [scopePersonIds, targetPeopleCount]
+    [scopePersonIds, samplePeopleCount]
   );
+
+  // Search matches outside the sample load one call's worth at a time, once typing pauses.
+  const normalizedQuery = normalizePeopleQuery(searchQuery);
+  const settledQuery = useSettledValue(normalizedQuery, SEARCH_LOAD_DELAY_MS);
+  const [searchLoad, setSearchLoad] = useState<SearchLoad>({
+    scope,
+    query: "",
+    batches: NO_BATCHES,
+  });
+  const searchBatches =
+    searchLoad.scope === scope ? searchLoad.batches : NO_BATCHES;
+  const requestedIds = useMemo(
+    () => new Set([...sampleBatches.flat(), ...searchBatches.flat()]),
+    [sampleBatches, searchBatches]
+  );
+
   // Saved activity seeds its queries before `useQueries` reads them; see
   // `useHydrateQueryFromCache`.
-  for (const personIds of batches) {
+  for (const personIds of [...sampleBatches, ...searchBatches]) {
     hydrateQueryFromCache(
       queryClient,
       queryKeys.peopleDashboardActivity(personIds),
       () => readCachedPeopleDashboardActivity(personIds)
     );
   }
-
+  const batches = orderActivityBatches(sampleBatches, searchBatches, (ids) =>
+    hasStarted(queryClient, ids)
+  );
   const batchQueries = useQueries({
     queries: batches.map((personIds, index) => {
       const gate = batches[index - PEOPLE_DASHBOARD_BATCH_CONCURRENCY];
@@ -168,34 +222,93 @@ export const usePeopleDashboard = (
     () => batchQueries.flatMap((query) => query.data ?? []),
     [batchQueries]
   );
-  const requestedPeopleCount = batches.reduce(
-    (total, personIds) => total + personIds.length,
-    0
-  );
+  // Failed batches show their people as not loaded (with a retry), not as loading.
+  const failedIdsKey = batches
+    .flatMap((personIds, index) =>
+      batchQueries[index]?.isError ? personIds : []
+    )
+    .join(",");
+  const loadingIds = useMemo(() => {
+    const failedIds = new Set(failedIdsKey.split(","));
+    return new Set(
+      [...requestedIds].filter((personId) => !failedIds.has(personId))
+    );
+  }, [failedIdsKey, requestedIds]);
   const dashboard = useMemo(
     () =>
       roster
         ? assemblePeopleDashboard(roster, activities, {
             scopePersonIds,
-            requestedPeopleCount,
+            samplePeopleCount,
+            loadingPersonIds: loadingIds,
           })
         : undefined,
-    [activities, requestedPeopleCount, roster, scopePersonIds]
+    [activities, loadingIds, roster, samplePeopleCount, scopePersonIds]
   );
+
+  // A settled search asks for its unloaded matches; adjusting state during render keeps the
+  // request in the same render the query settles in.
+  const searchIsCurrent =
+    searchLoad.scope === scope && searchLoad.query === settledQuery;
+  if (dashboard !== undefined && !searchIsCurrent) {
+    const next = unrequestedMatchIds(
+      dashboard.scopeRows,
+      settledQuery,
+      requestedIds
+    ).slice(0, PEOPLE_DASHBOARD_ACTIVITY_BATCH_SIZE);
+    setSearchLoad({
+      scope,
+      query: settledQuery,
+      batches: next.length > 0 ? [...searchBatches, next] : searchBatches,
+    });
+  }
+
+  const searchRows = useMemo(
+    () =>
+      dashboard === undefined || normalizedQuery === ""
+        ? []
+        : dashboard.scopeRows.filter((row) =>
+            matchesPeopleQuery(row, normalizedQuery)
+          ),
+    [dashboard, normalizedQuery]
+  );
+  // Counted once typing settles, after the search has asked for its first matches.
+  const unrequestedMatchCount =
+    dashboard === undefined || settledQuery !== normalizedQuery
+      ? 0
+      : unrequestedMatchIds(searchRows, normalizedQuery, requestedIds).length;
+  const loadMoreMatches = useCallback(() => {
+    if (dashboard === undefined) {
+      return;
+    }
+    const [next] = chunkPersonIds(
+      unrequestedMatchIds(searchRows, normalizedQuery, requestedIds),
+      PEOPLE_DASHBOARD_ACTIVITY_BATCH_SIZE
+    );
+    if (next === undefined) {
+      return;
+    }
+    setSearchLoad({
+      scope,
+      query: settledQuery,
+      batches: [...searchBatches, next],
+    });
+  }, [
+    dashboard,
+    normalizedQuery,
+    requestedIds,
+    scope,
+    searchBatches,
+    searchRows,
+    settledQuery,
+  ]);
 
   const failedBatches = batchQueries.filter((query) => query.isError);
   // Pending covers batches waiting their turn as well as ones in flight.
   const isLoadingActivity = batchQueries.some((query) => query.isPending);
-  // Every batch re-sorts the list and changes the health summary, so a scope stays on its
-  // skeleton (with the progress line counting people) until all of its batches have answered.
-  // After that, "Load more" adds people below a list that is already on screen.
-  const [revealedScope, setRevealedScope] =
-    useState<PeopleDashboardScope | null>(null);
-  if (roster !== undefined && !isLoadingActivity && revealedScope !== scope) {
-    setRevealedScope(scope);
-  }
-  const isWaitingForScope =
-    revealedScope !== scope && isLoadingActivity && failedBatches.length === 0;
+  const isLoadingSample = sampleBatches.some(
+    (personIds) => !isSettled(queryClient, personIds)
+  );
   const loadMore = useCallback(() => {
     setExtraPeople((current) => ({
       scope,
@@ -209,12 +322,17 @@ export const usePeopleDashboard = (
       void query.refetch();
     }
   }, [failedBatches]);
+  const retryRoster = useCallback(() => {
+    void rosterQuery.refetch();
+  }, [rosterQuery]);
 
   return {
     scope,
     dashboard,
-    isLoading: rosterQuery.isPending || isWaitingForScope,
-    isError: rosterQuery.isError && !roster,
+    isRosterLoading: rosterQuery.isPending,
+    isRosterError: rosterQuery.isError && !roster,
+    isRetryingRoster: rosterQuery.isFetching,
+    retryRoster,
     isFetching:
       rosterQuery.isFetching || batchQueries.some((query) => query.isFetching),
     isLoadingActivity,
@@ -222,8 +340,13 @@ export const usePeopleDashboard = (
     retryFailed,
     canLoadMore:
       roster !== undefined &&
-      !isLoadingActivity &&
-      requestedPeopleCount < scopePersonIds.length,
+      !isLoadingSample &&
+      samplePeopleCount < scopePersonIds.length,
     loadMore,
+    /** Scope rows matching the search, in roster order; empty without a search. */
+    searchRows,
+    /** Matches nobody has asked activity for yet. */
+    unrequestedMatchCount,
+    loadMoreMatches,
   };
 };

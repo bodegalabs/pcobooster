@@ -89,16 +89,33 @@ export const getAppSectionLabel = (section: AppSection): string =>
 export interface DetailRoute {
   parentHref: "/people" | "/songs";
   parentLabel: string;
+  /** The page's label until something better (such as a person's name) is known. */
   label: string;
+  /** The person a People detail page shows, so the breadcrumb can name them. */
+  personId: string | null;
 }
+
+const personDetailPattern = /^\/people\/(?<personId>[^/]+)/u;
 
 /** Detail pages that sit one level under a top-level section. */
 export const parseDetailRoute = (pathname: string): DetailRoute | null => {
-  if (/^\/people\/[^/]+/u.test(pathname)) {
-    return { parentHref: "/people", parentLabel: "People", label: "Person" };
+  const personMatch = personDetailPattern.exec(pathname);
+  const encodedPersonId = personMatch?.groups?.personId;
+  if (encodedPersonId !== undefined) {
+    return {
+      parentHref: "/people",
+      parentLabel: "People",
+      label: "Person",
+      personId: decodeSegment(encodedPersonId),
+    };
   }
   if (/^\/songs\/[^/]+/u.test(pathname)) {
-    return { parentHref: "/songs", parentLabel: "Songs", label: "Chord chart" };
+    return {
+      parentHref: "/songs",
+      parentLabel: "Songs",
+      label: "Chord chart",
+      personId: null,
+    };
   }
   return null;
 };

@@ -49,17 +49,20 @@ const dashboardPerson: PeopleDashboardPerson = {
   initials: "AH",
   photoThumbnailUrl: null,
   teams: ["Band"],
-  roles: "Acoustic Guitar",
-  status: "Available soon",
-  load: "normal",
-  lastServed: "May 17",
-  nextScheduled: "May 31",
-  monthCount: 2,
-  thirtyDayCount: 2,
-  ninetyDayCount: 5,
-  upcomingCount: 1,
-  streak: "2 this month",
-  highlight: "Available soon",
+  roles: ["Acoustic Guitar"],
+  rhythm: {
+    lastServedOn: "2026-05-17",
+    nextServingOn: "2026-05-31",
+    servedDays30: 2,
+    servedDays90: 5,
+    servedDays180: 9,
+    upcomingDays30: 1,
+    typicalGapDays: 14,
+    requests180: 9,
+    declined180: 0,
+    pendingUpcoming: 1,
+    nextPendingOn: "2026-05-31",
+  },
   monthDays: [
     {
       day: 31,
@@ -128,14 +131,6 @@ const personDetail = (): PeopleDashboardPersonDetail => ({
   previousMonth: "2026-04",
   nextMonth: "2026-06",
   person: dashboardPerson,
-  trend: [
-    {
-      month: "2026-05",
-      label: "May",
-      services: 2,
-      rehearsals: 1,
-    },
-  ],
   requestBudget: {
     limit: 36,
     planningCenterRequests: 4,
@@ -245,7 +240,7 @@ describe("people dashboard cache", () => {
 
   it("ignores invalid person detail snapshots", () => {
     window.localStorage.setItem(
-      "pcobooster:people-dashboard:v1:person:person-1:2026-05",
+      "pcobooster:people-dashboard:v3:person:person-1:2026-05",
       JSON.stringify({
         savedAt: Date.now(),
         data: { person: { id: "person-1" } },

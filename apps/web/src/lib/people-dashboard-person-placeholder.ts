@@ -14,6 +14,7 @@ const shiftMonthKey = (
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 };
 
+/** A person detail built from the dashboard's own activity for them, when it covers `month`. */
 export const getCachedPeopleDashboardPersonDetail = (
   dashboards: (PeopleDashboardData | undefined)[],
   personId: string,
@@ -28,7 +29,7 @@ export const getCachedPeopleDashboardPersonDetail = (
       continue;
     }
 
-    const person = dashboard.people.find(
+    const person = dashboard.members.find(
       (candidate) => candidate.id === personId
     );
     if (!person) {
@@ -49,7 +50,6 @@ export const getCachedPeopleDashboardPersonDetail = (
         1
       ),
       person,
-      trend: [],
       requestBudget: {
         limit: 0,
         planningCenterRequests: 0,
