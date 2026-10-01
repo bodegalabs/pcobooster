@@ -1,17 +1,23 @@
 import type {
   PeopleDashboardPerson,
+  PeopleDashboardRosterPerson,
   PeopleDashboardTeam,
 } from "@pcobooster/contracts/people-schemas";
 import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { Search } from "lucide-react";
+import { CircleAlert, Search } from "lucide-react";
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
 
 import { PageShell } from "@/components/page-shell";
-import { PeopleDashboardProgress } from "@/components/people/dashboard-progress";
+import {
+  CoverageNote,
+  PeopleDashboardProgress,
+} from "@/components/people/dashboard-progress";
 import { PeopleHealthView } from "@/components/people/health-view";
-import { MonthView } from "@/components/people/month-view";
+import { MonthView, MonthViewSkeleton } from "@/components/people/month-view";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   InputGroup,
   InputGroupAddon,
@@ -23,10 +29,8 @@ import {
   NativeSelectOptGroup,
   NativeSelectOption,
 } from "@/components/ui/native-select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIntentPrefetch } from "@/hooks/use-intent-prefetch";
-import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { usePeopleDashboard } from "@/hooks/use-people-dashboard";
 import { createPeopleDashboardPersonQueryOptions } from "@/hooks/use-people-dashboard-person";
@@ -37,37 +41,17 @@ import {
   teamScope,
 } from "@/lib/people-dashboard";
 import type {
-  PeopleDashboardData,
   PeopleDashboardScope,
+  PeopleDashboardView,
 } from "@/lib/people-dashboard";
 import { speculativeQuery } from "@/lib/request-priority";
-import { computeTeamHealth } from "@/lib/team-health";
-import type { TeamMember } from "@/lib/team-health";
+import { computePersonSignals, computeTeamHealth } from "@/lib/team-health";
 
-const EMPTY_MEMBERS: TeamMember[] = [];
+const EMPTY_MEMBERS: PeopleDashboardPerson[] = [];
 const EMPTY_TEAMS: PeopleDashboardTeam[] = [];
 const EMPTY_TEAM_IDS: string[] = [];
+const NO_SIGNALS = new Map();
 const OTHER_SERVICE_TYPE = "Other teams";
-
-const MonthViewSkeleton = () => (
-  <div
-    className="grid shrink-0 items-start gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]"
-    aria-busy
-    aria-label="Loading month view"
-  >
-    <div className="border-border/40 flex flex-col gap-2 rounded-xl border p-4">
-      <Skeleton variant="text" className="h-4 w-36" />
-      {Array.from({ length: 8 }, (_, index) => (
-        <div key={index} className="flex items-center gap-3 py-1">
-          <Skeleton variant="round" className="size-7 shrink-0" />
-          <Skeleton variant="text" className="h-3 w-28" />
-          <Skeleton variant="text" className="ml-auto h-5 w-2/3" />
-        </div>
-      ))}
-    </div>
-    <Skeleton variant="control" className="h-72" />
-  </div>
-);
 
 const teamLabel = (team: PeopleDashboardTeam) =>
   team.serviceTypeName === null
@@ -152,70 +136,39 @@ const ScopeSelect = ({
   );
 };
 
-interface PeoplePageContentProps {
-  activeView: "health" | "month";
-  dashboard: PeopleDashboardData | undefined;
-  scopeLabel: string;
-  todayKey: string;
-  isError: boolean;
-  isLoading: boolean;
-  visibleMembers: TeamMember[];
-  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
-  onOpenPerson: (person: PeopleDashboardPerson) => void;
-}
+const RosterError = ({
+  isRetrying,
+  onRetry,
+}: {
+  isRetrying: boolean;
+  onRetry: () => void;
+}) => (
+  <Alert>
+    <CircleAlert aria-hidden />
+    <AlertTitle>Couldn&apos;t load your teams</AlertTitle>
+    <AlertDescription>
+      <p>Planning Center didn&apos;t answer. Try again in a moment.</p>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={isRetrying}
+        onClick={onRetry}
+      >
+        {isRetrying ? "Retrying…" : "Retry"}
+      </Button>
+    </AlertDescription>
+  </Alert>
+);
 
-const PeoplePageContent = ({
-  activeView,
-  dashboard,
-  scopeLabel,
-  todayKey,
-  isError,
-  isLoading,
-  visibleMembers,
-  getPersonIntentProps,
-  onOpenPerson,
-}: PeoplePageContentProps) => {
-  const members = dashboard?.people ?? EMPTY_MEMBERS;
-  const health = useMemo(
-    () => computeTeamHealth(members, todayKey),
-    [members, todayKey]
-  );
-  if (isError) {
-    return (
-      <div className="border-border/40 text-muted-foreground rounded-lg border px-4 py-8 text-sm">
-        People dashboard failed to load. Refresh and try again.
-      </div>
-    );
-  }
-  if (activeView === "health") {
-    return (
-      <PeopleHealthView
-        health={health}
-        scopeLabel={scopeLabel}
-        progress={dashboard?.progress}
-        visibleMembers={visibleMembers}
-        isLoading={isLoading}
-        getPersonIntentProps={getPersonIntentProps}
-        onOpenPerson={onOpenPerson}
-      />
-    );
-  }
-  if (dashboard && !isLoading) {
-    return (
-      <MonthView
-        people={visibleMembers}
-        month={dashboard.month}
-        monthDays={dashboard.monthDays}
-        matrixDays={dashboard.matrixDays}
-        onSelectPerson={onOpenPerson}
-        getPersonIntentProps={getPersonIntentProps}
-      />
-    );
-  }
-  return <MonthViewSkeleton />;
-};
-
-export const PeoplePage = () => {
+/** Team health and the month for the teams a leader chooses; view and teams live in the URL. */
+export const PeoplePage = ({
+  view,
+  scopeChoice,
+}: {
+  view: PeopleDashboardView;
+  scopeChoice: PeopleDashboardScope | null;
+}) => {
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const router = useRouter();
@@ -223,42 +176,81 @@ export const PeoplePage = () => {
   const queryClient = useQueryClient();
   const orgTimeZone = useOrganizationTimeZone();
   const todayKey = formatCalendarDayInTimeZone(new Date(), orgTimeZone);
-  const [activeView, setActiveView] = useState<"health" | "month">("health");
-  const [scopeChoice, setScopeChoice] = useState<PeopleDashboardScope | null>(
-    null
-  );
   const {
     scope,
     dashboard,
-    isLoading,
-    isError,
+    isRosterLoading,
+    isRosterError,
+    isRetryingRoster,
+    retryRoster,
     isFetching,
     isLoadingActivity,
     failedBatchCount,
     retryFailed,
     canLoadMore,
     loadMore,
-  } = usePeopleDashboard(scopeChoice);
-  const members = dashboard?.people ?? EMPTY_MEMBERS;
+    searchRows,
+    unrequestedMatchCount,
+    loadMoreMatches,
+  } = usePeopleDashboard({ scopeChoice, searchQuery: deferredQuery });
+  const members = dashboard?.members ?? EMPTY_MEMBERS;
   const teams = dashboard?.teams ?? EMPTY_TEAMS;
   const ledTeamIds = dashboard?.ledTeamIds ?? EMPTY_TEAM_IDS;
   const scopeLabel = describeScope(scope, teams, ledTeamIds);
+  const searching = deferredQuery.trim() !== "";
+  const isLoadingSample =
+    dashboard?.sampleRows.some((row) => row.loading) ?? isRosterLoading;
 
-  const visibleMembers = useMemo(() => {
-    const normalized = deferredQuery.trim().toLowerCase();
-    if (!normalized) {
-      return members;
-    }
-    return members.filter((member) =>
-      [member.name, member.roles, ...member.teams]
-        .join(" ")
-        .toLowerCase()
-        .includes(normalized)
-    );
-  }, [deferredQuery, members]);
+  const health = useMemo(
+    () => computeTeamHealth(members, teams, todayKey),
+    [members, teams, todayKey]
+  );
+  // Matches beyond the sample load on demand; they carry signals too.
+  const searchMembers = useMemo(
+    () => searchRows.flatMap(({ member }) => (member === null ? [] : [member])),
+    [searchRows]
+  );
+  const searchSignals = useMemo(
+    () =>
+      searching
+        ? computePersonSignals(
+            dashboard?.scopeRows.flatMap(({ member }) =>
+              member === null ? [] : [member]
+            ) ?? EMPTY_MEMBERS,
+            teams,
+            todayKey
+          )
+        : NO_SIGNALS,
+    [dashboard, searching, teams, todayKey]
+  );
+
+  // View and teams live in the URL, so Back from a person returns to the same place.
+  const showView = useCallback(
+    (next: PeopleDashboardView) => {
+      void navigate({
+        to: "/people",
+        search: (previous) => ({
+          ...previous,
+          view: next === "month" ? "month" : undefined,
+        }),
+        replace: true,
+      });
+    },
+    [navigate]
+  );
+  const showScope = useCallback(
+    (next: PeopleDashboardScope) => {
+      void navigate({
+        to: "/people",
+        search: (previous) => ({ ...previous, scope: next }),
+        replace: true,
+      });
+    },
+    [navigate]
+  );
 
   const prefetchPersonDetail = useCallback(
-    async (person: PeopleDashboardPerson) => {
+    async (person: PeopleDashboardRosterPerson) => {
       void router.preloadRoute({
         to: "/people/$personId",
         params: { personId: person.id },
@@ -271,10 +263,10 @@ export const PeoplePage = () => {
     },
     [queryClient, router]
   );
-  // A cold person detail costs about 50 to 70 Planning Center requests, so hovering
-  // or tabbing past a row must not load it.
+  // A cold person detail can spend a whole call's Planning Center budget (schedules, plan
+  // people, and rehearsal times), so hovering or tabbing past a row must not load it.
   const { getIntentProps: getPersonIntentProps, cancelIntent } =
-    useIntentPrefetch<PeopleDashboardPerson>({
+    useIntentPrefetch<PeopleDashboardRosterPerson>({
       keyOf: (person) => person.id,
       isFresh: (person) => {
         const options = createPeopleDashboardPersonQueryOptions(
@@ -286,7 +278,7 @@ export const PeoplePage = () => {
       prefetch: prefetchPersonDetail,
     });
   const openPerson = useCallback(
-    (person: PeopleDashboardPerson) => {
+    (person: PeopleDashboardRosterPerson) => {
       cancelIntent();
       void navigate({
         to: "/people/$personId",
@@ -295,6 +287,62 @@ export const PeoplePage = () => {
     },
     [cancelIntent, navigate]
   );
+  const callbacks = { getPersonIntentProps, onOpenPerson: openPerson };
+
+  const renderContent = () => {
+    if (isRosterError) {
+      return (
+        <RosterError isRetrying={isRetryingRoster} onRetry={retryRoster} />
+      );
+    }
+    if (view === "health") {
+      return (
+        <PeopleHealthView
+          health={health}
+          scopeLabel={scopeLabel}
+          coverage={dashboard?.coverage}
+          sampleRows={dashboard?.sampleRows ?? []}
+          isRosterLoading={isRosterLoading}
+          isLoadingSample={isLoadingSample}
+          canLoadMore={canLoadMore}
+          onLoadMore={loadMore}
+          search={{
+            active: searching,
+            rows: searchRows,
+            signalsById: searchSignals,
+            unrequestedMatchCount,
+            onLoadMoreMatches: loadMoreMatches,
+          }}
+          {...callbacks}
+        />
+      );
+    }
+    if (
+      dashboard === undefined ||
+      (dashboard.coverage.loadedPeopleCount === 0 && isLoadingSample)
+    ) {
+      return <MonthViewSkeleton />;
+    }
+    const monthKey = `${dashboard.month.year}-${String(dashboard.month.monthIndex + 1).padStart(2, "0")}`;
+    return (
+      <MonthView
+        people={searching ? searchMembers : members}
+        month={dashboard.month}
+        today={todayKey.startsWith(monthKey) ? Number(todayKey.slice(8)) : null}
+        coverageNote={
+          searching ? null : (
+            <CoverageNote
+              coverage={dashboard.coverage}
+              isLoading={isLoadingSample}
+              canLoadMore={canLoadMore}
+              onLoadMore={loadMore}
+            />
+          )
+        }
+        {...callbacks}
+      />
+    );
+  };
 
   return (
     <PageShell>
@@ -309,9 +357,9 @@ export const PeoplePage = () => {
             </p>
           </div>
           <Tabs
-            value={activeView}
+            value={view}
             onValueChange={(value) => {
-              setActiveView(value === "month" ? "month" : "health");
+              showView(value === "month" ? "month" : "health");
             }}
           >
             <TabsList className="h-8 max-md:h-10 max-md:w-full">
@@ -339,37 +387,25 @@ export const PeoplePage = () => {
             scope={scope}
             teams={teams}
             ledTeamIds={ledTeamIds}
-            onChange={setScopeChoice}
+            onChange={showScope}
           />
         </div>
       </header>
 
       <LoadingBar
-        active={isFetching && !isError}
+        active={isFetching && !isRosterError}
         className="-my-1.5 shrink-0"
       />
 
       <PeopleDashboardProgress
-        progress={dashboard?.progress}
+        coverage={dashboard?.coverage}
         isLoadingActivity={isLoadingActivity}
         failedBatchCount={failedBatchCount}
-        canLoadMore={canLoadMore}
         onRetry={retryFailed}
-        onLoadMore={loadMore}
       />
 
-      <div className="shrink-0" aria-busy={isLoading}>
-        <PeoplePageContent
-          activeView={activeView}
-          dashboard={dashboard}
-          scopeLabel={scopeLabel}
-          todayKey={todayKey}
-          isError={isError}
-          isLoading={isLoading}
-          visibleMembers={visibleMembers}
-          getPersonIntentProps={getPersonIntentProps}
-          onOpenPerson={openPerson}
-        />
+      <div className="shrink-0" aria-busy={isRosterLoading}>
+        {renderContent()}
       </div>
     </PageShell>
   );

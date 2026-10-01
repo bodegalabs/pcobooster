@@ -1,12 +1,18 @@
-import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
+import type {
+  PeopleDashboardMonth,
+  PeopleDashboardMonthDay,
+} from "@pcobooster/contracts/people-schemas";
 
 import {
+  buildCalendarCells,
   commitmentCellTone,
-  commitmentMarkerClass,
+  commitmentDot,
+  commitmentDotClassName,
   engagementLabel,
+  formatWeekdayMonthDay,
   pickCalendarMarker,
+  weekDayNames,
 } from "@/components/people/calendar";
-import type { CalendarCell } from "@/components/people/calendar";
 import { CommitmentEntryText } from "@/components/people/shared-components";
 import {
   HoverCard,
@@ -22,24 +28,28 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
-const weekDayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const entryKey = (entry: PeopleDashboardMonthDay) =>
+  `${entry.day}:${entry.kind}:${entry.positionName ?? ""}:${entry.serviceTypeName ?? ""}:${entry.status ?? ""}`;
 
+/** A compact month with each commitment day tinted; hover or tap a day for its details. */
 export const PersonMonthCalendar = ({
-  person,
-  monthLabel,
-  calendarCells,
+  month,
+  monthDays,
 }: {
-  person: PeopleDashboardPerson;
-  monthLabel: string;
-  calendarCells: CalendarCell[];
+  month: PeopleDashboardMonth;
+  monthDays: readonly PeopleDashboardMonthDay[];
 }) => {
   // Phones cannot hover, so a tap opens the day as a sheet instead.
   const isMobile = useIsMobile();
+  const calendarCells = buildCalendarCells(
+    month.startsOnWeekday,
+    month.daysInMonth
+  );
   return (
-    <>
+    <div>
       <div className="text-muted-foreground grid grid-cols-7 gap-0.5 pb-1.5 text-center text-xs">
         {weekDayNames.map((dayName) => (
-          <div key={dayName}>{dayName}</div>
+          <div key={dayName}>{dayName.slice(0, 2)}</div>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-0.5">
@@ -48,8 +58,9 @@ export const PersonMonthCalendar = ({
             return <div key={cell.key} className="aspect-square min-h-7" />;
           }
           const { day } = cell;
-          const entries = person.monthDays.filter((entry) => entry.day === day);
+          const entries = monthDays.filter((entry) => entry.day === day);
           const marker = pickCalendarMarker(entries);
+          const dateLabel = formatWeekdayMonthDay(month, day);
           const button = (
             <MonthGridDay
               key={cell.key}
@@ -58,6 +69,13 @@ export const PersonMonthCalendar = ({
                 marker
                   ? commitmentCellTone(marker.kind, marker.status)
                   : "empty"
+              }
+              aria-label={
+                marker
+                  ? `${dateLabel}: ${entries
+                      .map((entry) => engagementLabel(entry.kind, entry.status))
+                      .join(", ")}`
+                  : dateLabel
               }
             >
               {day}
@@ -69,14 +87,14 @@ export const PersonMonthCalendar = ({
           const details = (
             <div className="text-muted-foreground mt-1 grid gap-1 text-xs max-md:gap-2 max-md:text-sm">
               {entries.map((entry) => (
-                <div
-                  key={`${entry.day}:${entry.kind}:${entry.positionName ?? ""}:${entry.serviceTypeName ?? ""}:${entry.status ?? ""}`}
-                  className="flex items-start gap-2"
-                >
+                <div key={entryKey(entry)} className="flex items-start gap-2">
                   <span
+                    aria-hidden
                     className={cn(
                       "mt-1.5 size-1.5 shrink-0 rounded-full",
-                      commitmentMarkerClass(entry.kind, entry.status)
+                      commitmentDotClassName[
+                        commitmentDot(entry.kind, entry.status)
+                      ]
                     )}
                   />
                   <p>
@@ -90,7 +108,6 @@ export const PersonMonthCalendar = ({
               ))}
             </div>
           );
-          const dateLabel = `${monthLabel.split(" ")[0]} ${day}`;
           if (isMobile) {
             return (
               <ResponsivePopover key={cell.key}>
@@ -112,6 +129,6 @@ export const PersonMonthCalendar = ({
           );
         })}
       </div>
-    </>
+    </div>
   );
 };

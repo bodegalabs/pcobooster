@@ -1,71 +1,161 @@
-import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
-import { useMemo } from "react";
+import type { PeopleDashboardRosterPerson } from "@pcobooster/contracts/people-schemas";
 
-import { TeamCheckIns, TeamDueList } from "@/components/people/team-attention";
+import {
+  TeamCheckIns,
+  TeamDueList,
+  WaitingOnReplyList,
+} from "@/components/people/team-attention";
+import type { ListProgress } from "@/components/people/team-attention";
 import { TeamHealthSummary } from "@/components/people/team-health-summary";
 import { TeamRoster } from "@/components/people/team-roster";
+import { Button } from "@/components/ui/button";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
-import type { PeopleDashboardProgress } from "@/lib/people-dashboard";
-import type { TeamHealth, TeamMember } from "@/lib/team-health";
+import type {
+  PeopleDashboardCoverage,
+  PeopleDashboardRow,
+} from "@/lib/people-dashboard";
+import type { PersonSignal, TeamHealth } from "@/lib/team-health";
 
-interface PeopleHealthViewProps {
+interface PersonCallbacks {
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardRosterPerson>;
+  onOpenPerson: (person: PeopleDashboardRosterPerson) => void;
+}
+
+const peopleCount = (count: number) =>
+  `${count} ${count === 1 ? "person" : "people"}`;
+
+interface PeopleHealthViewProps extends PersonCallbacks {
   health: TeamHealth;
   scopeLabel: string;
-  progress: PeopleDashboardProgress | undefined;
-  /** Scope members after search. */
-  visibleMembers: readonly TeamMember[];
-  isLoading: boolean;
-  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
-  onOpenPerson: (person: PeopleDashboardPerson) => void;
+  coverage: PeopleDashboardCoverage | undefined;
+  /** The scope's first people, shown when there is no search. */
+  sampleRows: readonly PeopleDashboardRow[];
+  isRosterLoading: boolean;
+  /** Activity is still loading for the sample. */
+  isLoadingSample: boolean;
+  canLoadMore: boolean;
+  onLoadMore: () => void;
+  search: {
+    active: boolean;
+    rows: readonly PeopleDashboardRow[];
+    /** Signals for every loaded match, including people beyond the sample. */
+    signalsById: ReadonlyMap<string, readonly PersonSignal[]>;
+    unrequestedMatchCount: number;
+    onLoadMoreMatches: () => void;
+  };
 }
 
 /** A leader's view of their team: overall health, who to reach out to, who to schedule. */
 export const PeopleHealthView = ({
   health,
   scopeLabel,
-  progress,
-  visibleMembers,
-  isLoading,
+  coverage,
+  sampleRows,
+  isRosterLoading,
+  isLoadingSample,
+  canLoadMore,
+  onLoadMore,
+  search,
   getPersonIntentProps,
   onOpenPerson,
 }: PeopleHealthViewProps) => {
-  const reasonsById = useMemo(
-    () =>
-      new Map(
-        health.checkIns.map((checkIn) => [checkIn.member.id, checkIn.reasons])
-      ),
-    [health.checkIns]
-  );
+  const callbacks = { getPersonIntentProps, onOpenPerson };
+  const { onLoadMoreMatches } = search;
+  if (search.active) {
+    return (
+      <TeamRoster
+        rows={search.rows}
+        signalsById={search.signalsById}
+        teamPace={health.teamPace}
+        isLoading={isRosterLoading}
+        empty="No people match this search."
+        footer={
+          search.rows.length === 0 ? undefined : (
+            <>
+              <span>
+                {search.rows.length === 1
+                  ? "1 match"
+                  : `${search.rows.length} matches`}
+                {search.unrequestedMatchCount > 0
+                  ? `, ${search.unrequestedMatchCount} not loaded yet`
+                  : null}
+              </span>
+              {search.unrequestedMatchCount > 0 ? (
+                <Button variant="link" size="xs" onClick={onLoadMoreMatches}>
+                  Load more
+                </Button>
+              ) : null}
+            </>
+          )
+        }
+        {...callbacks}
+      />
+    );
+  }
+
+  const loadedNobody =
+    coverage === undefined || coverage.loadedPeopleCount === 0;
+  let progress: ListProgress = "complete";
+  if (isRosterLoading || (loadedNobody && isLoadingSample)) {
+    progress = "loading";
+  } else if (isLoadingSample) {
+    progress = "partial";
+  }
+  const sampled =
+    coverage !== undefined &&
+    coverage.samplePeopleCount < coverage.scopePeopleCount;
 
   return (
     <div className="flex shrink-0 flex-col gap-3">
       <TeamHealthSummary
         health={health}
         scopeLabel={scopeLabel}
-        progress={progress}
-        isLoading={isLoading}
+        coverage={coverage}
+        isLoadingActivity={isRosterLoading || isLoadingSample}
+        canLoadMore={canLoadMore}
+        onLoadMore={onLoadMore}
       />
-      <div className="grid items-start gap-3 lg:grid-cols-2">
-        <TeamCheckIns
-          checkIns={health.checkIns}
-          isLoading={isLoading}
-          getPersonIntentProps={getPersonIntentProps}
-          onOpenPerson={onOpenPerson}
-        />
+      <div className="grid items-start gap-3 md:grid-cols-2">
+        <div className="flex min-w-0 flex-col gap-3">
+          <WaitingOnReplyList
+            entries={health.waitingOnReply}
+            progress={progress}
+            {...callbacks}
+          />
+          <TeamCheckIns
+            entries={health.checkIns}
+            progress={progress}
+            {...callbacks}
+          />
+        </div>
         <TeamDueList
-          dueForSlot={health.dueForSlot}
-          isLoading={isLoading}
-          getPersonIntentProps={getPersonIntentProps}
-          onOpenPerson={onOpenPerson}
+          entries={health.dueForSlot}
+          progress={progress}
+          {...callbacks}
         />
       </div>
       <TeamRoster
-        members={visibleMembers}
-        reasonsById={reasonsById}
+        rows={sampleRows}
+        signalsById={health.signalsById}
         teamPace={health.teamPace}
-        isLoading={isLoading}
-        getPersonIntentProps={getPersonIntentProps}
-        onOpenPerson={onOpenPerson}
+        isLoading={isRosterLoading}
+        empty="No one is on these teams."
+        footer={
+          sampled ? (
+            <>
+              <span>
+                The first {coverage.samplePeopleCount} of{" "}
+                {peopleCount(coverage.scopePeopleCount)}, by last name
+              </span>
+              {canLoadMore ? (
+                <Button variant="link" size="xs" onClick={onLoadMore}>
+                  Load more
+                </Button>
+              ) : null}
+            </>
+          ) : undefined
+        }
+        {...callbacks}
       />
     </div>
   );

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   authSearchSchema,
+  peopleSearchSchema,
   personSearchSchema,
   planWorkspaceSearchSchema,
 } from "./route-search";
@@ -38,6 +39,21 @@ describe("plan workspace search", () => {
     expect(
       planWorkspaceSearchSchema.parse(parseSearch("?teamId=1&teamId=2"))
     ).toStrictEqual({ teamId: undefined });
+  });
+});
+
+describe("people search", () => {
+  it("reads the view and a team scope, keeping numeric team IDs as strings", () => {
+    expect(
+      peopleSearchSchema.parse(parseSearch("?view=month&scope=team%3A0123"))
+    ).toStrictEqual({ view: "month", scope: "team:0123" });
+  });
+
+  it("allows neither value and drops repeated ones", () => {
+    expect(peopleSearchSchema.parse({})).toStrictEqual({});
+    expect(
+      peopleSearchSchema.parse(parseSearch("?view=month&view=health"))
+    ).toStrictEqual({ view: undefined });
   });
 });
 

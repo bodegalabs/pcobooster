@@ -1,10 +1,4 @@
-export type PeopleDashboardLoad = "low" | "normal" | "high" | "rest";
-
-export type PeopleDashboardDayKind =
-  | "service"
-  | "rehearsal"
-  | "blockout"
-  | "rest";
+export type PeopleDashboardDayKind = "service" | "rehearsal";
 
 export interface PeopleDashboardMonth {
   year: number;
@@ -40,34 +34,26 @@ export interface ServingRhythm {
   nextPendingOn: string | null;
 }
 
+/** A service or rehearsal day in a person's month, one per position, service type, and status. */
+export interface PeopleDashboardMonthDay {
+  day: number;
+  kind: PeopleDashboardDayKind;
+  positionName?: string;
+  serviceTypeName?: string;
+  status?: string;
+  planUrl?: string;
+}
+
 export interface PeopleDashboardActivity {
   id: string;
   rhythm: ServingRhythm;
-  roles: string;
-  status: string;
-  load: PeopleDashboardLoad;
-  lastServed: string;
-  lastRehearsal?: string;
-  nextScheduled: string;
-  nextRehearsal?: string;
-  monthCount: number;
-  thirtyDayCount: number;
-  ninetyDayCount: number;
-  upcomingCount: number;
-  streak: string;
-  highlight: string;
-  monthDays: {
-    day: number;
-    kind: PeopleDashboardDayKind;
-    positionName?: string;
-    serviceTypeName?: string;
-    status?: string;
-    planUrl?: string;
-  }[];
+  /** Their most common positions, most common first; empty without schedules. */
+  roles: string[];
+  monthDays: PeopleDashboardMonthDay[];
 }
 
 export type PeopleDashboardPerson = PeopleDashboardRosterPerson &
-  Omit<PeopleDashboardActivity, "id" | "rhythm">;
+  Omit<PeopleDashboardActivity, "id">;
 
 export interface PeopleDashboardTeam {
   id: string;
@@ -103,12 +89,6 @@ export interface PeopleDashboardPersonDetail {
   previousMonth: string;
   nextMonth: string;
   person: PeopleDashboardPerson;
-  trend: {
-    month: string;
-    label: string;
-    services: number;
-    rehearsals: number;
-  }[];
   requestBudget: {
     limit: number;
     /** Planning Center requests the procedure sent; cached reads cost none. */

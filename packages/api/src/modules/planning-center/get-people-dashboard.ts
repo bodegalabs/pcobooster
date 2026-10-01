@@ -3,10 +3,11 @@ import type {
   PeopleDashboardActivity,
   PeopleDashboardActivityBatch,
   PeopleDashboardDayKind,
-  PeopleDashboardLoad,
+  PeopleDashboardMonthDay,
   PeopleDashboardRoster,
   PeopleDashboardRosterPerson,
   PeopleDashboardTeam,
+  ServingRhythm,
 } from "@pcobooster/api/modules/planning-center/people-dashboard-types";
 import {
   buildServingRhythm,
@@ -33,9 +34,7 @@ import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import {
   formatCalendarDateLabel,
   formatCalendarDayInTimeZone,
-  orgCalendarDaysRefMinusItem,
 } from "@pcobooster/planning-center-models/calendar";
-import { buildFrequencyFromServiceHistory } from "@pcobooster/planning-center-models/candidate-frequency";
 import {
   isNonEmptyString,
   isString,
@@ -57,11 +56,11 @@ const SCHEDULE_PAGE_SIZE = 100;
  */
 const READ_CONCURRENCY = 6;
 /**
- * Rehearsal times are resolved for the 90-day cadence counts and the month
- * view, plus one day for the org-day boundary; older schedules keep their
- * plan dates.
+ * Rehearsal times are resolved for the 90-day counts and the month view, plus
+ * one day for the org-day boundary; older schedules keep their plan dates.
+ * The person page resolves the same window, so both read the same rhythm.
  */
-const PLAN_TIME_WINDOW_DAYS = 91;
+export const PLAN_TIME_WINDOW_DAYS = 91;
 /** Schedules are read for the serving rhythm, plus one day for the org-day boundary. */
 const SCHEDULE_HISTORY_DAYS = RHYTHM_HISTORY_DAYS + 1;
 /** Upcoming schedules and plans are read up to a year ahead. */
@@ -197,23 +196,13 @@ const pickDisplayStatus = (statuses: Set<string>) => {
   return values.find(isConfirmedStatus) ?? values[0];
 };
 
-const dayKindRank = (kind: PeopleDashboardDayKind) => {
-  if (kind === "service") {
-    return 0;
-  }
-  if (kind === "rehearsal") {
-    return 1;
-  }
-  if (kind === "blockout") {
-    return 2;
-  }
-  return 3;
-};
+const dayKindRank = (kind: PeopleDashboardDayKind) =>
+  kind === "service" ? 0 : 1;
 
 export const buildPersonMonthDays = (
   items: ScheduleItem[],
   orgTimeZone: string
-): PeopleDashboardActivity["monthDays"] => {
+): PeopleDashboardMonthDay[] => {
   const byDay = new Map<
     string,
     {
@@ -300,74 +289,8 @@ export const getMonthInfo = (date: Date, orgTimeZone: string) => {
   };
 };
 
-const getLoad = (
-  monthCount: number,
-  last90Days: number
-): PeopleDashboardLoad => {
-  if (monthCount >= 4) {
-    return "rest";
-  }
-  if (monthCount >= 3 || last90Days >= 10) {
-    return "high";
-  }
-  if (monthCount === 0 && last90Days <= 3) {
-    return "low";
-  }
-  return "normal";
-};
-
-const getStatus = (
-  load: PeopleDashboardLoad,
-  monthCount: number,
-  nextDate: Date | undefined
-): string => {
-  if (load === "rest") {
-    return "Needs rest";
-  }
-  if (load === "high") {
-    return "High load";
-  }
-  if (monthCount === 0) {
-    return nextDate ? "Upcoming" : "Underused";
-  }
-  return nextDate ? "Available soon" : "Recently served";
-};
-
-const getCadenceLabel = (thirtyDayCount: number, ninetyDayCount: number) => {
-  if (thirtyDayCount > 0) {
-    return `${thirtyDayCount} in 30 days`;
-  }
-  if (ninetyDayCount === 0) {
-    return "No services in 90 days";
-  }
-  return `${ninetyDayCount} in 90 days`;
-};
-
-const getHighlight = (
-  load: PeopleDashboardLoad,
-  monthCount: number,
-  nextDate: Date | undefined
-) => {
-  if (load === "rest") {
-    return "Serving heavily this month.";
-  }
-  if (load === "high") {
-    return "Above normal cadence for the selected range.";
-  }
-  if (load === "low") {
-    return nextDate
-      ? "Light recent load with an upcoming assignment."
-      : "Light recent load and no current assignment.";
-  }
-  if (nextDate) {
-    return "Healthy cadence with upcoming availability context.";
-  }
-  return monthCount > 0
-    ? "Served recently and has room in the upcoming rotation."
-    : "No current month services found.";
-};
-
-export const getMostCommonRoles = (items: ScheduleItem[]) => {
+/** The two positions someone holds most often, most common first. */
+export const getMostCommonRoles = (items: readonly ScheduleItem[]) => {
   const counts = new Map<string, number>();
   for (const item of items) {
     if (!item.teamPositionName.trim()) {
@@ -378,49 +301,59 @@ export const getMostCommonRoles = (items: ScheduleItem[]) => {
       (counts.get(item.teamPositionName) ?? 0) + 1
     );
   }
-  const roles = [...counts.entries()]
+  return [...counts.entries()]
     .toSorted((a, b) => b[1] - a[1])
     .slice(0, 2)
     .map(([role]) => role);
-  return roles.length > 0 ? roles.join(", ") : "No recent role";
 };
 
-/** "Sep 9" for the org calendar day `date` falls on; `fallback` when there is no date. */
-export const formatShortDate = (
-  date: Date | undefined,
-  orgTimeZone: string,
-  fallback = "-"
-) => {
-  if (!date || Number.isNaN(date.getTime())) {
-    return fallback;
-  }
-  return formatCalendarDateLabel(date, orgTimeZone, "monthDay");
-};
+/** A schedule's own items, or none when the person declined it. */
+export const scheduleItemsUnlessDeclined = (
+  schedule: PCResource,
+  included: PCResource[]
+): ScheduleItem[] =>
+  isDeclinedStatus(scheduleStatus(schedule))
+    ? []
+    : mapScheduleToDashboardItems(schedule, included);
 
-export const countServiceDaysInWindow = (
-  items: ScheduleItem[],
-  referenceDate: Date,
-  orgTimeZone: string,
-  days: number
-) => {
-  const refDayKey = formatCalendarDayInTimeZone(referenceDate, orgTimeZone);
-  const serviceDays = new Set<string>();
-  for (const item of items) {
-    if (item.timeType === "rehearsal") {
-      continue;
-    }
-    const status = item.status.trim();
-    const normalizedStatus = status.toLowerCase();
-    if (status === "D" || normalizedStatus === "declined") {
-      continue;
-    }
-    const dayKey = formatCalendarDayInTimeZone(item.date, orgTimeZone);
-    if (Math.abs(orgCalendarDaysRefMinusItem(dayKey, refDayKey)) <= days) {
-      serviceDays.add(dayKey);
-    }
-  }
-  return serviceDays.size;
-};
+/**
+ * The serving rhythm of a person's own schedules, declined ones included. The dashboard and
+ * the person page both read it this way, so they agree about the same person.
+ */
+export const buildRhythmFromSchedules = (
+  schedules: readonly PCResource[],
+  included: PCResource[],
+  now: Date,
+  orgTimeZone: string
+): ServingRhythm =>
+  buildServingRhythm(
+    schedules.map((schedule) => {
+      const items = scheduleItemsUnlessDeclined(schedule, included);
+      return {
+        status: scheduleStatus(schedule),
+        sortDate: scheduleSortDate(schedule) ?? items[0]?.date ?? now,
+        serviceDates: items.flatMap((item) =>
+          item.timeType === "rehearsal" ? [] : [item.date]
+        ),
+      };
+    }),
+    now,
+    orgTimeZone
+  );
+
+/** Items on org calendar days starting with `monthKey` (`YYYY-MM`) that are services or rehearsals. */
+export const itemsInMonth = (
+  items: readonly ScheduleItem[],
+  monthKey: string,
+  orgTimeZone: string
+) =>
+  items.filter(
+    (item) =>
+      formatCalendarDayInTimeZone(item.date, orgTimeZone).startsWith(
+        monthKey
+      ) &&
+      (item.timeType === "service" || item.timeType === "rehearsal")
+  );
 
 const buildPersonActivity = (
   personId: string,
@@ -429,103 +362,18 @@ const buildPersonActivity = (
   now: Date,
   orgTimeZone: string
 ): PeopleDashboardActivity => {
-  const rhythmSchedules = allSchedules.map((resource) => {
-    const status = scheduleStatus(resource);
-    const items = isDeclinedStatus(status)
-      ? []
-      : mapScheduleToDashboardItems(resource, included);
-    return {
-      status,
-      sortDate: scheduleSortDate(resource) ?? items[0]?.date ?? now,
-      items,
-    };
-  });
-  const rhythm = buildServingRhythm(
-    rhythmSchedules.map(({ status, sortDate, items }) => ({
-      status,
-      sortDate,
-      serviceDates: items.flatMap((item) =>
-        item.timeType === "rehearsal" ? [] : [item.date]
-      ),
-    })),
-    now,
-    orgTimeZone
+  const items = allSchedules.flatMap((schedule) =>
+    scheduleItemsUnlessDeclined(schedule, included)
   );
-  const serviceHistory = rhythmSchedules
-    .flatMap(({ items }) => items)
-    .toSorted((a, b) => a.date.getTime() - b.date.getTime());
-
-  const frequency = buildFrequencyFromServiceHistory(
-    serviceHistory,
-    now,
-    orgTimeZone
-  );
-  const nowDayKey = formatCalendarDayInTimeZone(now, orgTimeZone);
-  const monthPrefix = nowDayKey.slice(0, 8);
-  const monthItems = serviceHistory.filter(
-    (item) =>
-      formatCalendarDayInTimeZone(item.date, orgTimeZone).startsWith(
-        monthPrefix
-      ) &&
-      (item.timeType === "service" || item.timeType === "rehearsal")
-  );
-  const serviceDaysThisMonth = new Set<string>();
-  for (const item of monthItems) {
-    if (item.timeType !== "rehearsal") {
-      serviceDaysThisMonth.add(
-        formatCalendarDayInTimeZone(item.date, orgTimeZone)
-      );
-    }
-  }
-  const monthDays = buildPersonMonthDays(monthItems, orgTimeZone);
-  const roles = getMostCommonRoles(serviceHistory);
-  const thirtyDayCount = countServiceDaysInWindow(
-    serviceHistory,
-    now,
-    orgTimeZone,
-    30
-  );
-  const ninetyDayCount = countServiceDaysInWindow(
-    serviceHistory,
-    now,
-    orgTimeZone,
-    90
-  );
-  const load = getLoad(serviceDaysThisMonth.size, ninetyDayCount);
-
+  const monthKey = formatCalendarDayInTimeZone(now, orgTimeZone).slice(0, 7);
   return {
     id: personId,
-    rhythm,
-    roles,
-    status: getStatus(
-      load,
-      serviceDaysThisMonth.size,
-      frequency.nextUpcomingDate
+    rhythm: buildRhythmFromSchedules(allSchedules, included, now, orgTimeZone),
+    roles: getMostCommonRoles(items),
+    monthDays: buildPersonMonthDays(
+      itemsInMonth(items, monthKey, orgTimeZone),
+      orgTimeZone
     ),
-    load,
-    lastServed: formatShortDate(frequency.lastServedDate, orgTimeZone),
-    lastRehearsal: formatShortDate(frequency.lastRehearsalDate, orgTimeZone),
-    nextScheduled: formatShortDate(
-      frequency.nextUpcomingDate,
-      orgTimeZone,
-      "Not scheduled"
-    ),
-    nextRehearsal: formatShortDate(
-      frequency.nextRehearsalDate,
-      orgTimeZone,
-      "Not scheduled"
-    ),
-    monthCount: serviceDaysThisMonth.size,
-    thirtyDayCount,
-    ninetyDayCount,
-    upcomingCount: frequency.upcomingServices,
-    streak: getCadenceLabel(thirtyDayCount, ninetyDayCount),
-    highlight: getHighlight(
-      load,
-      serviceDaysThisMonth.size,
-      frequency.nextUpcomingDate
-    ),
-    monthDays,
   };
 };
 
@@ -584,7 +432,7 @@ const buildRosterPeople = (
         name: name || "Unknown person",
         initials: initialsFromName(name),
         photoThumbnailUrl: isString(photo) ? photo : null,
-        teams: personTeams.length > 0 ? personTeams.slice(0, 3) : ["Services"],
+        teams: personTeams,
       },
     });
   }

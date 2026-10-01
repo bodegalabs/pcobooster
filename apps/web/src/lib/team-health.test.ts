@@ -1,15 +1,21 @@
-import type { ServingRhythm } from "@pcobooster/contracts/people-schemas";
+import type {
+  PeopleDashboardPerson,
+  ServingRhythm,
+} from "@pcobooster/contracts/people-schemas";
 import { describe, expect, it } from "vitest";
 
 import {
   checkInReasons,
+  computeMemberPaces,
   computeTeamHealth,
   describeCadence,
-  describeCheckInReason,
+  describePersonSignal,
   dueThresholdDays,
   heavyThirtyDayLoad,
+  isRosterSignal,
+  personSignals,
+  waitingReply,
 } from "@/lib/team-health";
-import type { TeamMember } from "@/lib/team-health";
 
 const TODAY = "2026-09-25";
 
@@ -31,26 +37,31 @@ const rhythm = (overrides: Partial<ServingRhythm> = {}): ServingRhythm => ({
 const member = (
   name: string,
   overrides: Partial<ServingRhythm> = {}
-): TeamMember => ({
+): PeopleDashboardPerson => ({
   id: name.toLowerCase(),
   name,
   initials: name.slice(0, 2).toUpperCase(),
   photoThumbnailUrl: null,
   teams: ["Band"],
-  roles: "Vocals",
-  status: "Upcoming",
-  load: "normal",
-  lastServed: "Sep 20",
-  nextScheduled: "Oct 11",
-  monthCount: 1,
-  thirtyDayCount: 1,
-  ninetyDayCount: 4,
-  upcomingCount: 1,
-  streak: "1 in 30 days",
-  highlight: "",
+  roles: ["Vocals"],
   monthDays: [],
   rhythm: rhythm(overrides),
 });
+
+const teamOf = (members: readonly PeopleDashboardPerson[]) => [
+  { personIds: members.map(({ id }) => id) },
+];
+
+const notServing = {
+  lastServedOn: null,
+  nextServingOn: null,
+  servedDays30: 0,
+  servedDays90: 0,
+  servedDays180: 0,
+  upcomingDays30: 0,
+  typicalGapDays: null,
+  requests180: 0,
+} satisfies Partial<ServingRhythm>;
 
 describe(dueThresholdDays, () => {
   it("scales with the person's own rhythm but never drops below six weeks", () => {
@@ -92,23 +103,15 @@ describe(checkInReasons, () => {
     ).toStrictEqual([]);
   });
 
-  it("flags unanswered requests that are close or piling up", () => {
+  it("leaves unanswered requests and people who never served to the other lists", () => {
     expect(
       checkInReasons(
-        rhythm({ pendingUpcoming: 1, nextPendingOn: "2026-10-01" }),
-        TODAY,
-        null
-      )
-    ).toStrictEqual([
-      { kind: "unanswered", pending: 1, nextPendingOn: "2026-10-01" },
-    ]);
-    expect(
-      checkInReasons(
-        rhythm({ pendingUpcoming: 1, nextPendingOn: "2026-10-25" }),
+        rhythm({ pendingUpcoming: 4, nextPendingOn: "2026-09-27" }),
         TODAY,
         null
       )
     ).toStrictEqual([]);
+    expect(checkInReasons(rhythm(notServing), TODAY, null)).toStrictEqual([]);
   });
 
   it("flags a pattern of declines, not a single one", () => {
@@ -121,7 +124,6 @@ describe(checkInReasons, () => {
   });
 
   it("scales the heavy 30-day load with the team's pace, between weekly and weekly-plus", () => {
-    expect(heavyThirtyDayLoad(null)).toBe(4);
     expect(heavyThirtyDayLoad(3)).toBe(4);
     expect(heavyThirtyDayLoad(7)).toBe(5);
     expect(heavyThirtyDayLoad(12)).toBe(6);
@@ -131,12 +133,22 @@ describe(checkInReasons, () => {
     ).toStrictEqual([]);
   });
 
-  it("flags heavy recent serving and serving at twice the team's pace", () => {
+  it("does not call weekly serving heavy when the team's pace is unknown", () => {
+    expect(heavyThirtyDayLoad(null)).toBe(6);
     expect(
-      checkInReasons(rhythm({ servedDays30: 4 }), TODAY, null)
+      checkInReasons(rhythm({ servedDays30: 5 }), TODAY, null)
+    ).toStrictEqual([]);
+    expect(
+      checkInReasons(rhythm({ servedDays30: 6 }), TODAY, null)
     ).toStrictEqual([
-      { kind: "overloaded", basis: "recent", days: 4, teamPace: null },
+      { kind: "overloaded", basis: "recent", days: 6, teamPace: null },
     ]);
+  });
+
+  it("flags heavy recent serving and serving at twice the team's pace", () => {
+    expect(checkInReasons(rhythm({ servedDays30: 4 }), TODAY, 3)).toStrictEqual(
+      [{ kind: "overloaded", basis: "recent", days: 4, teamPace: 3 }]
+    );
     expect(checkInReasons(rhythm({ servedDays90: 9 }), TODAY, 4)).toStrictEqual(
       [{ kind: "overloaded", basis: "team-pace", days: 9, teamPace: 4 }]
     );
@@ -144,52 +156,131 @@ describe(checkInReasons, () => {
       []
     );
   });
+});
 
-  it("flags team members with no serving at all", () => {
+describe(waitingReply, () => {
+  it("waits on an unanswered request in the next seven days, today included", () => {
     expect(
-      checkInReasons(
-        rhythm({
-          lastServedOn: null,
-          nextServingOn: null,
-          servedDays30: 0,
-          servedDays90: 0,
-          servedDays180: 0,
-          upcomingDays30: 0,
-          typicalGapDays: null,
-          requests180: 0,
-        }),
-        TODAY,
-        null
+      waitingReply(
+        rhythm({ pendingUpcoming: 1, nextPendingOn: "2026-09-25" }),
+        TODAY
       )
-    ).toStrictEqual([{ kind: "not-serving" }]);
+    ).toStrictEqual({ nextPendingOn: "2026-09-25", pending: 1 });
+    expect(
+      waitingReply(
+        rhythm({ pendingUpcoming: 3, nextPendingOn: "2026-10-02" }),
+        TODAY
+      )
+    ).toStrictEqual({ nextPendingOn: "2026-10-02", pending: 3 });
+  });
+
+  it("does not chase requests further out, however many are open", () => {
+    expect(
+      waitingReply(
+        rhythm({ pendingUpcoming: 5, nextPendingOn: "2026-10-03" }),
+        TODAY
+      )
+    ).toBeNull();
+  });
+});
+
+describe(personSignals, () => {
+  it("lists waiting, check-in, and due signals in the dashboard's order", () => {
+    const signals = personSignals(
+      rhythm({
+        lastServedOn: "2026-06-28",
+        nextServingOn: null,
+        typicalGapDays: 14,
+        servedDays180: 6,
+        declined180: 2,
+        requests180: 4,
+        pendingUpcoming: 1,
+        nextPendingOn: "2026-09-27",
+      }),
+      TODAY,
+      null
+    );
+
+    expect(signals.map(({ kind }) => kind)).toStrictEqual([
+      "waiting",
+      "declining",
+      "drifting",
+      "due",
+    ]);
+  });
+
+  it("shows someone who never served as not serving, in the roster too", () => {
+    const [signal] = personSignals(rhythm(notServing), TODAY, null);
+
+    expect(signal).toStrictEqual({
+      kind: "due",
+      daysSinceServed: null,
+      typicalGapDays: null,
+    });
+    expect(
+      signal === undefined ? null : describePersonSignal(signal)
+    ).toStrictEqual({
+      label: "Not serving",
+      detail: "No serving in the last 6 months; nothing scheduled.",
+    });
+    expect(signal === undefined ? false : isRosterSignal(signal)).toBeTruthy();
+    expect(
+      isRosterSignal({ kind: "due", daysSinceServed: 50, typicalGapDays: 14 })
+    ).toBeFalsy();
+  });
+});
+
+describe(computeMemberPaces, () => {
+  it("judges each person by the busiest pace among their own teams", () => {
+    const weekly = ["Ana", "Ben", "Cam"].map((name) =>
+      member(name, { servedDays90: 12 })
+    );
+    const monthly = ["Dee", "Eve", "Fay"].map((name) =>
+      member(name, { servedDays90: 3 })
+    );
+    const both = member("Gus", { servedDays90: 9 });
+
+    const paces = computeMemberPaces(
+      [...weekly, ...monthly, both],
+      [
+        { personIds: [...weekly.map(({ id }) => id), both.id] },
+        { personIds: [...monthly.map(({ id }) => id), both.id] },
+        // Too few active people to have a pace.
+        { personIds: ["ana", "missing"] },
+      ]
+    );
+
+    expect(Object.fromEntries(paces)).toStrictEqual({
+      ana: 12,
+      ben: 12,
+      cam: 12,
+      dee: 3,
+      eve: 3,
+      fay: 3,
+      // On both teams: the weekly team's pace, so weekly serving is not "heavy".
+      gus: 12,
+    });
   });
 });
 
 describe(computeTeamHealth, () => {
   it("lists who is due for a slot, most overdue for their rhythm first", () => {
-    const health = computeTeamHealth(
-      [
-        member("Scheduled"),
-        member("Recent", { lastServedOn: "2026-09-06", nextServingOn: null }),
-        member("Weekly", {
-          lastServedOn: "2026-08-02",
-          nextServingOn: null,
-          typicalGapDays: 7,
-        }),
-        member("Monthly", {
-          lastServedOn: "2026-08-09",
-          nextServingOn: null,
-          typicalGapDays: 30,
-        }),
-        member("Never", {
-          lastServedOn: null,
-          nextServingOn: null,
-          servedDays180: 0,
-          servedDays90: 0,
-        }),
-      ],
-      TODAY
-    );
+    const members = [
+      member("Scheduled"),
+      member("Recent", { lastServedOn: "2026-09-06", nextServingOn: null }),
+      member("Weekly", {
+        lastServedOn: "2026-08-02",
+        nextServingOn: null,
+        typicalGapDays: 7,
+      }),
+      member("Monthly", {
+        lastServedOn: "2026-08-09",
+        nextServingOn: null,
+        typicalGapDays: 30,
+      }),
+      member("Never", notServing),
+    ];
+    const health = computeTeamHealth(members, teamOf(members), TODAY);
 
     expect(
       health.dueForSlot.map(({ member: { name }, daysSinceServed }) => [
@@ -201,20 +292,37 @@ describe(computeTeamHealth, () => {
       ["Monthly", 47],
       ["Never", null],
     ]);
+    // Not serving is a scheduling matter, not a check-in.
+    expect(health.checkIns.map(({ member: { name } }) => name)).toStrictEqual(
+      []
+    );
+  });
+
+  it("splits unanswered requests into their own list, soonest first", () => {
+    const members = [
+      member("Later", { pendingUpcoming: 1, nextPendingOn: "2026-10-01" }),
+      member("Soon", { pendingUpcoming: 2, nextPendingOn: "2026-09-26" }),
+      member("Far", { pendingUpcoming: 3, nextPendingOn: "2026-11-01" }),
+    ];
+    const health = computeTeamHealth(members, teamOf(members), TODAY);
+
+    expect(
+      health.waitingOnReply.map(({ member: { name } }) => name)
+    ).toStrictEqual(["Soon", "Later"]);
+    expect(health.checkIns).toStrictEqual([]);
+    expect(health.pendingCount).toBe(6);
   });
 
   it("calls a team stretched when a few people carry most of the serving", () => {
     const quiet = { servedDays90: 1, servedDays30: 0 };
-    const health = computeTeamHealth(
-      [
-        member("Ana", { servedDays90: 12, servedDays30: 3 }),
-        member("Ben", quiet),
-        member("Cam", quiet),
-        member("Dee", quiet),
-        member("Eve", quiet),
-      ],
-      TODAY
-    );
+    const members = [
+      member("Ana", { servedDays90: 12, servedDays30: 3 }),
+      member("Ben", quiet),
+      member("Cam", quiet),
+      member("Dee", quiet),
+      member("Eve", quiet),
+    ];
+    const health = computeTeamHealth(members, teamOf(members), TODAY);
 
     expect(health).toMatchObject({
       memberCount: 5,
@@ -226,23 +334,24 @@ describe(computeTeamHealth, () => {
     expect(health.checkIns.map(({ member: { name } }) => name)).toStrictEqual([
       "Ana",
     ]);
+    expect(health.signalsById.get("ana")).toStrictEqual([
+      { kind: "overloaded", basis: "team-pace", days: 12, teamPace: 1 },
+    ]);
   });
 
   it("calls a team thin when fewer than half served in 90 days", () => {
     const idle = { servedDays90: 0, servedDays30: 0 };
-    const health = computeTeamHealth(
-      [member("Ana"), member("Ben", idle), member("Cam", idle)],
-      TODAY
-    );
+    const members = [member("Ana"), member("Ben", idle), member("Cam", idle)];
+    const health = computeTeamHealth(members, teamOf(members), TODAY);
 
     expect(health.status).toBe("thin");
   });
 });
 
-describe(describeCheckInReason, () => {
+describe(describePersonSignal, () => {
   it("writes reasons a leader can act on", () => {
     expect(
-      describeCheckInReason({
+      describePersonSignal({
         kind: "drifting",
         lastServedOn: "2026-07-12",
         typicalGapDays: 14,
@@ -250,6 +359,16 @@ describe(describeCheckInReason, () => {
     ).toStrictEqual({
       label: "Drifting",
       detail: "Last served Jul 12, usually every 2 weeks; nothing scheduled.",
+    });
+    expect(
+      describePersonSignal({
+        kind: "waiting",
+        nextPendingOn: "2026-09-27",
+        pending: 2,
+      })
+    ).toStrictEqual({
+      label: "No reply",
+      detail: "Hasn't answered for Sun, Sep 27 (2 open).",
     });
     expect(describeCadence(29)).toBe("about monthly");
   });

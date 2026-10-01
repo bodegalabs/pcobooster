@@ -26,6 +26,15 @@ export const planWorkspaceSearchSchema = z.object({
   positionId: optionalParam,
 });
 
+/**
+ * People dashboard: the view (`month`; Health when absent) and the team scope (`all`, `mine`,
+ * or `team:<id>`; the viewer's default when absent). The page reads unknown values as absent.
+ */
+export const peopleSearchSchema = z.object({
+  view: optionalParam,
+  scope: optionalParam,
+});
+
 /** Person detail: the calendar month, `YYYY-MM`; the API validates it. */
 export const personSearchSchema = z.object({
   month: optionalParam,
