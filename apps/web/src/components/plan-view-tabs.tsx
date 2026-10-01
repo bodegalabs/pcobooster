@@ -1,0 +1,52 @@
+import { Link } from "@tanstack/react-router";
+
+import { planViewIcons } from "@/components/plan-view-icons";
+import { SidebarNavIcon } from "@/components/sidebar-nav-icon";
+import { usePlanRoute } from "@/hooks/use-plan-route";
+import { getPlanViewLabel, planViews } from "@/lib/app-routes";
+import { cn } from "@/lib/utils";
+
+/**
+ * The phone's plan view switcher: one even row of icon-over-label tabs pinned
+ * under the plan header, so every view is a single tap away.
+ */
+export const MobilePlanViewTabs = () => {
+  const planRoute = usePlanRoute();
+  if (planRoute === null) {
+    return null;
+  }
+  return (
+    <nav
+      aria-label="Plan views"
+      className="bg-background border-border/50 grid grid-cols-5 border-b px-2"
+    >
+      {planViews.map((view) => {
+        const active = planRoute.view === view;
+        return (
+          <Link
+            key={view}
+            to="/services/$serviceTypeId/plans/$planId/$view"
+            params={{ ...planRoute, view }}
+            // Keeps the selected slot across views.
+            search
+            replace
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "focus-visible:ring-ring/50 relative flex h-12 flex-col items-center justify-center gap-0.5 rounded-md text-xs font-medium outline-none select-none focus-visible:ring-2",
+              active ? "text-foreground" : "text-muted-foreground"
+            )}
+          >
+            <SidebarNavIcon icon={planViewIcons[view]} className="size-5" />
+            {getPlanViewLabel(view)}
+            {active ? (
+              <span
+                aria-hidden
+                className="bg-foreground absolute inset-x-3 -bottom-px h-0.5 rounded-full"
+              />
+            ) : null}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+};
