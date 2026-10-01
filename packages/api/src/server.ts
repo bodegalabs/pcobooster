@@ -15,14 +15,23 @@ import type {
   FeatureFlags,
   FlagshipBinding,
 } from "@pcobooster/api/modules/feature-flags/feature-flags";
-import { createModuleReadCaches } from "@pcobooster/api/modules/read-caches";
+import {
+  createModuleReadCaches,
+  moduleReadCachesForRequest,
+} from "@pcobooster/api/modules/read-caches";
 import type { ModuleReadCaches } from "@pcobooster/api/modules/read-caches";
-import { createPlanningCenterReadCaches } from "@pcobooster/api/planning-center/services/factory";
+import {
+  createPlanningCenterReadCaches,
+  planningCenterReadCachesForRequest,
+} from "@pcobooster/api/planning-center/services/factory";
 import type { PlanningCenterReadCaches } from "@pcobooster/api/planning-center/services/factory";
 import type { SharedReadStore } from "@pcobooster/api/planning-center/services/shared-read-store";
 import { Context } from "effect";
 
-/** Built once per Worker isolate and shared by every request it serves. */
+/**
+ * Built once per Worker isolate and shared by every request it serves. Each request runs with
+ * its own view, `serverDependenciesForRequest`.
+ */
 export interface ServerDependencies {
   readonly config: ServerConfig;
   readonly database: Db;
@@ -92,3 +101,26 @@ export const createServerDependencies = (
     moduleReadCaches: createModuleReadCaches(),
   };
 };
+
+/**
+ * The dependencies one request runs with. Its read caches share loaded values with every
+ * request but join only loads this request started: workerd ties I/O to the request that
+ * started it, so a load another request started may never settle once that request ends.
+ */
+export const serverDependenciesForRequest = (
+  server: ServerDependencies
+): ServerDependencies => ({
+  config: server.config,
+  featureFlags: server.featureFlags,
+  // Read on use: test dependencies throw for a database or Better Auth they were not given.
+  get database() {
+    return server.database;
+  },
+  get auth() {
+    return server.auth;
+  },
+  planningCenterReadCaches: planningCenterReadCachesForRequest(
+    server.planningCenterReadCaches
+  ),
+  moduleReadCaches: moduleReadCachesForRequest(server.moduleReadCaches),
+});

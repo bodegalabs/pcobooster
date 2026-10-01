@@ -26,3 +26,14 @@ export const createModuleReadCaches = (): ModuleReadCaches => ({
   presentationOrganizationIds: new PlanningCenterReadCache<string>(),
   songSearchResults: new Map(),
 });
+
+/** One request's view of the module caches; see `planningCenterReadCachesForRequest`. */
+export const moduleReadCachesForRequest = (
+  caches: ModuleReadCaches
+): ModuleReadCaches => ({
+  demoOrganization: caches.demoOrganization.forRequest(),
+  peopleDashboardPerson: caches.peopleDashboardPerson.forRequest(),
+  presentationOrganizationIds: caches.presentationOrganizationIds.forRequest(),
+  // Holds ranked results only, never a load in flight.
+  songSearchResults: caches.songSearchResults,
+});
