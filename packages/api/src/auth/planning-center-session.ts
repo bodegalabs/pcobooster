@@ -18,6 +18,28 @@ export const getSelectedPlanningCenterAccountId = (
 ): string | null =>
   readCookie(request, PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE);
 
+interface LinkedAccount {
+  readonly providerId: string;
+  readonly createdAt: Date | string;
+}
+
+/**
+ * A user's Planning Center accounts (one per organization), first linked first. A request
+ * without a selection cookie acts as the first one. Not newest `updatedAt` first: Better Auth
+ * rewrites it on every token refresh, so refreshing one organization's token switched every
+ * later request to that organization, including requests for the other one's plans.
+ */
+export const linkedPlanningCenterAccounts = <Account extends LinkedAccount>(
+  accounts: readonly Account[]
+): Account[] =>
+  accounts
+    .filter((account) => account.providerId === PLANNING_CENTER_PROVIDER_ID)
+    .toSorted(
+      (first, second) =>
+        new Date(first.createdAt).getTime() -
+        new Date(second.createdAt).getTime()
+    );
+
 export interface PlanningCenterUserAuthContext {
   session: NonNullable<Awaited<ReturnType<Auth["api"]["getSession"]>>>;
   accessToken: string;
@@ -54,13 +76,7 @@ export const requirePlanningCenterAccessToken = async (
     headers: request.headers,
   });
 
-  const planningCenterAccounts = linkedAccounts
-    .filter((account) => account.providerId === PLANNING_CENTER_PROVIDER_ID)
-    .toSorted((a, b) => {
-      const aTime = new Date(a.updatedAt).getTime();
-      const bTime = new Date(b.updatedAt).getTime();
-      return bTime - aTime;
-    });
+  const planningCenterAccounts = linkedPlanningCenterAccounts(linkedAccounts);
 
   const selectedAccountId = getSelectedPlanningCenterAccountId(request);
   const selectedAccount =

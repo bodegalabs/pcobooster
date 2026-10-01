@@ -4,6 +4,7 @@ import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 
 import { INTENT_PREFETCH_DWELL_MS } from "@/lib/intent-prefetch";
+import { retryTransientReadFailure } from "@/lib/query-retry";
 import { createReadErrorCache } from "@/lib/read-error-analytics";
 import { parseSearch, stringifySearch } from "@/lib/search-params";
 import { routeTree } from "@/routeTree.gen";
@@ -22,7 +23,7 @@ const createQueryClient = (presentationScope: string): QueryClient =>
         gcTime: QUERY_GC_TIME_MS,
         queryKeyHashFn: (queryKey) => hashKey([presentationScope, ...queryKey]),
         refetchOnWindowFocus: false,
-        retry: 1,
+        retry: retryTransientReadFailure,
       },
     },
   });

@@ -3,6 +3,7 @@ import {
   getPlanningCenterIdentityFromAccessToken,
   getPlanningCenterRawUserInfo,
 } from "@pcobooster/api/auth/planning-center-identity";
+import { PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE } from "@pcobooster/api/auth/planning-center-session";
 import { createPreviewProxy } from "@pcobooster/api/auth/preview-proxy";
 import { parseSignInFailure } from "@pcobooster/api/auth/sign-in-failure";
 import type { ServerConfig } from "@pcobooster/api/config/server-config";
@@ -24,6 +25,23 @@ import { createAuthMiddleware } from "better-auth/api";
 import { genericOAuth } from "better-auth/plugins/generic-oauth";
 
 const SESSION_COOKIE_CACHE_SECONDS = 5 * 60;
+const SELECTED_ACCOUNT_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+
+/** The part of Better Auth's endpoint context an account hook uses to set a cookie. */
+interface AccountHookContext {
+  readonly path?: string;
+  setCookie: (
+    name: string,
+    value: string,
+    options: {
+      httpOnly: boolean;
+      sameSite: "lax";
+      maxAge: number;
+      path: string;
+      secure: boolean;
+    }
+  ) => string;
+}
 
 const shouldTrackSessionDeletion = (
   context: Parameters<typeof getActivityRequestContext>[0]
@@ -114,6 +132,30 @@ export const createAuth = (config: ServerConfig, database: Db) => {
     }
   };
 
+  /**
+   * The organization someone signs in with is the one they see, until they sign in with
+   * another. A sign-in callback writes that organization's account (linking it or storing new
+   * tokens), so it is selected here rather than inferred later from which account changed last.
+   */
+  const selectSignedInAccount = (
+    account: { id: string; providerId: string },
+    context: AccountHookContext | null
+  ): void => {
+    if (
+      account.providerId !== "planning-center" ||
+      context?.path?.startsWith("/callback/") !== true
+    ) {
+      return;
+    }
+    context.setCookie(PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE, account.id, {
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: SELECTED_ACCOUNT_COOKIE_MAX_AGE_SECONDS,
+      path: "/",
+      secure: !config.localDevelopment,
+    });
+  };
+
   const getPlanningCenterIdentitySafely = async (account: {
     id: string;
     accountId: string;
@@ -201,6 +243,7 @@ export const createAuth = (config: ServerConfig, database: Db) => {
       account: {
         create: {
           after: async (account, context) => {
+            selectSignedInAccount(account, context);
             if (account.providerId !== "planning-center") {
               return;
             }
@@ -217,6 +260,14 @@ export const createAuth = (config: ServerConfig, database: Db) => {
               },
               context,
             });
+          },
+        },
+        update: {
+          after: async (account, context) => {
+            // Better Auth types this hook as async; selecting only sets a response cookie.
+            await Promise.resolve();
+            // Token refreshes also update the account; only a sign-in callback selects it.
+            selectSignedInAccount(account, context);
           },
         },
       },

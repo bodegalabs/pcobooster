@@ -1,4 +1,5 @@
 import { createAuth } from "@pcobooster/api/auth";
+import { PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE } from "@pcobooster/api/auth/planning-center-session";
 import { createDatabase } from "@pcobooster/api/db/client";
 import { account, activityEvents, user } from "@pcobooster/api/db/schema";
 import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user-agent";
@@ -83,10 +84,10 @@ const cookieHeader = (response: Response): string =>
     .map((cookie) => cookie.split(";")[0])
     .join("; ");
 
-/** Runs sign-in start and the provider callback; returns the callback redirect. */
-const signInWithPlanningCenter = async (
+/** Runs sign-in start and the provider callback; returns the callback response. */
+const completePlanningCenterSignIn = async (
   profile: PlanningCenterProfile
-): Promise<URL> => {
+): Promise<Response> => {
   stubPlanningCenter(profile);
   const auth = createAuth(testServerConfig(), database);
   const start = await auth.handler(
@@ -103,13 +104,41 @@ const signInWithPlanningCenter = async (
   );
   const { url } = signInResponseSchema.parse(await start.json());
   const state = new URL(url).searchParams.get("state") ?? "";
-  const callback = await auth.handler(
+  return await auth.handler(
     new Request(
       `${origin}/api/auth/callback/planning-center?code=test-code&state=${encodeURIComponent(state)}`,
       { headers: { cookie: cookieHeader(start) } }
     )
   );
+};
+
+/** Runs sign-in start and the provider callback; returns the callback redirect. */
+const signInWithPlanningCenter = async (
+  profile: PlanningCenterProfile
+): Promise<URL> => {
+  const callback = await completePlanningCenterSignIn(profile);
   return new URL(callback.headers.get("location") ?? "", origin);
+};
+
+/** The account a callback response selected with the selection cookie, if any. */
+const selectedAccountCookie = (response: Response): string | null => {
+  const prefix = `${PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE}=`;
+  const cookie = response.headers
+    .getSetCookie()
+    .find((candidate) => candidate.startsWith(prefix));
+  return cookie === undefined
+    ? null
+    : (cookie.split(";")[0] ?? "").slice(prefix.length);
+};
+
+const accountIdFor = async (
+  planningCenterPersonId: string
+): Promise<string> => {
+  const [row] = await database
+    .select({ id: account.id })
+    .from(account)
+    .where(eq(account.accountId, planningCenterPersonId));
+  return row?.id ?? "";
 };
 
 describe("Planning Center sign-in", () => {
@@ -152,6 +181,43 @@ describe("Planning Center sign-in", () => {
       "person-org-a",
       "person-org-b",
     ]);
+  });
+
+  it("selects the organization each sign-in used", async () => {
+    const graceChurch = {
+      sub: "person-select-a",
+      email: "casey@example.com",
+      organizationId: "org-select-a",
+      organizationName: "Grace Church",
+    };
+    const hopeChapel = {
+      sub: "person-select-b",
+      email: "casey@example.com",
+      organizationId: "org-select-b",
+      organizationName: "Hope Chapel",
+    };
+
+    const firstSignIn = await completePlanningCenterSignIn(graceChurch);
+    expect(selectedAccountCookie(firstSignIn)).toBe(
+      await accountIdFor(graceChurch.sub)
+    );
+    // Linking a second organization selects it.
+    const linked = await completePlanningCenterSignIn(hopeChapel);
+    expect(selectedAccountCookie(linked)).toBe(
+      await accountIdFor(hopeChapel.sub)
+    );
+    // Signing in with an organization already linked selects it again.
+    const returning = await completePlanningCenterSignIn(graceChurch);
+    expect(selectedAccountCookie(returning)).toBe(
+      await accountIdFor(graceChurch.sub)
+    );
+    expect(
+      returning.headers
+        .getSetCookie()
+        .find((candidate) =>
+          candidate.startsWith(`${PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE}=`)
+        )
+    ).toMatch(/; Max-Age=2592000; Path=\/; HttpOnly; SameSite=Lax$/u);
   });
 
   it("identifies itself to Planning Center on every sign-in request", async () => {

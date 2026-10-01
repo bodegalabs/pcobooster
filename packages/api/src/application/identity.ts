@@ -13,7 +13,10 @@ import {
   loadDevBypassIdentity,
 } from "@pcobooster/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
-import { getSelectedPlanningCenterAccountId } from "@pcobooster/api/auth/planning-center-session";
+import {
+  getSelectedPlanningCenterAccountId,
+  linkedPlanningCenterAccounts,
+} from "@pcobooster/api/auth/planning-center-session";
 import type { FeatureFlagName } from "@pcobooster/api/config/feature-flags";
 import { getDemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
 import type { DemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
@@ -192,16 +195,7 @@ const toAccountSummary = async (
   };
 };
 
-const planningCenterAccounts = (accounts: AuthAccount[]): AuthAccount[] =>
-  accounts
-    .filter((account) => account.providerId === PLANNING_CENTER_PROVIDER_ID)
-    .toSorted(
-      (first, second) =>
-        new Date(second.updatedAt).getTime() -
-        new Date(first.updatedAt).getTime()
-    );
-
-/** The caller's selected Planning Center account: the cookie's choice, else the newest. */
+/** The caller's selected Planning Center account: the cookie's choice, else the first linked. */
 const selectPlanningCenterAccountFor = (
   request: Request,
   linkedAccounts: AuthAccount[],
@@ -312,7 +306,7 @@ export const getPlanningCenterAccounts = (
       async () => await dependencies.listUserAccounts(headers),
       "list-user-accounts"
     );
-    const linkedAccounts = planningCenterAccounts(accounts);
+    const linkedAccounts = linkedPlanningCenterAccounts(accounts);
     const selectedAccount = selectPlanningCenterAccountFor(
       request,
       linkedAccounts,
@@ -420,7 +414,7 @@ const resolveFeatureFlagSubject = (
     );
     const selectedAccount = selectPlanningCenterAccountFor(
       request,
-      planningCenterAccounts(accounts),
+      linkedPlanningCenterAccounts(accounts),
       dependencies
     );
     return {

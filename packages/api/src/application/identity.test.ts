@@ -81,16 +81,18 @@ const nonPlanningCenterAccount = {
   ReturnType<IdentityDependencies["listUserAccounts"]>
 >[number];
 
+/** A linked organization; Better Auth moves `updatedAt` on every token refresh. */
 const planningCenterAccount = (
   id: string,
-  updatedAt: string
+  linkedAt: string,
+  refreshedAt: string = linkedAt
 ): Awaited<ReturnType<IdentityDependencies["listUserAccounts"]>>[number] => ({
   id,
   accountId: `provider-${id}`,
   providerId: "planning-center",
   userId: "user-1",
-  createdAt: new Date("2026-01-01T00:00:00.000Z"),
-  updatedAt: new Date(updatedAt),
+  createdAt: new Date(linkedAt),
+  updatedAt: new Date(refreshedAt),
   scopes: [],
 });
 
@@ -153,14 +155,22 @@ describe("identity application programs", () => {
     ).toBe("NotFound");
   });
 
-  it("falls back from a stale selected cookie and degrades provider identities to null", async () => {
-    const newest = planningCenterAccount("newest", "2026-02-01T00:00:00.000Z");
-    const oldest = planningCenterAccount("oldest", "2026-01-01T00:00:00.000Z");
+  it("falls back from a stale selected cookie to the first linked account and degrades provider identities to null", async () => {
+    // The first-linked account's token refreshed most recently; that must not matter.
+    const firstLinked = planningCenterAccount(
+      "first-linked",
+      "2026-01-01T00:00:00.000Z",
+      "2026-03-01T00:00:00.000Z"
+    );
+    const laterLinked = planningCenterAccount(
+      "later-linked",
+      "2026-02-01T00:00:00.000Z"
+    );
     const dependencies: IdentityDependencies = {
       ...authenticatedDependencies(),
       listUserAccounts: vi
         .fn<IdentityDependencies["listUserAccounts"]>()
-        .mockResolvedValue([oldest, newest]),
+        .mockResolvedValue([laterLinked, firstLinked]),
       getIdentityForAccount: vi
         .fn<IdentityDependencies["getIdentityForAccount"]>()
         .mockRejectedValue(new Error("userinfo unavailable")),
@@ -171,10 +181,10 @@ describe("identity application programs", () => {
 
     expect(result).toMatchObject({
       demo: false,
-      selectedAccountId: "newest",
+      selectedAccountId: "first-linked",
       accounts: [
-        { id: "newest", identity: null },
-        { id: "oldest", identity: null },
+        { id: "first-linked", identity: null },
+        { id: "later-linked", identity: null },
       ],
     });
     expect(Object.keys(result.accounts[0]).toSorted()).toStrictEqual([
@@ -260,22 +270,30 @@ describe(getFeatureStatus, () => {
       listUserAccounts: vi
         .fn<IdentityDependencies["listUserAccounts"]>()
         .mockResolvedValue([
-          planningCenterAccount("older", "2026-01-03T00:00:00.000Z"),
-          planningCenterAccount("newest", "2026-01-04T00:00:00.000Z"),
+          planningCenterAccount(
+            "later-linked",
+            "2026-01-04T00:00:00.000Z",
+            "2026-01-04T00:00:00.000Z"
+          ),
+          planningCenterAccount(
+            "first-linked",
+            "2026-01-03T00:00:00.000Z",
+            "2026-01-05T00:00:00.000Z"
+          ),
         ]),
     };
-    const newest = await readPeopleFeature(dependencies);
-    expect(newest.evaluations[0]?.subject).toStrictEqual({
+    const unselected = await readPeopleFeature(dependencies);
+    expect(unselected.evaluations[0]?.subject).toStrictEqual({
       userId: getDevBypassSession().user.id,
-      planningCenterAccountId: "newest",
+      planningCenterAccountId: "first-linked",
     });
 
     const selected = await readPeopleFeature({
       ...dependencies,
-      getSelectedAccountId: () => "older",
+      getSelectedAccountId: () => "later-linked",
     });
     expect(selected.evaluations[0]?.subject.planningCenterAccountId).toBe(
-      "older"
+      "later-linked"
     );
   });
 

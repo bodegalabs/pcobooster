@@ -17,6 +17,7 @@ import { Database } from "./database";
 import { FeatureFlagApp } from "./feature-flags";
 import { workerObservability } from "./observability";
 import { PlanningCenterCache } from "./planning-center-cache";
+import { cachedAcrossRequests } from "./shared-initialization";
 import { currentStageSettings } from "./stage";
 
 const PREVIEW_SECRET_PLACEHOLDER = "minted-by-alchemy-random-at-runtime";
@@ -157,8 +158,9 @@ export default class Api extends Cloudflare.Worker<Api>()(
     const resolveEnvironment = yield* readEnvironment;
     // The D1, KV, and Flagship bindings and a runtime-minted secret are only readable inside a
     // request, so the app is built by the first one and shared by the rest of the isolate's
-    // lifetime.
-    const app = yield* Effect.cached(
+    // lifetime. Not `Effect.cached`: requests that arrive while the first one builds must not
+    // resume inside it; see `cachedAcrossRequests`.
+    const app = yield* cachedAcrossRequests(
       Effect.gen(function* buildApp() {
         const config = resolveServerConfig(yield* resolveEnvironment);
         const binding = yield* database.raw;
