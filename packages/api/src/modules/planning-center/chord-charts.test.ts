@@ -100,17 +100,12 @@ describe(getChordChartSong, () => {
         id: "song-1",
         title: "Amazing Grace",
         author: "John Newton",
-        copyright: "Public Domain",
-        ccliNumber: "22025",
       },
       arrangements: [
         {
           id: "arr-1",
           name: "Default",
           archived: false,
-          bpm: 72,
-          meter: "4/4",
-          sequence: ["V1", "C"],
           chordChart: "VERSE\n[G]Amazing grace",
           chordChartKey: "G",
           lyrics: "Amazing grace",
@@ -242,8 +237,6 @@ describe(createChordChartSong, () => {
       id: "song-2",
       title: "New Song",
       author: "",
-      copyright: "",
-      ccliNumber: "7",
     });
     expect(result.arrangements.map((item) => item.id)).toStrictEqual(["arr-1"]);
     expect(songs.createArrangement).not.toHaveBeenCalled();
@@ -284,10 +277,7 @@ describe(getChordChartPdf, () => {
       "/services/v2/songs/song-1/arrangements/arr-1/keys/key-1/attachments/chord_chart-key-1--"
     );
     expect(fetch.mock.calls[0]?.[0]).toBe("https://files.example/chart.pdf");
-    expect(pdf).toStrictEqual({
-      filename: "chord-chart.pdf",
-      data: bytesToBase64(pdfBytes),
-    });
+    expect(pdf).toStrictEqual({ data: bytesToBase64(pdfBytes) });
     expect(atob(pdf.data)).toBe("%PDF-1.5 chart");
   });
 

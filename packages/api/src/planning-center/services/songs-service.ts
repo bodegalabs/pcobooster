@@ -71,12 +71,6 @@ export class PlanningCenterSongsService {
     this.caches = caches;
   }
 
-  getSongsPage(
-    params: Record<string, string> = {}
-  ): Effect.Effect<PCResource[], PlanningCenterError> {
-    return this.core.fetchAll("/services/v2/songs", params, 1);
-  }
-
   getSongsCatalogCached(
     cacheKey: string,
     options?: {

@@ -73,10 +73,6 @@ export const chordChartArrangementSchema = z.object({
   id: z.string(),
   name: z.string(),
   archived: z.boolean(),
-  bpm: z.number().nullable(),
-  meter: z.string().nullable(),
-  /** Short section labels in order, such as `V1`, `C`, `B`. */
-  sequence: z.array(z.string()),
   /** Lyrics & Chords text in Services' ChordPro-based format. */
   chordChart: z.string(),
   /** The key the chords are written in. */
@@ -92,8 +88,6 @@ export const chordChartSongSchema = z.object({
   id: z.string(),
   title: z.string(),
   author: z.string(),
-  copyright: z.string(),
-  ccliNumber: z.string().nullable(),
 });
 
 export const chordChartSongOutputSchema = z.object({
@@ -138,7 +132,6 @@ export const chordChartPdfInputSchema = z.object({
 });
 
 export const chordChartPdfOutputSchema = z.object({
-  filename: z.string(),
   /** The PDF Services rendered, base64 encoded. */
   data: z.string(),
 });
