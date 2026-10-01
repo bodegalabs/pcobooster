@@ -369,7 +369,15 @@ export const MobileHeader = ({
         className="bg-background absolute inset-0 group-data-open/menu:hidden"
       />
       <div className="relative z-10 flex h-14 items-center gap-1 px-4">
-        <div className="flex min-w-0 flex-1 items-center gap-1 group-data-open/menu:invisible">
+        {/*
+         * Fades with the overlay through the container's own opacity: hiding
+         * with `visibility` lets children with `transition-all` (buttons)
+         * animate it and linger after the menu opens.
+         */}
+        <div
+          inert={menu.open}
+          className="flex min-w-0 flex-1 items-center gap-1 transition-opacity duration-150 ease-(--ease-snappy) group-data-open/menu:opacity-0"
+        >
           {children}
         </div>
         <Button
@@ -386,7 +394,10 @@ export const MobileHeader = ({
         </Button>
       </div>
       {subbar === undefined ? null : (
-        <div className="relative z-10 group-data-open/menu:invisible">
+        <div
+          inert={menu.open}
+          className="relative z-10 transition-opacity duration-150 ease-(--ease-snappy) group-data-open/menu:opacity-0"
+        >
           {subbar}
         </div>
       )}
