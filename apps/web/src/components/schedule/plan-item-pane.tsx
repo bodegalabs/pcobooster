@@ -7,7 +7,16 @@ import type {
   SongOptionSet,
 } from "@pcobooster/planning-center-models/types";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { ChevronRight, ExternalLink, Replace, Trash2, X } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+import {
+  ChevronRight,
+  ExternalLink,
+  FileMusic,
+  Replace,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { KeyTransitionPopover } from "@/components/schedule/key-transition-popover";
@@ -47,11 +56,13 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useSongOptions } from "@/hooks/use-song-options";
+import { chordChartsFeatureQueryOptions } from "@/lib/chord-charts-route";
 import { appendNote } from "@/lib/key-transition-advice";
 import { keyOptionLabelOf } from "@/lib/plan-overview";
 import type { KeyTransition } from "@/lib/plan-set-insights";
 import { describeKeyChange, tempoLabel } from "@/lib/song-library";
 import type { PreviousSong } from "@/lib/song-library";
+import { planningCenterSongUrl } from "@/lib/songs-index";
 import { cn } from "@/lib/utils";
 
 export interface PlanItemSaveInput {
@@ -107,6 +118,10 @@ interface PlanItemPaneProps {
   className?: string;
 }
 
+/** Whether the Songs chord chart editor is on, so a song can link to its chart. */
+const useChordChartsEnabled = (): boolean =>
+  useQuery(chordChartsFeatureQueryOptions).data?.enabled ?? false;
+
 const PaneHeader = ({
   item,
   focusTitle,
@@ -122,6 +137,7 @@ const PaneHeader = ({
   persist: Persist;
   inSheet: boolean;
 }) => {
+  const chordChartsEnabled = useChordChartsEnabled();
   const titleRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (focusTitle) {
@@ -177,11 +193,30 @@ const PaneHeader = ({
               >
                 <Replace />
               </HoverLabel>
+              {chordChartsEnabled ? (
+                <HoverLabel
+                  label="Edit chord chart"
+                  render={
+                    <Link
+                      to="/songs/$songId"
+                      params={{ songId: item.song.id }}
+                      search={{ arrangement: item.arrangement?.id }}
+                      aria-label={`Edit the chord chart for ${item.song.title}`}
+                      className={buttonVariants({
+                        variant: "ghost",
+                        size: "icon-sm",
+                      })}
+                    />
+                  }
+                >
+                  <FileMusic />
+                </HoverLabel>
+              ) : null}
               <HoverLabel
                 label="Open in Planning Center"
                 render={
                   <a
-                    href={`https://services.planningcenteronline.com/songs/${item.song.id}`}
+                    href={planningCenterSongUrl(item.song.id)}
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Open in Planning Center"
@@ -237,50 +272,67 @@ const SheetActions = ({
   item,
   onRemove,
   onReplaceSong,
-}: Pick<PlanItemPaneProps, "item" | "onRemove" | "onReplaceSong">) => (
-  <CardFooter>
-    <div className="flex w-full flex-col gap-2">
-      {item.song ? (
-        <>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-11 w-full"
-            onClick={() => {
-              onReplaceSong(item.id);
-            }}
-          >
-            <Replace />
-            Replace song
-          </Button>
-          <a
-            href={`https://services.planningcenteronline.com/songs/${item.song.id}`}
-            target="_blank"
-            rel="noreferrer"
-            className={buttonVariants({
-              variant: "outline",
-              className: "h-11 w-full",
-            })}
-          >
-            <ExternalLink />
-            Open in Planning Center
-          </a>
-        </>
-      ) : null}
-      <Button
-        type="button"
-        variant="destructive"
-        className="h-11 w-full"
-        onClick={() => {
-          onRemove(item.id);
-        }}
-      >
-        <Trash2 />
-        Remove
-      </Button>
-    </div>
-  </CardFooter>
-);
+}: Pick<PlanItemPaneProps, "item" | "onRemove" | "onReplaceSong">) => {
+  const chordChartsEnabled = useChordChartsEnabled();
+  return (
+    <CardFooter>
+      <div className="flex w-full flex-col gap-2">
+        {item.song ? (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 w-full"
+              onClick={() => {
+                onReplaceSong(item.id);
+              }}
+            >
+              <Replace />
+              Replace song
+            </Button>
+            {chordChartsEnabled ? (
+              <Link
+                to="/songs/$songId"
+                params={{ songId: item.song.id }}
+                search={{ arrangement: item.arrangement?.id }}
+                className={buttonVariants({
+                  variant: "outline",
+                  className: "h-11 w-full",
+                })}
+              >
+                <FileMusic />
+                Edit chord chart
+              </Link>
+            ) : null}
+            <a
+              href={planningCenterSongUrl(item.song.id)}
+              target="_blank"
+              rel="noreferrer"
+              className={buttonVariants({
+                variant: "outline",
+                className: "h-11 w-full",
+              })}
+            >
+              <ExternalLink />
+              Open in Planning Center
+            </a>
+          </>
+        ) : null}
+        <Button
+          type="button"
+          variant="destructive"
+          className="h-11 w-full"
+          onClick={() => {
+            onRemove(item.id);
+          }}
+        >
+          <Trash2 />
+          Remove
+        </Button>
+      </div>
+    </CardFooter>
+  );
+};
 
 /** Arrangement and key as dropdowns, saved as soon as one is picked. */
 const SongFields = ({
