@@ -1,3 +1,4 @@
+import { serverDependenciesForRequest } from "@pcobooster/api/server";
 import type { ServerDependencies } from "@pcobooster/api/server";
 import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
 
@@ -15,6 +16,6 @@ export const createContext = ({
       requestedId !== undefined && requestedId !== ""
         ? requestedId
         : crypto.randomUUID(),
-    server,
+    server: serverDependenciesForRequest(server),
   };
 };

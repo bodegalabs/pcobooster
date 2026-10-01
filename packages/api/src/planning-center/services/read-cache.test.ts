@@ -66,6 +66,55 @@ describe("planning center read cache", () => {
     expect(load).toHaveBeenCalledOnce();
   });
 
+  it("loads separately for each request but shares the loaded value", async () => {
+    const isolateCache = new PlanningCenterReadCache<number>();
+    const first = isolateCache.forRequest();
+    const second = isolateCache.forRequest();
+    const firstLoad = Promise.withResolvers<number>();
+    const secondLoad = Promise.withResolvers<number>();
+
+    const firstRead = first.get(
+      "key",
+      60_000,
+      async () => await firstLoad.promise
+    );
+    const secondRead = second.get(
+      "key",
+      60_000,
+      async () => await secondLoad.promise
+    );
+    firstLoad.resolve(1);
+    secondLoad.resolve(2);
+
+    await expect(firstRead).resolves.toBe(1);
+    await expect(secondRead).resolves.toBe(2);
+    const load = vi.fn<() => Promise<number>>(
+      async () => await Promise.resolve(3)
+    );
+    await expect(
+      isolateCache.forRequest().get("key", 60_000, load)
+    ).resolves.toBe(2);
+    expect(load).not.toHaveBeenCalled();
+  });
+
+  it("marks a load in another request stale when it invalidates the key", async () => {
+    const isolateCache = new PlanningCenterReadCache<number>();
+    const loading = isolateCache.forRequest();
+    const deferred = Promise.withResolvers<number>();
+    let attempts = 0;
+    const load = vi.fn<() => Promise<number>>(async () => {
+      attempts += 1;
+      return attempts === 1 ? await deferred.promise : 2;
+    });
+
+    const pending = loading.get("key", 60_000, load);
+    isolateCache.forRequest().deleteWhere((key) => key === "key");
+    deferred.resolve(1);
+
+    await expect(pending).resolves.toBe(2);
+    expect(load).toHaveBeenCalledTimes(2);
+  });
+
   it("retries when an in-flight load is invalidated", async () => {
     const cache = new PlanningCenterReadCache<number>();
     const key = "plan-times:st-1:plan-1";

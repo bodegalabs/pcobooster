@@ -87,6 +87,40 @@ export const createPlanningCenterReadCaches = (
 });
 
 /**
+ * One request's view of the isolate's caches: loaded values are shared with every request, but
+ * a request only joins loads it started (see `PlanningCenterReadCache`).
+ */
+export const planningCenterReadCachesForRequest = (
+  caches: PlanningCenterReadCaches
+): PlanningCenterReadCaches => ({
+  catalog: {
+    serviceTypes: caches.catalog.serviceTypes.forRequest(),
+    reads: caches.catalog.reads.forRequest(),
+  },
+  people: {
+    people: caches.people.people.forRequest(),
+    resourceLists: caches.people.resourceLists.forRequest(),
+    collections: caches.people.collections.forRequest(),
+    allTeamPeople: caches.people.allTeamPeople.forRequest(),
+    planWindowRosters: caches.people.planWindowRosters.forRequest(),
+  },
+  planItems: { items: caches.planItems.items.forRequest() },
+  plans: {
+    ranges: caches.plans.ranges.forRequest(),
+    planTimes: caches.plans.planTimes.forRequest(),
+  },
+  songs: {
+    catalogs: caches.songs.catalogs.forRequest(),
+    songs: caches.songs.songs.forRequest(),
+    arrangements: caches.songs.arrangements.forRequest(),
+    schedules: caches.songs.schedules.forRequest(),
+  },
+  // Holds resolved zones only, never a load in flight.
+  organizationTimeZones: caches.organizationTimeZones,
+  shared: caches.shared,
+});
+
+/**
  * Backs the caches worth sharing with this request's shared-tier session. A cache is shared
  * only if no mutation in this app invalidates it (the shared tier cannot be invalidated in
  * other isolates) and a KV hit saves more Planning Center requests than the KV calls cost,
