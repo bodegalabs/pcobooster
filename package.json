@@ -55,7 +55,7 @@
     "@cloudflare/workers-types": "5.20260923.1",
     "@effect/platform-bun": "4.0.0-rc.117",
     "@effect/platform-node": "4.0.0-rc.117",
-    "@effect/vitest": "4.0.0-rc.117",
+    "@effect/vitest": "4.0.0-rc.118",
     "@pcobooster/analytics": "workspace:*",
     "@pcobooster/api": "workspace:*",
     "@pcobooster/config": "workspace:*",
