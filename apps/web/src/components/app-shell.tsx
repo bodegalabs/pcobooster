@@ -88,13 +88,14 @@ import {
   useAccountPanel,
   useAccountsQuery,
 } from "@/hooks/use-account-panel";
+import { usePersonName } from "@/hooks/use-people-dashboard-person";
 import { usePlanRoute } from "@/hooks/use-plan-route";
 import {
   APP_SHORTCUTS,
   PLAN_BUILDER_SHORTCUTS,
   SHORTCUTS_PALETTE_HOTKEY,
 } from "@/lib/app-hotkeys";
-import type { PlanView } from "@/lib/app-routes";
+import type { DetailRoute, PlanView } from "@/lib/app-routes";
 import {
   getAppSection,
   getAppSectionLabel,
@@ -190,6 +191,16 @@ const PlanViewTabs = () => {
   );
 };
 
+/** A detail page's breadcrumb: the person's name once it is known. */
+const DetailBreadcrumbLabel = ({ detail }: { detail: DetailRoute }) => {
+  const personName = usePersonName(detail.personId);
+  return (
+    <span className="block max-w-56 truncate">
+      {personName ?? detail.label}
+    </span>
+  );
+};
+
 const AppTopBar = () => {
   const pathname = usePathname();
   const planRoute = usePlanRoute();
@@ -222,7 +233,9 @@ const AppTopBar = () => {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{detail.label}</BreadcrumbPage>
+                <BreadcrumbPage>
+                  <DetailBreadcrumbLabel detail={detail} />
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </>
           ) : (
