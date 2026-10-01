@@ -20,6 +20,9 @@ const NAV_LINKS = [
   { href: "/about", label: "Our story" },
 ] as const;
 
+/** The nav links plus the beta note, which rolls with them. */
+const menuItemCount = NAV_LINKS.length + 1;
+
 /**
  * The page-level call to action. It opens the product by default; `data-analytics-cta` feeds
  * the marketing click analytics. Full document navigation keeps the marketing and product
@@ -152,7 +155,11 @@ export const SiteHeader = () => {
         >
           <ul>
             {NAV_LINKS.map((link, index) => (
-              <MobileMenuItem key={link.href} index={index}>
+              <MobileMenuItem
+                key={link.href}
+                index={index}
+                count={menuItemCount}
+              >
                 <a
                   href={link.href}
                   onClick={menu.handleClose}
@@ -163,10 +170,18 @@ export const SiteHeader = () => {
               </MobileMenuItem>
             ))}
           </ul>
-          <p className="text-muted-foreground mt-auto flex items-center gap-2 text-sm">
-            <Badge variant="brand">Beta</Badge>
-            Early, and still taking shape.
-          </p>
+          <div className="mt-auto">
+            <MobileMenuItem
+              as="div"
+              index={NAV_LINKS.length}
+              count={menuItemCount}
+            >
+              <p className="text-muted-foreground flex items-center gap-2 text-sm">
+                <Badge variant="brand">Beta</Badge>
+                Early, and still taking shape.
+              </p>
+            </MobileMenuItem>
+          </div>
         </nav>
       </MobileMenuOverlay>
     </header>

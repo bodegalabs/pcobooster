@@ -2,12 +2,8 @@ import {
   ArrowDown01Icon,
   Calendar04Icon,
   CleanIcon,
-  Clock01Icon,
-  DashboardSquare01Icon,
   KeyboardIcon,
   LaptopIcon,
-  Layout3ColumnIcon,
-  ListMusicIcon,
   Logout01Icon,
   UserSwitchIcon,
   Moon02Icon,
@@ -16,7 +12,6 @@ import {
   ShieldUserIcon,
   Sun01Icon,
   Tick02Icon,
-  UserAdd01Icon,
   UsersIcon,
 } from "@hugeicons/core-free-icons";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
@@ -35,6 +30,7 @@ import {
 } from "@/components/access/access-review";
 import { HotkeyChord } from "@/components/hotkey-chord";
 import { MobileHeader } from "@/components/mobile-menu";
+import { planViewIcons } from "@/components/plan-view-icons";
 import { SidebarBrandMark } from "@/components/sidebar-brand-mark";
 import { SidebarChromeTrigger } from "@/components/sidebar-chrome-trigger";
 import { SidebarFeedback } from "@/components/sidebar-feedback";
@@ -143,14 +139,6 @@ const AppInsetChromeHeader = ({ children }: { children: ReactNode }) => {
 
 const usePathname = (): string =>
   useLocation({ select: (location) => location.pathname });
-
-const planViewIcons: Record<PlanView, SidebarTabGroupItem["icon"]> = {
-  overview: DashboardSquare01Icon,
-  assign: UserAdd01Icon,
-  lineup: Layout3ColumnIcon,
-  plan: ListMusicIcon,
-  times: Clock01Icon,
-};
 
 const headerTabClass = (active: boolean) =>
   cn(
