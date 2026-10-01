@@ -148,12 +148,7 @@ export const SiteHeader = () => {
           </div>
         </div>
       </div>
-      <MobileMenuOverlay
-        id="mobile-menu"
-        open={menu.open}
-        itemCount={menuItemCount}
-        className="pt-14"
-      >
+      <MobileMenuOverlay id="mobile-menu" open={menu.open} className="pt-14">
         <nav
           aria-label="Mobile navigation"
           className="wrap flex h-full flex-col pt-6 pb-8"

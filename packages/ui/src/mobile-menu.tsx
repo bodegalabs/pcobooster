@@ -55,54 +55,44 @@ export const useMobileMenu = (): MobileMenuState => {
 export const MobileMenuIcon = ({ open }: { open: boolean }) =>
   open ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />;
 
-const ITEM_DELAY_MS = 40;
-const ITEM_EXIT_DELAY_MS = 20;
-
-type OverlayStyle = CSSProperties & { "--menu-exit-delay": string };
+const ITEM_DELAY_MS = 20;
+/** Entries past this share the last delay, so long menus still land fast. */
+const MAX_STAGGER_STEPS = 6;
+const ITEM_EXIT_DELAY_MS = 10;
 
 /**
  * The overlay; `className` sets its top padding to clear the header bar.
- * `itemCount` is the number of `MobileMenuItem`s inside, so the overlay waits
- * for the last one to roll out before it fades. Its enter and exit motion
- * lives in `@pcobooster/ui/mobile-menu.css`, which each app imports.
+ * Its enter and exit motion lives in `@pcobooster/ui/mobile-menu.css`, which each app imports.
  */
 export const MobileMenuOverlay = ({
   id,
   open,
-  itemCount,
   className,
   children,
 }: {
   id: string;
   open: boolean;
-  itemCount: number;
   className?: string;
   children: ReactNode;
-}) => {
-  const style: OverlayStyle = {
-    "--menu-exit-delay": `${Math.max(0, itemCount - 1) * ITEM_EXIT_DELAY_MS}ms`,
-  };
-  return (
-    <div
-      id={id}
-      data-slot="mobile-menu-overlay"
-      inert={!open}
-      data-open={open ? "" : undefined}
-      style={style}
-      className={[
-        // The one frosted surface: the page stays faintly visible behind the
-        // menu so opening it reads as a layer, not a new page.
-        // oxlint-disable-next-line local/no-backdrop-blur
-        "bg-background/75 fixed inset-0 backdrop-blur-xl backdrop-saturate-150 md:hidden",
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-    >
-      {children}
-    </div>
-  );
-};
+}) => (
+  <div
+    id={id}
+    data-slot="mobile-menu-overlay"
+    inert={!open}
+    data-open={open ? "" : undefined}
+    className={[
+      // The one frosted surface: the page stays faintly visible behind the
+      // menu so opening it reads as a layer, not a new page.
+      // oxlint-disable-next-line local/no-backdrop-blur
+      "bg-background/75 fixed inset-0 backdrop-blur-xl backdrop-saturate-150 md:hidden",
+      className,
+    ]
+      .filter(Boolean)
+      .join(" ")}
+  >
+    {children}
+  </div>
+);
 
 type MenuItemStyle = CSSProperties & {
   "--menu-item-delay": string;
@@ -110,8 +100,8 @@ type MenuItemStyle = CSSProperties & {
 };
 
 /**
- * One menu entry; `index` (of `count`) staggers it so the list rolls in from
- * the top and back out from the bottom. `as` renders a `div` outside lists.
+ * One menu entry; `index` (of `count`) staggers it so the list cascades in
+ * from the top and lifts back out from the bottom. `as` renders a `div` outside lists.
  */
 export const MobileMenuItem = ({
   index,
@@ -125,7 +115,7 @@ export const MobileMenuItem = ({
   children: ReactNode;
 }) => {
   const style: MenuItemStyle = {
-    "--menu-item-delay": `${index * ITEM_DELAY_MS}ms`,
+    "--menu-item-delay": `${Math.min(index, MAX_STAGGER_STEPS) * ITEM_DELAY_MS}ms`,
     "--menu-item-exit-delay": `${Math.max(0, count - 1 - index) * ITEM_EXIT_DELAY_MS}ms`,
   };
   return (

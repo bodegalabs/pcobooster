@@ -393,7 +393,6 @@ export const MobileHeader = ({
       <MobileMenuOverlay
         id={MOBILE_MENU_ID}
         open={menu.open}
-        itemCount={itemCount}
         className="pt-safe"
       >
         <nav
