@@ -2,281 +2,315 @@ import type {
   ChordChartArrangement,
   ChordChartLayout,
 } from "@pcobooster/contracts/chord-charts";
-import { transposeChordChartText } from "@pcobooster/planning-center-models/chord-chart";
-import { parseKey } from "@pcobooster/planning-center-models/chord-chart-chords";
-import type { ChordChartImport } from "@pcobooster/planning-center-models/chord-chart-import";
-import { useEffect, useEffectEvent, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { useBrowserStorage } from "@/hooks/use-browser-storage";
 import {
   chordChartErrorMessage,
+  fetchLatestChordChartArrangement,
   isChordChartConflict,
+  useChordChartSongReadOnOpen,
   useSaveChordChart,
 } from "@/hooks/use-chord-chart-song";
 import {
   isSameDraft,
-  readChordChartDraft,
-  writeChordChartDraft,
+  pruneChordChartDrafts,
+  readChordChartSession,
+  writeChordChartSession,
 } from "@/lib/chord-chart-draft";
 import type { ChordChartDraft } from "@/lib/chord-chart-draft";
+import {
+  SAVE_AS_YOU_TYPE_PAUSE_MS,
+  adoptTheirChordChart,
+  beginChordChartSave,
+  canSaveChordChart,
+  chordChartCopy,
+  chordChartSaveFailed,
+  chordChartSaveRequest,
+  chordChartSaveStatus,
+  chordChartSaveSucceeded,
+  discardUnsavedChordChart,
+  editChordChartDraft,
+  importIntoChordChart,
+  isDirty,
+  keepMyChordChart,
+  receiveChordChartVersion,
+  receiveConflictVersion,
+  revertChordChart,
+  savesAsYouType,
+  startChordChartSession,
+  storedChordChartSession,
+  transposeChordChartDraft,
+  versionOf,
+} from "@/lib/chord-chart-session";
+import type {
+  ChordChartImportText,
+  ChordChartSession,
+} from "@/lib/chord-chart-session";
 
 const DRAFT_WRITE_DELAY_MS = 400;
-/** Typing pauses this long before a save, as Services' own editor saves while you type. */
-const AUTO_REFRESH_DELAY_MS = 1200;
-const AUTO_REFRESH_STORAGE_KEY = "pcobooster:chord-chart-auto-refresh";
-const AUTO_REFRESH_OFF = "off";
+/** Kept under the setting's earlier name, Auto-refresh, so turning it off still holds. */
+const SAVE_AS_YOU_TYPE_STORAGE_KEY = "pcobooster:chord-chart-auto-refresh";
+const SAVE_AS_YOU_TYPE_OFF = "off";
 
-const LAYOUT_FIELDS = [
-  "font",
-  "fontSize",
-  "columns",
-  "chordColor",
-  "pageSize",
-  "orientation",
-  "margin",
-] as const satisfies readonly (keyof ChordChartLayout)[];
-
-/** Print settings the draft changed; the rest keep inheriting Services' defaults. */
-export const changedLayout = (
-  draft: ChordChartLayout,
-  saved: ChordChartLayout
-): Partial<ChordChartLayout> => {
-  const changed: Partial<ChordChartLayout> = {};
-  for (const field of LAYOUT_FIELDS) {
-    if (draft[field] !== saved[field]) {
-      Object.assign(changed, { [field]: draft[field] });
-    }
-  }
-  return changed;
+const schedule = (run: () => void, delayMs: number): (() => void) => {
+  const timeout = window.setTimeout(run, delayMs);
+  return () => {
+    window.clearTimeout(timeout);
+  };
 };
 
-export const toServerDraft = (
-  arrangement: ChordChartArrangement
-): ChordChartDraft => ({
-  chart: arrangement.chordChart,
-  key: arrangement.chordChartKey,
-  layout: arrangement.layout,
-});
+const startFromBrowser = (arrangement: ChordChartArrangement) =>
+  startChordChartSession(
+    versionOf(arrangement),
+    readChordChartSession(arrangement.id)
+  );
 
-interface WorkspaceSession {
-  readonly draft: ChordChartDraft;
-  /** Planning Center's chart when editing began, for Revert all changes. */
-  readonly opening: ChordChartDraft;
-  /** Auto-refresh stopped after a failed save until the next manual one. */
-  readonly paused: boolean;
-  /** The draft came from this browser rather than Planning Center. */
-  readonly restored: boolean;
-  /** The arrangement version the draft started from. */
-  readonly baseUpdatedAt: string | null;
+export interface ChordChartWorkspaceOptions {
+  readonly songId: string;
+  readonly arrangement: ChordChartArrangement;
+  readonly canEdit: boolean;
+  /** Something on screen holds saves, such as copying to a new arrangement. */
+  readonly held: boolean;
 }
 
-/** An unsaved draft from this browser wins over the saved chart it started from. */
-const startSession = (arrangement: ChordChartArrangement): WorkspaceSession => {
-  const stored = readChordChartDraft(arrangement.id);
-  const server = toServerDraft(arrangement);
-  if (stored === null || isSameDraft(stored, server)) {
-    return {
-      draft: server,
-      opening: server,
-      paused: false,
-      restored: false,
-      baseUpdatedAt: arrangement.updatedAt,
-    };
-  }
-  return {
-    draft: { chart: stored.chart, key: stored.key, layout: stored.layout },
-    opening: server,
-    // A restored draft waits for the person to save or discard it.
-    paused: true,
-    restored: true,
-    baseUpdatedAt: stored.baseUpdatedAt,
-  };
-};
-
-const scheduleSave = (save: () => void): (() => void) => {
-  const timeout = window.setTimeout(save, AUTO_REFRESH_DELAY_MS);
-  return () => {
-    window.clearTimeout(timeout);
-  };
-};
-
-const scheduleDraftWrite = (
-  arrangementId: string,
-  draft: ChordChartDraft,
-  dirty: boolean,
-  baseUpdatedAt: string | null
-): (() => void) => {
-  const timeout = window.setTimeout(() => {
-    writeChordChartDraft(
-      arrangementId,
-      dirty ? { ...draft, baseUpdatedAt } : null
-    );
-  }, DRAFT_WRITE_DELAY_MS);
-  return () => {
-    window.clearTimeout(timeout);
-  };
-};
-
 /**
- * One arrangement's editing session: the draft, whether it differs from Planning Center,
- * and saving it back. Services renders only saved charts, so with Auto-refresh on (as in
- * Services' own editor) each pause in typing saves, and the preview renders the result.
- * Unsaved drafts persist in this browser until saved or discarded.
+ * One arrangement's editing session (see `chord-chart-session.ts` for every decision it
+ * makes). Services renders only saved charts, so with Save as you type on, a pause in typing
+ * saves and the preview renders the result. Unsaved edits, and where editing began, stay in
+ * this browser between visits.
  */
-export const useChordChartWorkspace = (
-  songId: string,
-  arrangement: ChordChartArrangement
-) => {
-  const [session, setSession] = useState(() => startSession(arrangement));
-  const { draft, opening, paused, restored, baseUpdatedAt } = session;
-  const [storedAutoRefresh, setStoredAutoRefresh] = useBrowserStorage(
-    AUTO_REFRESH_STORAGE_KEY
+export const useChordChartWorkspace = ({
+  songId,
+  arrangement,
+  canEdit,
+  held,
+}: ChordChartWorkspaceOptions) => {
+  const queryClient = useQueryClient();
+  const fresh = useChordChartSongReadOnOpen(songId);
+  const server = useMemo(() => versionOf(arrangement), [arrangement]);
+  const [session, setSession] = useState<ChordChartSession | null>(() =>
+    fresh ? startFromBrowser(arrangement) : null
   );
-  const autoRefresh = storedAutoRefresh !== AUTO_REFRESH_OFF;
-  const setDraft = (update: (current: ChordChartDraft) => ChordChartDraft) => {
-    setSession((current) => ({ ...current, draft: update(current.draft) }));
+  // Editing starts from a copy read on opening, then keeps up with newer versions.
+  if (session === null) {
+    if (fresh) {
+      setSession(startFromBrowser(arrangement));
+    }
+  } else {
+    const received = receiveChordChartVersion(session, server);
+    if (received !== session) {
+      setSession(received);
+    }
+  }
+  const update = (
+    change: (current: ChordChartSession) => ChordChartSession
+  ) => {
+    setSession((current) => (current === null ? current : change(current)));
   };
-  const serverDraft = useMemo(() => toServerDraft(arrangement), [arrangement]);
-  const dirty = !isSameDraft(draft, serverDraft);
+  const edit = (change: (draft: ChordChartDraft) => ChordChartDraft) => {
+    if (canEdit) {
+      update((current) => editChordChartDraft(current, change));
+    }
+  };
+
+  const [storedSetting, setStoredSetting] = useBrowserStorage(
+    SAVE_AS_YOU_TYPE_STORAGE_KEY
+  );
+  const saveAsYouType = storedSetting !== SAVE_AS_YOU_TYPE_OFF;
   const saveChart = useSaveChordChart(songId);
 
+  useEffect(() => {
+    pruneChordChartDrafts(Date.now());
+  }, []);
+
+  // A viewer's browser keeps nothing, and leaves any draft from before alone.
   useEffect(
-    () => scheduleDraftWrite(arrangement.id, draft, dirty, baseUpdatedAt),
-    [arrangement.id, baseUpdatedAt, dirty, draft]
+    () =>
+      session === null || !canEdit
+        ? undefined
+        : schedule(() => {
+            writeChordChartSession(
+              arrangement.id,
+              storedChordChartSession(session, Date.now())
+            );
+          }, DRAFT_WRITE_DELAY_MS),
+    [arrangement.id, canEdit, session]
   );
 
-  const saveFrom = (base: string | null, target: ChordChartDraft = draft) => {
-    if (isSameDraft(target, serverDraft) || saveChart.isPending) {
+  const loadTheirVersion = async () => {
+    try {
+      const latest = await fetchLatestChordChartArrangement(
+        queryClient,
+        songId,
+        arrangement.id
+      );
+      if (latest !== null) {
+        update((current) => receiveConflictVersion(current, versionOf(latest)));
+      }
+    } catch {
+      toast.error("Planning Center’s latest version didn’t load. Try again.");
+    }
+  };
+
+  // Set before the session shows the save, so a second Save in the same moment sends nothing.
+  const sendingRef = useRef(false);
+  const save = (current: ChordChartSession) => {
+    if (sendingRef.current || !canSaveChordChart(current, canEdit)) {
       return;
     }
-    const pause = () => {
-      setSession((current) => ({ ...current, paused: true }));
-    };
+    sendingRef.current = true;
+    const sent = current.draft;
+    const request = chordChartSaveRequest(current);
+    update((latest) => beginChordChartSave(latest, sent));
     saveChart.mutate(
-      {
-        songId,
-        arrangementId: arrangement.id,
-        chordChart: target.chart,
-        chordChartKey: target.key,
-        layout: changedLayout(target.layout, serverDraft.layout),
-        baseUpdatedAt: base,
-      },
+      { songId, arrangementId: arrangement.id, ...request },
       {
         onSuccess: (saved) => {
-          setSession((current) => ({
-            ...current,
-            paused: false,
-            restored: false,
-            baseUpdatedAt: saved.updatedAt,
-          }));
+          update((latest) => chordChartSaveSucceeded(latest, saved.updatedAt));
         },
         onError: (error) => {
-          pause();
-          if (!isChordChartConflict(error)) {
-            toast.error(chordChartErrorMessage(error));
+          const refusedAsStale = isChordChartConflict(error);
+          update((latest) => chordChartSaveFailed(latest, refusedAsStale));
+          if (refusedAsStale) {
+            void loadTheirVersion();
             return;
           }
-          toast.error(chordChartErrorMessage(error), {
-            action: {
-              label: "Save mine anyway",
-              onClick: () => {
-                saveFrom(null);
-              },
-            },
-          });
+          toast.error(
+            chordChartErrorMessage(
+              error,
+              "Planning Center didn’t save the chart. Try again."
+            )
+          );
+        },
+        onSettled: () => {
+          sendingRef.current = false;
         },
       }
     );
   };
 
-  const autoSave = useEffectEvent((target: ChordChartDraft) => {
-    saveFrom(baseUpdatedAt, target);
+  const autosaving =
+    session !== null &&
+    savesAsYouType(session, { enabled: saveAsYouType, canEdit, held });
+  const draft = session === null || !canEdit ? server.draft : session.draft;
+  const saveAfterPause = useEffectEvent((typed: ChordChartDraft) => {
+    if (session?.draft === typed) {
+      save(session);
+    }
   });
-  const waitingToSave = autoRefresh && !paused && dirty && !saveChart.isPending;
   // Each edit restarts the wait, so the save goes out once typing pauses.
   useEffect(
     () =>
-      waitingToSave
-        ? scheduleSave(() => {
-            autoSave(draft);
-          })
+      autosaving
+        ? schedule(() => {
+            saveAfterPause(draft);
+          }, SAVE_AS_YOU_TYPE_PAUSE_MS)
         : undefined,
-    [waitingToSave, draft]
+    [autosaving, draft]
   );
 
+  const canSave = session !== null && canSaveChordChart(session, canEdit);
   return {
+    /** Planning Center's fresh copy is in and editing can begin. */
+    ready: session !== null,
     draft,
-    dirty,
-    restored: restored && dirty,
-    saving: saveChart.isPending,
-    autoRefresh,
-    /** Auto-refresh is on but stopped after a failed save. */
-    paused: autoRefresh && paused && dirty,
-    /** Something changed in Planning Center since editing began. */
+    status: session === null ? "saved" : chordChartSaveStatus(session),
+    saveAsYouType,
+    canSave,
+    /** Saving waits for the person: the setting is off, paused, or yet to see an edit. */
+    needsSave: canSave && !autosaving,
+    conflict: session?.conflict ?? null,
+    restored:
+      session !== null &&
+      session.restored &&
+      session.conflict === null &&
+      isDirty(session),
     revertable:
-      !isSameDraft(opening, draft) || !isSameDraft(opening, serverDraft),
-    handleAutoRefreshChange: (enabled: boolean) => {
-      setStoredAutoRefresh(enabled ? null : AUTO_REFRESH_OFF);
-    },
-    /** Puts back the chart as it was when editing began; Auto-refresh saves it. */
-    handleRevert: () => {
-      setSession((current) => ({
-        ...current,
-        draft: current.opening,
-        paused: false,
-      }));
+      session !== null && !isSameDraft(session.draft, session.opening),
+    /** This visit already saved changes to the arrangement. */
+    savedChanges:
+      session !== null && !isSameDraft(session.base, session.opening),
+    unsavedChanges: session !== null && isDirty(session),
+    /** What a copy to a new arrangement starts with. */
+    copy: session === null ? null : chordChartCopy(session),
+    handleSaveAsYouTypeChange: (enabled: boolean) => {
+      setStoredSetting(enabled ? null : SAVE_AS_YOU_TYPE_OFF);
     },
     handleSave: () => {
-      saveFrom(baseUpdatedAt);
+      if (session !== null) {
+        save(session);
+      }
     },
     handleChartChange: (chart: string) => {
-      setDraft((current) => ({ ...current, chart }));
+      edit((current) => ({ ...current, chart }));
     },
     handleKeyChange: (key: string | null) => {
-      setDraft((current) => ({ ...current, key }));
+      edit((current) => ({ ...current, key }));
     },
-    handleLayoutChange: (layout: ChordChartDraft["layout"]) => {
-      setDraft((current) => ({ ...current, layout }));
+    handleLayoutChange: (layout: ChordChartLayout) => {
+      edit((current) => ({ ...current, layout }));
     },
-    /** Rewrites the chords into another key and marks the chart as written there. */
     handleTranspose: (keyName: string) => {
-      setDraft((current) => {
-        const from = parseKey(current.key);
-        const to = parseKey(keyName);
-        if (from === null || to === null) {
-          return current;
-        }
-        return {
-          ...current,
-          chart: transposeChordChartText(current.chart, from, to),
-          key: to.name,
-        };
-      });
+      edit((current) => transposeChordChartDraft(current, keyName));
     },
-    handleImport: (result: ChordChartImport, mode: "replace" | "append") => {
-      setDraft((current) => {
-        if (mode === "append") {
-          return {
-            ...current,
-            chart: `${current.chart.trimEnd()}\n\n${result.chart}`,
-          };
-        }
-        return {
-          ...current,
-          chart: result.chart,
-          key: parseKey(result.metadata.key)?.name ?? current.key,
-        };
-      });
+    /** Replacing offers Undo, since it bypasses the text box's own undo history. */
+    handleImport: (text: ChordChartImportText, mode: "replace" | "append") => {
+      if (session === null || !canEdit) {
+        return;
+      }
+      const previous = session.draft;
+      edit((current) => importIntoChordChart(current, text, mode));
+      if (mode === "replace" && previous.chart.trim() !== "") {
+        toast("Chart replaced.", {
+          action: {
+            label: "Undo",
+            onClick: () => {
+              edit(() => previous);
+            },
+          },
+        });
+      }
+    },
+    handleRevert: () => {
+      if (canEdit) {
+        update(revertChordChart);
+      }
     },
     handleDiscard: () => {
-      setSession((current) => ({
-        ...current,
-        draft: serverDraft,
-        paused: false,
-        restored: false,
-        baseUpdatedAt: arrangement.updatedAt,
-      }));
+      update(discardUnsavedChordChart);
+    },
+    handleUseTheirs: () => {
+      update(adoptTheirChordChart);
+    },
+    /** Saves the editor's chart as it is now over their version, still version-checked. */
+    handleKeepMine: () => {
+      if (session === null) {
+        return;
+      }
+      const kept = keepMyChordChart(session);
+      setSession(kept);
+      save(kept);
+    },
+    handleRetryTheirs: () => {
+      void loadTheirVersion();
+    },
+    /**
+     * After copying to a new arrangement: unsaved edits went there, so this one forgets them,
+     * but keeps where editing began, so its own saved changes can still be reverted.
+     */
+    handleCopied: () => {
+      if (session === null) {
+        return;
+      }
+      const kept = discardUnsavedChordChart(session);
+      setSession(kept);
+      writeChordChartSession(
+        arrangement.id,
+        storedChordChartSession(kept, Date.now())
+      );
     },
   };
 };

@@ -23,7 +23,8 @@ Services renders every chart PDF itself, and the API exposes them as virtual att
 - `GET /songs/{song}/arrangements/{arrangement}/keys/{key}/attachments` lists `chord_chart-{keyId}--` (`pco_type` `AttachmentChart::Chord`), one per arrangement key (plus alternate keys).
 - `GET /songs/{song}/arrangements/{arrangement}/attachments` lists `lyric_chart-{arrangementId}` (`AttachmentChart::Lyric`).
 - `POST …/attachments/{id}/open` returns an `AttachmentActivity` whose `attachment_url` is a short-lived link to the PDF. Opening logs a view; it changes nothing.
-- Services renders only the saved chart. Its own editor saves as you type ("Auto-refresh", "Revert All Changes"), so the Songs editor does the same: with Auto-refresh on, a pause in typing saves, and the preview draws Services' PDF of the result with pdf.js. Keys the arrangement lacks, and number or numeral charts not enabled on it, return 404.
+- Services renders only the saved chart. Its own editor saves as you type ("Auto-refresh", "Revert All Changes"), so the Songs editor does the same: with Save as you type on (the default), a two-second pause after an edit saves, and the preview draws Services' PDF of the result with pdf.js. Each save costs about three Planning Center requests (a version check, the `PATCH`, and the PDF's `open`). Keys the arrangement lacks, and number or numeral charts not enabled on it, return 404.
+- Every save names the `updated_at` it builds on, and the API refuses it once Services holds a newer one. The editor then shows both choices (use theirs, or keep mine over theirs) instead of overwriting; a newer version with no unsaved edits replaces the editor's copy silently. Unsaved edits, and the chart as it was before editing (for Revert), stay in the browser for 14 days and are cleared when switching accounts. The rules live in `apps/web/src/lib/chord-chart-session.ts`.
 
 ## Text format ("special codes")
 

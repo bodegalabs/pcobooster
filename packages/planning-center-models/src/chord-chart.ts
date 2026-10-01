@@ -51,6 +51,7 @@ const PLAIN_TEXT_TAG_PATTERN = /<t>/iu;
 const CHORD_LINE_SYMBOL_PATTERN =
   /^(?:\||\|\||\/|-|\u2013|%|\.|:|\(|\)|[x×]\d+|\(?[x×]\d+\)?|N\.?C\.?|\(\S*\))$/iu;
 const WHITESPACE_TOKEN_PATTERN = /\S+/gu;
+const TRAILING_WHITESPACE_PATTERN = /\s*$/u;
 
 export const COLUMN_BREAK = "COLUMN_BREAK";
 export const PAGE_BREAK = "PAGE_BREAK";
@@ -75,7 +76,10 @@ export const isChordLine = (line: string): boolean => {
   return chords > 0;
 };
 
-/** Transposes a chord line, keeping each chord over the lyric column it started on. */
+/**
+ * Transposes a chord line, keeping each chord over the lyric column it started on. Trailing
+ * spaces and a Windows `\r` stay as they were, so only the chords change.
+ */
 const transposeChordLine = (
   line: string,
   semitones: number,
@@ -86,7 +90,8 @@ const transposeChordLine = (
     const column = Math.max(match.index, result.length + (result ? 1 : 0));
     result = `${result.padEnd(column)}${transposeChordText(match[0], semitones, to)}`;
   }
-  return result;
+  const trailing = TRAILING_WHITESPACE_PATTERN.exec(line)?.[0] ?? "";
+  return `${result}${trailing}`;
 };
 
 /** The chart's written key moved to another key: rewrites the chords in the text itself. */

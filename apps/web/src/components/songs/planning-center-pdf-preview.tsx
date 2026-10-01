@@ -102,7 +102,7 @@ const usePdfPages = (data: string | undefined) => {
 export interface PlanningCenterPdfPreviewProps {
   songId: string;
   arrangement: ChordChartArrangement;
-  /** Shown beside the chart picker, such as Auto-refresh and Formatting. */
+  /** Shown beside the chart picker, such as Formatting. */
   actions: ReactNode;
   /** A line about unsaved edits, shown above the pages. */
   status: ReactNode;
@@ -165,7 +165,10 @@ export const PlanningCenterPdfPreview = ({
         {pdf.isError ? (
           <div className="flex flex-col items-start gap-2 p-2">
             <p className="text-muted-foreground text-sm">
-              {chordChartErrorMessage(pdf.error)}
+              {chordChartErrorMessage(
+                pdf.error,
+                "Planning Center’s preview didn’t load."
+              )}
             </p>
             <Button
               variant="outline"

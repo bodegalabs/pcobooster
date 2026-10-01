@@ -38,7 +38,7 @@ const resultDetails = (result: LyricsSearchResult): string =>
     .join(" · ");
 
 export interface LyricsSearchPanelProps {
-  active: boolean;
+  /** Fills the search box; nothing is searched until the person submits. */
   initialQuery: string;
   selectedId: string | null;
   onSelect: (result: LyricsSearchResult) => void;
@@ -46,14 +46,13 @@ export interface LyricsSearchPanelProps {
 
 /** Finds a song's lyrics on the web (LRCLIB) so a chart can start from them. */
 export const LyricsSearchPanel = ({
-  active,
   initialQuery,
   selectedId,
   onSelect,
 }: LyricsSearchPanelProps) => {
   const [query, setQuery] = useState(initialQuery);
-  const [submitted, setSubmitted] = useState(initialQuery);
-  const search = useLyricsSearch(submitted, active);
+  const [submitted, setSubmitted] = useState("");
+  const search = useLyricsSearch(submitted);
   const results = search.data ?? [];
 
   return (
@@ -96,9 +95,17 @@ export const LyricsSearchPanel = ({
               <Skeleton key={row} variant="control" className="h-14 w-full" />
             ))
           : null}
+        {submitted === "" ? (
+          <p className="text-muted-foreground p-2 text-sm">
+            Search to find this song’s lyrics and start the chart from them.
+          </p>
+        ) : null}
         {search.isError ? (
           <p className="text-muted-foreground p-2 text-sm">
-            {chordChartErrorMessage(search.error)}
+            {chordChartErrorMessage(
+              search.error,
+              "The lyrics search didn’t answer. Try again."
+            )}
           </p>
         ) : null}
         {search.isSuccess && results.length === 0 ? (

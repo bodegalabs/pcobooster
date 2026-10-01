@@ -87,12 +87,14 @@ const pick = <Value extends string | number>(
 
 export interface ChordChartLayoutPopoverProps {
   layout: ChordChartLayout;
+  disabled: boolean;
   onChange: (layout: ChordChartLayout) => void;
 }
 
 /** The chart's Formatting settings in Services; they save with the chart. */
 export const ChordChartLayoutPopover = ({
   layout,
+  disabled,
   onChange,
 }: ChordChartLayoutPopoverProps) => {
   const update = (change: Partial<ChordChartLayout>) => {
@@ -103,7 +105,12 @@ export const ChordChartLayoutPopover = ({
     <Popover>
       <PopoverTrigger
         render={
-          <Button variant="outline" size="sm" aria-label="Chart formatting" />
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={disabled}
+            aria-label="Chart formatting"
+          />
         }
       >
         <Settings2 aria-hidden />
