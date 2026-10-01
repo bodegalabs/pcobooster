@@ -32,7 +32,7 @@ export interface ServingRhythm {
   upcomingDays30: number;
   /** Median days between served days in the last 180; null with too few. */
   typicalGapDays: number | null;
-  /** Schedules dated in the last 180 days or later, declined included. */
+  /** Schedules dated in the last 180 days through today, declined included. */
   requests180: number;
   declined180: number;
   /** Upcoming schedules still unconfirmed. */

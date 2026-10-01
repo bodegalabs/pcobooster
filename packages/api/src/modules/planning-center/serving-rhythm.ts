@@ -55,7 +55,8 @@ const median = (values: readonly number[]) => {
  * How a person has been serving and responding, on org calendar days. Served
  * days are distinct past service days (rehearsals excluded) from schedules the
  * person did not decline; the typical gap is the median gap between them.
- * Requests and declines count schedules dated in the history window or later.
+ * Requests and declines look back only: schedules dated in the history window,
+ * through today.
  */
 export const buildServingRhythm = (
   schedules: readonly RhythmSchedule[],
@@ -78,7 +79,8 @@ export const buildServingRhythm = (
 
   for (const schedule of schedules) {
     const scheduleDaysAgo = daysAgo(schedule.sortDate);
-    const inWindow = scheduleDaysAgo <= RHYTHM_HISTORY_DAYS;
+    const inWindow =
+      scheduleDaysAgo >= 0 && scheduleDaysAgo <= RHYTHM_HISTORY_DAYS;
     if (inWindow) {
       requests += 1;
     }

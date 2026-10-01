@@ -394,7 +394,8 @@ describe(getPeopleDashboardActivity, () => {
       servedDays180: 3,
       upcomingDays30: 1,
       typicalGapDays: 53,
-      requests180: 5,
+      // The upcoming request has not come round yet.
+      requests180: 4,
       declined180: 1,
       pendingUpcoming: 1,
       nextPendingOn: "2026-06-07",

@@ -236,7 +236,7 @@ export const servingRhythmSchema = z.object({
   upcomingDays30: z.number(),
   /** Median days between served days in the last 180; null with too few. */
   typicalGapDays: z.number().nullable(),
-  /** Schedules dated in the last 180 days or later, declined included. */
+  /** Schedules dated in the last 180 days through today, declined included. */
   requests180: z.number(),
   declined180: z.number(),
   /** Upcoming schedules still unconfirmed. */
