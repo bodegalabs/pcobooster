@@ -4,4 +4,4 @@ export const LineupView = ({
   onOpenPosition,
 }: {
   onOpenPosition: (positionId: string) => void;
-}) => <TeamRoster layout="grid" onSelect={onOpenPosition} />;
+}) => <TeamRoster layout="row" onSelect={onOpenPosition} />;

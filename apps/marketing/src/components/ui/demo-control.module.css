@@ -56,11 +56,14 @@
   padding: 6px 14px;
   background: color-mix(in oklab, var(--muted) 40%, transparent);
 }
-.button[data-variant="roster-icon"] {
-  justify-content: center;
-  width: 36px;
-  min-height: 44px;
+.button[data-variant="roster-position"] {
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  padding: 4px 6px;
   border-radius: calc(var(--radius) - 2px);
+  font-size: 13px;
+  font-weight: 500;
 }
 .button[data-variant="roster-row"] {
   gap: 8px;
@@ -136,7 +139,7 @@
   .button[data-variant="status"]:hover {
     background: var(--muted);
   }
-  .button[data-variant="roster-icon"]:hover,
+  .button[data-variant="roster-position"]:hover,
   .button[data-variant="roster-row"]:hover {
     background: color-mix(in oklab, var(--muted) 60%, transparent);
   }

@@ -17,10 +17,10 @@ import type { DemoPosition, DemoTeam } from "./fixtures";
 import styles from "./product-demo.module.css";
 
 /**
- * The product's team roster: `grid` lays teams out in columns (Lineup),
- * `stack` puts them in one column (Assign's position list).
+ * The product's team roster: `row` lays teams side by side in one row that
+ * scrolls sideways (Lineup), `stack` puts them in one column (Assign's list).
  */
-export type TeamRosterLayout = "grid" | "stack";
+export type TeamRosterLayout = "row" | "stack";
 
 const PositionRows = ({
   team,
@@ -40,9 +40,6 @@ const PositionRows = ({
   const select = () => {
     onSelect(position.id);
   };
-  const positionName = (
-    <span className={styles["roster-position-name"]}>{position.name}</span>
-  );
 
   return (
     <li
@@ -51,14 +48,17 @@ const PositionRows = ({
       aria-current={active || undefined}
     >
       <DemoButton
-        variant="roster-icon"
+        variant="roster-position"
         aria-label={`${position.name}, ${team.name}`}
         onClick={select}
       >
         <PositionGlyph icon={position.icon} />
+        <span className={`${styles.truncate} ${styles.grow}`}>
+          {position.name}
+        </span>
       </DemoButton>
       <ul className={styles["roster-people"]}>
-        {slots.map((slot, index) => {
+        {slots.map((slot) => {
           const person = findPerson(slot.personId);
           if (person === undefined) {
             return null;
@@ -75,7 +75,6 @@ const PositionRows = ({
                   <StatusDot tone={slot.status} />
                 </span>
                 <span className={styles.truncate}>{fullName(person)}</span>
-                {index === 0 ? positionName : null}
               </DemoButton>
             </li>
           );
@@ -93,7 +92,6 @@ const PositionRows = ({
               <span className={styles["open-label"]}>
                 {open === 1 ? "Open" : `${open} open`}
               </span>
-              {slots.length === 0 ? positionName : null}
             </DemoButton>
           </li>
         ) : null}
@@ -159,7 +157,7 @@ const TeamPanel = ({
   );
 };
 
-/** Every team's roster: each position beside the people on it. */
+/** Every team's roster: each position, then the people on it. */
 export const TeamRoster = ({
   layout,
   selectedId,

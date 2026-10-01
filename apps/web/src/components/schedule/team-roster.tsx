@@ -9,7 +9,7 @@ import {
 } from "@dnd-kit/core";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import {
-  rectSortingStrategy,
+  horizontalListSortingStrategy,
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
@@ -24,17 +24,14 @@ import type {
 import {
   CalendarDays,
   ChevronDown,
+  ChevronRight,
   GripVertical,
   Mail,
   Plus,
   UserPlus,
 } from "lucide-react";
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
-import type {
-  CSSProperties,
-  ReactNode,
-  SubmitEvent as ReactSubmitEvent,
-} from "react";
+import type { CSSProperties, SubmitEvent as ReactSubmitEvent } from "react";
 
 import { AvatarStatus } from "@/components/schedule/avatar-status";
 import {
@@ -89,10 +86,10 @@ import { getSchedulingNotificationState } from "@/lib/schedule/scheduling-notifi
 import { cn } from "@/lib/utils";
 
 /**
- * `grid` lays teams out in as many columns as fit (Lineup); `stack` puts them
- * in one column (Assign's position list).
+ * `row` lays teams side by side in one row that scrolls sideways (Lineup);
+ * `stack` puts them in one column (Assign's position list, and phones).
  */
-export type TeamRosterLayout = "grid" | "stack";
+export type TeamRosterLayout = "row" | "stack";
 
 type AddPosition = (
   team: { teamId: string; teamName: string },
@@ -123,21 +120,21 @@ interface RosterContext {
 }
 
 const layoutClassNames = {
-  /** Teams fill the width in as many columns as fit; phones get one. */
-  grid: "grid grid-cols-[repeat(auto-fill,minmax(min(20rem,100%),1fr))] items-start gap-3 pt-1",
+  /** A sideways row of tall columns is hard to use on a phone, so phones stack them. */
+  row: "flex flex-col gap-3 pt-1 md:flex-row md:items-start md:*:w-80 md:*:shrink-0",
   stack: "flex flex-col gap-3",
 } satisfies Record<TeamRosterLayout, string>;
 const teamPanelClassName =
   "bg-background text-foreground shadow-xs ring-foreground/5 dark:ring-foreground/10 flex flex-col rounded-xl ring-1";
 const teamHeaderClassName =
   "group/team-header bg-muted/40 flex items-stretch gap-0.5 rounded-t-xl px-1.5 py-1.5 [[data-state=closed]>&]:rounded-b-xl";
-/** Positions on the left, their people on the right, so a team reads as one roster. */
-const rosterGridClassName =
-  "border-border/60 divide-border/60 grid grid-cols-[auto_minmax(0,1fr)] divide-y border-t";
+const rosterClassName =
+  "border-border/60 divide-border/60 flex flex-col divide-y border-t";
 const rosterPositionClassName =
-  "col-span-2 grid grid-cols-subgrid items-start gap-x-1 px-1.5 py-1.5 last:rounded-b-xl data-active:bg-muted";
-/** Person and open-seat rows share one height so a position's rows line up with its icon. */
-const rosterRowClassName = "min-h-11";
+  "flex flex-col px-1.5 py-1.5 last:rounded-b-xl data-active:bg-muted";
+/** People sit under the position's name, past its icon. */
+const rosterPeopleClassName = "flex min-w-0 flex-col pl-6";
+const rosterRowClassName = "min-h-10";
 
 const getStatusDotStatus = (
   person: FilledPositionPerson
@@ -170,11 +167,9 @@ const describeOtherAssignments = (assignments: readonly PlanAssignment[]) =>
 const PersonRowContent = ({
   person,
   otherAssignments,
-  positionLabel,
 }: {
   person: FilledPositionPerson;
   otherAssignments: readonly PlanAssignment[];
-  positionLabel: ReactNode;
 }) => {
   const status = getStatusDotStatus(person);
   const avatar = (
@@ -211,7 +206,6 @@ const PersonRowContent = ({
         {person.name}
       </span>
       {isUnsent(person) ? <UnsentNotificationMark /> : null}
-      {positionLabel}
     </>
   );
 };
@@ -234,13 +228,11 @@ const EditablePersonRow = ({
   context,
   person,
   otherAssignments,
-  positionLabel,
   slot,
 }: {
   context: RosterContext;
   person: FilledPositionPerson;
   otherAssignments: readonly PlanAssignment[];
-  positionLabel: ReactNode;
   slot: SlotRef;
 }) => {
   const [editOpen, setEditOpen] = useState(false);
@@ -263,11 +255,7 @@ const EditablePersonRow = ({
           setEditOpen(true);
         }}
       >
-        <PersonRowContent
-          person={person}
-          otherAssignments={otherAssignments}
-          positionLabel={positionLabel}
-        />
+        <PersonRowContent person={person} otherAssignments={otherAssignments} />
       </Item>
       <PlanPersonEditDialog
         person={person}
@@ -285,24 +273,6 @@ const EditablePersonRow = ({
     </>
   );
 };
-
-/** The position's name at the end of its first row; the icon column carries the rest. */
-const TrailingPositionName = ({
-  name,
-  isTemporary,
-}: {
-  name: string;
-  isTemporary: boolean;
-}) => (
-  <span
-    className={cn(
-      "text-muted-foreground ml-auto max-w-[45%] shrink-0 truncate text-xs",
-      isTemporary && "italic"
-    )}
-  >
-    {name}
-  </span>
-);
 
 const PositionRows = ({
   context,
@@ -355,35 +325,34 @@ const PositionRows = ({
       data-active={active || undefined}
       aria-current={active || undefined}
     >
-      <HoverLabel
-        label={selectLabel}
-        side="left"
+      <Item
+        size="row"
+        className="min-h-9"
         render={
-          <Item
-            size="row"
-            className={cn(rosterRowClassName, "w-9 justify-center")}
-            render={
-              <button type="button" aria-label={selectLabel} {...selectProps} />
-            }
-          />
+          <button type="button" aria-label={selectLabel} {...selectProps} />
         }
       >
         <PositionPickerIcon positionName={position.name} teamName={teamName} />
-      </HoverLabel>
-      <ul className="flex min-w-0 flex-col">
-        {people.map((person, index) => {
+        <span
+          className={cn(
+            "min-w-0 flex-1 truncate text-sm font-medium",
+            isTemporaryPosition && "italic"
+          )}
+        >
+          {position.name}
+        </span>
+        <ChevronRight
+          className="text-muted-foreground size-3.5 shrink-0 opacity-0 group-hover/item:opacity-60 group-focus-visible/item:opacity-60"
+          aria-hidden
+        />
+      </Item>
+      <ul className={rosterPeopleClassName}>
+        {people.map((person) => {
           const otherAssignments = otherPlanAssignments(
             context.assignments,
             person,
             { teamId, positionId: position.id }
           );
-          const positionLabel =
-            index === 0 ? (
-              <TrailingPositionName
-                name={position.name}
-                isTemporary={isTemporaryPosition}
-              />
-            ) : null;
           return (
             <li key={`${person.id}-${person.rawStatus}`}>
               {context.personAction === "edit" ? (
@@ -391,7 +360,6 @@ const PositionRows = ({
                   context={context}
                   person={person}
                   otherAssignments={otherAssignments}
-                  positionLabel={positionLabel}
                   slot={slot}
                 />
               ) : (
@@ -412,7 +380,6 @@ const PositionRows = ({
                   <PersonRowContent
                     person={person}
                     otherAssignments={otherAssignments}
-                    positionLabel={positionLabel}
                   />
                 </Item>
               )}
@@ -458,12 +425,6 @@ const PositionRows = ({
                 {openCount === 1 ? "Open" : null}
                 {openCount === 0 ? "No one yet" : null}
               </span>
-              {people.length === 0 ? (
-                <TrailingPositionName
-                  name={position.name}
-                  isTemporary={isTemporaryPosition}
-                />
-              ) : null}
             </Item>
           </li>
         ) : null}
@@ -510,7 +471,7 @@ const AddPositionRow = ({
   };
 
   return (
-    <li className="col-span-2 px-1.5 py-1 last:rounded-b-xl">
+    <li className="px-1.5 py-1 last:rounded-b-xl">
       <ResponsivePopover open={open} onOpenChange={setOpen}>
         <ResponsivePopoverTrigger
           render={
@@ -526,9 +487,7 @@ const AddPositionRow = ({
             />
           }
         >
-          <span className="flex w-9 shrink-0 justify-center">
-            <Plus className="size-3.5" aria-hidden />
-          </span>
+          <Plus className="size-4" aria-hidden />
           <span className="text-xs">Add position</span>
         </ResponsivePopoverTrigger>
         <ResponsivePopoverContent
@@ -666,12 +625,12 @@ const TeamPanel = ({
           </CollapsibleTrigger>
         </div>
         {selectedWhileCollapsed ? (
-          <ul className={rosterGridClassName}>
+          <ul className={rosterClassName}>
             {renderPosition(selectedWhileCollapsed)}
           </ul>
         ) : null}
         <CollapsibleContent>
-          <ul className={rosterGridClassName}>
+          <ul className={rosterClassName}>
             {group.positions.map(renderPosition)}
             {handleAddPosition ? (
               <AddPositionRow
@@ -767,30 +726,29 @@ export const TeamRosterSkeleton = ({
           {team.positions.map((people, positionIndex) => (
             <div
               key={`${team.key}-${positionIndex}`}
-              className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-1 px-1.5 py-1.5"
+              className="flex flex-col px-1.5 py-1.5"
             >
-              <div className="flex h-11 items-center justify-center">
+              <div className="flex h-9 items-center gap-2 px-1.5">
                 <Skeleton variant="text" className="size-4" />
+                <Skeleton variant="text" className="h-3 w-20" />
               </div>
-              <div className="flex flex-col">
-                {Array.from({ length: people }, (_, personIndex) => (
-                  <div
-                    key={personIndex}
-                    className="flex h-11 items-center gap-2 px-1.5"
-                  >
-                    <Skeleton variant="round" className="size-8" />
-                    <Skeleton
-                      variant="text"
-                      className="h-3"
-                      width={
-                        skeletonWidths[
-                          (positionIndex + personIndex) % skeletonWidths.length
-                        ]
-                      }
-                    />
-                  </div>
-                ))}
-              </div>
+              {Array.from({ length: people }, (_, personIndex) => (
+                <div
+                  key={personIndex}
+                  className="flex h-10 items-center gap-2 pl-7.5"
+                >
+                  <Skeleton variant="round" className="size-8" />
+                  <Skeleton
+                    variant="text"
+                    className="h-3"
+                    width={
+                      skeletonWidths[
+                        (positionIndex + personIndex) % skeletonWidths.length
+                      ]
+                    }
+                  />
+                </div>
+              ))}
             </div>
           ))}
         </div>
@@ -821,7 +779,7 @@ interface TeamRosterProps {
 
 const NO_PLAN_TIMES: PlanTime[] = [];
 
-/** A plan's teams as rosters: each position beside the people on it. */
+/** A plan's teams as rosters: each position, then the people on it. */
 export const TeamRoster = ({
   layout,
   groups,
@@ -961,8 +919,8 @@ export const TeamRoster = ({
         <SortableContext
           items={orderedGroups.map((group) => group.teamId)}
           strategy={
-            layout === "grid"
-              ? rectSortingStrategy
+            layout === "row"
+              ? horizontalListSortingStrategy
               : verticalListSortingStrategy
           }
         >

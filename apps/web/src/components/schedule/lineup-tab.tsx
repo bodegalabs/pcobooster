@@ -30,16 +30,16 @@ interface LineupTabProps {
 
 /** The lineup's team panels before anything loads. */
 export const LineupTabSkeleton = () => (
-  <PageScrollArea>
-    <TeamRosterSkeleton layout="grid" />
+  <PageScrollArea axis="both">
+    <TeamRosterSkeleton layout="row" />
   </PageScrollArea>
 );
 
-/** Every team's roster at once, in as many columns as fit. */
+/** Every team's roster at once, side by side in one row that scrolls sideways. */
 export const LineupTab = (props: LineupTabProps) => (
-  <PageScrollArea>
+  <PageScrollArea axis="both">
     <div className="pb-safe-4">
-      <TeamRoster layout="grid" personAction="edit" {...props} />
+      <TeamRoster layout="row" personAction="edit" {...props} />
     </div>
   </PageScrollArea>
 );

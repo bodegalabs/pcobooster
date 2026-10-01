@@ -10,7 +10,7 @@ export type DemoButtonVariant =
   | "nav"
   | "tab"
   | "team-header"
-  | "roster-icon"
+  | "roster-position"
   | "roster-row"
   | "row"
   | "icon"
