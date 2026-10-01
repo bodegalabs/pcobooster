@@ -20,6 +20,9 @@ import {
 } from "@/hooks/use-chord-chart-song";
 import type { ChordChartDraft } from "@/lib/chord-chart-draft";
 
+const CREATE_FAILED =
+  "Planning Center didn’t create the arrangement. Try again.";
+
 export interface ChordChartCreateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -61,7 +64,7 @@ export const ChordChartCreateDialog = ({
           onCreated(arrangement);
         },
         onError: (error) => {
-          toast.error(chordChartErrorMessage(error));
+          toast.error(chordChartErrorMessage(error, CREATE_FAILED));
         },
       }
     );

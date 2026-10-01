@@ -52,11 +52,12 @@ const replaceArrangement = (
 export const isChordChartConflict = (error: Error): boolean =>
   error instanceof ORPCError && error.code === "CONFLICT";
 
-/** The API's safe message, or a generic one for network and unexpected failures. */
-export const chordChartErrorMessage = (error: Error): string =>
-  error instanceof ORPCError && error.message !== ""
-    ? error.message
-    : "Planning Center did not save the chart. Try again.";
+/** The API's safe message, or `fallback` for network and unexpected failures. */
+export const chordChartErrorMessage = (
+  error: Error,
+  fallback: string
+): string =>
+  error instanceof ORPCError && error.message !== "" ? error.message : fallback;
 
 export const useSaveChordChart = (songId: string) => {
   const queryClient = useQueryClient();
@@ -86,13 +87,20 @@ export const useCreateChordChart = (songId: string) => {
   });
 };
 
-/** Lyrics searches reach an outside service, so they run only on submit and stay cached. */
-export const useLyricsSearch = (query: string, enabled: boolean) =>
+/**
+ * Lyrics searches reach an outside service, so one runs only for a submitted query (an empty
+ * one runs nothing) and its answer stays cached.
+ */
+export const useLyricsSearch = (query: string) =>
   useQuery<LyricsSearchResult[]>({
     queryKey: queryKeys.lyricsSearch(query),
-    queryFn: async ({ signal }: QueryFunctionContext) =>
-      await orpc.chordCharts.lyricsSearch({ query }, { signal }),
-    enabled: enabled && query.length >= 2,
+    queryFn: async (context: QueryFunctionContext) =>
+      await callForQuery(
+        context,
+        async (options) =>
+          await orpc.chordCharts.lyricsSearch({ query }, options)
+      ),
+    enabled: query.length >= 2,
     staleTime: 60 * 60 * 1000,
     retry: false,
   });
@@ -129,14 +137,18 @@ export const useChordChartPdf = (target: ChordChartPdfTarget) =>
       target.keyId,
       target.updatedAt
     ),
-    queryFn: async ({ signal }: QueryFunctionContext) =>
-      await orpc.chordCharts.pdf(
-        {
-          songId: target.songId,
-          arrangementId: target.arrangementId,
-          keyId: target.keyId ?? undefined,
-        },
-        { signal }
+    queryFn: async (context: QueryFunctionContext) =>
+      await callForQuery(
+        context,
+        async (options) =>
+          await orpc.chordCharts.pdf(
+            {
+              songId: target.songId,
+              arrangementId: target.arrangementId,
+              keyId: target.keyId ?? undefined,
+            },
+            options
+          )
       ),
     staleTime: Number.POSITIVE_INFINITY,
     // The last render stays up while the next save renders.

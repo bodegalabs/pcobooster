@@ -194,7 +194,6 @@ export const ChordChartImportDialog = ({
           </Tabs>
           {state.tab === "search" ? (
             <LyricsSearchPanel
-              active={open}
               initialQuery={lyricsSearchQueryFor(song.title, song.author)}
               selectedId={state.found?.id ?? null}
               onSelect={(found) => {

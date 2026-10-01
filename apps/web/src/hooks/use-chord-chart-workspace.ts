@@ -26,6 +26,7 @@ const DRAFT_WRITE_DELAY_MS = 400;
 const AUTO_REFRESH_DELAY_MS = 1200;
 const AUTO_REFRESH_STORAGE_KEY = "pcobooster:chord-chart-auto-refresh";
 const AUTO_REFRESH_OFF = "off";
+const SAVE_FAILED = "Planning Center didn’t save the chart. Try again.";
 
 const LAYOUT_FIELDS = [
   "font",
@@ -174,10 +175,10 @@ export const useChordChartWorkspace = (
         onError: (error) => {
           pause();
           if (!isChordChartConflict(error)) {
-            toast.error(chordChartErrorMessage(error));
+            toast.error(chordChartErrorMessage(error, SAVE_FAILED));
             return;
           }
-          toast.error(chordChartErrorMessage(error), {
+          toast.error(chordChartErrorMessage(error, SAVE_FAILED), {
             action: {
               label: "Save mine anyway",
               onClick: () => {

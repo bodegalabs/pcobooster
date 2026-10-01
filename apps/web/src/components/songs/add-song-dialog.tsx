@@ -173,7 +173,12 @@ export const AddSongDialog = ({
           });
         },
         onError: (error) => {
-          toast.error(chordChartErrorMessage(error));
+          toast.error(
+            chordChartErrorMessage(
+              error,
+              "Planning Center didn’t add the song. Try again."
+            )
+          );
         },
       }
     );
