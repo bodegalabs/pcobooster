@@ -11,13 +11,13 @@ import { CandidateListProgress } from "@/components/schedule/candidate-list-prog
 import { NeededSlotsStepper } from "@/components/schedule/needed-slots-stepper";
 import { PlanPersonStatusMenu } from "@/components/schedule/plan-person-status-menu";
 import type { PlanPersonStatusValue } from "@/components/schedule/plan-person-status-menu";
-import { PositionPickerList } from "@/components/schedule/position-picker-list";
 import { ScheduleCandidateTile } from "@/components/schedule/schedule-candidate-tile";
 import { CandidateListSkeleton } from "@/components/schedule/schedule-skeletons";
 import { UnsentNotificationMark } from "@/components/schedule/scheduling-notification-mark";
 import { SectionLabel } from "@/components/schedule/section-label";
 import { SelectedPositionHeader } from "@/components/schedule/selected-position-header";
 import { SomeoneElseRow } from "@/components/schedule/someone-else-row";
+import { TeamRoster } from "@/components/schedule/team-roster";
 import type { SlotRef } from "@/components/schedule/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -28,6 +28,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { ItemList } from "@/components/ui/item";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import type { PositionCandidateList } from "@/hooks/use-position-candidates";
@@ -412,27 +413,42 @@ const ScheduleViewContent = ({
   const filteredCandidates = useNameFilter(candidates, deferredFilter);
   const filteredExceptions = useNameFilter(exceptions, deferredFilter);
 
-  const positionPickerList = (
-    <PositionPickerList
-      teamPositionsLoading={teamPositionsLoading}
-      teamPositionGroups={teamPositionGroups}
-      collapsedTeams={collapsedTeams}
-      selectedTeam={selectedTeam}
-      selectedPosition={selectedPosition}
-      onToggleTeam={onToggleTeam}
-      onSelect={handleSelectSlot}
-      getSlotIntentProps={getSlotIntentProps}
-      onAddPosition={onAddPosition}
-    />
+  const positionList = ({
+    reorderable = false,
+    clearSafeArea = false,
+  }: {
+    reorderable?: boolean;
+    /** Pad the end so the last rows scroll clear of the floating phone tab bar. */
+    clearSafeArea?: boolean;
+  } = {}) => (
+    <ScrollArea className="min-h-0 flex-1">
+      <div className={cn("p-px pb-1", clearSafeArea && "pb-safe-4 md:pb-1")}>
+        <TeamRoster
+          layout="stack"
+          personAction="select"
+          groups={teamPositionGroups ?? []}
+          isLoading={teamPositionsLoading}
+          serviceTypeId={selectedServiceTypeId}
+          planId={selectedPlanId}
+          collapsedTeams={collapsedTeams}
+          onToggleTeam={onToggleTeam}
+          selected={{ teamId: selectedTeam, positionId: selectedPosition }}
+          onSelectPosition={handleSelectSlot}
+          getSlotIntentProps={getSlotIntentProps}
+          onAddPosition={onAddPosition}
+          reorderable={reorderable}
+        />
+      </div>
+    </ScrollArea>
   );
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col gap-3 sm:gap-4 lg:h-full lg:flex-row">
       <aside
-        className="border-sidebar-border/40 bg-sidebar/60 text-sidebar-foreground hidden min-h-0 w-[min(18rem,28vw)] shrink-0 flex-col overflow-hidden rounded-xl border lg:flex lg:h-full lg:max-h-full lg:self-stretch"
+        className="hidden min-h-0 w-[min(22rem,34vw)] shrink-0 flex-col lg:flex lg:h-full lg:max-h-full lg:self-stretch"
         aria-label="Positions"
       >
-        {positionPickerList}
+        {positionList({ reorderable: true })}
       </aside>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 sm:gap-4 lg:h-full">
@@ -493,20 +509,9 @@ const ScheduleViewContent = ({
           <>
             <section
               aria-label="Positions"
-              className="border-sidebar-border/40 bg-sidebar/60 text-sidebar-foreground flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border max-md:-mx-4 max-md:rounded-b-none max-md:border-x-0 max-md:border-b-0 lg:hidden"
+              className="flex min-h-0 flex-1 flex-col lg:hidden"
             >
-              <PositionPickerList
-                teamPositionsLoading={teamPositionsLoading}
-                teamPositionGroups={teamPositionGroups}
-                collapsedTeams={collapsedTeams}
-                selectedTeam={selectedTeam}
-                selectedPosition={selectedPosition}
-                onToggleTeam={onToggleTeam}
-                onSelect={handleSelectSlot}
-                getSlotIntentProps={getSlotIntentProps}
-                onAddPosition={onAddPosition}
-                clearSafeArea
-              />
+              {positionList({ clearSafeArea: true })}
             </section>
             {/* Wide layouts open the first position as soon as positions load. */}
             <div className="max-lg:hidden">
@@ -528,8 +533,8 @@ const ScheduleViewContent = ({
               Choose a team position for this plan.
             </DrawerDescription>
           </DrawerHeader>
-          <div className="flex min-h-0 flex-1 flex-col">
-            {positionPickerList}
+          <div className="flex min-h-0 flex-1 flex-col px-4">
+            {positionList()}
           </div>
         </DrawerContent>
       </Drawer>

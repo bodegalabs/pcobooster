@@ -1,11 +1,4 @@
-import {
-  CalendarPlus,
-  ChevronDown,
-  ChevronRight,
-  Info,
-  Loader2,
-  Search,
-} from "lucide-react";
+import { CalendarPlus, Info, Loader2, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { DemoButton, DemoSearchInput } from "../ui/demo-control";
@@ -16,12 +9,10 @@ import {
   fullName,
   removeAssignment,
   setAssignmentStatus,
-  slotSummary,
-  teamOpenCount,
   useAssignments,
   weeksAgoLabel,
 } from "./demo-model";
-import type { Assignments, Candidate } from "./demo-model";
+import type { Candidate } from "./demo-model";
 import {
   Avatar,
   Panel,
@@ -31,121 +22,38 @@ import {
   useDismiss,
 } from "./demo-parts";
 import { plan, teams } from "./fixtures";
-import type { DemoPosition, DemoTeam } from "./fixtures";
+import { TeamRoster } from "./team-roster";
 
 import styles from "./product-demo.module.css";
 
 const ADDING_DELAY_MS = 450;
 
-const SlotCount = ({
-  position,
-  assignments,
-}: {
-  position: DemoPosition;
-  assignments: Assignments;
-}) => {
-  const { filled, open, pending } = slotSummary(position, assignments);
-  if (open === 0) {
-    return (
-      <StatusDot
-        tone={pending > 0 ? "pending" : "confirmed"}
-        label={pending > 0 ? "Filled, awaiting reply" : "Filled"}
-      />
-    );
-  }
-  return (
-    <span className={styles["slot-count"]}>
-      {filled > 0 ? (
-        <span>
-          {filled}/{position.slots}
-        </span>
-      ) : null}
-      <strong>+{open}</strong>
-    </span>
-  );
-};
-
-const TeamGroup = ({
-  team,
-  assignments,
-  selectedId,
-  onSelect,
-}: {
-  team: DemoTeam;
-  assignments: Assignments;
-  selectedId: string;
-  onSelect: (positionId: string) => void;
-}) => {
-  const [open, setOpen] = useState(true);
-  const openCount = teamOpenCount(team, assignments);
-  return (
-    <div className={styles["team-group"]}>
-      <DemoButton
-        variant="team"
-        aria-expanded={open}
-        onClick={() => {
-          setOpen((value) => !value);
-        }}
-      >
-        <span className={styles.grow}>{team.name}</span>
-        {openCount > 0 ? (
-          <strong className={styles["open-count"]}>{openCount}</strong>
-        ) : (
-          <StatusDot tone="confirmed" />
-        )}
-        {open ? (
-          <ChevronDown aria-hidden size={14} />
-        ) : (
-          <ChevronRight aria-hidden size={14} />
-        )}
-      </DemoButton>
-      {open ? (
-        <ul className={styles["position-list"]}>
-          {team.positions.map((position) => (
-            <li key={position.id}>
-              <DemoButton
-                variant="row"
-                aria-current={position.id === selectedId ? "true" : undefined}
-                onClick={() => {
-                  onSelect(position.id);
-                }}
-              >
-                <PositionGlyph icon={position.icon} />
-                <span className={`${styles.truncate} ${styles.grow}`}>
-                  {position.name}
-                </span>
-                <SlotCount position={position} assignments={assignments} />
-              </DemoButton>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
-  );
-};
-
-export const PositionPicker = ({
+/** Phones swap the roster for a row of position pills, like the product's picker sheet. */
+const PositionPills = ({
   selectedId,
   onSelect,
 }: {
   selectedId: string;
   onSelect: (positionId: string) => void;
-}) => {
-  const assignments = useAssignments();
-  return (
-    <nav className={styles["position-picker"]} aria-label="Positions">
-      {teams.map((team) => (
-        <TeamGroup
-          key={team.id}
-          team={team}
-          assignments={assignments}
-          selectedId={selectedId}
-          onSelect={onSelect}
-        />
-      ))}
-    </nav>
-  );
-};
+}) => (
+  <nav className={styles["position-pills"]} aria-label="Positions">
+    {teams.flatMap((team) =>
+      team.positions.map((position) => (
+        <DemoButton
+          key={position.id}
+          variant="row"
+          aria-current={position.id === selectedId ? "true" : undefined}
+          onClick={() => {
+            onSelect(position.id);
+          }}
+        >
+          <PositionGlyph icon={position.icon} />
+          <span className={styles.truncate}>{position.name}</span>
+        </DemoButton>
+      ))
+    )}
+  </nav>
+);
 
 const HistoryButton = ({
   candidate,
@@ -447,7 +355,14 @@ export const AssignView = ({
   const selected = findPosition(positionId);
   return (
     <div className={styles.assign}>
-      <PositionPicker selectedId={positionId} onSelect={onSelectPosition} />
+      <nav className={styles["assign-roster"]} aria-label="Positions">
+        <TeamRoster
+          layout="stack"
+          selectedId={positionId}
+          onSelect={onSelectPosition}
+        />
+      </nav>
+      <PositionPills selectedId={positionId} onSelect={onSelectPosition} />
       <section className={styles["assign-main"]} aria-live="polite">
         <h3 className={styles["position-heading"]}>
           {selected?.position.name}

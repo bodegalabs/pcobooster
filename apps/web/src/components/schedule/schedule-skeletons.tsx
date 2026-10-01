@@ -1,17 +1,8 @@
-import { Fragment } from "react";
-
 import { ItemList } from "@/components/ui/item";
-import { SidebarSeparator } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /** Varied widths keep stacked skeleton rows from reading as a barcode. */
 const candidateNameWidths = ["8rem", "10rem", "7rem", "9rem", "6rem", "11rem"];
-const positionTeams = [
-  { key: "a", teamWidth: "8rem", positionWidths: ["7rem"] },
-  { key: "b", teamWidth: "5rem", positionWidths: ["6rem", "8rem"] },
-  { key: "c", teamWidth: "7rem", positionWidths: ["7rem"] },
-  { key: "d", teamWidth: "6rem", positionWidths: ["5rem", "7rem"] },
-];
 
 export const PlanHeaderSkeleton = () => (
   <header className="mb-3 shrink-0 sm:mb-5">
@@ -23,28 +14,6 @@ export const PlanHeaderSkeleton = () => (
       <Skeleton variant="control" className="size-7 shrink-0" />
     </div>
   </header>
-);
-
-export const PositionPickerSkeleton = () => (
-  <div className="flex flex-col py-1">
-    {positionTeams.map((team, index) => (
-      <Fragment key={team.key}>
-        {index > 0 ? <SidebarSeparator className="my-0" /> : null}
-        <div className="flex flex-col gap-1 p-2">
-          <div className="flex h-8 items-center justify-between px-2">
-            <Skeleton variant="text" className="h-3" width={team.teamWidth} />
-            <Skeleton variant="round" className="size-3" />
-          </div>
-          {team.positionWidths.map((width) => (
-            <div key={width} className="flex h-8 items-center gap-2 px-2">
-              <Skeleton variant="text" className="size-4" />
-              <Skeleton variant="text" className="h-3.5" width={width} />
-            </div>
-          ))}
-        </div>
-      </Fragment>
-    ))}
-  </div>
 );
 
 export const CandidateListSkeleton = ({ rows = 6 }: { rows?: number }) => (
