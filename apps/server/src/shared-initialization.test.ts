@@ -1,12 +1,10 @@
-import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { Data, Effect } from "effect";
 import { convertV4MiniflareOptions, Miniflare } from "miniflare";
-import { build } from "tsdown";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { build } from "rolldown";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import { cachedAcrossRequests } from "./shared-initialization";
 
@@ -14,7 +12,6 @@ const CONCURRENT_REQUESTS = 6;
 const REQUEST_TIMEOUT_MS = 5000;
 const WORKERD_TEST_TIMEOUT_MS = 30_000;
 
-let outDir = "";
 let script = "";
 
 /** Starts concurrent requests on a cold isolate; each reads its own body after the shared wait. */
@@ -57,29 +54,14 @@ class BuildFailed extends Data.TaggedError("BuildFailed")<{
 
 describe(cachedAcrossRequests, () => {
   beforeAll(async () => {
-    outDir = await mkdtemp(path.join(tmpdir(), "shared-initialization-"));
-    await build({
-      config: false,
-      entry: {
-        worker: path.join(
-          import.meta.dirname,
-          "shared-initialization.fixture.ts"
-        ),
-      },
-      outDir,
-      format: "esm",
+    const { output } = await build({
+      input: path.join(import.meta.dirname, "shared-initialization.fixture.ts"),
       platform: "browser",
-      deps: { alwaysBundle: [/.*/u] },
-      dts: false,
-      logLevel: "silent",
+      write: false,
+      output: { format: "esm", codeSplitting: false },
     });
-    const [bundle] = await readdir(outDir);
-    script = await readFile(path.join(outDir, bundle ?? ""), "utf-8");
+    script = output[0].code;
   }, WORKERD_TEST_TIMEOUT_MS);
-
-  afterAll(async () => {
-    await rm(outDir, { recursive: true, force: true });
-  });
 
   it(
     "lets every request that waited on a cold start read its own body in workerd",
