@@ -218,6 +218,31 @@ describe(prepareChordChartUpdate, () => {
     expect(JSON.stringify(exit)).toContain("arrangement-updated");
     expect(songs.updateArrangement).not.toHaveBeenCalled();
   });
+
+  it("refuses an edit that names no version when Planning Center reports one", async () => {
+    const songs = createSongs();
+    const exit = await Effect.runPromiseExit(
+      prepareChordChartUpdate({ ...input, baseUpdatedAt: null }, songs)
+    );
+    expect(Exit.isFailure(exit)).toBeTruthy();
+    expect(JSON.stringify(exit)).toContain("arrangement-updated");
+    expect(songs.updateArrangement).not.toHaveBeenCalled();
+  });
+
+  it("saves when Planning Center reports no version to compare", async () => {
+    const songs = createSongs();
+    songs.getArrangement.mockReturnValue(
+      Effect.succeed({ data: arrangement({ updated_at: null }), included: [] })
+    );
+    const prepared = await Effect.runPromise(
+      prepareChordChartUpdate({ ...input, baseUpdatedAt: null }, songs)
+    );
+    expect(prepared.attributes).toStrictEqual({
+      chord_chart: "CHORUS\n[C]New",
+      chord_chart_key: "C",
+      chord_chart_columns: 1,
+    });
+  });
 });
 
 describe(createChordChartSong, () => {

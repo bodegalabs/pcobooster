@@ -206,7 +206,11 @@ export interface PreparedChordChartUpdate {
   readonly attributes: JsonObject;
 }
 
-/** Refuses to overwrite a chart someone saved in Services after this edit began. */
+/**
+ * Refuses to overwrite a chart someone saved in Services after this edit began. An edit that
+ * names no version is refused too whenever Services reports one, so nothing saves blind; only
+ * an arrangement Services reports no version for skips the check.
+ */
 export const prepareChordChartUpdate = (
   input: ChordChartUpdateInput,
   songs: ChordChartSongsService
@@ -217,14 +221,10 @@ export const prepareChordChartUpdate = (
       input.arrangementId
     );
     const currentUpdatedAt = toTextOrNull(current.data.attributes.updated_at);
-    if (
-      input.baseUpdatedAt !== null &&
-      currentUpdatedAt !== null &&
-      currentUpdatedAt !== input.baseUpdatedAt
-    ) {
+    if (currentUpdatedAt !== null && currentUpdatedAt !== input.baseUpdatedAt) {
       return yield* new Conflict({
         message:
-          "This arrangement changed in Planning Center after you opened it. Reload to see the latest version.",
+          "Someone changed this arrangement in Planning Center since you opened it.",
         reason: "arrangement-updated",
       });
     }
