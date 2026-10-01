@@ -9,13 +9,14 @@ import type {
   LyricsSearchResult,
 } from "@pcobooster/contracts/chord-charts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { QueryFunctionContext } from "@tanstack/react-query";
+import type { QueryClient, QueryFunctionContext } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 import { queryKeys } from "@/lib/query-keys";
 import { callForQuery } from "@/lib/request-priority";
+import { clearCachedSongOptionsForSong } from "@/lib/song-options-cache";
 import { orpc } from "@/orpc-client";
 
-/** Editing starts from what Services holds, so the chart is never read from a stale copy. */
 export const createChordChartSongQueryOptions = (songId: string) => ({
   queryKey: queryKeys.chordChartSong(songId),
   queryFn: async (context: QueryFunctionContext) =>
@@ -28,6 +29,44 @@ export const createChordChartSongQueryOptions = (songId: string) => ({
 
 export const useChordChartSong = (songId: string) =>
   useQuery<ChordChartSongOutput>(createChordChartSongQueryOptions(songId));
+
+/** A copy of the song read this recently when an arrangement opens counts as read on opening. */
+const READ_ON_OPEN_MS = 5000;
+
+const currentTime = () => Date.now();
+
+/**
+ * Whether Planning Center's copy of the song is current enough to start editing from: read
+ * moments before this arrangement opened (as when the page just loaded it), or since. An older
+ * copy, even one fresh enough to show, is read again first.
+ */
+export const useChordChartSongReadOnOpen = (songId: string): boolean => {
+  const openedAt = useMemo(() => currentTime(), []);
+  const song = useQuery<ChordChartSongOutput>({
+    ...createChordChartSongQueryOptions(songId),
+    refetchOnMount: (query) =>
+      openedAt - query.state.dataUpdatedAt > READ_ON_OPEN_MS ? "always" : false,
+  });
+  return (
+    song.isFetchedAfterMount || openedAt - song.dataUpdatedAt <= READ_ON_OPEN_MS
+  );
+};
+
+/** Services' current copy of one arrangement, read past any cached one. */
+export const fetchLatestChordChartArrangement = async (
+  queryClient: QueryClient,
+  songId: string,
+  arrangementId: string
+): Promise<ChordChartArrangement | null> => {
+  const song = await queryClient.query({
+    ...createChordChartSongQueryOptions(songId),
+    staleTime: 0,
+  });
+  return (
+    song.arrangements.find((candidate) => candidate.id === arrangementId) ??
+    null
+  );
+};
 
 const replaceArrangement = (
   current: ChordChartSongOutput | undefined,
@@ -49,6 +88,24 @@ const replaceArrangement = (
   };
 };
 
+/**
+ * Keeps the editor's copy of the song current after a write, and makes the plan builder read
+ * the song's arrangements again, here and in this browser's saved copy.
+ */
+const rememberWrittenArrangement = (
+  queryClient: QueryClient,
+  songId: string,
+  arrangement: ChordChartArrangement
+) => {
+  queryClient.setQueryData<ChordChartSongOutput>(
+    queryKeys.chordChartSong(songId),
+    (current) => replaceArrangement(current, arrangement)
+  );
+  clearCachedSongOptionsForSong(songId);
+  const [songOptionsScope] = queryKeys.songOptions(songId, null);
+  void queryClient.invalidateQueries({ queryKey: [songOptionsScope, songId] });
+};
+
 export const isChordChartConflict = (error: Error): boolean =>
   error instanceof ORPCError && error.code === "CONFLICT";
 
@@ -59,16 +116,26 @@ export const chordChartErrorMessage = (
 ): string =>
   error instanceof ORPCError && error.message !== "" ? error.message : fallback;
 
+export type ChordChartLoadFailure = "not-found" | "no-access" | "failed";
+
+/** Why a song didn't load, so the page can say what would help. */
+export const chordChartLoadFailure = (error: Error): ChordChartLoadFailure => {
+  if (error instanceof ORPCError && error.code === "NOT_FOUND") {
+    return "not-found";
+  }
+  if (error instanceof ORPCError && error.code === "FORBIDDEN") {
+    return "no-access";
+  }
+  return "failed";
+};
+
 export const useSaveChordChart = (songId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: ChordChartUpdateInput) =>
       await orpc.chordCharts.update(input),
     onSuccess: (arrangement) => {
-      queryClient.setQueryData<ChordChartSongOutput>(
-        queryKeys.chordChartSong(songId),
-        (current) => replaceArrangement(current, arrangement)
-      );
+      rememberWrittenArrangement(queryClient, songId, arrangement);
     },
   });
 };
@@ -79,10 +146,7 @@ export const useCreateChordChart = (songId: string) => {
     mutationFn: async (input: ChordChartCreateInput) =>
       await orpc.chordCharts.create(input),
     onSuccess: (arrangement) => {
-      queryClient.setQueryData<ChordChartSongOutput>(
-        queryKeys.chordChartSong(songId),
-        (current) => replaceArrangement(current, arrangement)
-      );
+      rememberWrittenArrangement(queryClient, songId, arrangement);
     },
   });
 };

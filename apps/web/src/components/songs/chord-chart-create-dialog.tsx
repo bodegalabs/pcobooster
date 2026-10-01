@@ -1,4 +1,7 @@
-import type { ChordChartArrangement } from "@pcobooster/contracts/chord-charts";
+import type {
+  ChordChartArrangement,
+  ChordChartLayout,
+} from "@pcobooster/contracts/chord-charts";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 
@@ -18,26 +21,58 @@ import {
   chordChartErrorMessage,
   useCreateChordChart,
 } from "@/hooks/use-chord-chart-song";
-import type { ChordChartDraft } from "@/lib/chord-chart-draft";
 
-const CREATE_FAILED =
-  "Planning Center didn’t create the arrangement. Try again.";
+/** What a new arrangement starts with. */
+export interface ChordChartCreateContent {
+  readonly chart: string;
+  readonly key: string | null;
+  /** Only the print settings to set; the rest inherit the organization's defaults. */
+  readonly layout: Partial<ChordChartLayout>;
+}
+
+/** The arrangement being copied, and what this visit did to it. */
+export interface ChordChartCopySource {
+  readonly name: string;
+  /** Changes already saved to it, as Save as you type does. */
+  readonly savedChanges: boolean;
+  readonly unsavedChanges: boolean;
+}
+
+/** What happens to the arrangement being copied, in plain words. */
+const originalNote = ({
+  name,
+  savedChanges,
+  unsavedChanges,
+}: ChordChartCopySource): string => {
+  if (savedChanges && unsavedChanges) {
+    return `“${name}” keeps the changes already saved to it; your unsaved ones go only to the copy. To undo the saved ones there, choose Revert all changes.`;
+  }
+  if (savedChanges) {
+    return `“${name}” keeps the changes already saved to it. To undo them there, choose Revert all changes.`;
+  }
+  if (unsavedChanges) {
+    return `“${name}” stays as last saved; your unsaved changes go only to the copy.`;
+  }
+  return `“${name}” stays as it is.`;
+};
 
 export interface ChordChartCreateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   songId: string;
-  /** The chart the new arrangement starts with. */
-  draft: ChordChartDraft;
+  content: ChordChartCreateContent;
+  /** The arrangement this copies, or null for a new, empty one. */
+  copyOf: ChordChartCopySource | null;
   onCreated: (arrangement: ChordChartArrangement) => void;
 }
 
-/** Creates an arrangement in Planning Center holding the current chart. */
+/** Creates an arrangement in Planning Center, empty or copied from the chart being edited. */
 export const ChordChartCreateDialog = ({
   open,
   onOpenChange,
   songId,
-  draft,
+  content,
+  copyOf,
   onCreated,
 }: ChordChartCreateDialogProps) => {
   const nameId = useId();
@@ -53,9 +88,9 @@ export const ChordChartCreateDialog = ({
       {
         songId,
         name: trimmedName,
-        chordChart: draft.chart,
-        chordChartKey: draft.key,
-        layout: draft.layout,
+        chordChart: content.chart,
+        chordChartKey: content.key,
+        layout: content.layout,
       },
       {
         onSuccess: (arrangement) => {
@@ -64,7 +99,12 @@ export const ChordChartCreateDialog = ({
           onCreated(arrangement);
         },
         onError: (error) => {
-          toast.error(chordChartErrorMessage(error, CREATE_FAILED));
+          toast.error(
+            chordChartErrorMessage(
+              error,
+              "Planning Center didn’t create the arrangement. Try again."
+            )
+          );
         },
       }
     );
@@ -81,10 +121,15 @@ export const ChordChartCreateDialog = ({
           }}
         >
           <ResponsiveDialogHeader className="text-left">
-            <ResponsiveDialogTitle>New arrangement</ResponsiveDialogTitle>
+            <ResponsiveDialogTitle>
+              {copyOf === null
+                ? "New arrangement"
+                : "Copy to a new arrangement"}
+            </ResponsiveDialogTitle>
             <ResponsiveDialogDescription>
-              Creates the arrangement in Planning Center with this chart, its
-              key, and its page layout.
+              {copyOf === null
+                ? "Creates an empty arrangement in Planning Center."
+                : "Creates an arrangement in Planning Center with this chart, its key, and any formatting you changed."}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           <div className="flex flex-col gap-2 max-md:px-4">
@@ -98,6 +143,11 @@ export const ChordChartCreateDialog = ({
                 setName(event.target.value);
               }}
             />
+            {copyOf === null ? null : (
+              <p className="text-muted-foreground text-xs">
+                {originalNote(copyOf)}
+              </p>
+            )}
           </div>
           <ResponsiveDialogFooter>
             <Button
