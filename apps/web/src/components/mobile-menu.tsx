@@ -31,8 +31,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { signOutLabel, useAccountPanel } from "@/hooks/use-account-panel";
-import { usePlanRoute } from "@/hooks/use-plan-route";
-import { getAppSection, getPlanViewLabel, planViews } from "@/lib/app-routes";
+import { getAppSection } from "@/lib/app-routes";
 import { chordChartsFeatureQueryOptions } from "@/lib/chord-charts-route";
 import { cleanupFeatureQueryOptions } from "@/lib/cleanup-route";
 import { getInitials } from "@/lib/format/initials";
@@ -47,75 +46,54 @@ const themeOptions = [
   { value: "system", label: "System", icon: LaptopIcon },
 ] as const;
 
-/** A large menu link, set like the marketing menu; `nested` marks plan views. */
+/** A large menu link, set like the marketing menu. */
 const MenuLink = ({
   link,
   label,
   active,
-  nested = false,
 }: {
   /** A router `<Link>`; the entry renders through it. */
   link: ReactElement;
   label: string;
   active: boolean;
-  nested?: boolean;
 }) =>
   useRender({
     render: link,
     props: {
       "aria-current": active ? "page" : undefined,
       className: cn(
-        "block tracking-tight outline-none focus-visible:underline",
-        nested ? "py-1.5 pl-5 text-2xl" : "py-2.5 text-4xl",
+        "block py-2.5 text-4xl tracking-tight outline-none focus-visible:underline",
         active ? "text-foreground" : "text-muted-foreground"
       ),
       children: label,
     },
   });
 
-const MenuNav = () => {
+interface MenuEntry {
+  key: string;
+  link: ReactElement;
+  label: string;
+  active: boolean;
+}
+
+/** The sections this account can open; plan views live in the plan header. */
+const useMenuEntries = (): MenuEntry[] => {
   const pathname = useLocation({ select: (location) => location.pathname });
   const section = getAppSection(pathname);
-  const planRoute = usePlanRoute();
   const peopleEnabled =
     useQuery(peopleFeatureQueryOptions).data?.enabled ?? false;
   const songsEnabled =
     useQuery(chordChartsFeatureQueryOptions).data?.enabled ?? false;
   const cleanupEnabled =
     useQuery(cleanupFeatureQueryOptions).data?.enabled ?? false;
-  const entries: {
-    key: string;
-    link: ReactElement;
-    label: string;
-    active: boolean;
-    nested?: boolean;
-  }[] = [
+  const entries: MenuEntry[] = [
     {
       key: "services",
       link: <Link to="/services" />,
       label: "Services",
-      active: pathname === "/services",
+      active: section === "services",
     },
   ];
-  if (planRoute !== null) {
-    for (const view of planViews) {
-      entries.push({
-        key: view,
-        // Keeps the selected slot across views.
-        link: (
-          <Link
-            to="/services/$serviceTypeId/plans/$planId/$view"
-            params={{ ...planRoute, view }}
-            search
-            replace
-          />
-        ),
-        label: getPlanViewLabel(view),
-        active: view === planRoute.view,
-        nested: true,
-      });
-    }
-  }
   if (peopleEnabled) {
     entries.push({
       key: "people",
@@ -140,22 +118,24 @@ const MenuNav = () => {
       active: section === "cleanup",
     });
   }
-
-  return (
-    <ul>
-      {entries.map((entry, index) => (
-        <MobileMenuItem key={entry.key} index={index}>
-          <MenuLink
-            link={entry.link}
-            label={entry.label}
-            active={entry.active}
-            nested={entry.nested}
-          />
-        </MobileMenuItem>
-      ))}
-    </ul>
-  );
+  return entries;
 };
+
+const MenuNav = ({
+  entries,
+  itemCount,
+}: {
+  entries: MenuEntry[];
+  itemCount: number;
+}) => (
+  <ul>
+    {entries.map((entry, index) => (
+      <MobileMenuItem key={entry.key} index={index} count={itemCount}>
+        <MenuLink link={entry.link} label={entry.label} active={entry.active} />
+      </MobileMenuItem>
+    ))}
+  </ul>
+);
 
 /** A quiet account row; `render` is a bare `<button />`. */
 const AccountRow = ({
@@ -176,7 +156,21 @@ const AccountRow = ({
     },
   });
 
-const MenuAccount = ({ onClose }: { onClose: () => void }) => {
+/** Theme, sign out, and the profile row; access and switch account unless demo. */
+const accountItemCount = (demo: boolean): number => (demo ? 3 : 5);
+
+const MenuAccount = ({
+  panel,
+  startIndex,
+  itemCount,
+  onClose,
+}: {
+  panel: ReturnType<typeof useAccountPanel>;
+  /** The menu position of the first account row, after the nav links. */
+  startIndex: number;
+  itemCount: number;
+  onClose: () => void;
+}) => {
   const { setTheme, theme } = useTheme();
   const {
     data,
@@ -186,112 +180,144 @@ const MenuAccount = ({ onClose }: { onClose: () => void }) => {
     isSigningOut,
     signOut,
     switchAccount,
-  } = useAccountPanel();
+  } = panel;
   const { openReview, restricted } = useAccessReview();
   const themeOption =
     themeOptions.find((option) => option.value === theme) ?? themeOptions[2];
   const themeSelectId = useId();
+  // Rows roll in order after the nav links; hidden rows take no slot.
+  const accessIndex = startIndex + 1;
+  const signOutIndex = startIndex + (demo ? 1 : 3);
+  const row = (index: number, children: ReactNode) => (
+    <MobileMenuItem as="div" index={index} count={itemCount}>
+      {children}
+    </MobileMenuItem>
+  );
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="text-muted-foreground flex h-11 items-center gap-3 text-base">
-        <SidebarNavIcon icon={themeOption.icon} />
-        <label htmlFor={themeSelectId} className="flex-1">
-          Theme
-        </label>
-        <NativeSelect
-          id={themeSelectId}
-          value={themeOption.value}
-          onChange={(event) => {
-            const option = themeOptions.find(
-              (candidate) => candidate.value === event.target.value
-            );
-            if (option) {
-              setTheme(option.value);
-            }
-          }}
-        >
-          {themeOptions.map((option) => (
-            <NativeSelectOption key={option.value} value={option.value}>
-              {option.label}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
-      </div>
-      {demo ? null : (
-        <AccountRow
-          render={<button type="button" aria-label="Your access" />}
-          onClick={() => {
-            onClose();
-            openReview();
-          }}
-        >
-          <SidebarNavIcon icon={ShieldUserIcon} />
-          <span className="flex-1">Your access</span>
-          {restricted ? (
-            <span className="text-status-scheduled text-sm">Limited</span>
-          ) : null}
-        </AccountRow>
+      {row(
+        startIndex,
+        <div className="text-muted-foreground flex h-11 items-center gap-3 text-base">
+          <SidebarNavIcon icon={themeOption.icon} />
+          <label htmlFor={themeSelectId} className="flex-1">
+            Theme
+          </label>
+          <NativeSelect
+            id={themeSelectId}
+            value={themeOption.value}
+            onChange={(event) => {
+              const option = themeOptions.find(
+                (candidate) => candidate.value === event.target.value
+              );
+              if (option) {
+                setTheme(option.value);
+              }
+            }}
+          >
+            {themeOptions.map((option) => (
+              <NativeSelectOption key={option.value} value={option.value}>
+                {option.label}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </div>
       )}
-      {demo ? null : (
-        <AccountRow
-          render={<button type="button" aria-label="Switch account" />}
-          disabled={isSigningOut}
-          onClick={() => {
-            void switchAccount();
-          }}
-        >
-          <SidebarNavIcon icon={UserSwitchIcon} />
-          Switch account
-        </AccountRow>
-      )}
-      <AccountRow
-        render={
-          <button type="button" aria-label={signOutLabel(demo, isSigningOut)} />
-        }
-        disabled={isSigningOut}
-        onClick={() => {
-          void signOut();
-        }}
-      >
-        {isSigningOut ? <Spinner /> : <SidebarNavIcon icon={Logout01Icon} />}
-        {signOutLabel(demo, isSigningOut)}
-      </AccountRow>
-      {panelError ? (
-        <p className="text-destructive text-sm">{panelError}</p>
-      ) : null}
-      <div className="border-border/50 mt-3 flex items-center gap-3 border-t pt-4">
-        {summary === null ? (
-          <>
-            <Skeleton variant="round" className="size-9 shrink-0" />
-            <div className="flex min-w-0 flex-col gap-1.5">
-              <Skeleton variant="text" className="h-4 w-32" />
-              <Skeleton variant="text" className="h-3 w-24" />
-            </div>
-          </>
-        ) : (
-          <>
-            <Avatar className="size-9">
-              {isNonEmptyString(summary.image) ? (
-                <AvatarImage src={summary.image} alt="" />
+      {demo
+        ? null
+        : row(
+            accessIndex,
+            <AccountRow
+              render={<button type="button" aria-label="Your access" />}
+              onClick={() => {
+                onClose();
+                openReview();
+              }}
+            >
+              <SidebarNavIcon icon={ShieldUserIcon} />
+              <span className="flex-1">Your access</span>
+              {restricted ? (
+                <span className="text-status-scheduled text-sm">Limited</span>
               ) : null}
-              {summary.avatarName === null ? null : (
-                <AvatarFallback>
-                  {getInitials(summary.avatarName)}
-                </AvatarFallback>
-              )}
-            </Avatar>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium">
-                {data?.session.name ?? summary.avatarName}
-              </p>
-              <p className="text-muted-foreground truncate text-xs">
-                {demo ? "Read-only demo" : summary.organizationName}
-              </p>
-            </div>
-          </>
-        )}
-      </div>
+            </AccountRow>
+          )}
+      {demo
+        ? null
+        : row(
+            accessIndex + 1,
+            <AccountRow
+              render={<button type="button" aria-label="Switch account" />}
+              disabled={isSigningOut}
+              onClick={() => {
+                void switchAccount();
+              }}
+            >
+              <SidebarNavIcon icon={UserSwitchIcon} />
+              Switch account
+            </AccountRow>
+          )}
+      {row(
+        signOutIndex,
+        <>
+          <AccountRow
+            render={
+              <button
+                type="button"
+                aria-label={signOutLabel(demo, isSigningOut)}
+              />
+            }
+            disabled={isSigningOut}
+            onClick={() => {
+              void signOut();
+            }}
+          >
+            {isSigningOut ? (
+              <Spinner />
+            ) : (
+              <SidebarNavIcon icon={Logout01Icon} />
+            )}
+            {signOutLabel(demo, isSigningOut)}
+          </AccountRow>
+          {panelError ? (
+            <p className="text-destructive text-sm">{panelError}</p>
+          ) : null}
+        </>
+      )}
+      {row(
+        signOutIndex + 1,
+        <div className="border-border/50 mt-3 flex items-center gap-3 border-t pt-4">
+          {summary === null ? (
+            <>
+              <Skeleton variant="round" className="size-9 shrink-0" />
+              <div className="flex min-w-0 flex-col gap-1.5">
+                <Skeleton variant="text" className="h-4 w-32" />
+                <Skeleton variant="text" className="h-3 w-24" />
+              </div>
+            </>
+          ) : (
+            <>
+              <Avatar className="size-9">
+                {isNonEmptyString(summary.image) ? (
+                  <AvatarImage src={summary.image} alt="" />
+                ) : null}
+                {summary.avatarName === null ? null : (
+                  <AvatarFallback>
+                    {getInitials(summary.avatarName)}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">
+                  {data?.session.name ?? summary.avatarName}
+                </p>
+                <p className="text-muted-foreground truncate text-xs">
+                  {demo ? "Read-only demo" : summary.organizationName}
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -301,16 +327,22 @@ const MenuAccount = ({ onClose }: { onClose: () => void }) => {
  * shared full-screen menu (`@pcobooster/ui/mobile-menu`) beneath it. The bar
  * covers content scrolling under it with a solid background; the header itself
  * stays filter-free so the fixed overlay is not trapped. `className` places the header (for example,
- * `-mx-4` inside padded pages).
+ * `-mx-4` inside padded pages); `subbar` is a second pinned row under the bar,
+ * such as plan view tabs, hidden while the menu is open.
  */
 export const MobileHeader = ({
   className,
+  subbar,
   children,
 }: {
   className?: string;
+  subbar?: ReactNode;
   children: ReactNode;
 }) => {
   const menu = useMobileMenu();
+  const entries = useMenuEntries();
+  const accountPanel = useAccountPanel();
+  const itemCount = entries.length + accountItemCount(accountPanel.demo);
   const router = useRouter();
   const { handleClose } = menu;
 
@@ -337,7 +369,15 @@ export const MobileHeader = ({
         className="bg-background absolute inset-0 group-data-open/menu:hidden"
       />
       <div className="relative z-10 flex h-14 items-center gap-1 px-4">
-        <div className="flex min-w-0 flex-1 items-center gap-1 group-data-open/menu:invisible">
+        {/*
+         * Fades with the overlay through the container's own opacity: hiding
+         * with `visibility` lets children with `transition-all` (buttons)
+         * animate it and linger after the menu opens.
+         */}
+        <div
+          inert={menu.open}
+          className="flex min-w-0 flex-1 items-center gap-1 transition-opacity duration-150 ease-(--ease-snappy) group-data-open/menu:opacity-0"
+        >
           {children}
         </div>
         <Button
@@ -353,6 +393,14 @@ export const MobileHeader = ({
           <MobileMenuIcon open={menu.open} />
         </Button>
       </div>
+      {subbar === undefined ? null : (
+        <div
+          inert={menu.open}
+          className="relative z-10 transition-opacity duration-150 ease-(--ease-snappy) group-data-open/menu:opacity-0"
+        >
+          {subbar}
+        </div>
+      )}
       <MobileMenuOverlay
         id={MOBILE_MENU_ID}
         open={menu.open}
@@ -362,8 +410,13 @@ export const MobileHeader = ({
           aria-label="Mobile navigation"
           className="pb-safe-4 flex h-full flex-col justify-between gap-8 overflow-y-auto overscroll-contain px-4 pt-18"
         >
-          <MenuNav />
-          <MenuAccount onClose={menu.handleClose} />
+          <MenuNav entries={entries} itemCount={itemCount} />
+          <MenuAccount
+            panel={accountPanel}
+            startIndex={entries.length}
+            itemCount={itemCount}
+            onClose={menu.handleClose}
+          />
         </nav>
       </MobileMenuOverlay>
     </header>
