@@ -115,19 +115,17 @@ export const PeopleHealthView = ({
         canLoadMore={canLoadMore}
         onLoadMore={onLoadMore}
       />
-      <div className="grid items-start gap-3 md:grid-cols-2">
-        <div className="flex min-w-0 flex-col gap-3">
-          <WaitingOnReplyList
-            entries={health.waitingOnReply}
-            progress={progress}
-            {...callbacks}
-          />
-          <TeamCheckIns
-            entries={health.checkIns}
-            progress={progress}
-            {...callbacks}
-          />
-        </div>
+      <div className="grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <WaitingOnReplyList
+          entries={health.waitingOnReply}
+          progress={progress}
+          {...callbacks}
+        />
+        <TeamCheckIns
+          entries={health.checkIns}
+          progress={progress}
+          {...callbacks}
+        />
         <TeamDueList
           entries={health.dueForSlot}
           progress={progress}

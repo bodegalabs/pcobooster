@@ -169,7 +169,7 @@ const CommitmentList = ({
       {monthDays.map((entry) => (
         <li
           key={`${entry.day}:${entry.kind}:${entry.positionName ?? ""}:${entry.serviceTypeName ?? ""}:${entry.status ?? ""}`}
-          className="flex min-h-9 items-center gap-3 px-1.5"
+          className="flex min-h-9 items-center gap-3 px-1.5 max-sm:items-start max-sm:py-1.5"
         >
           <span className="text-muted-foreground w-12 shrink-0 text-xs tabular-nums">
             {formatWeekday(month, entry.day)}{" "}
@@ -177,13 +177,14 @@ const CommitmentList = ({
               {entry.day}
             </span>
           </span>
-          <span className="min-w-0 flex-1 truncate text-sm">
+          {/* Phones wrap the position and service type instead of cutting them off. */}
+          <span className="min-w-0 flex-1 text-sm sm:truncate">
             {entry.kind === "rehearsal" ? (
               <span className="text-muted-foreground">Rehearsal · </span>
             ) : null}
             <CommitmentEntryText entry={entry} />
           </span>
-          <span className="text-muted-foreground flex shrink-0 items-center gap-1.5 text-xs">
+          <span className="text-muted-foreground flex shrink-0 items-center gap-1.5 text-xs max-sm:mt-1.5">
             <span
               aria-hidden
               className={cn(
@@ -191,7 +192,10 @@ const CommitmentList = ({
                 commitmentDotClassName[commitmentDot(entry.kind, entry.status)]
               )}
             />
-            {commitmentStatusLabel(entry.status)}
+            {/* The legend names each dot, so phones keep only the dot. */}
+            <span className="max-sm:sr-only">
+              {commitmentStatusLabel(entry.status)}
+            </span>
           </span>
         </li>
       ))}
