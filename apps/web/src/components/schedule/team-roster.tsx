@@ -127,7 +127,7 @@ const layoutClassNames = {
 const teamPanelClassName =
   "bg-background text-foreground shadow-xs ring-foreground/5 dark:ring-foreground/10 flex flex-col rounded-xl ring-1";
 const teamHeaderClassName =
-  "group/team-header bg-muted/40 flex items-stretch gap-0.5 rounded-t-xl px-1.5 py-1.5 [[data-state=closed]>&]:rounded-b-xl";
+  "group/team-header bg-muted/40 flex items-stretch gap-0.5 rounded-t-xl px-1.5 py-1.5";
 const rosterClassName =
   "border-border/60 divide-border/60 flex flex-col divide-y border-t";
 const rosterPositionClassName =
@@ -571,7 +571,13 @@ const TeamPanel = ({
           onToggle(group.teamId);
         }}
       >
-        <div className={teamHeaderClassName}>
+        <div
+          className={cn(
+            teamHeaderClassName,
+            // Nothing below a collapsed header, so it rounds the panel's bottom too.
+            collapsed && !selectedWhileCollapsed && "rounded-b-xl"
+          )}
+        >
           {dragHandleListeners ? (
             <DragHandle
               size="sm"
