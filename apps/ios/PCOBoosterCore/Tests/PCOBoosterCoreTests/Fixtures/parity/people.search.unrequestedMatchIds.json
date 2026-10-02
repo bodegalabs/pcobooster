@@ -1,0 +1,1877 @@
+{
+  "suite": "people.search.unrequestedMatchIds",
+  "cases": [
+    {
+      "input": {
+        "rows": [
+          {
+            "person": {
+              "id": "person-0",
+              "name": "Person 0",
+              "initials": "P",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Vocals",
+                "Band"
+              ]
+            },
+            "member": {
+              "id": "person-0",
+              "name": "Person 0",
+              "initials": "P",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Vocals",
+                "Band"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "Bass"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "person-1",
+              "name": "Person 1",
+              "initials": "P",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Band"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "person-2",
+              "name": "Person 2",
+              "initials": "P",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Vocals",
+                "Band"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "person-3",
+              "name": "Person 3",
+              "initials": "P",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Band"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "person-4",
+              "name": "Person 4",
+              "initials": "P",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Vocals",
+                "Band"
+              ]
+            },
+            "member": null
+          }
+        ],
+        "searches": [
+          {
+            "query": "band",
+            "requestedIds": [
+              "person-1"
+            ]
+          },
+          {
+            "query": "",
+            "requestedIds": []
+          }
+        ]
+      },
+      "output": [
+        [
+          "person-2",
+          "person-3",
+          "person-4"
+        ],
+        []
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "person": {
+              "id": "s0",
+              "name": "Ana Lopez",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Vocals"
+              ]
+            },
+            "member": {
+              "id": "s0",
+              "name": "Ana Lopez",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Vocals"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s1",
+              "name": "ana lopez",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "ΧΟΡΩΔΊΑ",
+                "Tech"
+              ]
+            },
+            "member": {
+              "id": "s1",
+              "name": "ana lopez",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "ΧΟΡΩΔΊΑ",
+                "Tech"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "Bass",
+                "Drums"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s2",
+              "name": "ANA LOPEZ",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Tech"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s3",
+              "name": "Ána López",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": {
+              "id": "s3",
+              "name": "Ána López",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s4",
+              "name": "Ána López",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Équipe",
+                "Greeters"
+              ]
+            },
+            "member": {
+              "id": "s4",
+              "name": "Ána López",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Équipe",
+                "Greeters"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "Sound",
+                "Lyrics"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s5",
+              "name": "Anna Lopez",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Tech",
+                "Kids"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s6",
+              "name": "Ben Ortiz",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Band",
+                "Band"
+              ]
+            },
+            "member": {
+              "id": "s6",
+              "name": "Ben Ortiz",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Band",
+                "Band"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s7",
+              "name": "Zoë Adams",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Vocals",
+                "Kids"
+              ]
+            },
+            "member": {
+              "id": "s7",
+              "name": "Zoë Adams",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Vocals",
+                "Kids"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "Sound",
+                "Bass"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s8",
+              "name": "Zoe Adams",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s9",
+              "name": "zoe adams",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": {
+              "id": "s9",
+              "name": "zoe adams",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "Vocals"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s10",
+              "name": "O'Brien Kelly",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Kids",
+                "ΧΟΡΩΔΊΑ"
+              ]
+            },
+            "member": {
+              "id": "s10",
+              "name": "O'Brien Kelly",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Kids",
+                "ΧΟΡΩΔΊΑ"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "Camera 1"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s11",
+              "name": "OBrien Kelly",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s12",
+              "name": "O Brien Kelly",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "ΧΟΡΩΔΊΑ",
+                "Équipe"
+              ]
+            },
+            "member": {
+              "id": "s12",
+              "name": "O Brien Kelly",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "ΧΟΡΩΔΊΑ",
+                "Équipe"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s13",
+              "name": "Mary-Jane Fox",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Greeters"
+              ]
+            },
+            "member": {
+              "id": "s13",
+              "name": "Mary-Jane Fox",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Greeters"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s14",
+              "name": "Mary Jane Fox",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": {
+              "id": "s14",
+              "name": "Mary Jane Fox",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "Vocals"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s15",
+              "name": "MaryJane Fox",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Équipe",
+                "Vocals"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s16",
+              "name": "Lee Chan",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": {
+              "id": "s16",
+              "name": "Lee Chan",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s17",
+              "name": "Lee Chan",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Production",
+                "Tech"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s18",
+              "name": "张伟",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": {
+              "id": "s18",
+              "name": "张伟",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s19",
+              "name": "张　伟",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s20",
+              "name": "张 伟",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": {
+              "id": "s20",
+              "name": "张 伟",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "Bass"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s21",
+              "name": "王芳",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "ΧΟΡΩΔΊΑ"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s22",
+              "name": "김민준",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s23",
+              "name": "이서연",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s24",
+              "name": "Иван Петров",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "ΧΟΡΩΔΊΑ",
+                "Greeters"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s25",
+              "name": "иван петров",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s26",
+              "name": "Οδυσσέας Σ",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": {
+              "id": "s26",
+              "name": "Οδυσσέας Σ",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "Camera 1",
+                "Camera 1"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s27",
+              "name": "Ærø Hansen",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Tech"
+              ]
+            },
+            "member": {
+              "id": "s27",
+              "name": "Ærø Hansen",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Tech"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s28",
+              "name": "Aero Hansen",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s29",
+              "name": "Łukasz Nowak",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "ΧΟΡΩΔΊΑ",
+                "Tech"
+              ]
+            },
+            "member": {
+              "id": "s29",
+              "name": "Łukasz Nowak",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "ΧΟΡΩΔΊΑ",
+                "Tech"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "Worship Leader"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s30",
+              "name": "Lukasz Nowak",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Greeters"
+              ]
+            },
+            "member": {
+              "id": "s30",
+              "name": "Lukasz Nowak",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Greeters"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s31",
+              "name": "José Díaz",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s32",
+              "name": "Jose Diaz",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Vocals",
+                "Équipe"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s33",
+              "name": "José Diaz",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Kids",
+                "Kids"
+              ]
+            },
+            "member": {
+              "id": "s33",
+              "name": "José Diaz",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Kids",
+                "Kids"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s34",
+              "name": "Straße Ute",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Band"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s35",
+              "name": "Strasse Ute",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": {
+              "id": "s35",
+              "name": "Strasse Ute",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "Bass"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s36",
+              "name": "İlker Kaya",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": {
+              "id": "s36",
+              "name": "İlker Kaya",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s37",
+              "name": "Ilker Kaya",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": {
+              "id": "s37",
+              "name": "Ilker Kaya",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "Vocals",
+                "Lyrics"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s38",
+              "name": "ﬁona Ray",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s39",
+              "name": "fiona Ray",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Équipe",
+                "Greeters"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s40",
+              "name": "Fiona Ray",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Vocals"
+              ]
+            },
+            "member": {
+              "id": "s40",
+              "name": "Fiona Ray",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Vocals"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s41",
+              "name": "Sam­",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": {
+              "id": "s41",
+              "name": "Sam­",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s42",
+              "name": "Sam",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Greeters"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s43",
+              "name": "Sam",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Vocals",
+                "Greeters"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s44",
+              "name": "SAM",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Équipe"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s45",
+              "name": "S‍am",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Kids"
+              ]
+            },
+            "member": {
+              "id": "s45",
+              "name": "S‍am",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Kids"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "ΟΔΥΣΣΕΥΣ",
+                "Bass"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s46",
+              "name": "Ed",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": {
+              "id": "s46",
+              "name": "Ed",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "Electric Guitar",
+                "Camera 1"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s47",
+              "name": "Edd",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Kids"
+              ]
+            },
+            "member": {
+              "id": "s47",
+              "name": "Edd",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Kids"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s48",
+              "name": "Éd",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Production"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s49",
+              "name": "",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Production",
+                "Greeters"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s50",
+              "name": " ",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Tech"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s51",
+              "name": "1st Choir",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Production"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s52",
+              "name": "10th Choir",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s53",
+              "name": "2nd Choir",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Vocals"
+              ]
+            },
+            "member": {
+              "id": "s53",
+              "name": "2nd Choir",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Vocals"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [
+                "ΟΔΥΣΣΕΥΣ"
+              ],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s54",
+              "name": "#hash",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": []
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s55",
+              "name": "(paren)",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Greeters",
+                "ΧΟΡΩΔΊΑ"
+              ]
+            },
+            "member": null
+          },
+          {
+            "person": {
+              "id": "s56",
+              "name": "🙏 Grace",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "ΧΟΡΩΔΊΑ"
+              ]
+            },
+            "member": {
+              "id": "s56",
+              "name": "🙏 Grace",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "ΧΟΡΩΔΊΑ"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "s57",
+              "name": "Grace 🙏",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Kids",
+                "ΧΟΡΩΔΊΑ"
+              ]
+            },
+            "member": {
+              "id": "s57",
+              "name": "Grace 🙏",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "Kids",
+                "ΧΟΡΩΔΊΑ"
+              ],
+              "rhythm": {
+                "lastServedOn": "2026-05-10",
+                "nextServingOn": "2026-05-31",
+                "servedDays30": 1,
+                "servedDays90": 2,
+                "servedDays180": 4,
+                "upcomingDays30": 1,
+                "typicalGapDays": 21,
+                "requests180": 4,
+                "declined180": 0,
+                "pendingUpcoming": 0,
+                "nextPendingOn": null
+              },
+              "roles": [],
+              "monthDays": [
+                {
+                  "day": 31,
+                  "kind": "service",
+                  "status": "C"
+                }
+              ]
+            }
+          },
+          {
+            "person": {
+              "id": "greek",
+              "name": "ΟΔΥΣΣΕΥΣ",
+              "initials": "",
+              "photoThumbnailUrl": null,
+              "teams": [
+                "ΧΟΡΩΔΊΑ"
+              ]
+            },
+            "member": null
+          }
+        ],
+        "searches": [
+          {
+            "query": "a",
+            "requestedIds": []
+          },
+          {
+            "query": "a",
+            "requestedIds": [
+              "s0",
+              "s2",
+              "s4",
+              "s9"
+            ]
+          },
+          {
+            "query": "band",
+            "requestedIds": []
+          },
+          {
+            "query": "band",
+            "requestedIds": [
+              "s0",
+              "s2",
+              "s4",
+              "s9"
+            ]
+          },
+          {
+            "query": "vocals",
+            "requestedIds": []
+          },
+          {
+            "query": "vocals",
+            "requestedIds": [
+              "s0",
+              "s2",
+              "s4",
+              "s9"
+            ]
+          },
+          {
+            "query": "keys",
+            "requestedIds": []
+          },
+          {
+            "query": "keys",
+            "requestedIds": [
+              "s0",
+              "s2",
+              "s4",
+              "s9"
+            ]
+          },
+          {
+            "query": "ana",
+            "requestedIds": []
+          },
+          {
+            "query": "ana",
+            "requestedIds": [
+              "s0",
+              "s2",
+              "s4",
+              "s9"
+            ]
+          },
+          {
+            "query": "οδυσσευς",
+            "requestedIds": []
+          },
+          {
+            "query": "οδυσσευς",
+            "requestedIds": [
+              "s0",
+              "s2",
+              "s4",
+              "s9"
+            ]
+          },
+          {
+            "query": "zz",
+            "requestedIds": []
+          },
+          {
+            "query": "zz",
+            "requestedIds": [
+              "s0",
+              "s2",
+              "s4",
+              "s9"
+            ]
+          },
+          {
+            "query": "",
+            "requestedIds": []
+          },
+          {
+            "query": "",
+            "requestedIds": [
+              "s0",
+              "s2",
+              "s4",
+              "s9"
+            ]
+          }
+        ]
+      },
+      "output": [
+        [
+          "s2",
+          "s5",
+          "s8",
+          "s15",
+          "s17",
+          "s28",
+          "s31",
+          "s32",
+          "s34",
+          "s38",
+          "s39",
+          "s42",
+          "s43",
+          "s44",
+          "s54",
+          "s55"
+        ],
+        [
+          "s5",
+          "s8",
+          "s15",
+          "s17",
+          "s28",
+          "s31",
+          "s32",
+          "s34",
+          "s38",
+          "s39",
+          "s42",
+          "s43",
+          "s44",
+          "s54",
+          "s55"
+        ],
+        [
+          "s34"
+        ],
+        [
+          "s34"
+        ],
+        [
+          "s15",
+          "s32",
+          "s43"
+        ],
+        [
+          "s15",
+          "s32",
+          "s43"
+        ],
+        [],
+        [],
+        [
+          "s2"
+        ],
+        [],
+        [
+          "greek"
+        ],
+        [
+          "greek"
+        ],
+        [],
+        [],
+        [],
+        []
+      ]
+    }
+  ]
+}
