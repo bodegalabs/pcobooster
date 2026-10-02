@@ -82,8 +82,7 @@ export const getSongHistory = (
     const timeZone = yield* dependencies.resolveTimeZone;
     const afterDayKey = addCalendarDaysToDayKey(
       formatCalendarDayInTimeZone(now, timeZone),
-      -SONG_HISTORY_DAYS,
-      timeZone
+      -SONG_HISTORY_DAYS
     );
     const schedules = yield* dependencies.songs.getSongSchedules(
       songId,

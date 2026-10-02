@@ -154,28 +154,26 @@ export const getPersonScheduleWindow = (
   const todayDayKey = formatCalendarDayInTimeZone(now, orgTimeZone);
   const startDayKey = earlierDayKey(
     monthStartDayKey,
-    addCalendarDaysToDayKey(todayDayKey, -RHYTHM_WINDOW_DAYS, orgTimeZone)
+    addCalendarDaysToDayKey(todayDayKey, -RHYTHM_WINDOW_DAYS)
   );
   const planTimesFromDayKey = earlierDayKey(
     monthStartDayKey,
-    addCalendarDaysToDayKey(todayDayKey, -PLAN_TIME_WINDOW_DAYS, orgTimeZone)
+    addCalendarDaysToDayKey(todayDayKey, -PLAN_TIME_WINDOW_DAYS)
   );
   const monthEndDayKey = lastDayKeyOfMonth(monthStartDayKey);
   const upcomingEndDayKey = lastDayKeyOfMonth(
-    addCalendarDaysToDayKey(todayDayKey, UPCOMING_RANGE_DAYS, orgTimeZone)
+    addCalendarDaysToDayKey(todayDayKey, UPCOMING_RANGE_DAYS)
   );
   return {
     startDayKey,
     afterDayKey: addCalendarDaysToDayKey(
       startDayKey,
-      -SCHEDULE_AFTER_MARGIN_DAYS,
-      orgTimeZone
+      -SCHEDULE_AFTER_MARGIN_DAYS
     ),
     planTimesFromDayKey,
     rangeStartDayKey: addCalendarDaysToDayKey(
       planTimesFromDayKey,
-      -SCHEDULE_AFTER_MARGIN_DAYS,
-      orgTimeZone
+      -SCHEDULE_AFTER_MARGIN_DAYS
     ),
     rangeEndDayKey:
       monthEndDayKey > upcomingEndDayKey ? monthEndDayKey : upcomingEndDayKey,

@@ -67,7 +67,7 @@ export const getPlansForServiceType = (
   Effect.gen(function* getPlans() {
     const orgTz = yield* dependencies.resolveTimeZone;
     const afterKey = formatCalendarDayInTimeZone(new Date(), orgTz);
-    const beforeKey = addCalendarDaysToDayKey(afterKey, 60, orgTz);
+    const beforeKey = addCalendarDaysToDayKey(afterKey, 60);
 
     const rawPlans = yield* dependencies.plansService.getPlansInDateRange(
       serviceTypeId,
