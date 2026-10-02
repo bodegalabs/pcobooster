@@ -2,8 +2,8 @@ import Foundation
 import Observation
 import PCOBoosterCore
 
-/// A position on a plan, as Assign loads candidates for it (`CandidateSlot` on the web).
-nonisolated struct CandidateSlot: Hashable, Sendable {
+/// A position on a plan, as Assign loads candidates for it (`AssignCandidateSlot` on the web).
+nonisolated struct AssignCandidateSlot: Hashable, Sendable {
   let serviceTypeId: String
   let teamId: String
   let positionId: String
@@ -33,14 +33,14 @@ nonisolated struct CandidateSlot: Hashable, Sendable {
 /// labels, and availability; a failed part is offered for retry, never shown as empty.
 @MainActor
 @Observable
-final class CandidatePipeline {
+final class AssignCandidatePipeline {
   /// What the details load depends on; a change restarts it.
   struct DetailsRequest: Hashable {
     var candidateIds: [String]
     var scheduleHistory: Bool
   }
 
-  let slot: CandidateSlot
+  let slot: AssignCandidateSlot
   let candidates: QueryState<PositionCandidates>
   let windowHistory: QueryState<[PlanWindowHistoryBatch]>
 
@@ -54,14 +54,14 @@ final class CandidatePipeline {
 
   @ObservationIgnored private let queries: QueryClient
   @ObservationIgnored private var holdTask: Task<Void, Never>?
-  @ObservationIgnored private var memo: (key: MemoKey, list: CandidateList)?
+  @ObservationIgnored private var memo: (key: AssignListMemoKey, list: CandidateList)?
   @ObservationIgnored private var detailsVersion = 0
 
   /// How long the list stays on its skeleton after the candidates arrive, waiting for scores,
   /// so it doesn't reorder under the finger (`SCORE_HOLD_MS`).
   static let scoreHold: Duration = .milliseconds(1500)
 
-  init(queries: QueryClient, slot: CandidateSlot) {
+  init(queries: QueryClient, slot: AssignCandidateSlot) {
     self.queries = queries
     self.slot = slot
     candidates = queries.query(slot.candidatesKey, RPC.People.positionCandidates, slot.candidatesInput)
@@ -87,7 +87,7 @@ final class CandidatePipeline {
   var list: CandidateList? {
     guard let candidates = candidates.value else { return nil }
     let windowCalls = windowHistory.value
-    let key = MemoKey(candidates: candidates, windowCalls: windowCalls, detailsVersion: detailsVersion)
+    let key = AssignListMemoKey(candidates: candidates, windowCalls: windowCalls, detailsVersion: detailsVersion)
     if let memo, memo.key == key {
       return memo.list
     }
@@ -256,7 +256,7 @@ final class CandidatePipeline {
   // MARK: Requests
 
   /// Blockouts depend only on the date; schedule history also on the plan it is matched to.
-  nonisolated static func detailsKey(slot: CandidateSlot, ids: [String], scheduleHistory: Bool)
+  nonisolated static func detailsKey(slot: AssignCandidateSlot, ids: [String], scheduleHistory: Bool)
     -> QueryKey
   {
     .candidateDetails(
@@ -266,7 +266,7 @@ final class CandidatePipeline {
   /// One detail batch, following `deferredPersonIds` (with `blockoutProgress`) until every
   /// person is detailed. A call that neither details anyone nor advances a blockout check is
   /// an error.
-  nonisolated static func detailsFetch(slot: CandidateSlot, ids: [String], scheduleHistory: Bool)
+  nonisolated static func detailsFetch(slot: AssignCandidateSlot, ids: [String], scheduleHistory: Bool)
     -> @Sendable (RPCCaller) async throws -> [CandidateDetail]
   {
     let first = PeopleCandidateDetailsInput(
@@ -318,7 +318,7 @@ final class CandidatePipeline {
 
   /// Loads a slot's whole list ahead of a deliberate long press, every call speculative:
   /// candidates, then the window history and the blockout details. Cached parts are skipped.
-  static func prefetch(queries: QueryClient, slot: CandidateSlot) {
+  static func prefetch(queries: QueryClient, slot: AssignCandidateSlot) {
     Task {
       guard
         let candidates = try? await queries.fetch(
@@ -338,7 +338,7 @@ final class CandidatePipeline {
 }
 
 /// What the assembled list depends on.
-private struct MemoKey: Equatable {
+private struct AssignListMemoKey: Equatable {
   var candidates: PositionCandidates
   var windowCalls: [PlanWindowHistoryBatch]?
   var detailsVersion: Int

@@ -3,7 +3,7 @@ import PCOBoosterCore
 import SwiftUI
 
 /// Copy for the day bars, from `schedule-day-bars.tsx`.
-enum ScheduleDayText {
+enum AssignDayText {
   /// A day key is a civil date, so it formats as UTC noon in UTC.
   static func label(_ dayKey: String, style: CalendarDateLabelStyle) -> String {
     guard let date = JSONCoding.parseISODate("\(dayKey)T12:00:00Z") else { return dayKey }
@@ -24,9 +24,9 @@ enum ScheduleDayText {
   }
 
   /// One entry per position, service, and kind; services before rehearsals.
-  static func entries(_ day: ScheduleDay) -> [ScheduleDayEntry] {
+  static func entries(_ day: ScheduleDay) -> [AssignDayEntry] {
     var seen: Set<String> = []
-    var entries: [ScheduleDayEntry] = []
+    var entries: [AssignDayEntry] = []
     for item in day.items {
       let rehearsal = item.timeType == .rehearsal
       let key = [
@@ -35,7 +35,7 @@ enum ScheduleDayText {
       guard seen.insert(key).inserted else { continue }
       let status = item.status.trimmingCharacters(in: .whitespaces).lowercased()
       entries.append(
-        ScheduleDayEntry(
+        AssignDayEntry(
           id: key, item: item, isRehearsal: rehearsal,
           isConfirmed: status == "c" || status == "confirmed"))
     }
@@ -66,7 +66,7 @@ enum ScheduleDayText {
   }
 }
 
-struct ScheduleDayEntry: Identifiable, Hashable {
+struct AssignDayEntry: Identifiable, Hashable {
   let id: String
   let item: ServiceHistoryItem
   let isRehearsal: Bool
@@ -84,23 +84,23 @@ struct ScheduleDayEntry: Identifiable, Hashable {
 }
 
 /// The day's date and distance from the plan, then everything they're on that day.
-struct DayDetailPanel: View {
+struct AssignDayDetailPanel: View {
   let day: ScheduleDay
 
   var body: some View {
     VStack(alignment: .leading, spacing: Spacing.md) {
       HStack(alignment: .firstTextBaseline) {
-        Text(verbatim: ScheduleDayText.label(day.dayKey, style: .weekdayMonthDay))
+        Text(verbatim: AssignDayText.label(day.dayKey, style: .weekdayMonthDay))
           .font(.cardTitle)
           .foregroundStyle(.ink)
         Spacer(minLength: Spacing.md)
-        Text(verbatim: ScheduleDayText.distance(day.offset))
+        Text(verbatim: AssignDayText.distance(day.offset))
           .font(.meta.weight(day.offset == 0 ? .semibold : .regular))
           .foregroundStyle(day.offset == 0 ? Color.statusInfoText : Color.inkSecondary)
       }
       VStack(alignment: .leading, spacing: Spacing.md) {
-        ForEach(ScheduleDayText.entries(day)) { entry in
-          ScheduleDayEntryRow(entry: entry)
+        ForEach(AssignDayText.entries(day)) { entry in
+          AssignDayEntryRow(entry: entry)
         }
       }
     }
@@ -108,8 +108,8 @@ struct DayDetailPanel: View {
   }
 }
 
-private struct ScheduleDayEntryRow: View {
-  let entry: ScheduleDayEntry
+private struct AssignDayEntryRow: View {
+  let entry: AssignDayEntry
 
   var body: some View {
     HStack(spacing: Spacing.md) {
@@ -119,7 +119,7 @@ private struct ScheduleDayEntryRow: View {
         .frame(width: 20)
         .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 1) {
-        Text(verbatim: ScheduleDayText.positionLabel(entry.item))
+        Text(verbatim: AssignDayText.positionLabel(entry.item))
           .font(.rowDetail.weight(.medium))
           .foregroundStyle(.ink)
           .lineLimit(1)

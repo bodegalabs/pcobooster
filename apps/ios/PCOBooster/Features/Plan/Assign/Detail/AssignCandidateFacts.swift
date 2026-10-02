@@ -3,7 +3,7 @@ import SwiftUI
 
 /// How much someone serves around this plan, as plain counts and dates: the 4 weeks before it
 /// and the 4 weeks after (the range the candidate list loads), in congregation days.
-struct CandidateFrequencyFacts: View {
+struct AssignFrequencyFacts: View {
   let frequency: ScheduleFrequency
   let planDate: Date?
 
@@ -11,13 +11,13 @@ struct CandidateFrequencyFacts: View {
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   var body: some View {
-    CandidateDetailCard(title: "Serving", symbol: .reasonService) {
+    AssignDetailCard(title: "Serving", symbol: .reasonService) {
       let columns = dynamicTypeSize.isAccessibilitySize ? 1 : 2
       Grid(alignment: .leading, horizontalSpacing: Spacing.lg, verticalSpacing: Spacing.lg) {
         ForEach(Array(facts.factRows(of: columns).enumerated()), id: \.offset) { _, row in
           GridRow {
             ForEach(row) { fact in
-              FactTile(fact: fact)
+              AssignFactTile(fact: fact)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
           }
@@ -68,8 +68,8 @@ struct CandidateFrequencyFacts: View {
   }
 }
 
-private struct FactTile: View {
-  let fact: CandidateFrequencyFacts.Fact
+private struct AssignFactTile: View {
+  let fact: AssignFrequencyFacts.Fact
 
   var body: some View {
     VStack(alignment: .leading, spacing: Spacing.xxs) {
@@ -92,7 +92,7 @@ private struct FactTile: View {
 
 /// The person's scheduling preferences as Planning Center records them. Facts only; the
 /// ranking already notes where this plan goes against them.
-struct CandidatePreferencesCard: View {
+struct AssignPreferencesCard: View {
   let preferences: SchedulingPreferences
 
   /// Readable lines for what's set; empty when nothing is.
@@ -101,7 +101,7 @@ struct CandidatePreferencesCard: View {
   }
 
   var body: some View {
-    CandidateDetailCard(title: "Planning Center preferences", symbol: .reasonPreference) {
+    AssignDetailCard(title: "Planning Center preferences", symbol: .reasonPreference) {
       VStack(alignment: .leading, spacing: Spacing.sm) {
         ForEach(Self.lines(preferences), id: \.self) { line in
           Text(verbatim: line)

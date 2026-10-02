@@ -2,7 +2,7 @@ import PCOBoosterCore
 import SwiftUI
 
 /// What a candidate row can do; the list wires these to the model.
-struct CandidateRowActions {
+struct AssignCandidateActions {
   var openDetails: () -> Void
   var add: () -> Void
   var setStatus: (ScheduleStatus) -> Void
@@ -12,8 +12,8 @@ struct CandidateRowActions {
 /// One candidate (`ScheduleCandidateTile`): avatar with their slot status, the name with a
 /// Blocked or Declined label, the facts line, the fit score, and Add (or their status menu
 /// once they're on the slot). Their days around the plan show underneath when history is on.
-struct CandidateRow: View {
-  let presentation: CandidatePresentation
+struct AssignCandidateRow: View {
+  let presentation: AssignCandidatePresentation
   let planDate: Date?
   let showsHistory: Bool
   /// History or availability is still loading: facts and the score show placeholders.
@@ -24,8 +24,8 @@ struct CandidateRow: View {
   let notNotified: Bool
   let error: String?
   let canSchedule: Bool
-  let revealTracker: DayBarRevealTracker
-  let actions: CandidateRowActions
+  let revealTracker: AssignDayBarReveals
+  let actions: AssignCandidateActions
 
   @Environment(\.orgTimeZone) private var timeZone
   @Environment(\.horizontalSizeClass) private var sizeClass
@@ -136,7 +136,7 @@ struct CandidateRow: View {
   @ViewBuilder private var trailing: some View {
     if presentation.showsFit {
       if let score = presentation.score {
-        FitScoreButton(score: score, reasoning: person.recommendationReasoning)
+        AssignFitScoreButton(score: score, reasoning: person.recommendationReasoning)
       } else if scorePending {
         Skeleton(.text, width: 40, height: 18)
       }
@@ -197,7 +197,7 @@ struct CandidateRow: View {
 
   @ViewBuilder private var history: some View {
     if let planDate, !(scorePending && (person.serviceHistory ?? []).isEmpty) {
-      ScheduleDayBars(
+      AssignDayBars(
         days: buildScheduleDays(
           history: person.serviceHistory ?? [], referenceDate: planDate, timeZone: timeZone),
         revealTracker: revealTracker,

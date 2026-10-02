@@ -23,12 +23,12 @@ final class AssignModel {
   let planId: String
   let teamPositions: QueryState<[TeamPositionGroup]>
   let plan: QueryState<Plan?>
-  let writer: ScheduleWriter
+  let writer: RosterScheduleWriter
   let adjuster: NeededSlotsAdjuster
 
   /// The position asked for; nil ids resolve to the first open position once the lineup loads.
   private(set) var requested: (teamId: String?, positionId: String?)
-  private(set) var pipeline: CandidatePipeline?
+  private(set) var pipeline: AssignCandidatePipeline?
   /// Narrows Add someone and Unavailable by name.
   var filter = ""
   /// The candidate whose details show in the inspector (or the sheet on iPhone).
@@ -42,12 +42,15 @@ final class AssignModel {
   /// Set when this screen's last write filled the position's final open slot, so a subtle
   /// "Next" control can offer the next open position.
   private(set) var offersNextOpen = false
+  /// Bumps when a status changes from here, for the selection (or decline warning) haptic.
+  private(set) var statusChanges = 0
+  private(set) var lastStatusWasDecline = false
 
   @ObservationIgnored let queries: QueryClient
   @ObservationIgnored private let toasts: ToastCenter
   @ObservationIgnored private let teamOrder: [String]
   @ObservationIgnored private var isVisible = true
-  @ObservationIgnored let dayBarReveals = DayBarRevealTracker()
+  @ObservationIgnored let dayBarReveals = AssignDayBarReveals()
 
   init(app: AppModel, route: PlanRoute, teamId: String?, positionId: String?) {
     let queries = app.queries
@@ -66,9 +69,9 @@ final class AssignModel {
       RPC.Catalog.teamPositions,
       TeamPositionsInput(
         serviceTypeId: route.serviceTypeId, planId: route.planId, seriesId: header?.seriesId))
-    writer = ScheduleWriter(queries: queries, serviceTypeId: route.serviceTypeId, planId: route.planId)
+    writer = RosterScheduleWriter(queries: queries, serviceTypeId: route.serviceTypeId, planId: route.planId)
     adjuster = NeededSlotsAdjuster.shared(
-      queries: queries, serviceTypeId: route.serviceTypeId, planId: route.planId)
+      app: app, serviceTypeId: route.serviceTypeId, planId: route.planId)
     syncSelection()
   }
 
@@ -89,36 +92,37 @@ final class AssignModel {
     (plan.value ?? nil)?.planningCenterUrl.flatMap(URL.init(string:))
   }
 
-  /// The open position, or nil while the lineup loads or when it no longer has the position.
+  /// The open position, or nil while the lineup loads or when the plan has no positions. A
+  /// position the plan doesn't have falls back to the first open one, as the web rewrites a
+  /// stale link.
   var resolved: AssignResolvedSlot? {
     guard let loaded = teamPositions.value else { return nil }
     let groups = LineupPreferences.ordered(loaded, savedOrder: teamOrder)
-    guard let ids = resolvedIds(in: groups) else { return nil }
-    if let group = groups.first(where: { $0.teamId == ids.teamId }),
-      let position = group.positions.first(where: { $0.id == ids.positionId })
-    {
+    if let found = lookup(teamId: requested.teamId, positionId: requested.positionId, in: groups) {
+      return found
+    }
+    guard let first = findNextOpenPosition(groups, current: nil) ?? findFirstPosition(groups) else {
+      return nil
+    }
+    return lookup(teamId: first.teamId, positionId: first.positionId, in: groups)
+  }
+
+  private func lookup(teamId: String?, positionId: String?, in groups: [TeamPositionGroup])
+    -> AssignResolvedSlot?
+  {
+    guard let positionId else { return nil }
+    let group =
+      teamId.flatMap { id in groups.first { $0.teamId == id } }
+      ?? groups.first { $0.positions.contains { $0.id == positionId } }
+    guard let group else { return nil }
+    if let position = group.positions.first(where: { $0.id == positionId }) {
       return AssignResolvedSlot(group: group, position: position)
     }
     // A custom position the lineup added can drop out on a refetch before anyone fills it.
-    if let group = groups.first(where: { $0.teamId == ids.teamId }),
-      let position = CustomRosterPosition.position(id: ids.positionId, teamName: group.teamName)
-    {
+    if let position = CustomRosterPosition.position(id: positionId, teamName: group.teamName) {
       return AssignResolvedSlot(group: group, position: position)
     }
     return nil
-  }
-
-  private func resolvedIds(in groups: [TeamPositionGroup]) -> (teamId: String, positionId: String)? {
-    if let teamId = requested.teamId, let positionId = requested.positionId {
-      return (teamId, positionId)
-    }
-    if let positionId = requested.positionId,
-      let group = groups.first(where: { $0.positions.contains { $0.id == positionId } })
-    {
-      return (group.teamId, positionId)
-    }
-    let first = findNextOpenPosition(groups, current: nil) ?? findFirstPosition(groups)
-    return first.map { ($0.teamId, $0.positionId) }
   }
 
   /// The next position after this one that still has open slots (wrapping), if any.
@@ -128,9 +132,9 @@ final class AssignModel {
   }
 
   /// The slot the candidate pipeline loads for: a roster position on a dated plan.
-  var candidateSlot: CandidateSlot? {
+  var candidateSlot: AssignCandidateSlot? {
     guard let resolved, resolved.position.rosterHasCandidates, let date = planDate else { return nil }
-    return CandidateSlot(
+    return AssignCandidateSlot(
       serviceTypeId: serviceTypeId, teamId: resolved.teamId, positionId: resolved.positionId,
       planId: planId, date: date, timePreferenceOptionId: resolved.position.timePreferenceOptionId)
   }
@@ -140,13 +144,14 @@ final class AssignModel {
   /// Locks a nil request to the position it resolved to, and keeps the pipeline on the open
   /// position. Call when the lineup, the plan, or the selection changes.
   func syncSelection() {
-    if requested.positionId == nil || requested.teamId == nil, let resolved {
+    if let resolved, requested.teamId != resolved.teamId || requested.positionId != resolved.positionId
+    {
       requested = (resolved.teamId, resolved.positionId)
     }
     let slot = candidateSlot
     guard pipeline?.slot != slot else { return }
     pipeline?.disappear()
-    pipeline = slot.map { CandidatePipeline(queries: queries, slot: $0) }
+    pipeline = slot.map { AssignCandidatePipeline(queries: queries, slot: $0) }
     if !isVisible {
       pipeline?.disappear()
     }
@@ -214,7 +219,7 @@ final class AssignModel {
       oneOff: resolved?.position.rosterIsOneOff ?? false)
   }
 
-  /// Adds someone found by search, as a one-off (`SomeoneElseRow`).
+  /// Adds someone found by search, as a one-off (`AssignSomeoneElseRow`).
   func schedule(_ result: PeopleSearchResult) async {
     await schedule(
       OptimisticSchedulePerson(
@@ -246,6 +251,8 @@ final class AssignModel {
   }
 
   func setStatus(_ status: ScheduleStatus, planPersonId: String, personId: String?) async {
+    statusChanges += 1
+    lastStatusWasDecline = status == .declined
     let slot = resolved.map { (teamId: $0.teamId, positionId: $0.positionId) }
     await writer.updateStatus(
       planPersonId: planPersonId, personId: personId, status: status.rosterCode, slot: slot)
@@ -259,12 +266,27 @@ final class AssignModel {
   func dismissNextOpenOffer() {
     offersNextOpen = false
   }
+
+  /// Adds a position by name to the open position's team for this plan only and opens it
+  /// (`handleAddCustomPosition`); a same-named position opens instead. Planning Center creates
+  /// it with the first person scheduled into it.
+  @discardableResult
+  func addCustomPosition(named name: String, teamId: String? = nil) -> Bool {
+    guard let teamId = teamId ?? resolved?.teamId else { return false }
+    var slot: SlotRef?
+    _ = queries.mutate(teamPositions.key, as: [TeamPositionGroup].self) { groups in
+      slot = CustomRosterPosition.insert(named: name, teamId: teamId, into: &groups)
+    }
+    guard let slot else { return false }
+    select(slot)
+    return true
+  }
 }
 
 /// Remembers which rows' day bars already played their entrance, so bars ripple in once per
 /// position instead of every time a row scrolls back into view.
 @MainActor
-final class DayBarRevealTracker {
+final class AssignDayBarReveals {
   private var revealed: Set<String> = []
 
   /// True the first time `id` asks.

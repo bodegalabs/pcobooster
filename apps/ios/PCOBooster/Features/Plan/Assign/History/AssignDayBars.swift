@@ -1,17 +1,17 @@
 import PCOBoosterCore
 import SwiftUI
 
-/// Someone's days around this plan as thin bars sharing the row's width (`ScheduleDayBars`): a
+/// Someone's days around this plan as thin bars sharing the row's width (`AssignDayBars`): a
 /// tall colored bar for a service (green confirmed, amber pending), a short darker bar for a
 /// rehearsal only, a short quiet bar for a free day. The plan's day sits in the middle in a
 /// dashed frame, with dates every week (every other week when narrow). Bars grow in from the
 /// plan day outward. Tapping near a busy day shows what's on it.
-struct ScheduleDayBars: View {
+struct AssignDayBars: View {
   let days: [ScheduleDay]
   /// Taller bars for the detail view.
   var isLarge = false
   /// Remembers which rows already played the grow-in wave; nil plays it on every appearance.
-  var revealTracker: DayBarRevealTracker?
+  var revealTracker: AssignDayBarReveals?
   /// This row's key in `revealTracker`.
   var revealKey = ""
   /// The busy day being inspected; nil hides the popover.
@@ -38,7 +38,7 @@ struct ScheduleDayBars: View {
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(Text("Schedule around this plan"))
-    .accessibilityValue(Text(verbatim: ScheduleDayText.summary(days)))
+    .accessibilityValue(Text(verbatim: AssignDayText.summary(days)))
     .onAppear {
       guard !grown else { return }
       let firstTime = revealTracker?.claim(revealKey) ?? true
@@ -56,7 +56,7 @@ struct ScheduleDayBars: View {
   private var bars: some View {
     HStack(alignment: .bottom, spacing: 0) {
       ForEach(days) { day in
-        DayBarColumn(
+        AssignDayBarColumn(
           day: day,
           isInspected: inspectedDay?.dayKey == day.dayKey,
           barAreaHeight: barAreaHeight,
@@ -79,7 +79,7 @@ struct ScheduleDayBars: View {
       attachmentAnchor: .point(UnitPoint(x: anchorFraction, y: 0)),
       arrowEdge: .bottom
     ) { day in
-      DayDetailPanel(day: day)
+      AssignDayDetailPanel(day: day)
         .padding(Spacing.lg)
         .frame(idealWidth: 320, maxWidth: 360)
         .presentationCompactAdaptation(.popover)
@@ -91,7 +91,7 @@ struct ScheduleDayBars: View {
       let count = max(days.count, 1)
       ForEach(Array(days.enumerated()), id: \.element.dayKey) { index, day in
         if day.offset % dateSpacingDays == 0 {
-          Text(verbatim: ScheduleDayText.label(day.dayKey, style: .monthDay))
+          Text(verbatim: AssignDayText.label(day.dayKey, style: .monthDay))
             .font(.caption2.monospacedDigit())
             .fontWeight(day.offset == 0 ? .semibold : .regular)
             .foregroundStyle(day.offset == 0 ? Color.statusInfoText : Color.inkTertiary)
@@ -135,7 +135,7 @@ struct ScheduleDayBars: View {
 }
 
 /// One day: its bar, and the dashed frame on the plan's day.
-private struct DayBarColumn: View {
+private struct AssignDayBarColumn: View {
   let day: ScheduleDay
   let isInspected: Bool
   let barAreaHeight: CGFloat

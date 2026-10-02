@@ -8,10 +8,12 @@ import SwiftUI
 struct AssignCandidateList: View {
   let model: AssignModel
   let resolved: AssignResolvedSlot
-  let access: SchedulingAccess
+  let access: RosterAccess
   let showsHistory: Bool
   let selectedCandidateId: String?
   let showsPersonLinks: Bool
+  /// People search reaches the whole church (Planning Center People access).
+  let canSearchEveryone: Bool
   let onOpenDetails: (String) -> Void
   let onSomeoneElse: () -> Void
   let onUnschedule: (RosterUnscheduleRequest) -> Void
@@ -21,11 +23,17 @@ struct AssignCandidateList: View {
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
-    let snapshot = ListSnapshot(model: model, resolved: resolved)
+    let snapshot = AssignListSnapshot(model: model, resolved: resolved)
     List {
       if let notice = access.notice {
-        SchedulingAccessNotice(notice: notice)
+        RosterAccessNotice(notice: notice)
           .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+          .listRowBackground(Color.clear)
+          .listRowSeparator(.hidden)
+      }
+      if let progress = snapshot.progress {
+        AssignProgressRow(progress: progress)
+          .listRowInsets(EdgeInsets(top: 0, leading: Spacing.xs, bottom: 0, trailing: Spacing.xs))
           .listRowBackground(Color.clear)
           .listRowSeparator(.hidden)
       }
@@ -68,13 +76,13 @@ struct AssignCandidateList: View {
 
   // MARK: Sections
 
-  private func scheduledSection(_ snapshot: ListSnapshot) -> some View {
+  private func scheduledSection(_ snapshot: AssignListSnapshot) -> some View {
     Section {
       ForEach(snapshot.onSlot) { person in
         candidateRow(person, snapshot: snapshot)
       }
       ForEach(snapshot.offRoster, id: \.planPersonId) { person in
-        OffRosterPersonRow(
+        AssignOffRosterRow(
           person: person, canSchedule: access.canSchedule,
           onSetStatus: { status in
             Task {
@@ -99,7 +107,7 @@ struct AssignCandidateList: View {
           position: resolved.position, adjuster: model.adjuster, isEnabled: access.canSchedule)
       }
     } footer: {
-      if access.canSchedule, !NeededSlotsAdjuster.canAdjust(resolved.position) {
+      if access.canSchedule, !NeededSlotsAdjuster.canAdd(resolved.position) {
         Text("Add the first open slot in Planning Center.")
           .font(.meta)
           .foregroundStyle(.inkSecondary)
@@ -107,7 +115,7 @@ struct AssignCandidateList: View {
     }
   }
 
-  private func addSection(_ snapshot: ListSnapshot) -> some View {
+  private func addSection(_ snapshot: AssignListSnapshot) -> some View {
     Section {
       ForEach(snapshot.candidates) { person in
         candidateRow(person, snapshot: snapshot)
@@ -119,14 +127,18 @@ struct AssignCandidateList: View {
           .padding(.vertical, Spacing.xs)
           .cardRowBackground()
       }
-      SomeoneElseRow(isEnabled: access.canSchedule, action: onSomeoneElse)
-        .cardRowBackground()
+      AssignSomeoneElseRow(
+        isEnabled: access.canSchedule && canSearchEveryone,
+        disabledReason: someoneElseDisabledReason,
+        action: onSomeoneElse
+      )
+      .cardRowBackground()
     } header: {
       SectionHeader("Add someone", count: snapshot.candidates.count)
     }
   }
 
-  private func unavailableSection(_ snapshot: ListSnapshot) -> some View {
+  private func unavailableSection(_ snapshot: AssignListSnapshot) -> some View {
     Section {
       ForEach(snapshot.exceptions) { person in
         candidateRow(person, snapshot: snapshot)
@@ -136,7 +148,15 @@ struct AssignCandidateList: View {
     }
   }
 
-  private func emptyCandidatesMessage(_ snapshot: ListSnapshot) -> LocalizedStringResource {
+  private var someoneElseDisabledReason: LocalizedStringResource? {
+    if !access.canSchedule { return "Scheduling is turned off for you here." }
+    if !canSearchEveryone {
+      return "You can schedule team members, but can't search the rest of your church."
+    }
+    return nil
+  }
+
+  private func emptyCandidatesMessage(_ snapshot: AssignListSnapshot) -> LocalizedStringResource {
     if !resolved.position.rosterHasCandidates {
       return "This position has no roster. Search for anyone below."
     }
@@ -168,11 +188,11 @@ struct AssignCandidateList: View {
 
   // MARK: Rows
 
-  private func candidateRow(_ person: CandidatePerson, snapshot: ListSnapshot) -> some View {
-    let presentation = CandidatePresentation(
+  private func candidateRow(_ person: CandidatePerson, snapshot: AssignListSnapshot) -> some View {
+    let presentation = AssignCandidatePresentation(
       person: person, teamName: resolved.group.teamName, positionName: resolved.position.name)
     let actions = rowActions(for: presentation)
-    return CandidateRow(
+    return AssignCandidateRow(
       presentation: presentation,
       planDate: model.planDate,
       showsHistory: showsHistory,
@@ -194,16 +214,16 @@ struct AssignCandidateList: View {
     .contextMenu {
       contextMenuItems(presentation, actions: actions)
     } preview: {
-      CandidatePreviewCard(
+      AssignCandidatePreviewCard(
         presentation: presentation, planDate: model.planDate,
         positionName: resolved.position.name)
     }
     .accessibilityIdentifier("candidate-\(person.id)")
   }
 
-  private func rowActions(for presentation: CandidatePresentation) -> CandidateRowActions {
+  private func rowActions(for presentation: AssignCandidatePresentation) -> AssignCandidateActions {
     let person = presentation.person
-    return CandidateRowActions(
+    return AssignCandidateActions(
       openDetails: { onOpenDetails(person.id) },
       add: { Task { await model.schedule(person) } },
       setStatus: { status in
@@ -218,7 +238,7 @@ struct AssignCandidateList: View {
   }
 
   @ViewBuilder
-  private func leadingSwipe(_ presentation: CandidatePresentation, actions: CandidateRowActions)
+  private func leadingSwipe(_ presentation: AssignCandidatePresentation, actions: AssignCandidateActions)
     -> some View
   {
     if access.canSchedule {
@@ -245,7 +265,7 @@ struct AssignCandidateList: View {
   }
 
   @ViewBuilder
-  private func trailingSwipe(_ presentation: CandidatePresentation, actions: CandidateRowActions)
+  private func trailingSwipe(_ presentation: AssignCandidatePresentation, actions: AssignCandidateActions)
     -> some View
   {
     if access.canSchedule, presentation.isScheduled {
@@ -263,7 +283,7 @@ struct AssignCandidateList: View {
   }
 
   @ViewBuilder
-  private func contextMenuItems(_ presentation: CandidatePresentation, actions: CandidateRowActions)
+  private func contextMenuItems(_ presentation: AssignCandidatePresentation, actions: AssignCandidateActions)
     -> some View
   {
     let person = presentation.person
@@ -296,7 +316,7 @@ struct AssignCandidateList: View {
 }
 
 /// Everything the list derives from the model for one render.
-private struct ListSnapshot {
+private struct AssignListSnapshot {
   let onSlot: [CandidatePerson]
   let candidates: [CandidatePerson]
   let exceptions: [CandidatePerson]
@@ -305,6 +325,8 @@ private struct ListSnapshot {
   let filledCount: Int
   let scorePending: Bool
   let notificationStates: [String: SchedulingNotificationState]
+  /// Candidates still loading their history and availability; nil once settled.
+  let progress: CandidateListProgress?
 
   @MainActor
   init(model: AssignModel, resolved: AssignResolvedSlot) {
@@ -325,6 +347,11 @@ private struct ListSnapshot {
     scorePending = pipeline.map { !($0.list?.complete ?? false) && $0.failedPartCount == 0 } ?? false
     notificationStates = positionNotificationStates(
       model.groups, teamId: resolved.teamId, positionId: resolved.positionId)
+    if let list, !list.complete, (pipeline?.failedPartCount ?? 0) == 0, !(pipeline?.isLoading ?? true) {
+      progress = list.progress
+    } else {
+      progress = nil
+    }
   }
 
   /// Changes when people move between sections or reorder, so the move animates.

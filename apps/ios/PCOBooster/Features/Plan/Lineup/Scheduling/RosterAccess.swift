@@ -4,7 +4,7 @@ import SwiftUI
 /// Whether this person can schedule in a service type, and what to tell them when they can't
 /// (or can only schedule the teams they lead). The web leaves every control enabled and lets
 /// Planning Center refuse; here controls the person cannot use are disabled and explained.
-struct SchedulingAccess: Equatable {
+struct RosterAccess: Equatable {
   struct Notice: Equatable {
     var title: String
     var message: String
@@ -15,11 +15,11 @@ struct SchedulingAccess: Equatable {
   /// A short explanation to show above the roster, when access is limited.
   var notice: Notice?
 
-  static let full = SchedulingAccess(canSchedule: true, notice: nil)
+  static let full = RosterAccess(canSchedule: true, notice: nil)
 
-  static func resolve(_ capabilities: AppCapabilities, serviceTypeId: String) -> SchedulingAccess {
+  static func resolve(_ capabilities: AppCapabilities, serviceTypeId: String) -> RosterAccess {
     if capabilities.isReadOnly {
-      return SchedulingAccess(
+      return RosterAccess(
         canSchedule: false,
         notice: Notice(
           title: "Read-only demo",
@@ -34,7 +34,7 @@ struct SchedulingAccess: Equatable {
     let message = planAccessMessage(view: .assign, abilities: abilities).map {
       Notice(title: $0.title, message: $0.description)
     }
-    return SchedulingAccess(canSchedule: canSchedule, notice: message)
+    return RosterAccess(canSchedule: canSchedule, notice: message)
   }
 
   /// Why a write control is disabled, for its accessibility hint.
@@ -44,8 +44,8 @@ struct SchedulingAccess: Equatable {
 }
 
 /// The access notice as a quiet card row: an info symbol, a title, and one line of detail.
-struct SchedulingAccessNotice: View {
-  let notice: SchedulingAccess.Notice
+struct RosterAccessNotice: View {
+  let notice: RosterAccess.Notice
 
   var body: some View {
     HStack(alignment: .firstTextBaseline, spacing: Spacing.md) {

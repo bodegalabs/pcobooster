@@ -2,9 +2,9 @@ import PCOBoosterCore
 import SwiftUI
 
 /// Search Planning Center for anyone not in the candidate list and schedule them as a one-off
-/// (`SomeoneElseRow`): at least 2 characters, a 150 ms pause, then `people.search`. Picking a
+/// (`AssignSomeoneElseRow`): at least 2 characters, a 150 ms pause, then `people.search`. Picking a
 /// person closes the search at once; the lineup shows them while the write lands.
-struct SomeoneElseSheet: View {
+struct AssignSomeoneElseSheet: View {
   let positionName: String
   let teamName: String
   let onPick: (PeopleSearchResult) -> Void

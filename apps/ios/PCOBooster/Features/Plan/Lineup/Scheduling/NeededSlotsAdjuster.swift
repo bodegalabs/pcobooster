@@ -7,7 +7,7 @@ import PCOBoosterCore
 /// the last one's result, and the plan's lineup reloads after the last one lands. A failure
 /// toasts "Couldn't update open slots." and the reload restores the truth.
 ///
-/// One adjuster per plan is shared by Lineup and Assign (`shared(queries:serviceTypeId:planId:)`),
+/// One adjuster per plan is shared by Lineup and Assign (`shared(app:serviceTypeId:planId:)`),
 /// so taps on either screen join the same queue.
 @MainActor
 @Observable
@@ -32,12 +32,13 @@ final class NeededSlotsAdjuster {
   private(set) var pendingCount = 0
 
   @ObservationIgnored private let queries: QueryClient
+  @ObservationIgnored private let toasts: ToastCenter
   @ObservationIgnored private var queue: [Job] = []
   @ObservationIgnored private var worker: Task<Void, Never>?
-  @ObservationIgnored private var onFailure: (@MainActor () -> Void)?
 
-  private init(queries: QueryClient, serviceTypeId: String, planId: String) {
+  private init(queries: QueryClient, toasts: ToastCenter, serviceTypeId: String, planId: String) {
     self.queries = queries
+    self.toasts = toasts
     self.serviceTypeId = serviceTypeId
     self.planId = planId
   }
@@ -51,28 +52,33 @@ final class NeededSlotsAdjuster {
   private static var adjusters: [Key: NeededSlotsAdjuster] = [:]
 
   /// The plan's adjuster, shared by every screen showing the plan.
-  static func shared(queries: QueryClient, serviceTypeId: String, planId: String)
-    -> NeededSlotsAdjuster
-  {
-    let key = Key(client: ObjectIdentifier(queries), serviceTypeId: serviceTypeId, planId: planId)
+  static func shared(app: AppModel, serviceTypeId: String, planId: String) -> NeededSlotsAdjuster {
+    let key = Key(
+      client: ObjectIdentifier(app.queries), serviceTypeId: serviceTypeId, planId: planId)
     if let existing = adjusters[key] {
       return existing
     }
     let adjuster = NeededSlotsAdjuster(
-      queries: queries, serviceTypeId: serviceTypeId, planId: planId)
+      queries: app.queries, toasts: app.toasts, serviceTypeId: serviceTypeId, planId: planId)
     adjusters[key] = adjuster
     return adjuster
   }
 
-  /// Where failures go: the screen's error toast.
-  func setFailureHandler(_ handler: @escaping @MainActor () -> Void) {
-    onFailure = handler
+  /// Planning Center only changes existing open-slot records, so a position with no record
+  /// gets its first open slot in Planning Center. The web reads "no open slots" as "no record";
+  /// a known record id also allows adding back a slot after removing the last one.
+  static func canAdd(_ position: TeamPosition) -> Bool {
+    position.rosterOpenSlots > 0 || position.rosterHasOpenSlotRecord
   }
 
-  /// Planning Center only changes existing open-slot records, so a position with none can
-  /// only get its first open slot in Planning Center.
-  static func canAdjust(_ position: TeamPosition) -> Bool {
+  /// There is an open slot to remove.
+  static func canRemove(_ position: TeamPosition) -> Bool {
     position.rosterOpenSlots > 0
+  }
+
+  /// Either direction works.
+  static func canAdjust(_ position: TeamPosition) -> Bool {
+    canAdd(position) || canRemove(position)
   }
 
   func adjust(_ position: TeamPosition, change: Change) {
@@ -111,8 +117,8 @@ final class NeededSlotsAdjuster {
       do {
         _ = try await queries.perform(RPC.NeededPositions.adjust, input)
       } catch {
-        if !error.isCancellation {
-          onFailure?()
+        if !error.isCancellation, !((error as? APIError)?.isUnauthorized ?? false) {
+          toasts.showError(String(localized: "Couldn't update open slots."))
         }
       }
       pendingCount -= 1

@@ -7,7 +7,7 @@ import PCOBoosterCore
 /// them refetch 2.5 s after the last write (the settle refetch). Failures surface as error
 /// toasts; there are no success toasts.
 @MainActor
-struct ScheduleWriter {
+struct RosterScheduleWriter {
   let queries: QueryClient
   let serviceTypeId: String
   let planId: String

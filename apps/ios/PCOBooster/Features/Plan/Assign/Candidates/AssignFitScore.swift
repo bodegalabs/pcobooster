@@ -3,7 +3,7 @@ import SwiftUI
 
 /// The recommendation score, 0 to 100 with the best candidate at 100, over a thin bar to match
 /// (`CandidateFit`). Tapping it explains the ranking.
-struct FitScoreButton: View {
+struct AssignFitScoreButton: View {
   let score: Int
   let reasoning: [String]
 
@@ -13,7 +13,7 @@ struct FitScoreButton: View {
     Button {
       showsReasons = true
     } label: {
-      FitScoreLabel(score: score)
+      AssignFitScoreLabel(score: score)
         .padding(.vertical, Spacing.xs)
         .padding(.horizontal, Spacing.xs)
         .contentShape(.rect)
@@ -22,7 +22,7 @@ struct FitScoreButton: View {
     .accessibilityLabel(Text("\(score) fit"))
     .accessibilityHint(Text("Shows why this ranking"))
     .popover(isPresented: $showsReasons, arrowEdge: .top) {
-      RankingFactsView(score: score, facts: groupRankingReasons(reasoning))
+      AssignRankingFacts(score: score, facts: groupRankingReasons(reasoning))
         .padding(Spacing.lg)
         .frame(idealWidth: 320, maxWidth: 360)
         .presentationCompactAdaptation(.popover)
@@ -30,12 +30,12 @@ struct FitScoreButton: View {
   }
 }
 
-struct FitScoreLabel: View {
+struct AssignFitScoreLabel: View {
   let score: Int
   var barWidth: CGFloat = 44
 
   var body: some View {
-    let tone = candidateFitTone(score)
+    let tone = assignFitTone(score)
     VStack(alignment: .trailing, spacing: Spacing.xs) {
       HStack(alignment: .firstTextBaseline, spacing: 2) {
         Text(score, format: .number)
@@ -61,7 +61,7 @@ struct FitScoreLabel: View {
 
 /// "Why this ranking": the facts the score came from, each with the adjustments it caused
 /// (`RecommendationPopover`). Facts only; the ranking informs, the scheduler decides.
-struct RankingFactsView: View {
+struct AssignRankingFacts: View {
   let score: Int
   let facts: [RankingFact]
   var showsHeader = true
@@ -86,7 +86,7 @@ struct RankingFactsView: View {
       } else {
         VStack(alignment: .leading, spacing: Spacing.md) {
           ForEach(Array(facts.enumerated()), id: \.offset) { _, fact in
-            RankingFactRow(fact: fact)
+            AssignRankingFactRow(fact: fact)
           }
         }
       }
@@ -95,7 +95,7 @@ struct RankingFactsView: View {
   }
 }
 
-private struct RankingFactRow: View {
+private struct AssignRankingFactRow: View {
   let fact: RankingFact
 
   var body: some View {
@@ -117,7 +117,7 @@ private struct RankingFactRow: View {
           } icon: {
             AppSymbol.reasonDetail.image
           }
-          .labelStyle(AdjustmentLabelStyle())
+          .labelStyle(AssignAdjustmentLabelStyle())
           .font(.meta)
           .foregroundStyle(.statusPendingText)
         }
@@ -127,7 +127,7 @@ private struct RankingFactRow: View {
   }
 }
 
-private struct AdjustmentLabelStyle: LabelStyle {
+private struct AssignAdjustmentLabelStyle: LabelStyle {
   func makeBody(configuration: Configuration) -> some View {
     HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
       configuration.icon.imageScale(.small)

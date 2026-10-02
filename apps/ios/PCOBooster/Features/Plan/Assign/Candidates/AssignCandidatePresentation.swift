@@ -4,7 +4,7 @@ import SwiftUI
 
 /// What one candidate row shows, derived the way `ScheduleCandidateTile` derives it: their
 /// state on this slot, other positions they hold on the plan, and the facts line.
-struct CandidatePresentation {
+struct AssignCandidatePresentation {
   let person: CandidatePerson
   let isConfirmed: Bool
   let isDeclined: Bool
@@ -103,7 +103,7 @@ struct CandidatePresentation {
 }
 
 /// The fit score's tone: 80 and up good, 50 to 79 middling, under 50 poor.
-func candidateFitTone(_ score: Int) -> StatusTone {
+func assignFitTone(_ score: Int) -> StatusTone {
   if score >= 80 { return .confirmed }
   return score >= 50 ? .pending : .declined
 }

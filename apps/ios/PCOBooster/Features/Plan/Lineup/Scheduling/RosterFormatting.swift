@@ -72,6 +72,15 @@ extension TeamPosition {
   /// Open slots Planning Center still needs someone for.
   var rosterOpenSlots: Int { max(0, Int(openSlotCount(self))) }
 
+  /// Planning Center has an open-slot (needed position) record the API can change.
+  var rosterHasOpenSlotRecord: Bool {
+    guard let neededPositionId else { return false }
+    return !neededPositionId.isEmpty
+  }
+
+  /// Filled people plus open slots, the stepper's denominator.
+  var rosterTotalSlots: Int { rosterFilled + rosterOpenSlots }
+
   /// People filling the position (declined people are never listed).
   var rosterFilled: Int {
     Int((filledConfirmedCount ?? 0) + (filledPendingCount ?? 0))

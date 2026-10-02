@@ -5,15 +5,15 @@ import SwiftUI
 /// in a sheet on iPhone: their state here, the decline reason or block, their days around the
 /// plan (tap a day for what's on it), serving facts, why they rank where they do, their
 /// Planning Center preferences, and the action for this slot.
-struct CandidateDetailView: View {
-  let presentation: CandidatePresentation
+struct AssignCandidateDetail: View {
+  let presentation: AssignCandidatePresentation
   let slot: SlotRef
   let planDate: Date?
   let notNotified: Bool
   let isScheduling: Bool
   let canSchedule: Bool
   let showsPersonLink: Bool
-  let actions: CandidateRowActions
+  let actions: AssignCandidateActions
   let onViewPerson: () -> Void
 
   @Environment(\.orgTimeZone) private var timeZone
@@ -33,11 +33,11 @@ struct CandidateDetailView: View {
         notices
         historyCard
         if let frequency = person.frequency {
-          CandidateFrequencyFacts(frequency: frequency, planDate: planDate)
+          AssignFrequencyFacts(frequency: frequency, planDate: planDate)
         }
         rankingCard
-        if let preferences = person.schedulingPreferences, !CandidatePreferencesCard.lines(preferences).isEmpty {
-          CandidatePreferencesCard(preferences: preferences)
+        if let preferences = person.schedulingPreferences, !AssignPreferencesCard.lines(preferences).isEmpty {
+          AssignPreferencesCard(preferences: preferences)
         }
         links
       }
@@ -45,7 +45,7 @@ struct CandidateDetailView: View {
       .frame(maxWidth: .infinity, alignment: .leading)
     }
     .background(.surfaceCanvas)
-    .modifier(PhoneBottomAction(isPhone: isPhone) { primaryAction })
+    .modifier(AssignPhoneBottomAction(isPhone: isPhone) { primaryAction })
     .accessibilityIdentifier("assign-candidate-detail")
   }
 
@@ -82,7 +82,7 @@ struct CandidateDetailView: View {
     } else if let status = presentation.slotStatus {
       StatusBadge(status: status)
     } else if let score = presentation.score {
-      StatusBadge("\(score) fit", tone: candidateFitTone(score))
+      StatusBadge("\(score) fit", tone: assignFitTone(score))
     }
   }
 
@@ -121,7 +121,7 @@ struct CandidateDetailView: View {
 
   @ViewBuilder private var notices: some View {
     if presentation.isDeclined {
-      CandidateDetailCard(title: "Decline reason", symbol: .statusDeclined) {
+      AssignDetailCard(title: "Decline reason", symbol: .statusDeclined) {
         Text(verbatim: declineReason)
           .font(.rowDetail)
           .foregroundStyle(.ink)
@@ -129,7 +129,7 @@ struct CandidateDetailView: View {
       }
     }
     if presentation.isBlocked, let planDate {
-      CandidateDetailCard(title: "Blocked out", symbol: .locked) {
+      AssignDetailCard(title: "Blocked out", symbol: .locked) {
         Text(
           "Planning Center has a blockout for \(OrgCalendar.label(planDate, timeZone: timeZone, style: .weekdayMonthDay))."
         )
@@ -150,12 +150,12 @@ struct CandidateDetailView: View {
   // MARK: History
 
   private var historyCard: some View {
-    CandidateDetailCard(title: "Around this plan", symbol: .calendarDay) {
+    AssignDetailCard(title: "Around this plan", symbol: .calendarDay) {
       VStack(alignment: .leading, spacing: Spacing.md) {
         if let planDate, person.serviceHistory != nil {
           let days = buildScheduleDays(
             history: person.serviceHistory ?? [], referenceDate: planDate, timeZone: timeZone)
-          ScheduleDayBars(days: days, isLarge: true, inspectedDay: $inspectedDay)
+          AssignDayBars(days: days, isLarge: true, inspectedDay: $inspectedDay)
           if days.allSatisfy({ $0.kind == .free }) {
             Text("Nothing scheduled in the 4 weeks either side of this plan.")
               .font(.meta)
@@ -176,13 +176,13 @@ struct CandidateDetailView: View {
 
   @ViewBuilder private var rankingCard: some View {
     if let score = presentation.score, presentation.showsFit {
-      CandidateDetailCard(title: "Why this ranking", symbol: .reasonHistory) {
+      AssignDetailCard(title: "Why this ranking", symbol: .reasonHistory) {
         VStack(alignment: .leading, spacing: Spacing.md) {
           HStack {
-            FitScoreLabel(score: score, barWidth: 72)
+            AssignFitScoreLabel(score: score, barWidth: 72)
             Spacer()
           }
-          RankingFactsView(
+          AssignRankingFacts(
             score: score, facts: groupRankingReasons(person.recommendationReasoning),
             showsHeader: false)
         }
@@ -195,10 +195,10 @@ struct CandidateDetailView: View {
   @ViewBuilder private var links: some View {
     VStack(spacing: 0) {
       if showsPersonLink {
-        LinkRow(title: "View Person", symbol: .people, action: onViewPerson)
+        AssignLinkRow(title: "View Person", symbol: .people, action: onViewPerson)
         Hairline().padding(.leading, 44)
       }
-      LinkRow(title: "Open in Planning Center", symbol: .openExternal) {
+      AssignLinkRow(title: "Open in Planning Center", symbol: .openExternal) {
         if let url = RosterLinks.person(person.id) {
           openURL(url)
         }
@@ -209,7 +209,7 @@ struct CandidateDetailView: View {
 }
 
 /// A titled card in the candidate detail.
-struct CandidateDetailCard<Content: View>: View {
+struct AssignDetailCard<Content: View>: View {
   let title: LocalizedStringKey
   let symbol: AppSymbol
   @ViewBuilder let content: Content
@@ -227,7 +227,7 @@ struct CandidateDetailCard<Content: View>: View {
   }
 }
 
-private struct LinkRow: View {
+private struct AssignLinkRow: View {
   let title: LocalizedStringKey
   let symbol: AppSymbol
   let action: () -> Void
@@ -255,7 +255,7 @@ private struct LinkRow: View {
 }
 
 /// On iPhone the slot action is a full-width button at the bottom of the sheet.
-private struct PhoneBottomAction<Action: View>: ViewModifier {
+private struct AssignPhoneBottomAction<Action: View>: ViewModifier {
   let isPhone: Bool
   @ViewBuilder let action: Action
 
