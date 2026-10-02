@@ -23,9 +23,10 @@ import { currentStageSettings } from "./stage";
 const PREVIEW_SECRET_PLACEHOLDER = "minted-by-alchemy-random-at-runtime";
 
 /**
- * Auth writes (sign-in, OAuth callbacks, sign-out) each client IP may make per minute. A whole
- * church signing in from one network stays well under it; a script hammering sign-in does not.
- * Cloudflare counts per location, so it is a brake on abuse, not an exact quota.
+ * Auth writes (sign-in, sign-out, native sign-in start and exchange; see `createServerApp`) each
+ * client IP may make per minute. A whole church signing in from one network stays well under it;
+ * a script hammering sign-in does not. Cloudflare counts per location, so it is a brake on abuse,
+ * not an exact quota.
  */
 const AUTH_WRITES_PER_PERIOD = 30;
 
