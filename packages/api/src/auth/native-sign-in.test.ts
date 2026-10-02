@@ -58,8 +58,10 @@ const MARKER_COOKIE = "better-auth.native_sign_in";
 const APP_REDIRECT_URI = "pcobooster://auth/callback";
 const HANDOFF_CODE = /^[\w-]{43}$/u;
 const MILLISECONDS_PER_SECOND = 1000;
+const SESSION_REFRESH_AFTER_MS = 2 * 24 * 60 * 60 * MILLISECONDS_PER_SECOND;
 
 const errorBodySchema = z.object({ code: z.string() });
+const markerFieldsSchema = z.record(z.string(), z.string());
 const sessionBodySchema = z
   .object({ user: z.object({ id: z.string() }) })
   .nullable();
@@ -353,7 +355,10 @@ describe("native sign-in", () => {
       MARKER_COOKIE,
       STATE_COOKIE,
     ]);
-    expect(setCookieNamed(run.callback, MARKER_COOKIE)).toContain("Max-Age=0");
+    // Expired on the path it was set on, or the browser would keep it.
+    expect(setCookieNamed(run.callback, MARKER_COOKIE)).toMatch(
+      /[=]; Max-Age=0; Path=\/api\/auth; HttpOnly; SameSite=Lax$/u
+    );
     expect(setCookieNamed(run.callback, STATE_COOKIE)).toContain("Max-Age=0");
   });
 
@@ -465,6 +470,34 @@ describe("native sign-in", () => {
     await expect(errorCode(response)).resolves.toBe("INVALID_GRANT");
   });
 
+  it("refuses a code whose session has expired", async () => {
+    const person = profile("expired-session");
+    const run = await signInAs(person);
+    await database
+      .update(session)
+      .set({ expiresAt: new Date(Date.now() - MILLISECONDS_PER_SECOND) })
+      .where(eq(session.userId, await userIdFor(person.email)));
+
+    const response = await exchangeRun(handler, origin, run);
+    expect(response.status).toBe(400);
+    await expect(errorCode(response)).resolves.toBe("INVALID_GRANT");
+  });
+
+  it("lets only one of several concurrent exchanges of a code succeed", async () => {
+    const run = await signInAs(profile("concurrent"));
+    const responses = await Promise.all(
+      Array.from(
+        { length: 4 },
+        async () => await exchangeRun(handler, origin, run)
+      )
+    );
+    const statuses = responses.map((response) => response.status);
+    expect({
+      succeeded: statuses.filter((status) => status === 200).length,
+      refused: statuses.filter((status) => status === 400).length,
+    }).toStrictEqual({ succeeded: 1, refused: 3 });
+  });
+
   it.each<[string, ExchangeRequestBody]>([
     ["an empty body", {}],
     ["a short code", { code: "abc", codeVerifier: createPkcePair().verifier }],
@@ -493,6 +526,57 @@ describe("native sign-in", () => {
     expect(setCookieNamed(declined.callback, MARKER_COOKIE)).toContain(
       "Max-Age=0"
     );
+    await expect(handoffCount()).resolves.toBe(handoffsBefore);
+  });
+
+  it("reports a browser flow that lost its state cookie as sign_in_expired", async () => {
+    const parameters = validStart();
+    const start = await startNativeSignIn(handler, origin, parameters);
+    const markerOnly = cookieHeader(start)
+      .split("; ")
+      .filter((pair) => pair.startsWith(`${MARKER_COOKIE}=`))
+      .join("; ");
+    const callback = await callbackFor(
+      handler,
+      origin,
+      start.headers.get("location") ?? "",
+      markerOnly
+    );
+    const location = new URL(callback.headers.get("location") ?? "");
+
+    expect(redirectTarget(location)).toBe(APP_REDIRECT_URI);
+    expect(Object.fromEntries(location.searchParams)).toStrictEqual({
+      error: "sign_in_expired",
+      state: parameters.state,
+    });
+    expect(setCookieNames(callback)).toStrictEqual([MARKER_COOKIE]);
+  });
+
+  it("ignores a marker whose signature does not match its contents", async () => {
+    const handoffsBefore = await handoffCount();
+    planningCenter.signInAs(profile("tampered-marker"));
+    const start = await startNativeSignIn(handler, origin, validStart());
+    const jar = cookieHeader(start);
+    const markerPair =
+      jar.split("; ").find((pair) => pair.startsWith(`${MARKER_COOKIE}=`)) ??
+      "";
+    const signed = decodeURIComponent(
+      markerPair.slice(MARKER_COOKIE.length + 1)
+    );
+    const separator = signed.lastIndexOf(".");
+    // Swap in an attacker's challenge but keep the original signature.
+    const forged = `${JSON.stringify({
+      ...markerFieldsSchema.parse(JSON.parse(signed.slice(0, separator))),
+      challenge: createPkcePair().challenge,
+    })}${signed.slice(separator)}`;
+    const callback = await callbackFor(
+      handler,
+      origin,
+      start.headers.get("location") ?? "",
+      jar.replace(markerPair, `${MARKER_COOKIE}=${encodeURIComponent(forged)}`)
+    );
+
+    expect(callback.headers.get("location")).toBe("/services");
     await expect(handoffCount()).resolves.toBe(handoffsBefore);
   });
 
@@ -564,6 +648,37 @@ describe("native sign-in", () => {
       )
     ).toStrictEqual([null, null]);
     expect(callback.headers.get("access-control-expose-headers")).toBeNull();
+  });
+
+  it("never exposes a refreshed web session token to page scripts", async () => {
+    planningCenter.signInAs(profile("web-refresh"));
+    const start = await webSignInStart();
+    const callback = await callbackFor(
+      handler,
+      origin,
+      await authorizationUrlOf(start),
+      cookieHeader(start)
+    );
+    const sessionCookie = cookieHeader(callback)
+      .split("; ")
+      .filter((pair) => pair.startsWith(`${SESSION_COOKIE}=`))
+      .join("; ");
+    vi.useFakeTimers({ now: Date.now(), toFake: ["Date"] });
+    // Past Better Auth's one-day update age, so reading the session re-issues its cookie.
+    vi.setSystemTime(Date.now() + SESSION_REFRESH_AFTER_MS);
+    const refreshed = await auth.handler(
+      new Request(`${origin}/api/auth/get-session`, {
+        headers: { cookie: sessionCookie },
+      })
+    );
+
+    expect(setCookieNamed(refreshed, SESSION_COOKIE)).toMatch(
+      /; Max-Age=604800; Path=\/; HttpOnly; SameSite=Lax$/u
+    );
+    expect({
+      token: refreshed.headers.get("set-auth-token"),
+      exposed: refreshed.headers.get("access-control-expose-headers"),
+    }).toStrictEqual({ token: null, exposed: null });
   });
 
   it("ignores a native marker left in the browser by another flow", async () => {

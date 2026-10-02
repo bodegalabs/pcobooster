@@ -1,5 +1,7 @@
 import { createAuth } from "@pcobooster/api/auth";
 import {
+  createAppState,
+  createPkcePair,
   createPlanningCenterStub,
   exchangeRun,
   parseExchange,
@@ -11,6 +13,7 @@ import { PLANNING_CENTER_SELECTED_ACCOUNT_HEADER } from "@pcobooster/api/auth/pl
 import { createDatabase } from "@pcobooster/api/db/client";
 import { account } from "@pcobooster/api/db/schema";
 import { appRouter } from "@pcobooster/api/orpc";
+import type { ServerDependencies } from "@pcobooster/api/server";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { eq } from "drizzle-orm";
 import type { Hono } from "hono";
@@ -53,6 +56,7 @@ const accountsSchema = z.object({
 });
 
 let app: Hono;
+let server: ServerDependencies;
 const handler = async (request: Request): Promise<Response> =>
   await app.request(request);
 
@@ -103,8 +107,9 @@ describe("native sign-in through the API Worker", () => {
     vi.stubGlobal("fetch", planningCenter.fetch);
     const auth = createAuth(config, database);
     await auth.$context;
+    server = testServer({ config, database, auth });
     app = createServerApp({
-      server: testServer({ config, database, auth }),
+      server,
       enableRequestLogging: false,
       log: { error: vi.fn<TestErrorLogger>() },
       reportError: null,
@@ -192,6 +197,46 @@ describe("native sign-in through the API Worker", () => {
 
     // Another user's account is never selected: the caller falls back to their first one.
     expect(selected).toStrictEqual([first, second, first]);
+  });
+
+  it("limits the native start on every path Better Auth would serve it", async () => {
+    const limitedApp = createServerApp({
+      server,
+      allowAuthWrite: async () => await Promise.resolve(false),
+      enableRequestLogging: false,
+      log: { error: vi.fn<TestErrorLogger>() },
+      reportError: null,
+      router: appRouter,
+    });
+    const query = new URLSearchParams({
+      code_challenge: createPkcePair().challenge,
+      code_challenge_method: "S256",
+      state: createAppState(),
+      redirect_uri: "pcobooster://auth/callback",
+    }).toString();
+    const attempts = [
+      ["GET", "/api/auth/native/start"],
+      ["GET", "/api/auth/native/start/"],
+      ["GET", "/api/auth//native/start"],
+      ["GET", "/api/auth/native/%73tart"],
+      ["GET", "/api/auth/Native/Start"],
+      ["HEAD", "/api/auth/native/start"],
+    ] as const;
+
+    const statuses = await Promise.all(
+      attempts.map(async ([method, path]) => {
+        const response = await limitedApp.request(
+          new Request(`${origin}${path}?${query}`, {
+            method,
+            headers: { "cf-connecting-ip": "203.0.113.7" },
+          })
+        );
+        return response.status;
+      })
+    );
+
+    // The limiter counts the exact path; Better Auth's router serves no other spelling of it.
+    expect(statuses).toStrictEqual([429, 404, 404, 404, 404, 404]);
   });
 
   it("revokes the bearer token on sign-out", async () => {
