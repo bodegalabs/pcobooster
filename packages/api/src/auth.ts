@@ -1,4 +1,6 @@
+import { bearerSessions } from "@pcobooster/api/auth/bearer-sessions";
 import { deviceAccounts } from "@pcobooster/api/auth/device-accounts";
+import { nativeSignIn } from "@pcobooster/api/auth/native-sign-in";
 import {
   getPlanningCenterIdentityFromAccessToken,
   getPlanningCenterRawUserInfo,
@@ -334,6 +336,9 @@ export const createAuth = (config: ServerConfig, database: Db) => {
           },
         ],
       }),
+      // Native app sign-in: bearer sessions plus the handoff from the Planning Center callback.
+      bearerSessions(),
+      nativeSignIn(),
       ...(proxy === null
         ? []
         : [

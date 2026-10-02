@@ -63,6 +63,16 @@ export const demoSessionToken = (configuration: DemoConfiguration): string =>
     .update(SESSION_TOKEN_CONTEXT)
     .digest("base64url");
 
+/** How cookieless clients (the native app) send the demo token; read before the cookie. */
+export const DEMO_SESSION_HEADER = "x-pcobooster-demo";
+
+const readDemoSessionToken = (request: Request): string | null => {
+  const header = request.headers.get(DEMO_SESSION_HEADER)?.trim();
+  return isNonEmptyString(header)
+    ? header
+    : readCookie(request, DEMO_SESSION_COOKIE);
+};
+
 /** The demo configuration when this request carries a current demo session. */
 export const resolveDemoSession = (
   request: Request,
@@ -71,7 +81,7 @@ export const resolveDemoSession = (
   if (configuration === null) {
     return null;
   }
-  const token = readCookie(request, DEMO_SESSION_COOKIE);
+  const token = readDemoSessionToken(request);
   return token !== null && matches(token, demoSessionToken(configuration))
     ? configuration
     : null;

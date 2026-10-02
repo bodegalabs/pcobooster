@@ -1,4 +1,5 @@
 import {
+  DEMO_SESSION_HEADER,
   demoSessionToken,
   isDemoAccessKey,
   readDemoConfiguration,
@@ -26,6 +27,9 @@ const requestWithCookie = (cookie: string): Request =>
   new Request("https://pcobooster.com/api/rpc/catalog", {
     headers: { cookie },
   });
+
+const requestWithHeaders = (headers: Record<string, string>): Request =>
+  new Request("https://pcobooster.com/api/rpc/catalog", { headers });
 
 describe("demo configuration", () => {
   it("reads the key and demo personal access token", () => {
@@ -81,6 +85,42 @@ describe("demo sessions", () => {
     });
     expect(resolveDemoSession(request, rotated)).toBeNull();
     expect(resolveDemoSession(request, null)).toBeNull();
+  });
+
+  it("resolves a cookieless client sending the token in the demo header", () => {
+    const configuration = configured();
+    const request = requestWithHeaders({
+      [DEMO_SESSION_HEADER]: demoSessionToken(configuration),
+    });
+    expect(resolveDemoSession(request, configuration)).toBe(configuration);
+  });
+
+  it("validates the demo header like the cookie, and reads it first", () => {
+    const configuration = configured();
+    const token = demoSessionToken(configuration);
+    expect(
+      resolveDemoSession(
+        requestWithHeaders({
+          [DEMO_SESSION_HEADER]: environment.DEMO_ACCESS_KEY,
+        }),
+        configuration
+      )
+    ).toBeNull();
+    expect(
+      resolveDemoSession(
+        requestWithHeaders({
+          [DEMO_SESSION_HEADER]: "forged-token",
+          cookie: `${DEMO_SESSION_COOKIE}=${token}`,
+        }),
+        configuration
+      )
+    ).toBeNull();
+    expect(
+      resolveDemoSession(
+        requestWithHeaders({ [DEMO_SESSION_HEADER]: token }),
+        null
+      )
+    ).toBeNull();
   });
 
   it("ignores requests without a demo session", () => {

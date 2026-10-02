@@ -24,7 +24,8 @@ import { z } from "zod";
 
 export const MAX_DEVICE_ACCOUNTS = 4;
 
-const DEVICE_COOKIE_MARKER = "_device-";
+/** Each device cookie is named `<session token cookie>_device-<user id>`. */
+export const DEVICE_COOKIE_MARKER = "_device-";
 /** Better Auth lowercases nothing here, but user ids are opaque; keep cookie names safe. */
 const COOKIE_SAFE_USER_ID = /^[\w-]+$/u;
 
