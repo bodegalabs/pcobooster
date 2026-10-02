@@ -1,0 +1,77 @@
+{
+  "suite": "plans.itemTypeLabel",
+  "cases": [
+    {
+      "input": {
+        "song": null,
+        "arrangement": null,
+        "id": "song",
+        "title": "song",
+        "itemType": "song",
+        "sequence": 1,
+        "servicePosition": "during",
+        "length": null,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      },
+      "output": "Song"
+    },
+    {
+      "input": {
+        "song": null,
+        "arrangement": null,
+        "id": "header",
+        "title": "header",
+        "itemType": "header",
+        "sequence": 1,
+        "servicePosition": "during",
+        "length": null,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      },
+      "output": "Header"
+    },
+    {
+      "input": {
+        "song": null,
+        "arrangement": null,
+        "id": "item",
+        "title": "item",
+        "itemType": "item",
+        "sequence": 1,
+        "servicePosition": "during",
+        "length": null,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      },
+      "output": "Item"
+    },
+    {
+      "input": {
+        "song": null,
+        "arrangement": null,
+        "id": "media",
+        "title": "media",
+        "itemType": "media",
+        "sequence": 1,
+        "servicePosition": "during",
+        "length": null,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      },
+      "output": "media"
+    }
+  ]
+}

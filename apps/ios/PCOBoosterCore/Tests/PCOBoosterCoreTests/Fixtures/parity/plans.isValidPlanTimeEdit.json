@@ -1,0 +1,7367 @@
+{
+  "suite": "plans.isValidPlanTimeEdit",
+  "cases": [
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "09:00",
+        "endDate": "2026-09-27",
+        "endTime": "10:15",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "09:00",
+        "endDate": "2026-09-27",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "09:00",
+        "endDate": "2026-09-27",
+        "endTime": "08:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "09:00",
+        "endDate": "2026-09-27",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "09:00",
+        "endDate": "2026-09-26",
+        "endTime": "23:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "09:00",
+        "endDate": "",
+        "endTime": "10:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": " ",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "09:00",
+        "endDate": "2026-09-27",
+        "endTime": "10:15",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "",
+        "startTime": "09:00",
+        "endDate": "2026-09-27",
+        "endTime": "10:15",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "",
+        "endDate": "2026-09-27",
+        "endTime": "10:15",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": " 09:00",
+        "endDate": "2024-02-29",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "noon",
+        "endDate": "2024-02-29",
+        "endTime": "24:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-00-10",
+        "startTime": "-1:00",
+        "endDate": "2026-00-10",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "24:01",
+        "endDate": "1999-12-31",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "9:00",
+        "endDate": "2026-02-28",
+        "endTime": "09:00Z",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "09:30",
+        "endDate": "2026-02-31",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026/01/05",
+        "startTime": "",
+        "endDate": "2026-02-29",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-5",
+        "startTime": "09:30",
+        "endDate": "2026-02-29",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "9 AM",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "ab:cd",
+        "endDate": "2026-02-28",
+        "endTime": "24:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": "00:00",
+        "endDate": "0099-01-05",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": " 2026-01-05",
+        "startTime": "09:5",
+        "endDate": "0000-03-01",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": "12:00",
+        "endDate": "2026-02-32",
+        "endTime": "00:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "00:00",
+        "endDate": "2026-02-30",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "   ",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "24:00",
+        "endDate": "0099-01-05",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "09:5",
+        "endDate": "2026-00-10",
+        "endTime": "00:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "   ",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "0900",
+        "endDate": "2026-12-31",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "24:01",
+        "endDate": "0099-01-05",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026/01/05",
+        "startTime": "",
+        "endDate": "2026-02-29",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-32",
+        "startTime": "09:00",
+        "endDate": "2024-02-29",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27T10:00",
+        "startTime": "-1:00",
+        "endDate": "2026-04-31",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27T10:00",
+        "startTime": "+09:00",
+        "endDate": "2026-09-27",
+        "endTime": "-1:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "0900",
+        "endDate": "2026-13-01",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "9",
+        "endDate": "2026-04-31",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-00-10",
+        "startTime": "09:5",
+        "endDate": "0099-01-05",
+        "endTime": "ab:cd",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "24:01",
+        "endDate": "２０２６-09-27",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "0900",
+        "endDate": "2026-09-28",
+        "endTime": "09:00Z",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "ab:cd",
+        "endDate": "26-01-05",
+        "endTime": "24:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "12:60",
+        "endDate": "2026-04-31",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "",
+        "endDate": "2026-09-28",
+        "endTime": "09:00Z",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "",
+        "endDate": "2026-02-29",
+        "endTime": "09:00Z",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-00",
+        "startTime": "9",
+        "endDate": "2026-01-05 ",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "0900",
+        "endDate": "2026-02-30",
+        "endTime": "ab:cd",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-00",
+        "startTime": "09",
+        "endDate": "2026-01-00",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "",
+        "timeType": "service",
+        "startDate": "2026-00-10",
+        "startTime": "09:00 ",
+        "endDate": "2027-01-01",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "0900",
+        "endDate": "2026-02-30",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "12:60",
+        "endDate": "2026-12-31",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "9",
+        "endDate": "2026-02-29",
+        "endTime": "ab:cd",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "25:00",
+        "endDate": "2026-09-28",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026/01/05",
+        "startTime": "09:00:30",
+        "endDate": "2026/01/05",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "09:5",
+        "endDate": "2026-09-28",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-00-10",
+        "startTime": "23:59",
+        "endDate": "2026-1-05",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": " ",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "9",
+        "endDate": "1999-12-31",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "09:00",
+        "endDate": "2027-01-01",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "２０２６-09-27",
+        "startTime": "09:00 ",
+        "endDate": "２０２６-09-27",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "9",
+        "endDate": "2026-01-05 ",
+        "endTime": "00:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": " ",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "00:00",
+        "endDate": "2026-09-27",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "ab:cd",
+        "endDate": "2026-04-31",
+        "endTime": "-1:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-00-10",
+        "startTime": "9:00",
+        "endDate": "2026-09-28",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "09",
+        "endDate": "2026-04-31",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "09:00",
+        "endDate": "1999-12-31",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "noon",
+        "endDate": "2024-02-29",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "0900",
+        "endDate": " 2026-01-05",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "09:00Z",
+        "endDate": "２０２６-09-27",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "09:00 ",
+        "endDate": "2026-09-27",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27T10:00",
+        "startTime": "09:00Z",
+        "endDate": "2026-09-27T10:00",
+        "endTime": "-1:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "09:00",
+        "endDate": "2026-09-28",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": " ",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "",
+        "endDate": "2026/01/05",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-32",
+        "startTime": "09",
+        "endDate": "2026-02-32",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "09:00:30",
+        "endDate": "2026-02-29",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "23:59",
+        "endDate": "2026-1-05",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "9",
+        "endDate": "0000-03-01",
+        "endTime": "-1:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "09:00 ",
+        "endDate": "0099-01-05",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "09",
+        "endDate": "2026-04-31",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "12:00",
+        "endDate": "2026-02-29",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "09:00:30",
+        "endDate": "2026-02-30",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-5",
+        "startTime": "12:00",
+        "endDate": "2026-01-5",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "+09:00",
+        "endDate": "2026-04-31",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "12:00",
+        "endDate": "2024-02-29",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "-1:00",
+        "endDate": "1999-12-31",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-13-01",
+        "startTime": "-1:00",
+        "endDate": "2026-09-27",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "24:00",
+        "endDate": "0000-03-01",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "24:00",
+        "endDate": "2026-04-31",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "09:00Z",
+        "endDate": "2027-01-01",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "25:00",
+        "endDate": "2026-13-01",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-32",
+        "startTime": "9:00",
+        "endDate": "2026-02-28",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "0900",
+        "endDate": "2026-01-00",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "-1:00",
+        "endDate": "2026-02-30",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27T10:00",
+        "startTime": "+09:00",
+        "endDate": "2026-09-27T10:00",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026/01/05",
+        "startTime": "23:59",
+        "endDate": "2026-01-05 ",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": " 2026-01-05",
+        "startTime": "09",
+        "endDate": "2026-02-30",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "﻿",
+        "timeType": "service",
+        "startDate": "2026/01/05",
+        "startTime": "09:5",
+        "endDate": "0099-01-05",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-00-10",
+        "startTime": "00:00",
+        "endDate": "2026-00-10",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "09:00Z",
+        "endDate": "26-01-05",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "",
+        "startTime": "09:00Z",
+        "endDate": "",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "0900",
+        "endDate": "2026-02-28",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "09:00 ",
+        "endDate": "0099-01-05",
+        "endTime": "24:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "09:00 ",
+        "endDate": "2026-13-01",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "09:00:30",
+        "endDate": "2026-13-01",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "09:00 ",
+        "endDate": "0000-03-01",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "ab:cd",
+        "endDate": "1999-12-31",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": "24:01",
+        "endDate": "2026-02-28",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "09:00:30",
+        "endDate": "2026-12-31",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "0900",
+        "endDate": "2026-09-27T10:00",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "9:00",
+        "endDate": "2026-02-31",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "26-01-05",
+        "startTime": "-1:00",
+        "endDate": "2026-02-29",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": " 09:00",
+        "endDate": "2026-02-31",
+        "endTime": "noon",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "9:00",
+        "endDate": "2026-04-31",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "-1:00",
+        "endDate": "0099-01-05",
+        "endTime": "24:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-5",
+        "startTime": "25:00",
+        "endDate": "2026-02-28",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "09",
+        "endDate": "2026-02-31",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27T10:00",
+        "startTime": "24:00",
+        "endDate": "2026-02-29",
+        "endTime": "ab:cd",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "24:01",
+        "endDate": "2026-12-31",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "09",
+        "endDate": "2026-01-5",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "09:00",
+        "endDate": "2026-02-30",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-5",
+        "startTime": "09",
+        "endDate": "2026-01-5",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "﻿",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": " 09:00",
+        "endDate": "2026-09-28",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "0900",
+        "endDate": "26-01-05",
+        "endTime": "09:00Z",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "24:01",
+        "endDate": "1999-12-31",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-32",
+        "startTime": "",
+        "endDate": "2026-02-32",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "23:59",
+        "endDate": "2026-01-05 ",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": " 09:00",
+        "endDate": "2026-09-28",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "09:00 ",
+        "endDate": "0099-01-05",
+        "endTime": "24:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "25:00",
+        "endDate": "2026-04-31",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "ab:cd",
+        "endDate": "2024-02-29",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "-1:00",
+        "endDate": "2026-04-31",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "abc",
+        "startTime": "09:30",
+        "endDate": "2026-02-30",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "24:01",
+        "endDate": "0099-01-05",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "２０２６-09-27",
+        "startTime": "-1:00",
+        "endDate": "0099-01-05",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "24:00",
+        "endDate": "2026-09-27",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "09:00 ",
+        "endDate": "1999-12-31",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "00:00",
+        "endDate": "2024-02-29",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "   ",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "09:00 ",
+        "endDate": "2026-12-31",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "２０２６-09-27",
+        "startTime": "0900",
+        "endDate": "２０２６-09-27",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "00:00",
+        "endDate": "26-01-05",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "09:00 ",
+        "endDate": "1999-12-31",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "09:00 ",
+        "endDate": "2027-01-01",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "09",
+        "endDate": "2027-01-01",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "09:00 ",
+        "endDate": "0099-01-05",
+        "endTime": "-1:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "12:00",
+        "endDate": "2026-02-30",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "9",
+        "endDate": "2026-02-30",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": " 09:00",
+        "endDate": "2026-02-28",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "09:00 ",
+        "endDate": "2026-02-30",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "２０２６-09-27",
+        "startTime": "12:60",
+        "endDate": "2026-02-30",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "-1:00",
+        "endDate": "2026-1-05",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-5",
+        "startTime": "-1:00",
+        "endDate": "２０２６-09-27",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": " 09:00",
+        "endDate": "2024-02-29",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "00:00",
+        "endDate": " 2026-01-05",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "09:00Z",
+        "endDate": "2026-01-5",
+        "endTime": "-1:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "23:59",
+        "endDate": "2026-12-31",
+        "endTime": "24:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": "09:00Z",
+        "endDate": "2026-02-28",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": " ",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "09:00Z",
+        "endDate": "2026-09-27",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "9 AM",
+        "timeType": "service",
+        "startDate": "２０２６-09-27",
+        "startTime": "09:00 ",
+        "endDate": "0099-01-05",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "9:00",
+        "endDate": "2026-02-28",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "09:30",
+        "endDate": "1999-12-31",
+        "endTime": "-1:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "09:00 ",
+        "endDate": "2026-12-31",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "09:00:30",
+        "endDate": "2026-02-31",
+        "endTime": "00:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "09:30",
+        "endDate": "2027-01-01",
+        "endTime": "00:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "09:00:30",
+        "endDate": "2027-01-01",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "9",
+        "endDate": "2026-09-27",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "09:00:30",
+        "endDate": "0000-03-01",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026/01/05",
+        "startTime": "09:00 ",
+        "endDate": "2026-02-29",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "26-01-05",
+        "startTime": "09:5",
+        "endDate": "2026-02-32",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "09",
+        "endDate": "2026-02-28",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": " 09:00",
+        "endDate": "2026-09-27T10:00",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "24:01",
+        "endDate": "2024-02-29",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "12:60",
+        "endDate": "2026-12-31",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "09:5",
+        "endDate": "2026-09-27",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "9",
+        "endDate": "0099-01-05",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "noon",
+        "endDate": "2026-00-10",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "09",
+        "endDate": "2026-1-05",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "24:00",
+        "endDate": "1999-12-31",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "ab:cd",
+        "endDate": "2026-02-30",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "00:00",
+        "endDate": "2026-04-31",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026/01/05",
+        "startTime": "25:00",
+        "endDate": "2026-02-31",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "２０２６-09-27",
+        "startTime": "09:00:30",
+        "endDate": "2026-02-30",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "ab:cd",
+        "endDate": "2026-02-31",
+        "endTime": "noon",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "12:00",
+        "endDate": "2026-02-30",
+        "endTime": "ab:cd",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": "ab:cd",
+        "endDate": "2026-09-28",
+        "endTime": "09:00Z",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-1-05",
+        "startTime": "25:00",
+        "endDate": "2026-02-31",
+        "endTime": "09:00Z",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-5",
+        "startTime": "0900",
+        "endDate": "2026-02-31",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "   ",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "9:00",
+        "endDate": "2026-02-30",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "23:59",
+        "endDate": "0000-03-01",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "-1:00",
+        "endDate": "2026-09-28",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "+09:00",
+        "endDate": "2026-12-31",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "noon",
+        "endDate": "2026-02-30",
+        "endTime": "09:00Z",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "9",
+        "endDate": "2027-01-01",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "24:01",
+        "endDate": "2026-09-28",
+        "endTime": "-1:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026/01/05",
+        "startTime": "0900",
+        "endDate": "",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-00-10",
+        "startTime": "-1:00",
+        "endDate": "2026-04-31",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-00-10",
+        "startTime": "09:5",
+        "endDate": "0099-01-05",
+        "endTime": "noon",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "09:30",
+        "endDate": "2026-09-28",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "23:59",
+        "endDate": "2026-12-31",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "",
+        "startTime": "09",
+        "endDate": "",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "9",
+        "endDate": "2024-02-29",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "ab:cd",
+        "endDate": "2026-02-29",
+        "endTime": "09:00Z",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "09",
+        "endDate": "2026-04-31",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-1-05",
+        "startTime": "12:60",
+        "endDate": "2026-02-30",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "12:00",
+        "endDate": "2026-02-30",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27T10:00",
+        "startTime": "24:01",
+        "endDate": "2026-09-27T10:00",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "12:00",
+        "endDate": "2026-01-05 ",
+        "endTime": "24:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": " 2026-01-05",
+        "startTime": "24:01",
+        "endDate": "2026-02-31",
+        "endTime": "ab:cd",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "﻿",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "00:00",
+        "endDate": "2026-02-28",
+        "endTime": "ab:cd",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "+09:00",
+        "endDate": "2026-09-27",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "26-01-05",
+        "startTime": "24:00",
+        "endDate": "2026-04-31",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "9 AM",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "12:60",
+        "endDate": "2026-02-30",
+        "endTime": "00:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "-1:00",
+        "endDate": "2026-09-27",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": "00:00",
+        "endDate": "2026-02-28",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-5",
+        "startTime": "09:00",
+        "endDate": "2026-09-27",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "09:00:30",
+        "endDate": "2024-02-29",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "２０２６-09-27",
+        "startTime": "09:5",
+        "endDate": "2027-01-01",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "12:60",
+        "endDate": "2026-04-31",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "-1:00",
+        "endDate": "0099-01-05",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "",
+        "startTime": "09:5",
+        "endDate": "",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "24:01",
+        "endDate": "2026-12-31",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-32",
+        "startTime": "24:01",
+        "endDate": "2026-02-32",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "09:00Z",
+        "endDate": "2026-09-28",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "",
+        "endDate": "2024-02-29",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-32",
+        "startTime": "0900",
+        "endDate": "2026-02-29",
+        "endTime": "noon",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "",
+        "startTime": "24:01",
+        "endDate": "2026-02-31",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "9",
+        "endDate": "2026-13-01",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "0900",
+        "endDate": "2026-02-31",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": "24:00",
+        "endDate": "2026-02-28",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "25:00",
+        "endDate": "2024-02-29",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": " 09:00",
+        "endDate": "0099-01-05",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "ab:cd",
+        "endDate": "2026-04-31",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "12:60",
+        "endDate": "2024-02-29",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": " 2026-01-05",
+        "startTime": "",
+        "endDate": "1999-12-31",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "0900",
+        "endDate": "2024-02-29",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "   ",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "23:59",
+        "endDate": "0099-01-05",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "26-01-05",
+        "startTime": "+09:00",
+        "endDate": "26-01-05",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "12:60",
+        "endDate": "2027-01-01",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "",
+        "endDate": "2026-01-00",
+        "endTime": "00:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "+09:00",
+        "endDate": "2024-02-29",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "23:59",
+        "endDate": "2026-09-27",
+        "endTime": "ab:cd",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "9",
+        "endDate": "2026-02-30",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "09:00",
+        "endDate": "0000-03-01",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-05 ",
+        "startTime": "09:00Z",
+        "endDate": "2026-01-05 ",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "12:00",
+        "endDate": "2024-02-29",
+        "endTime": "noon",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "noon",
+        "endDate": "2027-01-01",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "   ",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "ab:cd",
+        "endDate": "2026-00-10",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "noon",
+        "endDate": "2026-12-31",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-5",
+        "startTime": "09",
+        "endDate": "2026-02-32",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "24:00",
+        "endDate": "2026-02-29",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-05 ",
+        "startTime": "-1:00",
+        "endDate": "2026-01-05 ",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "12:60",
+        "endDate": "2026-09-28",
+        "endTime": "09:00Z",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "12:60",
+        "endDate": "2026-01-5",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": " 2026-01-05",
+        "startTime": "23:59",
+        "endDate": "2026-02-30",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "09:00Z",
+        "endDate": "0000-03-01",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "9 AM",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "noon",
+        "endDate": "2026-02-29",
+        "endTime": "00:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "24:01",
+        "endDate": "0099-01-05",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-00",
+        "startTime": "-1:00",
+        "endDate": "2026-02-31",
+        "endTime": "noon",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "12:00",
+        "endDate": "2026-12-31",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "0900",
+        "endDate": "0000-03-01",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "9",
+        "endDate": "2026-02-31",
+        "endTime": "-1:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "12:00",
+        "endDate": "2027-01-01",
+        "endTime": "noon",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27T10:00",
+        "startTime": "12:00",
+        "endDate": "2026-02-29",
+        "endTime": "ab:cd",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "   ",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "00:00",
+        "endDate": "2026-04-31",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "-1:00",
+        "endDate": "0000-03-01",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "+09:00",
+        "endDate": "0000-03-01",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "09:00 ",
+        "endDate": "2026-02-30",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "   ",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "23:59",
+        "endDate": "2026-09-27",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "09",
+        "endDate": "2026-02-30",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27T10:00",
+        "startTime": "09:00Z",
+        "endDate": "2027-01-01",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "12:00",
+        "endDate": "2026-01-05 ",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": "0900",
+        "endDate": "2024-02-29",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "   ",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "0900",
+        "endDate": "2026-13-01",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "ab:cd",
+        "endDate": "2026-01-05 ",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "abc",
+        "startTime": " 09:00",
+        "endDate": "abc",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "00:00",
+        "endDate": "2026-09-27",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "09:5",
+        "endDate": "2026-02-28",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": " 2026-01-05",
+        "startTime": "09",
+        "endDate": "2026-02-29",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "24:01",
+        "endDate": "2026-02-30",
+        "endTime": "-1:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "12:60",
+        "endDate": "2026-02-31",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "ab:cd",
+        "endDate": "2026-02-30",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "09",
+        "endDate": "2026-12-31",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-1-05",
+        "startTime": "09:00:30",
+        "endDate": "2026-1-05",
+        "endTime": "00:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "09:30",
+        "endDate": "0000-03-01",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "09:00 ",
+        "endDate": "2026-02-31",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026/01/05",
+        "startTime": "09:5",
+        "endDate": "2026/01/05",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "09:00 ",
+        "endDate": "2026-02-31",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "",
+        "timeType": "service",
+        "startDate": "2026/01/05",
+        "startTime": "24:01",
+        "endDate": "2026/01/05",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": "09:00Z",
+        "endDate": "2026-02-28",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "23:59",
+        "endDate": "1999-12-31",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "noon",
+        "endDate": "1999-12-31",
+        "endTime": "-1:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "-1:00",
+        "endDate": "2026-09-27",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "   ",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "9",
+        "endDate": "2026-12-31",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-00-10",
+        "startTime": "9:00",
+        "endDate": "2026-00-10",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "12:60",
+        "endDate": "1999-12-31",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "12:00",
+        "endDate": "2026-09-28",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "09:30",
+        "endDate": "2026-04-31",
+        "endTime": "noon",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "09:30",
+        "endDate": "2026-02-31",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "09:30",
+        "endDate": "",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": " ",
+        "timeType": "service",
+        "startDate": "2026-02-32",
+        "startTime": "09:30",
+        "endDate": "2026-12-31",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "09:30",
+        "endDate": "2026-09-28",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": "09:00 ",
+        "endDate": "2026-02-30",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": "09:00",
+        "endDate": "2026-09-27",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "12:00",
+        "endDate": "2026-09-28",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "２０２６-09-27",
+        "startTime": "12:60",
+        "endDate": "２０２６-09-27",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "26-01-05",
+        "startTime": "12:60",
+        "endDate": "26-01-05",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "09:00Z",
+        "endDate": "1999-12-31",
+        "endTime": "ab:cd",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-32",
+        "startTime": "09:00Z",
+        "endDate": "2026-09-28",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "25:00",
+        "endDate": "1999-12-31",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "24:00",
+        "endDate": "2026-12-31",
+        "endTime": "24:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": " ",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "00:00",
+        "endDate": "2026-09-27",
+        "endTime": "ab:cd",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": " ",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "09:5",
+        "endDate": "2026-04-31",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "24:00",
+        "endDate": "2026-09-28",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-1-05",
+        "startTime": "9",
+        "endDate": "2026-1-05",
+        "endTime": "09:00Z",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "23:59",
+        "endDate": "2026-02-30",
+        "endTime": "09:00Z",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "24:01",
+        "endDate": "2026-04-31",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "00:00",
+        "endDate": "2026-02-29",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "24:00",
+        "endDate": "2026-13-01",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "25:00",
+        "endDate": "2026-02-31",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "09",
+        "endDate": "0099-01-05",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-1-05",
+        "startTime": "00:00",
+        "endDate": "2026-02-31",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "",
+        "endDate": "2026-02-31",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "09:00 ",
+        "endDate": "1999-12-31",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "",
+        "startTime": "12:60",
+        "endDate": "",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-5",
+        "startTime": "12:60",
+        "endDate": "2026-09-27",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-32",
+        "startTime": "9",
+        "endDate": "2026-02-32",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "09",
+        "endDate": "2026-02-30",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "-1:00",
+        "endDate": "2026-02-31",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-13-01",
+        "startTime": "25:00",
+        "endDate": "2026-02-32",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "﻿",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "noon",
+        "endDate": "2027-01-01",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "-1:00",
+        "endDate": "2026-12-31",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-00",
+        "startTime": "09:00:30",
+        "endDate": "2026-01-00",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-00-10",
+        "startTime": "09:00",
+        "endDate": "2026-00-10",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "﻿",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "noon",
+        "endDate": "",
+        "endTime": "00:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "9",
+        "endDate": "2026-02-28",
+        "endTime": "00:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-00-10",
+        "startTime": "9",
+        "endDate": "2026-00-10",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "24:01",
+        "endDate": "2026-00-10",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "9",
+        "endDate": "2026-02-29",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "",
+        "endDate": "2026-02-29",
+        "endTime": "-1:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "23:59",
+        "endDate": "2026-02-30",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "﻿",
+        "timeType": "service",
+        "startDate": "2026-09-27T10:00",
+        "startTime": "",
+        "endDate": "2026-13-01",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": " 09:00",
+        "endDate": "2026-02-28",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "00:00",
+        "endDate": "2027-01-01",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2024-02-29",
+        "startTime": "+09:00",
+        "endDate": "2024-02-29",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "0900",
+        "endDate": "0000-03-01",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "00:00",
+        "endDate": "2026-09-27",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "noon",
+        "endDate": "2026-04-31",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "+09:00",
+        "endDate": "2026-12-31",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "abc",
+        "startTime": "09:00",
+        "endDate": "abc",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "",
+        "endDate": "2026-09-27",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "+09:00",
+        "endDate": "2026-02-28",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "noon",
+        "endDate": "2026-02-30",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "25:00",
+        "endDate": "2026-09-27",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "24:00",
+        "endDate": "2026-02-29",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "abc",
+        "startTime": "00:00",
+        "endDate": "0000-03-01",
+        "endTime": "noon",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "",
+        "endDate": "2026-09-27",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "noon",
+        "endDate": "2027-01-01",
+        "endTime": "24:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "09",
+        "endDate": "2026-02-30",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "   ",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "ab:cd",
+        "endDate": "2026-02-31",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "",
+        "endDate": "2026-02-30",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": " 2026-01-05",
+        "startTime": " 09:00",
+        "endDate": "abc",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-1-05",
+        "startTime": "",
+        "endDate": "2026-1-05",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "0900",
+        "endDate": "0000-03-01",
+        "endTime": "noon",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "noon",
+        "endDate": "2026-09-27",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": " ",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "24:01",
+        "endDate": "",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "12:60",
+        "endDate": "2026-02-31",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": " ",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "-1:00",
+        "endDate": "0099-01-05",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "-1:00",
+        "endDate": "2026-04-31",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "24:00",
+        "endDate": "2026-01-05 ",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "9:00",
+        "endDate": "2026-12-31",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-32",
+        "startTime": " 09:00",
+        "endDate": "2026-09-27",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "12:00",
+        "endDate": "2026-02-30",
+        "endTime": "-1:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "9 AM",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "0900",
+        "endDate": "2026-09-28",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-12-31",
+        "startTime": "24:00",
+        "endDate": "2026-09-27T10:00",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "09:00Z",
+        "endDate": "2027-01-01",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": "0900",
+        "endDate": "2026-02-28",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "00:00",
+        "endDate": "2026-09-27",
+        "endTime": "09:00Z",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-01-5",
+        "startTime": "25:00",
+        "endDate": "2026-01-5",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": " ",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "24:00",
+        "endDate": "2026-09-27",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "",
+        "endDate": "2026-09-28",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "09:00Z",
+        "endDate": "2026-01-00",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "09",
+        "endDate": "2026-09-27",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "12:00",
+        "endDate": "2026-01-00",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026/01/05",
+        "startTime": "09",
+        "endDate": "2024-02-29",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "12:00",
+        "endDate": "2026-09-27",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "   ",
+        "timeType": "service",
+        "startDate": "2026-02-30",
+        "startTime": "09",
+        "endDate": "1999-12-31",
+        "endTime": "noon",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-1-05",
+        "startTime": "24:00",
+        "endDate": "2026-1-05",
+        "endTime": "09:00 ",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": "09",
+        "endDate": "2026-00-10",
+        "endTime": "9:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-28",
+        "startTime": "-1:00",
+        "endDate": "2026-09-28",
+        "endTime": "+09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "   ",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "24:00",
+        "endDate": "2026-02-31",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "12:00",
+        "endDate": "2026-09-27",
+        "endTime": "00:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "24:00",
+        "endDate": "2026-02-31",
+        "endTime": "",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Fix this time before saving.",
+        "valid": true
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "+09:00",
+        "endDate": "2026-04-31",
+        "endTime": "09:5",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "",
+        "startTime": "9:00",
+        "endDate": "",
+        "endTime": "00:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "25:00",
+        "endDate": "0000-03-01",
+        "endTime": "12:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-28",
+        "startTime": "09:00Z",
+        "endDate": "1999-12-31",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "﻿",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "09",
+        "endDate": "2024-02-29",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "09:00Z",
+        "endDate": "2026-09-27",
+        "endTime": "noon",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0000-03-01",
+        "startTime": "09:00 ",
+        "endDate": "0099-01-05",
+        "endTime": "25:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "abc",
+        "startTime": "24:01",
+        "endDate": "abc",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "25:00",
+        "endDate": "2026-02-28",
+        "endTime": "23:59",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2027-01-01",
+        "startTime": "-1:00",
+        "endDate": "2027-01-01",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-09-27",
+        "startTime": "09:00 ",
+        "endDate": "2026-1-05",
+        "endTime": "09:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "",
+        "startTime": " 09:00",
+        "endDate": "1999-12-31",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Start date and time are required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "09:00Z",
+        "endDate": "2024-02-29",
+        "endTime": "noon",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "0900",
+        "endDate": "1999-12-31",
+        "endTime": "09",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "",
+        "timeType": "service",
+        "startDate": "abc",
+        "startTime": "9",
+        "endDate": "abc",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "09:00:30",
+        "endDate": "2026-02-29",
+        "endTime": "0900",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "abc",
+        "startTime": "+09:00",
+        "endDate": "abc",
+        "endTime": " 09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-04-31",
+        "startTime": "25:00",
+        "endDate": "2026-04-31",
+        "endTime": "09:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-02-29",
+        "startTime": "09:30",
+        "endDate": "2026-02-29",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": " ",
+        "timeType": "service",
+        "startDate": "2026-01-00",
+        "startTime": "-1:00",
+        "endDate": "2026-02-30",
+        "endTime": "12:60",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "0099-01-05",
+        "startTime": "ab:cd",
+        "endDate": "0099-01-05",
+        "endTime": "-1:00",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "9 AM",
+        "timeType": "service",
+        "startDate": "1999-12-31",
+        "startTime": "9:00",
+        "endDate": "0000-03-01",
+        "endTime": "24:01",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": "2026-00-10",
+        "startTime": "09:00",
+        "endDate": "2026-02-30",
+        "endTime": "09:00Z",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "",
+        "timeType": "service",
+        "startDate": "2026-02-31",
+        "startTime": "12:00",
+        "endDate": "2026-02-31",
+        "endTime": "09:00:30",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "Time name is required.",
+        "valid": false
+      }
+    },
+    {
+      "input": {
+        "name": "Service",
+        "timeType": "service",
+        "startDate": " 2026-01-05",
+        "startTime": "12:60",
+        "endDate": " 2026-01-05",
+        "endTime": "9",
+        "assignedTeamIds": [],
+        "assignedPositionIds": [],
+        "assignedNeededPositionIds": [],
+        "assignedPlanPersonIds": []
+      },
+      "output": {
+        "message": "End time must be after start time.",
+        "valid": false
+      }
+    }
+  ]
+}

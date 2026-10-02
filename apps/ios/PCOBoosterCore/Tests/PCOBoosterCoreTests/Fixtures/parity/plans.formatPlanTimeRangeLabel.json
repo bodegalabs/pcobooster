@@ -1,0 +1,2732 @@
+{
+  "suite": "plans.formatPlanTimeRangeLabel",
+  "cases": [
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "",
+        "endDate": "",
+        "endTime": ""
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "09:00",
+        "endDate": "2026-09-27",
+        "endTime": "10:15"
+      },
+      "output": "Sun, Sep 27 · 9:00 AM - 10:15 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "21:00",
+        "endDate": "2026-09-28",
+        "endTime": "01:00"
+      },
+      "output": "Sun, Sep 27 9:00 PM - Mon, Sep 28 1:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "13:05",
+        "endDate": "2026-09-27 ",
+        "endTime": "23:59"
+      },
+      "output": "1:05 PM - 11:59 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "13:05",
+        "endDate": "2026-02-31",
+        "endTime": "09:00"
+      },
+      "output": "1:05 PM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "09:00",
+        "endDate": "2026-09-28",
+        "endTime": "09:00"
+      },
+      "output": "Sun, Mar 1 9:00 AM - Mon, Sep 28 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "1.5:30",
+        "endDate": "2026-09-27",
+        "endTime": "-0:00"
+      },
+      "output": "Sun, Mar 1 1.5:30 AM - Sun, Sep 27 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "00:00",
+        "endDate": "2026-9-27",
+        "endTime": "1.5:30"
+      },
+      "output": "12:00 AM - 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "7:5",
+        "endDate": "2026-09-27 ",
+        "endTime": "-0:00"
+      },
+      "output": "7:05 AM - 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "-1:00",
+        "endDate": "2026-13-45",
+        "endTime": "12:00:30"
+      },
+      "output": "Mon, Sep 28 -1:00 AM - Sun, Feb 14 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "12:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "12:30"
+      },
+      "output": "12:00 PM - 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "24:00",
+        "endDate": "0099-01-05",
+        "endTime": "Infinity:00"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": ":30",
+        "endDate": "2026-09-28",
+        "endTime": "12:00:30"
+      },
+      "output": "Fri, Dec 31 12:30 AM - Mon, Sep 28 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "abc",
+        "endDate": "0099-01-05",
+        "endTime": "7:5"
+      },
+      "output": "Sun, Feb 14 abc - Tue, Jan 5 7:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "1.5:30",
+        "endDate": "1999-12-31",
+        "endTime": "1.5:30"
+      },
+      "output": "Sun, Sep 27 1.5:30 AM - Fri, Dec 31 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "00:00",
+        "endDate": "2026-09-27",
+        "endTime": "1.5:30"
+      },
+      "output": "12:00 AM - 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "1.5:30",
+        "endDate": "2026-02-29",
+        "endTime": "09:"
+      },
+      "output": "1.5:30 AM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "-1:00",
+        "endDate": "0099-01-05",
+        "endTime": "abc"
+      },
+      "output": "-1:00 AM - abc"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "24:00",
+        "endDate": "2026-13-45",
+        "endTime": ":30"
+      },
+      "output": "Sun, Mar 1 12:00 PM - Sun, Feb 14 12:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "abc",
+        "endDate": "1999-12-31",
+        "endTime": "24:00"
+      },
+      "output": "Sun, Sep 27 abc - Fri, Dec 31 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "00:05",
+        "endDate": "2026-02-29",
+        "endTime": "23:59"
+      },
+      "output": "Tue, Mar 3 12:05 AM - Sun, Mar 1 11:59 PM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "0x0A:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "0x0A:00"
+      },
+      "output": "10:00 AM - 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "9",
+        "endDate": "2026-13-45",
+        "endTime": "09:xx"
+      },
+      "output": "Sun, Sep 27 9 - Sun, Feb 14 09:xx"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "13:05",
+        "endDate": "1999-12-31",
+        "endTime": "23:59"
+      },
+      "output": "Sun, Sep 27 1:05 PM - Fri, Dec 31 11:59 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "9",
+        "endDate": "2026-02-29",
+        "endTime": "13:05"
+      },
+      "output": "9 - 1:05 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "-0:00",
+        "endDate": "0099-01-05",
+        "endTime": "23:59"
+      },
+      "output": "12:00 AM - 11:59 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "12:00:30",
+        "endDate": "2026-09-27 ",
+        "endTime": "-1:00"
+      },
+      "output": "12:00 PM - -1:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "24:00",
+        "endDate": "2026-9-27",
+        "endTime": "1e1:00"
+      },
+      "output": "12:00 PM - 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "12:00:30",
+        "endDate": "",
+        "endTime": "13:05"
+      },
+      "output": "12:00 PM - 1:05 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "12:00",
+        "endDate": "2026-09-27",
+        "endTime": " 9:00"
+      },
+      "output": "Sun, Mar 1 12:00 PM - Sun, Sep 27 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "12:00:30",
+        "endDate": "2026-02-31",
+        "endTime": ""
+      },
+      "output": "Tue, Jan 5 · 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "12:00",
+        "endDate": "",
+        "endTime": "9"
+      },
+      "output": "Tue, Mar 3 · 12:00 PM - 9"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "24:00",
+        "endDate": "1999-12-31",
+        "endTime": ":30"
+      },
+      "output": "Sun, Feb 14 12:00 PM - Fri, Dec 31 12:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "12:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "abc"
+      },
+      "output": "12:00 PM - abc"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "abc",
+        "endDate": "1999-12-31",
+        "endTime": "Infinity:00"
+      },
+      "output": "Mon, Sep 28 abc - Fri, Dec 31 Infinity:00"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": ":30",
+        "endDate": "2026-02-29",
+        "endTime": "-0:00"
+      },
+      "output": "Sun, Mar 1 · 12:30 AM - 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "12:30",
+        "endDate": "2026-9-27",
+        "endTime": " 9:00"
+      },
+      "output": "12:30 PM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "23:59",
+        "endDate": "1999-12-31",
+        "endTime": "-0:00"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "1e1:00",
+        "endDate": "2026-02-29",
+        "endTime": " 9:00"
+      },
+      "output": "Sun, Mar 1 · 10:00 AM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "9",
+        "endDate": "2026-09-27 ",
+        "endTime": ":30"
+      },
+      "output": "9 - 12:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "23:59",
+        "endDate": "2026-09-27",
+        "endTime": "12:30"
+      },
+      "output": "11:59 PM - 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "-1:00",
+        "endDate": "2026-09-28",
+        "endTime": "12:30"
+      },
+      "output": "Tue, Jan 5 -1:00 AM - Mon, Sep 28 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "-1:00",
+        "endDate": "2026-02-29",
+        "endTime": "09:"
+      },
+      "output": "Sun, Feb 14 -1:00 AM - Sun, Mar 1 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "-0:00",
+        "endDate": "2026-09-27",
+        "endTime": "12:00"
+      },
+      "output": "Sun, Mar 1 12:00 AM - Sun, Sep 27 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "12:00:30",
+        "endDate": "2026-02-29",
+        "endTime": "0x0A:00"
+      },
+      "output": "Tue, Mar 3 12:00 PM - Sun, Mar 1 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "1e1:00",
+        "endDate": "2026-13-45",
+        "endTime": "09:"
+      },
+      "output": "10:00 AM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "12:00",
+        "endDate": "2026-09-28",
+        "endTime": "09:xx"
+      },
+      "output": "Sun, Mar 1 12:00 PM - Mon, Sep 28 09:xx"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "09:00",
+        "endDate": "2026-09-27",
+        "endTime": "-1:00"
+      },
+      "output": "Tue, Jan 5 9:00 AM - Sun, Sep 27 -1:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "0x0A:00",
+        "endDate": "2026-9-27",
+        "endTime": " 9:00"
+      },
+      "output": "10:00 AM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "12:00",
+        "endDate": "0099-01-05",
+        "endTime": "9"
+      },
+      "output": "Mon, Sep 28 12:00 PM - Tue, Jan 5 9"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "7:5",
+        "endDate": "0099-01-05",
+        "endTime": "1.5:30"
+      },
+      "output": "Sun, Sep 27 7:05 AM - Tue, Jan 5 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "09:00",
+        "endDate": "2026-9-27",
+        "endTime": "09:00"
+      },
+      "output": "9:00 AM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "12:00",
+        "endDate": "",
+        "endTime": "1.5:30"
+      },
+      "output": "Fri, Dec 31 · 12:00 PM - 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "13:05",
+        "endDate": "2026-09-27 ",
+        "endTime": "00:05"
+      },
+      "output": "1:05 PM - 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": ":30",
+        "endDate": "2026-02-31",
+        "endTime": "09:"
+      },
+      "output": "12:30 AM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "1.5:30",
+        "endDate": "2026-13-45",
+        "endTime": "09:xx"
+      },
+      "output": "1.5:30 AM - 09:xx"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "1.5:30",
+        "endDate": "2026-09-27",
+        "endTime": "13:05"
+      },
+      "output": "1.5:30 AM - 1:05 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "-1:00",
+        "endDate": "2026-09-27",
+        "endTime": "7:5"
+      },
+      "output": "Tue, Mar 3 -1:00 AM - Sun, Sep 27 7:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "-0:00",
+        "endDate": "2026-02-31",
+        "endTime": "09:00"
+      },
+      "output": "Sun, Sep 27 12:00 AM - Tue, Mar 3 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "12:30",
+        "endDate": "2026-9-27",
+        "endTime": "1.5:30"
+      },
+      "output": "12:30 PM - 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "abc",
+        "endDate": "2026-09-27",
+        "endTime": "09:"
+      },
+      "output": "Sun, Feb 14 abc - Sun, Sep 27 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "Infinity:00",
+        "endDate": "0099-01-05",
+        "endTime": "12:00"
+      },
+      "output": "Sun, Sep 27 Infinity:00 - Tue, Jan 5 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "0x0A:00",
+        "endDate": "2026-02-31",
+        "endTime": "09:00"
+      },
+      "output": "10:00 AM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "Infinity:00",
+        "endDate": "2026-02-31",
+        "endTime": "Infinity:00"
+      },
+      "output": "Sun, Feb 14 Infinity:00 - Tue, Mar 3 Infinity:00"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "9",
+        "endDate": "2026-09-27",
+        "endTime": "Infinity:00"
+      },
+      "output": "Sun, Sep 27 · 9 - Infinity:00"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "13:05",
+        "endDate": "",
+        "endTime": "1.5:30"
+      },
+      "output": "Sun, Feb 14 · 1:05 PM - 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "abc",
+        "endDate": "",
+        "endTime": "09:"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": " 9:00",
+        "endDate": "2026-02-29",
+        "endTime": "12:00:30"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "09:xx",
+        "endDate": "2026-09-27 ",
+        "endTime": "00:05"
+      },
+      "output": "09:xx - 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": " 9:00",
+        "endDate": "2026-09-27 ",
+        "endTime": ""
+      },
+      "output": "Mon, Sep 28 · 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "1e1:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "24:00"
+      },
+      "output": "10:00 AM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "12:30",
+        "endDate": "1999-12-31",
+        "endTime": "-1:00"
+      },
+      "output": "Sun, Sep 27 12:30 PM - Fri, Dec 31 -1:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "7:5",
+        "endDate": "2026-02-31",
+        "endTime": "00:05"
+      },
+      "output": "7:05 AM - 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "00:00",
+        "endDate": "2026-09-28",
+        "endTime": "-1:00"
+      },
+      "output": "Tue, Jan 5 12:00 AM - Mon, Sep 28 -1:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "24:00",
+        "endDate": "0099-01-05",
+        "endTime": "09:"
+      },
+      "output": "12:00 PM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "09:xx",
+        "endDate": "2026-09-27 ",
+        "endTime": "12:00:30"
+      },
+      "output": "09:xx - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "1.5:30",
+        "endDate": "2026-02-29",
+        "endTime": "24:00"
+      },
+      "output": "1.5:30 AM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "00:00",
+        "endDate": "1999-12-31",
+        "endTime": "09:00"
+      },
+      "output": "Tue, Mar 3 12:00 AM - Fri, Dec 31 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "12:00:30",
+        "endDate": "2026-09-27",
+        "endTime": "00:05"
+      },
+      "output": "Sun, Feb 14 12:00 PM - Sun, Sep 27 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "00:05",
+        "endDate": "2026-9-27",
+        "endTime": "12:30"
+      },
+      "output": "12:05 AM - 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "09:00",
+        "endDate": "2026-09-28",
+        "endTime": "00:05"
+      },
+      "output": "Sun, Feb 14 9:00 AM - Mon, Sep 28 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "9",
+        "endDate": "0099-01-05",
+        "endTime": "00:05"
+      },
+      "output": "Sun, Mar 1 9 - Tue, Jan 5 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "12:30",
+        "endDate": "2026-02-29",
+        "endTime": "12:30"
+      },
+      "output": "Sun, Sep 27 12:30 PM - Sun, Mar 1 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "09:00",
+        "endDate": "0099-01-05",
+        "endTime": "00:00"
+      },
+      "output": "Fri, Dec 31 9:00 AM - Tue, Jan 5 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "0x0A:00",
+        "endDate": "1999-12-31",
+        "endTime": "-1:00"
+      },
+      "output": "Mon, Sep 28 10:00 AM - Fri, Dec 31 -1:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "12:00:30",
+        "endDate": "2026-13-45",
+        "endTime": " 9:00"
+      },
+      "output": "Sun, Mar 1 12:00 PM - Sun, Feb 14 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "0x0A:00",
+        "endDate": "1999-12-31",
+        "endTime": "23:59"
+      },
+      "output": "10:00 AM - 11:59 PM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "9",
+        "endDate": "1999-12-31",
+        "endTime": "12:00"
+      },
+      "output": "Fri, Dec 31 · 9 - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": " 9:00",
+        "endDate": "",
+        "endTime": "1e1:00"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": ":30",
+        "endDate": "2026-02-31",
+        "endTime": ""
+      },
+      "output": "Mon, Sep 28 · 12:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "-1:00",
+        "endDate": "0099-01-05",
+        "endTime": "7:5"
+      },
+      "output": "Fri, Dec 31 -1:00 AM - Tue, Jan 5 7:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "12:00",
+        "endDate": "1999-12-31",
+        "endTime": "12:00"
+      },
+      "output": "Fri, Dec 31 · 12:00 PM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "12:00",
+        "endDate": "2026-09-27 ",
+        "endTime": ""
+      },
+      "output": "12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "12:00",
+        "endDate": "",
+        "endTime": ":30"
+      },
+      "output": "Sun, Feb 14 · 12:00 PM - 12:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "00:05",
+        "endDate": "2026-02-29",
+        "endTime": "12:00"
+      },
+      "output": "Sun, Mar 1 · 12:05 AM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "12:00",
+        "endDate": "2026-02-31",
+        "endTime": ":30"
+      },
+      "output": "Tue, Mar 3 · 12:00 PM - 12:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "23:59",
+        "endDate": "2026-09-28",
+        "endTime": "7:5"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "12:30",
+        "endDate": "2026-09-28",
+        "endTime": "09:00"
+      },
+      "output": "Tue, Jan 5 12:30 PM - Mon, Sep 28 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "09:00",
+        "endDate": "2026-09-27",
+        "endTime": "13:05"
+      },
+      "output": "9:00 AM - 1:05 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "09:xx",
+        "endDate": "2026-02-29",
+        "endTime": "09:xx"
+      },
+      "output": "Sun, Sep 27 09:xx - Sun, Mar 1 09:xx"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "09:xx",
+        "endDate": "0099-01-05",
+        "endTime": "abc"
+      },
+      "output": "Sun, Feb 14 09:xx - Tue, Jan 5 abc"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "9",
+        "endDate": "2026-9-27",
+        "endTime": "1.5:30"
+      },
+      "output": "9 - 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "24:00",
+        "endDate": "2026-13-45",
+        "endTime": "12:30"
+      },
+      "output": "Fri, Dec 31 12:00 PM - Sun, Feb 14 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "12:30",
+        "endDate": "0099-01-05",
+        "endTime": ""
+      },
+      "output": "Sun, Feb 14 · 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "0x0A:00",
+        "endDate": "2026-09-28",
+        "endTime": "13:05"
+      },
+      "output": "Tue, Jan 5 10:00 AM - Mon, Sep 28 1:05 PM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "13:05",
+        "endDate": "2026-13-45",
+        "endTime": "abc"
+      },
+      "output": "Fri, Dec 31 1:05 PM - Sun, Feb 14 abc"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "24:00",
+        "endDate": "2026-02-29",
+        "endTime": "1.5:30"
+      },
+      "output": "12:00 PM - 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "Infinity:00",
+        "endDate": "2026-13-45",
+        "endTime": "00:05"
+      },
+      "output": "Fri, Dec 31 Infinity:00 - Sun, Feb 14 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "7:5",
+        "endDate": "0099-01-05",
+        "endTime": "9"
+      },
+      "output": "7:05 AM - 9"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "",
+        "endDate": "1999-12-31",
+        "endTime": "7:5"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "09:00",
+        "endDate": "2026-13-45",
+        "endTime": "24:00"
+      },
+      "output": "9:00 AM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": " 9:00",
+        "endDate": "2026-02-29",
+        "endTime": "12:00"
+      },
+      "output": "9:00 AM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "7:5",
+        "endDate": "0099-01-05",
+        "endTime": "12:00"
+      },
+      "output": "Sun, Feb 14 7:05 AM - Tue, Jan 5 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "Infinity:00",
+        "endDate": "",
+        "endTime": "00:00"
+      },
+      "output": "Sun, Sep 27 · Infinity:00 - 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "24:00",
+        "endDate": "2026-02-29",
+        "endTime": "09:00"
+      },
+      "output": "Mon, Sep 28 12:00 PM - Sun, Mar 1 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "-0:00",
+        "endDate": "",
+        "endTime": "7:5"
+      },
+      "output": "Mon, Sep 28 · 12:00 AM - 7:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "09:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "abc"
+      },
+      "output": "9:00 AM - abc"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "-1:00",
+        "endDate": "2026-09-28",
+        "endTime": "12:00"
+      },
+      "output": "Tue, Jan 5 -1:00 AM - Mon, Sep 28 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "7:5",
+        "endDate": "2026-09-27 ",
+        "endTime": "00:05"
+      },
+      "output": "7:05 AM - 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "Infinity:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "24:00"
+      },
+      "output": "Infinity:00 - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "1.5:30",
+        "endDate": "2026-09-27",
+        "endTime": "12:30"
+      },
+      "output": "1.5:30 AM - 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "09:00",
+        "endDate": "2026-02-29",
+        "endTime": "1.5:30"
+      },
+      "output": "Sun, Mar 1 · 9:00 AM - 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "12:00:30",
+        "endDate": "2026-09-27 ",
+        "endTime": " 9:00"
+      },
+      "output": "12:00 PM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "1e1:00",
+        "endDate": "2026-02-29",
+        "endTime": "Infinity:00"
+      },
+      "output": "Sun, Sep 27 10:00 AM - Sun, Mar 1 Infinity:00"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "00:05",
+        "endDate": "2026-02-29",
+        "endTime": "12:00"
+      },
+      "output": "Sun, Mar 1 · 12:05 AM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "9",
+        "endDate": "2026-02-31",
+        "endTime": ""
+      },
+      "output": "Sun, Feb 14 · 9"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "24:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "0x0A:00"
+      },
+      "output": "12:00 PM - 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "0x0A:00",
+        "endDate": "2026-9-27",
+        "endTime": "09:xx"
+      },
+      "output": "10:00 AM - 09:xx"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "23:59",
+        "endDate": "1999-12-31",
+        "endTime": "1e1:00"
+      },
+      "output": "Sun, Sep 27 11:59 PM - Fri, Dec 31 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "24:00",
+        "endDate": "2026-13-45",
+        "endTime": " 9:00"
+      },
+      "output": "Mon, Sep 28 12:00 PM - Sun, Feb 14 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": ":30",
+        "endDate": "",
+        "endTime": "abc"
+      },
+      "output": "12:30 AM - abc"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "23:59",
+        "endDate": "1999-12-31",
+        "endTime": "24:00"
+      },
+      "output": "Tue, Jan 5 11:59 PM - Fri, Dec 31 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "1.5:30",
+        "endDate": "2026-02-31",
+        "endTime": "24:00"
+      },
+      "output": "Tue, Jan 5 1.5:30 AM - Tue, Mar 3 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "09:xx",
+        "endDate": "2026-09-28",
+        "endTime": "-0:00"
+      },
+      "output": "09:xx - 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "23:59",
+        "endDate": "2026-09-28",
+        "endTime": "Infinity:00"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "00:05",
+        "endDate": "2026-02-31",
+        "endTime": ""
+      },
+      "output": "Sun, Mar 1 · 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "9",
+        "endDate": "0099-01-05",
+        "endTime": "7:5"
+      },
+      "output": "Mon, Sep 28 9 - Tue, Jan 5 7:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "Infinity:00",
+        "endDate": "1999-12-31",
+        "endTime": "9"
+      },
+      "output": "Infinity:00 - 9"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "7:5",
+        "endDate": "2026-09-27 ",
+        "endTime": "00:00"
+      },
+      "output": "7:05 AM - 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "00:05",
+        "endDate": "2026-02-31",
+        "endTime": "09:00"
+      },
+      "output": "Tue, Jan 5 12:05 AM - Tue, Mar 3 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "0x0A:00",
+        "endDate": "2026-09-27",
+        "endTime": "-0:00"
+      },
+      "output": "10:00 AM - 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "-0:00",
+        "endDate": "2026-09-28",
+        "endTime": "09:xx"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "1e1:00",
+        "endDate": "",
+        "endTime": "0x0A:00"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "23:59",
+        "endDate": "1999-12-31",
+        "endTime": "abc"
+      },
+      "output": "Tue, Mar 3 11:59 PM - Fri, Dec 31 abc"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": " 9:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "9"
+      },
+      "output": "9:00 AM - 9"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "12:00",
+        "endDate": "0099-01-05",
+        "endTime": "12:00:30"
+      },
+      "output": "12:00 PM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": " 9:00",
+        "endDate": "2026-09-27",
+        "endTime": "23:59"
+      },
+      "output": "Sun, Mar 1 9:00 AM - Sun, Sep 27 11:59 PM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "0x0A:00",
+        "endDate": "2026-09-28",
+        "endTime": ":30"
+      },
+      "output": "Fri, Dec 31 10:00 AM - Mon, Sep 28 12:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "23:59",
+        "endDate": "2026-09-27 ",
+        "endTime": "12:30"
+      },
+      "output": "11:59 PM - 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "00:05",
+        "endDate": "1999-12-31",
+        "endTime": "0x0A:00"
+      },
+      "output": "12:05 AM - 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "00:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "09:"
+      },
+      "output": "12:00 AM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "00:05",
+        "endDate": "2026-09-27",
+        "endTime": "-1:00"
+      },
+      "output": "Sun, Mar 1 12:05 AM - Sun, Sep 27 -1:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "1.5:30",
+        "endDate": "2026-09-27 ",
+        "endTime": "0x0A:00"
+      },
+      "output": "1.5:30 AM - 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "-1:00",
+        "endDate": "2026-02-31",
+        "endTime": "09:"
+      },
+      "output": "Tue, Mar 3 · -1:00 AM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "09:00",
+        "endDate": "2026-13-45",
+        "endTime": ":30"
+      },
+      "output": "9:00 AM - 12:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "23:59",
+        "endDate": "2026-02-29",
+        "endTime": "Infinity:00"
+      },
+      "output": "Fri, Dec 31 11:59 PM - Sun, Mar 1 Infinity:00"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "",
+        "endDate": "2026-09-27",
+        "endTime": ""
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": " 9:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "23:59"
+      },
+      "output": "9:00 AM - 11:59 PM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "13:05",
+        "endDate": "2026-13-45",
+        "endTime": "Infinity:00"
+      },
+      "output": "Fri, Dec 31 1:05 PM - Sun, Feb 14 Infinity:00"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "7:5",
+        "endDate": "2026-02-31",
+        "endTime": "09:"
+      },
+      "output": "7:05 AM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "",
+        "endDate": "2026-09-27 ",
+        "endTime": "09:"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "1e1:00",
+        "endDate": "2026-09-28",
+        "endTime": "24:00"
+      },
+      "output": "Fri, Dec 31 10:00 AM - Mon, Sep 28 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "0x0A:00",
+        "endDate": "2026-02-31",
+        "endTime": "9"
+      },
+      "output": "10:00 AM - 9"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "1e1:00",
+        "endDate": "2026-13-45",
+        "endTime": ""
+      },
+      "output": "Tue, Jan 5 · 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "0x0A:00",
+        "endDate": "2026-13-45",
+        "endTime": "-1:00"
+      },
+      "output": "Tue, Jan 5 10:00 AM - Sun, Feb 14 -1:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "09:",
+        "endDate": "",
+        "endTime": "00:05"
+      },
+      "output": "Sun, Mar 1 · 9:00 AM - 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "24:00",
+        "endDate": "2026-9-27",
+        "endTime": "24:00"
+      },
+      "output": "12:00 PM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "7:5",
+        "endDate": "2026-02-29",
+        "endTime": "12:30"
+      },
+      "output": "Tue, Jan 5 7:05 AM - Sun, Mar 1 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "-1:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "12:30"
+      },
+      "output": "-1:00 AM - 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "Infinity:00",
+        "endDate": "2026-09-27 ",
+        "endTime": " 9:00"
+      },
+      "output": "Infinity:00 - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "23:59",
+        "endDate": "2026-09-27",
+        "endTime": "7:5"
+      },
+      "output": "Fri, Dec 31 11:59 PM - Sun, Sep 27 7:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "12:00",
+        "endDate": "2026-02-29",
+        "endTime": "13:05"
+      },
+      "output": "Mon, Sep 28 12:00 PM - Sun, Mar 1 1:05 PM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "0x0A:00",
+        "endDate": "2026-09-28",
+        "endTime": "12:00"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "00:05",
+        "endDate": "",
+        "endTime": "1.5:30"
+      },
+      "output": "12:05 AM - 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": ":30",
+        "endDate": "",
+        "endTime": "0x0A:00"
+      },
+      "output": "Sun, Mar 1 · 12:30 AM - 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "",
+        "endDate": "1999-12-31",
+        "endTime": "24:00"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "00:05",
+        "endDate": "",
+        "endTime": ":30"
+      },
+      "output": "12:05 AM - 12:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "00:00",
+        "endDate": "",
+        "endTime": "00:05"
+      },
+      "output": "Fri, Dec 31 · 12:00 AM - 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "09:00",
+        "endDate": "2026-02-31",
+        "endTime": "12:30"
+      },
+      "output": "Sun, Mar 1 9:00 AM - Tue, Mar 3 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "09:xx",
+        "endDate": "2026-09-27",
+        "endTime": "12:30"
+      },
+      "output": "09:xx - 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": " 9:00",
+        "endDate": "2026-02-31",
+        "endTime": "09:00"
+      },
+      "output": "Mon, Sep 28 9:00 AM - Tue, Mar 3 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "-1:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "0x0A:00"
+      },
+      "output": "-1:00 AM - 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "9",
+        "endDate": "2026-02-29",
+        "endTime": "09:"
+      },
+      "output": "Sun, Sep 27 9 - Sun, Mar 1 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": " 9:00",
+        "endDate": "2026-02-29",
+        "endTime": "Infinity:00"
+      },
+      "output": "Tue, Jan 5 9:00 AM - Sun, Mar 1 Infinity:00"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "12:00",
+        "endDate": "2026-02-31",
+        "endTime": "abc"
+      },
+      "output": "Tue, Jan 5 12:00 PM - Tue, Mar 3 abc"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "7:5",
+        "endDate": "2026-13-45",
+        "endTime": ":30"
+      },
+      "output": "7:05 AM - 12:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "23:59",
+        "endDate": "2026-13-45",
+        "endTime": "1.5:30"
+      },
+      "output": "11:59 PM - 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "13:05",
+        "endDate": "2026-02-31",
+        "endTime": "00:00"
+      },
+      "output": "Tue, Mar 3 · 1:05 PM - 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "00:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "23:59"
+      },
+      "output": "12:00 AM - 11:59 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "0x0A:00",
+        "endDate": "2026-09-27",
+        "endTime": "00:05"
+      },
+      "output": "Tue, Mar 3 10:00 AM - Sun, Sep 27 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": " 9:00",
+        "endDate": "2026-09-28",
+        "endTime": "-0:00"
+      },
+      "output": "9:00 AM - 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": ":30",
+        "endDate": "2026-02-31",
+        "endTime": "09:"
+      },
+      "output": "Fri, Dec 31 12:30 AM - Tue, Mar 3 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "Infinity:00",
+        "endDate": "2026-09-27 ",
+        "endTime": ""
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "",
+        "endDate": "2026-09-27 ",
+        "endTime": "1.5:30"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "abc",
+        "endDate": "2026-9-27",
+        "endTime": "23:59"
+      },
+      "output": "abc - 11:59 PM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "00:05",
+        "endDate": "1999-12-31",
+        "endTime": "1.5:30"
+      },
+      "output": "Tue, Jan 5 12:05 AM - Fri, Dec 31 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "09:",
+        "endDate": "2026-09-27 ",
+        "endTime": "abc"
+      },
+      "output": "9:00 AM - abc"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "12:00",
+        "endDate": "2026-09-28",
+        "endTime": "00:05"
+      },
+      "output": "12:00 PM - 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "1.5:30",
+        "endDate": "2026-09-27 ",
+        "endTime": "12:00"
+      },
+      "output": "1.5:30 AM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "7:5",
+        "endDate": "2026-02-29",
+        "endTime": "9"
+      },
+      "output": "Tue, Mar 3 7:05 AM - Sun, Mar 1 9"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "7:5",
+        "endDate": "2026-09-28",
+        "endTime": ""
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "00:00",
+        "endDate": "2026-09-27",
+        "endTime": "00:00"
+      },
+      "output": "12:00 AM - 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "9",
+        "endDate": "2026-9-27",
+        "endTime": "abc"
+      },
+      "output": "9 - abc"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "abc",
+        "endDate": "1999-12-31",
+        "endTime": "0x0A:00"
+      },
+      "output": "Mon, Sep 28 abc - Fri, Dec 31 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "0x0A:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "12:00"
+      },
+      "output": "10:00 AM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "9",
+        "endDate": "2026-9-27",
+        "endTime": "09:00"
+      },
+      "output": "9 - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "1.5:30",
+        "endDate": "2026-09-27 ",
+        "endTime": " 9:00"
+      },
+      "output": "1.5:30 AM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "09:00",
+        "endDate": "0099-01-05",
+        "endTime": "12:30"
+      },
+      "output": "Sun, Mar 1 9:00 AM - Tue, Jan 5 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "-0:00",
+        "endDate": "0099-01-05",
+        "endTime": "9"
+      },
+      "output": "Sun, Mar 1 12:00 AM - Tue, Jan 5 9"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "00:05",
+        "endDate": "2026-02-29",
+        "endTime": "12:30"
+      },
+      "output": "Fri, Dec 31 12:05 AM - Sun, Mar 1 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "13:05",
+        "endDate": "2026-09-28",
+        "endTime": "12:30"
+      },
+      "output": "Tue, Jan 5 1:05 PM - Mon, Sep 28 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "9",
+        "endDate": "2026-09-27 ",
+        "endTime": "00:05"
+      },
+      "output": "9 - 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "00:00",
+        "endDate": "2026-02-31",
+        "endTime": "23:59"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "abc",
+        "endDate": "2026-02-29",
+        "endTime": ":30"
+      },
+      "output": "abc - 12:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "1.5:30",
+        "endDate": "0099-01-05",
+        "endTime": "9"
+      },
+      "output": "Sun, Sep 27 1.5:30 AM - Tue, Jan 5 9"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": ":30",
+        "endDate": "2026-9-27",
+        "endTime": "12:00:30"
+      },
+      "output": "12:30 AM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "Infinity:00",
+        "endDate": "0099-01-05",
+        "endTime": ""
+      },
+      "output": "Fri, Dec 31 · Infinity:00"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "09:xx",
+        "endDate": "",
+        "endTime": "12:00:30"
+      },
+      "output": "09:xx - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "00:00",
+        "endDate": "0099-01-05",
+        "endTime": "09:"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": ":30",
+        "endDate": "2026-13-45",
+        "endTime": "13:05"
+      },
+      "output": "12:30 AM - 1:05 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "-1:00",
+        "endDate": "1999-12-31",
+        "endTime": "abc"
+      },
+      "output": "Sun, Feb 14 -1:00 AM - Fri, Dec 31 abc"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "1e1:00",
+        "endDate": "2026-09-28",
+        "endTime": "abc"
+      },
+      "output": "Tue, Jan 5 10:00 AM - Mon, Sep 28 abc"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "-1:00",
+        "endDate": "2026-09-27",
+        "endTime": "abc"
+      },
+      "output": "Tue, Jan 5 -1:00 AM - Sun, Sep 27 abc"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "0x0A:00",
+        "endDate": "2026-09-27",
+        "endTime": "00:00"
+      },
+      "output": "Tue, Jan 5 10:00 AM - Sun, Sep 27 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "09:",
+        "endDate": "1999-12-31",
+        "endTime": "12:30"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "24:00",
+        "endDate": "0099-01-05",
+        "endTime": "12:30"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "13:05",
+        "endDate": "",
+        "endTime": "13:05"
+      },
+      "output": "1:05 PM - 1:05 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "09:00",
+        "endDate": "0099-01-05",
+        "endTime": "12:30"
+      },
+      "output": "Sun, Feb 14 9:00 AM - Tue, Jan 5 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "24:00",
+        "endDate": "0099-01-05",
+        "endTime": "09:00"
+      },
+      "output": "Tue, Jan 5 · 12:00 PM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "00:05",
+        "endDate": "2026-13-45",
+        "endTime": "-1:00"
+      },
+      "output": "Sun, Sep 27 12:05 AM - Sun, Feb 14 -1:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "-1:00",
+        "endDate": "2026-02-31",
+        "endTime": "12:30"
+      },
+      "output": "Sun, Feb 14 -1:00 AM - Tue, Mar 3 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "13:05",
+        "endDate": "2026-02-31",
+        "endTime": "0x0A:00"
+      },
+      "output": "Fri, Dec 31 1:05 PM - Tue, Mar 3 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "1.5:30",
+        "endDate": "2026-09-28",
+        "endTime": ""
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "12:00:30",
+        "endDate": "",
+        "endTime": " 9:00"
+      },
+      "output": "Sun, Mar 1 · 12:00 PM - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": " 9:00",
+        "endDate": "2026-13-45",
+        "endTime": "12:30"
+      },
+      "output": "Tue, Jan 5 9:00 AM - Sun, Feb 14 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": ":30",
+        "endDate": "",
+        "endTime": "0x0A:00"
+      },
+      "output": "12:30 AM - 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "1e1:00",
+        "endDate": "2026-09-27",
+        "endTime": "23:59"
+      },
+      "output": "Fri, Dec 31 10:00 AM - Sun, Sep 27 11:59 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "7:5",
+        "endDate": "2026-09-28",
+        "endTime": "13:05"
+      },
+      "output": "Sun, Sep 27 7:05 AM - Mon, Sep 28 1:05 PM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "09:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "abc"
+      },
+      "output": "9:00 AM - abc"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "Infinity:00",
+        "endDate": "2026-09-27",
+        "endTime": "09:00"
+      },
+      "output": "Mon, Sep 28 Infinity:00 - Sun, Sep 27 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "00:00",
+        "endDate": "0099-01-05",
+        "endTime": "24:00"
+      },
+      "output": "Fri, Dec 31 12:00 AM - Tue, Jan 5 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": ":30",
+        "endDate": "2026-9-27",
+        "endTime": "7:5"
+      },
+      "output": "12:30 AM - 7:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "09:",
+        "endDate": "2026-09-27",
+        "endTime": "00:00"
+      },
+      "output": "Tue, Mar 3 9:00 AM - Sun, Sep 27 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "1e1:00",
+        "endDate": "",
+        "endTime": "00:05"
+      },
+      "output": "Tue, Mar 3 · 10:00 AM - 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "-1:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "09:"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "09:",
+        "endDate": "1999-12-31",
+        "endTime": "-0:00"
+      },
+      "output": "Sun, Sep 27 9:00 AM - Fri, Dec 31 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "09:xx",
+        "endDate": "",
+        "endTime": " 9:00"
+      },
+      "output": "Tue, Jan 5 · 09:xx - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "23:59",
+        "endDate": "2026-02-29",
+        "endTime": "1e1:00"
+      },
+      "output": "Tue, Mar 3 11:59 PM - Sun, Mar 1 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "09:00",
+        "endDate": "2026-09-27",
+        "endTime": "1e1:00"
+      },
+      "output": "9:00 AM - 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "-0:00",
+        "endDate": "2026-13-45",
+        "endTime": "09:"
+      },
+      "output": "Tue, Jan 5 12:00 AM - Sun, Feb 14 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "0x0A:00",
+        "endDate": "2026-09-27",
+        "endTime": "abc"
+      },
+      "output": "Sun, Feb 14 10:00 AM - Sun, Sep 27 abc"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "12:30",
+        "endDate": "2026-02-29",
+        "endTime": " 9:00"
+      },
+      "output": "Sun, Sep 27 12:30 PM - Sun, Mar 1 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "0x0A:00",
+        "endDate": "2026-09-27",
+        "endTime": "12:00"
+      },
+      "output": "10:00 AM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "-1:00",
+        "endDate": "2026-09-28",
+        "endTime": "abc"
+      },
+      "output": "Sun, Feb 14 -1:00 AM - Mon, Sep 28 abc"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "12:30",
+        "endDate": "",
+        "endTime": "09:xx"
+      },
+      "output": "Tue, Mar 3 · 12:30 PM - 09:xx"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "09:",
+        "endDate": "2026-09-28",
+        "endTime": "abc"
+      },
+      "output": "Mon, Sep 28 · 9:00 AM - abc"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "Infinity:00",
+        "endDate": "0099-01-05",
+        "endTime": "12:00:30"
+      },
+      "output": "Tue, Jan 5 · Infinity:00 - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "00:05",
+        "endDate": "2026-09-27 ",
+        "endTime": "12:30"
+      },
+      "output": "12:05 AM - 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "09:00",
+        "endDate": "2026-09-28",
+        "endTime": "-1:00"
+      },
+      "output": "Tue, Mar 3 9:00 AM - Mon, Sep 28 -1:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "9",
+        "endDate": "2026-09-27 ",
+        "endTime": "00:05"
+      },
+      "output": "9 - 12:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": ":30",
+        "endDate": "2026-09-28",
+        "endTime": "24:00"
+      },
+      "output": "Mon, Sep 28 · 12:30 AM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "24:00",
+        "endDate": "2026-09-27",
+        "endTime": "23:59"
+      },
+      "output": "Fri, Dec 31 12:00 PM - Sun, Sep 27 11:59 PM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "Infinity:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "0x0A:00"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "9",
+        "endDate": "2026-02-29",
+        "endTime": "0x0A:00"
+      },
+      "output": "Tue, Jan 5 9 - Sun, Mar 1 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "1999-12-31",
+        "startTime": "1.5:30",
+        "endDate": "2026-02-29",
+        "endTime": "09:00"
+      },
+      "output": "Fri, Dec 31 1.5:30 AM - Sun, Mar 1 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "-1:00",
+        "endDate": "2026-02-31",
+        "endTime": "12:00:30"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "09:00",
+        "endDate": "",
+        "endTime": "12:30"
+      },
+      "output": "Sun, Sep 27 · 9:00 AM - 12:30 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "23:59",
+        "endDate": "2026-13-45",
+        "endTime": ""
+      },
+      "output": "Tue, Mar 3 · 11:59 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "09:xx",
+        "endDate": "",
+        "endTime": ""
+      },
+      "output": "Tue, Mar 3 · 09:xx"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "1e1:00",
+        "endDate": "2026-09-27",
+        "endTime": "-0:00"
+      },
+      "output": "Sun, Sep 27 · 10:00 AM - 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "Infinity:00",
+        "endDate": "",
+        "endTime": "23:59"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "-0:00",
+        "endDate": "",
+        "endTime": "12:00"
+      },
+      "output": "Sun, Feb 14 · 12:00 AM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "12:00:30",
+        "endDate": "2026-09-28",
+        "endTime": ":30"
+      },
+      "output": "Mon, Sep 28 · 12:00 PM - 12:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "0x0A:00",
+        "endDate": "2026-02-31",
+        "endTime": "12:00:30"
+      },
+      "output": "Mon, Sep 28 10:00 AM - Tue, Mar 3 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27 ",
+        "startTime": "Infinity:00",
+        "endDate": "0099-01-05",
+        "endTime": "9"
+      },
+      "output": "Infinity:00 - 9"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "09:",
+        "endDate": "",
+        "endTime": ":30"
+      },
+      "output": "Sun, Mar 1 · 9:00 AM - 12:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "13:05",
+        "endDate": "2026-02-29",
+        "endTime": "00:00"
+      },
+      "output": "Sun, Mar 1 · 1:05 PM - 12:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "Infinity:00",
+        "endDate": "1999-12-31",
+        "endTime": "Infinity:00"
+      },
+      "output": "Mon, Sep 28 Infinity:00 - Fri, Dec 31 Infinity:00"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "abc",
+        "endDate": "",
+        "endTime": "12:00:30"
+      },
+      "output": "Mon, Sep 28 · abc - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "Infinity:00",
+        "endDate": "2026-9-27",
+        "endTime": "Infinity:00"
+      },
+      "output": "Infinity:00 - Infinity:00"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "12:00",
+        "endDate": "2026-02-31",
+        "endTime": ":30"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "12:00:30",
+        "endDate": "2026-13-45",
+        "endTime": "09:"
+      },
+      "output": "Tue, Mar 3 12:00 PM - Sun, Feb 14 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "12:30",
+        "endDate": "2026-9-27",
+        "endTime": "1e1:00"
+      },
+      "output": "12:30 PM - 10:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "24:00",
+        "endDate": "1999-12-31",
+        "endTime": "23:59"
+      },
+      "output": "Sun, Mar 1 12:00 PM - Fri, Dec 31 11:59 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": "Infinity:00",
+        "endDate": "0099-01-05",
+        "endTime": "09:00"
+      },
+      "output": "Mon, Sep 28 Infinity:00 - Tue, Jan 5 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": ":30",
+        "endDate": "",
+        "endTime": "Infinity:00"
+      },
+      "output": "Sun, Feb 14 · 12:30 AM - Infinity:00"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "1.5:30",
+        "endDate": "0099-01-05",
+        "endTime": "1.5:30"
+      },
+      "output": "Sun, Sep 27 1.5:30 AM - Tue, Jan 5 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-31",
+        "startTime": "-1:00",
+        "endDate": "2026-13-45",
+        "endTime": "-1:00"
+      },
+      "output": "Tue, Mar 3 -1:00 AM - Sun, Feb 14 -1:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "12:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "1.5:30"
+      },
+      "output": "12:00 PM - 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "00:05",
+        "endDate": "2026-09-27",
+        "endTime": "23:59"
+      },
+      "output": "Sun, Feb 14 12:05 AM - Sun, Sep 27 11:59 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "9",
+        "endDate": "0099-01-05",
+        "endTime": "09:"
+      },
+      "output": "Sun, Feb 14 9 - Tue, Jan 5 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-28",
+        "startTime": " 9:00",
+        "endDate": "2026-09-27 ",
+        "endTime": "-1:00"
+      },
+      "output": "9:00 AM - -1:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "09:00",
+        "endDate": "0099-01-05",
+        "endTime": "12:00:30"
+      },
+      "output": "9:00 AM - 12:00 PM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "abc",
+        "endDate": "2026-9-27",
+        "endTime": "7:5"
+      },
+      "output": "abc - 7:05 AM"
+    },
+    {
+      "input": {
+        "startDate": "",
+        "startTime": "12:30",
+        "endDate": "2026-13-45",
+        "endTime": "09:xx"
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "abc",
+        "endDate": "0099-01-05",
+        "endTime": "abc"
+      },
+      "output": "Tue, Jan 5 · abc - abc"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "9",
+        "endDate": "",
+        "endTime": "-1:00"
+      },
+      "output": "Sun, Feb 14 · 9 - -1:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-9-27",
+        "startTime": "-0:00",
+        "endDate": "2026-9-27",
+        "endTime": "-1:00"
+      },
+      "output": "12:00 AM - -1:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "0099-01-05",
+        "startTime": "",
+        "endDate": "2026-09-28",
+        "endTime": ""
+      },
+      "output": "Set start time"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "12:00",
+        "endDate": "2026-09-28",
+        "endTime": "1.5:30"
+      },
+      "output": "Sun, Feb 14 12:00 PM - Mon, Sep 28 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-02-29",
+        "startTime": "9",
+        "endDate": "",
+        "endTime": "09:00"
+      },
+      "output": "Sun, Mar 1 · 9 - 9:00 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-13-45",
+        "startTime": "24:00",
+        "endDate": "2026-13-45",
+        "endTime": "1.5:30"
+      },
+      "output": "Sun, Feb 14 · 12:00 PM - 1.5:30 AM"
+    },
+    {
+      "input": {
+        "startDate": "2026-09-27",
+        "startTime": "-1:00",
+        "endDate": "2026-09-28",
+        "endTime": "-0:00"
+      },
+      "output": "Sun, Sep 27 -1:00 AM - Mon, Sep 28 12:00 AM"
+    }
+  ]
+}
