@@ -41,6 +41,8 @@ struct MetricTile: View {
   var meter: Double?
   var tone: StatusTone = .neutral
   var accessibilityValue: Text?
+  /// Keeps a meter's height empty without one, so values line up across a row of tiles.
+  var reservesMeterSpace = false
 
   @Environment(\.displayScale) private var displayScale
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -60,6 +62,10 @@ struct MetricTile: View {
         .animation(Motion.respecting(reduceMotion: reduceMotion, Motion.reveal), value: value)
       if let meter {
         PeopleMeter(value: meter, tone: tone)
+          .padding(.top, Spacing.xxs)
+      } else if reservesMeterSpace {
+        Color.clear
+          .frame(height: Metrics.meterHeight)
           .padding(.top, Spacing.xxs)
       }
     }

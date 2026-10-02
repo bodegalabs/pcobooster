@@ -51,6 +51,8 @@ enum PeopleGlyph {
   static let blockout = "calendar.badge.minus"
   /// The roster's sort menu.
   static let sort = "arrow.up.arrow.down"
+  /// The toolbar's scope menu.
+  static let scope = "line.3.horizontal.decrease"
   /// Teams I lead in the scope menu.
   static let ledTeams = "star"
   /// All teams in the scope menu.

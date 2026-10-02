@@ -94,6 +94,9 @@ final class PeopleDashboardModel {
     self.clock = clock
     self.timeZone = timeZone
     scopeStore = PeopleScopeStore(scope: queries.scope)
+    if let scope = PeopleLaunchOverrides.takeScope() {
+      scopeStore.save(scope)
+    }
     scopeChoice = scopeStore.load()
     roster = queries.query(.peopleDashboardRoster, RPC.People.dashboardRoster)
     rosterChanged()

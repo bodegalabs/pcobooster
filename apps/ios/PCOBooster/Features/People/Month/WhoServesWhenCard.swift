@@ -20,8 +20,8 @@ struct WhoServesWhenCard: View {
 
   private static var pageSize: Int { PeopleDashboardConstants.matrixDayCount }
   private var rowHeight: CGFloat { dynamicTypeSize.isAccessibilitySize ? 64 : 52 }
-  private var headerHeight: CGFloat { 34 }
-  private var nameWidth: CGFloat { layout == .compact ? 148 : 220 }
+  private var headerHeight: CGFloat { layout == .compact ? 44 : 34 }
+  private var nameWidth: CGFloat { layout == .compact ? 160 : 220 }
 
   var body: some View {
     let page = PeopleScreens.matrixPage(serviceDays: serviceDays, selectedDay: selectedDay)
@@ -146,12 +146,9 @@ struct WhoServesWhenCard: View {
         ForEach(0..<Self.pageSize, id: \.self) { slot in
           Group {
             if days.indices.contains(slot) {
-              let day = days[slot]
-              Text(verbatim: DashboardCalendar.formatMonthDay(month, day: day))
-                .font(.meta.weight(day == selectedDay ? .semibold : .medium).monospacedDigit())
-                .foregroundStyle(day == selectedDay ? Color.ink : Color.inkSecondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
+              DayColumnHeading(
+                month: month, day: days[slot], isSelected: days[slot] == selectedDay,
+                isStacked: layout == .compact)
             } else {
               Color.clear
             }
@@ -212,6 +209,38 @@ struct WhoServesWhenCard: View {
   }
 }
 
+/// A service day's column heading: "Oct 4" with room, or the weekday over the day number on a
+/// phone, where five columns share the width beside the names.
+private struct DayColumnHeading: View {
+  let month: PeopleDashboardMonth
+  let day: Int
+  let isSelected: Bool
+  let isStacked: Bool
+
+  var body: some View {
+    Group {
+      if isStacked {
+        VStack(spacing: 0) {
+          Text(verbatim: DashboardCalendar.formatWeekday(month, day: day))
+            .font(.caption2.weight(.medium))
+            .textCase(.uppercase)
+          Text(verbatim: "\(day)")
+            .font(.subheadline.weight(isSelected ? .bold : .medium).monospacedDigit())
+        }
+      } else {
+        Text(verbatim: DashboardCalendar.formatMonthDay(month, day: day))
+          .font(.meta.weight(isSelected ? .semibold : .medium).monospacedDigit())
+      }
+    }
+    .foregroundStyle(isSelected ? Color.ink : Color.inkSecondary)
+    .lineLimit(1)
+    .minimumScaleFactor(0.8)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(Text(verbatim: DashboardCalendar.formatWeekdayMonthDay(month, day: day)))
+    .accessibilityAddTraits(isSelected ? [.isHeader, .isSelected] : .isHeader)
+  }
+}
+
 private struct MatrixCell: Hashable {
   let personId: String
   let day: Int
@@ -248,56 +277,5 @@ private struct MatrixNameCell: View {
     }
     .buttonStyle(PersonRowButtonStyle(isSelected: opener.selectedPersonId == person.id))
     .personContextMenu(person.rosterPerson)
-  }
-}
-
-/// One person's commitments on a day: what, where, and a way into the plan.
-struct CommitmentPopover: View {
-  let title: String
-  var subtitle: String?
-  let entries: [PeopleDashboardMonthDay]
-  var onDismiss: () -> Void = {}
-
-  @Environment(AppRouter.self) private var router
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: Spacing.md) {
-      VStack(alignment: .leading, spacing: Spacing.xxs) {
-        Text(verbatim: title)
-          .font(.headline)
-          .foregroundStyle(.ink)
-        if let subtitle {
-          Text(verbatim: subtitle)
-            .font(.rowDetail)
-            .foregroundStyle(.inkSecondary)
-        }
-      }
-      ForEach(Array(entries.enumerated()), id: \.offset) { _, entry in
-        HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
-          CommitmentDotView(dot: entry.dot)
-            .alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 4 }
-          VStack(alignment: .leading, spacing: Spacing.xxs) {
-            Text(verbatim: entry.engagement)
-              .font(.rowTitleEmphasized)
-              .foregroundStyle(.ink)
-            Text(verbatim: PeopleScreens.commitmentEntryText(entry))
-              .font(.rowDetail)
-              .foregroundStyle(.inkSecondary)
-          }
-          Spacer(minLength: Spacing.md)
-          if let route = PeopleLinks.planRoute(entry) {
-            Button {
-              onDismiss()
-              router.push(.plan(route))
-            } label: {
-              Text("Open plan")
-            }
-            .buttonStyle(.pill(.secondary, size: .small))
-          }
-        }
-      }
-    }
-    .padding(Spacing.lg)
-    .frame(minWidth: 260, idealWidth: 300, maxWidth: 340, alignment: .leading)
   }
 }

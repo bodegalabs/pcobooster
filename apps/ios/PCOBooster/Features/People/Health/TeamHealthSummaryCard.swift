@@ -113,9 +113,12 @@ struct TeamHealthSummaryCard: View {
         meter: declineShare, tone: .declined)
     } else {
       MetricTile(
-        label: Text("Declined in 6 months"), value: "-", accessibilityValue: Text("No requests"))
+        label: Text("Declined in 6 months"), value: "-", accessibilityValue: Text("No requests"),
+        reservesMeterSpace: true)
     }
-    MetricTile(label: Text("Unanswered requests"), value: "\(Int(health.pendingCount))")
+    MetricTile(
+      label: Text("Unanswered requests"), value: "\(Int(health.pendingCount))",
+      reservesMeterSpace: true)
   }
 
   private func share(_ count: Int, _ total: Int) -> Double {

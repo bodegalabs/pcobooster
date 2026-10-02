@@ -13,7 +13,7 @@ import SwiftUI
 /// - iPhone pushes a person; iPad shows them in the trailing inspector beside the dashboard.
 struct PeopleHomeView: View {
   @ScreenModel private var model: PeopleDashboardModel
-  @AppStorage("PCOBPeopleMode") private var mode: PeopleDashboardMode = .health
+  @AppStorage(PeopleHomeView.modeKey) private var mode: PeopleDashboardMode = .health
   @State private var selectedPersonId: String?
   @State private var isInspectorPresented = false
 
@@ -23,7 +23,13 @@ struct PeopleHomeView: View {
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+  /// Where the Health or Month choice is remembered.
+  private static let modeKey = "PCOBPeopleMode"
+
   init() {
+    if let mode = PeopleLaunchOverrides.takeView() {
+      UserDefaults.standard.set(mode.rawValue, forKey: Self.modeKey)
+    }
     _model = ScreenModel { app in
       PeopleDashboardModel(queries: app.queries, clock: app.clock, timeZone: app.timeZone)
     }
@@ -45,6 +51,7 @@ struct PeopleHomeView: View {
     .safeAreaBar(edge: .top) { modePicker }
     .navigationTitle("People")
     .navigationSubtitle(Text(verbatim: subtitle))
+    .navigationBarTitleDisplayMode(.large)
     .toolbarTitleMenu { PeopleScopeMenu(model: model) }
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
@@ -52,7 +59,9 @@ struct PeopleHomeView: View {
       }
       ToolbarSpacer(.fixed, placement: .topBarTrailing)
     }
-    .searchable(text: $model.searchText, prompt: Text("Search people, teams, or roles"))
+    .searchable(
+      text: $model.searchText, placement: .navigationBarDrawer(displayMode: .automatic),
+      prompt: Text("Search people, teams, or roles"))
     .refreshable { await model.refresh() }
     .environment(\.personOpener, opener)
     .environment(\.personPreviewLookup, previewLookup)
@@ -152,7 +161,6 @@ struct PeopleHomeView: View {
     let signals = model.isSearching ? model.searchSignals : model.health.signalsById
     return PersonPreviewLookup(
       member: { members[$0] },
-      signals: { (signals[$0] ?? []).filter(TeamHealthEngine.isRosterSignal) },
-      todayKey: model.todayKey)
+      signals: { (signals[$0] ?? []).filter(TeamHealthEngine.isRosterSignal) })
   }
 }

@@ -2,35 +2,50 @@ import PCOBoosterCore
 import SwiftUI
 
 /// The scope choices: Teams I lead (when the viewer leads any), All teams, then every team
-/// grouped by service type with "Other teams" last (the web's `ScopeSelect`). Used as the
-/// navigation title menu.
+/// under its service type's heading with "Other teams" last (the web's `ScopeSelect` and its
+/// optgroups). Used as the navigation title menu and inside the toolbar's scope menu. Each
+/// choice is a checkmark toggle so the service type headings stay visible; two teams can share
+/// a name across service types.
 struct PeopleScopeMenu: View {
   let model: PeopleDashboardModel
 
   var body: some View {
     let teams = model.dashboard?.teams ?? model.roster.value?.teams ?? []
     let ledTeamIds = model.roster.value?.ledTeamIds ?? []
-    Picker(selection: Binding(get: { model.scope }, set: { model.select(scope: $0) })) {
-      Section {
-        if !ledTeamIds.isEmpty {
+    Section {
+      if !ledTeamIds.isEmpty {
+        choice(.mine) {
           Label("Teams I lead", systemImage: PeopleGlyph.ledTeams)
-            .tag(PeopleDashboardScope.mine)
         }
+      }
+      choice(.all) {
         Label("All teams", systemImage: PeopleGlyph.allTeams)
-          .tag(PeopleDashboardScope.all)
       }
-      ForEach(PeopleScreens.groupTeams(teams)) { group in
-        Section(group.serviceType) {
-          ForEach(group.teams) { team in
+    }
+    ForEach(PeopleScreens.groupTeams(teams)) { group in
+      Section(group.serviceType) {
+        ForEach(group.teams) { team in
+          choice(.team(team.id)) {
             Text(verbatim: team.name)
-              .tag(PeopleDashboardScope.team(team.id))
           }
+          .accessibilityLabel(Text(verbatim: PeopleScreens.teamLabel(team)))
         }
       }
-    } label: {
-      Text("Teams")
     }
-    .pickerStyle(.inline)
+  }
+
+  private func choice<Title: View>(
+    _ scope: PeopleDashboardScope, @ViewBuilder title: () -> Title
+  ) -> some View {
+    Toggle(
+      isOn: Binding(
+        get: { model.scope == scope },
+        set: { isOn in
+          if isOn { model.select(scope: scope) }
+        })
+    ) {
+      title()
+    }
   }
 }
 
@@ -45,7 +60,8 @@ struct PeopleScopeButton: View {
       Label {
         Text("Choose teams")
       } icon: {
-        Image(systemName: "line.3.horizontal.decrease")
+        Image(systemName: PeopleGlyph.scope)
+          .symbolEffect(.bounce, value: model.scope)
       }
     }
     .menuIndicator(.hidden)

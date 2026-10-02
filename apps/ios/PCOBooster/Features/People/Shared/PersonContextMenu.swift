@@ -37,7 +37,9 @@ private struct PersonContextMenuModifier: ViewModifier {
           Label("Copy Name", symbol: .copy)
         }
       } preview: {
-        PersonPreviewCard(person: person, member: lookup.member(person.id), todayKey: lookup.todayKey)
+        // The preview renders outside this view's environment, so it gets its facts here.
+        PersonPreviewCard(
+          person: person, member: lookup.member(person.id), signals: lookup.signals(person.id))
           .onAppear { opener.prefetch(person.id) }
       }
       .accessibilityAction(named: Text("Open in Planning Center")) {
@@ -52,9 +54,8 @@ private struct PersonContextMenuModifier: ViewModifier {
 struct PersonPreviewLookup {
   var member: @MainActor (String) -> PeopleDashboardPerson?
   var signals: @MainActor (String) -> [PersonSignal]
-  var todayKey: String
 
-  static let none = PersonPreviewLookup(member: { _ in nil }, signals: { _ in [] }, todayKey: "")
+  static let none = PersonPreviewLookup(member: { _ in nil }, signals: { _ in [] })
 }
 
 extension EnvironmentValues {
@@ -65,8 +66,7 @@ extension EnvironmentValues {
 private struct PersonPreviewCard: View {
   let person: PeopleDashboardRosterPerson
   let member: PeopleDashboardPerson?
-  let todayKey: String
-  @Environment(\.personPreviewLookup) private var lookup
+  let signals: [PersonSignal]
 
   var body: some View {
     VStack(alignment: .leading, spacing: Spacing.md) {
@@ -90,7 +90,6 @@ private struct PersonPreviewCard: View {
             label: "Usually serves",
             value: rhythm.typicalGapDays.map { TeamHealthText.describeCadence(typicalGapDays: $0) } ?? "Not enough history")
         }
-        let signals = lookup.signals(person.id)
         if !signals.isEmpty {
           FlowChips(signals: signals)
         }
