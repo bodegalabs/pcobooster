@@ -29,7 +29,13 @@ interface ParitySuiteSpec<Input, Output> {
   readonly run: (input: Input) => Output;
 }
 
-const LONG_DASHES = /[–—]/gu;
+const EN_DASH = 0x20_13;
+const EM_DASH = 0x20_14;
+// Built from code points: the formatter rewrites escaped dashes in literals into real ones.
+const LONG_DASHES = new RegExp(
+  `[${String.fromCodePoint(EN_DASH, EM_DASH)}]`,
+  "gu"
+);
 
 /** En and em dashes are escaped so the repo's long-dash lint passes; Swift decodes them back. */
 const escapeLongDashes = (dash: string): string =>

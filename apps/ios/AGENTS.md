@@ -44,7 +44,7 @@ An installed build lives for weeks against a continuously deployed API. Generate
 - Swift 6 language mode. The app target defaults to `@MainActor` isolation (`SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`); `PCOBoosterCore` is nonisolated, so its types are `Sendable` values, actors, or explicitly isolated. Network, cache, and disk work runs off the main actor (`@concurrent` or actors).
 - State lives in `@Observable` models injected through the environment; views stay thin.
 - Value types for models; no force unwraps outside tests and static literals.
-- Strings: no en or em dashes anywhere in the repo (a lint scans every tracked file). Write "to" for ranges and use commas or periods in copy.
+- Strings: no en or em dashes anywhere in the repo (a lint scans every tracked file). Write "to" for ranges and use commas or periods in copy. When code must handle the characters, use `"\u{2013}"` in Swift and `String.fromCodePoint(0x20_13)` in TypeScript (the formatter turns `\u2013` escapes in TypeScript literals into real dashes).
 - Tests use Swift Testing (`import Testing`), colocated under `PCOBoosterCore/Tests`.
 
 ## Design rules
