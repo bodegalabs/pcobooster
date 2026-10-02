@@ -1,33 +1,59 @@
 import Calendar04Icon from "@hugeicons/core-free-icons/Calendar04Icon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import DashboardSquare01Icon from "@hugeicons/core-free-icons/DashboardSquare01Icon";
 import Layout3ColumnIcon from "@hugeicons/core-free-icons/Layout3ColumnIcon";
 import ListMusicIcon from "@hugeicons/core-free-icons/ListMusicIcon";
 import Moon02Icon from "@hugeicons/core-free-icons/Moon02Icon";
+import MusicNote03Icon from "@hugeicons/core-free-icons/MusicNote03Icon";
 import Sun01Icon from "@hugeicons/core-free-icons/Sun01Icon";
 import UserAdd01Icon from "@hugeicons/core-free-icons/UserAdd01Icon";
+import UsersIcon from "@hugeicons/core-free-icons/UsersIcon";
 import type { IconSvgElement } from "@hugeicons/react";
-import { ChevronLeft, ChevronRight, Menu, RotateCcw, X } from "lucide-react";
+import { ChevronLeft, Menu, RotateCcw, X } from "lucide-react";
 import { useState } from "react";
 
 import { DemoButton } from "../ui/demo-control";
 import { AssignView, CandidateList } from "./assign-view";
-import { navigateDemo, resetAssignments, useDemoRoute } from "./demo-model";
-import type { DemoView } from "./demo-model";
+import {
+  navigateDemo,
+  resetAssignments,
+  useDemoRoute,
+  isPlanView,
+} from "./demo-model";
+import type { DemoView, PlanView as PlanViewId } from "./demo-model";
 import { DemoIcon } from "./demo-parts";
 import { plan } from "./fixtures";
 import { LineupView } from "./lineup-view";
+import { OverviewView } from "./overview-view";
+import { PeopleView } from "./people-view";
 import { PlanView } from "./plan-view";
+import { SongsView } from "./songs-view";
+import { TimesView } from "./times-view";
 
 import styles from "./product-demo.module.css";
 
-const views: readonly { id: DemoView; label: string; icon: IconSvgElement }[] =
-  [
-    { id: "assign", label: "Assign", icon: UserAdd01Icon },
-    { id: "lineup", label: "Lineup", icon: Layout3ColumnIcon },
-    { id: "plan", label: "Plan", icon: ListMusicIcon },
-  ];
+interface ViewEntry<Id extends DemoView> {
+  readonly id: Id;
+  readonly label: string;
+  readonly icon: IconSvgElement;
+}
+
+/** The plan's views, in the order the product lists them. */
+const planViews: readonly ViewEntry<PlanViewId>[] = [
+  { id: "overview", label: "Overview", icon: DashboardSquare01Icon },
+  { id: "assign", label: "Assign", icon: UserAdd01Icon },
+  { id: "lineup", label: "Lineup", icon: Layout3ColumnIcon },
+  { id: "plan", label: "Plan", icon: ListMusicIcon },
+  { id: "times", label: "Times", icon: Clock01Icon },
+];
+
+const sections: readonly ViewEntry<"people" | "songs">[] = [
+  { id: "people", label: "People", icon: UsersIcon },
+  { id: "songs", label: "Songs", icon: MusicNote03Icon },
+];
 
 const viewLabel = (view: DemoView) =>
-  views.find((entry) => entry.id === view)?.label ?? "";
+  [...planViews, ...sections].find((entry) => entry.id === view)?.label ?? "";
 
 const PlanTitle = () => (
   <h2 className={styles["plan-heading"]}>
@@ -51,12 +77,37 @@ const Sidebar = ({
       <strong>PCO</strong>Booster
     </p>
     <nav aria-label="Demo navigation">
-      <p className={styles["nav-group"]}>
-        <DemoIcon icon={Calendar04Icon} />
-        Services
-      </p>
-      <ul>
-        {views.map((entry) => (
+      <ul className={styles["sidebar-list"]}>
+        <li>
+          <DemoButton
+            variant="nav"
+            onClick={() => {
+              navigateDemo({ view: "overview" });
+            }}
+          >
+            <DemoIcon icon={Calendar04Icon} />
+            Services
+          </DemoButton>
+          {isPlanView(view) ? (
+            <ul className={styles["sidebar-sub"]}>
+              {planViews.map((entry) => (
+                <li key={entry.id}>
+                  <DemoButton
+                    variant="nav"
+                    aria-current={entry.id === view ? "page" : undefined}
+                    onClick={() => {
+                      navigateDemo({ view: entry.id });
+                    }}
+                  >
+                    <DemoIcon icon={entry.icon} />
+                    {entry.label}
+                  </DemoButton>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </li>
+        {sections.map((entry) => (
           <li key={entry.id}>
             <DemoButton
               variant="nav"
@@ -85,22 +136,70 @@ const Sidebar = ({
   </aside>
 );
 
+/** The header's plan view tabs, with each view's icon beside its label. */
+const PlanViewTabs = ({ view }: { view: DemoView }) => (
+  <nav className={styles["header-tabs"]} aria-label="Plan views">
+    {planViews.map((entry) => (
+      <DemoButton
+        key={entry.id}
+        variant="header-tab"
+        aria-current={entry.id === view ? "page" : undefined}
+        onClick={() => {
+          navigateDemo({ view: entry.id });
+        }}
+      >
+        <DemoIcon icon={entry.icon} />
+        {entry.label}
+      </DemoButton>
+    ))}
+  </nav>
+);
+
+/** The phone's plan view switcher: one even row of icon-over-label tabs. */
+const PhonePlanTabs = ({ view }: { view: DemoView }) => (
+  <nav className={styles["phone-tabs"]} aria-label="Plan views">
+    {planViews.map((entry) => (
+      <DemoButton
+        key={entry.id}
+        variant="phone-tab"
+        aria-current={entry.id === view ? "page" : undefined}
+        onClick={() => {
+          navigateDemo({ view: entry.id });
+        }}
+      >
+        <DemoIcon icon={entry.icon} />
+        {entry.label}
+      </DemoButton>
+    ))}
+  </nav>
+);
+
 /** The product's phone plan header: back, two-line plan title, and the menu button. */
 const PhoneHeader = ({
+  view,
   menuOpen,
   onToggleMenu,
 }: {
+  view: DemoView;
   menuOpen: boolean;
   onToggleMenu: () => void;
 }) => (
   <header className={styles["phone-header"]}>
-    <ChevronLeft className={styles.icon} aria-hidden />
-    <div className={styles["phone-title"]}>
-      <strong>{plan.title}</strong>
-      <span>
-        {plan.when} · {plan.serviceType}
-      </span>
-    </div>
+    {isPlanView(view) ? (
+      <>
+        <ChevronLeft className={styles.icon} aria-hidden />
+        <div className={styles["phone-title"]}>
+          <strong>{plan.title}</strong>
+          <span>
+            {plan.when} · {plan.serviceType}
+          </span>
+        </div>
+      </>
+    ) : (
+      <div className={styles["phone-title"]}>
+        <strong>{viewLabel(view)}</strong>
+      </div>
+    )}
     <span className={styles["sample-badge"]}>Sample</span>
     <DemoButton
       variant="icon"
@@ -130,12 +229,21 @@ const PhoneMenu = ({
   onClose: () => void;
 }) => (
   <nav className={styles["phone-menu"]} aria-label="Demo menu">
-    <p className={styles["phone-menu-group"]}>
-      <DemoIcon icon={Calendar04Icon} />
-      Services
-    </p>
     <ul>
-      {views.map((entry) => (
+      <li>
+        <DemoButton
+          variant="nav"
+          aria-current={isPlanView(view) ? "page" : undefined}
+          onClick={() => {
+            navigateDemo({ view: "overview" });
+            onClose();
+          }}
+        >
+          <DemoIcon icon={Calendar04Icon} />
+          Services
+        </DemoButton>
+      </li>
+      {sections.map((entry) => (
         <li key={entry.id}>
           <DemoButton
             variant="nav"
@@ -180,7 +288,7 @@ const PhoneMenu = ({
   </nav>
 );
 
-/** The full clickable replica: app shell, Assign, Lineup, and Plan. */
+/** The full clickable replica: app shell, the plan's views, People, and Songs. */
 export const ProductDemo = () => {
   const { view, positionId } = useDemoRoute();
   const [dark, setDark] = useState(false);
@@ -194,18 +302,23 @@ export const ProductDemo = () => {
       <Sidebar view={view} dark={dark} onToggleTheme={toggleTheme} />
       <div className={styles.inset}>
         <header className={styles.topbar}>
-          <span className={styles.crumbs}>
-            Services <ChevronRight aria-hidden size={14} />
-            <strong>{viewLabel(view)}</strong>
-          </span>
+          {isPlanView(view) ? (
+            <PlanViewTabs view={view} />
+          ) : (
+            <span className={styles.crumbs}>
+              <strong>{viewLabel(view)}</strong>
+            </span>
+          )}
           <span className={styles["sample-badge"]}>Sample data</span>
         </header>
         <PhoneHeader
+          view={view}
           menuOpen={phoneMenuOpen}
           onToggleMenu={() => {
             setPhoneMenuOpen((open) => !open);
           }}
         />
+        {isPlanView(view) ? <PhonePlanTabs view={view} /> : null}
         {phoneMenuOpen ? (
           <PhoneMenu
             view={view}
@@ -216,8 +329,9 @@ export const ProductDemo = () => {
             }}
           />
         ) : null}
-        <div className={styles.content}>
-          <PlanTitle />
+        <div className={styles.content} data-view={view}>
+          {isPlanView(view) ? <PlanTitle /> : null}
+          {view === "overview" ? <OverviewView /> : null}
           {view === "assign" ? (
             <AssignView
               positionId={positionId}
@@ -234,6 +348,9 @@ export const ProductDemo = () => {
             />
           ) : null}
           {view === "plan" ? <PlanView /> : null}
+          {view === "times" ? <TimesView /> : null}
+          {view === "people" ? <PeopleView /> : null}
+          {view === "songs" ? <SongsView /> : null}
         </div>
       </div>
     </div>
@@ -256,7 +373,7 @@ export const LineupShowcase = ({ demoAnchorId }: { demoAnchorId: string }) => (
   </div>
 );
 
-/** A few Acoustic Guitar candidates with one person's history already open. */
+/** A few Acoustic Guitar candidates with one person's busiest recent day open. */
 export const HistoryShowcase = () => (
   <div className={`${styles.demo} ${styles.embedded}`}>
     <div className={styles.content}>
@@ -266,8 +383,8 @@ export const HistoryShowcase = () => (
       <CandidateList
         positionId="acoustic"
         limit={4}
-        showFilter={false}
-        openHistoryFor="p01"
+        compact
+        openHistoryFor={{ personId: "p01", offset: -21 }}
       />
     </div>
   </div>

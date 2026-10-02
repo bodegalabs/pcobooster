@@ -70,26 +70,39 @@ export const StatusDot = ({ tone, label }: { tone: Tone; label?: string }) => (
 
 export const Avatar = ({
   person,
-  ring,
-  dashed = false,
+  alsoScheduled = false,
   muted = false,
-  size = "md",
 }: {
   person: DemoPerson;
-  ring?: Tone;
-  dashed?: boolean;
+  /** Scheduled for another position on the same plan. */
+  alsoScheduled?: boolean;
   muted?: boolean;
-  size?: "sm" | "md";
 }) => (
   <span
     className={styles.avatar}
-    data-ring={ring}
-    data-dashed={dashed ? "" : undefined}
+    data-also-scheduled={alsoScheduled ? "" : undefined}
     data-muted={muted ? "" : undefined}
-    data-size={size}
     aria-hidden
   >
     {initials(person)}
+  </span>
+);
+
+/** An avatar with a corner dot for this assignment's status. */
+export const AvatarStatus = ({
+  person,
+  status,
+  alsoScheduled = false,
+  muted = false,
+}: {
+  person: DemoPerson;
+  status?: Tone;
+  alsoScheduled?: boolean;
+  muted?: boolean;
+}) => (
+  <span className={styles["avatar-status"]}>
+    <Avatar person={person} alsoScheduled={alsoScheduled} muted={muted} />
+    {status === undefined ? null : <StatusDot tone={status} />}
   </span>
 );
 
@@ -103,34 +116,31 @@ const scoreTone = (score: number): Tone => {
   return "declined";
 };
 
-export const ScoreMeter = ({
+export const FitMeter = ({
   score,
   reasons,
 }: {
-  score: number | null;
+  score: number;
   reasons: readonly string[];
 }) => {
-  if (score === null) {
-    return <span className={styles["score-empty"]}>No score</span>;
-  }
   const barStyle: CSSProperties & { "--score": string } = {
-    "--score": `${Math.max(4, score)}%`,
+    "--score": `${Math.max(3, score)}%`,
   };
   return (
     <DemoButton
       variant="hover-trigger"
-      aria-label={`${score}% fit. ${reasons.join(". ")}`}
+      aria-label={`${score} fit. ${reasons.join(". ")}`}
     >
       <span className={styles.score} data-tone={scoreTone(score)}>
         <span className={styles["score-value"]}>
           {score}
-          <small>%</small>
+          <small>fit</small>
         </span>
         <span className={styles["score-track"]}>
           <span className={styles["score-bar"]} style={barStyle} />
         </span>
         <span className={styles["hover-card"]} aria-hidden>
-          <strong>Why {score}%</strong>
+          <strong>Why {score} fit</strong>
           {reasons.map((reason) => (
             <span key={reason}>{reason}</span>
           ))}
