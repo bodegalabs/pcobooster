@@ -7,8 +7,10 @@ import PCOBoosterCore
 ///
 /// Neighbors come from the service type's upcoming list (`catalog.plans`, usually cached from
 /// the agenda). Where that list runs out on a side (past plans, the end of the window), one
-/// `catalog.adjacentPlans` lookup fills it, only when someone asks: a step, or a long press on
-/// the step buttons or the title menu.
+/// `catalog.adjacentPlans` lookup (two Planning Center requests) fills it. Toolbar menus are
+/// built before anyone opens them, so that lookup is queued in the speculative lane once the
+/// screen's own reads have gone out; a step sends it as interactive work (promoting a waiting
+/// speculative call) and waits for it.
 @MainActor
 @Observable
 final class PlanShellModel {
@@ -80,8 +82,9 @@ final class PlanShellModel {
     ends.contains(direction)
   }
 
-  /// Looks up the plans past the loaded list on one side, once.
-  func lookUpIfNeeded(_ direction: Direction) async {
+  /// Looks up the plans past the loaded list on one side, once. A speculative lookup the API
+  /// held back is not an error: the next step asks again as interactive work.
+  func lookUpIfNeeded(_ direction: Direction, priority: RequestPriority = .interactive) async {
     guard needsLookup(direction), lookups[direction] == nil, !lookingUp.contains(direction) else {
       return
     }
@@ -89,15 +92,30 @@ final class PlanShellModel {
     failedLookups.remove(direction)
     defer { lookingUp.remove(direction) }
     do {
-      let found = try await fetchAdjacent(direction)
+      let found = try await fetchAdjacent(direction, priority: priority)
       lookups[direction] = found
       if found.isEmpty {
         ends.insert(direction)
       }
     } catch where !error.isCancellation {
-      failedLookups.insert(direction)
+      if priority == .interactive {
+        failedLookups.insert(direction)
+      }
     } catch {}
   }
+
+  /// Fills the sides the loaded list can't, in the speculative lane, so a long press on a step
+  /// button lists nearby plans at once. Waits for the service type's list to answer, since it
+  /// usually covers the later side already.
+  func prepareNeighbors() async {
+    guard plans.value != nil || plans.error != nil else { return }
+    for direction in [Direction.previous, .next] {
+      await lookUpIfNeeded(direction, priority: .speculative)
+    }
+  }
+
+  /// Changes when the service type's list answers, to rerun `prepareNeighbors`.
+  var neighborsTrigger: Bool { plans.value != nil || plans.error != nil }
 
   // MARK: Stepping
 
@@ -149,11 +167,17 @@ final class PlanShellModel {
     return theirs < mine
   }
 
-  private func fetchAdjacent(_ direction: Direction) async throws -> [Plan] {
-    try await app.queries.fetch(
+  private func fetchAdjacent(_ direction: Direction, priority: RequestPriority = .interactive)
+    async throws -> [Plan]
+  {
+    let input = AdjacentPlansInput(
+      serviceTypeId: serviceTypeId, planId: planId, direction: direction)
+    return try await app.queries.fetch(
       .adjacentPlans(serviceTypeId: serviceTypeId, planId: planId, direction: direction),
-      RPC.Catalog.adjacentPlans,
-      AdjacentPlansInput(serviceTypeId: serviceTypeId, planId: planId, direction: direction))
+      priority: priority
+    ) { rpc in
+      try await rpc(RPC.Catalog.adjacentPlans, input)
+    }
   }
 
   // MARK: Warming

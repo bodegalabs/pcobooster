@@ -48,7 +48,6 @@ struct PlanOverviewView: View {
   private var compactLayout: some View {
     VStack(spacing: Spacing.lg) {
       readiness
-      notifications
       people
       songs
       times
@@ -58,7 +57,6 @@ struct PlanOverviewView: View {
   private var wideLayout: some View {
     VStack(spacing: Spacing.xl) {
       readiness
-      notifications
       HStack(alignment: .top, spacing: Spacing.xl) {
         people
           .frame(maxWidth: .infinity)
@@ -79,19 +77,13 @@ struct PlanOverviewView: View {
       opensPlanningCenter: planningCenterURL != nil, onSelect: open)
   }
 
-  @ViewBuilder private var notifications: some View {
-    if let unnotified = model.staffing?.unnotified, unnotified > 0 {
-      OverviewNotificationsCallout(
-        count: unnotified,
-        onOpenPlanningCenter: planningCenterURL == nil ? nil : { openPlanningCenter() })
-    }
-  }
-
   private var people: some View {
     OverviewPeopleCard(
-      staffing: model.staffing, loadError: failure(model.teamPositions),
+      staffing: model.staffing, unnotified: model.unnotifiedPeople,
+      loadError: failure(model.teamPositions),
       onRetry: { model.teamPositions.retry() },
       onOpenLineup: { context.segment = .lineup },
+      onOpenPlanningCenter: planningCenterURL == nil ? nil : { openPlanningCenter() },
       onAssign: { position in
         router.push(context.assignRoute(teamId: position.teamId, positionId: position.positionId))
       })

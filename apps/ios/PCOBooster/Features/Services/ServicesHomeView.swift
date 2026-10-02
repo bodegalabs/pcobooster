@@ -31,6 +31,12 @@ struct ServicesHomeView: View {
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
         failureBanners
+        if model.hasActiveFilters, model.serviceTypes.value != nil {
+          ServicesFilterSummary(model: model)
+            .padding(.horizontal, isWide ? Spacing.xxl : Spacing.lg)
+            .padding(.top, Spacing.xs)
+            .padding(.bottom, Spacing.sm)
+        }
         if showsMyServices {
           MyServicesSection(
             rows: model.myRows(timeZone: timeZone, now: now), isLoading: !isLoaded, isWide: isWide,
@@ -51,8 +57,9 @@ struct ServicesHomeView: View {
           .padding(.horizontal, isWide ? Spacing.xxl : Spacing.lg)
       }
     }
+    // No navigation subtitle: on iOS 26 a large title with a subtitle starts the list scrolled
+    // under the search field. The filter state shows in the summary chip and the footer.
     .navigationTitle("Services")
-    .navigationSubtitle(Text("\(Text(model.window.title)) \u{B7} \(model.serviceTypeSummary)"))
     .searchable(text: $model.searchText, prompt: "Search plans, series, or dates")
     .refreshable { await model.refresh() }
     .toolbar {
@@ -142,6 +149,9 @@ struct ServicesHomeView: View {
           }
         }
       }
+      AgendaWindowFooter(model: model)
+        .padding(.horizontal, inset)
+        .padding(.top, Spacing.sm)
     }
   }
 

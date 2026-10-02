@@ -38,6 +38,7 @@ private struct PlanStepButton: View {
     .disabled(shell.isEnd(direction) && shell.neighbors(direction).isEmpty)
     .accessibilityLabel(Text(accessibilityTitle))
     .accessibilityHint(Text("Touch and hold to list nearby plans"))
+    .accessibilityIdentifier(direction == .previous ? "plan-step-previous" : "plan-step-next")
     .keyboardShortcut(direction == .previous ? "[" : "]", modifiers: .command)
   }
 
@@ -62,8 +63,9 @@ private struct PlanStepButton: View {
   }
 }
 
-/// Menu rows for the plans on one side: date, then title or series. Looks up plans past the
-/// loaded list when the menu opens (a deliberate long press or tap on the title).
+/// Menu rows for the plans on one side: date, then title or series. Plans past the loaded list
+/// come from the shell's lookup (`PlanShellModel.prepareNeighbors`), because toolbar menus are
+/// built before they open.
 struct PlanNeighborItems: View {
   let direction: AdjacentPlansInputDirection
   let shell: PlanShellModel
@@ -90,7 +92,6 @@ struct PlanNeighborItems: View {
         Text(emptyText)
       }
     }
-    .task { await shell.lookUpIfNeeded(direction) }
   }
 
   private var emptyText: LocalizedStringKey {

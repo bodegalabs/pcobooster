@@ -2,13 +2,16 @@ import PCOBoosterCore
 import SwiftUI
 
 /// Who is scheduled and what is open (`summarizeStaffing`): the filled share as a bar, the
-/// confirmed, pending, and open counts, the positions that still need someone (each opens
-/// Assign for that position), and each team's fill.
+/// confirmed, pending, and open counts, who hasn't been notified yet (with the hand-off to
+/// Planning Center), the positions that still need someone (each opens Assign for that
+/// position), and each team's fill.
 struct OverviewPeopleCard: View {
   let staffing: PlanStaffing?
+  let unnotified: [UnnotifiedPerson]
   let loadError: String?
   let onRetry: () -> Void
   let onOpenLineup: () -> Void
+  let onOpenPlanningCenter: (() -> Void)?
   let onAssign: (OpenPosition) -> Void
   @State private var showsAllOpen = false
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -31,6 +34,10 @@ struct OverviewPeopleCard: View {
                 confirmed: staffing.confirmed, pending: staffing.pending, total: staffing.total)
               legend(staffing)
             }
+          }
+          if !unnotified.isEmpty {
+            OverviewNotificationsCallout(
+              people: unnotified, onOpenPlanningCenter: onOpenPlanningCenter)
           }
           if !staffing.openPositions.isEmpty {
             openPositions(staffing.openPositions)

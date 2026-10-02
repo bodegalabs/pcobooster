@@ -36,6 +36,10 @@ final class PlanOverviewModel {
   var staffing: PlanStaffing? { teamPositions.value.map(summarizeStaffing) }
   var order: PlanOrder? { planItems.value.map(summarizeOrder) }
   var schedule: PlanSchedule? { planTimes.value.map(summarizeTimes) }
+  /// People whose scheduling email is prepared but unsent, in lineup order.
+  var unnotifiedPeople: [UnnotifiedPerson] {
+    teamPositions.value.map(collectUnnotifiedPeople) ?? []
+  }
 
   var checks: [ReadinessCheck] {
     buildReadinessChecks(staffing: staffing, order: order, schedule: schedule)

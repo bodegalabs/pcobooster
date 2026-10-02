@@ -34,6 +34,7 @@ private struct PlanWorkspace: View {
   @Environment(AppModel.self) private var app
   @Environment(\.orgTimeZone) private var timeZone
   @Environment(\.appClock) private var clock
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
   init(route: PlanRoute) {
     self.route = route
@@ -60,19 +61,24 @@ private struct PlanWorkspace: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbarTitleMenu {
         if showsPlan {
-          PlanTitleMenu(shell: shell, header: header, segment: context.segment)
+          PlanTitleMenu(shell: shell, header: header, route: context.route, plan: context.header)
         }
       }
       .toolbar {
         if showsPlan {
           PlanStepControls(shell: shell, segment: context.segment)
-          ToolbarSpacer(.fixed, placement: .topBarTrailing)
-          ToolbarItem(placement: .topBarTrailing) {
-            PlanActionsMenu(route: context.route, plan: context.header, title: header.title)
+          // On iPhone the step buttons stand alone so neither moves into an overflow menu; the
+          // link actions are in the title menu there (and on iPad too).
+          if horizontalSizeClass == .regular {
+            ToolbarSpacer(.fixed, placement: .topBarTrailing)
+            ToolbarItem(placement: .topBarTrailing) {
+              PlanActionsMenu(route: context.route, plan: context.header, title: header.title)
+            }
           }
         }
       }
       .queryLifecycle(context.plan, shell.serviceTypes, shell.plans)
+      .task(id: shell.neighborsTrigger) { await shell.prepareNeighbors() }
       .trackScreen(.plan(context.segment.view))
       .haptic(.selection, trigger: context.segment)
       .haptic(.selection, trigger: hasArrived) { _, arrived in arrived }
