@@ -1,0 +1,586 @@
+{
+  "suite": "text.positionIcon",
+  "cases": [
+    {
+      "input": {
+        "positionName": "Lead Electric Guitar",
+        "teamName": "Band"
+      },
+      "output": "guitar"
+    },
+    {
+      "input": {
+        "positionName": "Bass Guitar",
+        "teamName": "Band"
+      },
+      "output": "guitar"
+    },
+    {
+      "input": {
+        "positionName": "Drums",
+        "teamName": "Band"
+      },
+      "output": "drum"
+    },
+    {
+      "input": {
+        "positionName": "Keys",
+        "teamName": "Band"
+      },
+      "output": "piano"
+    },
+    {
+      "input": {
+        "positionName": "Pads",
+        "teamName": "Band"
+      },
+      "output": "piano"
+    },
+    {
+      "input": {
+        "positionName": "Electric Guitar - Rhythm",
+        "teamName": "Band"
+      },
+      "output": "guitar"
+    },
+    {
+      "input": {
+        "positionName": "Electric Guitar - Lead",
+        "teamName": "Band"
+      },
+      "output": "guitar"
+    },
+    {
+      "input": {
+        "positionName": "Rhythm",
+        "teamName": "Electric Guitar"
+      },
+      "output": "guitar"
+    },
+    {
+      "input": {
+        "positionName": "Lead",
+        "teamName": "Electric Guitar"
+      },
+      "output": "guitar"
+    },
+    {
+      "input": {
+        "positionName": "Acoustic Guitar",
+        "teamName": "Band"
+      },
+      "output": "guitar"
+    },
+    {
+      "input": {
+        "positionName": "Percussion",
+        "teamName": "Band"
+      },
+      "output": "drum"
+    },
+    {
+      "input": {
+        "positionName": "Alto",
+        "teamName": "Vocals"
+      },
+      "output": "mic-vocal"
+    },
+    {
+      "input": {
+        "positionName": "Male Lead",
+        "teamName": "Vocals"
+      },
+      "output": "mic-vocal"
+    },
+    {
+      "input": {
+        "positionName": "Soprano",
+        "teamName": "Vocals"
+      },
+      "output": "mic-vocal"
+    },
+    {
+      "input": {
+        "positionName": "Tenor",
+        "teamName": "Vocals"
+      },
+      "output": "mic-vocal"
+    },
+    {
+      "input": {
+        "positionName": "Camera 1",
+        "teamName": "Audio/Visual"
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "Livestream",
+        "teamName": "Audio/Visual"
+      },
+      "output": "livestream"
+    },
+    {
+      "input": {
+        "positionName": "Lyrics",
+        "teamName": "Audio/Visual"
+      },
+      "output": "music-note"
+    },
+    {
+      "input": {
+        "positionName": "Photography",
+        "teamName": "Audio/Visual"
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "Sound",
+        "teamName": "Audio/Visual"
+      },
+      "output": "sound"
+    },
+    {
+      "input": {
+        "positionName": "Team Member",
+        "teamName": "Band"
+      },
+      "output": "music"
+    },
+    {
+      "input": {
+        "positionName": "Team Member",
+        "teamName": "Vocals"
+      },
+      "output": "mic-vocal"
+    },
+    {
+      "input": {
+        "positionName": "Team Member",
+        "teamName": "Audio/Visual"
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "Greeter",
+        "teamName": "Hospitality"
+      },
+      "output": "music-note"
+    },
+    {
+      "input": {
+        "positionName": "Cam2",
+        "teamName": "Production"
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "cam 1",
+        "teamName": ""
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "Cam 12",
+        "teamName": ""
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "FOH Engineer",
+        "teamName": "Tech"
+      },
+      "output": "sound"
+    },
+    {
+      "input": {
+        "positionName": "A1",
+        "teamName": "Audio"
+      },
+      "output": "sound"
+    },
+    {
+      "input": {
+        "positionName": "Audio Engineer",
+        "teamName": ""
+      },
+      "output": "sound"
+    },
+    {
+      "input": {
+        "positionName": "Worship Leader",
+        "teamName": "Vocals"
+      },
+      "output": "mic-vocal"
+    },
+    {
+      "input": {
+        "positionName": "Worship  \t Leader",
+        "teamName": ""
+      },
+      "output": "mic-vocal"
+    },
+    {
+      "input": {
+        "positionName": "Cajón",
+        "teamName": "Band"
+      },
+      "output": "drum"
+    },
+    {
+      "input": {
+        "positionName": "CAJON",
+        "teamName": ""
+      },
+      "output": "drum"
+    },
+    {
+      "input": {
+        "positionName": "Cajón",
+        "teamName": ""
+      },
+      "output": "music-note"
+    },
+    {
+      "input": {
+        "positionName": "Basś",
+        "teamName": ""
+      },
+      "output": "guitar"
+    },
+    {
+      "input": {
+        "positionName": "ProPresenter",
+        "teamName": "Tech"
+      },
+      "output": "music-note"
+    },
+    {
+      "input": {
+        "positionName": "Slides",
+        "teamName": ""
+      },
+      "output": "music-note"
+    },
+    {
+      "input": {
+        "positionName": "Director",
+        "teamName": "Media"
+      },
+      "output": "camera-video"
+    },
+    {
+      "input": {
+        "positionName": "Switcher",
+        "teamName": ""
+      },
+      "output": "camera-video"
+    },
+    {
+      "input": {
+        "positionName": "Organ",
+        "teamName": "Choir"
+      },
+      "output": "piano"
+    },
+    {
+      "input": {
+        "positionName": "Synth Pads",
+        "teamName": ""
+      },
+      "output": "piano"
+    },
+    {
+      "input": {
+        "positionName": "Usher",
+        "teamName": "A/V Team"
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "Usher",
+        "teamName": "AV"
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "Usher",
+        "teamName": "Audio and Visual"
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "Usher",
+        "teamName": "Audiovisual"
+      },
+      "output": "music-note"
+    },
+    {
+      "input": {
+        "positionName": "Usher",
+        "teamName": "Visuals"
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "Usher",
+        "teamName": "Media Team"
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "Usher",
+        "teamName": "Production"
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "Usher",
+        "teamName": "Orchestra"
+      },
+      "output": "music"
+    },
+    {
+      "input": {
+        "positionName": "Usher",
+        "teamName": "Bands"
+      },
+      "output": "music"
+    },
+    {
+      "input": {
+        "positionName": "Usher",
+        "teamName": "Music"
+      },
+      "output": "music"
+    },
+    {
+      "input": {
+        "positionName": "Usher",
+        "teamName": "Choirs"
+      },
+      "output": "mic-vocal"
+    },
+    {
+      "input": {
+        "positionName": "",
+        "teamName": ""
+      },
+      "output": "music-note"
+    },
+    {
+      "input": {
+        "positionName": "Lead_Guitar",
+        "teamName": ""
+      },
+      "output": "music-note"
+    },
+    {
+      "input": {
+        "positionName": "Mic-1",
+        "teamName": ""
+      },
+      "output": "mic-vocal"
+    },
+    {
+      "input": {
+        "positionName": "Bass",
+        "teamName": "Vocals"
+      },
+      "output": "guitar"
+    },
+    {
+      "input": {
+        "positionName": "Drums",
+        "teamName": "Vocals"
+      },
+      "output": "drum"
+    },
+    {
+      "input": {
+        "positionName": "Keys2",
+        "teamName": ""
+      },
+      "output": "music-note"
+    },
+    {
+      "input": {
+        "positionName": "Video Director",
+        "teamName": ""
+      },
+      "output": "camera-video"
+    },
+    {
+      "input": {
+        "positionName": "Livestream Camera",
+        "teamName": ""
+      },
+      "output": "livestream"
+    },
+    {
+      "input": {
+        "positionName": "Broadcasting",
+        "teamName": ""
+      },
+      "output": "livestream"
+    },
+    {
+      "input": {
+        "positionName": "Photo Booth",
+        "teamName": ""
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "Lyrics Operator",
+        "teamName": "Worship"
+      },
+      "output": "music-note"
+    },
+    {
+      "input": {
+        "positionName": "Alto Sax",
+        "teamName": "Band"
+      },
+      "output": "mic-vocal"
+    },
+    {
+      "input": {
+        "positionName": "Électric Guitar",
+        "teamName": ""
+      },
+      "output": "guitar"
+    },
+    {
+      "input": {
+        "positionName": "Ukulele",
+        "teamName": ""
+      },
+      "output": "guitar"
+    },
+    {
+      "input": {
+        "positionName": "Banjo",
+        "teamName": ""
+      },
+      "output": "guitar"
+    },
+    {
+      "input": {
+        "positionName": "Mandolin",
+        "teamName": ""
+      },
+      "output": "guitar"
+    },
+    {
+      "input": {
+        "positionName": "Keyboard",
+        "teamName": ""
+      },
+      "output": "piano"
+    },
+    {
+      "input": {
+        "positionName": "Piano",
+        "teamName": ""
+      },
+      "output": "piano"
+    },
+    {
+      "input": {
+        "positionName": "Singer",
+        "teamName": ""
+      },
+      "output": "mic-vocal"
+    },
+    {
+      "input": {
+        "positionName": "Microphone",
+        "teamName": ""
+      },
+      "output": "mic-vocal"
+    },
+    {
+      "input": {
+        "positionName": "Mics",
+        "teamName": ""
+      },
+      "output": "mic-vocal"
+    },
+    {
+      "input": {
+        "positionName": "Baritone",
+        "teamName": ""
+      },
+      "output": "mic-vocal"
+    },
+    {
+      "input": {
+        "positionName": "Monitors",
+        "teamName": ""
+      },
+      "output": "sound"
+    },
+    {
+      "input": {
+        "positionName": "Videos",
+        "teamName": ""
+      },
+      "output": "camera-video"
+    },
+    {
+      "input": {
+        "positionName": "Presentation",
+        "teamName": ""
+      },
+      "output": "music-note"
+    },
+    {
+      "input": {
+        "positionName": "Proclaim",
+        "teamName": ""
+      },
+      "output": "music-note"
+    },
+    {
+      "input": {
+        "positionName": "Streaming",
+        "teamName": ""
+      },
+      "output": "livestream"
+    },
+    {
+      "input": {
+        "positionName": "Photographs",
+        "teamName": ""
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "Stage Manager",
+        "teamName": "Production"
+      },
+      "output": "camera"
+    },
+    {
+      "input": {
+        "positionName": "Host",
+        "teamName": "Tech Team"
+      },
+      "output": "camera"
+    }
+  ]
+}
