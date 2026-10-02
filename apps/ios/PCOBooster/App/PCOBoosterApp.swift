@@ -32,6 +32,9 @@ struct PCOBoosterApp: App {
         ConfigurationErrorView(error: error)
       }
     }
+    .commands {
+      AppCommands(app: launch.app)
+    }
   }
 
   /// Navigation titles in ink, like every other heading, instead of system black or white.
@@ -45,5 +48,9 @@ struct PCOBoosterApp: App {
   private enum Launch {
     case ready(AppModel)
     case misconfigured(AppConfigurationError)
+
+    var app: AppModel? {
+      if case .ready(let app) = self { app } else { nil }
+    }
   }
 }

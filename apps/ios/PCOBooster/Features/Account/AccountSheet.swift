@@ -24,6 +24,9 @@ struct AccountSheet: View {
         if app.capabilities.canSendFeedback {
           FeedbackSection(sentAt: feedbackSentAt)
         }
+        if UIDevice.current.userInterfaceIdiom == .pad {
+          KeyboardShortcutsSection()
+        }
         AboutSection()
         #if DEBUG
         DebugSection()
@@ -74,6 +77,8 @@ struct AccountSheet: View {
       }
     case .access:
       AccessReviewScreen()
+    case .keyboardShortcuts:
+      KeyboardShortcutsView()
     #if DEBUG
     case .accessPreviews:
       AccessPreviewsView()
@@ -100,6 +105,7 @@ struct AccountSheet: View {
 enum AccountDestination: Hashable {
   case feedback
   case access
+  case keyboardShortcuts
   #if DEBUG
   case accessPreviews
   #endif

@@ -130,25 +130,16 @@ struct SearchSkeletonRows: View {
   }
 }
 
-/// "Show all 12 plans": switches to that section's scope.
-struct ShowAllRow: View {
-  let title: LocalizedStringKey
-  let action: () -> Void
+/// "Show All" in a section header of the All scope: switches to that section's scope.
+struct ShowAllButton: View {
+  let scope: SearchScope
+  let model: SearchModel
 
   var body: some View {
-    Button(action: action) {
-      HStack {
-        Text(title)
-          .font(.rowDetail.weight(.medium))
-          .foregroundStyle(.inkSecondary)
-        Spacer()
-        AppSymbol.chevronRight.image
-          .font(.footnote.weight(.semibold))
-          .foregroundStyle(.inkTertiary)
-          .accessibilityHidden(true)
-      }
-      .contentShape(.rect)
-    }
-    .cardRowBackground()
+    Button("Show All") { model.scope = scope }
+      .buttonStyle(.borderless)
+      .font(.sectionLabel)
+      .foregroundStyle(.inkSecondary)
+      .accessibilityLabel(Text("Show all \(Text(scope.title))"))
   }
 }

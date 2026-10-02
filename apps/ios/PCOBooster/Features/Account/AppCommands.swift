@@ -14,51 +14,45 @@ struct AppCommands: Commands {
 
   var body: some Commands {
     CommandGroup(replacing: .appSettings) {
-      Button("Account\u{2026}") { app?.router.presentAccount() }
-        .keyboardShortcut(",", modifiers: .command)
+      Button("Account\u{2026}") { presentAccount() }
+        .keyboardShortcut(AppShortcut.account.key, modifiers: AppShortcut.account.modifiers)
         .disabled(!isInApp)
     }
     CommandGroup(replacing: .newItem) {
       NewItemCommand()
     }
     CommandMenu("Go") {
-      ForEach(sectionTabs) { tab in
+      ForEach(Array(sectionTabs.enumerated()), id: \.element) { index, tab in
+        let shortcut = AppShortcut.section(index)
         Button {
           select(tab)
         } label: {
           Text(tab.title)
         }
-        .keyboardShortcut(shortcut(for: tab), modifiers: .command)
+        .keyboardShortcut(shortcut.key, modifiers: shortcut.modifiers)
         .disabled(!isInApp)
       }
       Divider()
       Button("Search") { search() }
-        .keyboardShortcut("f", modifiers: .command)
+        .keyboardShortcut(AppShortcut.search.key, modifiers: AppShortcut.search.modifiers)
         .disabled(!isInApp)
     }
   }
 
-  /// Signed in (or in the demo) and past the splash.
+  /// Signed in (or in the demo), past the splash, and able to open Services.
   private var isInApp: Bool {
     guard let app else { return false }
-    switch app.state {
-    case .signedIn, .demo: return !app.capabilities.hasNoServicesAccess
-    case .launching, .signedOut, .signingIn: return false
-    }
+    return app.state.isInApp && !app.capabilities.hasNoServicesAccess
   }
 
-  /// Services, People, and Songs, as far as the flags show them.
+  /// Services, People, and Songs, as far as the flags show them; ⌘1 is always Services.
   private var sectionTabs: [AppTab] {
-    (app?.visibleTabs ?? [.services]).filter { $0 != .search }
+    AppShortcut.sectionTabs(visible: app?.visibleTabs ?? [.services])
   }
 
-  private func shortcut(for tab: AppTab) -> KeyEquivalent {
-    switch tab {
-    case .services: "1"
-    case .people: "2"
-    case .songs: "3"
-    case .search: "f"
-    }
+  private func presentAccount() {
+    guard let app, app.state.isInApp else { return }
+    app.router.presentAccount()
   }
 
   private func select(_ tab: AppTab) {
@@ -72,6 +66,48 @@ struct AppCommands: Commands {
     app.router.dismissAccount()
     app.router.selectedTab = .search
     SearchActivation.shared.requestFocus()
+  }
+}
+
+extension AppModel.SessionState {
+  /// Past sign-in and the splash (signed in, local development, or the demo).
+  fileprivate var isInApp: Bool {
+    switch self {
+    case .signedIn, .demo: true
+    case .launching, .signedOut, .signingIn: false
+    }
+  }
+}
+
+/// One app-wide keyboard shortcut, shared by the menu commands and the account sheet's
+/// "Keyboard Shortcuts" list so the two never disagree.
+struct AppShortcut: Hashable {
+  let title: LocalizedStringKey
+  let key: KeyEquivalent
+  let modifiers: EventModifiers
+  /// How the keys read in the list ("⌘1").
+  let glyphs: String
+
+  static func == (lhs: AppShortcut, rhs: AppShortcut) -> Bool { lhs.glyphs == rhs.glyphs }
+  func hash(into hasher: inout Hasher) { hasher.combine(glyphs) }
+
+  static let search = AppShortcut(title: "Search", key: "f", modifiers: .command, glyphs: "\u{2318}F")
+  static let account = AppShortcut(
+    title: "Account", key: ",", modifiers: .command, glyphs: "\u{2318},")
+  static let newItem = AppShortcut(
+    title: "New item on the current screen", key: "n", modifiers: .command, glyphs: "\u{2318}N")
+
+  /// ⌘1, ⌘2, ⌘3 by position among the visible sections.
+  static func section(_ index: Int) -> AppShortcut {
+    let digit = String(index + 1)
+    return AppShortcut(
+      title: "Section \(digit)", key: KeyEquivalent(Character(digit)), modifiers: .command,
+      glyphs: "\u{2318}\(digit)")
+  }
+
+  /// The section tabs the number shortcuts reach, in tab order.
+  static func sectionTabs(visible: [AppTab]) -> [AppTab] {
+    visible.filter { $0 != .search }
   }
 }
 
@@ -105,7 +141,7 @@ private struct NewItemCommand: View {
         Text("New")
       }
     }
-    .keyboardShortcut("n", modifiers: .command)
+    .keyboardShortcut(AppShortcut.newItem.key, modifiers: AppShortcut.newItem.modifiers)
     .disabled(action == nil)
   }
 }

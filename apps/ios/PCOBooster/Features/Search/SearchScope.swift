@@ -18,8 +18,14 @@ enum SearchScope: String, CaseIterable, Hashable, Identifiable {
     }
   }
 
-  /// How many results a section shows in the All scope before "Show all".
+  /// How many results a section shows in the All scope before "Show All".
   static let previewLimit = 3
+
+  /// A section's results in the All scope: the first few, or every one when only one more
+  /// would hide behind "Show All".
+  static func preview<Item>(_ items: [Item]) -> [Item] {
+    items.count <= previewLimit + 1 ? items : Array(items.prefix(previewLimit))
+  }
 }
 
 /// A person a search result or a recent search points at.

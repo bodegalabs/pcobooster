@@ -22,7 +22,6 @@ struct PlanResultRow: View {
         if let detail = row.detailText {
           HighlightedText(text: detail, query: query, font: .rowDetail, color: .inkSecondary)
             .lineLimit(1)
-            .truncationMode(.middle)
         }
       }
       Spacer(minLength: Spacing.sm)

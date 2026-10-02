@@ -7,6 +7,7 @@ import SwiftUI
 /// the web's "Your access".
 struct PlanningCenterSection: View {
   @Environment(AppModel.self) private var app
+  @Environment(AppRouter.self) private var router
   @State private var pendingOrganizationID: String?
 
   var body: some View {
@@ -89,12 +90,15 @@ struct PlanningCenterSection: View {
     return list.selectedAccountId ?? list.accounts.first?.id
   }
 
+  /// Closes the sheet first, then switches, so the app reloads for the other organization
+  /// behind the brand splash instead of under an open sheet (like switching people).
   private func select(_ accountID: String) {
     guard accountID != selectedID, pendingOrganizationID == nil else { return }
     pendingOrganizationID = accountID
-    Task {
+    router.dismissAccount()
+    Task { @MainActor [app] in
+      try? await Task.sleep(for: DeviceAccountsSection.dismissDelay)
       await app.switchOrganization(to: accountID)
-      pendingOrganizationID = nil
     }
   }
 }

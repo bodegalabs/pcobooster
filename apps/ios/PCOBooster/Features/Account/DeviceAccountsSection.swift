@@ -14,7 +14,7 @@ struct DeviceAccountsSection: View {
   @State private var switchingUserID: String?
 
   /// How long the sheet takes to slide away before the switch rebuilds the app.
-  private static let dismissDelay: Duration = .milliseconds(380)
+  static let dismissDelay: Duration = .milliseconds(380)
 
   var body: some View {
     Section {

@@ -29,6 +29,10 @@ final class RecentSearches {
   static let limit = 10
   static let defaultsKey = "PCOBRecentSearches"
 
+  #if DEBUG
+  private static var didResetForLaunch = false
+  #endif
+
   private(set) var items: [RecentSearchItem]
   @ObservationIgnored private let scopeID: String
   @ObservationIgnored private let defaults: UserDefaults
@@ -36,6 +40,13 @@ final class RecentSearches {
   init(scopeID: String, defaults: UserDefaults = .standard) {
     self.scopeID = scopeID
     self.defaults = defaults
+    #if DEBUG
+    // `-PCOBResetRecentSearches YES` starts the launch with no recent searches (UI tests).
+    if !Self.didResetForLaunch, defaults.bool(forKey: "PCOBResetRecentSearches") {
+      defaults.removeObject(forKey: Self.defaultsKey)
+    }
+    Self.didResetForLaunch = true
+    #endif
     items = Self.load(scopeID: scopeID, defaults: defaults)
   }
 

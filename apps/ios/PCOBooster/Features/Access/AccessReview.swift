@@ -91,6 +91,12 @@ final class AccessReviewDismissals {
 
   init(defaults: UserDefaults = .standard) {
     self.defaults = defaults
+    #if DEBUG
+    // `-PCOBResetAccessReview YES` starts with nothing dismissed (UI tests, screenshots).
+    if defaults.bool(forKey: "PCOBResetAccessReview") {
+      defaults.removeObject(forKey: accessReviewDismissalsKey)
+    }
+    #endif
     values = defaults.dictionary(forKey: accessReviewDismissalsKey) as? [String: String] ?? [:]
   }
 

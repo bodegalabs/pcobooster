@@ -19,7 +19,7 @@ struct AppRouteDestination: View {
   var body: some View {
     Group {
       if let flag = route.requiredFeature, !app.capabilities.isEnabled(flag) {
-        FeatureUnavailableView()
+        ProductNotFoundView()
       } else {
         screen
       }
@@ -41,25 +41,5 @@ struct AppRouteDestination: View {
     case .chordChart(let songId, let arrangementId):
       ChordChartEditorView(songId: songId, arrangementId: arrangementId)
     }
-  }
-}
-
-/// A pushed screen whose feature is off for this account (the web's not-found page).
-struct FeatureUnavailableView: View {
-  @Environment(AppRouter.self) private var router
-
-  var body: some View {
-    EmptyState(
-      "Not available",
-      symbol: .locked,
-      description: "This page doesn't exist, or it isn't available to you."
-    ) {
-      Button("Go to Services") {
-        router.show(.services)
-      }
-      .buttonStyle(.pill(.secondary))
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(.surfaceCanvas)
   }
 }

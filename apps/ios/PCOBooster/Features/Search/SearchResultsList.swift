@@ -54,17 +54,18 @@ struct SearchResultsList: View {
   @ViewBuilder
   private func plansSection(_ hits: [PlanHit]) -> some View {
     let isAll = model.scope == .all
-    let shown = isAll ? Array(hits.prefix(SearchScope.previewLimit)) : hits
+    let shown = isAll ? SearchScope.preview(hits) : hits
     if !hits.isEmpty {
       Section {
         ForEach(shown) { hit in
           PlanResultButton(hit: hit, query: model.trimmedText, opener: opener)
         }
-        if isAll, hits.count > shown.count {
-          ShowAllRow(title: "Show all \(hits.count) plans") { model.scope = .plans }
-        }
       } header: {
-        SectionHeader("Plans", count: hits.count)
+        SectionHeader("Plans", count: hits.count) {
+          if shown.count < hits.count {
+            ShowAllButton(scope: .plans, model: model)
+          }
+        }
       }
     } else if model.catalog.isLoadingFirstTime {
       Section {
@@ -119,17 +120,18 @@ struct SearchResultsList: View {
           SectionHeader("People")
         }
       case .results(let results, let isStale):
-        let shown = isAll ? Array(results.prefix(SearchScope.previewLimit)) : results
+        let shown = isAll ? SearchScope.preview(results) : results
         Section {
           ForEach(shown) { result in
             PersonResultButton(person: SearchPerson(result), query: model.trimmedText, opener: opener)
           }
           .staleWhileRefreshing(isStale)
-          if isAll, results.count > shown.count {
-            ShowAllRow(title: "Show all \(results.count) people") { model.scope = .people }
-          }
         } header: {
-          SectionHeader("People", count: results.count)
+          SectionHeader("People", count: results.count) {
+            if shown.count < results.count {
+              ShowAllButton(scope: .people, model: model)
+            }
+          }
         }
       case .empty:
         if !isAll {
@@ -166,17 +168,18 @@ struct SearchResultsList: View {
         SectionHeader("Songs")
       }
     case .results(let results, let isStale):
-      let shown = isAll ? Array(results.prefix(SearchScope.previewLimit)) : results
+      let shown = isAll ? SearchScope.preview(results) : results
       Section {
         ForEach(shown) { song in
           SongResultButton(song: song, query: model.trimmedText, opener: opener)
         }
         .staleWhileRefreshing(isStale)
-        if isAll, results.count > shown.count {
-          ShowAllRow(title: "Show all \(results.count) songs") { model.scope = .songs }
-        }
       } header: {
-        SectionHeader("Songs", count: results.count)
+        SectionHeader("Songs", count: results.count) {
+          if shown.count < results.count {
+            ShowAllButton(scope: .songs, model: model)
+          }
+        }
       }
     case .empty:
       if !isAll {

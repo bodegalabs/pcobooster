@@ -63,7 +63,7 @@ struct DebugSection: View {
       }
       .cardRowBackground()
     } header: {
-      Text("Debug")
+      SectionHeader("Debug")
     } footer: {
       Text("API and mock data changes apply the next time the app launches. Resetting the access review lets it open on its own again.")
     }

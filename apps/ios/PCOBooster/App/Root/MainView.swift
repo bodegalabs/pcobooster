@@ -10,12 +10,13 @@ struct MainView: View {
   var body: some View {
     Group {
       if app.capabilities.hasNoServicesAccess {
-        NoServicesAccessView()
+        NoServicesAccessScreen()
       } else {
         MainTabView()
       }
     }
     .environment(\.accountTransitionNamespace, accountTransition)
+    .accessReviewPrompt()
     .sheet(isPresented: accountSheetBinding) {
       AccountSheet()
         .navigationTransition(
@@ -104,38 +105,6 @@ struct TabStack<Root: View>: View {
         .trackScreen(tab.analyticsScreen)
         .offlineBanner()
         .appRouteDestinations()
-    }
-  }
-}
-
-/// Shown instead of the app when the account can't open Planning Center Services at all.
-struct NoServicesAccessView: View {
-  @Environment(AppModel.self) private var app
-  @Environment(AppRouter.self) private var router
-  @Environment(\.accountTransitionNamespace) private var accountTransition
-  @Namespace private var localTransition
-
-  var body: some View {
-    NavigationStack {
-      EmptyState(
-        "Your account can't open Planning Center Services",
-        artwork: .symbol(.locked),
-        description: Text(
-          "pcobooster.com works on top of Services, so there's nothing to show yet. Ask a Planning Center admin to give you access to Services, then come back."
-        )
-      ) {
-        if !app.capabilities.isDemo {
-          Button("Use a different account") {
-            router.accountSheetTab = .services
-          }
-          .buttonStyle(.pill(.secondary))
-        }
-      }
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(.surfaceCanvas)
-      .toolbar {
-        AccountToolbarItem(tab: .services, namespace: accountTransition ?? localTransition)
-      }
     }
   }
 }
