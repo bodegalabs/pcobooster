@@ -1,0 +1,53 @@
+{
+  "suite": "songs.libraryOptions",
+  "cases": [
+    {
+      "input": null,
+      "output": {
+        "defaultFilter": "all",
+        "defaultSort": "recent",
+        "filters": [
+          {
+            "label": "All songs",
+            "months": null,
+            "value": "all"
+          },
+          {
+            "label": "Unused 6+ months",
+            "months": 6,
+            "value": "unused-6"
+          },
+          {
+            "label": "Unused 1+ year",
+            "months": 12,
+            "value": "unused-12"
+          },
+          {
+            "label": "Unused 2+ years",
+            "months": 24,
+            "value": "unused-24"
+          },
+          {
+            "label": "Never scheduled",
+            "months": null,
+            "value": "never"
+          }
+        ],
+        "sorts": [
+          {
+            "label": "Recently used",
+            "value": "recent"
+          },
+          {
+            "label": "Title",
+            "value": "title"
+          },
+          {
+            "label": "Longest unused",
+            "value": "longest"
+          }
+        ]
+      }
+    }
+  ]
+}

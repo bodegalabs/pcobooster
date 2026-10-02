@@ -1,0 +1,4909 @@
+{
+  "suite": "plans.groupServicePlanRows",
+  "cases": [
+    {
+      "input": {
+        "rows": [],
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": []
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-0-plan-2",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-1",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-0",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-0-plan-3",
+            "planTitle": "Cafe",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-04T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-2-plan-0",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-2",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-2-plan-1",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-0-plan-0",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-0-plan-1",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T17:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-0-plan-2",
+                "st-1-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-1-plan-0",
+                "st-0-plan-3",
+                "st-2-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-1-plan-2",
+                "st-2-plan-1",
+                "st-0-plan-0",
+                "st-0-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-1",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-2-plan-2",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-2",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-4",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-3",
+            "planTitle": "easter",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-1",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-2-plan-0",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-2-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-2",
+            "planTitle": "Advent 2",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-3",
+            "planTitle": "Easter",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "Café",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-0-plan-1",
+                "st-2-plan-2",
+                "st-1-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-1-plan-4",
+                "st-1-plan-3",
+                "st-1-plan-1",
+                "st-2-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-1-plan-0",
+                "st-2-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-05T17:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-0-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-3",
+                "st-0-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-2-plan-0",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-2-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "Café",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          }
+        ],
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-2-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-2-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-07",
+              "planIds": [
+                "st-1-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-2",
+            "planTitle": "Café",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-2",
+            "planTitle": "",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-3",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-3",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-1",
+            "planTitle": "easter",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "Advent 1",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          }
+        ],
+        "timeZone": ""
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T17:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-1-plan-2",
+                "st-0-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-03T16:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-0-plan-0",
+                "st-1-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-04T18:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-3",
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-05T16:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-1-plan-1",
+                "st-1-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-0",
+            "planTitle": "Café",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T17:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-1-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "Advent 10",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/New_York"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-03T18:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-1-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1,
+            "planId": "st-2-plan-0",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-4",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-2",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-1",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-3",
+            "planTitle": "Café",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-04T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 10",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/New_York"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T17:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-1-plan-1",
+                "st-2-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-03T16:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-0-plan-4",
+                "st-0-plan-2",
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-04T17:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-1-plan-0",
+                "st-0-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-2-plan-4",
+            "planTitle": "",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-4",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 1",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-2-plan-2",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-0-plan-2",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-2-plan-0",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-3",
+            "planTitle": "Advent 1",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-2",
+            "planTitle": "Easter",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "Advent 1",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-1",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-2-plan-3",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-0-plan-1",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "Europe/London"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T17:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-2-plan-4",
+                "st-1-plan-4"
+              ]
+            },
+            {
+              "date": "2026-10-03T18:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-0-plan-0",
+                "st-2-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-04T17:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-05T16:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-2-plan-0",
+                "st-1-plan-3",
+                "st-1-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-06T17:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-1-plan-0",
+                "st-1-plan-1",
+                "st-2-plan-3",
+                "st-0-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-3",
+            "planTitle": "",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-2",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-2",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-4",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-3",
+            "planTitle": "",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-4",
+            "planTitle": "Advent 10",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-1",
+            "planTitle": "",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-1",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/New_York"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-0-plan-3",
+                "st-0-plan-2",
+                "st-1-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-0-plan-4",
+                "st-1-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-0",
+                "st-1-plan-4"
+              ]
+            },
+            {
+              "date": "2026-10-05T16:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-1-plan-1",
+                "st-1-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-06T17:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-2",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-0",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-1",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-2",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-4",
+            "planTitle": "",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-04T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-3",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/St_Johns"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-1-plan-2",
+                "st-1-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-03T16:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-1-plan-1",
+                "st-0-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-04T17:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-1-plan-4",
+                "st-0-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-05T17:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-1-plan-3"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-1",
+            "planTitle": "Advent 2",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-2",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-0",
+            "planTitle": "Easter",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          }
+        ],
+        "timeZone": "Europe/London"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T18:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-04T18:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-05T16:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-0-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-3",
+            "planTitle": "easter",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-1",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-0",
+            "planTitle": "easter",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 1,
+            "planId": "st-3-plan-1",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-4",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 1,
+            "planId": "st-2-plan-0",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/St_Johns"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-0-plan-3",
+                "st-1-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-1-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-05T18:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-3-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-4",
+                "st-2-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-1",
+            "planTitle": "easter",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-0-plan-0",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-3",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T17:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-1-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-0",
+                "st-1-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-06T17:00:00.000Z",
+              "dayKey": "2026-10-07",
+              "planIds": [
+                "st-1-plan-3"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-2",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-3",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-1",
+            "planTitle": "easter",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "UTC"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-05T16:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-0-plan-2",
+                "st-0-plan-3",
+                "st-0-plan-0",
+                "st-0-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1,
+            "planId": "st-2-plan-2",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "Café",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-1",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1,
+            "planId": "st-2-plan-3",
+            "planTitle": "Advent 1",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1,
+            "planId": "st-2-plan-0",
+            "planTitle": "Easter",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          }
+        ],
+        "timeZone": "UTC"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T17:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-2-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-04T18:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-0",
+                "st-1-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-05T18:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-1-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-2-plan-3",
+                "st-2-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-0",
+            "planTitle": "Cafe",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-2",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-3",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-1",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-04T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-4",
+            "planTitle": "Cafe",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-04T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-0",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-1",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/New_York"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-0-plan-0",
+                "st-1-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-3",
+                "st-1-plan-1",
+                "st-0-plan-4"
+              ]
+            },
+            {
+              "date": "2026-10-05T17:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-1-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-1",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-2-plan-0",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-2",
+            "planTitle": "Cafe",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-0",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-04T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/St_Johns"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-1-plan-1",
+                "st-2-plan-0",
+                "st-1-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-04T17:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-1-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 10",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 0,
+            "planId": "st-3-plan-1",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 0,
+            "planId": "st-3-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-0-plan-1",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/Denver"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-0-plan-0",
+                "st-3-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-3-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-06T17:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-2-plan-0",
+            "planTitle": "Easter",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "easter",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-3",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-1",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-0",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-2",
+            "planTitle": "easter",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-1",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-4",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-04T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-2-plan-2",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-2-plan-1",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-2-plan-0",
+                "st-0-plan-0",
+                "st-0-plan-3",
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-1-plan-0",
+                "st-1-plan-2",
+                "st-1-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-04T17:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-0-plan-4"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-07",
+              "planIds": [
+                "st-2-plan-2",
+                "st-2-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 1,
+            "planId": "st-2-plan-0",
+            "planTitle": "Advent 1",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-1",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-2",
+            "planTitle": "Easter",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-2",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 1,
+            "planId": "st-2-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 1,
+            "planId": "st-2-plan-2",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-3-plan-0",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-0",
+            "planTitle": "Advent 10",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 1",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/Denver"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T18:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-2-plan-0",
+                "st-1-plan-1",
+                "st-1-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-03T16:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-0-plan-2",
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-05T16:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-2-plan-1",
+                "st-2-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-3-plan-0",
+                "st-1-plan-0",
+                "st-0-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-2",
+            "planTitle": "",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-2",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-1",
+            "planTitle": "Easter",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-3",
+            "planTitle": "Café",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-4",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-1-plan-1",
+            "planTitle": "Easter",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-4",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-1-plan-0",
+                "st-0-plan-2",
+                "st-1-plan-2",
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-03T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-1-plan-3",
+                "st-1-plan-4"
+              ]
+            },
+            {
+              "date": "2026-10-04T18:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-1-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-06T17:00:00.000Z",
+              "dayKey": "2026-10-07",
+              "planIds": [
+                "st-0-plan-0",
+                "st-0-plan-4"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-1",
+            "planTitle": "Cafe",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-3",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-2",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-4",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/Denver"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-0-plan-0",
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-03T18:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-0-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-05T17:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-0-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-06T17:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-4"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-3",
+            "planTitle": "Advent 2",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-4",
+            "planTitle": "Advent 1",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-0",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-2",
+            "planTitle": "Cafe",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/New_York"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-03T18:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-04T18:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-4",
+                "st-0-plan-0",
+                "st-0-plan-2"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [],
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": []
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-1",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "easter",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-3",
+            "planTitle": "easter",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-04T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-2",
+            "planTitle": "",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-0-plan-0",
+                "st-0-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-06T18:00:00.000Z",
+              "dayKey": "2026-10-07",
+              "planIds": [
+                "st-0-plan-2"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-3-plan-4",
+            "planTitle": "easter",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-2",
+            "planTitle": "Advent 1",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-0",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-3-plan-2",
+            "planTitle": "easter",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-3-plan-3",
+            "planTitle": "easter",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-1",
+            "planTitle": "Advent 10",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-3-plan-1",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-1",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/New_York"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T18:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-3-plan-4"
+              ]
+            },
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-0-plan-2",
+                "st-1-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-3-plan-2",
+                "st-3-plan-3",
+                "st-0-plan-1",
+                "st-3-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-05T17:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-1-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-06T18:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-1",
+            "planTitle": "Advent 10",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-2",
+            "planTitle": "Advent 2",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-3",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-04T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-4",
+            "planTitle": "Cafe",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 1",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "Cafe",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-1",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-2",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-03T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-1",
+                "st-0-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-04T17:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-1-plan-3",
+                "st-1-plan-4"
+              ]
+            },
+            {
+              "date": "2026-10-05T17:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-0",
+                "st-1-plan-0",
+                "st-1-plan-1",
+                "st-1-plan-2"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-2",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-4",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-0",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-2-plan-1",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-3",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-0",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-2-plan-0",
+            "planTitle": "Café",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-3",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-4",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-1",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/Denver"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-1-plan-2",
+                "st-1-plan-4",
+                "st-1-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-04T18:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-2-plan-1",
+                "st-1-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-05T16:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-0-plan-0",
+                "st-2-plan-0",
+                "st-0-plan-3",
+                "st-0-plan-4"
+              ]
+            },
+            {
+              "date": "2026-10-06T18:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-4",
+            "planTitle": "Easter",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-0",
+            "planTitle": "Café",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-3",
+            "planTitle": "Easter",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-2",
+            "planTitle": "Cafe",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-1",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "UTC"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-0-plan-4",
+                "st-0-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-03T18:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-0-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-2",
+                "st-0-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1,
+            "planId": "st-0-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-1",
+            "planTitle": "Advent 10",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-2",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 1",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-4",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-3",
+            "planTitle": "Café",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          }
+        ],
+        "timeZone": ""
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-1-plan-1",
+                "st-1-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-05T16:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-0-plan-0",
+                "st-1-plan-0",
+                "st-1-plan-4"
+              ]
+            },
+            {
+              "date": "2026-10-06T17:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-1-plan-3"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-1",
+            "planTitle": "Cafe",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-1",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-2-plan-0",
+            "planTitle": "Advent 10",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-2",
+            "planTitle": "Cafe",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "Café",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-3",
+            "planTitle": "",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/St_Johns"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T18:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-1-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-05T16:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-1-plan-1",
+                "st-0-plan-1",
+                "st-2-plan-0",
+                "st-1-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-0",
+                "st-1-plan-3"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-3",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-2",
+            "planTitle": "Advent 1",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-4",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": ""
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-03T16:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-0-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-0",
+                "st-0-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-06T17:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-4",
+                "st-0-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-1",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-3",
+            "planTitle": "Cafe",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-2",
+            "planTitle": "",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-0",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          }
+        ],
+        "timeZone": ""
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-03T16:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-0-plan-1",
+                "st-0-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-05T16:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-0-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-3-plan-1",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 2,
+            "planId": "st-2-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 2,
+            "planId": "st-2-plan-0",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-0",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-1",
+            "planTitle": "Easter",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-3-plan-2",
+            "planTitle": "easter",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-3-plan-0",
+            "planTitle": "Easter",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/New_York"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T18:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-3-plan-1",
+                "st-0-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-2-plan-1",
+                "st-2-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-05T17:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-1-plan-0",
+                "st-1-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-06T17:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-3-plan-2",
+                "st-3-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-4",
+            "planTitle": "Advent 2",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-1",
+            "planTitle": "Cafe",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-2-plan-1",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-2",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-3",
+            "planTitle": "Advent 2",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-2-plan-0",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-0",
+            "planTitle": "Café",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "Australia/Sydney"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-0-plan-4"
+              ]
+            },
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-04T18:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-2-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-05T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-2",
+                "st-0-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-07",
+              "planIds": [
+                "st-2-plan-0",
+                "st-0-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-3",
+            "planTitle": "Advent 10",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1,
+            "planId": "st-3-plan-0",
+            "planTitle": "Advent 1",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Youth",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-2-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1,
+            "planId": "st-3-plan-2",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-1",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-3",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-2",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-4",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 10",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-2",
+            "planTitle": "",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-1-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-03T16:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-3-plan-0",
+                "st-1-plan-0",
+                "st-2-plan-0",
+                "st-3-plan-2",
+                "st-1-plan-1",
+                "st-0-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-05T17:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-1-plan-4",
+                "st-0-plan-0",
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-06T18:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-1-plan-2"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [],
+        "timeZone": "America/St_Johns"
+      },
+      "output": []
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-3",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-1",
+            "planTitle": "Advent 2",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-2",
+            "planTitle": "Easter",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "UTC"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-1-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-1-plan-0",
+                "st-1-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-06T18:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-1-plan-2"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-1",
+            "planTitle": "",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-2",
+            "planTitle": "",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-0",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-1",
+            "planTitle": "Advent 10",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-0-plan-1",
+                "st-0-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-03T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-1-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-07",
+              "planIds": [
+                "st-1-plan-0",
+                "st-1-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-1",
+            "planTitle": "Advent 10",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-4",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-2",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-3",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 1,
+            "planId": "st-1-plan-0",
+            "planTitle": "Advent 1",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 2,
+            "planId": "st-2-plan-0",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/St_Johns"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T17:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-1-plan-1",
+                "st-1-plan-4"
+              ]
+            },
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-1-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-05T18:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-1-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-06T18:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-1-plan-0",
+                "st-2-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-2",
+            "planTitle": "Cafe",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/New_York"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T18:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-2",
+                "st-1-plan-0",
+                "st-0-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 10",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-2",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-1",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-2-plan-0",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-2",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "9 AM",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-0-plan-0",
+                "st-1-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-03T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-1-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-04T18:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-05T18:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-2-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-06T17:00:00.000Z",
+              "dayKey": "2026-10-07",
+              "planIds": [
+                "st-0-plan-2",
+                "st-1-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-2",
+            "planTitle": "Advent 1",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-0",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0,
+            "planId": "st-0-plan-1",
+            "planTitle": "Advent 2",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-06T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-04T17:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-0",
+                "st-0-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-3",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-02T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 0,
+            "planId": "st-2-plan-1",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-2",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-2",
+            "planTitle": "Café",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Agape",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-1-plan-0",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 0,
+            "planId": "st-2-plan-0",
+            "planTitle": "Advent 10",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-1",
+            "planTitle": "Advent 1",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T18:00:00.000Z"
+          }
+        ],
+        "timeZone": ""
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T18:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-1-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-03T16:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-2-plan-1",
+                "st-1-plan-2",
+                "st-0-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-1-plan-0",
+                "st-0-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-2-plan-0",
+                "st-0-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-3",
+            "planTitle": "Advent 1",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-02T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-0",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Eclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-0-plan-2",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          }
+        ],
+        "timeZone": "America/New_York"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T16:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-0-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-05T18:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-0-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-1",
+                "st-0-plan-2"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 0,
+            "planId": "st-2-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-0",
+            "planTitle": "Cafe",
+            "seriesTitle": "Advent",
+            "seriesId": null,
+            "sortDate": "2026-10-02T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 2,
+            "planId": "st-1-plan-1",
+            "planTitle": "Advent 2",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 0,
+            "planId": "st-2-plan-2",
+            "planTitle": "Advent 2",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 0,
+            "planId": "st-2-plan-4",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 0,
+            "planId": "st-2-plan-3",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "sunday",
+            "serviceTypeSequence": 0,
+            "planId": "st-2-plan-1",
+            "planTitle": "Easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          }
+        ],
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-02T17:00:00.000Z",
+              "dayKey": "2026-10-02",
+              "planIds": [
+                "st-2-plan-0",
+                "st-1-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-1-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-05T16:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-2-plan-2",
+                "st-2-plan-4",
+                "st-2-plan-3",
+                "st-2-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-2",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": null,
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 1.5,
+            "planId": "st-0-plan-1",
+            "planTitle": "Café",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          }
+        ],
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-04T18:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-0-plan-0"
+              ]
+            },
+            {
+              "date": "2026-10-05T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-0-plan-2",
+                "st-0-plan-1"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-3-plan-1",
+            "planTitle": "Advent 1",
+            "seriesTitle": "Advent",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-03T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-1",
+            "planTitle": "",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-03T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-0",
+            "planTitle": "Easter",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-04T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-3-plan-4",
+            "planTitle": "",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-04T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-1",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-1-plan-1",
+            "planTitle": "",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-2",
+            "planTitle": "easter",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-04T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-3-plan-2",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T16:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-0",
+            "serviceTypeName": "Sunday",
+            "serviceTypeSequence": 0.5,
+            "planId": "st-0-plan-3",
+            "planTitle": "Advent 10",
+            "seriesTitle": "",
+            "seriesId": "series-1",
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-2-plan-1",
+            "planTitle": "Advent 10",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-2",
+            "serviceTypeName": "Éclair Night",
+            "serviceTypeSequence": 2,
+            "planId": "st-2-plan-0",
+            "planTitle": "Advent 2",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-05T17:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-3-plan-3",
+            "planTitle": "Christmas Eve",
+            "seriesTitle": "",
+            "seriesId": null,
+            "sortDate": "2026-10-05T18:00:00.000Z"
+          },
+          {
+            "serviceTypeId": "st-3",
+            "serviceTypeName": "10 AM",
+            "serviceTypeSequence": 1,
+            "planId": "st-3-plan-0",
+            "planTitle": "Cafe",
+            "seriesTitle": null,
+            "seriesId": null,
+            "sortDate": "2026-10-06T16:00:00.000Z"
+          }
+        ],
+        "timeZone": "UTC"
+      },
+      "output": [
+        {
+          "days": [
+            {
+              "date": "2026-10-03T17:00:00.000Z",
+              "dayKey": "2026-10-03",
+              "planIds": [
+                "st-3-plan-1",
+                "st-0-plan-1"
+              ]
+            },
+            {
+              "date": "2026-10-04T16:00:00.000Z",
+              "dayKey": "2026-10-04",
+              "planIds": [
+                "st-0-plan-0",
+                "st-3-plan-4",
+                "st-1-plan-1",
+                "st-0-plan-2"
+              ]
+            },
+            {
+              "date": "2026-10-05T16:00:00.000Z",
+              "dayKey": "2026-10-05",
+              "planIds": [
+                "st-3-plan-2",
+                "st-0-plan-3",
+                "st-2-plan-1",
+                "st-2-plan-0",
+                "st-3-plan-3"
+              ]
+            },
+            {
+              "date": "2026-10-06T16:00:00.000Z",
+              "dayKey": "2026-10-06",
+              "planIds": [
+                "st-3-plan-0"
+              ]
+            }
+          ],
+          "heading": "October 2026"
+        }
+      ]
+    },
+    {
+      "input": {
+        "rows": [],
+        "timeZone": "America/New_York"
+      },
+      "output": []
+    }
+  ]
+}

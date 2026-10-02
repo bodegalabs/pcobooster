@@ -1,0 +1,4598 @@
+{
+  "suite": "plans.buildCreatePlanTimeRequest",
+  "cases": [
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "service",
+          "startDate": "2026-04-05",
+          "startTime": "03:15",
+          "endDate": "2026-04-05",
+          "endTime": "01:30",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-2-0",
+            "needed-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "service",
+        "starts_at": "2026-04-04T14:30:00.000Z",
+        "ends_at": "2026-04-04T11:45:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-2-0",
+          "needed-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "rehearsal",
+          "startDate": "2026-11-02",
+          "startTime": "02:00",
+          "endDate": "2026-10-04",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-2",
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/St_Johns"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "rehearsal",
+        "starts_at": "2026-11-02T05:30:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-2",
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "x",
+          "timeType": "other",
+          "startDate": "2026-03-29",
+          "startTime": "02:45",
+          "endDate": "2026-02-28",
+          "endTime": "01:00",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-2",
+            "plan-person-4"
+          ],
+          "assignedPositionIds": [
+            "position-1-1"
+          ],
+          "assignedNeededPositionIds": [
+            "position-0-0"
+          ],
+          "assignedPlanPersonIds": [
+            "team-0",
+            "team-1",
+            "needed-1-1",
+            "plan-person-3",
+            "plan-person-4"
+          ]
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "x",
+        "time_type": "other",
+        "starts_at": "2026-03-29T02:45:00.000Z",
+        "ends_at": "2026-02-28T01:00:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-2",
+          "plan-person-4"
+        ],
+        "assigned_position_ids": [
+          "position-1-1"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "service",
+          "startDate": "2026-09-26",
+          "startTime": "10:15",
+          "endDate": "2026-09-26",
+          "endTime": "10:15",
+          "assignedTeamIds": [
+            "team-0",
+            "needed-1-1",
+            "plan-person-1",
+            "plan-person-3"
+          ],
+          "assignedPositionIds": [
+            "position-1-1"
+          ],
+          "assignedNeededPositionIds": [
+            "plan-person-4"
+          ],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "service",
+        "starts_at": "2026-09-26T04:45:00.000Z",
+        "ends_at": "2026-09-26T04:45:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "needed-1-1",
+          "plan-person-1",
+          "plan-person-3"
+        ],
+        "assigned_position_ids": [
+          "position-1-1"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "service",
+          "startDate": "2026-02-28",
+          "startTime": "00:30",
+          "endDate": "2026-11-01",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-1",
+            "team-3",
+            "needed-2-0"
+          ],
+          "assignedPositionIds": [
+            "team-0",
+            "team-1",
+            "plan-person-1",
+            "plan-person-2",
+            "plan-person-3",
+            "plan-person-4"
+          ],
+          "assignedNeededPositionIds": [
+            "needed-0-0"
+          ],
+          "assignedPlanPersonIds": [
+            "plan-person-3",
+            "plan-person-1"
+          ]
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "service",
+        "starts_at": "2026-02-27T19:00:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-1",
+          "team-3",
+          "needed-2-0"
+        ],
+        "assigned_position_ids": [
+          "team-0",
+          "team-1",
+          "plan-person-1",
+          "plan-person-2",
+          "plan-person-3",
+          "plan-person-4"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "other",
+          "startDate": "2026-03-30",
+          "startTime": "07:15",
+          "endDate": "2026-03-30",
+          "endTime": "06:45",
+          "assignedTeamIds": [
+            "team-3",
+            "team-2",
+            "team-0"
+          ],
+          "assignedPositionIds": [
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [
+            "needed-0-0"
+          ],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Australia/Sydney"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "other",
+        "starts_at": "2026-03-29T20:15:00.000Z",
+        "ends_at": "2026-03-29T19:45:00.000Z",
+        "assigned_team_ids": [
+          "team-3",
+          "team-2",
+          "team-0"
+        ],
+        "assigned_position_ids": [
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "other",
+          "startDate": "2026-04-04",
+          "startTime": "18:45",
+          "endDate": "2026-04-04",
+          "endTime": "20:30",
+          "assignedTeamIds": [],
+          "assignedPositionIds": [
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "plan-person-4"
+          ]
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "",
+        "time_type": "other",
+        "starts_at": "2026-04-04T13:15:00.000Z",
+        "ends_at": "2026-04-04T15:00:00.000Z",
+        "assigned_team_ids": [],
+        "assigned_position_ids": [
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "rehearsal",
+          "startDate": "2026-10-03",
+          "startTime": "08:30",
+          "endDate": "2026-10-03",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-1",
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "plan-person-4",
+            "plan-person-9",
+            "plan-person-1"
+          ]
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "rehearsal",
+        "starts_at": "2026-10-03T03:00:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-1",
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "other",
+          "startDate": "2026-03-28",
+          "startTime": "07:15",
+          "endDate": "2026-03-28",
+          "endTime": "07:30",
+          "assignedTeamIds": [
+            "team-1",
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "other",
+        "starts_at": "2026-03-28T01:45:00.000Z",
+        "ends_at": "2026-03-28T02:00:00.000Z",
+        "assigned_team_ids": [
+          "team-1",
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "service",
+          "startDate": "2026-04-03",
+          "startTime": "10:15",
+          "endDate": "2026-04-03",
+          "endTime": "11:30",
+          "assignedTeamIds": [
+            "team-0"
+          ],
+          "assignedPositionIds": [],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": {
+        "name": "",
+        "time_type": "service",
+        "starts_at": "2026-04-03T17:15:00.000Z",
+        "ends_at": "2026-04-03T18:30:00.000Z",
+        "assigned_team_ids": [
+          "team-0"
+        ],
+        "assigned_position_ids": []
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "service",
+          "startDate": "2026-03-08",
+          "startTime": "03:29",
+          "endDate": "2026-10-25",
+          "endTime": "02:45",
+          "assignedTeamIds": [
+            "team-1",
+            "team-3",
+            "team-0"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/Denver"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "service",
+        "starts_at": "2026-03-08T09:29:00.000Z",
+        "ends_at": "2026-10-25T08:45:00.000Z",
+        "assigned_team_ids": [
+          "team-1",
+          "team-3",
+          "team-0"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "rehearsal",
+          "startDate": "2026-03-08",
+          "startTime": "08:45",
+          "endDate": "2026-03-08",
+          "endTime": "01:30",
+          "assignedTeamIds": [
+            "team-3",
+            "team-0"
+          ],
+          "assignedPositionIds": [
+            "team-0",
+            "team-1",
+            "needed-1-1",
+            "needed-2-0",
+            "plan-person-3",
+            "plan-person-4"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "needed-1-1",
+            "plan-person-3",
+            "plan-person-4"
+          ]
+        },
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "rehearsal",
+        "starts_at": "2026-03-07T19:45:00.000Z",
+        "ends_at": "2026-03-07T12:30:00.000Z",
+        "assigned_team_ids": [
+          "team-3",
+          "team-0"
+        ],
+        "assigned_position_ids": [
+          "team-0",
+          "team-1",
+          "needed-1-1",
+          "needed-2-0",
+          "plan-person-3",
+          "plan-person-4"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "rehearsal",
+          "startDate": "2026-09-27",
+          "startTime": "01:15",
+          "endDate": "2026-09-27",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-0",
+            "team-2",
+            "position-0-0"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "team-0",
+            "team-1",
+            "needed-0-0",
+            "needed-2-0",
+            "plan-person-1",
+            "plan-person-2",
+            "plan-person-3",
+            "plan-person-4"
+          ]
+        },
+        "timeZone": ""
+      },
+      "output": {
+        "name": "",
+        "time_type": "rehearsal",
+        "starts_at": "2026-09-27T01:15:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-0",
+          "team-2",
+          "position-0-0"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "rehearsal",
+          "startDate": "2026-03-08",
+          "startTime": "14:30",
+          "endDate": "2026-03-08",
+          "endTime": "17:00",
+          "assignedTeamIds": [
+            "team-1",
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [
+            "needed-1-0"
+          ],
+          "assignedPlanPersonIds": [
+            "plan-person-4",
+            "plan-person-9",
+            "plan-person-8"
+          ]
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "rehearsal",
+        "starts_at": "2026-03-08T09:00:00.000Z",
+        "ends_at": "2026-03-08T11:30:00.000Z",
+        "assigned_team_ids": [
+          "team-1",
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "service",
+          "startDate": "2026-09-25",
+          "startTime": "23:15",
+          "endDate": "2026-09-26",
+          "endTime": "01:00",
+          "assignedTeamIds": [
+            "team-0"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": ""
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "service",
+        "starts_at": "2026-09-25T23:15:00.000Z",
+        "ends_at": "2026-09-26T01:00:00.000Z",
+        "assigned_team_ids": [
+          "team-0"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "service",
+          "startDate": "2026-09-26",
+          "startTime": "18:45",
+          "endDate": "2026-09-26",
+          "endTime": "18:30",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "service",
+        "starts_at": "2026-09-26T06:45:00.000Z",
+        "ends_at": "2026-09-26T06:30:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "service",
+          "startDate": "2026-09-27",
+          "startTime": "11:00",
+          "endDate": "2026-09-27",
+          "endTime": "",
+          "assignedTeamIds": [],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [
+            "needed-0-0"
+          ],
+          "assignedPlanPersonIds": [
+            "plan-person-5"
+          ]
+        },
+        "timeZone": "America/St_Johns"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "service",
+        "starts_at": "2026-09-27T13:30:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "service",
+          "startDate": "2026-03-29",
+          "startTime": "13:00",
+          "endDate": "2026-03-29",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [
+            "team-1",
+            "needed-1-1",
+            "plan-person-1",
+            "plan-person-4"
+          ],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "service",
+        "starts_at": "2026-03-28T23:15:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "service",
+          "startDate": "2026-12-31",
+          "startTime": "05:45",
+          "endDate": "2026-12-31",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "service",
+        "starts_at": "2026-12-31T05:45:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "rehearsal",
+          "startDate": "2026-04-04",
+          "startTime": "15:15",
+          "endDate": "2026-04-04",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-1",
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "plan-person-4",
+            "plan-person-6",
+            "plan-person-5",
+            "plan-person-4"
+          ]
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "",
+        "time_type": "rehearsal",
+        "starts_at": "2026-04-04T15:15:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-1",
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "service",
+          "startDate": "2026-04-04",
+          "startTime": "14:00",
+          "endDate": "2026-04-04",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-1",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [
+            "team-1",
+            "plan-person-1",
+            "plan-person-2",
+            "plan-person-4"
+          ],
+          "assignedPlanPersonIds": [
+            "needed-0-0",
+            "needed-1-1",
+            "needed-2-0",
+            "plan-person-2",
+            "plan-person-3",
+            "plan-person-4"
+          ]
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "service",
+        "starts_at": "2026-04-04T00:15:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-1",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "other",
+          "startDate": "2026-03-29",
+          "startTime": "22:30",
+          "endDate": "2026-03-30",
+          "endTime": "01:30",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": ""
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "other",
+        "starts_at": "2026-03-29T22:30:00.000Z",
+        "ends_at": "2026-03-30T01:30:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": []
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "rehearsal",
+          "startDate": "2026-11-02",
+          "startTime": "12:00",
+          "endDate": "2026-11-02",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-1",
+            "team-2"
+          ],
+          "assignedPositionIds": [],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "rehearsal",
+        "starts_at": "2026-11-01T23:00:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-1",
+          "team-2"
+        ],
+        "assigned_position_ids": []
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "rehearsal",
+          "startDate": "2026-10-03",
+          "startTime": "21:00",
+          "endDate": "2026-10-03",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-2",
+            "plan-person-1"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "rehearsal",
+        "starts_at": "2026-10-03T07:15:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-2",
+          "plan-person-1"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "other",
+          "startDate": "2026-09-27",
+          "startTime": "07:00",
+          "endDate": "2026-09-27",
+          "endTime": "07:15",
+          "assignedTeamIds": [
+            "team-0"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Australia/Sydney"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "other",
+        "starts_at": "2026-09-26T21:00:00.000Z",
+        "ends_at": "2026-09-26T21:15:00.000Z",
+        "assigned_team_ids": [
+          "team-0"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "other",
+          "startDate": "2026-10-26",
+          "startTime": "01:15",
+          "endDate": "2026-02-28",
+          "endTime": "23:59",
+          "assignedTeamIds": [],
+          "assignedPositionIds": [],
+          "assignedNeededPositionIds": [
+            "team-0",
+            "plan-person-1",
+            "plan-person-4"
+          ],
+          "assignedPlanPersonIds": [
+            "team-0"
+          ]
+        },
+        "timeZone": "Australia/Sydney"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "other",
+        "starts_at": "2026-10-25T14:15:00.000Z",
+        "ends_at": "2026-02-28T12:59:00.000Z",
+        "assigned_team_ids": [],
+        "assigned_position_ids": []
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "other",
+          "startDate": "2026-10-03",
+          "startTime": "10:15",
+          "endDate": "2026-10-03",
+          "endTime": "13:00",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [
+            "needed-1-0"
+          ],
+          "assignedPlanPersonIds": [
+            "plan-person-3",
+            "plan-person-6"
+          ]
+        },
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "other",
+        "starts_at": "2026-10-03T17:15:00.000Z",
+        "ends_at": "2026-10-03T20:00:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "service",
+          "startDate": "2026-10-04",
+          "startTime": "16:30",
+          "endDate": "2026-10-04",
+          "endTime": "17:30",
+          "assignedTeamIds": [
+            "team-1",
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "team-0",
+            "team-1",
+            "plan-person-4"
+          ]
+        },
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "service",
+        "starts_at": "2026-10-04T23:30:00.000Z",
+        "ends_at": "2026-10-05T00:30:00.000Z",
+        "assigned_team_ids": [
+          "team-1",
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": []
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "service",
+          "startDate": "2026-10-25",
+          "startTime": "02:30",
+          "endDate": "2026-10-25",
+          "endTime": "05:15",
+          "assignedTeamIds": [
+            "team-0",
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "service",
+        "starts_at": "2026-10-24T13:30:00.000Z",
+        "ends_at": "2026-10-24T16:15:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "rehearsal",
+          "startDate": "2026-11-02",
+          "startTime": "02:30",
+          "endDate": "2026-11-02",
+          "endTime": "03:15",
+          "assignedTeamIds": [
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "plan-person-9"
+          ]
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "rehearsal",
+        "starts_at": "2026-11-01T21:00:00.000Z",
+        "ends_at": "2026-11-01T21:45:00.000Z",
+        "assigned_team_ids": [
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": []
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "other",
+          "startDate": "2026-10-04",
+          "startTime": "14:45",
+          "endDate": "2026-10-04",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-0",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "plan-person-4",
+            "plan-person-6"
+          ]
+        },
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "other",
+        "starts_at": "2026-10-04T01:45:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-0",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "other",
+          "startDate": "2026-10-25",
+          "startTime": "15:45",
+          "endDate": "2026-10-25",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-1",
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "",
+        "time_type": "other",
+        "starts_at": "2026-10-25T10:15:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-1",
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "rehearsal",
+          "startDate": "2026-04-05",
+          "startTime": "05:15",
+          "endDate": "2026-04-05",
+          "endTime": "05:30",
+          "assignedTeamIds": [
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "rehearsal",
+        "starts_at": "2026-04-04T16:30:00.000Z",
+        "ends_at": "2026-04-04T16:45:00.000Z",
+        "assigned_team_ids": [
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "rehearsal",
+          "startDate": "2026-03-29",
+          "startTime": "10:00",
+          "endDate": "2026-03-29",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "rehearsal",
+        "starts_at": "2026-03-29T04:30:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "x",
+          "timeType": "other",
+          "startDate": "2026-11-01",
+          "startTime": "02:30",
+          "endDate": "2026-10-24",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "plan-person-4"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Europe/London"
+      },
+      "output": {
+        "name": "x",
+        "time_type": "other",
+        "starts_at": "2026-11-01T02:30:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "plan-person-4"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "rehearsal",
+          "startDate": "2026-12-31",
+          "startTime": "21:45",
+          "endDate": "2026-12-31",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-3",
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-2-0",
+            "position-1-1",
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "plan-person-5",
+            "plan-person-4"
+          ]
+        },
+        "timeZone": ""
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "rehearsal",
+        "starts_at": "2026-12-31T21:45:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-3",
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-2-0",
+          "position-1-1",
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "other",
+          "startDate": "2026-10-04",
+          "startTime": "02:44",
+          "endDate": "2026-10-04",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "other",
+        "starts_at": "2026-10-04T09:44:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "service",
+          "startDate": "2026-04-05",
+          "startTime": "02:00",
+          "endDate": "2026-10-03",
+          "endTime": "11:00",
+          "assignedTeamIds": [
+            "team-0",
+            "position-0-0",
+            "needed-2-0",
+            "plan-person-2",
+            "plan-person-3"
+          ],
+          "assignedPositionIds": [
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "service",
+        "starts_at": "2026-04-05T09:00:00.000Z",
+        "ends_at": "2026-10-03T18:00:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "position-0-0",
+          "needed-2-0",
+          "plan-person-2",
+          "plan-person-3"
+        ],
+        "assigned_position_ids": [
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "rehearsal",
+          "startDate": "2026-03-29",
+          "startTime": "02:00",
+          "endDate": "2026-11-01",
+          "endTime": "01:00",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-2",
+            "team-3",
+            "plan-person-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [
+            "needed-0-1",
+            "needed-2-0"
+          ],
+          "assignedPlanPersonIds": [
+            "plan-person-8",
+            "plan-person-8"
+          ]
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "rehearsal",
+        "starts_at": "2026-03-28T12:15:00.000Z",
+        "ends_at": "2026-10-31T11:15:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-2",
+          "team-3",
+          "plan-person-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "service",
+          "startDate": "2026-10-26",
+          "startTime": "08:45",
+          "endDate": "2026-10-26",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "service",
+        "starts_at": "2026-10-25T19:45:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "service",
+          "startDate": "2026-03-09",
+          "startTime": "11:15",
+          "endDate": "2026-03-09",
+          "endTime": "12:45",
+          "assignedTeamIds": [
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Australia/Sydney"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "service",
+        "starts_at": "2026-03-09T00:15:00.000Z",
+        "ends_at": "2026-03-09T01:45:00.000Z",
+        "assigned_team_ids": [
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "other",
+          "startDate": "2026-03-30",
+          "startTime": "13:45",
+          "endDate": "2026-03-30",
+          "endTime": "13:15",
+          "assignedTeamIds": [
+            "team-1",
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "other",
+        "starts_at": "2026-03-30T00:00:00.000Z",
+        "ends_at": "2026-03-29T23:30:00.000Z",
+        "assigned_team_ids": [
+          "team-1",
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "rehearsal",
+          "startDate": "2027-01-01",
+          "startTime": "10:15",
+          "endDate": "2027-01-01",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-1"
+          ],
+          "assignedPositionIds": [],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "plan-person-4"
+          ]
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "rehearsal",
+        "starts_at": "2027-01-01T10:15:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-1"
+        ],
+        "assigned_position_ids": []
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "other",
+          "startDate": "2026-02-28",
+          "startTime": "03:00",
+          "endDate": "2026-10-25",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-3",
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "other",
+        "starts_at": "2026-02-28T03:00:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-3",
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "service",
+          "startDate": "2026-04-04",
+          "startTime": "16:30",
+          "endDate": "2026-04-04",
+          "endTime": "17:00",
+          "assignedTeamIds": [
+            "team-1",
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/St_Johns"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "service",
+        "starts_at": "2026-04-04T19:00:00.000Z",
+        "ends_at": "2026-04-04T19:30:00.000Z",
+        "assigned_team_ids": [
+          "team-1",
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "service",
+          "startDate": "2026-03-29",
+          "startTime": "03:30",
+          "endDate": "2026-03-30",
+          "endTime": "04:30",
+          "assignedTeamIds": [
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-2-0",
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [
+            "plan-person-3"
+          ],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "service",
+        "starts_at": "2026-03-28T14:30:00.000Z",
+        "ends_at": "2026-03-29T15:30:00.000Z",
+        "assigned_team_ids": [
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-2-0",
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "rehearsal",
+          "startDate": "2026-10-03",
+          "startTime": "10:45",
+          "endDate": "2026-10-03",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/St_Johns"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "rehearsal",
+        "starts_at": "2026-10-03T13:15:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "other",
+          "startDate": "2026-03-28",
+          "startTime": "16:00",
+          "endDate": "2026-03-28",
+          "endTime": "19:00",
+          "assignedTeamIds": [
+            "team-3",
+            "team-0"
+          ],
+          "assignedPositionIds": [
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [
+            "needed-0-0"
+          ],
+          "assignedPlanPersonIds": [
+            "needed-0-0"
+          ]
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "other",
+        "starts_at": "2026-03-28T02:15:00.000Z",
+        "ends_at": "2026-03-28T05:15:00.000Z",
+        "assigned_team_ids": [
+          "team-3",
+          "team-0"
+        ],
+        "assigned_position_ids": [
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "service",
+          "startDate": "2026-04-03",
+          "startTime": "22:15",
+          "endDate": "2026-11-01",
+          "endTime": "01:00",
+          "assignedTeamIds": [
+            "team-1",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-2-0",
+            "needed-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "service",
+        "starts_at": "2026-04-03T22:15:00.000Z",
+        "ends_at": "2026-11-01T01:00:00.000Z",
+        "assigned_team_ids": [
+          "team-1",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-2-0",
+          "needed-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "rehearsal",
+          "startDate": "2026-04-05",
+          "startTime": "02:00",
+          "endDate": "2026-04-05",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-0",
+            "position-0-0",
+            "needed-0-0",
+            "needed-1-1",
+            "needed-2-0",
+            "plan-person-2",
+            "plan-person-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "rehearsal",
+        "starts_at": "2026-04-04T12:15:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-0",
+          "position-0-0",
+          "needed-0-0",
+          "needed-1-1",
+          "needed-2-0",
+          "plan-person-2",
+          "plan-person-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "rehearsal",
+          "startDate": "2026-04-04",
+          "startTime": "14:45",
+          "endDate": "2026-04-04",
+          "endTime": "",
+          "assignedTeamIds": [],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/Denver"
+      },
+      "output": {
+        "name": "",
+        "time_type": "rehearsal",
+        "starts_at": "2026-04-04T20:45:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "service",
+          "startDate": "2027-01-01",
+          "startTime": "10:45",
+          "endDate": "2027-01-01",
+          "endTime": "13:45",
+          "assignedTeamIds": [
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1"
+          ],
+          "assignedNeededPositionIds": [
+            "needed-0-1"
+          ],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Europe/London"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "service",
+        "starts_at": "2027-01-01T10:45:00.000Z",
+        "ends_at": "2027-01-01T13:45:00.000Z",
+        "assigned_team_ids": [
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "service",
+          "startDate": "2026-03-09",
+          "startTime": "22:30",
+          "endDate": "2026-03-09",
+          "endTime": "23:15",
+          "assignedTeamIds": [],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [
+            "plan-person-4"
+          ],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "service",
+        "starts_at": "2026-03-09T09:30:00.000Z",
+        "ends_at": "2026-03-09T10:15:00.000Z",
+        "assigned_team_ids": [],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "service",
+          "startDate": "2026-10-04",
+          "startTime": "18:45",
+          "endDate": "2026-03-08",
+          "endTime": "00:00",
+          "assignedTeamIds": [
+            "position-0-0",
+            "needed-0-0",
+            "plan-person-3"
+          ],
+          "assignedPositionIds": [],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Europe/London"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "service",
+        "starts_at": "2026-10-04T17:45:00.000Z",
+        "ends_at": "2026-03-08T00:00:00.000Z",
+        "assigned_team_ids": [
+          "position-0-0",
+          "needed-0-0",
+          "plan-person-3"
+        ],
+        "assigned_position_ids": []
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "rehearsal",
+          "startDate": "2026-10-05",
+          "startTime": "04:45",
+          "endDate": "2026-10-04",
+          "endTime": "09:00",
+          "assignedTeamIds": [
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1",
+            "needed-1-1"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Europe/London"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "rehearsal",
+        "starts_at": "2026-10-05T03:45:00.000Z",
+        "ends_at": "2026-10-04T08:00:00.000Z",
+        "assigned_team_ids": [
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1",
+          "needed-1-1"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "other",
+          "startDate": "2026-09-26",
+          "startTime": "21:30",
+          "endDate": "2026-09-27",
+          "endTime": "01:30",
+          "assignedTeamIds": [
+            "team-0",
+            "team-2",
+            "team-3",
+            "plan-person-4"
+          ],
+          "assignedPositionIds": [
+            "position-1-1"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "other",
+        "starts_at": "2026-09-26T08:45:00.000Z",
+        "ends_at": "2026-09-26T12:45:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-2",
+          "team-3",
+          "plan-person-4"
+        ],
+        "assigned_position_ids": [
+          "position-1-1"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "rehearsal",
+          "startDate": "2026-10-26",
+          "startTime": "01:00",
+          "endDate": "2026-10-26",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "rehearsal",
+        "starts_at": "2026-10-26T01:00:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-0",
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "rehearsal",
+          "startDate": "2026-09-26",
+          "startTime": "16:15",
+          "endDate": "2026-09-26",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-0",
+            "plan-person-1",
+            "plan-person-3"
+          ],
+          "assignedPositionIds": [
+            "team-1",
+            "position-0-0",
+            "needed-1-1",
+            "needed-2-0",
+            "plan-person-1"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Australia/Sydney"
+      },
+      "output": {
+        "name": "",
+        "time_type": "rehearsal",
+        "starts_at": "2026-09-26T06:15:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-0",
+          "plan-person-1",
+          "plan-person-3"
+        ],
+        "assigned_position_ids": [
+          "team-1",
+          "position-0-0",
+          "needed-1-1",
+          "needed-2-0",
+          "plan-person-1"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "service",
+          "startDate": "2027-01-01",
+          "startTime": "12:15",
+          "endDate": "2027-01-01",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "needed-1-1",
+            "needed-2-0",
+            "plan-person-1",
+            "plan-person-2",
+            "plan-person-3"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/New_York"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "service",
+        "starts_at": "2027-01-01T17:15:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "needed-1-1",
+          "needed-2-0",
+          "plan-person-1",
+          "plan-person-2",
+          "plan-person-3"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "rehearsal",
+          "startDate": "2026-10-04",
+          "startTime": "07:30",
+          "endDate": "2026-10-04",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-0",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "",
+        "time_type": "rehearsal",
+        "starts_at": "2026-10-04T02:00:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-0",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "service",
+          "startDate": "2026-10-31",
+          "startTime": "10:15",
+          "endDate": "2026-10-31",
+          "endTime": "10:15",
+          "assignedTeamIds": [
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/New_York"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "service",
+        "starts_at": "2026-10-31T14:15:00.000Z",
+        "ends_at": "2026-10-31T14:15:00.000Z",
+        "assigned_team_ids": [
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "other",
+          "startDate": "2026-10-03",
+          "startTime": "16:15",
+          "endDate": "2026-10-03",
+          "endTime": "15:45",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "position-0-0",
+            "needed-0-0",
+            "needed-1-1",
+            "needed-2-0",
+            "plan-person-3"
+          ],
+          "assignedPositionIds": [],
+          "assignedNeededPositionIds": [
+            "plan-person-2"
+          ],
+          "assignedPlanPersonIds": [
+            "plan-person-8",
+            "plan-person-3"
+          ]
+        },
+        "timeZone": "America/St_Johns"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "other",
+        "starts_at": "2026-10-03T18:45:00.000Z",
+        "ends_at": "2026-10-03T18:15:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "position-0-0",
+          "needed-0-0",
+          "needed-1-1",
+          "needed-2-0",
+          "plan-person-3"
+        ],
+        "assigned_position_ids": []
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "service",
+          "startDate": "2026-03-30",
+          "startTime": "00:00",
+          "endDate": "2026-03-30",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "service",
+        "starts_at": "2026-03-29T10:15:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "rehearsal",
+          "startDate": "2026-09-27",
+          "startTime": "02:30",
+          "endDate": "2026-09-27",
+          "endTime": "03:15",
+          "assignedTeamIds": [
+            "team-2",
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/New_York"
+      },
+      "output": {
+        "name": "",
+        "time_type": "rehearsal",
+        "starts_at": "2026-09-27T06:30:00.000Z",
+        "ends_at": "2026-09-27T07:15:00.000Z",
+        "assigned_team_ids": [
+          "team-2",
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "rehearsal",
+          "startDate": "2026-04-05",
+          "startTime": "00:00",
+          "endDate": "2026-10-26",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-1",
+            "team-2",
+            "team-0"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1",
+            "position-2-0",
+            "needed-0-0"
+          ],
+          "assignedNeededPositionIds": [
+            "needed-2-0"
+          ],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "rehearsal",
+        "starts_at": "2026-04-04T11:00:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-1",
+          "team-2",
+          "team-0"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1",
+          "position-2-0",
+          "needed-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": " Renamed ",
+          "timeType": "other",
+          "startDate": "2026-10-24",
+          "startTime": "20:45",
+          "endDate": "2028-02-29",
+          "endTime": "09:00",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "position-0-0",
+            "needed-2-0",
+            "plan-person-2",
+            "plan-person-3",
+            "plan-person-4"
+          ],
+          "assignedPositionIds": [
+            "team-0",
+            "team-1",
+            "needed-0-0",
+            "needed-2-0",
+            "plan-person-2"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "Renamed",
+        "time_type": "other",
+        "starts_at": "2026-10-24T07:00:00.000Z",
+        "ends_at": "2028-02-28T19:15:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "position-0-0",
+          "needed-2-0",
+          "plan-person-2",
+          "plan-person-3",
+          "plan-person-4"
+        ],
+        "assigned_position_ids": [
+          "team-0",
+          "team-1",
+          "needed-0-0",
+          "needed-2-0",
+          "plan-person-2"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "rehearsal",
+          "startDate": "2028-02-29",
+          "startTime": "03:00",
+          "endDate": "2026-09-26",
+          "endTime": "11:00",
+          "assignedTeamIds": [
+            "team-3",
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [
+            "plan-person-1",
+            "plan-person-2",
+            "plan-person-4"
+          ],
+          "assignedPlanPersonIds": [
+            "needed-0-0",
+            "needed-1-1",
+            "needed-2-0",
+            "plan-person-3",
+            "plan-person-4"
+          ]
+        },
+        "timeZone": "America/New_York"
+      },
+      "output": {
+        "name": "",
+        "time_type": "rehearsal",
+        "starts_at": "2028-02-29T08:00:00.000Z",
+        "ends_at": "2026-09-26T15:00:00.000Z",
+        "assigned_team_ids": [
+          "team-3",
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "service",
+          "startDate": "2026-03-28",
+          "startTime": "06:00",
+          "endDate": "2026-03-28",
+          "endTime": "06:00",
+          "assignedTeamIds": [
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": ""
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "service",
+        "starts_at": "2026-03-28T06:00:00.000Z",
+        "ends_at": "2026-03-28T06:00:00.000Z",
+        "assigned_team_ids": [
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "rehearsal",
+          "startDate": "2028-02-29",
+          "startTime": "00:00",
+          "endDate": "2026-02-28",
+          "endTime": "00:30",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "plan-person-1",
+            "plan-person-2"
+          ],
+          "assignedPositionIds": [
+            "position-2-0",
+            "position-1-1",
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "plan-person-3"
+          ]
+        },
+        "timeZone": "America/Denver"
+      },
+      "output": {
+        "name": "",
+        "time_type": "rehearsal",
+        "starts_at": "2028-02-29T07:00:00.000Z",
+        "ends_at": "2026-02-28T07:30:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "plan-person-1",
+          "plan-person-2"
+        ],
+        "assigned_position_ids": [
+          "position-2-0",
+          "position-1-1",
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "service",
+          "startDate": "2026-03-08",
+          "startTime": "18:45",
+          "endDate": "2026-09-27",
+          "endTime": "02:30",
+          "assignedTeamIds": [
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "needed-1-1",
+            "plan-person-1",
+            "plan-person-4"
+          ],
+          "assignedNeededPositionIds": [
+            "team-1"
+          ],
+          "assignedPlanPersonIds": [
+            "needed-0-0"
+          ]
+        },
+        "timeZone": "Australia/Sydney"
+      },
+      "output": {
+        "name": "",
+        "time_type": "service",
+        "starts_at": "2026-03-08T07:45:00.000Z",
+        "ends_at": "2026-09-26T16:30:00.000Z",
+        "assigned_team_ids": [
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "needed-1-1",
+          "plan-person-1",
+          "plan-person-4"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "other",
+          "startDate": "2026-10-03",
+          "startTime": "22:15",
+          "endDate": "2026-10-04",
+          "endTime": "00:15",
+          "assignedTeamIds": [
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": ""
+      },
+      "output": {
+        "name": "",
+        "time_type": "other",
+        "starts_at": "2026-10-03T22:15:00.000Z",
+        "ends_at": "2026-10-04T00:15:00.000Z",
+        "assigned_team_ids": [
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "other",
+          "startDate": "2026-04-03",
+          "startTime": "14:15",
+          "endDate": "2026-04-03",
+          "endTime": "14:45",
+          "assignedTeamIds": [
+            "team-2",
+            "team-3",
+            "team-0"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "needed-0-0",
+            "plan-person-1"
+          ],
+          "assignedNeededPositionIds": [
+            "needed-0-0",
+            "needed-1-1",
+            "needed-2-0",
+            "plan-person-3"
+          ],
+          "assignedPlanPersonIds": [
+            "needed-0-0"
+          ]
+        },
+        "timeZone": "America/St_Johns"
+      },
+      "output": {
+        "name": "",
+        "time_type": "other",
+        "starts_at": "2026-04-03T16:45:00.000Z",
+        "ends_at": "2026-04-03T17:15:00.000Z",
+        "assigned_team_ids": [
+          "team-2",
+          "team-3",
+          "team-0"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "needed-0-0",
+          "plan-person-1"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "rehearsal",
+          "startDate": "2026-09-26",
+          "startTime": "23:00",
+          "endDate": "",
+          "endTime": "00:00",
+          "assignedTeamIds": [
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [
+            "needed-2-0"
+          ],
+          "assignedPlanPersonIds": [
+            "needed-2-0"
+          ]
+        },
+        "timeZone": "Europe/London"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "rehearsal",
+        "starts_at": "2026-09-26T22:00:00.000Z",
+        "ends_at": "2026-09-25T23:00:00.000Z",
+        "assigned_team_ids": [
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "rehearsal",
+          "startDate": "2026-10-03",
+          "startTime": "17:15",
+          "endDate": "2026-10-03",
+          "endTime": "20:00",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "plan-person-2"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-2-0",
+            "plan-person-2"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "plan-person-4"
+          ]
+        },
+        "timeZone": "America/New_York"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "rehearsal",
+        "starts_at": "2026-10-03T21:15:00.000Z",
+        "ends_at": "2026-10-04T00:00:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "plan-person-2"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-2-0",
+          "plan-person-2"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "service",
+          "startDate": "2028-02-29",
+          "startTime": "02:45",
+          "endDate": "2026-04-04",
+          "endTime": "20:00",
+          "assignedTeamIds": [
+            "team-1",
+            "team-2"
+          ],
+          "assignedPositionIds": [],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/St_Johns"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "service",
+        "starts_at": "2028-02-29T06:15:00.000Z",
+        "ends_at": "2026-04-04T22:30:00.000Z",
+        "assigned_team_ids": [
+          "team-1",
+          "team-2"
+        ],
+        "assigned_position_ids": []
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "service",
+          "startDate": "2026-10-25",
+          "startTime": "15:30",
+          "endDate": "2026-10-25",
+          "endTime": "16:30",
+          "assignedTeamIds": [
+            "team-2",
+            "plan-person-3"
+          ],
+          "assignedPositionIds": [
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "service",
+        "starts_at": "2026-10-25T22:30:00.000Z",
+        "ends_at": "2026-10-25T23:30:00.000Z",
+        "assigned_team_ids": [
+          "team-2",
+          "plan-person-3"
+        ],
+        "assigned_position_ids": [
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "service",
+          "startDate": "2026-10-24",
+          "startTime": "04:15",
+          "endDate": "2026-10-24",
+          "endTime": "05:45",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "",
+        "time_type": "service",
+        "starts_at": "2026-10-24T04:15:00.000Z",
+        "ends_at": "2026-10-24T05:45:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "other",
+          "startDate": "2026-10-03",
+          "startTime": "05:00",
+          "endDate": "2026-10-03",
+          "endTime": "04:45",
+          "assignedTeamIds": [
+            "team-2",
+            "team-3",
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [
+            "needed-0-0"
+          ],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/Denver"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "other",
+        "starts_at": "2026-10-03T11:00:00.000Z",
+        "ends_at": "2026-10-03T10:45:00.000Z",
+        "assigned_team_ids": [
+          "team-2",
+          "team-3",
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "service",
+          "startDate": "2026-04-04",
+          "startTime": "02:30",
+          "endDate": "2026-03-08",
+          "endTime": "23:30",
+          "assignedTeamIds": [
+            "team-0",
+            "position-0-0",
+            "plan-person-1",
+            "plan-person-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "service",
+        "starts_at": "2026-04-03T21:00:00.000Z",
+        "ends_at": "2026-03-08T18:00:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "position-0-0",
+          "plan-person-1",
+          "plan-person-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "x",
+          "timeType": "service",
+          "startDate": "2026-11-01",
+          "startTime": "01:30",
+          "endDate": "2026-11-01",
+          "endTime": "03:30",
+          "assignedTeamIds": [
+            "team-1",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "needed-1-1"
+          ],
+          "assignedNeededPositionIds": [
+            "plan-person-3"
+          ],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/Denver"
+      },
+      "output": {
+        "name": "x",
+        "time_type": "service",
+        "starts_at": "2026-11-01T07:30:00.000Z",
+        "ends_at": "2026-11-01T10:30:00.000Z",
+        "assigned_team_ids": [
+          "team-1",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "needed-1-1"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "other",
+          "startDate": "2026-11-02",
+          "startTime": "04:00",
+          "endDate": "2026-11-02",
+          "endTime": "06:15",
+          "assignedTeamIds": [
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "other",
+        "starts_at": "2026-11-01T22:30:00.000Z",
+        "ends_at": "2026-11-02T00:45:00.000Z",
+        "assigned_team_ids": [
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "other",
+          "startDate": "2026-03-08",
+          "startTime": "18:45",
+          "endDate": "2026-04-05",
+          "endTime": "03:30",
+          "assignedTeamIds": [
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [
+            "team-0",
+            "team-1",
+            "position-0-0",
+            "needed-0-0",
+            "needed-2-0",
+            "plan-person-2",
+            "plan-person-3"
+          ],
+          "assignedPlanPersonIds": [
+            "plan-person-2"
+          ]
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "other",
+        "starts_at": "2026-03-08T18:45:00.000Z",
+        "ends_at": "2026-04-05T03:30:00.000Z",
+        "assigned_team_ids": [
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck ",
+          "timeType": "service",
+          "startDate": "2026-10-24",
+          "startTime": "14:14",
+          "endDate": "2026-10-25",
+          "endTime": "01:00",
+          "assignedTeamIds": [
+            "team-3",
+            "team-1",
+            "team-0"
+          ],
+          "assignedPositionIds": [
+            "position-1-1"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "team-1",
+            "plan-person-2",
+            "plan-person-3"
+          ]
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "service",
+        "starts_at": "2026-10-24T08:44:00.000Z",
+        "ends_at": "2026-10-24T19:30:00.000Z",
+        "assigned_team_ids": [
+          "team-3",
+          "team-1",
+          "team-0"
+        ],
+        "assigned_position_ids": [
+          "position-1-1"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "other",
+          "startDate": "2026-10-05",
+          "startTime": "01:45",
+          "endDate": "2026-10-05",
+          "endTime": "04:00",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-1-1"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "other",
+        "starts_at": "2026-10-04T12:00:00.000Z",
+        "ends_at": "2026-10-04T14:15:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-1-1"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "service",
+          "startDate": "2026-04-04",
+          "startTime": "08:30",
+          "endDate": "2026-04-04",
+          "endTime": "09:45",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": ""
+      },
+      "output": {
+        "name": "",
+        "time_type": "service",
+        "starts_at": "2026-04-04T08:30:00.000Z",
+        "ends_at": "2026-04-04T09:45:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "other",
+          "startDate": "2026-10-24",
+          "startTime": "14:45",
+          "endDate": "2026-10-24",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-1-1"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "other",
+        "starts_at": "2026-10-24T01:45:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-1-1"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "other",
+          "startDate": "2026-10-04",
+          "startTime": "23:59",
+          "endDate": "2026-10-04",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-2-0",
+            "plan-person-3"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "team-0",
+            "position-0-0",
+            "needed-2-0",
+            "plan-person-1",
+            "plan-person-2"
+          ]
+        },
+        "timeZone": "America/New_York"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "other",
+        "starts_at": "2026-10-05T03:59:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-2-0",
+          "plan-person-3"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "service",
+          "startDate": "2026-04-05",
+          "startTime": "21:00",
+          "endDate": "2026-04-05",
+          "endTime": "23:00",
+          "assignedTeamIds": [
+            "team-0"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "plan-person-2"
+          ]
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "service",
+        "starts_at": "2026-04-05T15:30:00.000Z",
+        "ends_at": "2026-04-05T17:30:00.000Z",
+        "assigned_team_ids": [
+          "team-0"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "other",
+          "startDate": "2026-10-05",
+          "startTime": "04:45",
+          "endDate": "2026-10-05",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "other",
+        "starts_at": "2026-10-04T15:00:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "service",
+          "startDate": "2026-11-01",
+          "startTime": "20:45",
+          "endDate": "2026-11-01",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-0",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Europe/London"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "service",
+        "starts_at": "2026-11-01T20:45:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-0",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "service",
+          "startDate": "2026-04-05",
+          "startTime": "14:30",
+          "endDate": "2026-04-05",
+          "endTime": "16:15",
+          "assignedTeamIds": [],
+          "assignedPositionIds": [
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Europe/London"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "service",
+        "starts_at": "2026-04-05T13:30:00.000Z",
+        "ends_at": "2026-04-05T15:15:00.000Z",
+        "assigned_team_ids": [],
+        "assigned_position_ids": [
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "service",
+          "startDate": "2026-02-28",
+          "startTime": "09:00",
+          "endDate": "2026-10-25",
+          "endTime": "03:15",
+          "assignedTeamIds": [
+            "team-2",
+            "team-0"
+          ],
+          "assignedPositionIds": [
+            "team-0",
+            "position-0-0",
+            "needed-2-0"
+          ],
+          "assignedNeededPositionIds": [
+            "needed-2-0"
+          ],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "service",
+        "starts_at": "2026-02-28T17:00:00.000Z",
+        "ends_at": "2026-10-25T10:15:00.000Z",
+        "assigned_team_ids": [
+          "team-2",
+          "team-0"
+        ],
+        "assigned_position_ids": [
+          "team-0",
+          "position-0-0",
+          "needed-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "service",
+          "startDate": "2026-04-04",
+          "startTime": "22:30",
+          "endDate": "2026-04-05",
+          "endTime": "00:00",
+          "assignedTeamIds": [
+            "team-1",
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/Denver"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "service",
+        "starts_at": "2026-04-05T04:30:00.000Z",
+        "ends_at": "2026-04-05T06:00:00.000Z",
+        "assigned_team_ids": [
+          "team-1",
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "other",
+          "startDate": "2026-09-27",
+          "startTime": "08:30",
+          "endDate": "2026-09-27",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-0",
+            "position-0-0"
+          ],
+          "assignedPositionIds": [],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": ""
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "other",
+        "starts_at": "2026-09-27T08:30:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-0",
+          "position-0-0"
+        ],
+        "assigned_position_ids": []
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "service",
+          "startDate": "2026-03-08",
+          "startTime": "11:45",
+          "endDate": "2028-02-29",
+          "endTime": "02:00",
+          "assignedTeamIds": [
+            "team-2",
+            "team-3",
+            "team-0"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Australia/Sydney"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "service",
+        "starts_at": "2026-03-08T00:45:00.000Z",
+        "ends_at": "2028-02-28T15:00:00.000Z",
+        "assigned_team_ids": [
+          "team-2",
+          "team-3",
+          "team-0"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "service",
+          "startDate": "2026-10-03",
+          "startTime": "19:00",
+          "endDate": "2026-10-03",
+          "endTime": "20:45",
+          "assignedTeamIds": [
+            "team-0",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-1-1",
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Australia/Sydney"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "service",
+        "starts_at": "2026-10-03T09:00:00.000Z",
+        "ends_at": "2026-10-03T10:45:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-1-1",
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM ",
+          "timeType": "other",
+          "startDate": "2026-03-28",
+          "startTime": "19:45",
+          "endDate": "2026-03-28",
+          "endTime": "",
+          "assignedTeamIds": [],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Australia/Sydney"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "other",
+        "starts_at": "2026-03-28T08:45:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "other",
+          "startDate": "2026-10-04",
+          "startTime": "10:45",
+          "endDate": "2026-10-04",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "other",
+        "starts_at": "2026-10-04T10:45:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "other",
+          "startDate": "2026-03-29",
+          "startTime": "05:15",
+          "endDate": "2026-03-29",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Australia/Sydney"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "other",
+        "starts_at": "2026-03-28T18:15:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "other",
+          "startDate": "2027-01-01",
+          "startTime": "07:15",
+          "endDate": "2027-01-01",
+          "endTime": "08:00",
+          "assignedTeamIds": [
+            "team-0",
+            "team-2"
+          ],
+          "assignedPositionIds": [],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": {
+        "name": "",
+        "time_type": "other",
+        "starts_at": "2026-12-31T17:30:00.000Z",
+        "ends_at": "2026-12-31T18:15:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-2"
+        ],
+        "assigned_position_ids": []
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "service",
+          "startDate": "2026-11-02",
+          "startTime": "04:00",
+          "endDate": "2026-11-02",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-1",
+            "team-3"
+          ],
+          "assignedPositionIds": [],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/St_Johns"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "service",
+        "starts_at": "2026-11-02T07:30:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-1",
+          "team-3"
+        ],
+        "assigned_position_ids": []
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "x",
+          "timeType": "service",
+          "startDate": "2026-10-04",
+          "startTime": "00:30",
+          "endDate": "2026-10-05",
+          "endTime": "08:15",
+          "assignedTeamIds": [
+            "team-1",
+            "plan-person-1",
+            "plan-person-2",
+            "plan-person-4"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Europe/London"
+      },
+      "output": {
+        "name": "x",
+        "time_type": "service",
+        "starts_at": "2026-10-03T23:30:00.000Z",
+        "ends_at": "2026-10-05T07:15:00.000Z",
+        "assigned_team_ids": [
+          "team-1",
+          "plan-person-1",
+          "plan-person-2",
+          "plan-person-4"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "other",
+          "startDate": "2026-03-08",
+          "startTime": "02:45",
+          "endDate": "2026-11-01",
+          "endTime": "03:45",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": {
+        "name": "",
+        "time_type": "other",
+        "starts_at": "2026-03-08T10:45:00.000Z",
+        "ends_at": "2026-11-01T11:45:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "other",
+          "startDate": "2026-09-26",
+          "startTime": "05:45",
+          "endDate": "2026-09-26",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-0",
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Australia/Sydney"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "other",
+        "starts_at": "2026-09-25T19:45:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-0",
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "rehearsal",
+          "startDate": "2026-03-08",
+          "startTime": "20:00",
+          "endDate": "2026-03-08",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-1"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/St_Johns"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "rehearsal",
+        "starts_at": "2026-03-08T22:30:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-1"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "other",
+          "startDate": "2026-09-27",
+          "startTime": "00:00",
+          "endDate": "2026-11-02",
+          "endTime": "15:30",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "needed-2-0",
+            "plan-person-1",
+            "plan-person-2"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Australia/Sydney"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "other",
+        "starts_at": "2026-09-26T14:00:00.000Z",
+        "ends_at": "2026-11-02T04:30:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "needed-2-0",
+          "plan-person-1",
+          "plan-person-2"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "rehearsal",
+          "startDate": "2026-10-25",
+          "startTime": "19:45",
+          "endDate": "2026-10-25",
+          "endTime": "19:30",
+          "assignedTeamIds": [],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/St_Johns"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "rehearsal",
+        "starts_at": "2026-10-25T22:15:00.000Z",
+        "ends_at": "2026-10-25T22:00:00.000Z",
+        "assigned_team_ids": [],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "other",
+          "startDate": "2026-03-28",
+          "startTime": "00:00",
+          "endDate": "2026-03-28",
+          "endTime": "03:00",
+          "assignedTeamIds": [
+            "team-0",
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "other",
+        "starts_at": "2026-03-28T07:00:00.000Z",
+        "ends_at": "2026-03-28T10:00:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "service",
+          "startDate": "2026-03-08",
+          "startTime": "23:30",
+          "endDate": "2028-02-29",
+          "endTime": "01:00",
+          "assignedTeamIds": [
+            "team-2",
+            "team-3",
+            "position-0-0"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1",
+            "plan-person-4"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "service",
+        "starts_at": "2026-03-08T23:30:00.000Z",
+        "ends_at": "2028-02-29T01:00:00.000Z",
+        "assigned_team_ids": [
+          "team-2",
+          "team-3",
+          "position-0-0"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1",
+          "plan-person-4"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "service",
+          "startDate": "2026-04-04",
+          "startTime": "08:30",
+          "endDate": "2026-04-04",
+          "endTime": "",
+          "assignedTeamIds": [],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": ""
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "service",
+        "starts_at": "2026-04-04T08:30:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck ",
+          "timeType": "other",
+          "startDate": "2026-03-08",
+          "startTime": "02:45",
+          "endDate": "2026-03-08",
+          "endTime": "16:15",
+          "assignedTeamIds": [
+            "team-1",
+            "position-0-0",
+            "needed-0-0",
+            "plan-person-2",
+            "plan-person-3",
+            "plan-person-4"
+          ],
+          "assignedPositionIds": [
+            "position-1-1"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "other",
+        "starts_at": "2026-03-08T02:45:00.000Z",
+        "ends_at": "2026-03-08T16:15:00.000Z",
+        "assigned_team_ids": [
+          "team-1",
+          "position-0-0",
+          "needed-0-0",
+          "plan-person-2",
+          "plan-person-3",
+          "plan-person-4"
+        ],
+        "assigned_position_ids": [
+          "position-1-1"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "service",
+          "startDate": "2027-01-01",
+          "startTime": "18:45",
+          "endDate": "2026-03-28",
+          "endTime": "",
+          "assignedTeamIds": [
+            "team-3",
+            "team-0"
+          ],
+          "assignedPositionIds": [
+            "position-2-0",
+            "position-1-1",
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": [
+            "plan-person-6"
+          ]
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "service",
+        "starts_at": "2027-01-01T18:45:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [
+          "team-3",
+          "team-0"
+        ],
+        "assigned_position_ids": [
+          "position-2-0",
+          "position-1-1",
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "",
+          "timeType": "service",
+          "startDate": "2026-10-25",
+          "startTime": "17:30",
+          "endDate": "2026-10-25",
+          "endTime": "18:30",
+          "assignedTeamIds": [
+            "team-1",
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": {
+        "name": "",
+        "time_type": "service",
+        "starts_at": "2026-10-25T04:30:00.000Z",
+        "ends_at": "2026-10-25T05:30:00.000Z",
+        "assigned_team_ids": [
+          "team-1",
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "service",
+          "startDate": "2026-12-31",
+          "startTime": "11:15",
+          "endDate": "2026-12-31",
+          "endTime": "12:30",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": ""
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "service",
+        "starts_at": "2026-12-31T11:15:00.000Z",
+        "ends_at": "2026-12-31T12:30:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "rehearsal",
+          "startDate": "2026-10-03",
+          "startTime": "06:00",
+          "endDate": "2026-10-03",
+          "endTime": "",
+          "assignedTeamIds": [],
+          "assignedPositionIds": [
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [
+            "plan-person-4"
+          ],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "rehearsal",
+        "starts_at": "2026-10-03T06:00:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [],
+        "assigned_position_ids": [
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Soundcheck",
+          "timeType": "service",
+          "startDate": "2026-03-28",
+          "startTime": "20:15",
+          "endDate": "2026-03-28",
+          "endTime": "23:00",
+          "assignedTeamIds": [
+            "team-2"
+          ],
+          "assignedPositionIds": [
+            "position-0-0",
+            "position-1-1"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "UTC"
+      },
+      "output": {
+        "name": "Soundcheck",
+        "time_type": "service",
+        "starts_at": "2026-03-28T20:15:00.000Z",
+        "ends_at": "2026-03-28T23:00:00.000Z",
+        "assigned_team_ids": [
+          "team-2"
+        ],
+        "assigned_position_ids": [
+          "position-0-0",
+          "position-1-1"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "other",
+          "startDate": "2026-10-04",
+          "startTime": "03:30",
+          "endDate": "2026-04-03",
+          "endTime": "22:45",
+          "assignedTeamIds": [
+            "position-0-0",
+            "needed-2-0",
+            "plan-person-1",
+            "plan-person-4"
+          ],
+          "assignedPositionIds": [
+            "team-1",
+            "position-0-0",
+            "needed-0-0",
+            "needed-1-1",
+            "needed-2-0",
+            "plan-person-1",
+            "plan-person-2",
+            "plan-person-3"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": ""
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "other",
+        "starts_at": "2026-10-04T03:30:00.000Z",
+        "ends_at": "2026-04-03T22:45:00.000Z",
+        "assigned_team_ids": [
+          "position-0-0",
+          "needed-2-0",
+          "plan-person-1",
+          "plan-person-4"
+        ],
+        "assigned_position_ids": [
+          "team-1",
+          "position-0-0",
+          "needed-0-0",
+          "needed-1-1",
+          "needed-2-0",
+          "plan-person-1",
+          "plan-person-2",
+          "plan-person-3"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "9 AM",
+          "timeType": "service",
+          "startDate": "2026-10-04",
+          "startTime": "23:59",
+          "endDate": "2026-12-31",
+          "endTime": "09:00",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-2",
+            "plan-person-4"
+          ],
+          "assignedPositionIds": [
+            "position-2-0",
+            "position-0-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": {
+        "name": "9 AM",
+        "time_type": "service",
+        "starts_at": "2026-10-04T18:29:00.000Z",
+        "ends_at": "2026-12-31T03:30:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-2",
+          "plan-person-4"
+        ],
+        "assigned_position_ids": [
+          "position-2-0",
+          "position-0-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Rehearsal",
+          "timeType": "other",
+          "startDate": "2026-10-04",
+          "startTime": "22:15",
+          "endDate": "2026-10-04",
+          "endTime": "",
+          "assignedTeamIds": [],
+          "assignedPositionIds": [
+            "position-2-0"
+          ],
+          "assignedNeededPositionIds": [],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": {
+        "name": "Rehearsal",
+        "time_type": "other",
+        "starts_at": "2026-10-04T09:15:00.000Z",
+        "ends_at": null,
+        "assigned_team_ids": [],
+        "assigned_position_ids": [
+          "position-2-0"
+        ]
+      }
+    },
+    {
+      "input": {
+        "edit": {
+          "name": "Sunday 11",
+          "timeType": "rehearsal",
+          "startDate": "2026-10-25",
+          "startTime": "03:30",
+          "endDate": "2026-10-25",
+          "endTime": "06:30",
+          "assignedTeamIds": [
+            "team-0",
+            "team-1",
+            "team-2",
+            "team-3"
+          ],
+          "assignedPositionIds": [],
+          "assignedNeededPositionIds": [
+            "needed-0-0"
+          ],
+          "assignedPlanPersonIds": []
+        },
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": {
+        "name": "Sunday 11",
+        "time_type": "rehearsal",
+        "starts_at": "2026-10-25T10:30:00.000Z",
+        "ends_at": "2026-10-25T13:30:00.000Z",
+        "assigned_team_ids": [
+          "team-0",
+          "team-1",
+          "team-2",
+          "team-3"
+        ],
+        "assigned_position_ids": []
+      }
+    }
+  ]
+}

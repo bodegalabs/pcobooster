@@ -1,0 +1,2952 @@
+{
+  "suite": "plans.applyPlanItemDraft",
+  "cases": [
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-1",
+          "title": "Item 1",
+          "itemType": "item",
+          "sequence": 1,
+          "servicePosition": "during",
+          "length": null,
+          "description": "",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Welcome",
+          "lengthText": "4:00",
+          "servicePosition": "pre",
+          "description": "Before service",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        "length": 0,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-1",
+        "title": "Welcome",
+        "itemType": "item",
+        "sequence": 1,
+        "servicePosition": "pre",
+        "length": null,
+        "description": "Before service",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": null,
+            "id": "song-1",
+            "title": "",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": null,
+          "id": "item-0",
+          "title": "It Is Well",
+          "itemType": "song",
+          "sequence": 1,
+          "servicePosition": "during",
+          "length": 3600,
+          "description": "",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-3",
+            "name": "  Jake  ",
+            "startingKey": "Ebm",
+            "endingKey": "Ebm"
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "It Is Well",
+          "lengthText": "1:00:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": "key-3"
+        },
+        "length": 0,
+        "arrangement": null,
+        "key": {
+          "id": "key-9",
+          "name": "Default",
+          "startingKey": "Eb",
+          "endingKey": "F"
+        }
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": null,
+          "id": "song-1",
+          "title": "",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": null,
+        "id": "item-0",
+        "title": "It Is Well",
+        "itemType": "song",
+        "sequence": 1,
+        "servicePosition": "during",
+        "length": null,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "Default",
+          "startingKey": "Eb",
+          "endingKey": "F"
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": null,
+            "id": "song-3",
+            "title": "Amazing Grace",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": {
+            "archivedAt": null,
+            "id": "arr-1",
+            "sequence": [],
+            "length": 59,
+            "name": "Default"
+          },
+          "id": "item-0",
+          "title": "Way Maker",
+          "itemType": "song",
+          "sequence": 1,
+          "servicePosition": "pre",
+          "length": 12.5,
+          "description": "Before service",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Way Maker",
+          "lengthText": "4:00",
+          "servicePosition": "pre",
+          "description": "Before service",
+          "arrangementId": "",
+          "keyId": "key-1"
+        },
+        "length": -1,
+        "arrangement": null,
+        "key": {
+          "id": "key-9",
+          "name": "  Jake  ",
+          "startingKey": null,
+          "endingKey": null
+        }
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": null,
+          "id": "song-3",
+          "title": "Amazing Grace",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": null,
+        "id": "item-0",
+        "title": "Way Maker",
+        "itemType": "song",
+        "sequence": 1,
+        "servicePosition": "pre",
+        "length": null,
+        "description": "Before service",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "  Jake  ",
+          "startingKey": null,
+          "endingKey": null
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-1",
+          "title": "Café Fellowship",
+          "itemType": "item",
+          "sequence": 2,
+          "servicePosition": "post",
+          "length": 30,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Café Fellowship",
+          "lengthText": "4:00",
+          "servicePosition": "post",
+          "description": "Intro",
+          "arrangementId": "arr-2",
+          "keyId": ""
+        },
+        "length": -1,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-1",
+        "title": "Café Fellowship",
+        "itemType": "item",
+        "sequence": 2,
+        "servicePosition": "post",
+        "length": null,
+        "description": "Intro",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-0",
+          "title": "Scripture Reading",
+          "itemType": "header",
+          "sequence": 1,
+          "servicePosition": "during",
+          "length": 59,
+          "description": "Café",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Scripture Reading",
+          "lengthText": "0:59",
+          "servicePosition": "during",
+          "description": "Café",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": 0,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 59,
+          "name": "Default"
+        },
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 59,
+          "name": "Default"
+        },
+        "id": "item-0",
+        "title": "Scripture Reading",
+        "itemType": "header",
+        "sequence": 1,
+        "servicePosition": "during",
+        "length": null,
+        "description": "Café",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-1",
+          "title": "Scripture Reading",
+          "itemType": "header",
+          "sequence": 2,
+          "servicePosition": "during",
+          "length": 30,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Scripture Reading",
+          "lengthText": "0:30",
+          "servicePosition": "during",
+          "description": "Intro",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": -1,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-1",
+        "title": "Scripture Reading",
+        "itemType": "header",
+        "sequence": 2,
+        "servicePosition": "during",
+        "length": null,
+        "description": "Intro",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": null,
+            "id": "song-6",
+            "title": "It Is Well",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": {
+            "archivedAt": null,
+            "id": "arr-1",
+            "sequence": [],
+            "length": 86400,
+            "name": "Key of G"
+          },
+          "id": "item-2",
+          "title": "amazing grace",
+          "itemType": "song",
+          "sequence": 3,
+          "servicePosition": "pre",
+          "length": 2400,
+          "description": "",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "amazing grace",
+          "lengthText": "40:00",
+          "servicePosition": "pre",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": ""
+        },
+        "length": 0,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 3599,
+          "name": "Acoustic"
+        },
+        "key": null
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": null,
+          "id": "song-6",
+          "title": "It Is Well",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 3599,
+          "name": "Acoustic"
+        },
+        "id": "item-2",
+        "title": "amazing grace",
+        "itemType": "song",
+        "sequence": 3,
+        "servicePosition": "pre",
+        "length": null,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": "2026-08-25T19:00:00.000Z",
+            "id": "song-3",
+            "title": "amazing grace",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": {
+            "archivedAt": null,
+            "id": "arr-2",
+            "sequence": [],
+            "length": 61,
+            "name": "Key of G"
+          },
+          "id": "item-3",
+          "title": "10,000 Reasons",
+          "itemType": "song",
+          "sequence": 4,
+          "servicePosition": "during",
+          "length": -5,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-3",
+            "name": "Default",
+            "startingKey": null,
+            "endingKey": null
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "10,000 Reasons",
+          "lengthText": "0:00",
+          "servicePosition": "during",
+          "description": "Intro",
+          "arrangementId": "arr-2",
+          "keyId": "key-3"
+        },
+        "length": null,
+        "arrangement": null,
+        "key": {
+          "id": "key-9",
+          "name": "Female lead (highest note is C# at bridge)",
+          "startingKey": "Fm",
+          "endingKey": "Fm"
+        }
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-08-25T19:00:00.000Z",
+          "id": "song-3",
+          "title": "amazing grace",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": null,
+        "id": "item-3",
+        "title": "10,000 Reasons",
+        "itemType": "song",
+        "sequence": 4,
+        "servicePosition": "during",
+        "length": null,
+        "description": "Intro",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "Female lead (highest note is C# at bridge)",
+          "startingKey": "Fm",
+          "endingKey": "Fm"
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-4",
+          "title": "Café Fellowship",
+          "itemType": "item",
+          "sequence": 5,
+          "servicePosition": "during",
+          "length": 0,
+          "description": "Before service",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-4",
+            "name": "Original",
+            "startingKey": "Fm",
+            "endingKey": "Em"
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "Café Fellowship",
+          "lengthText": "4:00",
+          "servicePosition": "",
+          "description": "Before service",
+          "arrangementId": "arr-2",
+          "keyId": "key-1"
+        },
+        "length": 240,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-4",
+        "title": "Café Fellowship",
+        "itemType": "item",
+        "sequence": 5,
+        "servicePosition": "during",
+        "length": 240,
+        "description": "Before service",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-0",
+          "title": "Communion",
+          "itemType": "header",
+          "sequence": 1,
+          "servicePosition": "pre",
+          "length": 12.5,
+          "description": "Café",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Communion",
+          "lengthText": "0:12",
+          "servicePosition": "pre",
+          "description": "Café",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": 240,
+        "arrangement": null,
+        "key": {
+          "id": "key-9",
+          "name": "Bb",
+          "startingKey": "G",
+          "endingKey": null
+        }
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-0",
+        "title": "Communion",
+        "itemType": "header",
+        "sequence": 1,
+        "servicePosition": "pre",
+        "length": 240,
+        "description": "Café",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "Bb",
+          "startingKey": "G",
+          "endingKey": null
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": "2026-10-01T12:00:00.000Z",
+            "id": "",
+            "title": "Goodness of God",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": {
+            "archivedAt": null,
+            "id": "arr-2",
+            "sequence": [],
+            "length": 300,
+            "name": "Default"
+          },
+          "id": "item-0",
+          "title": "What a Beautiful Name",
+          "itemType": "song",
+          "sequence": 1,
+          "servicePosition": "during",
+          "length": 2400,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-2",
+            "name": "  Jake  ",
+            "startingKey": "Gb",
+            "endingKey": "A#"
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "What a Beautiful Name",
+          "lengthText": "40:00",
+          "servicePosition": "during",
+          "description": "Intro",
+          "arrangementId": "arr-2",
+          "keyId": "key-2"
+        },
+        "length": 0.5,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-10-01T12:00:00.000Z",
+          "id": "",
+          "title": "Goodness of God",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": null,
+        "id": "item-0",
+        "title": "What a Beautiful Name",
+        "itemType": "song",
+        "sequence": 1,
+        "servicePosition": "during",
+        "length": 0.5,
+        "description": "Intro",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-1",
+          "title": "",
+          "itemType": "item",
+          "sequence": 2,
+          "servicePosition": "during",
+          "length": 2400,
+          "description": "Café",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-4",
+            "name": "Default",
+            "startingKey": "B",
+            "endingKey": "Gm"
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "",
+          "lengthText": "40:00",
+          "servicePosition": "during",
+          "description": "Café",
+          "arrangementId": "",
+          "keyId": "key-4"
+        },
+        "length": 300,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 125,
+          "name": "Key of G"
+        },
+        "key": {
+          "id": "key-9",
+          "name": "",
+          "startingKey": "B",
+          "endingKey": null
+        }
+      },
+      "output": {
+        "song": null,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 125,
+          "name": "Key of G"
+        },
+        "id": "item-1",
+        "title": "",
+        "itemType": "item",
+        "sequence": 2,
+        "servicePosition": "during",
+        "length": 300,
+        "description": "Café",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "",
+          "startingKey": "B",
+          "endingKey": null
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": "2026-09-25T22:00:00.000Z",
+            "id": "song-5",
+            "title": "Égypte",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": null,
+          "id": "item-2",
+          "title": "10,000 Reasons",
+          "itemType": "song",
+          "sequence": 3,
+          "servicePosition": "during",
+          "length": 0,
+          "description": "",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-3",
+            "name": "",
+            "startingKey": "Em7",
+            "endingKey": "Ebm"
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "10,000 Reasons",
+          "lengthText": "4:00",
+          "servicePosition": "",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-3"
+        },
+        "length": -1,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-25T22:00:00.000Z",
+          "id": "song-5",
+          "title": "Égypte",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": null,
+        "id": "item-2",
+        "title": "10,000 Reasons",
+        "itemType": "song",
+        "sequence": 3,
+        "servicePosition": "during",
+        "length": null,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": "2026-09-22T05:00:00.000Z",
+            "id": "song-2",
+            "title": "amazing grace",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": null,
+          "id": "item-3",
+          "title": "amazing grace",
+          "itemType": "song",
+          "sequence": 4,
+          "servicePosition": "during",
+          "length": null,
+          "description": "Before service",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-1",
+            "name": "D -> null",
+            "startingKey": "F♯",
+            "endingKey": "F♯"
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "Café",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "Before service",
+          "arrangementId": "",
+          "keyId": "key-1"
+        },
+        "length": 60,
+        "arrangement": null,
+        "key": {
+          "id": "key-9",
+          "name": "Low key",
+          "startingKey": null,
+          "endingKey": null
+        }
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-22T05:00:00.000Z",
+          "id": "song-2",
+          "title": "amazing grace",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": null,
+        "id": "item-3",
+        "title": "amazing grace",
+        "itemType": "song",
+        "sequence": 4,
+        "servicePosition": "during",
+        "length": 60,
+        "description": "Before service",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "Low key",
+          "startingKey": null,
+          "endingKey": null
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": null,
+            "id": "song-4",
+            "title": "Goodness of God",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": {
+            "archivedAt": null,
+            "id": "arr-3",
+            "sequence": [],
+            "length": 86400,
+            "name": "Acoustic"
+          },
+          "id": "item-0",
+          "title": "Égypte",
+          "itemType": "song",
+          "sequence": 1,
+          "servicePosition": "pre",
+          "length": 12.5,
+          "description": "Café",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-2",
+            "name": "Default",
+            "startingKey": "Bbm",
+            "endingKey": null
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "pre",
+          "description": "Café",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": 300,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 125,
+          "name": "Acoustic"
+        },
+        "key": null
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": null,
+          "id": "song-4",
+          "title": "Goodness of God",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 125,
+          "name": "Acoustic"
+        },
+        "id": "item-0",
+        "title": "Égypte",
+        "itemType": "song",
+        "sequence": 1,
+        "servicePosition": "pre",
+        "length": 300,
+        "description": "Café",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-1",
+          "title": "Communion",
+          "itemType": "item",
+          "sequence": 2,
+          "servicePosition": "during",
+          "length": 180,
+          "description": "Before service",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Communion",
+          "lengthText": "4:00",
+          "servicePosition": "post",
+          "description": "Before service",
+          "arrangementId": "arr-1",
+          "keyId": "key-2"
+        },
+        "length": 0.5,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-1",
+        "title": "Communion",
+        "itemType": "item",
+        "sequence": 2,
+        "servicePosition": "post",
+        "length": 0.5,
+        "description": "Before service",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-0",
+          "title": "Offering",
+          "itemType": "header",
+          "sequence": 1,
+          "servicePosition": "during",
+          "length": 180,
+          "description": "",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-2",
+            "name": "D -> null",
+            "startingKey": "Bm",
+            "endingKey": "Eb"
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "Offering",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-2"
+        },
+        "length": 60,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-0",
+        "title": "Offering",
+        "itemType": "header",
+        "sequence": 1,
+        "servicePosition": "during",
+        "length": 60,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": null,
+            "id": "song-3",
+            "title": "10,000 Reasons",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": {
+            "archivedAt": null,
+            "id": "arr-1",
+            "sequence": [],
+            "length": 61,
+            "name": "Default"
+          },
+          "id": "item-0",
+          "title": "What a Beautiful Name",
+          "itemType": "song",
+          "sequence": 1,
+          "servicePosition": "pre",
+          "length": 3661,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "What a Beautiful Name",
+          "lengthText": "4:00",
+          "servicePosition": "Pre",
+          "description": "Before service",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": 0.5,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": null,
+          "id": "song-3",
+          "title": "10,000 Reasons",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": null,
+        "id": "item-0",
+        "title": "What a Beautiful Name",
+        "itemType": "song",
+        "sequence": 1,
+        "servicePosition": "pre",
+        "length": 0.5,
+        "description": "Before service",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-0",
+          "title": "🎸 Jam",
+          "itemType": "item",
+          "sequence": 1,
+          "servicePosition": "pre",
+          "length": 59,
+          "description": "Before service",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Item 1",
+          "lengthText": "4:00",
+          "servicePosition": "pre",
+          "description": "Before service",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": 60,
+        "arrangement": null,
+        "key": {
+          "id": "key-9",
+          "name": "D -> null",
+          "startingKey": null,
+          "endingKey": null
+        }
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-0",
+        "title": "Item 1",
+        "itemType": "item",
+        "sequence": 1,
+        "servicePosition": "pre",
+        "length": 60,
+        "description": "Before service",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "D -> null",
+          "startingKey": null,
+          "endingKey": null
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-1",
+          "title": "🎸 Jam",
+          "itemType": "item",
+          "sequence": 0,
+          "servicePosition": "during",
+          "length": 0.4,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "🎸 Jam",
+          "lengthText": "4:00",
+          "servicePosition": "post",
+          "description": "Intro",
+          "arrangementId": "arr-1",
+          "keyId": ""
+        },
+        "length": 240,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 30,
+          "name": "Default"
+        },
+        "key": {
+          "id": "key-9",
+          "name": "G -> A",
+          "startingKey": "F♯",
+          "endingKey": "Gb"
+        }
+      },
+      "output": {
+        "song": null,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 30,
+          "name": "Default"
+        },
+        "id": "item-1",
+        "title": "🎸 Jam",
+        "itemType": "item",
+        "sequence": 0,
+        "servicePosition": "post",
+        "length": 240,
+        "description": "Intro",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "G -> A",
+          "startingKey": "F♯",
+          "endingKey": "Gb"
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": "2026-08-28T17:00:00.000Z",
+            "id": "song-6",
+            "title": "Goodness of God",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": null,
+          "id": "item-2",
+          "title": "Goodness of God",
+          "itemType": "song",
+          "sequence": 0,
+          "servicePosition": "during",
+          "length": 125,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-4",
+            "name": "  Jake  ",
+            "startingKey": null,
+            "endingKey": null
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "Café",
+          "lengthText": "4:00",
+          "servicePosition": "",
+          "description": "Café",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": 300,
+        "arrangement": null,
+        "key": {
+          "id": "key-9",
+          "name": "Original",
+          "startingKey": "Gm",
+          "endingKey": "Gm"
+        }
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-08-28T17:00:00.000Z",
+          "id": "song-6",
+          "title": "Goodness of God",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": null,
+        "id": "item-2",
+        "title": "Goodness of God",
+        "itemType": "song",
+        "sequence": 0,
+        "servicePosition": "during",
+        "length": 300,
+        "description": "Café",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "Original",
+          "startingKey": "Gm",
+          "endingKey": "Gm"
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": "2026-08-28T03:00:00.000Z",
+            "id": "",
+            "title": "Way Maker",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": null,
+          "id": "item-0",
+          "title": "amazing grace",
+          "itemType": "song",
+          "sequence": 1,
+          "servicePosition": "pre",
+          "length": 3599,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-4",
+            "name": "Original",
+            "startingKey": "D",
+            "endingKey": null
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "pre",
+          "description": "Intro",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": -1,
+        "arrangement": null,
+        "key": {
+          "id": "key-9",
+          "name": "  Jake  ",
+          "startingKey": "Gm",
+          "endingKey": "Gm"
+        }
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-08-28T03:00:00.000Z",
+          "id": "",
+          "title": "Way Maker",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": null,
+        "id": "item-0",
+        "title": "amazing grace",
+        "itemType": "song",
+        "sequence": 1,
+        "servicePosition": "pre",
+        "length": null,
+        "description": "Intro",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "  Jake  ",
+          "startingKey": "Gm",
+          "endingKey": "Gm"
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": "2026-08-31T03:00:00.000Z",
+            "id": "song-2",
+            "title": "10,000 Reasons",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": null,
+          "id": "item-1",
+          "title": "amazing grace",
+          "itemType": "song",
+          "sequence": 2,
+          "servicePosition": "during",
+          "length": 240,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-2",
+            "name": "Low key",
+            "startingKey": null,
+            "endingKey": "C#m"
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "Item 1",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "Intro",
+          "arrangementId": "arr-2",
+          "keyId": ""
+        },
+        "length": 0.5,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 3600,
+          "name": "Acoustic"
+        },
+        "key": null
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-08-31T03:00:00.000Z",
+          "id": "song-2",
+          "title": "10,000 Reasons",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 3600,
+          "name": "Acoustic"
+        },
+        "id": "item-1",
+        "title": "amazing grace",
+        "itemType": "song",
+        "sequence": 2,
+        "servicePosition": "during",
+        "length": 0.5,
+        "description": "Intro",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-0",
+          "title": "Café Fellowship",
+          "itemType": "item",
+          "sequence": 1,
+          "servicePosition": "during",
+          "length": 3661,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "",
+          "lengthText": "4:00",
+          "servicePosition": "",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": 60,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 180,
+          "name": "Key of G"
+        },
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 180,
+          "name": "Key of G"
+        },
+        "id": "item-0",
+        "title": "",
+        "itemType": "item",
+        "sequence": 1,
+        "servicePosition": "during",
+        "length": 60,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-1",
+          "title": "🎸 Jam",
+          "itemType": "header",
+          "sequence": 2,
+          "servicePosition": "pre",
+          "length": -5,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "🎸 Jam",
+          "lengthText": "0:00",
+          "servicePosition": "pre",
+          "description": "Intro",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": 240,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 59.5,
+          "name": "Default"
+        },
+        "key": {
+          "id": "key-9",
+          "name": "Female lead (highest note is C# at bridge)",
+          "startingKey": null,
+          "endingKey": null
+        }
+      },
+      "output": {
+        "song": null,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 59.5,
+          "name": "Default"
+        },
+        "id": "item-1",
+        "title": "🎸 Jam",
+        "itemType": "header",
+        "sequence": 2,
+        "servicePosition": "pre",
+        "length": 240,
+        "description": "Intro",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "Female lead (highest note is C# at bridge)",
+          "startingKey": null,
+          "endingKey": null
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-2",
+          "title": "Welcome",
+          "itemType": "media",
+          "sequence": 3,
+          "servicePosition": "pre",
+          "length": 60,
+          "description": "Before service",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Welcome",
+          "lengthText": "4:00",
+          "servicePosition": "Pre",
+          "description": "Before service",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": 240,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-2",
+        "title": "Welcome",
+        "itemType": "media",
+        "sequence": 3,
+        "servicePosition": "pre",
+        "length": 240,
+        "description": "Before service",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-3",
+          "title": "Café Fellowship",
+          "itemType": "item",
+          "sequence": 4,
+          "servicePosition": "post",
+          "length": null,
+          "description": "Café",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Café Fellowship",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "Café",
+          "arrangementId": "arr-1",
+          "keyId": ""
+        },
+        "length": 240,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 59,
+          "name": "Key of G"
+        },
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 59,
+          "name": "Key of G"
+        },
+        "id": "item-3",
+        "title": "Café Fellowship",
+        "itemType": "item",
+        "sequence": 4,
+        "servicePosition": "during",
+        "length": 240,
+        "description": "Café",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": "2026-09-25T18:00:00.000Z",
+            "id": "song-6",
+            "title": "It Is Well",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": {
+            "archivedAt": null,
+            "id": "arr-3",
+            "sequence": [],
+            "length": 59.5,
+            "name": "Key of G"
+          },
+          "id": "item-0",
+          "title": "amazing grace",
+          "itemType": "song",
+          "sequence": 1,
+          "servicePosition": "during",
+          "length": 0,
+          "description": "Café",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-4",
+            "name": "Default",
+            "startingKey": "F",
+            "endingKey": "Em"
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "Café",
+          "arrangementId": "arr-3",
+          "keyId": "key-4"
+        },
+        "length": null,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": -5,
+          "name": "Acoustic"
+        },
+        "key": null
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-25T18:00:00.000Z",
+          "id": "song-6",
+          "title": "It Is Well",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": -5,
+          "name": "Acoustic"
+        },
+        "id": "item-0",
+        "title": "amazing grace",
+        "itemType": "song",
+        "sequence": 1,
+        "servicePosition": "during",
+        "length": null,
+        "description": "Café",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-1",
+          "title": "Prayer",
+          "itemType": "item",
+          "sequence": 2,
+          "servicePosition": "during",
+          "length": 12.5,
+          "description": "",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Prayer",
+          "lengthText": "0:12",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": 240,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-1",
+        "title": "Prayer",
+        "itemType": "item",
+        "sequence": 2,
+        "servicePosition": "during",
+        "length": 240,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-2",
+          "title": "Welcome",
+          "itemType": "header",
+          "sequence": 0.5,
+          "servicePosition": "during",
+          "length": 3661,
+          "description": "Before service",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Welcome",
+          "lengthText": "4:00",
+          "servicePosition": "middle",
+          "description": "Before service",
+          "arrangementId": "",
+          "keyId": "key-2"
+        },
+        "length": null,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 240,
+          "name": "Default"
+        },
+        "key": {
+          "id": "key-9",
+          "name": "Bb",
+          "startingKey": "F#",
+          "endingKey": "C"
+        }
+      },
+      "output": {
+        "song": null,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 240,
+          "name": "Default"
+        },
+        "id": "item-2",
+        "title": "Welcome",
+        "itemType": "header",
+        "sequence": 0.5,
+        "servicePosition": "during",
+        "length": null,
+        "description": "Before service",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "Bb",
+          "startingKey": "F#",
+          "endingKey": "C"
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-0",
+          "title": "Benediction",
+          "itemType": "item",
+          "sequence": 1,
+          "servicePosition": "pre",
+          "length": 3599,
+          "description": "Café",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Benediction",
+          "lengthText": "59:59",
+          "servicePosition": "pre",
+          "description": "Café",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": 0,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-0",
+        "title": "Benediction",
+        "itemType": "item",
+        "sequence": 1,
+        "servicePosition": "pre",
+        "length": null,
+        "description": "Café",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-1",
+          "title": "Welcome",
+          "itemType": "item",
+          "sequence": 2,
+          "servicePosition": "during",
+          "length": 12.5,
+          "description": "Before service",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Welcome",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "Before service",
+          "arrangementId": "arr-1",
+          "keyId": ""
+        },
+        "length": 300,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-1",
+        "title": "Welcome",
+        "itemType": "item",
+        "sequence": 2,
+        "servicePosition": "during",
+        "length": 300,
+        "description": "Before service",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-2",
+          "title": "찬양",
+          "itemType": "item",
+          "sequence": 3,
+          "servicePosition": "during",
+          "length": null,
+          "description": "",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "찬양",
+          "lengthText": "0:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": 300,
+        "arrangement": null,
+        "key": {
+          "id": "key-9",
+          "name": "Default",
+          "startingKey": "B",
+          "endingKey": null
+        }
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-2",
+        "title": "찬양",
+        "itemType": "item",
+        "sequence": 3,
+        "servicePosition": "during",
+        "length": 300,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "Default",
+          "startingKey": "B",
+          "endingKey": null
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": "2026-09-20T07:00:00.000Z",
+            "id": "",
+            "title": "Égypte",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": null,
+          "id": "item-3",
+          "title": "Égypte",
+          "itemType": "song",
+          "sequence": 4,
+          "servicePosition": "during",
+          "length": 3599,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-2",
+            "name": "",
+            "startingKey": "Gm",
+            "endingKey": "Bm"
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "Égypte",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "Intro",
+          "arrangementId": "",
+          "keyId": "key-2"
+        },
+        "length": 0,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-20T07:00:00.000Z",
+          "id": "",
+          "title": "Égypte",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": null,
+        "id": "item-3",
+        "title": "Égypte",
+        "itemType": "song",
+        "sequence": 4,
+        "servicePosition": "during",
+        "length": null,
+        "description": "Intro",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-4",
+          "title": "Café Fellowship",
+          "itemType": "item",
+          "sequence": 5,
+          "servicePosition": "during",
+          "length": 3600,
+          "description": "Café",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Welcome",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "Intro",
+          "arrangementId": "arr-2",
+          "keyId": "key-2"
+        },
+        "length": 240,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-4",
+        "title": "Welcome",
+        "itemType": "item",
+        "sequence": 5,
+        "servicePosition": "during",
+        "length": 240,
+        "description": "Intro",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": "2026-09-06T11:00:00.000Z",
+            "id": "song-4",
+            "title": "Way Maker",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": null,
+          "id": "item-0",
+          "title": "Égypte",
+          "itemType": "song",
+          "sequence": 1,
+          "servicePosition": "during",
+          "length": 61,
+          "description": "Café",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-2",
+            "name": "Default",
+            "startingKey": "Eb",
+            "endingKey": null
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "Égypte",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "Café",
+          "arrangementId": "arr-2",
+          "keyId": "key-1"
+        },
+        "length": 60,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 125,
+          "name": "Acoustic"
+        },
+        "key": null
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-06T11:00:00.000Z",
+          "id": "song-4",
+          "title": "Way Maker",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 125,
+          "name": "Acoustic"
+        },
+        "id": "item-0",
+        "title": "Égypte",
+        "itemType": "song",
+        "sequence": 1,
+        "servicePosition": "during",
+        "length": 60,
+        "description": "Café",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-1",
+          "title": "",
+          "itemType": "item",
+          "sequence": 2,
+          "servicePosition": "during",
+          "length": 90,
+          "description": "",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "",
+          "lengthText": "1:30",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": -1,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-1",
+        "title": "",
+        "itemType": "item",
+        "sequence": 2,
+        "servicePosition": "during",
+        "length": null,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": "2026-09-20T21:00:00.000Z",
+            "id": "song-2",
+            "title": "",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": null,
+          "id": "item-2",
+          "title": "10,000 Reasons",
+          "itemType": "song",
+          "sequence": 3,
+          "servicePosition": "post",
+          "length": 60,
+          "description": "Café",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-2",
+            "name": "Low key",
+            "startingKey": "Bbm",
+            "endingKey": null
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "10,000 Reasons",
+          "lengthText": "1:00",
+          "servicePosition": "post",
+          "description": "Café",
+          "arrangementId": "",
+          "keyId": "key-2"
+        },
+        "length": 240,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 3599,
+          "name": "Default"
+        },
+        "key": null
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-20T21:00:00.000Z",
+          "id": "song-2",
+          "title": "",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 3599,
+          "name": "Default"
+        },
+        "id": "item-2",
+        "title": "10,000 Reasons",
+        "itemType": "song",
+        "sequence": 3,
+        "servicePosition": "post",
+        "length": 240,
+        "description": "Café",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": null,
+            "id": "song-2",
+            "title": "Way Maker",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": null,
+          "id": "item-3",
+          "title": "It Is Well",
+          "itemType": "song",
+          "sequence": 4,
+          "servicePosition": "during",
+          "length": 60,
+          "description": "Café",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-2",
+            "name": "Original",
+            "startingKey": "Cb",
+            "endingKey": "G"
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "Café",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "Café",
+          "arrangementId": "",
+          "keyId": "key-1"
+        },
+        "length": 300,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": null,
+          "id": "song-2",
+          "title": "Way Maker",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": null,
+        "id": "item-3",
+        "title": "It Is Well",
+        "itemType": "song",
+        "sequence": 4,
+        "servicePosition": "during",
+        "length": 300,
+        "description": "Café",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": "2026-09-27T11:00:00.000Z",
+            "id": "",
+            "title": "It Is Well",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": null,
+          "id": "item-0",
+          "title": "Way Maker",
+          "itemType": "song",
+          "sequence": 1,
+          "servicePosition": "during",
+          "length": 59.5,
+          "description": "Before service",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-3",
+            "name": "Emily",
+            "startingKey": "",
+            "endingKey": null
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "Way Maker",
+          "lengthText": "4:00",
+          "servicePosition": "post",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-2"
+        },
+        "length": 60,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 0.4,
+          "name": "Acoustic"
+        },
+        "key": {
+          "id": "key-9",
+          "name": "D -> null",
+          "startingKey": "D",
+          "endingKey": null
+        }
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-27T11:00:00.000Z",
+          "id": "",
+          "title": "It Is Well",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 0.4,
+          "name": "Acoustic"
+        },
+        "id": "item-0",
+        "title": "Way Maker",
+        "itemType": "song",
+        "sequence": 1,
+        "servicePosition": "post",
+        "length": 60,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "D -> null",
+          "startingKey": "D",
+          "endingKey": null
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": null,
+            "id": "song-3",
+            "title": "10,000 Reasons",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": {
+            "archivedAt": null,
+            "id": "arr-3",
+            "sequence": [],
+            "length": -5,
+            "name": "Acoustic"
+          },
+          "id": "item-1",
+          "title": "amazing grace",
+          "itemType": "song",
+          "sequence": 2,
+          "servicePosition": "during",
+          "length": 3661,
+          "description": "Café",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-3",
+            "name": "G -> A",
+            "startingKey": null,
+            "endingKey": null
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "Café",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-3"
+        },
+        "length": 300,
+        "arrangement": null,
+        "key": {
+          "id": "key-9",
+          "name": "Low key",
+          "startingKey": "Bbm",
+          "endingKey": null
+        }
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": null,
+          "id": "song-3",
+          "title": "10,000 Reasons",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": null,
+        "id": "item-1",
+        "title": "amazing grace",
+        "itemType": "song",
+        "sequence": 2,
+        "servicePosition": "during",
+        "length": 300,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "Low key",
+          "startingKey": "Bbm",
+          "endingKey": null
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-2",
+          "title": "Sermon",
+          "itemType": "header",
+          "sequence": 1,
+          "servicePosition": "during",
+          "length": 2400,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Sermon",
+          "lengthText": "40:00",
+          "servicePosition": "during",
+          "description": "Intro",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": 0.5,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-2",
+        "title": "Sermon",
+        "itemType": "header",
+        "sequence": 1,
+        "servicePosition": "during",
+        "length": 0.5,
+        "description": "Intro",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-0",
+          "title": "Scripture Reading",
+          "itemType": "media",
+          "sequence": 0,
+          "servicePosition": "pre",
+          "length": 300,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Scripture Reading",
+          "lengthText": "5:00",
+          "servicePosition": "pre",
+          "description": "Intro",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": null,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 12.5,
+          "name": "Default"
+        },
+        "key": {
+          "id": "key-9",
+          "name": "Bb",
+          "startingKey": "Cb",
+          "endingKey": "Cb"
+        }
+      },
+      "output": {
+        "song": null,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 12.5,
+          "name": "Default"
+        },
+        "id": "item-0",
+        "title": "Scripture Reading",
+        "itemType": "media",
+        "sequence": 0,
+        "servicePosition": "pre",
+        "length": null,
+        "description": "Intro",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "Bb",
+          "startingKey": "Cb",
+          "endingKey": "Cb"
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-1",
+          "title": "",
+          "itemType": "header",
+          "sequence": 2,
+          "servicePosition": "post",
+          "length": 3599,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-4",
+            "name": "Female lead (highest note is C# at bridge)",
+            "startingKey": "E",
+            "endingKey": "E"
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "Café",
+          "arrangementId": "",
+          "keyId": "key-2"
+        },
+        "length": 300,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 2400,
+          "name": "Default"
+        },
+        "key": {
+          "id": "key-9",
+          "name": "Bb",
+          "startingKey": "D",
+          "endingKey": null
+        }
+      },
+      "output": {
+        "song": null,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 2400,
+          "name": "Default"
+        },
+        "id": "item-1",
+        "title": "",
+        "itemType": "header",
+        "sequence": 2,
+        "servicePosition": "during",
+        "length": 300,
+        "description": "Café",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "Bb",
+          "startingKey": "D",
+          "endingKey": null
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-2",
+          "title": "Prayer",
+          "itemType": "item",
+          "sequence": 0,
+          "servicePosition": "pre",
+          "length": 60,
+          "description": "Café",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "",
+          "lengthText": "4:00",
+          "servicePosition": "pre",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-2"
+        },
+        "length": 60,
+        "arrangement": null,
+        "key": {
+          "id": "key-9",
+          "name": "D -> null",
+          "startingKey": null,
+          "endingKey": null
+        }
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-2",
+        "title": "",
+        "itemType": "item",
+        "sequence": 0,
+        "servicePosition": "pre",
+        "length": 60,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": "D -> null",
+          "startingKey": null,
+          "endingKey": null
+        },
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": {
+            "lastScheduledAt": "2026-08-26T09:00:00.000Z",
+            "id": "song-2",
+            "title": "Égypte",
+            "author": "",
+            "themes": ""
+          },
+          "arrangement": null,
+          "id": "item-3",
+          "title": "10,000 Reasons",
+          "itemType": "song",
+          "sequence": 4,
+          "servicePosition": "during",
+          "length": 3661,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "10,000 Reasons",
+          "lengthText": "4:00",
+          "servicePosition": "",
+          "description": "Intro",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        "length": 300,
+        "arrangement": null,
+        "key": null
+      },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-08-26T09:00:00.000Z",
+          "id": "song-2",
+          "title": "Égypte",
+          "author": "",
+          "themes": ""
+        },
+        "arrangement": null,
+        "id": "item-3",
+        "title": "10,000 Reasons",
+        "itemType": "song",
+        "sequence": 4,
+        "servicePosition": "during",
+        "length": 300,
+        "description": "Intro",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-4",
+          "title": "Prayer",
+          "itemType": "header",
+          "sequence": 5,
+          "servicePosition": "during",
+          "length": 59.5,
+          "description": "Intro",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": null,
+          "layout": null
+        },
+        "draft": {
+          "title": "Prayer",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "Intro",
+          "arrangementId": "arr-2",
+          "keyId": "key-2"
+        },
+        "length": null,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 0.4,
+          "name": "Default"
+        },
+        "key": null
+      },
+      "output": {
+        "song": null,
+        "arrangement": {
+          "archivedAt": null,
+          "id": "arr-9",
+          "sequence": [],
+          "length": 0.4,
+          "name": "Default"
+        },
+        "id": "item-4",
+        "title": "Prayer",
+        "itemType": "header",
+        "sequence": 5,
+        "servicePosition": "during",
+        "length": null,
+        "description": "Intro",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "item": {
+          "song": null,
+          "arrangement": null,
+          "id": "item-0",
+          "title": "Benediction",
+          "itemType": "header",
+          "sequence": 1,
+          "servicePosition": "during",
+          "length": 240,
+          "description": "",
+          "htmlDetails": "",
+          "customArrangementSequence": [],
+          "key": {
+            "id": "key-1",
+            "name": "G -> A",
+            "startingKey": "G",
+            "endingKey": "G"
+          },
+          "layout": null
+        },
+        "draft": {
+          "title": "Benediction",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-1"
+        },
+        "length": 240,
+        "arrangement": null,
+        "key": {
+          "id": "key-9",
+          "name": " G ",
+          "startingKey": "B",
+          "endingKey": "A"
+        }
+      },
+      "output": {
+        "song": null,
+        "arrangement": null,
+        "id": "item-0",
+        "title": "Benediction",
+        "itemType": "header",
+        "sequence": 1,
+        "servicePosition": "during",
+        "length": 240,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "key": {
+          "id": "key-9",
+          "name": " G ",
+          "startingKey": "B",
+          "endingKey": "A"
+        },
+        "layout": null
+      }
+    }
+  ]
+}
