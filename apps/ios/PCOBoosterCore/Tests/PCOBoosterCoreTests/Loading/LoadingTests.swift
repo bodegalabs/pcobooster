@@ -52,6 +52,36 @@ struct ContinuationTests {
     }
   }
 
+  @Test func startsFromAFirstRequest() async throws {
+    let calls = Recorder<[Int]>()
+    let pages = try await Continuation.follow(
+      "people.candidateDetails",
+      from: [1, 2, 3],
+      fetch: { (request: [Int]) -> Page in
+        calls.append(request)
+        return Page(items: Array(request.prefix(2)), deferred: Array(request.dropFirst(2)))
+      },
+      next: { $0.deferred.isEmpty ? nil : $0.deferred },
+      madeProgress: { _, page in !page.items.isEmpty })
+    #expect(pages.flatMap(\.items) == [1, 2, 3])
+    #expect(calls.values == [[1, 2, 3], [3]])
+  }
+
+  @Test func doesNotCheckTheFirstCallForProgress() async throws {
+    let calls = Recorder<Int>()
+    let pages = try await Continuation.follow(
+      "people.candidateDetails",
+      from: 0,
+      fetch: { (request: Int) -> Int in
+        calls.append(request)
+        return request + 1
+      },
+      next: { $0 < 2 ? $0 : nil },
+      madeProgress: { cursor, _ in cursor > 0 })
+    #expect(pages == [1, 2])
+    #expect(calls.values == [0, 1])
+  }
+
   @Test func stopsAtTheCallLimit() async throws {
     let error = await #expect(throws: ContinuationStalled.self) {
       _ = try await Continuation.follow(
