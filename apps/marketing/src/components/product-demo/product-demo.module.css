@@ -1130,59 +1130,378 @@
 .plan-sheet {
   display: flex;
   flex: 1 0 auto;
+  gap: 20px;
+}
+.plan-main {
+  display: flex;
+  flex: 1;
   flex-direction: column;
+  min-width: 0;
 }
 .plan-items {
   width: 100%;
-  max-width: 680px;
+  padding-bottom: 56px;
 }
 .plan-row {
-  display: grid;
-  grid-template-columns: 16px 44px minmax(0, 1fr) 26px;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 8px;
-  border-radius: calc(var(--radius) - 2px);
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: stretch;
+  min-height: 52px;
+  border-radius: var(--radius);
+}
+/* A raised row keeps its menus and insert strip above the rows below. */
+.plan-row:hover,
+.plan-row:focus-within {
+  z-index: 2;
+}
+.plan-row:has(.panel) {
+  z-index: 5;
 }
 .plan-row[data-kind="header"] {
-  grid-template-columns: 16px minmax(0, 1fr) auto auto;
-  padding-top: 16px;
+  min-height: 36px;
+  background: color-mix(in oklab, var(--muted) 50%, transparent);
+}
+.plan-row[data-kind="header"]:not(:first-child) {
+  margin-top: 12px;
+}
+.plan-row[data-selected] {
+  background: var(--muted);
 }
 @media (hover: hover) {
   .plan-row:hover {
-    background: color-mix(in oklab, var(--muted) 40%, transparent);
+    background: color-mix(in oklab, var(--muted) 60%, transparent);
+  }
+  .plan-row[data-kind="header"]:hover,
+  .plan-row[data-selected]:hover {
+    background: var(--muted);
   }
 }
+/* A thin divider between consecutive items. */
+.plan-row:not([data-kind="header"])
+  + .plan-row:not([data-kind="header"])::before {
+  content: "";
+  position: absolute;
+  inset: 0 12px auto;
+  height: 1px;
+  background: color-mix(in oklab, var(--border) 60%, transparent);
+}
+/* Rows open from anywhere; only their own controls take the pointer. */
+.grip,
+.plan-length-col,
+.plan-body {
+  pointer-events: none;
+}
+.plan-row .popover-anchor {
+  position: static;
+  pointer-events: auto;
+}
+.plan-row .panel {
+  top: calc(100% - 6px);
+  left: 72px;
+}
+.plan-row .panel[data-align="end"] {
+  left: 72px;
+  right: auto;
+}
+.panel[data-size="wide"] {
+  width: min(340px, calc(100cqi - 88px));
+  padding: 0;
+}
 .grip {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  flex-shrink: 0;
   color: var(--muted-foreground);
   opacity: 0.5;
 }
+.plan-length-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  width: 64px;
+  flex-shrink: 0;
+  padding: 6px 0;
+}
+.plan-length-col .popover-anchor {
+  margin-left: 2px;
+}
+.plan-start {
+  padding-left: 10px;
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--muted-foreground);
+}
+.plan-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 8px 8px 0;
+}
+.plan-body[data-header] {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding-left: 4px;
+}
 .plan-header-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
   font-weight: 600;
+  letter-spacing: 0.025em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 .plan-length {
   font-size: 12px;
   color: var(--muted-foreground);
   font-variant-numeric: tabular-nums;
 }
-.plan-row[data-kind="header"] .plan-length {
-  text-align: right;
-}
-.plan-title {
-  display: grid;
-  min-width: 0;
-  font-weight: 500;
-}
 .plan-title-line {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
 }
-.plan-title small {
-  font-size: 12px;
-  font-weight: 400;
+.plan-title {
+  min-width: 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.key-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.key-icon {
+  display: inline-grid;
   color: var(--muted-foreground);
 }
+.key-icon[data-level="worth-a-look"] {
+  color: var(--status-scheduled);
+}
+.key-icon[data-level="rough"] {
+  color: var(--destructive);
+}
+.plan-arrangement {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.recent-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--status-scheduled);
+  pointer-events: auto;
+}
+.plan-notes {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  white-space: pre-line;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+.no-key {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--status-scheduled);
+}
+.row-trash {
+  display: flex;
+  align-items: center;
+  padding-right: 6px;
+  color: var(--destructive);
+}
+@media (hover: hover) {
+  .row-trash {
+    opacity: 0;
+  }
+  .plan-row:hover .row-trash,
+  .plan-row:focus-within .row-trash,
+  .plan-row[data-selected] .row-trash {
+    opacity: 1;
+  }
+}
+.row-trash button {
+  color: inherit;
+}
+.length-form {
+  padding: 4px;
+}
+.insert-strip {
+  position: absolute;
+  inset: auto 0 -8px;
+  z-index: 3;
+  display: flex;
+  height: 16px;
+  opacity: 0;
+}
+.plan-row:hover .insert-strip,
+.insert-strip:focus-within,
+.insert-strip[data-open] {
+  opacity: 1;
+}
+.insert-strip .popover-anchor {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+.insert-strip .panel {
+  top: calc(100% + 4px);
+}
+.insert-plus {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--muted-foreground);
+  background: var(--background);
+}
+.insert-line {
+  flex: 1;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--primary) 40%, transparent);
+}
+
+/* Key change ideas */
+
+.transition-head {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px 8px;
+}
+.transition-head h4 {
+  font-size: 14px;
+  font-weight: 600;
+}
+.transition-head p {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.suggestions {
+  display: grid;
+  gap: 2px;
+  padding: 4px 8px;
+}
+.suggestions > li > button {
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+}
+.suggestion-text {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+}
+.suggestion-text > strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.suggestion-text > span {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.suggestion-text > span strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+.suggestion-state {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--muted-foreground);
+}
+@media (hover: hover) {
+  .suggestion-state[data-hover-only] {
+    opacity: 0;
+  }
+  .suggestions > li > button:hover .suggestion-state[data-hover-only],
+  .suggestions > li > button:focus-visible .suggestion-state[data-hover-only] {
+    opacity: 1;
+  }
+}
+.alternates {
+  display: grid;
+  gap: 8px;
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--border);
+}
+.alternates > span {
+  font-size: 12px;
+  font-weight: 500;
+}
+.alternates > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Details pane */
+
+.plan-pane {
+  position: sticky;
+  top: 0;
+  display: grid;
+  align-content: start;
+  align-self: flex-start;
+  gap: 14px;
+  width: min(300px, 38%);
+  flex-shrink: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 4px);
+  background: var(--card);
+  animation: pane-in 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+@keyframes pane-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+.pane-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pane-head > label {
+  flex: 1;
+  min-width: 0;
+}
+.pane-head input {
+  font-weight: 600;
+  border-color: transparent;
+  background: var(--muted);
+}
+.pane-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.pane-hint {
+  grid-column: 1 / -1;
+  margin-top: -4px;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+/* Floating add toolbar */
+
 .plan-toolbar-slot {
   position: sticky;
   bottom: 0;
@@ -1377,6 +1696,24 @@
   .phone-tabs > button {
     flex: 1;
   }
+  .plan-sheet {
+    flex-direction: column;
+  }
+  .plan-pane {
+    top: auto;
+    bottom: 0;
+    z-index: 4;
+    align-self: stretch;
+    width: auto;
+    box-shadow: 0 -8px 24px -12px
+      color-mix(in oklab, var(--overlay-shadow) 30%, transparent);
+  }
+  .plan-sheet[data-pane] .plan-toolbar-slot,
+  .insert-strip,
+  .row-trash,
+  .plan-arrangement {
+    display: none;
+  }
   .overview,
   .time-fields,
   .attention-grid {
@@ -1525,6 +1862,7 @@
 @media (prefers-reduced-motion: reduce) {
   .panel,
   .spin,
+  .plan-pane,
   .history-collapse [data-reveal] {
     animation: none;
   }

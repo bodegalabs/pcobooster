@@ -61,13 +61,20 @@ export interface DemoAssignment {
   readonly status: SlotStatus;
 }
 
+/** Where an item runs against the service clock. */
+export type PlanItemWhen = "pre" | "during" | "post";
+
 export interface DemoPlanItem {
   readonly id: string;
   readonly title: string;
   readonly kind: "song" | "header" | "item";
-  readonly detail?: string;
+  /** Who leads, how it starts, where it goes. */
+  readonly notes: string;
+  readonly songId?: string;
+  /** A song's key, as it is played in this plan. */
   readonly songKey?: string;
-  readonly minutes: number;
+  readonly seconds: number;
+  readonly when: PlanItemWhen;
 }
 
 export interface DemoTime {
@@ -87,6 +94,11 @@ export interface DemoSong {
   readonly title: string;
   readonly writers: string;
   readonly lastScheduled: string;
+  /** Whole days between its last play and the sample plan. */
+  readonly daysSincePlayed: number;
+  readonly arrangement: string;
+  /** Keys the arrangement has, the first being its usual one. */
+  readonly keys: readonly string[];
 }
 
 /** The sample plan. Its date anchors every day in the history bars. */
@@ -279,45 +291,105 @@ export const initialAssignments = {
   greeter: [{ personId: "p31", status: "confirmed" }],
 } as const satisfies Readonly<Record<string, readonly DemoAssignment[]>>;
 
+const SECONDS_PER_MINUTE = 60;
+const minutes = (count: number) => count * SECONDS_PER_MINUTE;
+
 export const planItems: readonly DemoPlanItem[] = [
-  { id: "i1", title: "Pre-service", kind: "header", minutes: 0 },
-  { id: "i2", title: "Countdown", kind: "item", detail: "Video", minutes: 5 },
-  { id: "i3", title: "Worship", kind: "header", minutes: 0 },
+  {
+    id: "i1",
+    title: "Pre-service",
+    kind: "header",
+    notes: "",
+    seconds: 0,
+    when: "during",
+  },
+  {
+    id: "i2",
+    title: "Countdown",
+    kind: "item",
+    notes: "Video",
+    seconds: minutes(5),
+    when: "pre",
+  },
+  {
+    id: "i3",
+    title: "Worship",
+    kind: "header",
+    notes: "",
+    seconds: 0,
+    when: "during",
+  },
   {
     id: "i4",
     title: "Morning Light",
     kind: "song",
-    detail: "Full band",
+    notes: "Full band",
+    songId: "s1",
     songKey: "G",
-    minutes: 5,
+    seconds: minutes(5),
+    when: "during",
   },
   {
     id: "i5",
     title: "Steady Ground",
     kind: "song",
-    detail: "Acoustic intro",
-    songKey: "D",
-    minutes: 6,
+    notes: "Acoustic intro",
+    songId: "s2",
+    songKey: "Eb",
+    seconds: minutes(6),
+    when: "during",
   },
   {
     id: "i6",
     title: "Open Doors",
     kind: "song",
-    detail: "Key change after bridge",
-    songKey: "A",
-    minutes: 5,
+    notes: "",
+    songId: "s3",
+    songKey: "E",
+    seconds: minutes(5),
+    when: "during",
   },
-  { id: "i7", title: "Welcome", kind: "item", detail: "Host", minutes: 4 },
-  { id: "i8", title: "Message", kind: "header", minutes: 0 },
-  { id: "i9", title: "Sermon", kind: "item", detail: "Pastor", minutes: 32 },
+  {
+    id: "i7",
+    title: "Welcome",
+    kind: "item",
+    notes: "Host",
+    seconds: minutes(4),
+    when: "during",
+  },
+  {
+    id: "i8",
+    title: "Message",
+    kind: "header",
+    notes: "",
+    seconds: 0,
+    when: "during",
+  },
+  {
+    id: "i9",
+    title: "Sermon",
+    kind: "item",
+    notes: "Pastor",
+    seconds: minutes(32),
+    when: "during",
+  },
   {
     id: "i10",
     title: "Here With Us",
     kind: "song",
-    detail: "Keys only",
-    minutes: 4,
+    notes: "Keys only",
+    songId: "s4",
+    seconds: minutes(4),
+    when: "during",
   },
-  { id: "i11", title: "Benediction", kind: "item", minutes: 2 },
+  {
+    id: "i11",
+    title: "Benediction",
+    kind: "item",
+    notes: "",
+    seconds: minutes(2),
+    when: "post",
+  },
 ];
 
 export const times: readonly DemoTime[] = [
@@ -362,47 +434,71 @@ export const songs: readonly DemoSong[] = [
     title: "Morning Light",
     writers: "Ava Linden and Sam Okafor",
     lastScheduled: "Sep 27, 2026",
+    daysSincePlayed: 14,
+    arrangement: "Radio version",
+    keys: ["G", "A", "F"],
   },
   {
     id: "s2",
     title: "Steady Ground",
     writers: "Noor Hadley",
     lastScheduled: "Sep 20, 2026",
+    daysSincePlayed: 21,
+    arrangement: "Acoustic",
+    keys: ["D", "Eb", "F"],
   },
   {
     id: "s3",
     title: "Open Doors",
     writers: "Beck Marlow, Ines Calder, and Tobias Reed",
     lastScheduled: "Sep 13, 2026",
+    daysSincePlayed: 28,
+    arrangement: "Default",
+    keys: ["D", "E", "F"],
   },
   {
     id: "s4",
     title: "Here With Us",
     writers: "Maren Voss",
     lastScheduled: "Sep 6, 2026",
+    daysSincePlayed: 35,
+    arrangement: "Default",
+    keys: ["C", "D"],
   },
   {
     id: "s5",
     title: "Lantern Hill",
     writers: "Ines Calder and Jonah Pryce",
     lastScheduled: "Aug 30, 2026",
+    daysSincePlayed: 42,
+    arrangement: "Default",
+    keys: ["A", "Bb", "B"],
   },
   {
     id: "s6",
     title: "Wide Open Sky",
     writers: "Sam Okafor",
     lastScheduled: "Aug 16, 2026",
+    daysSincePlayed: 56,
+    arrangement: "Default",
+    keys: ["C", "D"],
   },
   {
     id: "s7",
     title: "Hold the Line",
     writers: "Tobias Reed and Noor Hadley",
     lastScheduled: "Jul 26, 2026",
+    daysSincePlayed: 77,
+    arrangement: "Default",
+    keys: ["E", "F#"],
   },
   {
     id: "s8",
     title: "Every Morning New",
     writers: "Ava Linden",
     lastScheduled: "Jul 5, 2026",
+    daysSincePlayed: 98,
+    arrangement: "Default",
+    keys: ["G", "A"],
   },
 ];

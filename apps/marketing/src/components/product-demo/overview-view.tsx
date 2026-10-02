@@ -16,8 +16,9 @@ import {
   useSlotTotals,
 } from "./demo-model";
 import type { PlanView } from "./demo-model";
-import { planItems, teams, times } from "./fixtures";
-import type { DemoPosition, DemoTeam } from "./fixtures";
+import { teams, times } from "./fixtures";
+import type { DemoPlanItem, DemoPosition, DemoTeam } from "./fixtures";
+import { usePlanItems } from "./plan-model";
 
 import styles from "./product-demo.module.css";
 
@@ -47,14 +48,28 @@ const plural = (count: number, one: string, many: string) =>
 const share = (count: number, total: number) =>
   total === 0 ? "0%" : `${(count / total) * 100}%`;
 
-const songs = planItems.filter((item) => item.kind === "song");
-const songsWithoutKey = songs.filter(
-  (item) => item.songKey === undefined
-).length;
+const SECONDS_PER_MINUTE = 60;
 const MINUTES_PER_HOUR = 60;
-const totalMinutes = planItems.reduce((total, item) => total + item.minutes, 0);
-/** "1:03:00": the service's length as the product writes it. */
-const serviceLength = `${Math.floor(totalMinutes / MINUTES_PER_HOUR)}:${String(totalMinutes % MINUTES_PER_HOUR).padStart(2, "0")}:00`;
+
+interface PlanSummary {
+  readonly songs: readonly DemoPlanItem[];
+  readonly songsWithoutKey: number;
+  /** "1:03:00": the service's length as the product writes it. */
+  readonly serviceLength: string;
+}
+
+const usePlanSummary = (): PlanSummary => {
+  const items = usePlanItems();
+  const songs = items.filter((item) => item.kind === "song");
+  const totalMinutes = Math.round(
+    items.reduce((total, item) => total + item.seconds, 0) / SECONDS_PER_MINUTE
+  );
+  return {
+    songs,
+    songsWithoutKey: songs.filter((item) => item.songKey === undefined).length,
+    serviceLength: `${Math.floor(totalMinutes / MINUTES_PER_HOUR)}:${String(totalMinutes % MINUTES_PER_HOUR).padStart(2, "0")}:00`,
+  };
+};
 const serviceTimes = times.filter((time) => time.type === "service");
 const rehearsals = times.filter((time) => time.type === "rehearsal");
 
@@ -99,7 +114,7 @@ const useStaffing = () => {
 
 type Staffing = ReturnType<typeof useStaffing>;
 
-const buildChecks = (staffing: Staffing): Check[] => [
+const buildChecks = (staffing: Staffing, summary: PlanSummary): Check[] => [
   staffing.open > 0
     ? {
         id: "positions",
@@ -129,14 +144,14 @@ const buildChecks = (staffing: Staffing): Check[] => [
   {
     id: "songs",
     done: true,
-    label: `${plural(songs.length, "song", "songs")} planned`,
+    label: `${plural(summary.songs.length, "song", "songs")} planned`,
     view: "plan",
   },
-  songsWithoutKey > 0
+  summary.songsWithoutKey > 0
     ? {
         id: "keys",
         done: false,
-        label: `${plural(songsWithoutKey, "song has", "songs have")} no key`,
+        label: `${plural(summary.songsWithoutKey, "song has", "songs have")} no key`,
         view: "plan",
       }
     : {
@@ -232,8 +247,14 @@ const FilledBar = ({
   );
 };
 
-const ReadinessCard = ({ staffing }: { staffing: Staffing }) => {
-  const checks = buildChecks(staffing);
+const ReadinessCard = ({
+  staffing,
+  summary,
+}: {
+  staffing: Staffing;
+  summary: PlanSummary;
+}) => {
+  const checks = buildChecks(staffing, summary);
   const todo = checks.filter((check) => !check.done).length;
   let description = "Everything we can check looks ready.";
   if (todo > 0) {
@@ -367,15 +388,15 @@ const PeopleCard = ({ staffing }: { staffing: Staffing }) => (
   </OverviewCard>
 );
 
-const SongsCard = () => (
+const SongsCard = ({ summary }: { summary: PlanSummary }) => (
   <OverviewCard
     icon={<ListMusic aria-hidden size={16} />}
     title="Songs"
-    description={`${plural(songs.length, "song", "songs")} · ${serviceLength} service`}
+    description={`${plural(summary.songs.length, "song", "songs")} · ${summary.serviceLength} service`}
     action="plan"
   >
     <ol>
-      {songs.map((song, index) => (
+      {summary.songs.map((song, index) => (
         <li key={song.id} className={styles["overview-line"]}>
           <span className={styles["line-number"]}>{index + 1}</span>
           <span className={`${styles.truncate} ${styles.grow}`}>
@@ -421,11 +442,12 @@ const TimesCard = () => (
 /** A plan's home: what's ready, what isn't, and a way into each view. */
 export const OverviewView = () => {
   const staffing = useStaffing();
+  const summary = usePlanSummary();
   return (
     <div className={styles.overview}>
-      <ReadinessCard staffing={staffing} />
+      <ReadinessCard staffing={staffing} summary={summary} />
       <PeopleCard staffing={staffing} />
-      <SongsCard />
+      <SongsCard summary={summary} />
       <TimesCard />
     </div>
   );

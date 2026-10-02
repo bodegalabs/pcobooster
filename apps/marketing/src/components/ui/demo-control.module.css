@@ -325,6 +325,21 @@
   font-weight: 500;
   color: var(--muted-foreground);
 }
+.text-field[data-label-hidden] > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.text-field > span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.text-field select,
+.text-field textarea,
 .text-field input {
   width: 100%;
   height: 34px;
@@ -332,6 +347,15 @@
   border: 1px solid var(--input);
   border-radius: calc(var(--radius) - 2px);
   background: transparent;
+}
+.text-field textarea {
+  min-height: 84px;
+  height: auto;
+  padding: 8px 10px;
+  resize: vertical;
+}
+.text-field select {
+  padding-right: 6px;
 }
 
 /* Mutually exclusive options, joined into one bordered control. */
@@ -391,6 +415,66 @@
 .button[data-variant="toolbar-primary"] {
   color: var(--primary-foreground);
   background: var(--primary);
+}
+
+/* A row's full-bleed hit target, under its own controls. */
+.button[data-variant="cover"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border-radius: inherit;
+}
+.button[data-variant="cover"]:focus-visible {
+  outline-offset: -2px;
+}
+
+/* Length and key chips edited in place on a plan row. */
+.button[data-variant="length"] {
+  padding: 3px 8px;
+  border-radius: calc(var(--radius) - 4px);
+  font-size: 12px;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+.button[data-variant="chip"] {
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 4px);
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--background);
+}
+.button[data-variant="chip"][data-empty] {
+  border-color: transparent;
+  color: var(--status-scheduled);
+  background: none;
+}
+.button[data-variant="icon-xs"] {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: calc(var(--radius) - 4px);
+}
+.button[data-variant="icon-xs"] svg {
+  width: 16px;
+  height: 16px;
+}
+.button[data-variant="insert"] {
+  gap: 4px;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .button[data-variant="length"]:hover,
+  .button[data-variant="chip"]:hover,
+  .button[data-variant="icon-xs"]:hover {
+    background: var(--muted);
+  }
 }
 
 /* Narrow replica: position rows become pills. */
