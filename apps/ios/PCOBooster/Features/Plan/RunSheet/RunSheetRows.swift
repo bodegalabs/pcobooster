@@ -39,6 +39,8 @@ struct RunSheetRowActions {
   /// Nil while the chord chart editor is off (`chordCharts` flag).
   var editChordChart: ((PlanItem) -> Void)?
   var openURL: (URL) -> Void
+  /// A deliberate long press on a song: load its keys in the speculative lane.
+  var prefetchOptions: (PlanItem) -> Void
 }
 
 /// What a row shows beyond the item itself.
@@ -138,7 +140,7 @@ struct RunSheetItemRow: View {
         Text(verbatim: item.description)
           .font(.meta)
           .foregroundStyle(.inkSecondary)
-          .lineLimit(dynamicTypeSize.isAccessibilitySize ? 6 : 3)
+          .lineLimit(dynamicTypeSize.isAccessibilitySize ? 6 : 4)
       }
     }
     .accessibilityElement(children: .combine)
@@ -160,21 +162,32 @@ struct RunSheetItemRow: View {
     }
   }
 
+  /// The arrangement and tempo, then the recent-play hint. The arrangement name goes first when
+  /// the line runs out of room (the web hides it on phones), so tempo and the hint stay whole.
   @ViewBuilder private var detailLine: some View {
-    let facts = isSong ? RunSheetFormatting.songFacts(item, options: self.facts.songOptions) : nil
-    if facts != nil || self.facts.recentPlayDays != nil {
-      HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
-        if let facts {
-          Text(verbatim: facts)
-            .font(.meta)
-            .foregroundStyle(.inkTertiary)
-            .lineLimit(1)
-            .layoutPriority(0)
+    let arrangement = isSong ? RunSheetFormatting.arrangementName(item) : nil
+    let tempo = isSong ? RunSheetFormatting.tempo(item, options: facts.songOptions) : nil
+    if arrangement != nil || tempo != nil || facts.recentPlayDays != nil {
+      ViewThatFits(in: .horizontal) {
+        factsLine([arrangement, tempo].compactMap(\.self))
+        if arrangement != nil, tempo != nil {
+          factsLine([tempo].compactMap(\.self))
         }
-        if let days = self.facts.recentPlayDays {
-          RecentPlayHint(days: days)
-            .layoutPriority(1)
-        }
+      }
+    }
+  }
+
+  private func factsLine(_ parts: [String]) -> some View {
+    HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
+      if !parts.isEmpty {
+        Text(verbatim: parts.joined(separator: " \u{B7} "))
+          .font(.meta)
+          .foregroundStyle(.inkTertiary)
+          .lineLimit(1)
+      }
+      if let days = facts.recentPlayDays {
+        RecentPlayHint(days: days)
+          .layoutPriority(1)
       }
     }
   }
@@ -235,7 +248,7 @@ struct RunSheetHeaderRow: View {
       .accessibilityIdentifier("run-sheet-row-\(item.id)")
       if canEdit, let sectionEnd = facts.sectionEnd {
         Menu {
-          Section(Text("Add to \(RunSheetFormatting.title(item))")) {
+          Section {
             ForEach(RunSheetInsertKind.allCases) { kind in
               Button {
                 actions.insert(kind, sectionEnd)
@@ -243,6 +256,8 @@ struct RunSheetHeaderRow: View {
                 Label(kind.title, symbol: kind.symbol)
               }
             }
+          } header: {
+            Text("Add to \(RunSheetFormatting.title(item))")
           }
         } label: {
           Image(symbol: .add)

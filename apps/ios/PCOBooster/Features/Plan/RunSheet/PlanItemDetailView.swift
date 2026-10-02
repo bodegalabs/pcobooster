@@ -34,6 +34,8 @@ struct PlanItemDetailActions {
   /// Nil while the chord chart editor is off (`chordCharts` flag).
   var editChordChart: ((PlanItem) -> Void)?
   var close: () -> Void
+  /// A text field took or gave up the keyboard (the run sheet's plain-key shortcuts wait).
+  var editingChanged: (Bool) -> Void
 }
 
 /// An item's details, all editable where they sit (`PlanItemPane`): a header's or item's title,
@@ -90,6 +92,7 @@ struct PlanItemDetailView: View {
         if previous != nil, previous != current {
           persistText()
         }
+        actions.editingChanged(current != nil)
       }
       .onChange(of: item.title) { _, newValue in
         if focus != .title { title = newValue }
@@ -104,9 +107,13 @@ struct PlanItemDetailView: View {
         guard context.focusesTitle, canEdit, item.song == nil else { return }
         try? await Task.sleep(for: .milliseconds(450))
         focus = .title
+        // The field puts its caret at the end as it takes focus; select the whole title after
+        // that, so typing replaces "New Header" (`focusTitle` in `plan-item-pane.tsx`).
+        try? await Task.sleep(for: .milliseconds(150))
         titleSelection = TextSelection(range: title.startIndex..<title.endIndex)
       }
       .onDisappear {
+        actions.editingChanged(false)
         persistText()
         if let lengthError {
           toasts.showError(lengthError)

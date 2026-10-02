@@ -48,7 +48,7 @@ final class RunSheetModel {
   @ObservationIgnored let writes = RunSheetWriteQueue()
   @ObservationIgnored var undoTimers: [String: Task<Void, Never>] = [:]
   @ObservationIgnored var pendingRemovedItems: [String: PlanItem] = [:]
-  @ObservationIgnored private var prefetches: [PrefetchHandle] = []
+  @ObservationIgnored var prefetches: [PrefetchHandle] = []
   @ObservationIgnored private var prefetchedSongIds: [String] = []
 
   init(queries: QueryClient, serviceTypeId: String, planId: String) {
@@ -118,6 +118,18 @@ final class RunSheetModel {
           songOptionsKey(songId), RPC.Songs.options,
           SongsOptionsInput(serviceTypeId: serviceTypeId, songId: songId)))
     }
+  }
+
+  /// Loads one song's options in the speculative lane on a deliberate long press, so its keys
+  /// are ready in the menu and the details (`getItemIntentProps` on the web). Nothing loads
+  /// when they are fresh.
+  func prefetchSongOptions(for item: PlanItem) {
+    guard let songId = item.song?.id else { return }
+    warmedSongIds.insert(songId)
+    prefetches.append(
+      queries.prefetch(
+        songOptionsKey(songId), RPC.Songs.options,
+        SongsOptionsInput(serviceTypeId: serviceTypeId, songId: songId)))
   }
 
   /// Leaving the plan: sends the deletes the person already chose (undo ends with the screen)

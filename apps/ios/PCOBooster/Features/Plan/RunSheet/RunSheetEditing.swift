@@ -58,5 +58,6 @@ struct RunSheetAccessNotice: View {
     .padding(Spacing.md)
     .background(.surfaceSecondary, in: .rect(cornerRadius: Radius.inner, style: .continuous))
     .accessibilityElement(children: .combine)
+    .accessibilityIdentifier("run-sheet-access-notice")
   }
 }

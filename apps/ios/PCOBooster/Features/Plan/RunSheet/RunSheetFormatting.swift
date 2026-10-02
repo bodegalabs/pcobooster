@@ -60,15 +60,20 @@ enum RunSheetFormatting {
 
   /// "Default Arrangement · 74 bpm · 4/4": the song's arrangement and tempo facts.
   static func songFacts(_ item: PlanItem, options: SongOptionSet?) -> String? {
-    var parts: [String] = []
-    if let name = item.arrangement?.name, !name.isEmpty {
-      parts.append(name)
-    }
+    let parts = [arrangementName(item), tempo(item, options: options)].compactMap(\.self)
+    return parts.isEmpty ? nil : parts.joined(separator: " \u{B7} ")
+  }
+
+  /// The song's arrangement name, or nil when it has none.
+  static func arrangementName(_ item: PlanItem) -> String? {
+    guard let name = item.arrangement?.name, !name.isEmpty else { return nil }
+    return name
+  }
+
+  /// "74 bpm · 4/4" from the arrangement's cached options, or nil before they load.
+  static func tempo(_ item: PlanItem, options: SongOptionSet?) -> String? {
     let arrangement = options?.arrangements.first { $0.id == item.arrangement?.id }
     let tempo = tempoLabel(arrangement)
-    if !tempo.isEmpty {
-      parts.append(tempo)
-    }
-    return parts.isEmpty ? nil : parts.joined(separator: " \u{B7} ")
+    return tempo.isEmpty ? nil : tempo
   }
 }

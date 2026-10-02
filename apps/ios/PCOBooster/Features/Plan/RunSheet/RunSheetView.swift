@@ -19,6 +19,7 @@ struct RunSheetView: View {
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.openURL) private var openURL
   @Environment(\.appClock) private var clock
+  @Environment(\.scenePhase) private var scenePhase
 
   /// The highlighted row on iPad (where new things go) and the item whose details show.
   @State private var selectedItemId: String?
@@ -28,6 +29,12 @@ struct RunSheetView: View {
   @State private var titleFocusItemId: String?
   @State private var paletteRequest: SongPaletteRequest?
   @State private var removingItem: PlanItem?
+  /// Reorder mode: drag handles on every row (dragging a row works without it too).
+  @State private var editMode: EditMode = .inactive
+  /// A text field in the details has the keyboard, so plain-key shortcuts stand down.
+  @State private var isEditingText = false
+  /// The list has been scrolled to its top once, under the plan's segment bar.
+  @State private var alignedTop = false
 
   init(context: PlanContext) {
     self.context = context
@@ -54,6 +61,21 @@ struct RunSheetView: View {
             proxy.scrollTo(itemId, anchor: .center)
           }
         }
+        .onChange(of: selectedItemId) { _, itemId in
+          // Keyboard steps keep the highlighted row on screen.
+          guard isRegular, let itemId else { return }
+          withAnimation(Motion.respecting(reduceMotion: reduceMotion, Motion.snappy(0.25))) {
+            proxy.scrollTo(itemId)
+          }
+        }
+        .task(id: model.items.value != nil) {
+          // The list can first lay out before the plan's segment bar joins its safe area, which
+          // leaves the summary under the bar; settle it at the top once.
+          guard model.items.value != nil, !alignedTop else { return }
+          alignedTop = true
+          try? await Task.sleep(for: .milliseconds(30))
+          proxy.scrollTo(Self.topRowId, anchor: .top)
+        }
     }
     .safeAreaBar(edge: .bottom, spacing: 0) { bottomBar(items) }
     .inspector(isPresented: inspectorBinding) {
@@ -63,16 +85,15 @@ struct RunSheetView: View {
     .sheet(item: detailSheetBinding) { selection in
       detailSheet(selection.id)
     }
-    .sheet(item: $paletteRequest) { request in
+    .sheet(item: paletteBinding(overDetails: false)) { request in
       paletteSheet(request)
     }
-    .confirmationDialog(
-      Text("Remove \u{201C}\(removingItem.map(RunSheetFormatting.title) ?? "")\u{201D}?"),
-      isPresented: removingBinding, titleVisibility: .visible, presenting: removingItem
-    ) { item in
-      Button("Remove", role: .destructive) { remove(item.id) }
-    } message: { _ in
-      Text("It comes off this plan in Planning Center.")
+    .toolbar { toolbarContent(items) }
+    .background {
+      RunSheetKeyboardShortcuts(
+        isEnabled: keyboardEnabled && isRegular,
+        hasSelection: model.item(id: selectedItemId) != nil,
+        canEdit: editing.canEdit, actions: keyboardActions)
     }
     .queryLifecycle(model.items)
     .onChange(of: items.compactMap(\.song?.id), initial: true) {
@@ -83,6 +104,9 @@ struct RunSheetView: View {
         self.selectedItemId = nil
         detailsOpen = false
       }
+      if ids.count < 2 {
+        editMode = .inactive
+      }
     }
     .onChange(of: model.removals.last?.id) { _, removalId in
       guard removalId != nil, let removal = model.removals.last else { return }
@@ -90,10 +114,20 @@ struct RunSheetView: View {
         String(localized: "Removed \(removal.title). Undo is available for 5 seconds.")
       ).post()
     }
+    .onAppear { model.warmSongOptions(for: model.visibleItems) }
     .onDisappear { model.leave() }
+    .onChange(of: scenePhase) { _, phase in
+      // Leaving the app sends the deletes already chosen, as leaving the plan does.
+      if phase == .background {
+        model.commitPendingRemovals()
+      }
+    }
     .haptic(.success, trigger: model.landedWrites)
     .haptic(.tap, trigger: model.reorderCount)
   }
+
+  /// The first row of the list (the access notice or the summary), for scrolling to the top.
+  private static let topRowId = "run-sheet-top"
 
   // MARK: Content
 
@@ -143,12 +177,15 @@ struct RunSheetView: View {
   private func list(_ items: [PlanItem]) -> some View {
     let insights = buildPlanInsights(items, planDate: planDate)
     let runSheet = buildRunSheet(items)
+    let notice = editing.notice
     return List {
-      if let notice = editing.notice {
+      if let notice {
         RunSheetAccessNotice(notice: notice)
           .listRowInsets(EdgeInsets(top: Spacing.sm, leading: Spacing.lg, bottom: Spacing.sm, trailing: Spacing.lg))
           .listRowSeparator(.hidden)
           .listRowBackground(Color.clear)
+          .moveDisabled(true)
+          .id(Self.topRowId)
       }
       if model.items.status == .failure, let message = model.items.errorMessage {
         InfoBanner(verbatim: String(localized: "Couldn\u{2019}t refresh the plan. \(message)"), tone: .destructive) {
@@ -157,12 +194,14 @@ struct RunSheetView: View {
         .listRowInsets(EdgeInsets(top: Spacing.sm, leading: Spacing.lg, bottom: Spacing.sm, trailing: Spacing.lg))
         .listRowSeparator(.hidden)
         .listRowBackground(Color.clear)
+        .moveDisabled(true)
       }
       RunSheetSummaryRow(order: summarizeOrder(items))
-        .listRowInsets(EdgeInsets(top: Spacing.xs, leading: Spacing.lg, bottom: 0, trailing: Spacing.lg))
+        .listRowInsets(EdgeInsets(top: Spacing.sm, leading: Spacing.lg, bottom: 0, trailing: Spacing.lg))
         .listRowSeparator(.hidden)
         .listRowBackground(Color.clear)
         .moveDisabled(true)
+        .id(notice == nil ? Self.topRowId : "run-sheet-summary")
       ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
         row(item, facts: facts(for: item, at: index, in: items, insights: insights, runSheet: runSheet),
             nextIsHeader: index + 1 < items.count && items[index + 1].itemType == .header)
@@ -172,6 +211,7 @@ struct RunSheetView: View {
     .listStyle(.plain)
     .canvasBackground()
     .environment(\.defaultMinListRowHeight, 32)
+    .environment(\.editMode, $editMode)
     .refreshable { await model.items.refresh() }
     .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
     .accessibilityIdentifier("run-sheet-list")
@@ -179,12 +219,13 @@ struct RunSheetView: View {
 
   private func row(_ item: PlanItem, facts: RunSheetRowFacts, nextIsHeader: Bool) -> some View {
     let isHeader = item.itemType == .header
+    let canEditRow = editing.canEdit && !editMode.isEditing
     return Group {
       if isHeader {
-        RunSheetHeaderRow(item: item, facts: facts, canEdit: editing.canEdit, actions: rowActions)
+        RunSheetHeaderRow(item: item, facts: facts, canEdit: canEditRow, actions: rowActions)
       } else {
         RunSheetItemRow(
-          item: item, facts: facts, canEdit: editing.canEdit,
+          item: item, facts: facts, canEdit: canEditRow,
           serviceTypeId: context.serviceTypeId, actions: rowActions)
       }
     }
@@ -197,7 +238,15 @@ struct RunSheetView: View {
     .listRowSeparator(isHeader || nextIsHeader ? .hidden : .visible, edges: .bottom)
     .listRowSeparatorTint(.hairline)
     .runSheetRowMenus(
-      item: item, facts: facts, canEdit: editing.canEdit, planDate: planDate, actions: rowActions)
+      item: item, facts: facts, canEdit: canEditRow, planDate: planDate, actions: rowActions)
+    .confirmationDialog(
+      Text("Remove \u{201C}\(RunSheetFormatting.title(item))\u{201D}?"),
+      isPresented: removingBinding(item), titleVisibility: .visible
+    ) {
+      Button("Remove", role: .destructive) { remove(item.id) }
+    } message: {
+      Text("It comes off this plan in Planning Center.")
+    }
     .moveDisabled(!editing.canEdit || RunSheetModel.isOptimistic(item.id))
     .id(item.id)
   }
@@ -229,10 +278,83 @@ struct RunSheetView: View {
     return PlanInsertion(afterItemId: lastId)
   }
 
+  // MARK: Toolbar and keyboard
+
+  /// Reorder mode, for people who'd rather drag handles than long-press rows.
+  @ToolbarContentBuilder private func toolbarContent(_ items: [PlanItem]) -> some ToolbarContent {
+    if editing.canEdit, items.count > 1 {
+      ToolbarItem(placement: .topBarTrailing) {
+        if editMode.isEditing {
+          Button(role: .confirm) {
+            withAnimation(Motion.respecting(reduceMotion: reduceMotion, .snappy(duration: 0.3))) {
+              editMode = .inactive
+            }
+          }
+          .accessibilityLabel(Text("Done Reordering"))
+          .accessibilityIdentifier("run-sheet-reorder-done")
+        } else {
+          Button {
+            closeDetails()
+            withAnimation(Motion.respecting(reduceMotion: reduceMotion, .snappy(duration: 0.3))) {
+              editMode = .active
+            }
+          } label: {
+            Label("Reorder", systemImage: "arrow.up.arrow.down")
+          }
+          .accessibilityIdentifier("run-sheet-reorder")
+        }
+      }
+    }
+  }
+
+  /// Plain keys work while nothing else has the keyboard: no text field, sheet, or dialog.
+  private var keyboardEnabled: Bool {
+    model.items.value != nil && !isEditingText && paletteRequest == nil && removingItem == nil
+      && !(detailsOpen && !isRegular) && !editMode.isEditing
+  }
+
+  private var keyboardActions: RunSheetKeyboardActions {
+    RunSheetKeyboardActions(
+      step: { step($0) },
+      move: { offset in
+        guard let selectedItemId else { return }
+        model.shift(selectedItemId, by: offset)
+      },
+      openDetails: {
+        guard let item = model.item(id: selectedItemId) else { return }
+        open(item)
+      },
+      remove: {
+        guard let item = model.item(id: selectedItemId) else { return }
+        removingItem = item
+      },
+      escape: {
+        if detailsOpen {
+          closeDetails()
+        } else {
+          selectedItemId = nil
+        }
+      })
+  }
+
+  /// J and K (and the arrows) move the highlight; from nothing, they start at the first or
+  /// last row (`usePlanBuilderHotkeys`).
+  private func step(_ offset: Int) {
+    let items = model.visibleItems
+    guard !items.isEmpty else { return }
+    guard let index = items.firstIndex(where: { $0.id == selectedItemId }) else {
+      selectedItemId = (offset > 0 ? items.first : items.last)?.id
+      return
+    }
+    let next = min(items.count - 1, max(0, index + offset))
+    titleFocusItemId = nil
+    selectedItemId = items[next].id
+  }
+
   // MARK: Bottom bar
 
   @ViewBuilder private func bottomBar(_ items: [PlanItem]) -> some View {
-    let showsAddBar = editing.canEdit && model.items.value != nil
+    let showsAddBar = editing.canEdit && model.items.value != nil && !editMode.isEditing
     if showsAddBar || model.removals.last != nil {
       VStack(spacing: Spacing.sm) {
         if let removal = model.removals.last {
@@ -242,19 +364,11 @@ struct RunSheetView: View {
             .id(removal.id)
         }
         if showsAddBar {
-          FloatingGlassBar {
-            FloatingGlassButton("Header", symbol: .header, id: "header") {
-              insert(.header, at: barInsertion)
-            }
-            .disabled(model.isCreatingBasicItem)
-            FloatingGlassButton("Item", symbol: .add, id: "item") {
-              insert(.item, at: barInsertion)
-            }
-            .disabled(model.isCreatingBasicItem)
-            FloatingGlassButton("Add Song", symbol: .song, id: "song", isProminent: true) {
-              openPalette(insertion: barInsertion)
-            }
-          }
+          RunSheetAddBar(
+            isCreatingBasicItem: model.isCreatingBasicItem, shortcutsEnabled: keyboardEnabled,
+            onAddHeader: { insert(.header, at: barInsertion) },
+            onAddItem: { insert(.item, at: barInsertion) },
+            onAddSong: { openPalette(insertion: barInsertion) })
         }
       }
       .padding(.horizontal, Spacing.lg)
@@ -313,7 +427,7 @@ struct RunSheetView: View {
       detailView(item, presentation: .sheet)
         .presentationDetents([.medium, .large], selection: $detailDetent)
         .presentationDragIndicator(.visible)
-        .sheet(item: $paletteRequest) { request in
+        .sheet(item: paletteBinding(overDetails: true)) { request in
           paletteSheet(request)
         }
     }
@@ -339,11 +453,12 @@ struct RunSheetView: View {
         remove: { remove($0.id) },
         replace: { openPalette(replacing: $0) },
         editChordChart: chordChartAction,
-        close: { closeDetails() }))
+        close: { closeDetails() },
+        editingChanged: { isEditingText = $0 }))
   }
 
   private func open(_ item: PlanItem) {
-    guard !RunSheetModel.isOptimistic(item.id) else { return }
+    guard !RunSheetModel.isOptimistic(item.id), !editMode.isEditing else { return }
     if selectedItemId != item.id {
       titleFocusItemId = nil
     }
@@ -373,7 +488,8 @@ struct RunSheetView: View {
       replace: { openPalette(replacing: $0) },
       shift: { model.shift($0.id, by: $1) },
       editChordChart: chordChartAction,
-      openURL: { openURL($0) })
+      openURL: { openURL($0) },
+      prefetchOptions: { model.prefetchSongOptions(for: $0) })
   }
 
   private var chordChartAction: ((PlanItem) -> Void)? {
@@ -386,9 +502,21 @@ struct RunSheetView: View {
     }
   }
 
-  private var removingBinding: Binding<Bool> {
-    Binding { removingItem != nil } set: { isPresented in
-      if !isPresented { removingItem = nil }
+  /// The remove confirmation, anchored to the row it asks about.
+  private func removingBinding(_ item: PlanItem) -> Binding<Bool> {
+    Binding { removingItem?.id == item.id } set: { isPresented in
+      if !isPresented, removingItem?.id == item.id { removingItem = nil }
+    }
+  }
+
+  /// The palette presents over the run sheet, or over the item's sheet when a song is replaced
+  /// from its details on iPhone (one sheet presents at a time).
+  private func paletteBinding(overDetails: Bool) -> Binding<SongPaletteRequest?> {
+    Binding {
+      let detailsShowing = detailSheetBinding.wrappedValue != nil
+      return detailsShowing == overDetails ? paletteRequest : nil
+    } set: { request in
+      paletteRequest = request
     }
   }
 

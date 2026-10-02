@@ -154,6 +154,7 @@ struct SongPaletteSheet: View {
       } preview: {
         SongQuickPreview(
           song: song, inPlan: request.planSongIds.contains(song.id), planDate: request.planDate)
+          .onAppear { palette.prefetchOptions(songId: song.id, serviceTypeId: serviceTypeId) }
       }
       .accessibilityAction(named: Text(request.actionTitle)) { choose(song) }
       .accessibilityIdentifier("song-palette-row-\(song.id)")

@@ -11,6 +11,7 @@ extension View {
       RunSheetContextMenu(item: item, facts: facts, canEdit: canEdit, actions: actions)
     } preview: {
       RunSheetItemPreview(item: item, facts: facts, planDate: planDate)
+        .onAppear { actions.prefetchOptions(item) }
     }
     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
       if canEdit, !RunSheetModel.isOptimistic(item.id) {
@@ -20,6 +21,17 @@ extension View {
           Label("Remove", symbol: .delete)
         }
         .tint(.destructive)
+      }
+    }
+    .swipeActions(edge: .leading, allowsFullSwipe: false) {
+      // Insert between: a song goes in right below this row.
+      if canEdit, !RunSheetModel.isOptimistic(item.id) {
+        Button {
+          actions.insert(.song, PlanInsertion(afterItemId: item.id))
+        } label: {
+          Label("Add Song Below", symbol: .song)
+        }
+        .tint(.inkFill)
       }
     }
   }

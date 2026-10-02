@@ -74,6 +74,15 @@ final class SongPaletteModel {
     search?.isLoading == true || search?.isRefreshing == true
   }
 
+  /// A deliberate long press on a song: load its arrangements and keys in the speculative lane,
+  /// so adding it from the menu lands with the suggested arrangement, key, and length
+  /// (`useSongOptionsIntent` on the web). Nothing loads when they are fresh.
+  func prefetchOptions(songId: String, serviceTypeId: String) {
+    queries.prefetch(
+      .songOptions(songId: songId, serviceTypeId: serviceTypeId), RPC.Songs.options,
+      SongsOptionsInput(serviceTypeId: serviceTypeId, songId: songId))
+  }
+
   func appear() {
     suggestions.appear()
     search?.appear()
