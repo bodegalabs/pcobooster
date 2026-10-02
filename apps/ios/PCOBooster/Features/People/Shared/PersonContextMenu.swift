@@ -120,7 +120,7 @@ struct FlowChips: View {
   let signals: [PersonSignal]
 
   var body: some View {
-    FlowLayout(spacing: Spacing.xs) {
+    PeopleFlowLayout(spacing: Spacing.xs) {
       ForEach(signals, id: \.kind) { signal in
         SignalChip(signal: signal)
       }
@@ -129,7 +129,7 @@ struct FlowChips: View {
 }
 
 /// Lays children out left to right, wrapping to a new line when the width runs out.
-struct FlowLayout: Layout {
+struct PeopleFlowLayout: Layout {
   var spacing: CGFloat = Spacing.xs
 
   func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {

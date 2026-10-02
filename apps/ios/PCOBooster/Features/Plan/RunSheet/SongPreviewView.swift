@@ -59,7 +59,7 @@ struct SongPreviewView: View {
       }
       .listRowBackground(Color.surfaceCard)
       Section {
-        SongHistorySection(
+        RunSheetSongHistorySection(
           songId: song.id, serviceTypeId: serviceTypeId, planId: planId,
           planDate: request.planDate, previewRows: Self.historyRows)
       } header: {

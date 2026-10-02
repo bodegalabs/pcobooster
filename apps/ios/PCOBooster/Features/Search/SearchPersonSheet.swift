@@ -20,7 +20,7 @@ struct SearchPersonSheet: View {
       ScrollView {
         VStack(spacing: Spacing.xl) {
           header
-          BlockoutsCard(state: model.blockouts)
+          SearchBlockoutsCard(state: model.blockouts)
         }
         .frame(maxWidth: 560)
         .frame(maxWidth: .infinity)
@@ -80,7 +80,7 @@ final class PersonBlockoutsModel {
 
 /// "Upcoming blockouts": each one's reason, days (in the zone the person set it in), and note,
 /// with "Away now" on one that covers today.
-private struct BlockoutsCard: View {
+private struct SearchBlockoutsCard: View {
   let state: QueryState<[Blockout]>
   @Environment(\.appClock) private var clock
 

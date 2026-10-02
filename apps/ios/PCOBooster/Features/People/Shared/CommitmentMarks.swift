@@ -41,7 +41,7 @@ struct CommitmentLegend: View {
   var showsBlockouts = false
 
   var body: some View {
-    FlowLayout(spacing: Spacing.md) {
+    PeopleFlowLayout(spacing: Spacing.md) {
       if let note {
         Text(verbatim: note)
       }

@@ -27,7 +27,7 @@ struct OverviewSongsCard: View {
               if index > 0 {
                 Hairline(color: .hairlineSubtle).padding(.leading, 28)
               }
-              SongRow(number: index + 1, song: song)
+              OverviewSongRow(number: index + 1, song: song)
             }
           }
         }
@@ -50,7 +50,7 @@ struct OverviewSongsCard: View {
   }
 }
 
-private struct SongRow: View {
+private struct OverviewSongRow: View {
   let number: Int
   let song: PlanSong
 

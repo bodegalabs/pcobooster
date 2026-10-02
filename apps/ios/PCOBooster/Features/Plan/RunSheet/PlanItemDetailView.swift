@@ -359,7 +359,7 @@ struct PlanItemDetailView: View {
     Section {
       DisclosureGroup(isExpanded: $showsHistory.animation(Motion.reveal)) {
         if showsHistory {
-          SongHistorySection(
+          RunSheetSongHistorySection(
             songId: song.id, serviceTypeId: context.serviceTypeId, planId: context.planId,
             planDate: context.planDate, previewRows: 6)
         }

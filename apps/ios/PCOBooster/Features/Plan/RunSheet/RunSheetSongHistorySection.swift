@@ -4,7 +4,7 @@ import SwiftUI
 /// Every service that scheduled the song over the past year, newest first, with the key each
 /// sang it in, counted from the plan's date: how often before it, and how often here
 /// (`SongHistory` in `song-history.tsx`). Facts only.
-struct SongHistorySection: View {
+struct RunSheetSongHistorySection: View {
   let songId: String
   let serviceTypeId: String
   let planId: String
