@@ -34,7 +34,15 @@ export interface DemoServed {
   /** Whole weeks before the plan being built. */
   readonly weeksAgo: number;
   readonly positionId: string;
+  /** A midweek rehearsal three days before that Sunday, with no service. */
   readonly rehearsal?: boolean;
+}
+
+export interface DemoUpcoming {
+  /** Whole weeks after the plan being built. */
+  readonly weeksAhead: number;
+  readonly positionId: string;
+  readonly status: SlotStatus;
 }
 
 export interface DemoPerson {
@@ -43,6 +51,7 @@ export interface DemoPerson {
   readonly lastName: string;
   readonly positionIds: readonly string[];
   readonly served: readonly DemoServed[];
+  readonly upcoming: readonly DemoUpcoming[];
   readonly blockedOut?: boolean;
   readonly declined?: string;
 }
@@ -61,11 +70,34 @@ export interface DemoPlanItem {
   readonly minutes: number;
 }
 
+export interface DemoTime {
+  readonly id: string;
+  readonly name: string;
+  readonly type: "service" | "rehearsal";
+  readonly day: string;
+  readonly start: string;
+  readonly end: string;
+  readonly teams: number;
+  readonly positions: number;
+  readonly people: number;
+}
+
+export interface DemoSong {
+  readonly id: string;
+  readonly title: string;
+  readonly writers: string;
+  readonly lastScheduled: string;
+}
+
+/** The sample plan. Its date anchors every day in the history bars. */
 export const plan = {
   serviceType: "Sunday Services",
   title: "Morning gathering",
-  when: "This Sunday",
+  when: "Sun, Oct 11, 2026",
 } as const;
+
+/** The plan's calendar day, as a UTC midnight, for the history bars' date labels. */
+export const PLAN_DAY_UTC = Date.UTC(2026, 9, 11);
 
 export const teams: readonly DemoTeam[] = [
   {
@@ -112,46 +144,80 @@ export const teams: readonly DemoTeam[] = [
   },
 ];
 
+const weeks = (positionId: string, ...weeksAgo: number[]): DemoServed[] =>
+  weeksAgo.map((weeksAgoValue) => ({ weeksAgo: weeksAgoValue, positionId }));
+
+const rehearsals = (positionId: string, ...weeksAgo: number[]): DemoServed[] =>
+  weeksAgo.map((weeksAgoValue) => ({
+    weeksAgo: weeksAgoValue,
+    positionId,
+    rehearsal: true,
+  }));
+
+const ahead = (
+  positionId: string,
+  status: SlotStatus,
+  ...weeksAhead: number[]
+): DemoUpcoming[] =>
+  weeksAhead.map((weeksAheadValue) => ({
+    weeksAhead: weeksAheadValue,
+    positionId,
+    status,
+  }));
+
+interface PersonExtras {
+  readonly upcoming?: readonly DemoUpcoming[];
+  readonly blockedOut?: boolean;
+  readonly declined?: string;
+}
+
 const person = (
   id: string,
   name: string,
   positionIds: readonly string[],
   served: readonly DemoServed[],
-  flags: Pick<DemoPerson, "blockedOut" | "declined"> = {}
+  { upcoming = [], ...flags }: PersonExtras = {}
 ): DemoPerson => {
   const [firstName = "", lastName = ""] = name.split(" ");
-  return { id, firstName, lastName, positionIds, served, ...flags };
+  return { id, firstName, lastName, positionIds, served, upcoming, ...flags };
 };
-
-const weeks = (positionId: string, ...weeksAgo: number[]): DemoServed[] =>
-  weeksAgo.map((weeksAgoValue) => ({ weeksAgo: weeksAgoValue, positionId }));
 
 export const people: readonly DemoPerson[] = [
   person(
     "p01",
     "Taylor Lane",
     ["acoustic", "electric"],
-    weeks("acoustic", 5, 9)
+    [...weeks("acoustic", 3, 5, 9), ...rehearsals("acoustic", 3)],
+    { upcoming: ahead("electric", "confirmed", 2) }
   ),
   person(
     "p02",
     "Hayden Collins",
     ["acoustic", "tenor"],
-    [...weeks("acoustic", 4), ...weeks("tenor", 8)]
+    [
+      ...weeks("acoustic", 4),
+      ...weeks("tenor", 8),
+      ...rehearsals("acoustic", 4),
+    ]
   ),
-  person("p03", "Quinn Clark", ["acoustic"], weeks("acoustic", 2, 6)),
+  person("p03", "Quinn Clark", ["acoustic"], weeks("acoustic", 2, 6), {
+    upcoming: ahead("acoustic", "pending", 1),
+  }),
   person(
     "p04",
     "Frankie Turner",
     ["acoustic", "alto"],
-    weeks("acoustic", 1, 2, 3)
+    [...weeks("acoustic", 1, 2, 3), ...rehearsals("acoustic", 1, 2)],
+    { upcoming: ahead("alto", "confirmed", 1) }
   ),
   person("p05", "Robin Lane", ["acoustic", "keys"], weeks("keys", 3, 7), {
     blockedOut: true,
   }),
   person("p06", "Drew Scott", ["bass"], weeks("bass", 3, 7)),
   person("p07", "Kendall Evans", ["bass", "electric"], weeks("bass", 1, 2)),
-  person("p08", "Lane Parker", ["drums"], weeks("drums", 2, 4, 6)),
+  person("p08", "Lane Parker", ["drums"], weeks("drums", 2, 4, 6), {
+    upcoming: ahead("drums", "confirmed", 2),
+  }),
   person("p09", "Rowan Shaw", ["drums", "sound"], weeks("drums", 6, 11)),
   person("p10", "Kendall Cole", ["electric"], weeks("electric", 4, 8)),
   person("p11", "Avery Woods", ["electric", "acoustic"], weeks("electric", 1), {
@@ -249,8 +315,94 @@ export const planItems: readonly DemoPlanItem[] = [
     title: "Here With Us",
     kind: "song",
     detail: "Keys only",
-    songKey: "E",
     minutes: 4,
   },
   { id: "i11", title: "Benediction", kind: "item", minutes: 2 },
+];
+
+export const times: readonly DemoTime[] = [
+  {
+    id: "t1",
+    name: "Band rehearsal",
+    type: "rehearsal",
+    day: "Thu, Oct 8",
+    start: "7:00 PM",
+    end: "8:30 PM",
+    teams: 2,
+    positions: 8,
+    people: 7,
+  },
+  {
+    id: "t2",
+    name: "First service",
+    type: "service",
+    day: "Sun, Oct 11",
+    start: "9:00 AM",
+    end: "10:15 AM",
+    teams: 4,
+    positions: 11,
+    people: 9,
+  },
+  {
+    id: "t3",
+    name: "Second service",
+    type: "service",
+    day: "Sun, Oct 11",
+    start: "11:00 AM",
+    end: "12:15 PM",
+    teams: 4,
+    positions: 11,
+    people: 9,
+  },
+];
+
+export const songs: readonly DemoSong[] = [
+  {
+    id: "s1",
+    title: "Morning Light",
+    writers: "Ava Linden and Sam Okafor",
+    lastScheduled: "Sep 27, 2026",
+  },
+  {
+    id: "s2",
+    title: "Steady Ground",
+    writers: "Noor Hadley",
+    lastScheduled: "Sep 20, 2026",
+  },
+  {
+    id: "s3",
+    title: "Open Doors",
+    writers: "Beck Marlow, Ines Calder, and Tobias Reed",
+    lastScheduled: "Sep 13, 2026",
+  },
+  {
+    id: "s4",
+    title: "Here With Us",
+    writers: "Maren Voss",
+    lastScheduled: "Sep 6, 2026",
+  },
+  {
+    id: "s5",
+    title: "Lantern Hill",
+    writers: "Ines Calder and Jonah Pryce",
+    lastScheduled: "Aug 30, 2026",
+  },
+  {
+    id: "s6",
+    title: "Wide Open Sky",
+    writers: "Sam Okafor",
+    lastScheduled: "Aug 16, 2026",
+  },
+  {
+    id: "s7",
+    title: "Hold the Line",
+    writers: "Tobias Reed and Noor Hadley",
+    lastScheduled: "Jul 26, 2026",
+  },
+  {
+    id: "s8",
+    title: "Every Morning New",
+    writers: "Ava Linden",
+    lastScheduled: "Jul 5, 2026",
+  },
 ];
