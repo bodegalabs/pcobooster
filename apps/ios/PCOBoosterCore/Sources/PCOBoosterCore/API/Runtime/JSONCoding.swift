@@ -38,9 +38,22 @@ public enum JSONCoding {
     return try? Date(text, strategy: Date.ISO8601FormatStyle())
   }
 
-  /// `Date.toISOString()`: UTC with exactly three fractional digits.
+  /// `Date.toISOString()`: UTC with exactly three fractional digits. Rounds to
+  /// the nearest millisecond first: a decoded `...20.123Z` is stored as a
+  /// binary double just below .123, and the formatter truncates, so without
+  /// rounding the same instant would go back out as `.122Z` (and miss the
+  /// server cache keyed by that string).
   public static func isoString(_ date: Date) -> String {
-    date.formatted(
-      Date.ISO8601FormatStyle(includingFractionalSeconds: true, timeZone: TimeZone(identifier: "UTC")!))
+    let totalMilliseconds = Int64((date.timeIntervalSince1970 * 1000).rounded())
+    let (wholeSeconds, milliseconds) = floorDivision(totalMilliseconds, by: 1000)
+    let seconds = Date(timeIntervalSince1970: TimeInterval(wholeSeconds))
+      .formatted(Date.ISO8601FormatStyle(timeZone: .gmt))  // 2026-10-01T17:00:20Z
+    let fraction = String(milliseconds + 1000).dropFirst()  // zero-padded to 3 digits
+    return "\(seconds.dropLast()).\(fraction)Z"
+  }
+
+  private static func floorDivision(_ value: Int64, by divisor: Int64) -> (Int64, Int64) {
+    let remainder = ((value % divisor) + divisor) % divisor
+    return ((value - remainder) / divisor, remainder)
   }
 }

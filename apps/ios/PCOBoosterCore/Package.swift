@@ -20,7 +20,11 @@ let package = Package(
     .library(name: "PCOBoosterMock", targets: ["PCOBoosterMock"]),
   ],
   targets: [
-    .target(name: "PCOBoosterCore", swiftSettings: swiftSettings),
+    .target(
+      name: "PCOBoosterCore",
+      exclude: ["API/Generated/README.md", "Logic/README.md"],
+      swiftSettings: swiftSettings
+    ),
     .target(
       name: "PCOBoosterMock",
       dependencies: ["PCOBoosterCore"],

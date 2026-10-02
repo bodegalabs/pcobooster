@@ -20,6 +20,11 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>Colors/SurfaceCanvas</string>
+	</dict>
 	<key>PCOBAPIBaseURL</key>
 	<string>$(PCOB_API_BASE_URL)</string>
 	<key>PCOBEnvironment</key>
