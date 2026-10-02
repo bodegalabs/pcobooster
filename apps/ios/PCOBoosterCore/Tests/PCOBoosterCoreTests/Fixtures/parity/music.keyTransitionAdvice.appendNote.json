@@ -1,0 +1,117 @@
+{
+  "suite": "music.keyTransitionAdvice.appendNote",
+  "cases": [
+    {
+      "input": {
+        "notes": "  ",
+        "line": "Hold the A"
+      },
+      "output": "Hold the A"
+    },
+    {
+      "input": {
+        "notes": "Jamie leads\n",
+        "line": "Hold the A"
+      },
+      "output": "Jamie leads\nHold the A"
+    },
+    {
+      "input": {
+        "notes": "Jamie leads\nHold the A",
+        "line": "Hold the A"
+      },
+      "output": "Jamie leads\nHold the A"
+    },
+    {
+      "input": {
+        "notes": "",
+        "line": "Hold the A"
+      },
+      "output": "Hold the A"
+    },
+    {
+      "input": {
+        "notes": "",
+        "line": ""
+      },
+      "output": ""
+    },
+    {
+      "input": {
+        "notes": "Jamie",
+        "line": ""
+      },
+      "output": "Jamie"
+    },
+    {
+      "input": {
+        "notes": "Jamie leads \t\n\n",
+        "line": "Hold the A"
+      },
+      "output": "Jamie leads\nHold the A"
+    },
+    {
+      "input": {
+        "notes": " ﻿",
+        "line": "Pad"
+      },
+      "output": "Pad"
+    },
+    {
+      "input": {
+        "notes": "",
+        "line": "Pad"
+      },
+      "output": "\nPad"
+    },
+    {
+      "input": {
+        "notes": "Lead",
+        "line": "Pad"
+      },
+      "output": "Lead\nPad"
+    },
+    {
+      "input": {
+        "notes": "Lead ",
+        "line": "Pad"
+      },
+      "output": "Lead\nPad"
+    },
+    {
+      "input": {
+        "notes": "Hold the A (its third)",
+        "line": "Hold the A"
+      },
+      "output": "Hold the A (its third)"
+    },
+    {
+      "input": {
+        "notes": "é",
+        "line": "e"
+      },
+      "output": "é"
+    },
+    {
+      "input": {
+        "notes": "é",
+        "line": "é"
+      },
+      "output": "é\né"
+    },
+    {
+      "input": {
+        "notes": "Café\r\n",
+        "line": "Pad"
+      },
+      "output": "Café\nPad"
+    },
+    {
+      "input": {
+        "notes": "🙏 Pray",
+        "line": "🙏"
+      },
+      "output": "🙏 Pray"
+    }
+  ]
+}
