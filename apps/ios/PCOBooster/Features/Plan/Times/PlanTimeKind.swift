@@ -36,7 +36,7 @@ struct PlanTimeKind: Hashable {
   /// The row bar and timeline block fill.
   var tint: Color {
     switch type {
-    case .service: .chart3
+    case .service: .chart2
     case .rehearsal: .chart1
     case .other, .unknown: .inkTertiary
     }
@@ -65,9 +65,11 @@ enum TimeFacts {
     return trimmed.isEmpty ? PlanTimeKind(time.timeType).label : trimmed
   }
 
-  /// Whether the time has a name of its own (otherwise the type stands in for it).
-  static func hasName(_ time: PlanTime) -> Bool {
-    !time.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+  /// The time's name says no more than its type ("Rehearsal" for a rehearsal, or no name), so
+  /// the row shows the type once.
+  static func nameRepeatsType(_ time: PlanTime) -> Bool {
+    displayName(time).compare(PlanTimeKind(time.timeType).label, options: .caseInsensitive)
+      == .orderedSame
   }
 
   /// Still being created: shown, but not editable until the server assigns its id.

@@ -89,7 +89,7 @@ struct PlanTimeRow: View {
     }
     let kind = PlanTimeKind(time.timeType).label
     let length = TimeFacts.durationSeconds(time).map(TimeFacts.durationLabel(seconds:))
-    let parts = TimeFacts.hasName(time) ? [kind, length] : [length ?? "No end time"]
+    let parts = TimeFacts.nameRepeatsType(time) ? [length ?? "No end time"] : [kind, length]
     return parts.compactMap { $0 }.joined(separator: " \u{B7} ")
   }
 
@@ -130,16 +130,11 @@ struct PlanTimeRow: View {
     }
   }
 
+  /// Who serves at the time: a few faces and "+N" for the rest (the count is spoken).
   @ViewBuilder private func peopleBadge(_ people: [TimePersonOption]) -> some View {
     if !people.isEmpty {
-      HStack(spacing: Spacing.xs) {
-        TimesAvatarStack(people: people, limit: 3, size: .small)
-        Text(people.count, format: .number)
-          .font(.numericMeta)
-          .foregroundStyle(.inkSecondary)
-          .contentTransition(.numericText(value: Double(people.count)))
-      }
-      .fixedSize()
+      TimesAvatarStack(people: people, limit: 3, size: .small)
+        .fixedSize()
     }
   }
 
@@ -149,7 +144,7 @@ struct PlanTimeRow: View {
   /// 14 people".
   var spokenLabel: String {
     var parts = [TimeFacts.displayName(time)]
-    if TimeFacts.hasName(time) {
+    if !TimeFacts.nameRepeatsType(time) {
       parts.append(PlanTimeKind(time.timeType).label)
     }
     parts.append(TimeFacts.spokenRange(time, timeZone: timeZone))

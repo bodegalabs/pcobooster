@@ -20,6 +20,7 @@ struct PlanTimeEditorSheet: View {
   let onAdd: (EditablePlanTime) -> Void
 
   @State private var confirmingDelete = false
+  @FocusState private var nameFocused: Bool
 
   private var planTime: PlanTime? {
     editor.planTimeId.flatMap(model.time(id:))
@@ -44,29 +45,32 @@ struct PlanTimeEditorSheet: View {
 
   var body: some View {
     NavigationStack {
-      PlanTimeEditorForm(editor: editor, model: model, access: access, lockReason: lockReason)
-        .navigationTitle(editor.isCreating ? "Add time" : "Edit time")
-        .navigationSubtitle(Text(verbatim: subtitle))
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar { toolbar }
-        .safeAreaBar(edge: .bottom, spacing: 0) {
-          if hasActions {
-            BottomActionBar { actions }
-          }
+      PlanTimeEditorForm(
+        editor: editor, model: model, access: access, lockReason: lockReason,
+        nameFocused: $nameFocused
+      )
+      .navigationTitle(title)
+      .navigationSubtitle(Text(verbatim: subtitle))
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar { toolbar }
+      .safeAreaBar(edge: .bottom, spacing: 0) {
+        if showsActions {
+          BottomActionBar { actions }
         }
-        .confirmationDialog(
-          discardTitle, isPresented: $editor.isConfirmingDiscard, titleVisibility: .visible
-        ) {
-          Button(editor.isCreating ? "Discard time" : "Discard changes", role: .destructive) {
-            editor.discarded = true
-            onClose()
-          }
-          Button("Keep editing", role: .cancel) {}
-        } message: {
-          if !editor.isCreating, let message = editor.validationMessage {
-            Text(verbatim: message)
-          }
+      }
+      .confirmationDialog(
+        discardTitle, isPresented: $editor.isConfirmingDiscard, titleVisibility: .visible
+      ) {
+        Button(editor.isCreating ? "Discard time" : "Discard changes", role: .destructive) {
+          editor.discarded = true
+          onClose()
         }
+        Button("Keep editing", role: .cancel) {}
+      } message: {
+        if !editor.isCreating, let message = editor.validationMessage {
+          Text(verbatim: message)
+        }
+      }
     }
     .interactiveDismissDisabled(holdsDismiss)
     .onChange(of: model.groups) { _, groups in
@@ -78,8 +82,22 @@ struct PlanTimeEditorSheet: View {
     .accessibilityIdentifier(editor.isCreating ? "time-add-sheet" : "time-editor")
   }
 
+  /// "Add time", "Edit time", or just "Time" when the person can only look.
+  private var title: Text {
+    if editor.isCreating {
+      return Text("Add time")
+    }
+    return lockReason == nil ? Text("Edit time") : Text("Time")
+  }
+
   private var subtitle: String {
     TimeFacts.displayNameForDraft(editor.draft)
+  }
+
+  /// Delete steps aside while the name is being typed, so it never rides the keyboard; Add time
+  /// stays, as the one way to finish the add sheet.
+  private var showsActions: Bool {
+    hasActions && (editor.isCreating || !nameFocused)
   }
 
   private var discardTitle: Text {

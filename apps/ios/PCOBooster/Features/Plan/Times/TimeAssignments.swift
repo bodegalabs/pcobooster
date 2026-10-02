@@ -187,7 +187,8 @@ enum TimeAssignments {
   }
 
   /// The row's "who" line from the saved time: "All teams", "Band and Vocals", "4 teams", plus
-  /// position names or a count. Nil when the time names no teams or positions.
+  /// position names or a count, plus the plan slots tied to it. Nil when the time names no
+  /// teams, positions, or slots.
   static func rowSummary(_ time: PlanTime, groups: [TeamPositionGroup]?) -> String? {
     let groups = groups ?? []
     var parts: [String] = []
@@ -210,6 +211,15 @@ enum TimeAssignments {
       } else {
         parts.append(counted(positionIds.count, "position", "positions"))
       }
+    }
+    // Needed slots carry their time on the slot itself, not on the plan time.
+    let slots = groups.flatMap(\.positions).filter { position in
+      position.timeId == time.id && !(position.neededPositionId ?? "").isEmpty
+    }
+    if slots.count == 1, let slot = slots.first {
+      parts.append("\(slot.name) slot")
+    } else if slots.count > 1 {
+      parts.append(counted(slots.count, "plan slot", "plan slots"))
     }
     return parts.isEmpty ? nil : parts.joined(separator: " \u{B7} ")
   }

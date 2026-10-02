@@ -61,16 +61,33 @@ final class PlanTimeEditorModel: Identifiable {
   }
 
   /// The add form, prefilled from `template` (the plan's last time, or the time being
-  /// duplicated) or a new service at `now`, limited to the types the person may add.
+  /// duplicated), limited to the types the person may add. A plan without times starts a new
+  /// service on the plan's own day rather than today (the web starts at the current moment,
+  /// which for next Sunday's plan is the wrong day).
   convenience init(
-    adding template: [PlanTime], allowedTypes: [PlanTimeType], timeZone: String, now: Date
+    adding template: [PlanTime], allowedTypes: [PlanTimeType], planDate: Date?,
+    timeZone: String, now: Date
   ) {
-    var draft = buildDefaultNewPlanTimeEdit(template, timeZone: timeZone, now: now)
+    let start =
+      template.isEmpty
+      ? Self.emptyPlanStart(planDate: planDate, now: now, timeZone: timeZone) : now
+    var draft = buildDefaultNewPlanTimeEdit(template, timeZone: timeZone, now: start)
     if !allowedTypes.contains(draft.timeType), let fallback = allowedTypes.first {
       draft.timeType = fallback
       draft.name = PlanTimeKind(fallback).defaultNewName ?? draft.name
     }
     self.init(mode: .create, draft: draft, timeZone: timeZone)
+  }
+
+  /// Where a plan's first time starts: the plan's day in the organization's zone, at the plan's
+  /// time unless that is midnight (a date-only plan), else at the current wall time.
+  static func emptyPlanStart(planDate: Date?, now: Date, timeZone: String) -> Date {
+    guard let planDate else { return now }
+    let plan = OrgCalendar.wallTime(planDate, timeZone: timeZone)
+    guard plan.timeValue == "00:00" else { return planDate }
+    let clock = OrgCalendar.wallTime(now, timeZone: timeZone)
+    return OrgCalendar.utcInstant(
+      dateKey: plan.dateKey, timeValue: clock.timeValue, timeZone: timeZone) ?? planDate
   }
 
   // MARK: Validation
@@ -80,6 +97,17 @@ final class PlanTimeEditorModel: Identifiable {
   /// Why the form can't save, or nil when it can.
   var validationMessage: String? {
     isValid ? nil : invalidPlanTimeEditMessage(draft, timeZone: timeZone)
+  }
+
+  /// Which field the validation message belongs under, in the order the web checks them.
+  enum ValidationField {
+    case name
+    case when
+  }
+
+  var invalidField: ValidationField? {
+    guard !isValid else { return nil }
+    return draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .name : .when
   }
 
   /// Whether the draft differs from the saved time (edit) or the prefilled form (add).

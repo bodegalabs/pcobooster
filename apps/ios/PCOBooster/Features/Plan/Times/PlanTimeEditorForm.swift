@@ -10,8 +10,9 @@ struct PlanTimeEditorForm: View {
   let access: PlanTimesAccess
   /// Why this time can't change, or nil when it can.
   let lockReason: String?
-
-  @FocusState private var nameFocused: Bool
+  /// The name field's focus, owned by the sheet so it can tuck its bottom actions away while
+  /// the keyboard is up.
+  let nameFocused: FocusState<Bool>.Binding
 
   private var isEditable: Bool { lockReason == nil }
 
@@ -45,12 +46,16 @@ struct PlanTimeEditorForm: View {
       .font(.cardTitle)
       .foregroundStyle(.ink)
       .submitLabel(.done)
-      .focused($nameFocused)
-      .onSubmit { nameFocused = false }
+      .focused(nameFocused)
+      .onSubmit { nameFocused.wrappedValue = false }
       .disabled(!isEditable)
       .accessibilityIdentifier("time-name-field")
     } header: {
       SectionHeader("Name")
+    } footer: {
+      if editor.invalidField == .name, let message = editor.validationMessage {
+        TimeValidationMessage(message: message)
+      }
     }
     .cardRowBackground()
   }

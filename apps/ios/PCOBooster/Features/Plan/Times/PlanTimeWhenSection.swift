@@ -21,7 +21,6 @@ struct PlanTimeWhenSection: View {
       Toggle(isOn: $editor.hasEnd.animation(Motion.respecting(reduceMotion: reduceMotion, Motion.reveal))) {
         Text("End time")
       }
-      .tint(.inkFill)
       .accessibilityIdentifier("time-end-toggle")
 
       if editor.hasEnd {
@@ -48,15 +47,8 @@ struct PlanTimeWhenSection: View {
   }
 
   @ViewBuilder private var footer: some View {
-    if let message = editor.validationMessage {
-      Label {
-        Text(verbatim: message)
-      } icon: {
-        Image(symbol: .alert)
-      }
-      .font(.meta.weight(.medium))
-      .foregroundStyle(.destructive)
-      .accessibilityIdentifier("time-validation-message")
+    if editor.invalidField == .when, let message = editor.validationMessage {
+      TimeValidationMessage(message: message)
     } else {
       VStack(alignment: .leading, spacing: Spacing.xxs) {
         Text(verbatim: summary)
@@ -85,5 +77,21 @@ struct PlanTimeWhenSection: View {
       let name = zone.localizedName(for: .generic, locale: .current)
     else { return nil }
     return "Times are in \(name)."
+  }
+}
+
+/// Why the form can't save, under the field at fault. It stays until the field is fixed.
+struct TimeValidationMessage: View {
+  let message: String
+
+  var body: some View {
+    Label {
+      Text(verbatim: message)
+    } icon: {
+      Image(symbol: .alert)
+    }
+    .font(.meta.weight(.medium))
+    .foregroundStyle(.destructive)
+    .accessibilityIdentifier("time-validation-message")
   }
 }

@@ -4,6 +4,9 @@ import SwiftUI
 /// The context menu preview for a plan time: its name, type, and range in the organization's
 /// zone, who it is for, and the people serving at it, on a solid card.
 struct PlanTimePreviewCard: View {
+  /// Faces and names shown before "+N" and "and N more", the same for both so they agree.
+  private static let shownPeople = 6
+
   let time: PlanTime
   let groups: [TeamPositionGroup]?
   let timeZone: String
@@ -41,7 +44,7 @@ struct PlanTimePreviewCard: View {
       .foregroundStyle(.inkSecondary)
       if !people.isEmpty {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-          TimesAvatarStack(people: people, limit: 8, size: .regular)
+          TimesAvatarStack(people: people, limit: Self.shownPeople, size: .regular)
           Text(verbatim: names(people))
             .font(.meta)
             .foregroundStyle(.inkSecondary)
@@ -62,7 +65,7 @@ struct PlanTimePreviewCard: View {
   }
 
   private func names(_ people: [TimePersonOption]) -> String {
-    let shown = people.prefix(6).map(\.name)
+    let shown = people.prefix(Self.shownPeople).map(\.name)
     let rest = people.count - shown.count
     return rest > 0
       ? "\(shown.joined(separator: ", ")), and \(rest) more" : shown.formatted(.list(type: .and))

@@ -59,9 +59,10 @@ struct PlanTimesView: View {
         }
       }
       .sheet(item: editSheet) { editor in
+        // Full height: the form runs to assignments, and the zoom from the row hides its source,
+        // which a partial sheet would leave showing as an empty card.
         editorSheet(editor)
-          .presentationDetents([.medium, .large])
-          .presentationDragIndicator(.visible)
+          .presentationDetents([.large])
           .navigationTransition(.zoom(sourceID: editor.id, in: zoom))
       }
       .modifier(
@@ -170,6 +171,7 @@ struct PlanTimesView: View {
             DayTimelineTrack(
               times: day.times, timeZone: timeZone, selectedId: selectedId,
               onSelect: { open($0) })
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             .cardRowBackground()
           }
           ForEach(day.times) { time in
@@ -373,7 +375,8 @@ struct PlanTimesView: View {
       close(editor)
     }
     adder = PlanTimeEditorModel(
-      adding: template, allowedTypes: access.allowedTypes, timeZone: timeZone, now: clock.now)
+      adding: template, allowedTypes: access.allowedTypes, planDate: context.header?.sortDate,
+      timeZone: timeZone, now: clock.now)
   }
 
   /// Closes `form` and saves its draft (edits only, unless discarded).

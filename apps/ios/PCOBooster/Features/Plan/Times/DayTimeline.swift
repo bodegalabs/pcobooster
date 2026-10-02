@@ -130,6 +130,10 @@ struct DayTimelineLayout {
 /// A calm hour track for a day with more than one time: each time a block in its type's tint on
 /// a quiet rail, the turnaround between times labeled in the gap, and a few hour marks below.
 /// Tapping a block opens that time. VoiceOver reads the day as one sentence instead.
+///
+/// A glanceable summary: it grows with text up to the first accessibility size (cap it with
+/// `.dynamicTypeSize(...DynamicTypeSize.accessibility1)` where it is placed, so its scaled
+/// metrics stop too), and the rows below carry every fact at the largest sizes.
 struct DayTimelineTrack: View {
   let times: [PlanTime]
   let timeZone: String
@@ -137,6 +141,9 @@ struct DayTimelineTrack: View {
   let onSelect: (PlanTime) -> Void
 
   @ScaledMetric(relativeTo: .caption2) private var laneHeight: CGFloat = 22
+  /// The widest hour mark ("12 PM") at the current text size.
+  @ScaledMetric(relativeTo: .caption2) private var tickWidth: CGFloat = 40
+  @ScaledMetric(relativeTo: .caption2) private var tickRowHeight: CGFloat = 14
   @Environment(\.displayScale) private var displayScale
 
   private let laneSpacing: CGFloat = 3
@@ -179,12 +186,12 @@ struct DayTimelineTrack: View {
               .font(.caption2.monospacedDigit())
               .foregroundStyle(.inkTertiary)
               .fixedSize()
-              .frame(width: 56, alignment: alignment(for: tick.fraction))
+              .frame(width: tickSlot, alignment: alignment(for: tick.fraction))
               .offset(x: labelOffset(for: tick.fraction, width: width))
           }
         }
       }
-      .frame(height: 14)
+      .frame(height: tickRowHeight)
     }
     .padding(.vertical, Spacing.xs)
     .accessibilityElement(children: .ignore)
@@ -232,9 +239,13 @@ struct DayTimelineTrack: View {
     }
   }
 
-  /// Hours between marks, so labels about 44 pt wide never crowd.
+  /// The frame each hour mark centers in.
+  private var tickSlot: CGFloat { tickWidth + Spacing.md }
+
+  /// Hours between marks, so the labels never crowd.
   private func stepHours(width: CGFloat, hours: Int) -> Int {
-    for step in [1, 2, 3, 4, 6, 12] where width / CGFloat(max(hours, 1)) * CGFloat(step) >= 46 {
+    let needed = tickWidth + Spacing.sm
+    for step in [1, 2, 3, 4, 6, 12] where width / CGFloat(max(hours, 1)) * CGFloat(step) >= needed {
       return step
     }
     return 24
@@ -249,8 +260,8 @@ struct DayTimelineTrack: View {
   private func labelOffset(for fraction: Double, width: CGFloat) -> CGFloat {
     let x = fraction * width
     if fraction <= 0.001 { return 0 }
-    if fraction >= 0.999 { return x - 56 }
-    return x - 28
+    if fraction >= 0.999 { return x - tickSlot }
+    return x - tickSlot / 2
   }
 
   /// "9 AM Gathering 9:00 AM to 10:15 AM, then 45m free, then 11 AM Gathering 11:00 AM to
