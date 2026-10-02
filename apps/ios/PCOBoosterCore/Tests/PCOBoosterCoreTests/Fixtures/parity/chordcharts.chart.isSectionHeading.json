@@ -1,0 +1,1977 @@
+{
+  "suite": "chordcharts.chart.isSectionHeading",
+  "cases": [
+    {
+      "input": "intro",
+      "output": true
+    },
+    {
+      "input": "INTRO",
+      "output": true
+    },
+    {
+      "input": "Intro",
+      "output": true
+    },
+    {
+      "input": "verse",
+      "output": true
+    },
+    {
+      "input": "VERSE",
+      "output": true
+    },
+    {
+      "input": "Verse",
+      "output": true
+    },
+    {
+      "input": "pre-chorus",
+      "output": true
+    },
+    {
+      "input": "PRE-CHORUS",
+      "output": true
+    },
+    {
+      "input": "Pre-chorus",
+      "output": true
+    },
+    {
+      "input": "prechorus",
+      "output": true
+    },
+    {
+      "input": "PRECHORUS",
+      "output": true
+    },
+    {
+      "input": "Prechorus",
+      "output": true
+    },
+    {
+      "input": "pre chorus",
+      "output": true
+    },
+    {
+      "input": "PRE CHORUS",
+      "output": true
+    },
+    {
+      "input": "Pre chorus",
+      "output": true
+    },
+    {
+      "input": "chorus",
+      "output": true
+    },
+    {
+      "input": "CHORUS",
+      "output": true
+    },
+    {
+      "input": "Chorus",
+      "output": true
+    },
+    {
+      "input": "post-chorus",
+      "output": true
+    },
+    {
+      "input": "POST-CHORUS",
+      "output": true
+    },
+    {
+      "input": "Post-chorus",
+      "output": true
+    },
+    {
+      "input": "postchorus",
+      "output": true
+    },
+    {
+      "input": "POSTCHORUS",
+      "output": true
+    },
+    {
+      "input": "Postchorus",
+      "output": true
+    },
+    {
+      "input": "post chorus",
+      "output": true
+    },
+    {
+      "input": "POST CHORUS",
+      "output": true
+    },
+    {
+      "input": "Post chorus",
+      "output": true
+    },
+    {
+      "input": "refrain",
+      "output": true
+    },
+    {
+      "input": "REFRAIN",
+      "output": true
+    },
+    {
+      "input": "Refrain",
+      "output": true
+    },
+    {
+      "input": "bridge",
+      "output": true
+    },
+    {
+      "input": "BRIDGE",
+      "output": true
+    },
+    {
+      "input": "Bridge",
+      "output": true
+    },
+    {
+      "input": "tag",
+      "output": true
+    },
+    {
+      "input": "TAG",
+      "output": true
+    },
+    {
+      "input": "Tag",
+      "output": true
+    },
+    {
+      "input": "interlude",
+      "output": true
+    },
+    {
+      "input": "INTERLUDE",
+      "output": true
+    },
+    {
+      "input": "Interlude",
+      "output": true
+    },
+    {
+      "input": "instrumental",
+      "output": true
+    },
+    {
+      "input": "INSTRUMENTAL",
+      "output": true
+    },
+    {
+      "input": "Instrumental",
+      "output": true
+    },
+    {
+      "input": "turnaround",
+      "output": true
+    },
+    {
+      "input": "TURNAROUND",
+      "output": true
+    },
+    {
+      "input": "Turnaround",
+      "output": true
+    },
+    {
+      "input": "vamp",
+      "output": true
+    },
+    {
+      "input": "VAMP",
+      "output": true
+    },
+    {
+      "input": "Vamp",
+      "output": true
+    },
+    {
+      "input": "breakdown",
+      "output": true
+    },
+    {
+      "input": "BREAKDOWN",
+      "output": true
+    },
+    {
+      "input": "Breakdown",
+      "output": true
+    },
+    {
+      "input": "ending",
+      "output": true
+    },
+    {
+      "input": "ENDING",
+      "output": true
+    },
+    {
+      "input": "Ending",
+      "output": true
+    },
+    {
+      "input": "outro",
+      "output": true
+    },
+    {
+      "input": "OUTRO",
+      "output": true
+    },
+    {
+      "input": "Outro",
+      "output": true
+    },
+    {
+      "input": "coda",
+      "output": true
+    },
+    {
+      "input": "CODA",
+      "output": true
+    },
+    {
+      "input": "Coda",
+      "output": true
+    },
+    {
+      "input": "misc",
+      "output": true
+    },
+    {
+      "input": "MISC",
+      "output": true
+    },
+    {
+      "input": "Misc",
+      "output": true
+    },
+    {
+      "input": "spoken",
+      "output": true
+    },
+    {
+      "input": "SPOKEN",
+      "output": true
+    },
+    {
+      "input": "Spoken",
+      "output": true
+    },
+    {
+      "input": "solo",
+      "output": true
+    },
+    {
+      "input": "SOLO",
+      "output": true
+    },
+    {
+      "input": "Solo",
+      "output": true
+    },
+    {
+      "input": "rap",
+      "output": true
+    },
+    {
+      "input": "RAP",
+      "output": true
+    },
+    {
+      "input": "Rap",
+      "output": true
+    },
+    {
+      "input": "hook",
+      "output": true
+    },
+    {
+      "input": "HOOK",
+      "output": true
+    },
+    {
+      "input": "Hook",
+      "output": true
+    },
+    {
+      "input": "channel",
+      "output": true
+    },
+    {
+      "input": "CHANNEL",
+      "output": true
+    },
+    {
+      "input": "Channel",
+      "output": true
+    },
+    {
+      "input": "INTRO",
+      "output": true
+    },
+    {
+      "input": "INTRO 2a",
+      "output": true
+    },
+    {
+      "input": "INTROx2",
+      "output": true
+    },
+    {
+      "input": "INTRO X 4",
+      "output": true
+    },
+    {
+      "input": "INTRO 2 (x3) (soft)",
+      "output": true
+    },
+    {
+      "input": "INTRO 1:",
+      "output": true
+    },
+    {
+      "input": "INTRO 2b:",
+      "output": true
+    },
+    {
+      "input": "INTRO ()",
+      "output": true
+    },
+    {
+      "input": "INTRO (",
+      "output": false
+    },
+    {
+      "input": "INTRO ٣",
+      "output": false
+    },
+    {
+      "input": "INTRO",
+      "output": false
+    },
+    {
+      "input": "INTROs",
+      "output": false
+    },
+    {
+      "input": "INTRO x 2)",
+      "output": true
+    },
+    {
+      "input": "INTRO 2K",
+      "output": true
+    },
+    {
+      "input": "VERSE2",
+      "output": true
+    },
+    {
+      "input": "VERSE x2",
+      "output": true
+    },
+    {
+      "input": "VERSE(×3)",
+      "output": true
+    },
+    {
+      "input": "VERSE (softly)",
+      "output": true
+    },
+    {
+      "input": "VERSE :",
+      "output": true
+    },
+    {
+      "input": "VERSE 2 x2 (to bridge):",
+      "output": true
+    },
+    {
+      "input": "VERSE x2x",
+      "output": false
+    },
+    {
+      "input": "VERSE (a) (b)",
+      "output": false
+    },
+    {
+      "input": "VERSE 1 2",
+      "output": false
+    },
+    {
+      "input": "VERSE﻿",
+      "output": true
+    },
+    {
+      "input": "VERSE - 2",
+      "output": false
+    },
+    {
+      "input": "VERSE (x2",
+      "output": true
+    },
+    {
+      "input": "VERSE 2ſ",
+      "output": true
+    },
+    {
+      "input": "PRE-CHORUS 1",
+      "output": true
+    },
+    {
+      "input": "PRE-CHORUS 10B",
+      "output": true
+    },
+    {
+      "input": "PRE-CHORUS (x2)",
+      "output": true
+    },
+    {
+      "input": "PRE-CHORUS ( x 2 )",
+      "output": true
+    },
+    {
+      "input": "PRE-CHORUS:",
+      "output": true
+    },
+    {
+      "input": "PRE-CHORUS  ",
+      "output": true
+    },
+    {
+      "input": "PRE-CHORUS 2bb",
+      "output": false
+    },
+    {
+      "input": "PRE-CHORUS (a)(b)",
+      "output": false
+    },
+    {
+      "input": "PRE-CHORUS (x)",
+      "output": true
+    },
+    {
+      "input": "PRE-CHORUS 1",
+      "output": true
+    },
+    {
+      "input": "PRE-CHORUS ::",
+      "output": false
+    },
+    {
+      "input": "PRE-CHORUS 2 (",
+      "output": false
+    },
+    {
+      "input": "PRE-CHORUS(2)",
+      "output": true
+    },
+    {
+      "input": "PRECHORUS",
+      "output": true
+    },
+    {
+      "input": "PRECHORUS 2a",
+      "output": true
+    },
+    {
+      "input": "PRECHORUSx2",
+      "output": true
+    },
+    {
+      "input": "PRECHORUS X 4",
+      "output": true
+    },
+    {
+      "input": "PRECHORUS 2 (x3) (soft)",
+      "output": true
+    },
+    {
+      "input": "PRECHORUS 1:",
+      "output": true
+    },
+    {
+      "input": "PRECHORUS 2b:",
+      "output": true
+    },
+    {
+      "input": "PRECHORUS ()",
+      "output": true
+    },
+    {
+      "input": "PRECHORUS (",
+      "output": false
+    },
+    {
+      "input": "PRECHORUS ٣",
+      "output": false
+    },
+    {
+      "input": "PRECHORUS",
+      "output": false
+    },
+    {
+      "input": "PRECHORUSs",
+      "output": false
+    },
+    {
+      "input": "PRECHORUS x 2)",
+      "output": true
+    },
+    {
+      "input": "PRECHORUS 2K",
+      "output": true
+    },
+    {
+      "input": "PRE CHORUS2",
+      "output": true
+    },
+    {
+      "input": "PRE CHORUS x2",
+      "output": true
+    },
+    {
+      "input": "PRE CHORUS(×3)",
+      "output": true
+    },
+    {
+      "input": "PRE CHORUS (softly)",
+      "output": true
+    },
+    {
+      "input": "PRE CHORUS :",
+      "output": true
+    },
+    {
+      "input": "PRE CHORUS 2 x2 (to bridge):",
+      "output": true
+    },
+    {
+      "input": "PRE CHORUS x2x",
+      "output": false
+    },
+    {
+      "input": "PRE CHORUS (a) (b)",
+      "output": false
+    },
+    {
+      "input": "PRE CHORUS 1 2",
+      "output": false
+    },
+    {
+      "input": "PRE CHORUS﻿",
+      "output": true
+    },
+    {
+      "input": "PRE CHORUS - 2",
+      "output": false
+    },
+    {
+      "input": "PRE CHORUS (x2",
+      "output": true
+    },
+    {
+      "input": "PRE CHORUS 2ſ",
+      "output": true
+    },
+    {
+      "input": "CHORUS 1",
+      "output": true
+    },
+    {
+      "input": "CHORUS 10B",
+      "output": true
+    },
+    {
+      "input": "CHORUS (x2)",
+      "output": true
+    },
+    {
+      "input": "CHORUS ( x 2 )",
+      "output": true
+    },
+    {
+      "input": "CHORUS:",
+      "output": true
+    },
+    {
+      "input": "CHORUS  ",
+      "output": true
+    },
+    {
+      "input": "CHORUS 2bb",
+      "output": false
+    },
+    {
+      "input": "CHORUS (a)(b)",
+      "output": false
+    },
+    {
+      "input": "CHORUS (x)",
+      "output": true
+    },
+    {
+      "input": "CHORUS 1",
+      "output": true
+    },
+    {
+      "input": "CHORUS ::",
+      "output": false
+    },
+    {
+      "input": "CHORUS 2 (",
+      "output": false
+    },
+    {
+      "input": "CHORUS(2)",
+      "output": true
+    },
+    {
+      "input": "POST-CHORUS",
+      "output": true
+    },
+    {
+      "input": "POST-CHORUS 2a",
+      "output": true
+    },
+    {
+      "input": "POST-CHORUSx2",
+      "output": true
+    },
+    {
+      "input": "POST-CHORUS X 4",
+      "output": true
+    },
+    {
+      "input": "POST-CHORUS 2 (x3) (soft)",
+      "output": true
+    },
+    {
+      "input": "POST-CHORUS 1:",
+      "output": true
+    },
+    {
+      "input": "POST-CHORUS 2b:",
+      "output": true
+    },
+    {
+      "input": "POST-CHORUS ()",
+      "output": true
+    },
+    {
+      "input": "POST-CHORUS (",
+      "output": false
+    },
+    {
+      "input": "POST-CHORUS ٣",
+      "output": false
+    },
+    {
+      "input": "POST-CHORUS",
+      "output": false
+    },
+    {
+      "input": "POST-CHORUSs",
+      "output": false
+    },
+    {
+      "input": "POST-CHORUS x 2)",
+      "output": true
+    },
+    {
+      "input": "POST-CHORUS 2K",
+      "output": true
+    },
+    {
+      "input": "POSTCHORUS2",
+      "output": true
+    },
+    {
+      "input": "POSTCHORUS x2",
+      "output": true
+    },
+    {
+      "input": "POSTCHORUS(×3)",
+      "output": true
+    },
+    {
+      "input": "POSTCHORUS (softly)",
+      "output": true
+    },
+    {
+      "input": "POSTCHORUS :",
+      "output": true
+    },
+    {
+      "input": "POSTCHORUS 2 x2 (to bridge):",
+      "output": true
+    },
+    {
+      "input": "POSTCHORUS x2x",
+      "output": false
+    },
+    {
+      "input": "POSTCHORUS (a) (b)",
+      "output": false
+    },
+    {
+      "input": "POSTCHORUS 1 2",
+      "output": false
+    },
+    {
+      "input": "POSTCHORUS﻿",
+      "output": true
+    },
+    {
+      "input": "POSTCHORUS - 2",
+      "output": false
+    },
+    {
+      "input": "POSTCHORUS (x2",
+      "output": true
+    },
+    {
+      "input": "POSTCHORUS 2ſ",
+      "output": true
+    },
+    {
+      "input": "POST CHORUS 1",
+      "output": true
+    },
+    {
+      "input": "POST CHORUS 10B",
+      "output": true
+    },
+    {
+      "input": "POST CHORUS (x2)",
+      "output": true
+    },
+    {
+      "input": "POST CHORUS ( x 2 )",
+      "output": true
+    },
+    {
+      "input": "POST CHORUS:",
+      "output": true
+    },
+    {
+      "input": "POST CHORUS  ",
+      "output": true
+    },
+    {
+      "input": "POST CHORUS 2bb",
+      "output": false
+    },
+    {
+      "input": "POST CHORUS (a)(b)",
+      "output": false
+    },
+    {
+      "input": "POST CHORUS (x)",
+      "output": true
+    },
+    {
+      "input": "POST CHORUS 1",
+      "output": true
+    },
+    {
+      "input": "POST CHORUS ::",
+      "output": false
+    },
+    {
+      "input": "POST CHORUS 2 (",
+      "output": false
+    },
+    {
+      "input": "POST CHORUS(2)",
+      "output": true
+    },
+    {
+      "input": "REFRAIN",
+      "output": true
+    },
+    {
+      "input": "REFRAIN 2a",
+      "output": true
+    },
+    {
+      "input": "REFRAINx2",
+      "output": true
+    },
+    {
+      "input": "REFRAIN X 4",
+      "output": true
+    },
+    {
+      "input": "REFRAIN 2 (x3) (soft)",
+      "output": true
+    },
+    {
+      "input": "REFRAIN 1:",
+      "output": true
+    },
+    {
+      "input": "REFRAIN 2b:",
+      "output": true
+    },
+    {
+      "input": "REFRAIN ()",
+      "output": true
+    },
+    {
+      "input": "REFRAIN (",
+      "output": false
+    },
+    {
+      "input": "REFRAIN ٣",
+      "output": false
+    },
+    {
+      "input": "REFRAIN",
+      "output": false
+    },
+    {
+      "input": "REFRAINs",
+      "output": false
+    },
+    {
+      "input": "REFRAIN x 2)",
+      "output": true
+    },
+    {
+      "input": "REFRAIN 2K",
+      "output": true
+    },
+    {
+      "input": "BRIDGE2",
+      "output": true
+    },
+    {
+      "input": "BRIDGE x2",
+      "output": true
+    },
+    {
+      "input": "BRIDGE(×3)",
+      "output": true
+    },
+    {
+      "input": "BRIDGE (softly)",
+      "output": true
+    },
+    {
+      "input": "BRIDGE :",
+      "output": true
+    },
+    {
+      "input": "BRIDGE 2 x2 (to bridge):",
+      "output": true
+    },
+    {
+      "input": "BRIDGE x2x",
+      "output": false
+    },
+    {
+      "input": "BRIDGE (a) (b)",
+      "output": false
+    },
+    {
+      "input": "BRIDGE 1 2",
+      "output": false
+    },
+    {
+      "input": "BRIDGE﻿",
+      "output": true
+    },
+    {
+      "input": "BRIDGE - 2",
+      "output": false
+    },
+    {
+      "input": "BRIDGE (x2",
+      "output": true
+    },
+    {
+      "input": "BRIDGE 2ſ",
+      "output": true
+    },
+    {
+      "input": "TAG 1",
+      "output": true
+    },
+    {
+      "input": "TAG 10B",
+      "output": true
+    },
+    {
+      "input": "TAG (x2)",
+      "output": true
+    },
+    {
+      "input": "TAG ( x 2 )",
+      "output": true
+    },
+    {
+      "input": "TAG:",
+      "output": true
+    },
+    {
+      "input": "TAG  ",
+      "output": true
+    },
+    {
+      "input": "TAG 2bb",
+      "output": false
+    },
+    {
+      "input": "TAG (a)(b)",
+      "output": false
+    },
+    {
+      "input": "TAG (x)",
+      "output": true
+    },
+    {
+      "input": "TAG 1",
+      "output": true
+    },
+    {
+      "input": "TAG ::",
+      "output": false
+    },
+    {
+      "input": "TAG 2 (",
+      "output": false
+    },
+    {
+      "input": "TAG(2)",
+      "output": true
+    },
+    {
+      "input": "INTERLUDE",
+      "output": true
+    },
+    {
+      "input": "INTERLUDE 2a",
+      "output": true
+    },
+    {
+      "input": "INTERLUDEx2",
+      "output": true
+    },
+    {
+      "input": "INTERLUDE X 4",
+      "output": true
+    },
+    {
+      "input": "INTERLUDE 2 (x3) (soft)",
+      "output": true
+    },
+    {
+      "input": "INTERLUDE 1:",
+      "output": true
+    },
+    {
+      "input": "INTERLUDE 2b:",
+      "output": true
+    },
+    {
+      "input": "INTERLUDE ()",
+      "output": true
+    },
+    {
+      "input": "INTERLUDE (",
+      "output": false
+    },
+    {
+      "input": "INTERLUDE ٣",
+      "output": false
+    },
+    {
+      "input": "INTERLUDE",
+      "output": false
+    },
+    {
+      "input": "INTERLUDEs",
+      "output": false
+    },
+    {
+      "input": "INTERLUDE x 2)",
+      "output": true
+    },
+    {
+      "input": "INTERLUDE 2K",
+      "output": true
+    },
+    {
+      "input": "INSTRUMENTAL2",
+      "output": true
+    },
+    {
+      "input": "INSTRUMENTAL x2",
+      "output": true
+    },
+    {
+      "input": "INSTRUMENTAL(×3)",
+      "output": true
+    },
+    {
+      "input": "INSTRUMENTAL (softly)",
+      "output": true
+    },
+    {
+      "input": "INSTRUMENTAL :",
+      "output": true
+    },
+    {
+      "input": "INSTRUMENTAL 2 x2 (to bridge):",
+      "output": true
+    },
+    {
+      "input": "INSTRUMENTAL x2x",
+      "output": false
+    },
+    {
+      "input": "INSTRUMENTAL (a) (b)",
+      "output": false
+    },
+    {
+      "input": "INSTRUMENTAL 1 2",
+      "output": false
+    },
+    {
+      "input": "INSTRUMENTAL﻿",
+      "output": true
+    },
+    {
+      "input": "INSTRUMENTAL - 2",
+      "output": false
+    },
+    {
+      "input": "INSTRUMENTAL (x2",
+      "output": true
+    },
+    {
+      "input": "INSTRUMENTAL 2ſ",
+      "output": true
+    },
+    {
+      "input": "TURNAROUND 1",
+      "output": true
+    },
+    {
+      "input": "TURNAROUND 10B",
+      "output": true
+    },
+    {
+      "input": "TURNAROUND (x2)",
+      "output": true
+    },
+    {
+      "input": "TURNAROUND ( x 2 )",
+      "output": true
+    },
+    {
+      "input": "TURNAROUND:",
+      "output": true
+    },
+    {
+      "input": "TURNAROUND  ",
+      "output": true
+    },
+    {
+      "input": "TURNAROUND 2bb",
+      "output": false
+    },
+    {
+      "input": "TURNAROUND (a)(b)",
+      "output": false
+    },
+    {
+      "input": "TURNAROUND (x)",
+      "output": true
+    },
+    {
+      "input": "TURNAROUND 1",
+      "output": true
+    },
+    {
+      "input": "TURNAROUND ::",
+      "output": false
+    },
+    {
+      "input": "TURNAROUND 2 (",
+      "output": false
+    },
+    {
+      "input": "TURNAROUND(2)",
+      "output": true
+    },
+    {
+      "input": "VAMP",
+      "output": true
+    },
+    {
+      "input": "VAMP 2a",
+      "output": true
+    },
+    {
+      "input": "VAMPx2",
+      "output": true
+    },
+    {
+      "input": "VAMP X 4",
+      "output": true
+    },
+    {
+      "input": "VAMP 2 (x3) (soft)",
+      "output": true
+    },
+    {
+      "input": "VAMP 1:",
+      "output": true
+    },
+    {
+      "input": "VAMP 2b:",
+      "output": true
+    },
+    {
+      "input": "VAMP ()",
+      "output": true
+    },
+    {
+      "input": "VAMP (",
+      "output": false
+    },
+    {
+      "input": "VAMP ٣",
+      "output": false
+    },
+    {
+      "input": "VAMP",
+      "output": false
+    },
+    {
+      "input": "VAMPs",
+      "output": false
+    },
+    {
+      "input": "VAMP x 2)",
+      "output": true
+    },
+    {
+      "input": "VAMP 2K",
+      "output": true
+    },
+    {
+      "input": "BREAKDOWN2",
+      "output": true
+    },
+    {
+      "input": "BREAKDOWN x2",
+      "output": true
+    },
+    {
+      "input": "BREAKDOWN(×3)",
+      "output": true
+    },
+    {
+      "input": "BREAKDOWN (softly)",
+      "output": true
+    },
+    {
+      "input": "BREAKDOWN :",
+      "output": true
+    },
+    {
+      "input": "BREAKDOWN 2 x2 (to bridge):",
+      "output": true
+    },
+    {
+      "input": "BREAKDOWN x2x",
+      "output": false
+    },
+    {
+      "input": "BREAKDOWN (a) (b)",
+      "output": false
+    },
+    {
+      "input": "BREAKDOWN 1 2",
+      "output": false
+    },
+    {
+      "input": "BREAKDOWN﻿",
+      "output": true
+    },
+    {
+      "input": "BREAKDOWN - 2",
+      "output": false
+    },
+    {
+      "input": "BREAKDOWN (x2",
+      "output": true
+    },
+    {
+      "input": "BREAKDOWN 2ſ",
+      "output": true
+    },
+    {
+      "input": "ENDING 1",
+      "output": true
+    },
+    {
+      "input": "ENDING 10B",
+      "output": true
+    },
+    {
+      "input": "ENDING (x2)",
+      "output": true
+    },
+    {
+      "input": "ENDING ( x 2 )",
+      "output": true
+    },
+    {
+      "input": "ENDING:",
+      "output": true
+    },
+    {
+      "input": "ENDING  ",
+      "output": true
+    },
+    {
+      "input": "ENDING 2bb",
+      "output": false
+    },
+    {
+      "input": "ENDING (a)(b)",
+      "output": false
+    },
+    {
+      "input": "ENDING (x)",
+      "output": true
+    },
+    {
+      "input": "ENDING 1",
+      "output": true
+    },
+    {
+      "input": "ENDING ::",
+      "output": false
+    },
+    {
+      "input": "ENDING 2 (",
+      "output": false
+    },
+    {
+      "input": "ENDING(2)",
+      "output": true
+    },
+    {
+      "input": "OUTRO",
+      "output": true
+    },
+    {
+      "input": "OUTRO 2a",
+      "output": true
+    },
+    {
+      "input": "OUTROx2",
+      "output": true
+    },
+    {
+      "input": "OUTRO X 4",
+      "output": true
+    },
+    {
+      "input": "OUTRO 2 (x3) (soft)",
+      "output": true
+    },
+    {
+      "input": "OUTRO 1:",
+      "output": true
+    },
+    {
+      "input": "OUTRO 2b:",
+      "output": true
+    },
+    {
+      "input": "OUTRO ()",
+      "output": true
+    },
+    {
+      "input": "OUTRO (",
+      "output": false
+    },
+    {
+      "input": "OUTRO ٣",
+      "output": false
+    },
+    {
+      "input": "OUTRO",
+      "output": false
+    },
+    {
+      "input": "OUTROs",
+      "output": false
+    },
+    {
+      "input": "OUTRO x 2)",
+      "output": true
+    },
+    {
+      "input": "OUTRO 2K",
+      "output": true
+    },
+    {
+      "input": "CODA2",
+      "output": true
+    },
+    {
+      "input": "CODA x2",
+      "output": true
+    },
+    {
+      "input": "CODA(×3)",
+      "output": true
+    },
+    {
+      "input": "CODA (softly)",
+      "output": true
+    },
+    {
+      "input": "CODA :",
+      "output": true
+    },
+    {
+      "input": "CODA 2 x2 (to bridge):",
+      "output": true
+    },
+    {
+      "input": "CODA x2x",
+      "output": false
+    },
+    {
+      "input": "CODA (a) (b)",
+      "output": false
+    },
+    {
+      "input": "CODA 1 2",
+      "output": false
+    },
+    {
+      "input": "CODA﻿",
+      "output": true
+    },
+    {
+      "input": "CODA - 2",
+      "output": false
+    },
+    {
+      "input": "CODA (x2",
+      "output": true
+    },
+    {
+      "input": "CODA 2ſ",
+      "output": true
+    },
+    {
+      "input": "MISC 1",
+      "output": true
+    },
+    {
+      "input": "MISC 10B",
+      "output": true
+    },
+    {
+      "input": "MISC (x2)",
+      "output": true
+    },
+    {
+      "input": "MISC ( x 2 )",
+      "output": true
+    },
+    {
+      "input": "MISC:",
+      "output": true
+    },
+    {
+      "input": "MISC  ",
+      "output": true
+    },
+    {
+      "input": "MISC 2bb",
+      "output": false
+    },
+    {
+      "input": "MISC (a)(b)",
+      "output": false
+    },
+    {
+      "input": "MISC (x)",
+      "output": true
+    },
+    {
+      "input": "MISC 1",
+      "output": true
+    },
+    {
+      "input": "MISC ::",
+      "output": false
+    },
+    {
+      "input": "MISC 2 (",
+      "output": false
+    },
+    {
+      "input": "MISC(2)",
+      "output": true
+    },
+    {
+      "input": "SPOKEN",
+      "output": true
+    },
+    {
+      "input": "SPOKEN 2a",
+      "output": true
+    },
+    {
+      "input": "SPOKENx2",
+      "output": true
+    },
+    {
+      "input": "SPOKEN X 4",
+      "output": true
+    },
+    {
+      "input": "SPOKEN 2 (x3) (soft)",
+      "output": true
+    },
+    {
+      "input": "SPOKEN 1:",
+      "output": true
+    },
+    {
+      "input": "SPOKEN 2b:",
+      "output": true
+    },
+    {
+      "input": "SPOKEN ()",
+      "output": true
+    },
+    {
+      "input": "SPOKEN (",
+      "output": false
+    },
+    {
+      "input": "SPOKEN ٣",
+      "output": false
+    },
+    {
+      "input": "SPOKEN",
+      "output": false
+    },
+    {
+      "input": "SPOKENs",
+      "output": false
+    },
+    {
+      "input": "SPOKEN x 2)",
+      "output": true
+    },
+    {
+      "input": "SPOKEN 2K",
+      "output": true
+    },
+    {
+      "input": "SOLO2",
+      "output": true
+    },
+    {
+      "input": "SOLO x2",
+      "output": true
+    },
+    {
+      "input": "SOLO(×3)",
+      "output": true
+    },
+    {
+      "input": "SOLO (softly)",
+      "output": true
+    },
+    {
+      "input": "SOLO :",
+      "output": true
+    },
+    {
+      "input": "SOLO 2 x2 (to bridge):",
+      "output": true
+    },
+    {
+      "input": "SOLO x2x",
+      "output": false
+    },
+    {
+      "input": "SOLO (a) (b)",
+      "output": false
+    },
+    {
+      "input": "SOLO 1 2",
+      "output": false
+    },
+    {
+      "input": "SOLO﻿",
+      "output": true
+    },
+    {
+      "input": "SOLO - 2",
+      "output": false
+    },
+    {
+      "input": "SOLO (x2",
+      "output": true
+    },
+    {
+      "input": "SOLO 2ſ",
+      "output": true
+    },
+    {
+      "input": "RAP 1",
+      "output": true
+    },
+    {
+      "input": "RAP 10B",
+      "output": true
+    },
+    {
+      "input": "RAP (x2)",
+      "output": true
+    },
+    {
+      "input": "RAP ( x 2 )",
+      "output": true
+    },
+    {
+      "input": "RAP:",
+      "output": true
+    },
+    {
+      "input": "RAP  ",
+      "output": true
+    },
+    {
+      "input": "RAP 2bb",
+      "output": false
+    },
+    {
+      "input": "RAP (a)(b)",
+      "output": false
+    },
+    {
+      "input": "RAP (x)",
+      "output": true
+    },
+    {
+      "input": "RAP 1",
+      "output": true
+    },
+    {
+      "input": "RAP ::",
+      "output": false
+    },
+    {
+      "input": "RAP 2 (",
+      "output": false
+    },
+    {
+      "input": "RAP(2)",
+      "output": true
+    },
+    {
+      "input": "HOOK",
+      "output": true
+    },
+    {
+      "input": "HOOK 2a",
+      "output": true
+    },
+    {
+      "input": "HOOKx2",
+      "output": true
+    },
+    {
+      "input": "HOOK X 4",
+      "output": true
+    },
+    {
+      "input": "HOOK 2 (x3) (soft)",
+      "output": true
+    },
+    {
+      "input": "HOOK 1:",
+      "output": true
+    },
+    {
+      "input": "HOOK 2b:",
+      "output": true
+    },
+    {
+      "input": "HOOK ()",
+      "output": true
+    },
+    {
+      "input": "HOOK (",
+      "output": false
+    },
+    {
+      "input": "HOOK ٣",
+      "output": false
+    },
+    {
+      "input": "HOOK",
+      "output": false
+    },
+    {
+      "input": "HOOKs",
+      "output": false
+    },
+    {
+      "input": "HOOK x 2)",
+      "output": true
+    },
+    {
+      "input": "HOOK 2K",
+      "output": true
+    },
+    {
+      "input": "CHANNEL2",
+      "output": true
+    },
+    {
+      "input": "CHANNEL x2",
+      "output": true
+    },
+    {
+      "input": "CHANNEL(×3)",
+      "output": true
+    },
+    {
+      "input": "CHANNEL (softly)",
+      "output": true
+    },
+    {
+      "input": "CHANNEL :",
+      "output": true
+    },
+    {
+      "input": "CHANNEL 2 x2 (to bridge):",
+      "output": true
+    },
+    {
+      "input": "CHANNEL x2x",
+      "output": false
+    },
+    {
+      "input": "CHANNEL (a) (b)",
+      "output": false
+    },
+    {
+      "input": "CHANNEL 1 2",
+      "output": false
+    },
+    {
+      "input": "CHANNEL﻿",
+      "output": true
+    },
+    {
+      "input": "CHANNEL - 2",
+      "output": false
+    },
+    {
+      "input": "CHANNEL (x2",
+      "output": true
+    },
+    {
+      "input": "CHANNEL 2ſ",
+      "output": true
+    },
+    {
+      "input": "Chorus",
+      "output": true
+    },
+    {
+      "input": "Chorus 1",
+      "output": true
+    },
+    {
+      "input": "Chorus2",
+      "output": true
+    },
+    {
+      "input": "Chorus 2a",
+      "output": true
+    },
+    {
+      "input": "Chorus 10B",
+      "output": true
+    },
+    {
+      "input": "Chorus x2",
+      "output": true
+    },
+    {
+      "input": "Chorusx2",
+      "output": true
+    },
+    {
+      "input": "Chorus (x2)",
+      "output": true
+    },
+    {
+      "input": "Chorus(×3)",
+      "output": true
+    },
+    {
+      "input": "Chorus X 4",
+      "output": true
+    },
+    {
+      "input": "Chorus ( x 2 )",
+      "output": true
+    },
+    {
+      "input": "Chorus (softly)",
+      "output": true
+    },
+    {
+      "input": "Chorus 2 (x3) (soft)",
+      "output": true
+    },
+    {
+      "input": "Chorus:",
+      "output": true
+    },
+    {
+      "input": "Chorus :",
+      "output": true
+    },
+    {
+      "input": "Chorus 1:",
+      "output": true
+    },
+    {
+      "input": "Chorus  ",
+      "output": true
+    },
+    {
+      "input": "Chorus 2 x2 (to bridge):",
+      "output": true
+    },
+    {
+      "input": "Chorus 2b:",
+      "output": true
+    },
+    {
+      "input": "Chorus 2bb",
+      "output": false
+    },
+    {
+      "input": "Chorus x2x",
+      "output": false
+    },
+    {
+      "input": "Chorus ()",
+      "output": true
+    },
+    {
+      "input": "Chorus (a)(b)",
+      "output": false
+    },
+    {
+      "input": "Chorus (a) (b)",
+      "output": false
+    },
+    {
+      "input": "Chorus (",
+      "output": false
+    },
+    {
+      "input": "Chorus (x)",
+      "output": true
+    },
+    {
+      "input": "Chorus 1 2",
+      "output": false
+    },
+    {
+      "input": "Chorus ٣",
+      "output": false
+    },
+    {
+      "input": "Chorus 1",
+      "output": true
+    },
+    {
+      "input": "Chorus﻿",
+      "output": true
+    },
+    {
+      "input": "Chorus",
+      "output": false
+    },
+    {
+      "input": "Chorus ::",
+      "output": false
+    },
+    {
+      "input": "Chorus - 2",
+      "output": false
+    },
+    {
+      "input": "Choruss",
+      "output": false
+    },
+    {
+      "input": "Chorus 2 (",
+      "output": false
+    },
+    {
+      "input": "Chorus (x2",
+      "output": true
+    },
+    {
+      "input": "Chorus x 2)",
+      "output": true
+    },
+    {
+      "input": "Chorus(2)",
+      "output": true
+    },
+    {
+      "input": "Chorus 2ſ",
+      "output": true
+    },
+    {
+      "input": "Chorus 2K",
+      "output": true
+    },
+    {
+      "input": "VERSE 1",
+      "output": true
+    },
+    {
+      "input": "Chorus",
+      "output": true
+    },
+    {
+      "input": "PRE-CHORUS",
+      "output": true
+    },
+    {
+      "input": "Bridge 2:",
+      "output": true
+    },
+    {
+      "input": "TAG (x2)",
+      "output": true
+    },
+    {
+      "input": "CHORUS 2x",
+      "output": true
+    },
+    {
+      "input": "INSTRUMENTAL",
+      "output": true
+    },
+    {
+      "input": "Verse of my life",
+      "output": false
+    },
+    {
+      "input": "Amazing grace",
+      "output": false
+    },
+    {
+      "input": "[G]Chorus",
+      "output": false
+    },
+    {
+      "input": "Choruses",
+      "output": false
+    },
+    {
+      "input": "Verse1a1",
+      "output": false
+    },
+    {
+      "input": "Tagline",
+      "output": false
+    },
+    {
+      "input": "pre  chorus",
+      "output": false
+    },
+    {
+      "input": "Pre‐Chorus",
+      "output": false
+    },
+    {
+      "input": "ſolo",
+      "output": true
+    },
+    {
+      "input": "hooK",
+      "output": true
+    },
+    {
+      "input": "VERſE 2",
+      "output": true
+    },
+    {
+      "input": "  Chorus  ",
+      "output": true
+    },
+    {
+      "input": " Chorus ",
+      "output": true
+    },
+    {
+      "input": "Chorus",
+      "output": false
+    },
+    {
+      "input": "",
+      "output": false
+    },
+    {
+      "input": " ",
+      "output": false
+    },
+    {
+      "input": ":",
+      "output": false
+    },
+    {
+      "input": "Chorus [x2]",
+      "output": false
+    },
+    {
+      "input": "Verse (Chorus [G])",
+      "output": false
+    },
+    {
+      "input": "İntro",
+      "output": false
+    },
+    {
+      "input": "ıntro",
+      "output": false
+    }
+  ]
+}

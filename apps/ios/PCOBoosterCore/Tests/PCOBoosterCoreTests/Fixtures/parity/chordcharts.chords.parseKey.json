@@ -1,0 +1,1437 @@
+{
+  "suite": "chordcharts.chords.parseKey",
+  "cases": [
+    {
+      "input": "C",
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": "Db",
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": "D",
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": "Eb",
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": "E",
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": "F",
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": "F#",
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": "G",
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": "Ab",
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": "A",
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": "Bb",
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": "B",
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": "Cm",
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": "C#m",
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": "Dm",
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": "Ebm",
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": "Em",
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": "Fm",
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": "F#m",
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": "Gm",
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": "G#m",
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": "Am",
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": "Bbm",
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": "Bm",
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": "C",
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": "Cm",
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": "Cmin",
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": "C-",
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": "C#",
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": "C#m",
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": "C#min",
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": "C#-",
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": "Cb",
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": "Cbm",
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": "Cbmin",
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": "Cb-",
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": "C♯",
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": "C♯m",
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": "C♯min",
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": "C♯-",
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": "C♭",
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": "C♭m",
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": "C♭min",
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": "C♭-",
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": "D",
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": "Dm",
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": "Dmin",
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": "D-",
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": "D#",
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": "D#m",
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": "D#min",
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": "D#-",
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": "Db",
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": "Dbm",
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": "Dbmin",
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": "Db-",
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": "D♯",
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": "D♯m",
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": "D♯min",
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": "D♯-",
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": "D♭",
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": "D♭m",
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": "D♭min",
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": "D♭-",
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": "E",
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": "Em",
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": "Emin",
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": "E-",
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": "E#",
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": "E#m",
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": "E#min",
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": "E#-",
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": "Eb",
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": "Ebm",
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": "Ebmin",
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": "Eb-",
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": "E♯",
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": "E♯m",
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": "E♯min",
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": "E♯-",
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": "E♭",
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": "E♭m",
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": "E♭min",
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": "E♭-",
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": "F",
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": "Fm",
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": "Fmin",
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": "F-",
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": "F#",
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": "F#m",
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": "F#min",
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": "F#-",
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": "Fb",
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": "Fbm",
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": "Fbmin",
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": "Fb-",
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": "F♯",
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": "F♯m",
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": "F♯min",
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": "F♯-",
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": "F♭",
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": "F♭m",
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": "F♭min",
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": "F♭-",
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": "G",
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": "Gm",
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": "Gmin",
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": "G-",
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": "G#",
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": "G#m",
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": "G#min",
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": "G#-",
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": "Gb",
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": "Gbm",
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": "Gbmin",
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": "Gb-",
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": "G♯",
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": "G♯m",
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": "G♯min",
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": "G♯-",
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": "G♭",
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": "G♭m",
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": "G♭min",
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": "G♭-",
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": "A",
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": "Am",
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": "Amin",
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": "A-",
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": "A#",
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": "A#m",
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": "A#min",
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": "A#-",
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": "Ab",
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": "Abm",
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": "Abmin",
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": "Ab-",
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": "A♯",
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": "A♯m",
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": "A♯min",
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": "A♯-",
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": "A♭",
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": "A♭m",
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": "A♭min",
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": "A♭-",
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": "B",
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": "Bm",
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": "Bmin",
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": "B-",
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": "B#",
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": "B#m",
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": "B#min",
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": "B#-",
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": "Bb",
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": "Bbm",
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": "Bbmin",
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": "Bb-",
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": "B♯",
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": "B♯m",
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": "B♯min",
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": "B♯-",
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": "B♭",
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": "B♭m",
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": "B♭min",
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": "B♭-",
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": null,
+      "output": null
+    },
+    {
+      "input": "",
+      "output": null
+    },
+    {
+      "input": " ",
+      "output": null
+    },
+    {
+      "input": "H",
+      "output": null
+    },
+    {
+      "input": "Hm",
+      "output": null
+    },
+    {
+      "input": "c",
+      "output": null
+    },
+    {
+      "input": "cm",
+      "output": null
+    },
+    {
+      "input": " C ",
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": " D﻿",
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": "G",
+      "output": null
+    },
+    {
+      "input": "G",
+      "output": null
+    },
+    {
+      "input": "\t\nAm\r\n",
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": "　Eb ",
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": "Cmaj",
+      "output": null
+    },
+    {
+      "input": "CM",
+      "output": null
+    },
+    {
+      "input": "Cmi",
+      "output": null
+    },
+    {
+      "input": "Cminor",
+      "output": null
+    },
+    {
+      "input": "C#m7",
+      "output": null
+    },
+    {
+      "input": "C m",
+      "output": null
+    },
+    {
+      "input": "Cmm",
+      "output": null
+    },
+    {
+      "input": "C--",
+      "output": null
+    },
+    {
+      "input": "C#b",
+      "output": null
+    },
+    {
+      "input": "Bbb",
+      "output": null
+    },
+    {
+      "input": "G/B",
+      "output": null
+    },
+    {
+      "input": "Á",
+      "output": null
+    },
+    {
+      "input": "(G)",
+      "output": null
+    }
+  ]
+}
