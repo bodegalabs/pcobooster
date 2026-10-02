@@ -44,8 +44,8 @@ Opened in an `ASWebAuthenticationSession` (prefer `prefersEphemeralWebBrowserSes
 Responses:
 
 - `302` to Planning Center, with two `HttpOnly; SameSite=Lax` cookies (`Secure` and `__Secure-` prefixed on https): Better Auth's OAuth state cookie (`Path=/`, 5 minutes) and the signed native marker `better-auth.native_sign_in` (`Path=/api/auth`, 10 minutes). The marker records the challenge, the app's state, the redirect URI, and the flow's own OAuth state.
-- `302` to `<redirect_uri>?error=invalid_request&state=<state>` when the redirect URI is valid but the challenge, method, or state is not. The state is echoed only when it is itself valid. No cookies are set.
-- `400` JSON `{"code": "INVALID_REDIRECT_URI", "message": ...}` when `redirect_uri` is missing or not in the allowlist. The server never redirects to a URI outside the allowlist.
+- `302` to `<redirect_uri>?error=invalid_request&state=<state>` when the redirect URI is valid but the challenge, method, or state is missing, repeated, or malformed. The state is echoed only when it is itself valid. No cookies are set.
+- `400` JSON `{"code": "INVALID_REDIRECT_URI", "message": ...}` when `redirect_uri` is missing, repeated, or not in the allowlist. The server never redirects to a URI outside the allowlist.
 - `429` JSON `{"error": "Too many requests"}` with `Retry-After: 60` past the auth rate limit.
 
 ### Callback result: `<redirect_uri>?...`

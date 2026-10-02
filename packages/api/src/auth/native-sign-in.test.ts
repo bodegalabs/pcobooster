@@ -290,6 +290,38 @@ describe("native sign-in", () => {
     });
   });
 
+  it("treats a repeated start parameter as missing", async () => {
+    const parameters = validStart();
+    const startWith = async (repeated: string): Promise<Response> =>
+      await handler(
+        new Request(
+          `${origin}/api/auth/native/start?${new URLSearchParams(parameters).toString()}&${repeated}`
+        )
+      );
+    const repeatedRedirect = await startWith(
+      `redirect_uri=${encodeURIComponent("https://evil.example/callback")}`
+    );
+    const repeatedState = await startWith(`state=${createAppState()}`);
+    const location = new URL(repeatedState.headers.get("location") ?? "");
+
+    expect({
+      status: repeatedRedirect.status,
+      location: repeatedRedirect.headers.get("location"),
+    }).toStrictEqual({ status: 400, location: null });
+    await expect(errorCode(repeatedRedirect)).resolves.toBe(
+      "INVALID_REDIRECT_URI"
+    );
+    expect({
+      status: repeatedState.status,
+      target: redirectTarget(location),
+      parameters: Object.fromEntries(location.searchParams),
+    }).toStrictEqual({
+      status: 302,
+      target: APP_REDIRECT_URI,
+      parameters: { error: "invalid_request" },
+    });
+  });
+
   it("reports a guessable state without echoing it", async () => {
     const start = await startNativeSignIn(handler, origin, {
       ...validStart(),

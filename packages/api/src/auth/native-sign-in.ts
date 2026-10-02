@@ -113,6 +113,15 @@ const CODE_VERIFIER = /^[\w.~-]{43,128}$/u;
 const APP_STATE = /^[\w.~-]{16,256}$/u;
 const HANDOFF_CODE = /^[\w-]{43}$/u;
 
+/**
+ * A start parameter given once. Better Auth parses a repeated parameter as an array; it counts as
+ * missing, so the request gets the documented error instead of a generic validation failure.
+ */
+const singleQueryValue = z
+  .union([z.string(), z.array(z.string())])
+  .optional()
+  .transform((value) => (Array.isArray(value) ? undefined : value));
+
 const startQuerySchema = z.object({
   code_challenge: z.string().regex(S256_CHALLENGE),
   code_challenge_method: z.literal("S256"),
@@ -343,10 +352,10 @@ export const nativeSignIn = () =>
           method: "GET",
           // Read loosely so a bad parameter can still be reported to a valid redirect URI.
           query: z.object({
-            code_challenge: z.string().optional(),
-            code_challenge_method: z.string().optional(),
-            state: z.string().optional(),
-            redirect_uri: z.string().optional(),
+            code_challenge: singleQueryValue,
+            code_challenge_method: singleQueryValue,
+            state: singleQueryValue,
+            redirect_uri: singleQueryValue,
           }),
           metadata: HIDE_METADATA,
         },
