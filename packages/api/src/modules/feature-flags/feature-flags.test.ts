@@ -204,7 +204,7 @@ describe(createRegistryFeatureFlags, () => {
   it.each([
     ["local", true],
     ["preview", true],
-    ["production", false],
+    ["production", true],
   ] as const)("serves the %s value of the People flag", async (tier, value) => {
     await expect(
       Effect.runPromise(

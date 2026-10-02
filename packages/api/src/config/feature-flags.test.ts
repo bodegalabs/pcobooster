@@ -24,19 +24,19 @@ describe("feature flag registry", () => {
     }
   });
 
-  it("keeps People on locally and in previews, off in production", () => {
+  it("serves People on every tier", () => {
     expect(featureFlags.people.enabled).toStrictEqual({
       local: true,
       preview: true,
-      production: false,
+      production: true,
     });
   });
 
-  it("keeps chord charts on locally and in previews, off in production", () => {
+  it("serves chord charts on every tier", () => {
     expect(featureFlags.chordCharts.enabled).toStrictEqual({
       local: true,
       preview: true,
-      production: false,
+      production: true,
     });
   });
 });
