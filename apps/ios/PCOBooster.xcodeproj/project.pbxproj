@@ -300,6 +300,7 @@
 				MARKETING_VERSION = 0.1.0;
 				PCOB_API_BASE_URL = "http://127.0.0.1:3001";
 				PCOB_ENVIRONMENT = development;
+				PCOB_POSTHOG_KEY = "";
 				PCOB_URL_SCHEME = "pcobooster-dev";
 				PRODUCT_BUNDLE_IDENTIFIER = com.pcobooster.ios.debug;
 				PRODUCT_NAME = PCOBooster;
@@ -337,6 +338,7 @@
 				MARKETING_VERSION = 0.1.0;
 				PCOB_API_BASE_URL = "https://pcobooster.com";
 				PCOB_ENVIRONMENT = production;
+				PCOB_POSTHOG_KEY = "";
 				PCOB_URL_SCHEME = pcobooster;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pcobooster.ios;
 				PRODUCT_NAME = PCOBooster;

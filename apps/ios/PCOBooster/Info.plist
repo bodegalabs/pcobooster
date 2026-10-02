@@ -24,6 +24,8 @@
 	<string>$(PCOB_API_BASE_URL)</string>
 	<key>PCOBEnvironment</key>
 	<string>$(PCOB_ENVIRONMENT)</string>
+	<key>PCOBPostHogKey</key>
+	<string>$(PCOB_POSTHOG_KEY)</string>
 	<key>PCOBURLScheme</key>
 	<string>$(PCOB_URL_SCHEME)</string>
 </dict>
