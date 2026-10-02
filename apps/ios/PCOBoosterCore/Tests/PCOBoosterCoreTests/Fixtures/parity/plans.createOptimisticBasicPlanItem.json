@@ -1,0 +1,93 @@
+{
+  "suite": "plans.createOptimisticBasicPlanItem",
+  "cases": [
+    {
+      "input": {
+        "id": "temp-header",
+        "kind": "header",
+        "sequence": 3
+      },
+      "output": {
+        "id": "temp-header",
+        "title": "New Header",
+        "itemType": "header",
+        "sequence": 3,
+        "servicePosition": "during",
+        "length": null,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "song": null,
+        "arrangement": null,
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "id": "temp-item",
+        "kind": "item",
+        "sequence": 2
+      },
+      "output": {
+        "id": "temp-item",
+        "title": "New Item",
+        "itemType": "item",
+        "sequence": 2,
+        "servicePosition": "during",
+        "length": null,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "song": null,
+        "arrangement": null,
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "id": "optimistic-item-1",
+        "kind": "item",
+        "sequence": 0.5
+      },
+      "output": {
+        "id": "optimistic-item-1",
+        "title": "New Item",
+        "itemType": "item",
+        "sequence": 0.5,
+        "servicePosition": "during",
+        "length": null,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "song": null,
+        "arrangement": null,
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "id": "",
+        "kind": "header",
+        "sequence": -1
+      },
+      "output": {
+        "id": "",
+        "title": "New Header",
+        "itemType": "header",
+        "sequence": -1,
+        "servicePosition": "during",
+        "length": null,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "song": null,
+        "arrangement": null,
+        "key": null,
+        "layout": null
+      }
+    }
+  ]
+}

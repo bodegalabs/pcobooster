@@ -1,0 +1,7 @@
+{
+  "default": [
+    {"id": "1101", "name": "Sunday Gathering", "sequence": 0},
+    {"id": "1102", "name": "Youth Night", "sequence": 1},
+    {"id": "1103", "name": "Special Events", "sequence": 2}
+  ]
+}

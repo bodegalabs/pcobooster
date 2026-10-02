@@ -1,0 +1,77 @@
+{
+  "suite": "chordcharts.import.lyricsToChordChart",
+  "cases": [
+    {
+      "input": "Verse one line\nStill verse one\n\nChorus line\nSing it again\n\nVerse two line\n\nChorus line\nSing it again!\n\nBridge line\n\nTag line\n\nTag line",
+      "output": "VERSE 1\nVerse one line\nStill verse one\n\nCHORUS 1\nChorus line\nSing it again\n\nVERSE 2\nVerse two line\n\nVERSE 3\nBridge line\n\nCHORUS 2\nTag line\n"
+    },
+    {
+      "input": "Chorus\nSing it\n\nVerse 2\nMore",
+      "output": "CHORUS\nSing it\n\nVERSE 2\nMore\n"
+    },
+    {
+      "input": "One line\nAnother line",
+      "output": "One line\nAnother line\n"
+    },
+    {
+      "input": "A\r\nB\r\n\r\nC\r\nD\r\n\r\nA\r\nB",
+      "output": "CHORUS\nA\nB\n\nVERSE 1\nC\nD\n"
+    },
+    {
+      "input": "First\n  \nSecond\n\t\n\nFirst",
+      "output": "CHORUS\nFirst\n\nVERSE 1\nSecond\n"
+    },
+    {
+      "input": "First\n \nSecond",
+      "output": "VERSE 1\nFirst\n\nVERSE 2\nSecond\n"
+    },
+    {
+      "input": "First\n \nSecond",
+      "output": "VERSE 1\nFirst\n\nVERSE 2\nSecond\n"
+    },
+    {
+      "input": "ΑΣ ΒΑ\nline\n\nΑΣΒΑ\nline",
+      "output": "VERSE 1\nΑΣ ΒΑ\nline\n\nVERSE 2\nΑΣΒΑ\nline\n"
+    },
+    {
+      "input": "ΑΣ\n\nΑΣ\n\nΟΔΟΣ ΜΟΥ\n\nοδος μου",
+      "output": "CHORUS 1\nΑΣ\n\nCHORUS 2\nΟΔΟΣ ΜΟΥ\n"
+    },
+    {
+      "input": "Café\n\nCafé\n\nCAFÉ",
+      "output": "CHORUS\nCafé\n\nVERSE 1\nCafé\n"
+    },
+    {
+      "input": "Hello 🙏\n\nhello\n\nHELLO!!!",
+      "output": "CHORUS\nHello 🙏\n"
+    },
+    {
+      "input": "One\n\nTwo\n\nOne\n\nTwo\n\nThree",
+      "output": "CHORUS 1\nOne\n\nCHORUS 2\nTwo\n\nVERSE 1\nThree\n"
+    },
+    {
+      "input": "© 2020 Someone\n\nVerse\n\nChorus",
+      "output": "VERSE\n\nCHORUS\n"
+    },
+    {
+      "input": "Only\n\n",
+      "output": "Only\n"
+    },
+    {
+      "input": "\n\n\n",
+      "output": "\n"
+    },
+    {
+      "input": "",
+      "output": "\n"
+    },
+    {
+      "input": "  Indented\n  lines  \n\n  Second  stanza  ",
+      "output": "VERSE 1\nIndented\nlines\n\nVERSE 2\nSecond  stanza\n"
+    },
+    {
+      "input": "A\n\nB\n\nC\n\nD\n\nA\n\nC",
+      "output": "CHORUS 1\nA\n\nVERSE 1\nB\n\nCHORUS 2\nC\n\nVERSE 2\nD\n"
+    }
+  ]
+}

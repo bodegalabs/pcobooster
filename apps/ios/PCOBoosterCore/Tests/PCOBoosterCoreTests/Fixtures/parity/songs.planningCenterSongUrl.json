@@ -1,0 +1,41 @@
+{
+  "suite": "songs.planningCenterSongUrl",
+  "cases": [
+    {
+      "input": "12345",
+      "output": "https://services.planningcenteronline.com/songs/12345"
+    },
+    {
+      "input": "",
+      "output": "https://services.planningcenteronline.com/songs/"
+    },
+    {
+      "input": "a b",
+      "output": "https://services.planningcenteronline.com/songs/a%20b"
+    },
+    {
+      "input": "a/b?c#d",
+      "output": "https://services.planningcenteronline.com/songs/a%2Fb%3Fc%23d"
+    },
+    {
+      "input": "café",
+      "output": "https://services.planningcenteronline.com/songs/caf%C3%A9"
+    },
+    {
+      "input": "🎸",
+      "output": "https://services.planningcenteronline.com/songs/%F0%9F%8E%B8"
+    },
+    {
+      "input": "100%",
+      "output": "https://services.planningcenteronline.com/songs/100%25"
+    },
+    {
+      "input": "-_.!~*'()",
+      "output": "https://services.planningcenteronline.com/songs/-_.!~*'()"
+    },
+    {
+      "input": "[x]&y=z+1",
+      "output": "https://services.planningcenteronline.com/songs/%5Bx%5D%26y%3Dz%2B1"
+    }
+  ]
+}

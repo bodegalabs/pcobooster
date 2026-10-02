@@ -1,0 +1,390 @@
+{
+  "suite": "songs.songLibraryCutoff",
+  "cases": [
+    {
+      "input": {
+        "filter": "all",
+        "now": "2026-10-01T18:00:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "unused-6",
+        "now": "2026-10-01T18:00:00.000Z"
+      },
+      "output": "2026-04-01T18:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-12",
+        "now": "2026-10-01T18:00:00.000Z"
+      },
+      "output": "2025-10-01T18:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-24",
+        "now": "2026-10-01T18:00:00.000Z"
+      },
+      "output": "2024-10-01T18:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "never",
+        "now": "2026-10-01T18:00:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "all",
+        "now": "2026-05-31T12:00:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "unused-6",
+        "now": "2026-05-31T12:00:00.000Z"
+      },
+      "output": "2025-11-30T12:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-12",
+        "now": "2026-05-31T12:00:00.000Z"
+      },
+      "output": "2025-05-31T12:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-24",
+        "now": "2026-05-31T12:00:00.000Z"
+      },
+      "output": "2024-05-31T12:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "never",
+        "now": "2026-05-31T12:00:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "all",
+        "now": "2026-03-31T23:59:59.999Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "unused-6",
+        "now": "2026-03-31T23:59:59.999Z"
+      },
+      "output": "2025-09-30T23:59:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-12",
+        "now": "2026-03-31T23:59:59.999Z"
+      },
+      "output": "2025-03-31T23:59:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-24",
+        "now": "2026-03-31T23:59:59.999Z"
+      },
+      "output": "2024-03-31T23:59:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "never",
+        "now": "2026-03-31T23:59:59.999Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "all",
+        "now": "2024-02-29T06:30:15.250Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "unused-6",
+        "now": "2024-02-29T06:30:15.250Z"
+      },
+      "output": "2023-08-29T06:30:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-12",
+        "now": "2024-02-29T06:30:15.250Z"
+      },
+      "output": "2023-02-28T06:30:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-24",
+        "now": "2024-02-29T06:30:15.250Z"
+      },
+      "output": "2022-02-28T06:30:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "never",
+        "now": "2024-02-29T06:30:15.250Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "all",
+        "now": "2025-02-28T00:00:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "unused-6",
+        "now": "2025-02-28T00:00:00.000Z"
+      },
+      "output": "2024-08-28T00:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-12",
+        "now": "2025-02-28T00:00:00.000Z"
+      },
+      "output": "2024-02-28T00:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-24",
+        "now": "2025-02-28T00:00:00.000Z"
+      },
+      "output": "2023-02-28T00:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "never",
+        "now": "2025-02-28T00:00:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "all",
+        "now": "2026-01-01T00:00:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "unused-6",
+        "now": "2026-01-01T00:00:00.000Z"
+      },
+      "output": "2025-07-01T00:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-12",
+        "now": "2026-01-01T00:00:00.000Z"
+      },
+      "output": "2025-01-01T00:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-24",
+        "now": "2026-01-01T00:00:00.000Z"
+      },
+      "output": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "never",
+        "now": "2026-01-01T00:00:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "all",
+        "now": "2026-12-31T23:59:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "unused-6",
+        "now": "2026-12-31T23:59:00.000Z"
+      },
+      "output": "2026-06-30T23:59:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-12",
+        "now": "2026-12-31T23:59:00.000Z"
+      },
+      "output": "2025-12-31T23:59:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-24",
+        "now": "2026-12-31T23:59:00.000Z"
+      },
+      "output": "2024-12-31T23:59:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "never",
+        "now": "2026-12-31T23:59:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "all",
+        "now": "2026-08-31T09:45:30.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "unused-6",
+        "now": "2026-08-31T09:45:30.000Z"
+      },
+      "output": "2026-02-28T09:45:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-12",
+        "now": "2026-08-31T09:45:30.000Z"
+      },
+      "output": "2025-08-31T09:45:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-24",
+        "now": "2026-08-31T09:45:30.000Z"
+      },
+      "output": "2024-08-31T09:45:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "never",
+        "now": "2026-08-31T09:45:30.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "all",
+        "now": "2026-07-31T17:00:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "unused-6",
+        "now": "2026-07-31T17:00:00.000Z"
+      },
+      "output": "2026-01-31T17:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-12",
+        "now": "2026-07-31T17:00:00.000Z"
+      },
+      "output": "2025-07-31T17:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-24",
+        "now": "2026-07-31T17:00:00.000Z"
+      },
+      "output": "2024-07-31T17:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "never",
+        "now": "2026-07-31T17:00:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "all",
+        "now": "2000-02-29T12:00:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "unused-6",
+        "now": "2000-02-29T12:00:00.000Z"
+      },
+      "output": "1999-08-29T12:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-12",
+        "now": "2000-02-29T12:00:00.000Z"
+      },
+      "output": "1999-02-28T12:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-24",
+        "now": "2000-02-29T12:00:00.000Z"
+      },
+      "output": "1998-02-28T12:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "never",
+        "now": "2000-02-29T12:00:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "all",
+        "now": "1970-01-31T00:00:00.000Z"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "filter": "unused-6",
+        "now": "1970-01-31T00:00:00.000Z"
+      },
+      "output": "1969-07-31T00:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-12",
+        "now": "1970-01-31T00:00:00.000Z"
+      },
+      "output": "1969-01-31T00:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "unused-24",
+        "now": "1970-01-31T00:00:00.000Z"
+      },
+      "output": "1968-01-31T00:00:00.000Z"
+    },
+    {
+      "input": {
+        "filter": "never",
+        "now": "1970-01-31T00:00:00.000Z"
+      },
+      "output": null
+    }
+  ]
+}

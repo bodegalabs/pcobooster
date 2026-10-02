@@ -1,0 +1,12 @@
+{
+  "suite": "scheduling.constants",
+  "cases": [
+    {
+      "input": null,
+      "output": {
+        "detailsBatchSize": 16,
+        "detailsBatchConcurrency": 2
+      }
+    }
+  ]
+}

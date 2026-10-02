@@ -1,0 +1,1086 @@
+{
+  "suite": "scheduling.openSlotCount",
+  "cases": [
+    {
+      "input": {
+        "id": "cam1",
+        "name": "Camera 1",
+        "teamId": "av",
+        "neededCount": 1
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "sound",
+        "name": "Sound",
+        "teamId": "av",
+        "neededCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "keys",
+        "name": "Keys",
+        "teamId": "band"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "drums",
+        "name": "Drums",
+        "teamId": "band",
+        "neededCount": 2
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Keys",
+        "teamId": "team-0",
+        "source": "needed_position",
+        "neededCount": 2,
+        "filledConfirmedCount": 0
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Bass Guitar",
+        "teamId": "team-0",
+        "teamName": "Vocals",
+        "source": "plan_member",
+        "neededCount": 2,
+        "filledPendingCount": 1,
+        "filledConfirmedCount": 0
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Harmony",
+        "teamId": "team-1",
+        "teamName": "Band",
+        "neededCount": 2,
+        "filledPendingCount": 2,
+        "filledConfirmedCount": 1
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-11",
+        "name": "Drums",
+        "teamId": "team-1",
+        "neededCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-20",
+        "name": "Harmony",
+        "teamId": "team-2",
+        "teamName": "Vocals",
+        "neededCount": 2,
+        "filledPendingCount": 2,
+        "filledConfirmedCount": 2
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-21",
+        "name": "Vocals",
+        "teamId": "team-2",
+        "source": "custom",
+        "neededCount": 0,
+        "filledPendingCount": 1
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-22",
+        "name": "Bass Guitar",
+        "teamId": "team-2",
+        "source": "needed_position",
+        "filledConfirmedCount": 2
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Drums",
+        "teamId": "team-0",
+        "teamName": "Bänd",
+        "source": "custom",
+        "neededCount": 0.5,
+        "filledPendingCount": 2,
+        "filledConfirmedCount": 0
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Bass Guitar",
+        "teamId": "team-0",
+        "neededCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Vocals",
+        "teamId": "team-1",
+        "teamName": "Bänd",
+        "source": "needed_position",
+        "filledConfirmedCount": 2
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-11",
+        "name": "Bass Guitar",
+        "teamId": "team-1",
+        "source": "custom",
+        "neededCount": 2
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-20",
+        "name": "Vocals",
+        "teamId": "team-2",
+        "teamName": "Vocals",
+        "source": "custom",
+        "neededCount": 1,
+        "filledPendingCount": 2
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Keys",
+        "teamId": "team-0",
+        "source": "needed_position",
+        "filledConfirmedCount": 2
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Drums",
+        "teamId": "team-0"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Harmony",
+        "teamId": "team-0",
+        "source": "needed_position",
+        "neededCount": 0,
+        "filledPendingCount": 2,
+        "filledConfirmedCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Drums",
+        "teamId": "team-0",
+        "source": "team_position",
+        "neededCount": 2,
+        "filledPendingCount": 0
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Harmony",
+        "teamId": "team-1",
+        "source": "needed_position",
+        "neededCount": 2,
+        "filledPendingCount": 1
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Harmony",
+        "teamId": "team-0",
+        "source": "plan_member",
+        "neededCount": 0.5,
+        "filledConfirmedCount": 1
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Bass Guitar",
+        "teamId": "team-0",
+        "teamName": "Vocals",
+        "source": "needed_position",
+        "neededCount": 0.5
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Electric Guitar",
+        "teamId": "team-1",
+        "source": "custom",
+        "filledPendingCount": 1
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-11",
+        "name": "Vocals",
+        "teamId": "team-1",
+        "neededCount": 0.5,
+        "filledConfirmedCount": 1
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-12",
+        "name": "Drums",
+        "teamId": "team-1",
+        "teamName": "Bänd",
+        "neededCount": 1,
+        "filledPendingCount": 2
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Vocals",
+        "teamId": "team-0",
+        "teamName": "Band",
+        "source": "custom",
+        "neededCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Vocals",
+        "teamId": "team-0",
+        "source": "plan_member",
+        "filledConfirmedCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-2",
+        "name": "Keys",
+        "teamId": "team-0",
+        "teamName": "Bänd",
+        "neededCount": 0.5,
+        "filledConfirmedCount": 1
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Bass Guitar",
+        "teamId": "team-1",
+        "teamName": "Vocals",
+        "source": "custom",
+        "neededCount": 0,
+        "filledPendingCount": 2,
+        "filledConfirmedCount": 2
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Harmony",
+        "teamId": "team-1",
+        "teamName": "Vocals",
+        "source": "plan_member",
+        "filledConfirmedCount": 1
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-11",
+        "name": "Harmony",
+        "teamId": "team-1",
+        "neededCount": 2,
+        "filledPendingCount": 1,
+        "filledConfirmedCount": 2
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-12",
+        "name": "Keys",
+        "teamId": "team-1",
+        "teamName": "Tech",
+        "neededCount": 1,
+        "filledPendingCount": 0,
+        "filledConfirmedCount": 1
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Bass Guitar",
+        "teamId": "team-0",
+        "teamName": "Band",
+        "source": "needed_position",
+        "neededCount": 0,
+        "filledPendingCount": 1
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Bass Guitar",
+        "teamId": "team-0",
+        "source": "needed_position",
+        "neededCount": 2,
+        "filledPendingCount": 2,
+        "filledConfirmedCount": 0
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Bass Guitar",
+        "teamId": "team-0",
+        "source": "plan_member",
+        "neededCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Keys",
+        "teamId": "team-0",
+        "source": "team_position",
+        "neededCount": 0.5,
+        "filledPendingCount": 1
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-2",
+        "name": "Bass Guitar",
+        "teamId": "team-0",
+        "source": "team_position"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Vocals",
+        "teamId": "team-1",
+        "source": "custom"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Keys",
+        "teamId": "team-0",
+        "neededCount": 0.5,
+        "filledConfirmedCount": 0
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Vocals",
+        "teamId": "team-0",
+        "source": "team_position",
+        "neededCount": 0,
+        "filledPendingCount": 2
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-2",
+        "name": "Bass Guitar",
+        "teamId": "team-0",
+        "teamName": "Tech"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Vocals",
+        "teamId": "team-1",
+        "teamName": "Bänd",
+        "source": "custom",
+        "filledPendingCount": 1
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-11",
+        "name": "Keys",
+        "teamId": "team-1",
+        "teamName": "Bänd",
+        "neededCount": 0.5,
+        "filledPendingCount": 2,
+        "filledConfirmedCount": 1
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Harmony",
+        "teamId": "team-0",
+        "neededCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Drums",
+        "teamId": "team-0",
+        "neededCount": 1,
+        "filledPendingCount": 1,
+        "filledConfirmedCount": 2
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-2",
+        "name": "Bass Guitar",
+        "teamId": "team-0",
+        "teamName": "Band",
+        "source": "custom",
+        "neededCount": 2,
+        "filledPendingCount": 0
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Keys",
+        "teamId": "team-0",
+        "source": "team_position",
+        "neededCount": 0,
+        "filledPendingCount": 1
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Drums",
+        "teamId": "team-0",
+        "source": "needed_position",
+        "neededCount": 2,
+        "filledConfirmedCount": 1
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-2",
+        "name": "Harmony",
+        "teamId": "team-0",
+        "teamName": "Band",
+        "source": "needed_position",
+        "neededCount": 2,
+        "filledConfirmedCount": 2
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Keys",
+        "teamId": "team-1",
+        "source": "custom",
+        "neededCount": 2
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Drums",
+        "teamId": "team-1",
+        "source": "needed_position",
+        "neededCount": 2,
+        "filledConfirmedCount": 2
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-11",
+        "name": "Electric Guitar",
+        "teamId": "team-1",
+        "source": "plan_member",
+        "neededCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-20",
+        "name": "Bass Guitar",
+        "teamId": "team-2",
+        "teamName": "Tech",
+        "neededCount": 1,
+        "filledConfirmedCount": 2
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Keys",
+        "teamId": "team-0",
+        "source": "custom",
+        "neededCount": 1
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Harmony",
+        "teamId": "team-1",
+        "teamName": "Vocals",
+        "source": "custom",
+        "filledConfirmedCount": 1
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-11",
+        "name": "Drums",
+        "teamId": "team-1",
+        "source": "team_position",
+        "neededCount": 0.5,
+        "filledPendingCount": 0,
+        "filledConfirmedCount": 0
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-12",
+        "name": "Harmony",
+        "teamId": "team-1",
+        "teamName": "Vocals",
+        "source": "custom",
+        "neededCount": 1,
+        "filledConfirmedCount": 0
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Electric Guitar",
+        "teamId": "team-1",
+        "teamName": "Bänd"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Drums",
+        "teamId": "team-0",
+        "neededCount": 2,
+        "filledPendingCount": 1
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Harmony",
+        "teamId": "team-1",
+        "teamName": "Band",
+        "source": "team_position",
+        "neededCount": 1,
+        "filledPendingCount": 1
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-11",
+        "name": "Keys",
+        "teamId": "team-1",
+        "teamName": "Tech",
+        "source": "custom",
+        "neededCount": 0,
+        "filledPendingCount": 2
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-12",
+        "name": "Electric Guitar",
+        "teamId": "team-1",
+        "source": "team_position",
+        "neededCount": 2,
+        "filledConfirmedCount": 0
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Electric Guitar",
+        "teamId": "team-0",
+        "teamName": "Vocals",
+        "source": "custom",
+        "filledPendingCount": 0,
+        "filledConfirmedCount": 2
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Harmony",
+        "teamId": "team-0",
+        "source": "needed_position",
+        "neededCount": 0,
+        "filledConfirmedCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-2",
+        "name": "Bass Guitar",
+        "teamId": "team-0",
+        "source": "needed_position",
+        "neededCount": 0.5,
+        "filledPendingCount": 1
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-20",
+        "name": "Keys",
+        "teamId": "team-2",
+        "source": "team_position",
+        "neededCount": 0,
+        "filledPendingCount": 2
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Harmony",
+        "teamId": "team-0",
+        "teamName": "Vocals",
+        "source": "needed_position",
+        "neededCount": 1,
+        "filledPendingCount": 1
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Drums",
+        "teamId": "team-0",
+        "teamName": "Bänd",
+        "neededCount": 2
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-2",
+        "name": "Harmony",
+        "teamId": "team-0",
+        "teamName": "Vocals",
+        "source": "plan_member",
+        "filledConfirmedCount": 2
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Harmony",
+        "teamId": "team-0",
+        "teamName": "Tech",
+        "source": "custom",
+        "neededCount": 0.5,
+        "filledPendingCount": 1,
+        "filledConfirmedCount": 0
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Harmony",
+        "teamId": "team-0",
+        "source": "team_position",
+        "neededCount": 0,
+        "filledPendingCount": 2,
+        "filledConfirmedCount": 1
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Harmony",
+        "teamId": "team-0",
+        "source": "custom",
+        "neededCount": 0,
+        "filledPendingCount": 0,
+        "filledConfirmedCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Drums",
+        "teamId": "team-0",
+        "neededCount": 1,
+        "filledConfirmedCount": 1
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-2",
+        "name": "Vocals",
+        "teamId": "team-0",
+        "source": "team_position",
+        "neededCount": 2
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Electric Guitar",
+        "teamId": "team-0",
+        "teamName": "Tech",
+        "neededCount": 0,
+        "filledPendingCount": 0,
+        "filledConfirmedCount": 1
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Drums",
+        "teamId": "team-0",
+        "teamName": "Band",
+        "source": "team_position",
+        "neededCount": 1,
+        "filledPendingCount": 1,
+        "filledConfirmedCount": 0
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-2",
+        "name": "Keys",
+        "teamId": "team-0",
+        "teamName": "Bänd",
+        "source": "custom",
+        "neededCount": 0.5,
+        "filledConfirmedCount": 1
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Bass Guitar",
+        "teamId": "team-0",
+        "teamName": "Vocals",
+        "source": "team_position",
+        "neededCount": 0.5
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Keys",
+        "teamId": "team-0",
+        "teamName": "Tech",
+        "neededCount": 1,
+        "filledPendingCount": 1
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-2",
+        "name": "Bass Guitar",
+        "teamId": "team-0",
+        "teamName": "Tech",
+        "source": "needed_position",
+        "neededCount": 0.5,
+        "filledPendingCount": 0,
+        "filledConfirmedCount": 1
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Vocals",
+        "teamId": "team-1",
+        "teamName": "Band",
+        "source": "needed_position",
+        "neededCount": 1,
+        "filledPendingCount": 0,
+        "filledConfirmedCount": 0
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-11",
+        "name": "Keys",
+        "teamId": "team-1",
+        "teamName": "Vocals",
+        "source": "needed_position",
+        "filledPendingCount": 2,
+        "filledConfirmedCount": 1
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Vocals",
+        "teamId": "team-0",
+        "source": "team_position",
+        "neededCount": 0,
+        "filledPendingCount": 2
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Electric Guitar",
+        "teamId": "team-0",
+        "source": "custom",
+        "neededCount": 0,
+        "filledPendingCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Electric Guitar",
+        "teamId": "team-0",
+        "teamName": "Vocals",
+        "source": "custom",
+        "neededCount": 1,
+        "filledConfirmedCount": 0
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-2",
+        "name": "Vocals",
+        "teamId": "team-0",
+        "teamName": "Bänd",
+        "neededCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Keys",
+        "teamId": "team-1",
+        "neededCount": 0.5,
+        "filledPendingCount": 0
+      },
+      "output": 0.5
+    },
+    {
+      "input": {
+        "id": "pos-11",
+        "name": "Keys",
+        "teamId": "team-1",
+        "teamName": "Bänd",
+        "source": "team_position",
+        "neededCount": 0,
+        "filledPendingCount": 0,
+        "filledConfirmedCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-12",
+        "name": "Vocals",
+        "teamId": "team-1",
+        "teamName": "Tech",
+        "source": "plan_member",
+        "neededCount": 1,
+        "filledConfirmedCount": 0
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Drums",
+        "teamId": "team-0",
+        "source": "plan_member",
+        "neededCount": 2
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Drums",
+        "teamId": "team-0",
+        "source": "plan_member",
+        "neededCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-20",
+        "name": "Vocals",
+        "teamId": "team-2",
+        "source": "team_position"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-21",
+        "name": "Keys",
+        "teamId": "team-2",
+        "teamName": "Bänd",
+        "source": "team_position",
+        "neededCount": 0,
+        "filledConfirmedCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Harmony",
+        "teamId": "team-1",
+        "source": "plan_member",
+        "neededCount": 2,
+        "filledPendingCount": 1
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-0",
+        "name": "Keys",
+        "teamId": "team-0",
+        "teamName": "Band",
+        "source": "plan_member",
+        "neededCount": 2,
+        "filledPendingCount": 2
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-1",
+        "name": "Harmony",
+        "teamId": "team-0",
+        "source": "team_position",
+        "neededCount": 2
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "id": "pos-10",
+        "name": "Keys",
+        "teamId": "team-1",
+        "teamName": "Vocals",
+        "neededCount": 0
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "id": "pos-20",
+        "name": "Vocals",
+        "teamId": "team-2",
+        "teamName": "Tech",
+        "source": "needed_position",
+        "neededCount": 0.5
+      },
+      "output": 0.5
+    }
+  ]
+}

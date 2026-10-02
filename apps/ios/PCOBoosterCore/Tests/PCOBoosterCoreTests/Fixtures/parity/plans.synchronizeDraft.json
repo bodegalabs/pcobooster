@@ -1,0 +1,3178 @@
+{
+  "suite": "plans.synchronizeDraft",
+  "cases": [
+    {
+      "input": {
+        "drafts": [
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "missing"
+          }
+        ],
+        "songOptions": null
+      },
+      "output": [
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": "key-2"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": "key-3"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": "key-4"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": "missing"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-2"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-3"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-4"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "missing"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-2"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-3"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-4"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "missing"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": "key-2"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": "key-3"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": "key-4"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": "missing"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": "key-2"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": "key-3"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": "key-4"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": "missing"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "missing",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "missing",
+          "keyId": "key-2"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "missing",
+          "keyId": "key-3"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "missing",
+          "keyId": "key-4"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "missing",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "missing",
+          "keyId": "missing"
+        }
+      ]
+    },
+    {
+      "input": {
+        "drafts": [
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "missing"
+          }
+        ],
+        "songOptions": {
+          "song": {
+            "lastScheduledAt": null,
+            "id": "song-1",
+            "title": "Build My Life",
+            "author": "Pat Barrett",
+            "themes": "Worship",
+            "hidden": false
+          },
+          "arrangements": [
+            {
+              "id": "arr-1",
+              "name": "Default",
+              "sequence": [
+                "Verse 1"
+              ],
+              "length": 240,
+              "bpm": null,
+              "meter": null,
+              "archived": false,
+              "keys": [
+                {
+                  "id": "key-1",
+                  "name": "G",
+                  "startingKey": "G",
+                  "endingKey": null
+                }
+              ]
+            }
+          ],
+          "layouts": [],
+          "currentLayout": null,
+          "suggestedArrangementId": "arr-1",
+          "suggestedKeyId": "key-1",
+          "suggestedLayoutId": null,
+          "layoutMode": "existing-only"
+        }
+      },
+      "output": [
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        }
+      ]
+    },
+    {
+      "input": {
+        "drafts": [
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "missing"
+          }
+        ],
+        "songOptions": {
+          "song": {
+            "lastScheduledAt": null,
+            "id": "song-1",
+            "title": "Build My Life",
+            "author": "Pat Barrett",
+            "themes": "Worship",
+            "hidden": false
+          },
+          "arrangements": [
+            {
+              "id": "arr-1",
+              "name": "Default",
+              "sequence": [
+                "Verse 1"
+              ],
+              "length": 240,
+              "bpm": null,
+              "meter": null,
+              "archived": false,
+              "keys": [
+                {
+                  "id": "key-1",
+                  "name": "G",
+                  "startingKey": "G",
+                  "endingKey": null
+                }
+              ]
+            },
+            {
+              "id": "arr-2",
+              "name": "Acoustic",
+              "sequence": [],
+              "length": null,
+              "bpm": 72,
+              "meter": "4/4",
+              "archived": false,
+              "keys": [
+                {
+                  "id": "key-2",
+                  "name": "A",
+                  "startingKey": "A",
+                  "endingKey": null
+                },
+                {
+                  "id": "key-3",
+                  "name": "B",
+                  "startingKey": "B",
+                  "endingKey": null
+                },
+                {
+                  "id": "",
+                  "name": "",
+                  "startingKey": null,
+                  "endingKey": null
+                }
+              ]
+            },
+            {
+              "id": "arr-3",
+              "name": "Empty",
+              "sequence": [],
+              "length": null,
+              "bpm": null,
+              "meter": null,
+              "archived": true,
+              "keys": []
+            },
+            {
+              "id": "arr-4",
+              "name": "Blank first",
+              "sequence": [],
+              "length": null,
+              "bpm": 120.5,
+              "meter": "6/8",
+              "archived": false,
+              "keys": [
+                {
+                  "id": "",
+                  "name": "C",
+                  "startingKey": "C",
+                  "endingKey": null
+                },
+                {
+                  "id": "key-4",
+                  "name": "D",
+                  "startingKey": "D",
+                  "endingKey": null
+                }
+              ]
+            }
+          ],
+          "layouts": [],
+          "currentLayout": null,
+          "suggestedArrangementId": "arr-1",
+          "suggestedKeyId": "key-3",
+          "suggestedLayoutId": null,
+          "layoutMode": "existing-only"
+        }
+      },
+      "output": [
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-3"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-2"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-3"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-3"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-3"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": "key-4"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        }
+      ]
+    },
+    {
+      "input": {
+        "drafts": [
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "missing"
+          }
+        ],
+        "songOptions": {
+          "song": {
+            "lastScheduledAt": null,
+            "id": "song-1",
+            "title": "Build My Life",
+            "author": "Pat Barrett",
+            "themes": "Worship",
+            "hidden": false
+          },
+          "arrangements": [
+            {
+              "id": "arr-1",
+              "name": "Default",
+              "sequence": [
+                "Verse 1"
+              ],
+              "length": 240,
+              "bpm": null,
+              "meter": null,
+              "archived": false,
+              "keys": [
+                {
+                  "id": "key-1",
+                  "name": "G",
+                  "startingKey": "G",
+                  "endingKey": null
+                }
+              ]
+            },
+            {
+              "id": "arr-2",
+              "name": "Acoustic",
+              "sequence": [],
+              "length": null,
+              "bpm": 72,
+              "meter": "4/4",
+              "archived": false,
+              "keys": [
+                {
+                  "id": "key-2",
+                  "name": "A",
+                  "startingKey": "A",
+                  "endingKey": null
+                },
+                {
+                  "id": "key-3",
+                  "name": "B",
+                  "startingKey": "B",
+                  "endingKey": null
+                },
+                {
+                  "id": "",
+                  "name": "",
+                  "startingKey": null,
+                  "endingKey": null
+                }
+              ]
+            },
+            {
+              "id": "arr-3",
+              "name": "Empty",
+              "sequence": [],
+              "length": null,
+              "bpm": null,
+              "meter": null,
+              "archived": true,
+              "keys": []
+            },
+            {
+              "id": "arr-4",
+              "name": "Blank first",
+              "sequence": [],
+              "length": null,
+              "bpm": 120.5,
+              "meter": "6/8",
+              "archived": false,
+              "keys": [
+                {
+                  "id": "",
+                  "name": "C",
+                  "startingKey": "C",
+                  "endingKey": null
+                },
+                {
+                  "id": "key-4",
+                  "name": "D",
+                  "startingKey": "D",
+                  "endingKey": null
+                }
+              ]
+            }
+          ],
+          "layouts": [],
+          "currentLayout": null,
+          "suggestedArrangementId": "arr-1",
+          "suggestedKeyId": null,
+          "suggestedLayoutId": null,
+          "layoutMode": "existing-only"
+        }
+      },
+      "output": [
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-1",
+          "keyId": "key-1"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-2"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-2"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-3"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-2"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-2",
+          "keyId": "key-2"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-3",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": "key-4"
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "arr-4",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        }
+      ]
+    },
+    {
+      "input": {
+        "drafts": [
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-1",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-2",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-3",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "arr-4",
+            "keyId": "missing"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-1"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-2"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-3"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "key-4"
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": ""
+          },
+          {
+            "title": "Build My Life",
+            "lengthText": "4:00",
+            "servicePosition": "during",
+            "description": "",
+            "arrangementId": "missing",
+            "keyId": "missing"
+          }
+        ],
+        "songOptions": {
+          "song": {
+            "lastScheduledAt": null,
+            "id": "song-1",
+            "title": "Build My Life",
+            "author": "Pat Barrett",
+            "themes": "Worship",
+            "hidden": false
+          },
+          "arrangements": [],
+          "layouts": [],
+          "currentLayout": null,
+          "suggestedArrangementId": null,
+          "suggestedKeyId": null,
+          "suggestedLayoutId": null,
+          "layoutMode": "existing-only"
+        }
+      },
+      "output": [
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        },
+        {
+          "title": "Build My Life",
+          "lengthText": "4:00",
+          "servicePosition": "during",
+          "description": "",
+          "arrangementId": "",
+          "keyId": ""
+        }
+      ]
+    }
+  ]
+}

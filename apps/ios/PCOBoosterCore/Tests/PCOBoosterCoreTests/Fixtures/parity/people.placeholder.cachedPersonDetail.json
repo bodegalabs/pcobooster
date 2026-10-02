@@ -1,0 +1,3263 @@
+{
+  "suite": "people.placeholder.cachedPersonDetail",
+  "cases": [
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "person-1",
+        "month": null
+      },
+      "output": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "previousMonth": "2026-04",
+        "nextMonth": "2026-06",
+        "person": {
+          "id": "person-1",
+          "name": "Alex Adams",
+          "initials": "AA",
+          "photoThumbnailUrl": null,
+          "teams": [
+            "Band"
+          ],
+          "rhythm": {
+            "lastServedOn": "2026-05-10",
+            "nextServingOn": "2026-05-31",
+            "servedDays30": 1,
+            "servedDays90": 2,
+            "servedDays180": 4,
+            "upcomingDays30": 1,
+            "typicalGapDays": 21,
+            "requests180": 5,
+            "declined180": 0,
+            "pendingUpcoming": 1,
+            "nextPendingOn": "2026-05-31"
+          },
+          "roles": [
+            "Vocals"
+          ],
+          "monthDays": []
+        },
+        "requestBudget": {
+          "limit": 0,
+          "planningCenterRequests": 0,
+          "unresolvedRehearsalTimes": 0
+        }
+      }
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "person-1",
+        "month": "2026-06"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "person-1",
+        "month": "2026-05"
+      },
+      "output": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "previousMonth": "2026-04",
+        "nextMonth": "2026-06",
+        "person": {
+          "id": "person-1",
+          "name": "Alex Adams",
+          "initials": "AA",
+          "photoThumbnailUrl": null,
+          "teams": [
+            "Band"
+          ],
+          "rhythm": {
+            "lastServedOn": "2026-05-10",
+            "nextServingOn": "2026-05-31",
+            "servedDays30": 1,
+            "servedDays90": 2,
+            "servedDays180": 4,
+            "upcomingDays30": 1,
+            "typicalGapDays": 21,
+            "requests180": 5,
+            "declined180": 0,
+            "pendingUpcoming": 1,
+            "nextPendingOn": "2026-05-31"
+          },
+          "roles": [
+            "Vocals"
+          ],
+          "monthDays": []
+        },
+        "requestBudget": {
+          "limit": 0,
+          "planningCenterRequests": 0,
+          "unresolvedRehearsalTimes": 0
+        }
+      }
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "person-2",
+        "month": null
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "dashboards": [],
+        "personId": "person-1",
+        "month": null
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2027,
+                "monthIndex": 0,
+                "label": "January 2027",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "person-1",
+        "month": null
+      },
+      "output": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2027,
+          "monthIndex": 0,
+          "label": "January 2027",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "previousMonth": "2026-12",
+        "nextMonth": "2027-02",
+        "person": {
+          "id": "person-1",
+          "name": "Alex Adams",
+          "initials": "AA",
+          "photoThumbnailUrl": null,
+          "teams": [
+            "Band"
+          ],
+          "rhythm": {
+            "lastServedOn": "2026-05-10",
+            "nextServingOn": "2026-05-31",
+            "servedDays30": 1,
+            "servedDays90": 2,
+            "servedDays180": 4,
+            "upcomingDays30": 1,
+            "typicalGapDays": 21,
+            "requests180": 5,
+            "declined180": 0,
+            "pendingUpcoming": 1,
+            "nextPendingOn": "2026-05-31"
+          },
+          "roles": [
+            "Vocals"
+          ],
+          "monthDays": []
+        },
+        "requestBudget": {
+          "limit": 0,
+          "planningCenterRequests": 0,
+          "unresolvedRehearsalTimes": 0
+        }
+      }
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 11,
+                "label": "December 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "person-1",
+        "month": "2026-12"
+      },
+      "output": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 11,
+          "label": "December 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "previousMonth": "2026-11",
+        "nextMonth": "2027-01",
+        "person": {
+          "id": "person-1",
+          "name": "Alex Adams",
+          "initials": "AA",
+          "photoThumbnailUrl": null,
+          "teams": [
+            "Band"
+          ],
+          "rhythm": {
+            "lastServedOn": "2026-05-10",
+            "nextServingOn": "2026-05-31",
+            "servedDays30": 1,
+            "servedDays90": 2,
+            "servedDays180": 4,
+            "upcomingDays30": 1,
+            "typicalGapDays": 21,
+            "requests180": 5,
+            "declined180": 0,
+            "pendingUpcoming": 1,
+            "nextPendingOn": "2026-05-31"
+          },
+          "roles": [
+            "Vocals"
+          ],
+          "monthDays": []
+        },
+        "requestBudget": {
+          "limit": 0,
+          "planningCenterRequests": 0,
+          "unresolvedRehearsalTimes": 0
+        }
+      }
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 11,
+                "label": "December 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          },
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2027,
+                "monthIndex": 0,
+                "label": "January 2027",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "person-1",
+        "month": "2027-01"
+      },
+      "output": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2027,
+          "monthIndex": 0,
+          "label": "January 2027",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "previousMonth": "2026-12",
+        "nextMonth": "2027-02",
+        "person": {
+          "id": "person-1",
+          "name": "Alex Adams",
+          "initials": "AA",
+          "photoThumbnailUrl": null,
+          "teams": [
+            "Band"
+          ],
+          "rhythm": {
+            "lastServedOn": "2026-05-10",
+            "nextServingOn": "2026-05-31",
+            "servedDays30": 1,
+            "servedDays90": 2,
+            "servedDays180": 4,
+            "upcomingDays30": 1,
+            "typicalGapDays": 21,
+            "requests180": 5,
+            "declined180": 0,
+            "pendingUpcoming": 1,
+            "nextPendingOn": "2026-05-31"
+          },
+          "roles": [
+            "Vocals"
+          ],
+          "monthDays": []
+        },
+        "requestBudget": {
+          "limit": 0,
+          "planningCenterRequests": 0,
+          "unresolvedRehearsalTimes": 0
+        }
+      }
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "p0-0",
+                  "name": "Sam",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": []
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-0",
+                  "name": "Greeters",
+                  "serviceTypeName": "Zion",
+                  "personIds": [
+                    "p0-0",
+                    "missing-person"
+                  ]
+                },
+                {
+                  "id": "team-1",
+                  "name": "ΧΟΡΩΔΊΑ",
+                  "serviceTypeName": "",
+                  "personIds": []
+                }
+              ],
+              "ledTeamIds": [
+                "team-0"
+              ]
+            },
+            "activities": [
+              {
+                "id": "p0-0",
+                "rhythm": {
+                  "lastServedOn": null,
+                  "nextServingOn": null,
+                  "servedDays30": 0,
+                  "servedDays90": 8,
+                  "servedDays180": 31,
+                  "upcomingDays30": 5,
+                  "typicalGapDays": 41.9,
+                  "requests180": 26,
+                  "declined180": 8,
+                  "pendingUpcoming": 5,
+                  "nextPendingOn": "2026-06-12"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              },
+              {
+                "id": "elsewhere",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 4,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [
+                  "Keys"
+                ],
+                "monthDays": [
+                  {
+                    "day": 31,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              }
+            ],
+            "scopePersonIds": [
+              "p0-0",
+              "not-on-roster"
+            ],
+            "samplePeopleCount": 48,
+            "loadingPersonIds": [
+              "p0-0"
+            ]
+          },
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "p0-0",
+        "month": null
+      },
+      "output": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "previousMonth": "2026-04",
+        "nextMonth": "2026-06",
+        "person": {
+          "id": "p0-0",
+          "name": "Sam",
+          "initials": "",
+          "photoThumbnailUrl": null,
+          "teams": [],
+          "rhythm": {
+            "lastServedOn": null,
+            "nextServingOn": null,
+            "servedDays30": 0,
+            "servedDays90": 8,
+            "servedDays180": 31,
+            "upcomingDays30": 5,
+            "typicalGapDays": 41.9,
+            "requests180": 26,
+            "declined180": 8,
+            "pendingUpcoming": 5,
+            "nextPendingOn": "2026-06-12"
+          },
+          "roles": [
+            "Vocals"
+          ],
+          "monthDays": []
+        },
+        "requestBudget": {
+          "limit": 0,
+          "planningCenterRequests": 0,
+          "unresolvedRehearsalTimes": 0
+        }
+      }
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "p1-0",
+                  "name": "fiona Ray",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Tech"
+                  ]
+                },
+                {
+                  "id": "p1-1",
+                  "name": "#hash",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Vocals"
+                  ]
+                },
+                {
+                  "id": "p1-2",
+                  "name": "Straße Ute",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "ΧΟΡΩΔΊΑ"
+                  ]
+                },
+                {
+                  "id": "p1-3",
+                  "name": "Anna Lopez",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                },
+                {
+                  "id": "p1-4",
+                  "name": "Fiona Ray",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "ΧΟΡΩΔΊΑ"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-0",
+                  "name": "Équipe",
+                  "serviceTypeName": "alpha",
+                  "personIds": [
+                    "p1-0",
+                    "p1-3",
+                    "p1-4"
+                  ]
+                },
+                {
+                  "id": "team-1",
+                  "name": "Kids",
+                  "serviceTypeName": "Youth",
+                  "personIds": [
+                    "p1-0",
+                    "p1-2",
+                    "p1-3",
+                    "p1-4"
+                  ]
+                },
+                {
+                  "id": "team-2",
+                  "name": "Vocals",
+                  "serviceTypeName": "Other teams",
+                  "personIds": [
+                    "p1-0",
+                    "p1-1",
+                    "p1-2",
+                    "p1-3"
+                  ]
+                }
+              ],
+              "ledTeamIds": [
+                "team-0",
+                "team-2"
+              ]
+            },
+            "activities": [
+              {
+                "id": "p1-3",
+                "rhythm": {
+                  "lastServedOn": null,
+                  "nextServingOn": null,
+                  "servedDays30": 2,
+                  "servedDays90": 5.5,
+                  "servedDays180": 31,
+                  "upcomingDays30": 3,
+                  "typicalGapDays": 56,
+                  "requests180": 19,
+                  "declined180": 9,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [
+                  "Sound"
+                ],
+                "monthDays": [
+                  {
+                    "day": 13,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p1-4",
+                "rhythm": {
+                  "lastServedOn": "2025-12-08",
+                  "nextServingOn": "2026-07-06",
+                  "servedDays30": 0,
+                  "servedDays90": 12,
+                  "servedDays180": 14,
+                  "upcomingDays30": 2,
+                  "typicalGapDays": 90,
+                  "requests180": 16,
+                  "declined180": 0,
+                  "pendingUpcoming": 4,
+                  "nextPendingOn": "2026-06-01"
+                },
+                "roles": [],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "p1-0",
+              "p1-1",
+              "p1-2",
+              "p1-3",
+              "p1-4"
+            ],
+            "samplePeopleCount": 500,
+            "loadingPersonIds": [
+              "p1-1"
+            ]
+          },
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "p1-0",
+        "month": null
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "p1-0",
+                  "name": "fiona Ray",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Tech"
+                  ]
+                },
+                {
+                  "id": "p1-1",
+                  "name": "#hash",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Vocals"
+                  ]
+                },
+                {
+                  "id": "p1-2",
+                  "name": "Straße Ute",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "ΧΟΡΩΔΊΑ"
+                  ]
+                },
+                {
+                  "id": "p1-3",
+                  "name": "Anna Lopez",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                },
+                {
+                  "id": "p1-4",
+                  "name": "Fiona Ray",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "ΧΟΡΩΔΊΑ"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-0",
+                  "name": "Équipe",
+                  "serviceTypeName": "alpha",
+                  "personIds": [
+                    "p1-0",
+                    "p1-3",
+                    "p1-4"
+                  ]
+                },
+                {
+                  "id": "team-1",
+                  "name": "Kids",
+                  "serviceTypeName": "Youth",
+                  "personIds": [
+                    "p1-0",
+                    "p1-2",
+                    "p1-3",
+                    "p1-4"
+                  ]
+                },
+                {
+                  "id": "team-2",
+                  "name": "Vocals",
+                  "serviceTypeName": "Other teams",
+                  "personIds": [
+                    "p1-0",
+                    "p1-1",
+                    "p1-2",
+                    "p1-3"
+                  ]
+                }
+              ],
+              "ledTeamIds": [
+                "team-0",
+                "team-2"
+              ]
+            },
+            "activities": [
+              {
+                "id": "p1-3",
+                "rhythm": {
+                  "lastServedOn": null,
+                  "nextServingOn": null,
+                  "servedDays30": 2,
+                  "servedDays90": 5.5,
+                  "servedDays180": 31,
+                  "upcomingDays30": 3,
+                  "typicalGapDays": 56,
+                  "requests180": 19,
+                  "declined180": 9,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [
+                  "Sound"
+                ],
+                "monthDays": [
+                  {
+                    "day": 13,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p1-4",
+                "rhythm": {
+                  "lastServedOn": "2025-12-08",
+                  "nextServingOn": "2026-07-06",
+                  "servedDays30": 0,
+                  "servedDays90": 12,
+                  "servedDays180": 14,
+                  "upcomingDays30": 2,
+                  "typicalGapDays": 90,
+                  "requests180": 16,
+                  "declined180": 0,
+                  "pendingUpcoming": 4,
+                  "nextPendingOn": "2026-06-01"
+                },
+                "roles": [],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "p1-0",
+              "p1-1",
+              "p1-2",
+              "p1-3",
+              "p1-4"
+            ],
+            "samplePeopleCount": 500,
+            "loadingPersonIds": [
+              "p1-1"
+            ]
+          },
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "p1-1",
+        "month": null
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "p2-0",
+                  "name": "Jose Diaz",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Tech"
+                  ]
+                },
+                {
+                  "id": "p2-1",
+                  "name": "Strasse Ute",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Kids"
+                  ]
+                },
+                {
+                  "id": "p2-2",
+                  "name": "José Díaz",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Vocals"
+                  ]
+                }
+              ],
+              "teams": [],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "p2-0",
+                "rhythm": {
+                  "lastServedOn": "2025-11-29",
+                  "nextServingOn": null,
+                  "servedDays30": 4,
+                  "servedDays90": 12,
+                  "servedDays180": 39,
+                  "upcomingDays30": 2,
+                  "typicalGapDays": 41.9,
+                  "requests180": 17,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [
+                  "Keys"
+                ],
+                "monthDays": [
+                  {
+                    "day": 31,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p2-1",
+                "rhythm": {
+                  "lastServedOn": null,
+                  "nextServingOn": "2026-07-16",
+                  "servedDays30": 6,
+                  "servedDays90": 7,
+                  "servedDays180": 36,
+                  "upcomingDays30": 0,
+                  "typicalGapDays": 10.5,
+                  "requests180": 15,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [],
+                "monthDays": []
+              },
+              {
+                "id": "p2-2",
+                "rhythm": {
+                  "lastServedOn": "2026-03-02",
+                  "nextServingOn": "2026-06-27",
+                  "servedDays30": 3,
+                  "servedDays90": 20,
+                  "servedDays180": 26,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 42,
+                  "requests180": 24,
+                  "declined180": 1,
+                  "pendingUpcoming": 4,
+                  "nextPendingOn": "2026-06-10"
+                },
+                "roles": [],
+                "monthDays": []
+              },
+              {
+                "id": "elsewhere",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 4,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [
+                  "Keys"
+                ],
+                "monthDays": [
+                  {
+                    "day": 31,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              }
+            ],
+            "scopePersonIds": [
+              "p2-0",
+              "p2-1",
+              "p2-2"
+            ],
+            "samplePeopleCount": 3,
+            "loadingPersonIds": []
+          },
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "p2-0",
+        "month": null
+      },
+      "output": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "previousMonth": "2026-04",
+        "nextMonth": "2026-06",
+        "person": {
+          "id": "p2-0",
+          "name": "Jose Diaz",
+          "initials": "",
+          "photoThumbnailUrl": "https://example.com/p.jpg",
+          "teams": [
+            "Tech"
+          ],
+          "rhythm": {
+            "lastServedOn": "2025-11-29",
+            "nextServingOn": null,
+            "servedDays30": 4,
+            "servedDays90": 12,
+            "servedDays180": 39,
+            "upcomingDays30": 2,
+            "typicalGapDays": 41.9,
+            "requests180": 17,
+            "declined180": 0,
+            "pendingUpcoming": 0,
+            "nextPendingOn": null
+          },
+          "roles": [
+            "Keys"
+          ],
+          "monthDays": [
+            {
+              "day": 31,
+              "kind": "service",
+              "status": "C"
+            }
+          ]
+        },
+        "requestBudget": {
+          "limit": 0,
+          "planningCenterRequests": 0,
+          "unresolvedRehearsalTimes": 0
+        }
+      }
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "p2-0",
+                  "name": "Jose Diaz",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Tech"
+                  ]
+                },
+                {
+                  "id": "p2-1",
+                  "name": "Strasse Ute",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Kids"
+                  ]
+                },
+                {
+                  "id": "p2-2",
+                  "name": "José Díaz",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Vocals"
+                  ]
+                }
+              ],
+              "teams": [],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "p2-0",
+                "rhythm": {
+                  "lastServedOn": "2025-11-29",
+                  "nextServingOn": null,
+                  "servedDays30": 4,
+                  "servedDays90": 12,
+                  "servedDays180": 39,
+                  "upcomingDays30": 2,
+                  "typicalGapDays": 41.9,
+                  "requests180": 17,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [
+                  "Keys"
+                ],
+                "monthDays": [
+                  {
+                    "day": 31,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p2-1",
+                "rhythm": {
+                  "lastServedOn": null,
+                  "nextServingOn": "2026-07-16",
+                  "servedDays30": 6,
+                  "servedDays90": 7,
+                  "servedDays180": 36,
+                  "upcomingDays30": 0,
+                  "typicalGapDays": 10.5,
+                  "requests180": 15,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [],
+                "monthDays": []
+              },
+              {
+                "id": "p2-2",
+                "rhythm": {
+                  "lastServedOn": "2026-03-02",
+                  "nextServingOn": "2026-06-27",
+                  "servedDays30": 3,
+                  "servedDays90": 20,
+                  "servedDays180": 26,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 42,
+                  "requests180": 24,
+                  "declined180": 1,
+                  "pendingUpcoming": 4,
+                  "nextPendingOn": "2026-06-10"
+                },
+                "roles": [],
+                "monthDays": []
+              },
+              {
+                "id": "elsewhere",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 4,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [
+                  "Keys"
+                ],
+                "monthDays": [
+                  {
+                    "day": 31,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              }
+            ],
+            "scopePersonIds": [
+              "p2-0",
+              "p2-1",
+              "p2-2"
+            ],
+            "samplePeopleCount": 3,
+            "loadingPersonIds": []
+          },
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "p2-1",
+        "month": null
+      },
+      "output": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "previousMonth": "2026-04",
+        "nextMonth": "2026-06",
+        "person": {
+          "id": "p2-1",
+          "name": "Strasse Ute",
+          "initials": "",
+          "photoThumbnailUrl": null,
+          "teams": [
+            "Kids"
+          ],
+          "rhythm": {
+            "lastServedOn": null,
+            "nextServingOn": "2026-07-16",
+            "servedDays30": 6,
+            "servedDays90": 7,
+            "servedDays180": 36,
+            "upcomingDays30": 0,
+            "typicalGapDays": 10.5,
+            "requests180": 15,
+            "declined180": 0,
+            "pendingUpcoming": 0,
+            "nextPendingOn": null
+          },
+          "roles": [],
+          "monthDays": []
+        },
+        "requestBudget": {
+          "limit": 0,
+          "planningCenterRequests": 0,
+          "unresolvedRehearsalTimes": 0
+        }
+      }
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "p3-0",
+                  "name": "1st Choir",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Production"
+                  ]
+                },
+                {
+                  "id": "p3-1",
+                  "name": "Zoë Adams",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": []
+                },
+                {
+                  "id": "p3-2",
+                  "name": "Sam",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Tech"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-0",
+                  "name": "Kids",
+                  "serviceTypeName": "Sunday",
+                  "personIds": [
+                    "p3-1",
+                    "p3-2"
+                  ]
+                },
+                {
+                  "id": "team-1",
+                  "name": "Production",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "p3-1",
+                    "p3-2",
+                    "missing-person"
+                  ]
+                },
+                {
+                  "id": "team-2",
+                  "name": "Vocals",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "p3-2"
+                  ]
+                },
+                {
+                  "id": "team-3",
+                  "name": "Équipe",
+                  "serviceTypeName": "Other teams",
+                  "personIds": [
+                    "p3-0",
+                    "p3-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "p3-0",
+                "rhythm": {
+                  "lastServedOn": "2026-05-04",
+                  "nextServingOn": "2026-07-10",
+                  "servedDays30": 0,
+                  "servedDays90": 15,
+                  "servedDays180": 15,
+                  "upcomingDays30": 2,
+                  "typicalGapDays": 29,
+                  "requests180": 29,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-28"
+                },
+                "roles": [
+                  "Lyrics"
+                ],
+                "monthDays": [
+                  {
+                    "day": 25,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p3-1",
+                "rhythm": {
+                  "lastServedOn": "2026-01-08",
+                  "nextServingOn": null,
+                  "servedDays30": 4,
+                  "servedDays90": 14,
+                  "servedDays180": 14,
+                  "upcomingDays30": 4,
+                  "typicalGapDays": 42,
+                  "requests180": 15,
+                  "declined180": 1,
+                  "pendingUpcoming": 2,
+                  "nextPendingOn": "2026-05-24"
+                },
+                "roles": [
+                  "Lyrics"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "p3-2",
+              "not-on-roster"
+            ],
+            "samplePeopleCount": -1,
+            "loadingPersonIds": [
+              "p3-2"
+            ]
+          },
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "p3-0",
+        "month": null
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "p3-0",
+                  "name": "1st Choir",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Production"
+                  ]
+                },
+                {
+                  "id": "p3-1",
+                  "name": "Zoë Adams",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": []
+                },
+                {
+                  "id": "p3-2",
+                  "name": "Sam",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Tech"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-0",
+                  "name": "Kids",
+                  "serviceTypeName": "Sunday",
+                  "personIds": [
+                    "p3-1",
+                    "p3-2"
+                  ]
+                },
+                {
+                  "id": "team-1",
+                  "name": "Production",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "p3-1",
+                    "p3-2",
+                    "missing-person"
+                  ]
+                },
+                {
+                  "id": "team-2",
+                  "name": "Vocals",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "p3-2"
+                  ]
+                },
+                {
+                  "id": "team-3",
+                  "name": "Équipe",
+                  "serviceTypeName": "Other teams",
+                  "personIds": [
+                    "p3-0",
+                    "p3-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "p3-0",
+                "rhythm": {
+                  "lastServedOn": "2026-05-04",
+                  "nextServingOn": "2026-07-10",
+                  "servedDays30": 0,
+                  "servedDays90": 15,
+                  "servedDays180": 15,
+                  "upcomingDays30": 2,
+                  "typicalGapDays": 29,
+                  "requests180": 29,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-28"
+                },
+                "roles": [
+                  "Lyrics"
+                ],
+                "monthDays": [
+                  {
+                    "day": 25,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p3-1",
+                "rhythm": {
+                  "lastServedOn": "2026-01-08",
+                  "nextServingOn": null,
+                  "servedDays30": 4,
+                  "servedDays90": 14,
+                  "servedDays180": 14,
+                  "upcomingDays30": 4,
+                  "typicalGapDays": 42,
+                  "requests180": 15,
+                  "declined180": 1,
+                  "pendingUpcoming": 2,
+                  "nextPendingOn": "2026-05-24"
+                },
+                "roles": [
+                  "Lyrics"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "p3-2",
+              "not-on-roster"
+            ],
+            "samplePeopleCount": -1,
+            "loadingPersonIds": [
+              "p3-2"
+            ]
+          },
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "p3-1",
+        "month": null
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "p4-0",
+                  "name": "fiona Ray",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": []
+                },
+                {
+                  "id": "p4-1",
+                  "name": "王芳",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Vocals"
+                  ]
+                },
+                {
+                  "id": "p4-2",
+                  "name": "Anna Lopez",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": []
+                },
+                {
+                  "id": "p4-3",
+                  "name": "S‍am",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Équipe"
+                  ]
+                },
+                {
+                  "id": "p4-4",
+                  "name": "Zoe Adams",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Tech"
+                  ]
+                },
+                {
+                  "id": "p4-5",
+                  "name": "김민준",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": []
+                },
+                {
+                  "id": "p4-6",
+                  "name": "İlker Kaya",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Band"
+                  ]
+                },
+                {
+                  "id": "p4-7",
+                  "name": "#hash",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Kids"
+                  ]
+                },
+                {
+                  "id": "p4-8",
+                  "name": "2nd Choir",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Production"
+                  ]
+                },
+                {
+                  "id": "p4-9",
+                  "name": "ana lopez",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": []
+                },
+                {
+                  "id": "p4-10",
+                  "name": "Mary-Jane Fox",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": []
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-0",
+                  "name": "Équipe",
+                  "serviceTypeName": "alpha",
+                  "personIds": [
+                    "p4-1",
+                    "p4-2",
+                    "p4-4",
+                    "p4-6",
+                    "p4-7",
+                    "p4-10"
+                  ]
+                }
+              ],
+              "ledTeamIds": [
+                "team-0"
+              ]
+            },
+            "activities": [
+              {
+                "id": "p4-1",
+                "rhythm": {
+                  "lastServedOn": "2025-11-16",
+                  "nextServingOn": null,
+                  "servedDays30": 4,
+                  "servedDays90": 15,
+                  "servedDays180": 15,
+                  "upcomingDays30": 4,
+                  "typicalGapDays": null,
+                  "requests180": 5,
+                  "declined180": 1,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [],
+                "monthDays": [
+                  {
+                    "day": 15,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p4-3",
+                "rhythm": {
+                  "lastServedOn": "2026-01-12",
+                  "nextServingOn": null,
+                  "servedDays30": 8,
+                  "servedDays90": 8.5,
+                  "servedDays180": 24,
+                  "upcomingDays30": 0,
+                  "typicalGapDays": 10.5,
+                  "requests180": 21,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [],
+                "monthDays": [
+                  {
+                    "day": 12,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p4-4",
+                "rhythm": {
+                  "lastServedOn": null,
+                  "nextServingOn": null,
+                  "servedDays30": 5,
+                  "servedDays90": 14,
+                  "servedDays180": 34,
+                  "upcomingDays30": 8,
+                  "typicalGapDays": 27.5,
+                  "requests180": 23,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [
+                  "Worship Leader"
+                ],
+                "monthDays": [
+                  {
+                    "day": 1,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p4-5",
+                "rhythm": {
+                  "lastServedOn": "2025-12-03",
+                  "nextServingOn": "2026-06-19",
+                  "servedDays30": 6,
+                  "servedDays90": 9,
+                  "servedDays180": 23,
+                  "upcomingDays30": 8,
+                  "typicalGapDays": 14,
+                  "requests180": 2,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [],
+                "monthDays": [
+                  {
+                    "day": 16,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p4-6",
+                "rhythm": {
+                  "lastServedOn": "2026-01-10",
+                  "nextServingOn": null,
+                  "servedDays30": 6,
+                  "servedDays90": 6,
+                  "servedDays180": 20,
+                  "upcomingDays30": 3,
+                  "typicalGapDays": 35,
+                  "requests180": 5,
+                  "declined180": 3,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [
+                  "Drums"
+                ],
+                "monthDays": []
+              },
+              {
+                "id": "p4-8",
+                "rhythm": {
+                  "lastServedOn": "2026-04-21",
+                  "nextServingOn": null,
+                  "servedDays30": 2,
+                  "servedDays90": 2,
+                  "servedDays180": 14,
+                  "upcomingDays30": 8,
+                  "typicalGapDays": 3.5,
+                  "requests180": 19,
+                  "declined180": 1,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [],
+                "monthDays": [
+                  {
+                    "day": 21,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p4-9",
+                "rhythm": {
+                  "lastServedOn": "2025-12-12",
+                  "nextServingOn": null,
+                  "servedDays30": 2,
+                  "servedDays90": 13,
+                  "servedDays180": 13,
+                  "upcomingDays30": 4,
+                  "typicalGapDays": 7,
+                  "requests180": 21,
+                  "declined180": 20,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [],
+                "monthDays": []
+              },
+              {
+                "id": "elsewhere",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 4,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [
+                  "Keys"
+                ],
+                "monthDays": [
+                  {
+                    "day": 31,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              }
+            ],
+            "scopePersonIds": [
+              "p4-0",
+              "p4-1",
+              "p4-2",
+              "p4-3",
+              "p4-4",
+              "p4-5",
+              "p4-6",
+              "p4-7",
+              "p4-8",
+              "p4-9",
+              "p4-10"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": [
+              "p4-1",
+              "p4-2",
+              "p4-9"
+            ]
+          },
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "p4-0",
+        "month": null
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "p4-0",
+                  "name": "fiona Ray",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": []
+                },
+                {
+                  "id": "p4-1",
+                  "name": "王芳",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Vocals"
+                  ]
+                },
+                {
+                  "id": "p4-2",
+                  "name": "Anna Lopez",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": []
+                },
+                {
+                  "id": "p4-3",
+                  "name": "S‍am",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Équipe"
+                  ]
+                },
+                {
+                  "id": "p4-4",
+                  "name": "Zoe Adams",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Tech"
+                  ]
+                },
+                {
+                  "id": "p4-5",
+                  "name": "김민준",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": []
+                },
+                {
+                  "id": "p4-6",
+                  "name": "İlker Kaya",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Band"
+                  ]
+                },
+                {
+                  "id": "p4-7",
+                  "name": "#hash",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Kids"
+                  ]
+                },
+                {
+                  "id": "p4-8",
+                  "name": "2nd Choir",
+                  "initials": "",
+                  "photoThumbnailUrl": "https://example.com/p.jpg",
+                  "teams": [
+                    "Production"
+                  ]
+                },
+                {
+                  "id": "p4-9",
+                  "name": "ana lopez",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": []
+                },
+                {
+                  "id": "p4-10",
+                  "name": "Mary-Jane Fox",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": []
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-0",
+                  "name": "Équipe",
+                  "serviceTypeName": "alpha",
+                  "personIds": [
+                    "p4-1",
+                    "p4-2",
+                    "p4-4",
+                    "p4-6",
+                    "p4-7",
+                    "p4-10"
+                  ]
+                }
+              ],
+              "ledTeamIds": [
+                "team-0"
+              ]
+            },
+            "activities": [
+              {
+                "id": "p4-1",
+                "rhythm": {
+                  "lastServedOn": "2025-11-16",
+                  "nextServingOn": null,
+                  "servedDays30": 4,
+                  "servedDays90": 15,
+                  "servedDays180": 15,
+                  "upcomingDays30": 4,
+                  "typicalGapDays": null,
+                  "requests180": 5,
+                  "declined180": 1,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [],
+                "monthDays": [
+                  {
+                    "day": 15,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p4-3",
+                "rhythm": {
+                  "lastServedOn": "2026-01-12",
+                  "nextServingOn": null,
+                  "servedDays30": 8,
+                  "servedDays90": 8.5,
+                  "servedDays180": 24,
+                  "upcomingDays30": 0,
+                  "typicalGapDays": 10.5,
+                  "requests180": 21,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [],
+                "monthDays": [
+                  {
+                    "day": 12,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p4-4",
+                "rhythm": {
+                  "lastServedOn": null,
+                  "nextServingOn": null,
+                  "servedDays30": 5,
+                  "servedDays90": 14,
+                  "servedDays180": 34,
+                  "upcomingDays30": 8,
+                  "typicalGapDays": 27.5,
+                  "requests180": 23,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [
+                  "Worship Leader"
+                ],
+                "monthDays": [
+                  {
+                    "day": 1,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p4-5",
+                "rhythm": {
+                  "lastServedOn": "2025-12-03",
+                  "nextServingOn": "2026-06-19",
+                  "servedDays30": 6,
+                  "servedDays90": 9,
+                  "servedDays180": 23,
+                  "upcomingDays30": 8,
+                  "typicalGapDays": 14,
+                  "requests180": 2,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [],
+                "monthDays": [
+                  {
+                    "day": 16,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p4-6",
+                "rhythm": {
+                  "lastServedOn": "2026-01-10",
+                  "nextServingOn": null,
+                  "servedDays30": 6,
+                  "servedDays90": 6,
+                  "servedDays180": 20,
+                  "upcomingDays30": 3,
+                  "typicalGapDays": 35,
+                  "requests180": 5,
+                  "declined180": 3,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [
+                  "Drums"
+                ],
+                "monthDays": []
+              },
+              {
+                "id": "p4-8",
+                "rhythm": {
+                  "lastServedOn": "2026-04-21",
+                  "nextServingOn": null,
+                  "servedDays30": 2,
+                  "servedDays90": 2,
+                  "servedDays180": 14,
+                  "upcomingDays30": 8,
+                  "typicalGapDays": 3.5,
+                  "requests180": 19,
+                  "declined180": 1,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [],
+                "monthDays": [
+                  {
+                    "day": 21,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              },
+              {
+                "id": "p4-9",
+                "rhythm": {
+                  "lastServedOn": "2025-12-12",
+                  "nextServingOn": null,
+                  "servedDays30": 2,
+                  "servedDays90": 13,
+                  "servedDays180": 13,
+                  "upcomingDays30": 4,
+                  "typicalGapDays": 7,
+                  "requests180": 21,
+                  "declined180": 20,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [],
+                "monthDays": []
+              },
+              {
+                "id": "elsewhere",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 4,
+                  "declined180": 0,
+                  "pendingUpcoming": 0,
+                  "nextPendingOn": null
+                },
+                "roles": [
+                  "Keys"
+                ],
+                "monthDays": [
+                  {
+                    "day": 31,
+                    "kind": "service",
+                    "status": "C"
+                  }
+                ]
+              }
+            ],
+            "scopePersonIds": [
+              "p4-0",
+              "p4-1",
+              "p4-2",
+              "p4-3",
+              "p4-4",
+              "p4-5",
+              "p4-6",
+              "p4-7",
+              "p4-8",
+              "p4-9",
+              "p4-10"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": [
+              "p4-1",
+              "p4-2",
+              "p4-9"
+            ]
+          },
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "p4-1",
+        "month": null
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "dashboards": [
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "p5-0",
+                  "name": "王芳",
+                  "initials": "",
+                  "photoThumbnailUrl": null,
+                  "teams": []
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-0",
+                  "name": "ΧΟΡΩΔΊΑ",
+                  "serviceTypeName": "Évènements",
+                  "personIds": [
+                    "missing-person"
+                  ]
+                },
+                {
+                  "id": "team-1",
+                  "name": "Équipe",
+                  "serviceTypeName": "Other teams",
+                  "personIds": []
+                },
+                {
+                  "id": "team-2",
+                  "name": "Production",
+                  "serviceTypeName": "alpha",
+                  "personIds": [
+                    "p5-0"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [],
+            "scopePersonIds": [
+              "p5-0"
+            ],
+            "samplePeopleCount": 3,
+            "loadingPersonIds": []
+          },
+          {
+            "roster": {
+              "generatedAt": "2026-05-23T12:00:00.000Z",
+              "month": {
+                "year": 2026,
+                "monthIndex": 4,
+                "label": "May 2026",
+                "daysInMonth": 31,
+                "startsOnWeekday": 5
+              },
+              "people": [
+                {
+                  "id": "person-1",
+                  "name": "Alex Adams",
+                  "initials": "AA",
+                  "photoThumbnailUrl": null,
+                  "teams": [
+                    "Band"
+                  ]
+                }
+              ],
+              "teams": [
+                {
+                  "id": "team-1",
+                  "name": "Band",
+                  "serviceTypeName": null,
+                  "personIds": [
+                    "person-1"
+                  ]
+                }
+              ],
+              "ledTeamIds": []
+            },
+            "activities": [
+              {
+                "id": "person-1",
+                "rhythm": {
+                  "lastServedOn": "2026-05-10",
+                  "nextServingOn": "2026-05-31",
+                  "servedDays30": 1,
+                  "servedDays90": 2,
+                  "servedDays180": 4,
+                  "upcomingDays30": 1,
+                  "typicalGapDays": 21,
+                  "requests180": 5,
+                  "declined180": 0,
+                  "pendingUpcoming": 1,
+                  "nextPendingOn": "2026-05-31"
+                },
+                "roles": [
+                  "Vocals"
+                ],
+                "monthDays": []
+              }
+            ],
+            "scopePersonIds": [
+              "person-1"
+            ],
+            "samplePeopleCount": 1,
+            "loadingPersonIds": []
+          }
+        ],
+        "personId": "p5-0",
+        "month": null
+      },
+      "output": null
+    }
+  ]
+}

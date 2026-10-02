@@ -1,0 +1,495 @@
+{
+  "default": {
+    "generatedAt": "2026-10-01T17:00:00.000Z",
+    "people": [
+      {
+        "id": "4100154",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-11", "servedDays30": 2, "servedDays90": 5, "servedDays180": 9, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 2, "nextPendingOn": "2026-10-25"},
+        "roles": ["Greeter", "Alto"],
+        "monthDays": [
+          {"day": 11, "kind": "service", "positionName": "Greeter", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 22, "kind": "rehearsal", "positionName": "Alto", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261025/lineup"},
+          {"day": 25, "kind": "service", "positionName": "Alto", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261025/lineup"}
+        ]
+      },
+      {
+        "id": "4100116",
+        "rhythm": {"lastServedOn": "2026-09-20", "nextServingOn": "2026-10-04", "servedDays30": 1, "servedDays90": 5, "servedDays180": 9, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-10-25"},
+        "roles": ["Alto"],
+        "monthDays": [
+          {"day": 1, "kind": "rehearsal", "positionName": "Alto", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 4, "kind": "service", "positionName": "Alto", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 22, "kind": "rehearsal", "positionName": "Alto", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261025/lineup"},
+          {"day": 25, "kind": "service", "positionName": "Alto", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261025/lineup"}
+        ]
+      },
+      {
+        "id": "4100132",
+        "rhythm": {"lastServedOn": "2026-09-20", "nextServingOn": "2026-10-04", "servedDays30": 1, "servedDays90": 5, "servedDays180": 10, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 10, "declined180": 0, "pendingUpcoming": 3, "nextPendingOn": "2026-10-04"},
+        "roles": ["Coffee", "Greeter"],
+        "monthDays": [
+          {"day": 4, "kind": "service", "positionName": "Greeter", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 25, "kind": "service", "positionName": "Greeter", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261025/lineup"}
+        ]
+      },
+      {
+        "id": "4100112",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-04", "servedDays30": 1, "servedDays90": 5, "servedDays180": 9, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-10-18"},
+        "roles": ["Keys"],
+        "monthDays": [
+          {"day": 1, "kind": "rehearsal", "positionName": "Keys", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 4, "kind": "service", "positionName": "Keys", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Keys", "serviceTypeName": "Special Events", "status": "U", "planUrl": "/services/1103/plans/883261018/lineup"},
+          {"day": 18, "kind": "rehearsal", "positionName": "Keys", "serviceTypeName": "Special Events", "status": "U", "planUrl": "/services/1103/plans/883261018/lineup"}
+        ]
+      },
+      {
+        "id": "4100113",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-14", "servedDays30": 2, "servedDays90": 5, "servedDays180": 10, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 11, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null},
+        "roles": ["Keys", "Alto"],
+        "monthDays": [
+          {"day": 14, "kind": "service", "positionName": "Keys", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261014/lineup"},
+          {"day": 14, "kind": "rehearsal", "positionName": "Keys", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261014/lineup"},
+          {"day": 29, "kind": "rehearsal", "positionName": "Alto", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261101/lineup"}
+        ]
+      },
+      {
+        "id": "4100157",
+        "rhythm": {"lastServedOn": "2026-09-20", "nextServingOn": "2026-10-11", "servedDays30": 1, "servedDays90": 4, "servedDays180": 9, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-10-25"},
+        "roles": ["Camera", "Sound"],
+        "monthDays": [
+          {"day": 11, "kind": "service", "positionName": "Camera", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 25, "kind": "service", "positionName": "Camera", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261025/lineup"}
+        ]
+      },
+      {
+        "id": "4100152",
+        "rhythm": {"lastServedOn": "2026-09-20", "nextServingOn": "2026-10-18", "servedDays30": 1, "servedDays90": 4, "servedDays180": 9, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 2, "nextPendingOn": "2026-10-18"},
+        "roles": ["Keys", "Alto"],
+        "monthDays": [
+          {"day": 15, "kind": "rehearsal", "positionName": "Keys", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261018/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Keys", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261018/lineup"}
+        ]
+      },
+      {
+        "id": "4100103",
+        "rhythm": {"lastServedOn": "2026-09-20", "nextServingOn": "2026-10-18", "servedDays30": 2, "servedDays90": 5, "servedDays180": 9, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-11-15"},
+        "roles": ["Acoustic Guitar"],
+        "monthDays": [
+          {"day": 15, "kind": "rehearsal", "positionName": "Acoustic Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261018/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Acoustic Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261018/lineup"}
+        ]
+      },
+      {
+        "id": "4100129",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-04", "servedDays30": 2, "servedDays90": 6, "servedDays180": 11, "upcomingDays30": 2, "typicalGapDays": 18, "requests180": 11, "declined180": 0, "pendingUpcoming": 2, "nextPendingOn": "2026-10-04"},
+        "roles": ["Coffee", "Greeter"],
+        "monthDays": [
+          {"day": 4, "kind": "service", "positionName": "Coffee", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Coffee", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261018/lineup"}
+        ]
+      },
+      {
+        "id": "4100110",
+        "rhythm": {"lastServedOn": "2026-09-06", "nextServingOn": "2026-10-11", "servedDays30": 1, "servedDays90": 4, "servedDays180": 8, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 9, "declined180": 1, "pendingUpcoming": 0, "nextPendingOn": null},
+        "roles": ["Electric Guitar"],
+        "monthDays": [
+          {"day": 8, "kind": "rehearsal", "positionName": "Electric Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 11, "kind": "service", "positionName": "Electric Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"}
+        ]
+      },
+      {
+        "id": "4100123",
+        "rhythm": {"lastServedOn": "2026-09-30", "nextServingOn": "2026-10-04", "servedDays30": 3, "servedDays90": 6, "servedDays180": 11, "upcomingDays30": 2, "typicalGapDays": 19, "requests180": 11, "declined180": 0, "pendingUpcoming": 2, "nextPendingOn": "2026-10-14"},
+        "roles": ["Sound", "Camera"],
+        "monthDays": [
+          {"day": 4, "kind": "service", "positionName": "Stage Manager", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 14, "kind": "service", "positionName": "Sound", "serviceTypeName": "Youth Night", "status": "U", "planUrl": "/services/1102/plans/882261014/lineup"}
+        ]
+      },
+      {
+        "id": "4100102",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-18", "servedDays30": 2, "servedDays90": 5, "servedDays180": 10, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 10, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null},
+        "roles": ["Acoustic Guitar", "Tenor"],
+        "monthDays": [
+          {"day": 18, "kind": "service", "positionName": "Acoustic Guitar", "serviceTypeName": "Special Events", "status": "C", "planUrl": "/services/1103/plans/883261018/lineup"},
+          {"day": 18, "kind": "rehearsal", "positionName": "Acoustic Guitar", "serviceTypeName": "Special Events", "status": "C", "planUrl": "/services/1103/plans/883261018/lineup"}
+        ]
+      },
+      {
+        "id": "4100120",
+        "rhythm": {"lastServedOn": "2026-09-13", "nextServingOn": "2026-10-11", "servedDays30": 1, "servedDays90": 4, "servedDays180": 9, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null},
+        "roles": ["Tenor"],
+        "monthDays": [
+          {"day": 8, "kind": "rehearsal", "positionName": "Tenor", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 11, "kind": "service", "positionName": "Tenor", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 22, "kind": "rehearsal", "positionName": "Tenor", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261025/lineup"},
+          {"day": 25, "kind": "service", "positionName": "Tenor", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261025/lineup"}
+        ]
+      },
+      {
+        "id": "4100107",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-04", "servedDays30": 3, "servedDays90": 6, "servedDays180": 10, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 10, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-11-06"},
+        "roles": ["Bass Guitar", "Electric Guitar"],
+        "monthDays": [
+          {"day": 1, "kind": "rehearsal", "positionName": "Bass Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 4, "kind": "service", "positionName": "Bass Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 15, "kind": "rehearsal", "positionName": "Electric Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261018/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Electric Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261018/lineup"}
+        ]
+      },
+      {
+        "id": "4100151",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-18", "servedDays30": 1, "servedDays90": 3, "servedDays180": 8, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 8, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-10-18"},
+        "roles": ["Drums", "Bass Guitar"],
+        "monthDays": [
+          {"day": 15, "kind": "rehearsal", "positionName": "Drums", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261018/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Drums", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261018/lineup"},
+          {"day": 29, "kind": "rehearsal", "positionName": "Bass Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261101/lineup"}
+        ]
+      },
+      {
+        "id": "4100159",
+        "rhythm": {"lastServedOn": "2026-09-20", "nextServingOn": "2026-10-11", "servedDays30": 1, "servedDays90": 4, "servedDays180": 9, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-11-08"},
+        "roles": ["Camera"],
+        "monthDays": [
+          {"day": 11, "kind": "service", "positionName": "Camera", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"}
+        ]
+      },
+      {
+        "id": "4100121",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-11", "servedDays30": 3, "servedDays90": 6, "servedDays180": 10, "upcomingDays30": 1, "typicalGapDays": 18, "requests180": 10, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-11-08"},
+        "roles": ["Tenor", "Worship Leader"],
+        "monthDays": [
+          {"day": 8, "kind": "rehearsal", "positionName": "Worship Leader", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 11, "kind": "service", "positionName": "Worship Leader", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"}
+        ]
+      },
+      {"id": "4100130", "rhythm": {"lastServedOn": "2026-08-16", "nextServingOn": null, "servedDays30": 0, "servedDays90": 3, "servedDays180": 7, "upcomingDays30": 0, "typicalGapDays": 21, "requests180": 7, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null}, "roles": ["Coffee"], "monthDays": []},
+      {
+        "id": "4100138",
+        "rhythm": {"lastServedOn": "2026-09-23", "nextServingOn": "2026-10-07", "servedDays30": 3, "servedDays90": 3, "servedDays180": 7, "upcomingDays30": 2, "typicalGapDays": 18, "requests180": 7, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-10-21"},
+        "roles": ["Sound"],
+        "monthDays": [
+          {"day": 7, "kind": "service", "positionName": "Sound", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261007/lineup"},
+          {"day": 21, "kind": "service", "positionName": "Sound", "serviceTypeName": "Youth Night", "status": "U", "planUrl": "/services/1102/plans/882261021/lineup"}
+        ]
+      },
+      {
+        "id": "4100114",
+        "rhythm": {"lastServedOn": "2026-09-20", "nextServingOn": "2026-10-04", "servedDays30": 2, "servedDays90": 5, "servedDays180": 10, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 10, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-11-01"},
+        "roles": ["Worship Leader"],
+        "monthDays": [
+          {"day": 1, "kind": "rehearsal", "positionName": "Worship Leader", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 4, "kind": "service", "positionName": "Worship Leader", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 15, "kind": "rehearsal", "positionName": "Worship Leader", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261018/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Worship Leader", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261018/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Worship Leader", "serviceTypeName": "Special Events", "status": "C", "planUrl": "/services/1103/plans/883261018/lineup"},
+          {"day": 18, "kind": "rehearsal", "positionName": "Worship Leader", "serviceTypeName": "Special Events", "status": "C", "planUrl": "/services/1103/plans/883261018/lineup"},
+          {"day": 29, "kind": "rehearsal", "positionName": "Worship Leader", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261101/lineup"}
+        ]
+      },
+      {
+        "id": "4100146",
+        "rhythm": {"lastServedOn": "2026-09-23", "nextServingOn": "2026-10-07", "servedDays30": 2, "servedDays90": 2, "servedDays180": 6, "upcomingDays30": 2, "typicalGapDays": 14, "requests180": 6, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-11-11"},
+        "roles": ["Keys", "Vocals"],
+        "monthDays": [
+          {"day": 7, "kind": "service", "positionName": "Keys", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261007/lineup"},
+          {"day": 7, "kind": "rehearsal", "positionName": "Keys", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261007/lineup"},
+          {"day": 21, "kind": "service", "positionName": "Vocals", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261021/lineup"},
+          {"day": 21, "kind": "rehearsal", "positionName": "Vocals", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261021/lineup"}
+        ]
+      },
+      {
+        "id": "4100155",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-18", "servedDays30": 1, "servedDays90": 5, "servedDays180": 9, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null},
+        "roles": ["Worship Leader", "Tenor"],
+        "monthDays": [
+          {"day": 15, "kind": "rehearsal", "positionName": "Tenor", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261018/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Tenor", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261018/lineup"}
+        ]
+      },
+      {
+        "id": "4100153",
+        "rhythm": {"lastServedOn": "2026-09-13", "nextServingOn": "2026-10-11", "servedDays30": 1, "servedDays90": 4, "servedDays180": 9, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null},
+        "roles": ["Electric Guitar", "Sound"],
+        "monthDays": [
+          {"day": 11, "kind": "service", "positionName": "Sound", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"}
+        ]
+      },
+      {
+        "id": "4100134",
+        "rhythm": {"lastServedOn": "2026-09-30", "nextServingOn": "2026-10-28", "servedDays30": 3, "servedDays90": 3, "servedDays180": 6, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 6, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-10-28"},
+        "roles": ["Keys"],
+        "monthDays": [
+          {"day": 28, "kind": "service", "positionName": "Keys", "serviceTypeName": "Youth Night", "status": "U", "planUrl": "/services/1102/plans/882261028/lineup"},
+          {"day": 28, "kind": "rehearsal", "positionName": "Keys", "serviceTypeName": "Youth Night", "status": "U", "planUrl": "/services/1102/plans/882261028/lineup"}
+        ]
+      },
+      {
+        "id": "4100124",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-04", "servedDays30": 1, "servedDays90": 6, "servedDays180": 11, "upcomingDays30": 2, "typicalGapDays": 18, "requests180": 11, "declined180": 0, "pendingUpcoming": 2, "nextPendingOn": "2026-10-04"},
+        "roles": ["Lyrics"],
+        "monthDays": [
+          {"day": 4, "kind": "service", "positionName": "Lyrics", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Lyrics", "serviceTypeName": "Special Events", "status": "C", "planUrl": "/services/1103/plans/883261018/lineup"},
+          {"day": 18, "kind": "rehearsal", "positionName": "Lyrics", "serviceTypeName": "Special Events", "status": "C", "planUrl": "/services/1103/plans/883261018/lineup"}
+        ]
+      },
+      {
+        "id": "4100105",
+        "rhythm": {"lastServedOn": "2026-09-13", "nextServingOn": "2026-10-11", "servedDays30": 2, "servedDays90": 5, "servedDays180": 10, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 10, "declined180": 0, "pendingUpcoming": 2, "nextPendingOn": "2026-11-01"},
+        "roles": ["Acoustic Guitar", "Keys"],
+        "monthDays": [
+          {"day": 8, "kind": "rehearsal", "positionName": "Acoustic Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 11, "kind": "service", "positionName": "Acoustic Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 29, "kind": "rehearsal", "positionName": "Acoustic Guitar", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261101/lineup"}
+        ]
+      },
+      {
+        "id": "4100101",
+        "rhythm": {"lastServedOn": "2026-09-16", "nextServingOn": "2026-10-14", "servedDays30": 1, "servedDays90": 6, "servedDays180": 10, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 10, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-11-04"},
+        "roles": ["Acoustic Guitar"],
+        "monthDays": [
+          {"day": 14, "kind": "service", "positionName": "Acoustic Guitar", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261014/lineup"},
+          {"day": 14, "kind": "rehearsal", "positionName": "Acoustic Guitar", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261014/lineup"}
+        ]
+      },
+      {
+        "id": "4100125",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-04", "servedDays30": 3, "servedDays90": 6, "servedDays180": 10, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 10, "declined180": 0, "pendingUpcoming": 2, "nextPendingOn": "2026-10-18"},
+        "roles": ["Camera", "Livestream"],
+        "monthDays": [
+          {"day": 4, "kind": "service", "positionName": "Camera", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Livestream", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261018/lineup"}
+        ]
+      },
+      {
+        "id": "4100128",
+        "rhythm": {"lastServedOn": "2026-09-20", "nextServingOn": "2026-10-04", "servedDays30": 2, "servedDays90": 5, "servedDays180": 9, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null},
+        "roles": ["Coffee"],
+        "monthDays": [
+          {"day": 4, "kind": "service", "positionName": "Coffee", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Coffee", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261018/lineup"}
+        ]
+      },
+      {"id": "4100119", "rhythm": {"lastServedOn": null, "nextServingOn": null, "servedDays30": 0, "servedDays90": 0, "servedDays180": 0, "upcomingDays30": 0, "typicalGapDays": null, "requests180": 0, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null}, "roles": [], "monthDays": []},
+      {
+        "id": "4100160",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-11", "servedDays30": 2, "servedDays90": 5, "servedDays180": 10, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 10, "declined180": 0, "pendingUpcoming": 2, "nextPendingOn": "2026-10-11"},
+        "roles": ["Coffee", "Greeter"],
+        "monthDays": [
+          {"day": 11, "kind": "service", "positionName": "Greeter", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261011/lineup"}
+        ]
+      },
+      {
+        "id": "4100150",
+        "rhythm": {"lastServedOn": "2026-09-06", "nextServingOn": "2026-10-11", "servedDays30": 1, "servedDays90": 3, "servedDays180": 8, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 8, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-10-11"},
+        "roles": ["Alto"],
+        "monthDays": [
+          {"day": 8, "kind": "rehearsal", "positionName": "Alto", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 11, "kind": "service", "positionName": "Alto", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 29, "kind": "rehearsal", "positionName": "Alto", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261101/lineup"}
+        ]
+      },
+      {"id": "4100135", "rhythm": {"lastServedOn": "2026-09-30", "nextServingOn": null, "servedDays30": 2, "servedDays90": 2, "servedDays180": 6, "upcomingDays30": 0, "typicalGapDays": 21, "requests180": 6, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null}, "roles": ["Drums"], "monthDays": []},
+      {
+        "id": "4100127",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-04", "servedDays30": 2, "servedDays90": 6, "servedDays180": 10, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 10, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-11-06"},
+        "roles": ["Camera", "Livestream"],
+        "monthDays": [
+          {"day": 4, "kind": "service", "positionName": "Livestream", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Camera", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261018/lineup"}
+        ]
+      },
+      {
+        "id": "4100126",
+        "rhythm": {"lastServedOn": "2026-09-23", "nextServingOn": "2026-10-04", "servedDays30": 2, "servedDays90": 5, "servedDays180": 11, "upcomingDays30": 2, "typicalGapDays": 16, "requests180": 11, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null},
+        "roles": ["Camera", "Lyrics"],
+        "monthDays": [
+          {"day": 4, "kind": "service", "positionName": "Camera", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Camera", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261018/lineup"}
+        ]
+      },
+      {
+        "id": "4100108",
+        "rhythm": {"lastServedOn": "2026-09-20", "nextServingOn": "2026-10-04", "servedDays30": 2, "servedDays90": 5, "servedDays180": 9, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 2, "nextPendingOn": "2026-10-04"},
+        "roles": ["Drums"],
+        "monthDays": [
+          {"day": 1, "kind": "rehearsal", "positionName": "Drums", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 4, "kind": "service", "positionName": "Drums", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Drums", "serviceTypeName": "Special Events", "status": "C", "planUrl": "/services/1103/plans/883261018/lineup"},
+          {"day": 18, "kind": "rehearsal", "positionName": "Drums", "serviceTypeName": "Special Events", "status": "C", "planUrl": "/services/1103/plans/883261018/lineup"}
+        ]
+      },
+      {
+        "id": "4100137",
+        "rhythm": {"lastServedOn": "2026-09-30", "nextServingOn": "2026-10-14", "servedDays30": 3, "servedDays90": 3, "servedDays180": 7, "upcomingDays30": 1, "typicalGapDays": 14, "requests180": 7, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-11-04"},
+        "roles": ["Vocals", "Lyrics"],
+        "monthDays": [
+          {"day": 14, "kind": "service", "positionName": "Vocals", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261014/lineup"},
+          {"day": 14, "kind": "rehearsal", "positionName": "Vocals", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261014/lineup"}
+        ]
+      },
+      {"id": "4100118", "rhythm": {"lastServedOn": "2026-07-05", "nextServingOn": null, "servedDays30": 0, "servedDays90": 1, "servedDays180": 5, "upcomingDays30": 0, "typicalGapDays": 21, "requests180": 5, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null}, "roles": ["Alto"], "monthDays": []},
+      {
+        "id": "4100145",
+        "rhythm": {"lastServedOn": "2026-09-23", "nextServingOn": "2026-10-07", "servedDays30": 2, "servedDays90": 2, "servedDays180": 7, "upcomingDays30": 2, "typicalGapDays": 14, "requests180": 7, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-10-28"},
+        "roles": ["Acoustic Guitar", "Vocals"],
+        "monthDays": [
+          {"day": 7, "kind": "service", "positionName": "Vocals", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261007/lineup"},
+          {"day": 7, "kind": "rehearsal", "positionName": "Vocals", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261007/lineup"},
+          {"day": 28, "kind": "service", "positionName": "Acoustic Guitar", "serviceTypeName": "Youth Night", "status": "U", "planUrl": "/services/1102/plans/882261028/lineup"},
+          {"day": 28, "kind": "rehearsal", "positionName": "Acoustic Guitar", "serviceTypeName": "Youth Night", "status": "U", "planUrl": "/services/1102/plans/882261028/lineup"}
+        ]
+      },
+      {
+        "id": "4100131",
+        "rhythm": {"lastServedOn": "2026-09-13", "nextServingOn": "2026-10-04", "servedDays30": 1, "servedDays90": 4, "servedDays180": 9, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 2, "nextPendingOn": "2026-10-25"},
+        "roles": ["Greeter"],
+        "monthDays": [
+          {"day": 4, "kind": "service", "positionName": "Greeter", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 25, "kind": "service", "positionName": "Greeter", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261025/lineup"}
+        ]
+      },
+      {
+        "id": "4100136",
+        "rhythm": {"lastServedOn": "2026-09-23", "nextServingOn": "2026-10-07", "servedDays30": 2, "servedDays90": 2, "servedDays180": 7, "upcomingDays30": 2, "typicalGapDays": 14, "requests180": 7, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-11-11"},
+        "roles": ["Vocals"],
+        "monthDays": [
+          {"day": 7, "kind": "service", "positionName": "Vocals", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261007/lineup"},
+          {"day": 7, "kind": "rehearsal", "positionName": "Vocals", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261007/lineup"},
+          {"day": 21, "kind": "service", "positionName": "Vocals", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261021/lineup"},
+          {"day": 21, "kind": "rehearsal", "positionName": "Vocals", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261021/lineup"}
+        ]
+      },
+      {
+        "id": "4100115",
+        "rhythm": {"lastServedOn": "2026-09-13", "nextServingOn": "2026-10-25", "servedDays30": 1, "servedDays90": 5, "servedDays180": 10, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 10, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-10-25"},
+        "roles": ["Worship Leader", "Alto"],
+        "monthDays": [
+          {"day": 22, "kind": "rehearsal", "positionName": "Worship Leader", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261025/lineup"},
+          {"day": 25, "kind": "service", "positionName": "Worship Leader", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261025/lineup"}
+        ]
+      },
+      {
+        "id": "4100156",
+        "rhythm": {"lastServedOn": "2026-09-20", "nextServingOn": "2026-10-11", "servedDays30": 1, "servedDays90": 4, "servedDays180": 10, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 10, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null},
+        "roles": ["Lyrics", "Livestream"],
+        "monthDays": [
+          {"day": 11, "kind": "service", "positionName": "Lyrics", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 25, "kind": "service", "positionName": "Lyrics", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261025/lineup"}
+        ]
+      },
+      {
+        "id": "4100106",
+        "rhythm": {"lastServedOn": "2026-09-13", "nextServingOn": "2026-10-11", "servedDays30": 2, "servedDays90": 5, "servedDays180": 9, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 3, "nextPendingOn": "2026-10-11"},
+        "roles": ["Bass Guitar"],
+        "monthDays": [
+          {"day": 8, "kind": "rehearsal", "positionName": "Bass Guitar", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 11, "kind": "service", "positionName": "Bass Guitar", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Bass Guitar", "serviceTypeName": "Special Events", "status": "U", "planUrl": "/services/1103/plans/883261018/lineup"},
+          {"day": 18, "kind": "rehearsal", "positionName": "Bass Guitar", "serviceTypeName": "Special Events", "status": "U", "planUrl": "/services/1103/plans/883261018/lineup"}
+        ]
+      },
+      {
+        "id": "4100109",
+        "rhythm": {"lastServedOn": "2026-09-23", "nextServingOn": "2026-10-14", "servedDays30": 2, "servedDays90": 6, "servedDays180": 10, "upcomingDays30": 1, "typicalGapDays": 17, "requests180": 10, "declined180": 0, "pendingUpcoming": 3, "nextPendingOn": "2026-10-14"},
+        "roles": ["Drums", "Sound"],
+        "monthDays": [
+          {"day": 14, "kind": "service", "positionName": "Drums", "serviceTypeName": "Youth Night", "status": "U", "planUrl": "/services/1102/plans/882261014/lineup"},
+          {"day": 14, "kind": "rehearsal", "positionName": "Drums", "serviceTypeName": "Youth Night", "status": "U", "planUrl": "/services/1102/plans/882261014/lineup"}
+        ]
+      },
+      {
+        "id": "4100148",
+        "rhythm": {"lastServedOn": "2026-09-30", "nextServingOn": "2026-10-14", "servedDays30": 3, "servedDays90": 3, "servedDays180": 7, "upcomingDays30": 2, "typicalGapDays": 14, "requests180": 7, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null},
+        "roles": ["Vocals", "Lyrics"],
+        "monthDays": [
+          {"day": 14, "kind": "service", "positionName": "Lyrics", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261014/lineup"},
+          {"day": 28, "kind": "service", "positionName": "Lyrics", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261028/lineup"}
+        ]
+      },
+      {
+        "id": "4100149",
+        "rhythm": {"lastServedOn": "2026-09-06", "nextServingOn": "2026-10-11", "servedDays30": 1, "servedDays90": 4, "servedDays180": 8, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 8, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null},
+        "roles": ["Acoustic Guitar"],
+        "monthDays": [
+          {"day": 8, "kind": "rehearsal", "positionName": "Acoustic Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 11, "kind": "service", "positionName": "Acoustic Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 22, "kind": "rehearsal", "positionName": "Acoustic Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261025/lineup"},
+          {"day": 25, "kind": "service", "positionName": "Acoustic Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261025/lineup"}
+        ]
+      },
+      {
+        "id": "4100133",
+        "rhythm": {"lastServedOn": "2026-09-30", "nextServingOn": "2026-10-21", "servedDays30": 3, "servedDays90": 3, "servedDays180": 7, "upcomingDays30": 1, "typicalGapDays": 14, "requests180": 7, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null},
+        "roles": ["Acoustic Guitar", "Vocals"],
+        "monthDays": [
+          {"day": 21, "kind": "service", "positionName": "Acoustic Guitar", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261021/lineup"},
+          {"day": 21, "kind": "rehearsal", "positionName": "Acoustic Guitar", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261021/lineup"}
+        ]
+      },
+      {
+        "id": "4100104",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-04", "servedDays30": 4, "servedDays90": 7, "servedDays180": 12, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 12, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-11-01"},
+        "roles": ["Acoustic Guitar", "Alto"],
+        "monthDays": [
+          {"day": 1, "kind": "rehearsal", "positionName": "Acoustic Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 4, "kind": "service", "positionName": "Acoustic Guitar", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 8, "kind": "rehearsal", "positionName": "Alto", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 11, "kind": "service", "positionName": "Alto", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 29, "kind": "rehearsal", "positionName": "Acoustic Guitar", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261101/lineup"}
+        ]
+      },
+      {
+        "id": "4100158",
+        "rhythm": {"lastServedOn": "2026-09-13", "nextServingOn": "2026-10-11", "servedDays30": 1, "servedDays90": 4, "servedDays180": 9, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 9, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null},
+        "roles": ["Coffee", "Greeter"],
+        "monthDays": [
+          {"day": 11, "kind": "service", "positionName": "Coffee", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"}
+        ]
+      },
+      {
+        "id": "4100147",
+        "rhythm": {"lastServedOn": "2026-09-16", "nextServingOn": "2026-10-07", "servedDays30": 2, "servedDays90": 2, "servedDays180": 6, "upcomingDays30": 1, "typicalGapDays": 14, "requests180": 6, "declined180": 0, "pendingUpcoming": 0, "nextPendingOn": null},
+        "roles": ["Drums", "Sound"],
+        "monthDays": [
+          {"day": 7, "kind": "service", "positionName": "Drums", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261007/lineup"},
+          {"day": 7, "kind": "rehearsal", "positionName": "Drums", "serviceTypeName": "Youth Night", "status": "C", "planUrl": "/services/1102/plans/882261007/lineup"}
+        ]
+      },
+      {
+        "id": "4100161",
+        "rhythm": {"lastServedOn": "2026-09-13", "nextServingOn": "2026-10-11", "servedDays30": 1, "servedDays90": 3, "servedDays180": 8, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 8, "declined180": 0, "pendingUpcoming": 1, "nextPendingOn": "2026-10-25"},
+        "roles": ["Bass Guitar", "Drums"],
+        "monthDays": [
+          {"day": 8, "kind": "rehearsal", "positionName": "Drums", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 11, "kind": "service", "positionName": "Drums", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261011/lineup"},
+          {"day": 22, "kind": "rehearsal", "positionName": "Bass Guitar", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261025/lineup"},
+          {"day": 25, "kind": "service", "positionName": "Bass Guitar", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261025/lineup"}
+        ]
+      },
+      {
+        "id": "4100122",
+        "rhythm": {"lastServedOn": "2026-09-20", "nextServingOn": "2026-10-04", "servedDays30": 1, "servedDays90": 5, "servedDays180": 10, "upcomingDays30": 2, "typicalGapDays": 21, "requests180": 10, "declined180": 0, "pendingUpcoming": 2, "nextPendingOn": "2026-10-18"},
+        "roles": ["Sound", "Livestream"],
+        "monthDays": [
+          {"day": 4, "kind": "service", "positionName": "Sound", "serviceTypeName": "Sunday Gathering", "status": "C", "planUrl": "/services/1101/plans/881261004/lineup"},
+          {"day": 18, "kind": "service", "positionName": "Sound", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261018/lineup"}
+        ]
+      },
+      {
+        "id": "4100117",
+        "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": "2026-10-18", "servedDays30": 4, "servedDays90": 7, "servedDays180": 11, "upcomingDays30": 1, "typicalGapDays": 21, "requests180": 11, "declined180": 0, "pendingUpcoming": 3, "nextPendingOn": "2026-10-18"},
+        "roles": ["Alto", "Lyrics"],
+        "monthDays": [
+          {"day": 18, "kind": "service", "positionName": "Lyrics", "serviceTypeName": "Sunday Gathering", "status": "U", "planUrl": "/services/1101/plans/881261018/lineup"}
+        ]
+      },
+      {"id": "4100111", "rhythm": {"lastServedOn": "2026-09-27", "nextServingOn": null, "servedDays30": 1, "servedDays90": 1, "servedDays180": 1, "upcomingDays30": 0, "typicalGapDays": null, "requests180": 4, "declined180": 3, "pendingUpcoming": 0, "nextPendingOn": null}, "roles": ["Electric Guitar"], "monthDays": []}
+    ],
+    "deferredPersonIds": [],
+    "requestBudget": {"limit": 36, "planningCenterRequests": 16, "scheduleRequests": 16, "planTimeRequests": 0}
+  }
+}

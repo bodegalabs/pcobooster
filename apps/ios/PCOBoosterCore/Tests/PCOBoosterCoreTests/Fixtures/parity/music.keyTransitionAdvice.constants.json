@@ -1,0 +1,11 @@
+{
+  "suite": "music.keyTransitionAdvice.constants",
+  "cases": [
+    {
+      "input": null,
+      "output": {
+        "maxAlternateSemitones": 2
+      }
+    }
+  ]
+}

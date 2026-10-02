@@ -1,0 +1,87 @@
+{
+  "suite": "songs.parseSongLibrarySort",
+  "cases": [
+    {
+      "input": {},
+      "output": "recent"
+    },
+    {
+      "input": {
+        "value": ""
+      },
+      "output": "recent"
+    },
+    {
+      "input": {
+        "value": "all"
+      },
+      "output": "recent"
+    },
+    {
+      "input": {
+        "value": "unused-6"
+      },
+      "output": "recent"
+    },
+    {
+      "input": {
+        "value": "unused-12"
+      },
+      "output": "recent"
+    },
+    {
+      "input": {
+        "value": "unused-24"
+      },
+      "output": "recent"
+    },
+    {
+      "input": {
+        "value": "never"
+      },
+      "output": "recent"
+    },
+    {
+      "input": {
+        "value": "stale"
+      },
+      "output": "recent"
+    },
+    {
+      "input": {
+        "value": "UNUSED-6"
+      },
+      "output": "recent"
+    },
+    {
+      "input": {
+        "value": "recent"
+      },
+      "output": "recent"
+    },
+    {
+      "input": {
+        "value": "title"
+      },
+      "output": "title"
+    },
+    {
+      "input": {
+        "value": "longest"
+      },
+      "output": "longest"
+    },
+    {
+      "input": {
+        "value": "popular"
+      },
+      "output": "recent"
+    },
+    {
+      "input": {
+        "value": " title"
+      },
+      "output": "recent"
+    }
+  ]
+}
