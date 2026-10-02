@@ -1,0 +1,1893 @@
+{
+  "suite": "calendar.formatPlanRelativeDay",
+  "cases": [
+    {
+      "input": {
+        "date": "2026-11-01T02:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-11-05T17:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "In 5 days"
+    },
+    {
+      "input": {
+        "date": "2026-10-30T15:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-10-31T15:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-10-31T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-10-31T19:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T02:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T12:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T17:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-02T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-04T20:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "In 4 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-13T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-14T12:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-11-14T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-11-15T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-09T04:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-10T04:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T08:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T15:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-09-11T01:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-09-11T06:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-09-12T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-14T09:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "In 5 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-23T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-24T01:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-24T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-25T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-12-30T21:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-12-31T21:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-12-31T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T01:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T08:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T18:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T23:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-02T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-05T02:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "In 4 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-13T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-14T18:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2027-01-14T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2027-01-15T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-10-30T15:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-10-31T15:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-10-31T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-10-31T19:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T02:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T12:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T17:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-02T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-04T20:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "In 4 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-13T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-14T12:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-11-14T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-11-15T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-09T04:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-10T04:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T08:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T15:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-11T01:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-11T06:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-09-12T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-14T09:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "In 4 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-23T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-24T01:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-24T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-25T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-12-30T21:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-12-31T21:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-12-31T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T01:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T08:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T18:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T23:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-02T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-05T02:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "In 4 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-13T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-14T18:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2027-01-14T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2027-01-15T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-10-30T15:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-10-31T15:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-10-31T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-10-31T19:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T02:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T12:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T17:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-02T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-04T20:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "In 4 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-13T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-14T12:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-11-14T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-11-15T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-09T04:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-10T04:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T08:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T15:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-11T01:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-09-11T06:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-09-12T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-14T09:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "In 4 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-23T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-24T01:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-24T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-25T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-12-30T21:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-12-31T21:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-12-31T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T01:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T08:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T18:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T23:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-02T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-05T02:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "In 5 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-13T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-14T18:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2027-01-14T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2027-01-15T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-10-30T15:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-10-31T15:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-10-31T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-10-31T19:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T02:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T12:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T17:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-02T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-04T20:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "In 4 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-13T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-14T12:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-11-14T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-11-15T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-09T04:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-10T04:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T08:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T15:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-09-11T01:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-09-11T06:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-09-12T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-14T09:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "In 4 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-23T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-24T01:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-24T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-25T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-12-30T21:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-12-31T21:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-12-31T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T01:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T08:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T18:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T23:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-02T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-05T02:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "In 4 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-13T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-14T18:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2027-01-14T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2027-01-15T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-10-30T15:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-10-31T15:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-10-31T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-10-31T19:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T02:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T12:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T17:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-02T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-04T20:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "In 5 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-13T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-14T12:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-11-14T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-11-15T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-09T04:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-10T04:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T08:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T15:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-11T01:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-09-11T06:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-09-12T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-14T09:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "In 4 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-23T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-24T01:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-24T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-25T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-12-30T21:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-12-31T21:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-12-31T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T01:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T08:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T18:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T23:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-02T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-05T02:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "In 4 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-13T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-14T18:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-14T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2027-01-15T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-10-30T15:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-10-31T15:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-10-31T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-10-31T19:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T02:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T12:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-01T17:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-11-02T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-04T20:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "In 4 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-13T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2026-11-14T12:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-11-14T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-11-15T16:00:00.000Z",
+        "now": "2026-10-31T16:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-09T04:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-10T04:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T08:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-10T15:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-09-11T01:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-09-11T06:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2026-09-12T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-14T09:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "In 4 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-23T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2026-09-24T01:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-24T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-09-25T05:30:00.000Z",
+        "now": "2026-09-10T05:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-12-30T21:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2026-12-31T21:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2026-12-31T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Today"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T01:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T08:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T18:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-01T23:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "Tomorrow"
+    },
+    {
+      "input": {
+        "date": "2027-01-02T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "In 2 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-05T02:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "In 5 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-13T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": "In 13 days"
+    },
+    {
+      "input": {
+        "date": "2027-01-14T18:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2027-01-14T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "date": "2027-01-15T22:00:00.000Z",
+        "now": "2026-12-31T22:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": null
+    }
+  ]
+}

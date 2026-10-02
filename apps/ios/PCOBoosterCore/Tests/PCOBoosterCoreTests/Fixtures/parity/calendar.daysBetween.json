@@ -1,0 +1,1125 @@
+{
+  "suite": "calendar.daysBetween",
+  "cases": [
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T02:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T17:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-11-01T17:00:00.000Z",
+        "b": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": -1
+    },
+    {
+      "input": {
+        "a": "2026-03-08T07:59:00.000Z",
+        "b": "2026-03-08T08:01:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-03-07T20:00:00.000Z",
+        "b": "2026-03-09T06:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-12-31T23:30:00.000Z",
+        "b": "2027-01-01T00:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-10T02:00:00.000Z",
+        "b": "2026-09-10T02:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-26T13:00:00.000Z",
+        "b": "2026-09-27T15:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-04-04T12:00:00.000Z",
+        "b": "2026-04-05T15:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-01T04:30:00.000Z",
+        "b": "2026-10-15T04:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": 14
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T02:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T17:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-11-01T17:00:00.000Z",
+        "b": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": -1
+    },
+    {
+      "input": {
+        "a": "2026-03-08T07:59:00.000Z",
+        "b": "2026-03-08T08:01:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-03-07T20:00:00.000Z",
+        "b": "2026-03-09T06:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "a": "2026-12-31T23:30:00.000Z",
+        "b": "2027-01-01T00:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-10T02:00:00.000Z",
+        "b": "2026-09-10T02:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-26T13:00:00.000Z",
+        "b": "2026-09-27T15:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-04-04T12:00:00.000Z",
+        "b": "2026-04-05T15:00:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-01T04:30:00.000Z",
+        "b": "2026-10-15T04:30:00.000Z",
+        "timeZone": "America/New_York"
+      },
+      "output": 14
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T02:00:00.000Z",
+        "timeZone": "America/Denver"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T17:00:00.000Z",
+        "timeZone": "America/Denver"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-11-01T17:00:00.000Z",
+        "b": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Denver"
+      },
+      "output": -1
+    },
+    {
+      "input": {
+        "a": "2026-03-08T07:59:00.000Z",
+        "b": "2026-03-08T08:01:00.000Z",
+        "timeZone": "America/Denver"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-03-07T20:00:00.000Z",
+        "b": "2026-03-09T06:00:00.000Z",
+        "timeZone": "America/Denver"
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "a": "2026-12-31T23:30:00.000Z",
+        "b": "2027-01-01T00:30:00.000Z",
+        "timeZone": "America/Denver"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-10T02:00:00.000Z",
+        "b": "2026-09-10T02:00:00.000Z",
+        "timeZone": "America/Denver"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-26T13:00:00.000Z",
+        "b": "2026-09-27T15:00:00.000Z",
+        "timeZone": "America/Denver"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-04-04T12:00:00.000Z",
+        "b": "2026-04-05T15:00:00.000Z",
+        "timeZone": "America/Denver"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-01T04:30:00.000Z",
+        "b": "2026-10-15T04:30:00.000Z",
+        "timeZone": "America/Denver"
+      },
+      "output": 14
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T02:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T17:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-11-01T17:00:00.000Z",
+        "b": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": -1
+    },
+    {
+      "input": {
+        "a": "2026-03-08T07:59:00.000Z",
+        "b": "2026-03-08T08:01:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-03-07T20:00:00.000Z",
+        "b": "2026-03-09T06:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "a": "2026-12-31T23:30:00.000Z",
+        "b": "2027-01-01T00:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-09-10T02:00:00.000Z",
+        "b": "2026-09-10T02:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-26T13:00:00.000Z",
+        "b": "2026-09-27T15:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-04-04T12:00:00.000Z",
+        "b": "2026-04-05T15:00:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-01T04:30:00.000Z",
+        "b": "2026-10-15T04:30:00.000Z",
+        "timeZone": "Europe/London"
+      },
+      "output": 14
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T02:00:00.000Z",
+        "timeZone": "Australia/Sydney"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T17:00:00.000Z",
+        "timeZone": "Australia/Sydney"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-11-01T17:00:00.000Z",
+        "b": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Australia/Sydney"
+      },
+      "output": -1
+    },
+    {
+      "input": {
+        "a": "2026-03-08T07:59:00.000Z",
+        "b": "2026-03-08T08:01:00.000Z",
+        "timeZone": "Australia/Sydney"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-03-07T20:00:00.000Z",
+        "b": "2026-03-09T06:00:00.000Z",
+        "timeZone": "Australia/Sydney"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-12-31T23:30:00.000Z",
+        "b": "2027-01-01T00:30:00.000Z",
+        "timeZone": "Australia/Sydney"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-10T02:00:00.000Z",
+        "b": "2026-09-10T02:00:00.000Z",
+        "timeZone": "Australia/Sydney"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-26T13:00:00.000Z",
+        "b": "2026-09-27T15:00:00.000Z",
+        "timeZone": "Australia/Sydney"
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "a": "2026-04-04T12:00:00.000Z",
+        "b": "2026-04-05T15:00:00.000Z",
+        "timeZone": "Australia/Sydney"
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "a": "2026-10-01T04:30:00.000Z",
+        "b": "2026-10-15T04:30:00.000Z",
+        "timeZone": "Australia/Sydney"
+      },
+      "output": 14
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T02:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T17:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-11-01T17:00:00.000Z",
+        "b": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": -1
+    },
+    {
+      "input": {
+        "a": "2026-03-08T07:59:00.000Z",
+        "b": "2026-03-08T08:01:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-03-07T20:00:00.000Z",
+        "b": "2026-03-09T06:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-12-31T23:30:00.000Z",
+        "b": "2027-01-01T00:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-10T02:00:00.000Z",
+        "b": "2026-09-10T02:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-26T13:00:00.000Z",
+        "b": "2026-09-27T15:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-04-04T12:00:00.000Z",
+        "b": "2026-04-05T15:00:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-01T04:30:00.000Z",
+        "b": "2026-10-15T04:30:00.000Z",
+        "timeZone": "Pacific/Auckland"
+      },
+      "output": 14
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T02:00:00.000Z",
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T17:00:00.000Z",
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-11-01T17:00:00.000Z",
+        "b": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": -1
+    },
+    {
+      "input": {
+        "a": "2026-03-08T07:59:00.000Z",
+        "b": "2026-03-08T08:01:00.000Z",
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-03-07T20:00:00.000Z",
+        "b": "2026-03-09T06:00:00.000Z",
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-12-31T23:30:00.000Z",
+        "b": "2027-01-01T00:30:00.000Z",
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-10T02:00:00.000Z",
+        "b": "2026-09-10T02:00:00.000Z",
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-26T13:00:00.000Z",
+        "b": "2026-09-27T15:00:00.000Z",
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-04-04T12:00:00.000Z",
+        "b": "2026-04-05T15:00:00.000Z",
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-01T04:30:00.000Z",
+        "b": "2026-10-15T04:30:00.000Z",
+        "timeZone": "Pacific/Chatham"
+      },
+      "output": 14
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T02:00:00.000Z",
+        "timeZone": "America/St_Johns"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T17:00:00.000Z",
+        "timeZone": "America/St_Johns"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-11-01T17:00:00.000Z",
+        "b": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/St_Johns"
+      },
+      "output": -1
+    },
+    {
+      "input": {
+        "a": "2026-03-08T07:59:00.000Z",
+        "b": "2026-03-08T08:01:00.000Z",
+        "timeZone": "America/St_Johns"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-03-07T20:00:00.000Z",
+        "b": "2026-03-09T06:00:00.000Z",
+        "timeZone": "America/St_Johns"
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "a": "2026-12-31T23:30:00.000Z",
+        "b": "2027-01-01T00:30:00.000Z",
+        "timeZone": "America/St_Johns"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-10T02:00:00.000Z",
+        "b": "2026-09-10T02:00:00.000Z",
+        "timeZone": "America/St_Johns"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-26T13:00:00.000Z",
+        "b": "2026-09-27T15:00:00.000Z",
+        "timeZone": "America/St_Johns"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-04-04T12:00:00.000Z",
+        "b": "2026-04-05T15:00:00.000Z",
+        "timeZone": "America/St_Johns"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-01T04:30:00.000Z",
+        "b": "2026-10-15T04:30:00.000Z",
+        "timeZone": "America/St_Johns"
+      },
+      "output": 14
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T02:00:00.000Z",
+        "timeZone": "America/Phoenix"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T17:00:00.000Z",
+        "timeZone": "America/Phoenix"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-11-01T17:00:00.000Z",
+        "b": "2026-10-31T16:00:00.000Z",
+        "timeZone": "America/Phoenix"
+      },
+      "output": -1
+    },
+    {
+      "input": {
+        "a": "2026-03-08T07:59:00.000Z",
+        "b": "2026-03-08T08:01:00.000Z",
+        "timeZone": "America/Phoenix"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-03-07T20:00:00.000Z",
+        "b": "2026-03-09T06:00:00.000Z",
+        "timeZone": "America/Phoenix"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-12-31T23:30:00.000Z",
+        "b": "2027-01-01T00:30:00.000Z",
+        "timeZone": "America/Phoenix"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-10T02:00:00.000Z",
+        "b": "2026-09-10T02:00:00.000Z",
+        "timeZone": "America/Phoenix"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-26T13:00:00.000Z",
+        "b": "2026-09-27T15:00:00.000Z",
+        "timeZone": "America/Phoenix"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-04-04T12:00:00.000Z",
+        "b": "2026-04-05T15:00:00.000Z",
+        "timeZone": "America/Phoenix"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-01T04:30:00.000Z",
+        "b": "2026-10-15T04:30:00.000Z",
+        "timeZone": "America/Phoenix"
+      },
+      "output": 14
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T02:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T17:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-11-01T17:00:00.000Z",
+        "b": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": -1
+    },
+    {
+      "input": {
+        "a": "2026-03-08T07:59:00.000Z",
+        "b": "2026-03-08T08:01:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-03-07T20:00:00.000Z",
+        "b": "2026-03-09T06:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-12-31T23:30:00.000Z",
+        "b": "2027-01-01T00:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-10T02:00:00.000Z",
+        "b": "2026-09-10T02:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-26T13:00:00.000Z",
+        "b": "2026-09-27T15:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-04-04T12:00:00.000Z",
+        "b": "2026-04-05T15:00:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-01T04:30:00.000Z",
+        "b": "2026-10-15T04:30:00.000Z",
+        "timeZone": "Asia/Kolkata"
+      },
+      "output": 14
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T02:00:00.000Z",
+        "timeZone": "Asia/Tokyo"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T17:00:00.000Z",
+        "timeZone": "Asia/Tokyo"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-11-01T17:00:00.000Z",
+        "b": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Asia/Tokyo"
+      },
+      "output": -1
+    },
+    {
+      "input": {
+        "a": "2026-03-08T07:59:00.000Z",
+        "b": "2026-03-08T08:01:00.000Z",
+        "timeZone": "Asia/Tokyo"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-03-07T20:00:00.000Z",
+        "b": "2026-03-09T06:00:00.000Z",
+        "timeZone": "Asia/Tokyo"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-12-31T23:30:00.000Z",
+        "b": "2027-01-01T00:30:00.000Z",
+        "timeZone": "Asia/Tokyo"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-10T02:00:00.000Z",
+        "b": "2026-09-10T02:00:00.000Z",
+        "timeZone": "Asia/Tokyo"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-26T13:00:00.000Z",
+        "b": "2026-09-27T15:00:00.000Z",
+        "timeZone": "Asia/Tokyo"
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "a": "2026-04-04T12:00:00.000Z",
+        "b": "2026-04-05T15:00:00.000Z",
+        "timeZone": "Asia/Tokyo"
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "a": "2026-10-01T04:30:00.000Z",
+        "b": "2026-10-15T04:30:00.000Z",
+        "timeZone": "Asia/Tokyo"
+      },
+      "output": 14
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T02:00:00.000Z",
+        "timeZone": "Pacific/Kiritimati"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T17:00:00.000Z",
+        "timeZone": "Pacific/Kiritimati"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-11-01T17:00:00.000Z",
+        "b": "2026-10-31T16:00:00.000Z",
+        "timeZone": "Pacific/Kiritimati"
+      },
+      "output": -1
+    },
+    {
+      "input": {
+        "a": "2026-03-08T07:59:00.000Z",
+        "b": "2026-03-08T08:01:00.000Z",
+        "timeZone": "Pacific/Kiritimati"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-03-07T20:00:00.000Z",
+        "b": "2026-03-09T06:00:00.000Z",
+        "timeZone": "Pacific/Kiritimati"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-12-31T23:30:00.000Z",
+        "b": "2027-01-01T00:30:00.000Z",
+        "timeZone": "Pacific/Kiritimati"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-10T02:00:00.000Z",
+        "b": "2026-09-10T02:00:00.000Z",
+        "timeZone": "Pacific/Kiritimati"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-26T13:00:00.000Z",
+        "b": "2026-09-27T15:00:00.000Z",
+        "timeZone": "Pacific/Kiritimati"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-04-04T12:00:00.000Z",
+        "b": "2026-04-05T15:00:00.000Z",
+        "timeZone": "Pacific/Kiritimati"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-01T04:30:00.000Z",
+        "b": "2026-10-15T04:30:00.000Z",
+        "timeZone": "Pacific/Kiritimati"
+      },
+      "output": 14
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T02:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T17:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-11-01T17:00:00.000Z",
+        "b": "2026-10-31T16:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": -1
+    },
+    {
+      "input": {
+        "a": "2026-03-08T07:59:00.000Z",
+        "b": "2026-03-08T08:01:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-03-07T20:00:00.000Z",
+        "b": "2026-03-09T06:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "a": "2026-12-31T23:30:00.000Z",
+        "b": "2027-01-01T00:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-09-10T02:00:00.000Z",
+        "b": "2026-09-10T02:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-26T13:00:00.000Z",
+        "b": "2026-09-27T15:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-04-04T12:00:00.000Z",
+        "b": "2026-04-05T15:00:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-01T04:30:00.000Z",
+        "b": "2026-10-15T04:30:00.000Z",
+        "timeZone": "UTC"
+      },
+      "output": 14
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T02:00:00.000Z",
+        "timeZone": ""
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-31T16:00:00.000Z",
+        "b": "2026-11-01T17:00:00.000Z",
+        "timeZone": ""
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-11-01T17:00:00.000Z",
+        "b": "2026-10-31T16:00:00.000Z",
+        "timeZone": ""
+      },
+      "output": -1
+    },
+    {
+      "input": {
+        "a": "2026-03-08T07:59:00.000Z",
+        "b": "2026-03-08T08:01:00.000Z",
+        "timeZone": ""
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-03-07T20:00:00.000Z",
+        "b": "2026-03-09T06:00:00.000Z",
+        "timeZone": ""
+      },
+      "output": 2
+    },
+    {
+      "input": {
+        "a": "2026-12-31T23:30:00.000Z",
+        "b": "2027-01-01T00:30:00.000Z",
+        "timeZone": ""
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-09-10T02:00:00.000Z",
+        "b": "2026-09-10T02:00:00.000Z",
+        "timeZone": ""
+      },
+      "output": 0
+    },
+    {
+      "input": {
+        "a": "2026-09-26T13:00:00.000Z",
+        "b": "2026-09-27T15:00:00.000Z",
+        "timeZone": ""
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-04-04T12:00:00.000Z",
+        "b": "2026-04-05T15:00:00.000Z",
+        "timeZone": ""
+      },
+      "output": 1
+    },
+    {
+      "input": {
+        "a": "2026-10-01T04:30:00.000Z",
+        "b": "2026-10-15T04:30:00.000Z",
+        "timeZone": ""
+      },
+      "output": 14
+    }
+  ]
+}

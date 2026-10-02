@@ -1,0 +1,125 @@
+{
+  "suite": "routes.planPath",
+  "cases": [
+    {
+      "input": {
+        "planId": "Piñata",
+        "serviceTypeId": "12",
+        "view": "overview"
+      },
+      "output": "/services/12/plans/Pin%CC%83ata/overview"
+    },
+    {
+      "input": {
+        "planId": "🎸",
+        "serviceTypeId": "a/b",
+        "view": "assign"
+      },
+      "output": "/services/a%2Fb/plans/%F0%9F%8E%B8/assign"
+    },
+    {
+      "input": {
+        "planId": "a b",
+        "serviceTypeId": "café",
+        "view": "lineup"
+      },
+      "output": "/services/caf%C3%A9/plans/a%20b/lineup"
+    },
+    {
+      "input": {
+        "planId": "-_.!~*'()",
+        "serviceTypeId": "Piñata",
+        "view": "plan"
+      },
+      "output": "/services/Pin%CC%83ata/plans/-_.!~*'()/plan"
+    },
+    {
+      "input": {
+        "planId": "100%",
+        "serviceTypeId": "🎸",
+        "view": "times"
+      },
+      "output": "/services/%F0%9F%8E%B8/plans/100%25/times"
+    },
+    {
+      "input": {
+        "planId": "?#&=+;,:@$",
+        "serviceTypeId": "a b",
+        "view": "overview"
+      },
+      "output": "/services/a%20b/plans/%3F%23%26%3D%2B%3B%2C%3A%40%24/overview"
+    },
+    {
+      "input": {
+        "planId": "李",
+        "serviceTypeId": "-_.!~*'()",
+        "view": "assign"
+      },
+      "output": "/services/-_.!~*'()/plans/%E6%9D%8E/assign"
+    },
+    {
+      "input": {
+        "planId": "12",
+        "serviceTypeId": "100%",
+        "view": "lineup"
+      },
+      "output": "/services/100%25/plans/12/lineup"
+    },
+    {
+      "input": {
+        "planId": "a/b",
+        "serviceTypeId": "?#&=+;,:@$",
+        "view": "plan"
+      },
+      "output": "/services/%3F%23%26%3D%2B%3B%2C%3A%40%24/plans/a%2Fb/plan"
+    },
+    {
+      "input": {
+        "planId": "café",
+        "serviceTypeId": "李",
+        "view": "times"
+      },
+      "output": "/services/%E6%9D%8E/plans/caf%C3%A9/times"
+    },
+    {
+      "input": {
+        "planId": "34",
+        "serviceTypeId": "12",
+        "view": "overview"
+      },
+      "output": "/services/12/plans/34/overview"
+    },
+    {
+      "input": {
+        "planId": "34",
+        "serviceTypeId": "12",
+        "view": "assign"
+      },
+      "output": "/services/12/plans/34/assign"
+    },
+    {
+      "input": {
+        "planId": "34",
+        "serviceTypeId": "12",
+        "view": "lineup"
+      },
+      "output": "/services/12/plans/34/lineup"
+    },
+    {
+      "input": {
+        "planId": "34",
+        "serviceTypeId": "12",
+        "view": "plan"
+      },
+      "output": "/services/12/plans/34/plan"
+    },
+    {
+      "input": {
+        "planId": "34",
+        "serviceTypeId": "12",
+        "view": "times"
+      },
+      "output": "/services/12/plans/34/times"
+    }
+  ]
+}
