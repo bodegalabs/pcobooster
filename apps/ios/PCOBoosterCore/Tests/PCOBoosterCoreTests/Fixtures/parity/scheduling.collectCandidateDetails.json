@@ -1,0 +1,2386 @@
+{
+  "suite": "scheduling.collectCandidateDetails",
+  "cases": [
+    {
+      "input": [],
+      "output": []
+    },
+    {
+      "input": [
+        null
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        [
+          {
+            "personId": "p-5",
+            "isBlockedForDate": true,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-5",
+                  "planId": "plan-7",
+                  "date": "2026-11-01T12:30:00.000Z",
+                  "teamPositionName": "Bass Guitar",
+                  "status": " D "
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-11",
+                  "planId": "plan-7",
+                  "date": "2026-11-07T05:00:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "status": "U",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-1",
+                  "date": "2026-11-15T11:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "d",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-9",
+                  "planId": "plan-8",
+                  "date": "2026-11-10T09:45:00.000Z",
+                  "teamPositionName": "Keys",
+                  "teamName": "Band",
+                  "status": "declined",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-4",
+                  "sourceScheduleId": "pp-3",
+                  "planId": "plan-5",
+                  "date": "2026-07-21T05:00:00.000Z",
+                  "teamPositionName": "Keys",
+                  "teamName": "Bänd",
+                  "status": "DECLINED",
+                  "timeType": "rehearsal"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "planPerson",
+                  "id": "a-0",
+                  "planId": null,
+                  "teamId": "team-band",
+                  "teamName": "Vocals",
+                  "teamPositionName": "Band -  Electric Guitar",
+                  "status": "Confirmed",
+                  "planPersonId": "pp-0",
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          },
+          {
+            "personId": "p-5",
+            "isBlockedForDate": true,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-11",
+                  "planId": "plan-9",
+                  "date": "2026-09-19T07:45:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "teamName": "Bänd",
+                  "status": "C",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-5",
+                  "planId": "plan-7",
+                  "date": "2026-09-19T07:45:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "status": "U",
+                  "timeType": "other"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "planPerson",
+                  "id": "a-0",
+                  "planId": null,
+                  "teamId": "team-vox",
+                  "teamName": " Band ",
+                  "teamPositionName": "band - electric guitar",
+                  "status": "D﻿",
+                  "planPersonId": "pp-0",
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          },
+          {
+            "personId": "p-3",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-9",
+                  "planId": "plan-1",
+                  "date": "2026-08-08T09:00:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "status": "d",
+                  "timeType": "other"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-11",
+                  "planId": "plan-5",
+                  "date": "2026-08-08T09:00:00.000Z",
+                  "teamPositionName": "Keys",
+                  "status": "U",
+                  "timeType": "service"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "schedule",
+                  "id": "a-0",
+                  "planId": "plan-sel",
+                  "teamId": "team-band",
+                  "teamName": "Band",
+                  "teamPositionName": "Electric Guitar",
+                  "status": "declined",
+                  "planPersonId": "pp-0",
+                  "declineReason": "Out of town"
+                },
+                {
+                  "source": "schedule",
+                  "id": "a-1",
+                  "planId": null,
+                  "teamId": "team-vox",
+                  "teamName": null,
+                  "teamPositionName": "Vocals - Harmony",
+                  "status": "D﻿",
+                  "planPersonId": null,
+                  "declineReason": null
+                },
+                {
+                  "source": "planPerson",
+                  "id": "a-2",
+                  "planId": "plan-x",
+                  "teamId": "",
+                  "teamName": " Band ",
+                  "teamPositionName": "Bänd - Electric Guitar",
+                  "status": " D",
+                  "planPersonId": "pp-2",
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          }
+        ]
+      ],
+      "output": [
+        {
+          "key": "p-5",
+          "value": {
+            "personId": "p-5",
+            "isBlockedForDate": true,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-11",
+                  "planId": "plan-9",
+                  "date": "2026-09-19T07:45:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "teamName": "Bänd",
+                  "status": "C",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-5",
+                  "planId": "plan-7",
+                  "date": "2026-09-19T07:45:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "status": "U",
+                  "timeType": "other"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "planPerson",
+                  "id": "a-0",
+                  "planId": null,
+                  "teamId": "team-vox",
+                  "teamName": " Band ",
+                  "teamPositionName": "band - electric guitar",
+                  "status": "D﻿",
+                  "planPersonId": "pp-0",
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "key": "p-3",
+          "value": {
+            "personId": "p-3",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-9",
+                  "planId": "plan-1",
+                  "date": "2026-08-08T09:00:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "status": "d",
+                  "timeType": "other"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-11",
+                  "planId": "plan-5",
+                  "date": "2026-08-08T09:00:00.000Z",
+                  "teamPositionName": "Keys",
+                  "status": "U",
+                  "timeType": "service"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "schedule",
+                  "id": "a-0",
+                  "planId": "plan-sel",
+                  "teamId": "team-band",
+                  "teamName": "Band",
+                  "teamPositionName": "Electric Guitar",
+                  "status": "declined",
+                  "planPersonId": "pp-0",
+                  "declineReason": "Out of town"
+                },
+                {
+                  "source": "schedule",
+                  "id": "a-1",
+                  "planId": null,
+                  "teamId": "team-vox",
+                  "teamName": null,
+                  "teamPositionName": "Vocals - Harmony",
+                  "status": "D﻿",
+                  "planPersonId": null,
+                  "declineReason": null
+                },
+                {
+                  "source": "planPerson",
+                  "id": "a-2",
+                  "planId": "plan-x",
+                  "teamId": "",
+                  "teamName": " Band ",
+                  "teamPositionName": "Bänd - Electric Guitar",
+                  "status": " D",
+                  "planPersonId": "pp-2",
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "input": [
+        [
+          {
+            "personId": "p-4",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-2",
+            "isBlockedForDate": true,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-7",
+                  "date": "2026-12-01T03:30:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "teamName": "Tech",
+                  "status": "DECLINED",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-7",
+                  "date": "2026-11-08T07:30:00.000Z",
+                  "teamPositionName": "Electric Guitar",
+                  "teamName": "Band",
+                  "status": "DECLINED",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-2",
+                  "date": "2026-10-07T18:30:00.000Z",
+                  "teamPositionName": "Keys",
+                  "status": "Declined",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-5",
+                  "planId": "plan-4",
+                  "date": "2026-10-07T23:30:00.000Z",
+                  "teamPositionName": "Keys",
+                  "status": "d",
+                  "timeType": "rehearsal"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "planPerson",
+                  "id": "a-0",
+                  "planId": "plan-x",
+                  "teamId": "",
+                  "teamName": "   ",
+                  "teamPositionName": "Band - Electric Guitar",
+                  "status": "C",
+                  "planPersonId": "pp-0",
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          },
+          {
+            "personId": "p-3",
+            "isBlockedForDate": false
+          }
+        ]
+      ],
+      "output": [
+        {
+          "key": "p-4",
+          "value": {
+            "personId": "p-4",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-2",
+          "value": {
+            "personId": "p-2",
+            "isBlockedForDate": true,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-7",
+                  "date": "2026-12-01T03:30:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "teamName": "Tech",
+                  "status": "DECLINED",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-7",
+                  "date": "2026-11-08T07:30:00.000Z",
+                  "teamPositionName": "Electric Guitar",
+                  "teamName": "Band",
+                  "status": "DECLINED",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-2",
+                  "date": "2026-10-07T18:30:00.000Z",
+                  "teamPositionName": "Keys",
+                  "status": "Declined",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-5",
+                  "planId": "plan-4",
+                  "date": "2026-10-07T23:30:00.000Z",
+                  "teamPositionName": "Keys",
+                  "status": "d",
+                  "timeType": "rehearsal"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "planPerson",
+                  "id": "a-0",
+                  "planId": "plan-x",
+                  "teamId": "",
+                  "teamName": "   ",
+                  "teamPositionName": "Band - Electric Guitar",
+                  "status": "C",
+                  "planPersonId": "pp-0",
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "key": "p-3",
+          "value": {
+            "personId": "p-3",
+            "isBlockedForDate": false
+          }
+        }
+      ]
+    },
+    {
+      "input": [
+        [
+          {
+            "personId": "p-4",
+            "isBlockedForDate": true
+          },
+          {
+            "personId": "p-4",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-2",
+                  "planId": "plan-3",
+                  "date": "2026-09-29T15:00:00.000Z",
+                  "teamPositionName": "Electric Guitar",
+                  "teamName": "Tech",
+                  "status": "Confirmed",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-3",
+                  "planId": "plan-1",
+                  "date": "2026-10-18T19:30:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "status": "C",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-12",
+                  "planId": "plan-8",
+                  "date": "2026-10-18T19:30:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "d"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-12",
+                  "planId": "plan-2",
+                  "date": "2026-10-18T19:30:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "status": "",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-4",
+                  "sourceScheduleId": "pp-1",
+                  "planId": "plan-8",
+                  "date": "2026-11-23T01:00:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "teamName": "Bänd",
+                  "status": "C"
+                }
+              ],
+              "selectedPlanAssignments": []
+            }
+          }
+        ],
+        null
+      ],
+      "output": [
+        {
+          "key": "p-4",
+          "value": {
+            "personId": "p-4",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-2",
+                  "planId": "plan-3",
+                  "date": "2026-09-29T15:00:00.000Z",
+                  "teamPositionName": "Electric Guitar",
+                  "teamName": "Tech",
+                  "status": "Confirmed",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-3",
+                  "planId": "plan-1",
+                  "date": "2026-10-18T19:30:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "status": "C",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-12",
+                  "planId": "plan-8",
+                  "date": "2026-10-18T19:30:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "d"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-12",
+                  "planId": "plan-2",
+                  "date": "2026-10-18T19:30:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "status": "",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-4",
+                  "sourceScheduleId": "pp-1",
+                  "planId": "plan-8",
+                  "date": "2026-11-23T01:00:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "teamName": "Bänd",
+                  "status": "C"
+                }
+              ],
+              "selectedPlanAssignments": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "input": [
+        null,
+        [
+          {
+            "personId": "p-5",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-4",
+            "isBlockedForDate": false
+          }
+        ]
+      ],
+      "output": [
+        {
+          "key": "p-5",
+          "value": {
+            "personId": "p-5",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-4",
+          "value": {
+            "personId": "p-4",
+            "isBlockedForDate": false
+          }
+        }
+      ]
+    },
+    {
+      "input": [
+        [
+          {
+            "personId": "p-4",
+            "isBlockedForDate": true
+          }
+        ],
+        [
+          {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-4",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-4",
+            "isBlockedForDate": true,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-6",
+                  "planId": "plan-4",
+                  "date": "2026-10-19T11:00:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "status": "",
+                  "timeType": "other"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-2",
+                  "planId": "plan-9",
+                  "date": "2026-10-11T07:00:00.000Z",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-3",
+                  "planId": "plan-6",
+                  "date": "2026-11-29T07:00:00.000Z",
+                  "teamPositionName": "Electric Guitar",
+                  "teamName": "Tech",
+                  "status": "C"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-4",
+                  "date": "2026-08-19T12:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "teamName": "Vocals",
+                  "status": "declined",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-4",
+                  "sourceScheduleId": "pp-6",
+                  "planId": "plan-9",
+                  "date": "2026-08-30T05:30:00.000Z",
+                  "teamPositionName": "Bass Guitar",
+                  "status": "C",
+                  "timeType": "other"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "schedule",
+                  "id": "a-0",
+                  "planId": null,
+                  "teamId": null,
+                  "teamName": "",
+                  "teamPositionName": "",
+                  "status": "U",
+                  "planPersonId": "pp-0",
+                  "declineReason": null
+                }
+              ]
+            }
+          },
+          {
+            "personId": "p-4",
+            "isBlockedForDate": false
+          }
+        ]
+      ],
+      "output": [
+        {
+          "key": "p-4",
+          "value": {
+            "personId": "p-4",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-2",
+          "value": {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          }
+        }
+      ]
+    },
+    {
+      "input": [
+        [],
+        [],
+        [
+          {
+            "personId": "p-1",
+            "isBlockedForDate": true,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-2",
+                  "planId": "plan-1",
+                  "date": "2026-08-14T01:45:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "status": "d",
+                  "timeType": "rehearsal"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "schedule",
+                  "id": "a-0",
+                  "planId": "plan-sel",
+                  "teamId": "team-vox",
+                  "teamName": "Vocals",
+                  "teamPositionName": "Band - ",
+                  "status": "DECLINED",
+                  "planPersonId": null,
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          },
+          {
+            "personId": "p-3",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-1",
+            "isBlockedForDate": false
+          }
+        ]
+      ],
+      "output": [
+        {
+          "key": "p-1",
+          "value": {
+            "personId": "p-1",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-3",
+          "value": {
+            "personId": "p-3",
+            "isBlockedForDate": false
+          }
+        }
+      ]
+    },
+    {
+      "input": [
+        [],
+        [
+          {
+            "personId": "p-2",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-8",
+                  "planId": "plan-6",
+                  "date": "2026-08-11T00:45:00.000Z",
+                  "teamPositionName": "Drums",
+                  "teamName": "Band",
+                  "status": "d",
+                  "timeType": "other"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-5",
+                  "planId": "plan-4",
+                  "date": "2026-08-28T10:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "declined",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-2",
+                  "planId": "plan-5",
+                  "date": "2026-08-28T10:00:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "status": "U",
+                  "timeType": "other"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-3",
+                  "planId": "plan-7",
+                  "date": "2026-11-10T13:45:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "status": "C",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-4",
+                  "sourceScheduleId": "pp-1",
+                  "date": "2026-10-27T14:45:00.000Z",
+                  "teamPositionName": "Electric Guitar",
+                  "status": "C",
+                  "timeType": "service"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "schedule",
+                  "id": "a-0",
+                  "planId": "plan-x",
+                  "teamId": "team-band",
+                  "teamName": null,
+                  "teamPositionName": "band - electric guitar",
+                  "status": " D",
+                  "planPersonId": null,
+                  "declineReason": "Out of town"
+                },
+                {
+                  "source": "schedule",
+                  "id": "a-1",
+                  "planId": null,
+                  "teamId": "team-band",
+                  "teamName": null,
+                  "teamPositionName": "Band -  Electric Guitar",
+                  "status": "Confirmed",
+                  "planPersonId": null,
+                  "declineReason": null
+                },
+                {
+                  "source": "planPerson",
+                  "id": "a-2",
+                  "planId": "",
+                  "teamId": "team-band",
+                  "teamName": "   ",
+                  "teamPositionName": "Vocals - Harmony",
+                  "status": "U",
+                  "planPersonId": "pp-2",
+                  "declineReason": null
+                }
+              ]
+            }
+          }
+        ],
+        [
+          {
+            "personId": "p-2",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [],
+              "selectedPlanAssignments": []
+            }
+          },
+          {
+            "personId": "p-6",
+            "isBlockedForDate": true,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-8",
+                  "planId": "plan-2",
+                  "date": "2026-08-19T11:00:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "status": "declined",
+                  "timeType": "other"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-1",
+                  "planId": "plan-5",
+                  "date": "2026-07-26T03:00:00.000Z",
+                  "teamPositionName": "Keys",
+                  "status": "d"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-7",
+                  "date": "2026-11-16T23:30:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "teamName": "Band",
+                  "status": "Declined",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-5",
+                  "planId": "plan-2",
+                  "date": "2026-11-16T23:30:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "teamName": "Tech",
+                  "status": "declined",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-4",
+                  "sourceScheduleId": "pp-2",
+                  "planId": "plan-1",
+                  "date": "2026-07-21T12:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "teamName": "Band",
+                  "status": "D﻿",
+                  "timeType": "other"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "planPerson",
+                  "id": "a-0",
+                  "planId": null,
+                  "teamId": "team-vox",
+                  "teamName": "Band",
+                  "teamPositionName": "",
+                  "status": " D ",
+                  "planPersonId": "pp-0",
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          }
+        ]
+      ],
+      "output": [
+        {
+          "key": "p-2",
+          "value": {
+            "personId": "p-2",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [],
+              "selectedPlanAssignments": []
+            }
+          }
+        },
+        {
+          "key": "p-6",
+          "value": {
+            "personId": "p-6",
+            "isBlockedForDate": true,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-8",
+                  "planId": "plan-2",
+                  "date": "2026-08-19T11:00:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "status": "declined",
+                  "timeType": "other"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-1",
+                  "planId": "plan-5",
+                  "date": "2026-07-26T03:00:00.000Z",
+                  "teamPositionName": "Keys",
+                  "status": "d"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-7",
+                  "date": "2026-11-16T23:30:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "teamName": "Band",
+                  "status": "Declined",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-5",
+                  "planId": "plan-2",
+                  "date": "2026-11-16T23:30:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "teamName": "Tech",
+                  "status": "declined",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-4",
+                  "sourceScheduleId": "pp-2",
+                  "planId": "plan-1",
+                  "date": "2026-07-21T12:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "teamName": "Band",
+                  "status": "D﻿",
+                  "timeType": "other"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "planPerson",
+                  "id": "a-0",
+                  "planId": null,
+                  "teamId": "team-vox",
+                  "teamName": "Band",
+                  "teamPositionName": "",
+                  "status": " D ",
+                  "planPersonId": "pp-0",
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "input": [
+        [
+          {
+            "personId": "p-3",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-4",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-3",
+            "isBlockedForDate": true,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-3",
+                  "planId": "plan-2",
+                  "date": "2026-07-22T06:30:00.000Z",
+                  "teamPositionName": "Bass Guitar",
+                  "teamName": "Vocals",
+                  "status": "C",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-4",
+                  "planId": "plan-9",
+                  "date": "2026-11-10T14:00:00.000Z",
+                  "teamPositionName": "Keys",
+                  "teamName": "Vocals",
+                  "status": "DECLINED"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-3",
+                  "planId": "plan-6",
+                  "date": "2026-11-10T14:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "teamName": "Bänd",
+                  "status": "",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-12",
+                  "planId": "plan-4",
+                  "date": "2026-09-01T22:00:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "status": " D "
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "schedule",
+                  "id": "a-0",
+                  "planId": "plan-x",
+                  "teamId": "",
+                  "teamName": "",
+                  "teamPositionName": "Vocals - Harmony",
+                  "status": "C",
+                  "planPersonId": "pp-0",
+                  "declineReason": "Out of town"
+                },
+                {
+                  "source": "planPerson",
+                  "id": "a-1",
+                  "planId": "plan-x",
+                  "teamId": "team-band",
+                  "teamName": "Vocals",
+                  "teamPositionName": "band - electric guitar",
+                  "status": "Confirmed",
+                  "planPersonId": "pp-1",
+                  "declineReason": null
+                },
+                {
+                  "source": "schedule",
+                  "id": "a-2",
+                  "planId": "plan-sel",
+                  "teamId": "team-band",
+                  "teamName": null,
+                  "teamPositionName": "band - electric guitar",
+                  "status": "Declined",
+                  "planPersonId": null,
+                  "declineReason": null
+                }
+              ]
+            }
+          }
+        ],
+        [
+          {
+            "personId": "p-1",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-2",
+            "isBlockedForDate": true
+          }
+        ],
+        null,
+        [
+          {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          }
+        ]
+      ],
+      "output": [
+        {
+          "key": "p-3",
+          "value": {
+            "personId": "p-3",
+            "isBlockedForDate": true,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-3",
+                  "planId": "plan-2",
+                  "date": "2026-07-22T06:30:00.000Z",
+                  "teamPositionName": "Bass Guitar",
+                  "teamName": "Vocals",
+                  "status": "C",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-4",
+                  "planId": "plan-9",
+                  "date": "2026-11-10T14:00:00.000Z",
+                  "teamPositionName": "Keys",
+                  "teamName": "Vocals",
+                  "status": "DECLINED"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-3",
+                  "planId": "plan-6",
+                  "date": "2026-11-10T14:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "teamName": "Bänd",
+                  "status": "",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-12",
+                  "planId": "plan-4",
+                  "date": "2026-09-01T22:00:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "status": " D "
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "schedule",
+                  "id": "a-0",
+                  "planId": "plan-x",
+                  "teamId": "",
+                  "teamName": "",
+                  "teamPositionName": "Vocals - Harmony",
+                  "status": "C",
+                  "planPersonId": "pp-0",
+                  "declineReason": "Out of town"
+                },
+                {
+                  "source": "planPerson",
+                  "id": "a-1",
+                  "planId": "plan-x",
+                  "teamId": "team-band",
+                  "teamName": "Vocals",
+                  "teamPositionName": "band - electric guitar",
+                  "status": "Confirmed",
+                  "planPersonId": "pp-1",
+                  "declineReason": null
+                },
+                {
+                  "source": "schedule",
+                  "id": "a-2",
+                  "planId": "plan-sel",
+                  "teamId": "team-band",
+                  "teamName": null,
+                  "teamPositionName": "band - electric guitar",
+                  "status": "Declined",
+                  "planPersonId": null,
+                  "declineReason": null
+                }
+              ]
+            }
+          }
+        },
+        {
+          "key": "p-4",
+          "value": {
+            "personId": "p-4",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-2",
+          "value": {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-1",
+          "value": {
+            "personId": "p-1",
+            "isBlockedForDate": false
+          }
+        }
+      ]
+    },
+    {
+      "input": [
+        null,
+        [
+          {
+            "personId": "p-5",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-12",
+                  "planId": "plan-7",
+                  "date": "2026-08-26T12:45:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "status": "C",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-7",
+                  "planId": "plan-3",
+                  "date": "2026-09-25T03:00:00.000Z",
+                  "teamPositionName": "Keys",
+                  "teamName": "Tech",
+                  "status": "C",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-1",
+                  "planId": "plan-9",
+                  "date": "2026-10-15T08:00:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "teamName": "Tech",
+                  "status": "",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-10",
+                  "planId": "plan-7",
+                  "date": "2026-08-12T07:45:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "status": "Decline",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-4",
+                  "sourceScheduleId": "pp-6",
+                  "date": "2026-10-24T04:45:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "teamName": "Vocals",
+                  "status": "C"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "planPerson",
+                  "id": "a-0",
+                  "planId": "plan-sel",
+                  "teamId": "team-band",
+                  "teamName": null,
+                  "teamPositionName": "band - electric guitar",
+                  "status": "",
+                  "planPersonId": null,
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          },
+          {
+            "personId": "p-5",
+            "isBlockedForDate": true
+          }
+        ],
+        [
+          {
+            "personId": "p-2",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-3",
+                  "planId": "plan-6",
+                  "date": "2026-07-26T03:30:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "teamName": "Vocals",
+                  "status": "C",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-7",
+                  "planId": "plan-8",
+                  "date": "2026-10-15T21:00:00.000Z",
+                  "teamPositionName": "Electric Guitar",
+                  "teamName": "Vocals",
+                  "status": "DECLINED",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-4",
+                  "date": "2026-10-15T21:00:00.000Z",
+                  "teamPositionName": "Bass Guitar",
+                  "teamName": "Vocals",
+                  "status": "U",
+                  "timeType": "rehearsal"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "schedule",
+                  "id": "a-0",
+                  "planId": "",
+                  "teamId": null,
+                  "teamName": null,
+                  "teamPositionName": "  Band - Electric Guitar ",
+                  "status": "DECLINED",
+                  "planPersonId": "pp-0",
+                  "declineReason": null
+                },
+                {
+                  "source": "schedule",
+                  "id": "a-1",
+                  "planId": "plan-sel",
+                  "teamId": "team-band",
+                  "teamName": null,
+                  "teamPositionName": "band - electric guitar",
+                  "status": " D",
+                  "planPersonId": "pp-1",
+                  "declineReason": null
+                }
+              ]
+            }
+          },
+          {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          }
+        ],
+        []
+      ],
+      "output": [
+        {
+          "key": "p-5",
+          "value": {
+            "personId": "p-5",
+            "isBlockedForDate": true
+          }
+        },
+        {
+          "key": "p-2",
+          "value": {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          }
+        }
+      ]
+    },
+    {
+      "input": [],
+      "output": []
+    },
+    {
+      "input": [],
+      "output": []
+    },
+    {
+      "input": [],
+      "output": []
+    },
+    {
+      "input": [
+        [
+          {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-4",
+            "isBlockedForDate": true
+          }
+        ]
+      ],
+      "output": [
+        {
+          "key": "p-2",
+          "value": {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-4",
+          "value": {
+            "personId": "p-4",
+            "isBlockedForDate": true
+          }
+        }
+      ]
+    },
+    {
+      "input": [
+        null
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        [
+          {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          }
+        ],
+        [
+          {
+            "personId": "p-5",
+            "isBlockedForDate": true
+          },
+          {
+            "personId": "p-3",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-4",
+                  "planId": "plan-4",
+                  "date": "2026-11-14T07:00:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "status": "Declined"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-12",
+                  "date": "2026-08-18T07:45:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "teamName": "Tech",
+                  "status": "DECLINED"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-4",
+                  "date": "2026-12-01T23:00:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "teamName": "Tech",
+                  "status": "D",
+                  "timeType": "other"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-8",
+                  "date": "2026-09-09T05:45:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-4",
+                  "sourceScheduleId": "pp-6",
+                  "date": "2026-07-20T04:00:00.000Z",
+                  "teamPositionName": "Bass Guitar",
+                  "status": "D﻿",
+                  "timeType": "service"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "planPerson",
+                  "id": "a-0",
+                  "planId": "",
+                  "teamId": "team-vox",
+                  "teamName": "Vocals",
+                  "teamPositionName": "Band -  Electric Guitar",
+                  "status": "Declined",
+                  "planPersonId": null,
+                  "declineReason": null
+                },
+                {
+                  "source": "schedule",
+                  "id": "a-1",
+                  "planId": "plan-x",
+                  "teamId": "team-band",
+                  "teamName": "Vocals",
+                  "teamPositionName": "﻿Band - Electric Guitar",
+                  "status": "C",
+                  "planPersonId": null,
+                  "declineReason": "Out of town"
+                },
+                {
+                  "source": "schedule",
+                  "id": "a-2",
+                  "planId": "",
+                  "teamId": "team-band",
+                  "teamName": " Band ",
+                  "teamPositionName": "  Band - Electric Guitar ",
+                  "status": "D﻿",
+                  "planPersonId": "pp-2",
+                  "declineReason": null
+                }
+              ]
+            }
+          }
+        ]
+      ],
+      "output": [
+        {
+          "key": "p-2",
+          "value": {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-5",
+          "value": {
+            "personId": "p-5",
+            "isBlockedForDate": true
+          }
+        },
+        {
+          "key": "p-3",
+          "value": {
+            "personId": "p-3",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-4",
+                  "planId": "plan-4",
+                  "date": "2026-11-14T07:00:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "status": "Declined"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-12",
+                  "date": "2026-08-18T07:45:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "teamName": "Tech",
+                  "status": "DECLINED"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-4",
+                  "date": "2026-12-01T23:00:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "teamName": "Tech",
+                  "status": "D",
+                  "timeType": "other"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-8",
+                  "date": "2026-09-09T05:45:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-4",
+                  "sourceScheduleId": "pp-6",
+                  "date": "2026-07-20T04:00:00.000Z",
+                  "teamPositionName": "Bass Guitar",
+                  "status": "D﻿",
+                  "timeType": "service"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "planPerson",
+                  "id": "a-0",
+                  "planId": "",
+                  "teamId": "team-vox",
+                  "teamName": "Vocals",
+                  "teamPositionName": "Band -  Electric Guitar",
+                  "status": "Declined",
+                  "planPersonId": null,
+                  "declineReason": null
+                },
+                {
+                  "source": "schedule",
+                  "id": "a-1",
+                  "planId": "plan-x",
+                  "teamId": "team-band",
+                  "teamName": "Vocals",
+                  "teamPositionName": "﻿Band - Electric Guitar",
+                  "status": "C",
+                  "planPersonId": null,
+                  "declineReason": "Out of town"
+                },
+                {
+                  "source": "schedule",
+                  "id": "a-2",
+                  "planId": "",
+                  "teamId": "team-band",
+                  "teamName": " Band ",
+                  "teamPositionName": "  Band - Electric Guitar ",
+                  "status": "D﻿",
+                  "planPersonId": "pp-2",
+                  "declineReason": null
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "input": [
+        [],
+        null
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        [],
+        null
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        [
+          {
+            "personId": "p-1",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-4",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-1",
+                  "planId": "plan-5",
+                  "date": "2026-11-25T07:00:00.000Z",
+                  "teamPositionName": "Bass Guitar",
+                  "teamName": "Band",
+                  "status": "C",
+                  "timeType": "rehearsal"
+                }
+              ],
+              "selectedPlanAssignments": []
+            }
+          },
+          {
+            "personId": "p-3",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-10",
+                  "planId": "plan-4",
+                  "date": "2026-11-05T23:45:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "C"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-7",
+                  "planId": "plan-1",
+                  "date": "2026-10-31T07:00:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "status": " D ",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-6",
+                  "planId": "plan-9",
+                  "date": "2026-10-26T07:30:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "status": " D ",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-3",
+                  "planId": "plan-1",
+                  "date": "2026-11-04T19:30:00.000Z",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "timeType": "service"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "schedule",
+                  "id": "a-0",
+                  "planId": "plan-x",
+                  "teamId": null,
+                  "teamName": "",
+                  "teamPositionName": "Band - ",
+                  "status": "d",
+                  "planPersonId": "pp-0",
+                  "declineReason": null
+                }
+              ]
+            }
+          },
+          {
+            "personId": "p-5",
+            "isBlockedForDate": false
+          }
+        ],
+        [
+          {
+            "personId": "p-3",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-1",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-2",
+            "isBlockedForDate": true
+          },
+          {
+            "personId": "p-5",
+            "isBlockedForDate": true,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-1",
+                  "planId": "plan-2",
+                  "date": "2026-08-26T14:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "Decline"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "planPerson",
+                  "id": "a-0",
+                  "planId": "plan-sel",
+                  "teamId": "team-vox",
+                  "teamName": " Band ",
+                  "teamPositionName": "Electric Guitar",
+                  "status": "DECLINED",
+                  "planPersonId": "pp-0",
+                  "declineReason": null
+                },
+                {
+                  "source": "planPerson",
+                  "id": "a-1",
+                  "planId": "",
+                  "teamId": "team-band",
+                  "teamName": null,
+                  "teamPositionName": "  Band - Electric Guitar ",
+                  "status": "declined",
+                  "planPersonId": "pp-1",
+                  "declineReason": null
+                },
+                {
+                  "source": "schedule",
+                  "id": "a-2",
+                  "planId": "plan-x",
+                  "teamId": "team-vox",
+                  "teamName": "",
+                  "teamPositionName": "Band - Electric Guitar",
+                  "status": " D ",
+                  "planPersonId": null,
+                  "declineReason": null
+                }
+              ]
+            }
+          }
+        ],
+        []
+      ],
+      "output": [
+        {
+          "key": "p-1",
+          "value": {
+            "personId": "p-1",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-4",
+          "value": {
+            "personId": "p-4",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-1",
+                  "planId": "plan-5",
+                  "date": "2026-11-25T07:00:00.000Z",
+                  "teamPositionName": "Bass Guitar",
+                  "teamName": "Band",
+                  "status": "C",
+                  "timeType": "rehearsal"
+                }
+              ],
+              "selectedPlanAssignments": []
+            }
+          }
+        },
+        {
+          "key": "p-3",
+          "value": {
+            "personId": "p-3",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-5",
+          "value": {
+            "personId": "p-5",
+            "isBlockedForDate": true,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-1",
+                  "planId": "plan-2",
+                  "date": "2026-08-26T14:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "Decline"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "planPerson",
+                  "id": "a-0",
+                  "planId": "plan-sel",
+                  "teamId": "team-vox",
+                  "teamName": " Band ",
+                  "teamPositionName": "Electric Guitar",
+                  "status": "DECLINED",
+                  "planPersonId": "pp-0",
+                  "declineReason": null
+                },
+                {
+                  "source": "planPerson",
+                  "id": "a-1",
+                  "planId": "",
+                  "teamId": "team-band",
+                  "teamName": null,
+                  "teamPositionName": "  Band - Electric Guitar ",
+                  "status": "declined",
+                  "planPersonId": "pp-1",
+                  "declineReason": null
+                },
+                {
+                  "source": "schedule",
+                  "id": "a-2",
+                  "planId": "plan-x",
+                  "teamId": "team-vox",
+                  "teamName": "",
+                  "teamPositionName": "Band - Electric Guitar",
+                  "status": " D ",
+                  "planPersonId": null,
+                  "declineReason": null
+                }
+              ]
+            }
+          }
+        },
+        {
+          "key": "p-2",
+          "value": {
+            "personId": "p-2",
+            "isBlockedForDate": true
+          }
+        }
+      ]
+    },
+    {
+      "input": [
+        null,
+        [],
+        [
+          {
+            "personId": "p-6",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          }
+        ]
+      ],
+      "output": [
+        {
+          "key": "p-6",
+          "value": {
+            "personId": "p-6",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-2",
+          "value": {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          }
+        }
+      ]
+    },
+    {
+      "input": [
+        [
+          {
+            "personId": "p-1",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-3",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-2",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [],
+              "selectedPlanAssignments": []
+            }
+          }
+        ],
+        [
+          {
+            "personId": "p-6",
+            "isBlockedForDate": true
+          }
+        ],
+        [
+          {
+            "personId": "p-6",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-6",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-1",
+                  "planId": "plan-6",
+                  "date": "2026-09-04T21:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "Decline",
+                  "timeType": "other"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-10",
+                  "planId": "plan-5",
+                  "date": "2026-09-12T15:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "Declined",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-6",
+                  "date": "2026-11-18T00:45:00.000Z",
+                  "teamPositionName": "Bass Guitar",
+                  "teamName": "Vocals",
+                  "status": "Decline",
+                  "timeType": "other"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "schedule",
+                  "id": "a-0",
+                  "planId": "",
+                  "teamId": "team-band",
+                  "teamName": null,
+                  "teamPositionName": "   ",
+                  "status": "C",
+                  "planPersonId": null,
+                  "declineReason": null
+                },
+                {
+                  "source": "planPerson",
+                  "id": "a-1",
+                  "planId": "",
+                  "teamId": null,
+                  "teamName": null,
+                  "teamPositionName": "﻿Band - Electric Guitar",
+                  "status": "d",
+                  "planPersonId": null,
+                  "declineReason": "Out of town"
+                },
+                {
+                  "source": "schedule",
+                  "id": "a-2",
+                  "planId": "plan-sel",
+                  "teamId": null,
+                  "teamName": "Vocals",
+                  "teamPositionName": "Bänd - Electric Guitar",
+                  "status": "",
+                  "planPersonId": "pp-2",
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          }
+        ],
+        []
+      ],
+      "output": [
+        {
+          "key": "p-1",
+          "value": {
+            "personId": "p-1",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-3",
+          "value": {
+            "personId": "p-3",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-2",
+          "value": {
+            "personId": "p-2",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [],
+              "selectedPlanAssignments": []
+            }
+          }
+        },
+        {
+          "key": "p-6",
+          "value": {
+            "personId": "p-6",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-1",
+                  "planId": "plan-6",
+                  "date": "2026-09-04T21:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "Decline",
+                  "timeType": "other"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-10",
+                  "planId": "plan-5",
+                  "date": "2026-09-12T15:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "Declined",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-6",
+                  "date": "2026-11-18T00:45:00.000Z",
+                  "teamPositionName": "Bass Guitar",
+                  "teamName": "Vocals",
+                  "status": "Decline",
+                  "timeType": "other"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "schedule",
+                  "id": "a-0",
+                  "planId": "",
+                  "teamId": "team-band",
+                  "teamName": null,
+                  "teamPositionName": "   ",
+                  "status": "C",
+                  "planPersonId": null,
+                  "declineReason": null
+                },
+                {
+                  "source": "planPerson",
+                  "id": "a-1",
+                  "planId": "",
+                  "teamId": null,
+                  "teamName": null,
+                  "teamPositionName": "﻿Band - Electric Guitar",
+                  "status": "d",
+                  "planPersonId": null,
+                  "declineReason": "Out of town"
+                },
+                {
+                  "source": "schedule",
+                  "id": "a-2",
+                  "planId": "plan-sel",
+                  "teamId": null,
+                  "teamName": "Vocals",
+                  "teamPositionName": "Bänd - Electric Guitar",
+                  "status": "",
+                  "planPersonId": "pp-2",
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "input": [
+        [
+          {
+            "personId": "p-1",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-8",
+                  "planId": "plan-9",
+                  "date": "2026-07-20T08:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "C",
+                  "timeType": "other"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-11",
+                  "planId": "plan-8",
+                  "date": "2026-08-05T04:45:00.000Z",
+                  "teamPositionName": "Bass Guitar",
+                  "teamName": "Vocals",
+                  "status": "Declined",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-1",
+                  "planId": "plan-3",
+                  "date": "2026-10-11T12:00:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "status": "U"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-4",
+                  "planId": "plan-2",
+                  "date": "2026-11-02T21:00:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "teamName": "Vocals",
+                  "status": "C",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-4",
+                  "sourceScheduleId": "pp-10",
+                  "planId": "plan-9",
+                  "date": "2026-08-12T16:00:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "teamName": "Tech",
+                  "status": "C",
+                  "timeType": "rehearsal"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "schedule",
+                  "id": "a-0",
+                  "planId": "plan-sel",
+                  "teamId": null,
+                  "teamName": " Band ",
+                  "teamPositionName": "Band - Electric Guitaŕ",
+                  "status": "U",
+                  "planPersonId": null,
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          },
+          {
+            "personId": "p-6",
+            "isBlockedForDate": true
+          }
+        ],
+        [
+          {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-6",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-4",
+            "isBlockedForDate": false
+          }
+        ],
+        [
+          {
+            "personId": "p-5",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-4",
+            "isBlockedForDate": false
+          },
+          {
+            "personId": "p-3",
+            "isBlockedForDate": false
+          }
+        ],
+        null
+      ],
+      "output": [
+        {
+          "key": "p-1",
+          "value": {
+            "personId": "p-1",
+            "isBlockedForDate": false,
+            "history": {
+              "serviceHistory": [
+                {
+                  "id": "item-0",
+                  "sourceScheduleId": "pp-8",
+                  "planId": "plan-9",
+                  "date": "2026-07-20T08:00:00.000Z",
+                  "teamPositionName": "Drums",
+                  "status": "C",
+                  "timeType": "other"
+                },
+                {
+                  "id": "item-1",
+                  "sourceScheduleId": "pp-11",
+                  "planId": "plan-8",
+                  "date": "2026-08-05T04:45:00.000Z",
+                  "teamPositionName": "Bass Guitar",
+                  "teamName": "Vocals",
+                  "status": "Declined",
+                  "timeType": "rehearsal"
+                },
+                {
+                  "id": "item-2",
+                  "sourceScheduleId": "pp-1",
+                  "planId": "plan-3",
+                  "date": "2026-10-11T12:00:00.000Z",
+                  "teamPositionName": "Vocals",
+                  "status": "U"
+                },
+                {
+                  "id": "item-3",
+                  "sourceScheduleId": "pp-4",
+                  "planId": "plan-2",
+                  "date": "2026-11-02T21:00:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "teamName": "Vocals",
+                  "status": "C",
+                  "timeType": "service"
+                },
+                {
+                  "id": "item-4",
+                  "sourceScheduleId": "pp-10",
+                  "planId": "plan-9",
+                  "date": "2026-08-12T16:00:00.000Z",
+                  "teamPositionName": "Harmony",
+                  "teamName": "Tech",
+                  "status": "C",
+                  "timeType": "rehearsal"
+                }
+              ],
+              "selectedPlanAssignments": [
+                {
+                  "source": "schedule",
+                  "id": "a-0",
+                  "planId": "plan-sel",
+                  "teamId": null,
+                  "teamName": " Band ",
+                  "teamPositionName": "Band - Electric Guitaŕ",
+                  "status": "U",
+                  "planPersonId": null,
+                  "declineReason": "Out of town"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "key": "p-6",
+          "value": {
+            "personId": "p-6",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-2",
+          "value": {
+            "personId": "p-2",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-4",
+          "value": {
+            "personId": "p-4",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-5",
+          "value": {
+            "personId": "p-5",
+            "isBlockedForDate": false
+          }
+        },
+        {
+          "key": "p-3",
+          "value": {
+            "personId": "p-3",
+            "isBlockedForDate": false
+          }
+        }
+      ]
+    },
+    {
+      "input": [],
+      "output": []
+    },
+    {
+      "input": [],
+      "output": []
+    },
+    {
+      "input": [],
+      "output": []
+    }
+  ]
+}
