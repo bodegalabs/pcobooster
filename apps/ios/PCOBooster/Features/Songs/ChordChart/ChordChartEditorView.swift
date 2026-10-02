@@ -26,7 +26,9 @@ struct ChordChartEditorView: View {
       .background(.surfaceCanvas)
       .onChange(of: model.song.value?.song, initial: true) { _, song in
         guard let song else { return }
-        RecentSongsStore.shared.remember(RecentSong(id: song.id, title: song.title, author: song.author))
+        RecentSongsStore.shared.remember(
+          RecentSong(id: song.id, title: song.title, author: song.author), scope: app.queries.scope,
+          persists: !app.configuration.usesMockData)
       }
       .queryLifecycle(model.song)
   }

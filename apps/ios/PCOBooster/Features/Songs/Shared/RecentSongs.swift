@@ -55,6 +55,13 @@ final class RecentSongsStore {
     songs = Array(stored.songs.prefix(Self.maximumCount))
   }
 
+  /// Moves `song` to the front of the list kept for `scope`, for screens opened straight from a
+  /// link, before the library has pointed the list at the account.
+  func remember(_ song: RecentSong, scope: QueryScope, persists: Bool) {
+    activate(scope: scope, persists: persists)
+    remember(song)
+  }
+
   /// Moves `song` to the front (`rememberRecentSong`).
   func remember(_ song: RecentSong) {
     guard !song.id.isEmpty else { return }

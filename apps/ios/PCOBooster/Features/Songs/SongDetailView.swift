@@ -62,7 +62,9 @@ struct SongDetailView: View {
     .task(id: model.history.value == nil) { await model.resolveOptions() }
     .onChange(of: model.title, initial: true) { _, title in
       guard let title else { return }
-      RecentSongsStore.shared.remember(RecentSong(id: songId, title: title, author: model.author))
+      RecentSongsStore.shared.remember(
+        RecentSong(id: songId, title: title, author: model.author), scope: app.queries.scope,
+        persists: !app.configuration.usesMockData)
     }
     .fullScreenCover(isPresented: $showsViewer) {
       ChordChartPDFViewer(
