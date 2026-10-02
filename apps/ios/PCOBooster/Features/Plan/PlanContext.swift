@@ -16,8 +16,15 @@ import PCOBoosterCore
 final class PlanContext {
   let serviceTypeId: String
   let planId: String
-  var segment: PlanSegment
+  var segment: PlanSegment {
+    didSet {
+      if segment != oldValue { segmentMovedForward = segment.order > oldValue.order }
+    }
+  }
   let plan: QueryState<Plan?>
+  /// Whether the last segment switch moved toward Times (rightward), so the content slides in
+  /// from that side.
+  private(set) var segmentMovedForward = true
 
   init(route: PlanRoute, queries: QueryClient) {
     serviceTypeId = route.serviceTypeId
@@ -57,6 +64,9 @@ enum PlanSegment: String, CaseIterable, Identifiable, Hashable, Sendable {
   case times
 
   var id: String { rawValue }
+
+  /// Left to right position in the segmented control.
+  var order: Int { Self.allCases.firstIndex(of: self) ?? 0 }
 
   /// The segment a route opens on; `.assign` opens on Lineup.
   init(_ view: PlanView) {
