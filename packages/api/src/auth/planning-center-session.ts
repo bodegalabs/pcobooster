@@ -13,10 +13,24 @@ const PLANNING_CENTER_PROVIDER_ID = "planning-center";
 export const PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE =
   "pco-selected-account-id";
 
+/** How cookieless clients (the native app) name their selected account; read before the cookie. */
+export const PLANNING_CENTER_SELECTED_ACCOUNT_HEADER = "x-pcobooster-account";
+
+/**
+ * The account row id the caller selected, from the header or else the cookie. It is only a
+ * choice among the session user's own linked accounts: every caller matches it against them
+ * and falls back to the first one, so a foreign or stale id never selects another account.
+ */
 export const getSelectedPlanningCenterAccountId = (
   request: Request
-): string | null =>
-  readCookie(request, PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE);
+): string | null => {
+  const header = request.headers
+    .get(PLANNING_CENTER_SELECTED_ACCOUNT_HEADER)
+    ?.trim();
+  return isNonEmptyString(header)
+    ? header
+    : readCookie(request, PLANNING_CENTER_SELECTED_ACCOUNT_COOKIE);
+};
 
 interface LinkedAccount {
   readonly providerId: string;
@@ -25,9 +39,10 @@ interface LinkedAccount {
 
 /**
  * A user's Planning Center accounts (one per organization), first linked first. A request
- * without a selection cookie acts as the first one. Not newest `updatedAt` first: Better Auth
- * rewrites it on every token refresh, so refreshing one organization's token switched every
- * later request to that organization, including requests for the other one's plans.
+ * without a selection (header or cookie) acts as the first one. Not newest `updatedAt` first:
+ * Better Auth rewrites it on every token refresh, so refreshing one organization's token
+ * switched every later request to that organization, including requests for the other one's
+ * plans.
  */
 export const linkedPlanningCenterAccounts = <Account extends LinkedAccount>(
   accounts: readonly Account[]

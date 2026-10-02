@@ -382,6 +382,41 @@ describe(createServerApp, () => {
     expect(response.headers.get("retry-after")).toBe("60");
   });
 
+  it("counts the native sign-in start and exchange against the auth limit", async () => {
+    const authHandler = vi.fn<TestAuthHandler>(() => new Response("ok"));
+    const allowAuthWrite = vi.fn<(clientIp: string) => Promise<boolean>>(
+      async () => await Promise.resolve(false)
+    );
+    const app = createServerApp({
+      allowAuthWrite,
+      authHandler,
+      server,
+      enableRequestLogging: false,
+      log: { error: vi.fn<TestErrorLogger>() },
+      router: testRouter,
+    });
+    const headers = { "cf-connecting-ip": "203.0.113.7" };
+
+    const start = await app.request(
+      "/api/auth/native/start?redirect_uri=pcobooster%3A%2F%2Fauth%2Fcallback",
+      { headers }
+    );
+    const exchange = await app.request("/api/auth/native/exchange", {
+      headers,
+      method: "POST",
+    });
+    const callback = await app.request(
+      "/api/auth/callback/planning-center?code=c&state=s",
+      { headers }
+    );
+
+    expect([start.status, exchange.status, callback.status]).toStrictEqual([
+      429, 429, 200,
+    ]);
+    expect(allowAuthWrite).toHaveBeenCalledTimes(2);
+    expect(authHandler).toHaveBeenCalledOnce();
+  });
+
   it("never rate limits session reads or requests without a client IP", async () => {
     const authHandler = vi.fn<TestAuthHandler>(() => new Response("ok"));
     const allowAuthWrite = vi.fn<(clientIp: string) => Promise<boolean>>(

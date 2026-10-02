@@ -5,6 +5,7 @@ import type { AnyRouter } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ResponseHeadersPlugin } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
+import { NATIVE_SIGN_IN_START_PATH } from "@pcobooster/api/auth/native-sign-in";
 import {
   createPostHogExceptionReporter,
   requestErrorSchema,
@@ -50,10 +51,20 @@ export type AuthWriteLimiter = (clientIp: string) => Promise<boolean>;
 /** The window, in seconds, the API Worker's auth rate limit counts over. */
 export const AUTH_RATE_LIMIT_PERIOD_SECONDS = 60;
 
+/** A GET that writes: each native sign-in start stores an OAuth state row. */
+const NATIVE_SIGN_IN_START = `/api/auth${NATIVE_SIGN_IN_START_PATH}`;
+
+/** Auth requests the per-IP limit counts: every POST, and the native sign-in start. */
+const isAuthWrite = (request: Request): boolean =>
+  request.method === "POST" ||
+  (request.method === "GET" &&
+    new URL(request.url).pathname === NATIVE_SIGN_IN_START);
+
 export interface CreateServerAppOptions {
   /**
-   * Limits auth writes (sign-in, OAuth callbacks, sign-out) per client IP. Session reads, which
-   * every page makes, are never limited. Omitted in tests and wherever no limit applies.
+   * Limits auth writes per client IP: every POST (sign-in, sign-out, the native sign-in
+   * exchange) and the native sign-in start. Session reads, which every page makes, and OAuth
+   * callbacks are never limited. Omitted in tests and wherever no limit applies.
    */
   allowAuthWrite?: AuthWriteLimiter;
   server: ServerDependencies;
@@ -129,7 +140,7 @@ export const createServerApp = ({
     // Set by Cloudflare at the edge and forwarded unchanged by the product Worker.
     const clientIp = request.headers.get("cf-connecting-ip");
     if (
-      request.method !== "POST" ||
+      !isAuthWrite(request) ||
       allowAuthWrite === undefined ||
       clientIp === null
     ) {
