@@ -3,12 +3,19 @@ import SwiftUI
 import UIKit
 
 /// Edits the text view from outside it: the Insert menu and the keyboard bar put text at the
-/// caret (replacing the selection), which the text view's own undo can take back.
+/// caret (replacing the selection), which the text view's own undo can take back. Also carries
+/// what the keyboard bar shows (the written key's chords and the save status), so the bar
+/// follows the editor without rebuilding.
 @MainActor
 @Observable
 final class ChordChartTextController {
+  /// Chords for the keyboard bar, in the written key.
+  var chords: [String] = []
+  var status: ChordChartSaveLabel = .checking
+  /// The keyboard is up for the chart.
+  private(set) var isEditing = false
+
   @ObservationIgnored weak var textView: UITextView?
-  @ObservationIgnored var onChange: ((String) -> Void)?
 
   /// A section heading or Services code on its own line (the web's `insertAtCaret`).
   func insertLine(_ snippet: String) {
@@ -28,7 +35,9 @@ final class ChordChartTextController {
   func insertBrackets() {
     guard let textView, textView.isEditable else { return }
     replaceSelection(with: "[]")
-    if let position = textView.position(from: textView.selectedTextRange?.start ?? textView.endOfDocument, offset: -1) {
+    if let end = textView.selectedTextRange?.start,
+      let position = textView.position(from: end, offset: -1)
+    {
       textView.selectedTextRange = textView.textRange(from: position, to: position)
     }
   }
@@ -37,11 +46,16 @@ final class ChordChartTextController {
     textView?.resignFirstResponder()
   }
 
+  fileprivate func setEditing(_ editing: Bool) {
+    if isEditing != editing { isEditing = editing }
+  }
+
   private func replaceSelection(with text: String) {
     guard let textView, textView.isEditable else { return }
     if !textView.isFirstResponder { textView.becomeFirstResponder() }
-    guard let range = textView.selectedTextRange ?? textView.textRange(
-      from: textView.endOfDocument, to: textView.endOfDocument)
+    guard
+      let range = textView.selectedTextRange
+        ?? textView.textRange(from: textView.endOfDocument, to: textView.endOfDocument)
     else {
       return
     }
@@ -51,29 +65,27 @@ final class ChordChartTextController {
 }
 
 /// The chart text: monospaced, colored as you type (`ChordChartHighlighter`), with a keyboard bar
-/// of chords in the written key, brackets, and section headings. Lines wrap by default so a
-/// phone shows whole lines; turning wrapping off keeps chords over their lyric columns and
+/// of chords in the written key, brackets, section headings, and codes. Lines wrap by default so
+/// a phone shows whole lines; turning wrapping off keeps chords over their lyric columns and
 /// scrolls sideways, like the web's editor. Autocorrect, smart quotes, and smart dashes are off,
-/// since they would rewrite chords and Services codes.
+/// since they would rewrite chords and Services codes. Command-S saves from a hardware keyboard.
 struct ChordChartTextView: UIViewRepresentable {
   let text: String
   let isEditable: Bool
   let wrapsLines: Bool
   let placeholder: String
   let controller: ChordChartTextController
-  /// Chords for the keyboard bar, in the written key.
-  let chords: [String]
   let onChange: (String) -> Void
   let onSave: () -> Void
 
   func makeCoordinator() -> Coordinator {
-    Coordinator(onChange: onChange, onSave: onSave)
+    Coordinator(onChange: onChange, onSave: onSave, controller: controller)
   }
 
   func makeUIView(context: Context) -> ChartTextView {
     let view = ChartTextView()
     view.delegate = context.coordinator
-    view.onSave = { context.coordinator.onSave() }
+    view.onSave = { [weak coordinator = context.coordinator] in coordinator?.onSave() }
     view.backgroundColor = .clear
     view.autocorrectionType = .no
     view.spellCheckingType = .no
@@ -83,24 +95,24 @@ struct ChordChartTextView: UIViewRepresentable {
     view.autocapitalizationType = .sentences
     view.keyboardDismissMode = .interactive
     view.alwaysBounceVertical = true
-    view.textContainerInset = UIEdgeInsets(top: 16, left: 12, bottom: 96, right: 12)
+    view.adjustsFontForContentSizeCategory = true
+    view.textContainerInset = UIEdgeInsets(top: 12, left: 12, bottom: 32, right: 12)
     view.accessibilityLabel = String(localized: "Lyrics and chords")
     view.accessibilityIdentifier = "chord-chart-text"
     view.placeholderLabel.text = placeholder
-    view.registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (view: ChartTextView, _: UITraitCollection) in
+    view.registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) {
+      (view: ChartTextView, _: UITraitCollection) in
       view.rehighlight()
     }
-
-    let bar = context.coordinator.makeKeyboardBar(controller: controller, chords: chords)
-    view.inputAccessoryView = bar
+    view.inputAccessoryView = context.coordinator.makeKeyboardBar()
 
     controller.textView = view
-    controller.onChange = onChange
     view.text = text
     context.coordinator.lastReported = text
     view.isEditable = isEditable
     view.setWrapsLines(wrapsLines)
     view.rehighlight()
+    view.updatePlaceholder()
     return view
   }
 
@@ -108,14 +120,12 @@ struct ChordChartTextView: UIViewRepresentable {
     context.coordinator.onChange = onChange
     context.coordinator.onSave = onSave
     controller.textView = view
-    controller.onChange = onChange
     if view.isEditable != isEditable {
       view.isEditable = isEditable
       if !isEditable { view.resignFirstResponder() }
     }
     view.setWrapsLines(wrapsLines)
     view.placeholderLabel.text = placeholder
-    context.coordinator.updateKeyboardBar(controller: controller, chords: chords)
     // Changes from outside the text view (transpose, import, revert, their version) replace the
     // text; the caret stays where it was, within the new text.
     if view.text != text, view.markedTextRange == nil {
@@ -134,17 +144,29 @@ struct ChordChartTextView: UIViewRepresentable {
     var onChange: (String) -> Void
     var onSave: () -> Void
     var lastReported = ""
+    private let controller: ChordChartTextController
     private var keyboardBar: UIHostingController<ChordChartKeyboardBar>?
 
-    init(onChange: @escaping (String) -> Void, onSave: @escaping () -> Void) {
+    init(
+      onChange: @escaping (String) -> Void, onSave: @escaping () -> Void,
+      controller: ChordChartTextController
+    ) {
       self.onChange = onChange
       self.onSave = onSave
+      self.controller = controller
     }
 
     func textViewDidChange(_ textView: UITextView) {
-      (textView as? ChartTextView)?.rehighlight()
       (textView as? ChartTextView)?.updatePlaceholder()
       reportIfChanged(textView)
+    }
+
+    func textViewDidBeginEditing(_ textView: UITextView) {
+      controller.setEditing(true)
+    }
+
+    func textViewDidEndEditing(_ textView: UITextView) {
+      controller.setEditing(false)
     }
 
     func reportIfChanged(_ textView: UITextView) {
@@ -154,8 +176,8 @@ struct ChordChartTextView: UIViewRepresentable {
       onChange(textView.text)
     }
 
-    func makeKeyboardBar(controller: ChordChartTextController, chords: [String]) -> UIView {
-      let hosting = UIHostingController(rootView: ChordChartKeyboardBar(controller: controller, chords: chords))
+    func makeKeyboardBar() -> UIView {
+      let hosting = UIHostingController(rootView: ChordChartKeyboardBar(controller: controller))
       hosting.view.backgroundColor = .clear
       hosting.sizingOptions = []
       keyboardBar = hosting
@@ -171,11 +193,6 @@ struct ChordChartTextView: UIViewRepresentable {
         hosting.view.bottomAnchor.constraint(equalTo: container.bottomAnchor),
       ])
       return container
-    }
-
-    func updateKeyboardBar(controller: ChordChartTextController, chords: [String]) {
-      guard let keyboardBar, keyboardBar.rootView.chords != chords else { return }
-      keyboardBar.rootView = ChordChartKeyboardBar(controller: controller, chords: chords)
     }
   }
 }
@@ -249,17 +266,15 @@ final class ChartTextView: UITextView {
   }
 }
 
-/// The bar above the keyboard: empty brackets, the written key's chords as `[G]` buttons, the
-/// section headings, and Done.
+/// The bar above the keyboard: the save status, empty brackets, the written key's chords as
+/// `[G]` buttons, section headings and codes, and Hide Keyboard.
 struct ChordChartKeyboardBar: View {
   let controller: ChordChartTextController
-  let chords: [String]
-
-  /// The web's Insert menu sections.
-  static let sections = ["VERSE 1", "PRE-CHORUS", "CHORUS", "BRIDGE", "TAG", "INSTRUMENTAL"]
 
   var body: some View {
     HStack(spacing: Spacing.sm) {
+      statusIcon
+        .padding(.leading, Spacing.md)
       ScrollView(.horizontal) {
         HStack(spacing: Spacing.xs + 2) {
           Button {
@@ -268,7 +283,7 @@ struct ChordChartKeyboardBar: View {
             Text(verbatim: "[ ]").font(.monoCaption.weight(.semibold))
           }
           .accessibilityLabel(Text("Insert chord brackets"))
-          ForEach(chords, id: \.self) { chord in
+          ForEach(controller.chords, id: \.self) { chord in
             Button {
               controller.insertChord(chord)
             } label: {
@@ -277,18 +292,25 @@ struct ChordChartKeyboardBar: View {
             .accessibilityLabel(Text("Insert chord \(KeyBadge.spoken(chord))"))
           }
           Menu {
-            ForEach(Self.sections, id: \.self) { section in
-              Button(section) { controller.insertLine(section) }
+            Section("Section") {
+              ForEach(ChordChartSnippets.sections, id: \.self) { section in
+                Button(section) { controller.insertLine(section) }
+              }
+            }
+            Section("Planning Center Codes") {
+              ForEach(ChordChartSnippets.codes, id: \.text) { code in
+                Button(code.label) { controller.insertLine(code.text) }
+              }
             }
           } label: {
-            Label("Section", systemImage: "text.insert")
+            Label("Insert", systemImage: "text.badge.plus")
               .font(.footnote.weight(.semibold))
           }
         }
         .buttonStyle(.glass)
         .buttonBorderShape(.capsule)
         .controlSize(.small)
-        .padding(.horizontal, Spacing.md)
+        .padding(.horizontal, Spacing.xs)
       }
       .scrollIndicators(.hidden)
       Button {
@@ -303,5 +325,33 @@ struct ChordChartKeyboardBar: View {
     }
     .frame(height: 52)
     .tint(.ink)
+  }
+
+  /// A quiet mark for where the save stands, so typing never hides it.
+  @ViewBuilder private var statusIcon: some View {
+    let status = controller.status
+    Group {
+      if status.isBusy {
+        ProgressView().controlSize(.small)
+      } else {
+        Image(systemName: Self.symbol(status))
+          .foregroundStyle(status == .saved ? Color.statusConfirmed : .inkSecondary)
+          .contentTransition(.symbolEffect(.replace))
+      }
+    }
+    .font(.body)
+    .frame(width: 24, height: 24)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(Text(verbatim: status.full))
+  }
+
+  private static func symbol(_ status: ChordChartSaveLabel) -> String {
+    switch status {
+    case .saved: "checkmark.circle.fill"
+    case .unsaved: "circle.dotted"
+    case .paused: "exclamationmark.triangle.fill"
+    case .viewOnly: "lock.fill"
+    case .checking, .saving: "arrow.triangle.2.circlepath"
+    }
   }
 }
