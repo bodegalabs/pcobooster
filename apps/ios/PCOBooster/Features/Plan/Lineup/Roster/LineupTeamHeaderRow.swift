@@ -10,6 +10,7 @@ struct LineupTeamHeaderRow: View {
   let onToggle: () -> Void
 
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   private var openCount: Int { group.positions.reduce(0) { $0 + $1.rosterOpenSlots } }
   private var unsentCount: Int {
@@ -29,7 +30,7 @@ struct LineupTeamHeaderRow: View {
         Text(verbatim: group.teamName)
           .font(.headline)
           .foregroundStyle(.ink)
-          .lineLimit(1)
+          .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
         Spacer(minLength: Spacing.sm)
         if isCollapsed, openCount > 0 {
           Text("\(openCount) open")

@@ -10,8 +10,11 @@ struct LineupPersonRow: View {
   let otherAssignments: [PlanAssignment]
   let actions: LineupActions
 
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
   private var person: FilledPositionPerson { ref.person }
   private var isDeclined: Bool { ref.status == .declined }
+  private var nameLines: Int { dynamicTypeSize.isAccessibilitySize ? 3 : 1 }
 
   var body: some View {
     Button {
@@ -27,7 +30,7 @@ struct LineupPersonRow: View {
               .font(.rowTitle)
               .foregroundStyle(isDeclined ? Color.inkSecondary : Color.ink)
               .strikethrough(isDeclined, color: .inkSecondary)
-              .lineLimit(1)
+              .lineLimit(nameLines)
             if isDeclined {
               Text("Declined")
                 .capsLabelStyle()
@@ -39,7 +42,7 @@ struct LineupPersonRow: View {
             Text(verbatim: also)
               .font(.meta)
               .foregroundStyle(.statusInfoText)
-              .lineLimit(1)
+              .lineLimit(nameLines)
           }
         }
         Spacer(minLength: Spacing.sm)

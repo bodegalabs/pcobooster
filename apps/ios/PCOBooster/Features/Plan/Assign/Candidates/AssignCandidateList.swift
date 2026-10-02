@@ -106,12 +106,6 @@ struct AssignCandidateList: View {
         NeededSlotsStepper(
           position: resolved.position, adjuster: model.adjuster, isEnabled: access.canSchedule)
       }
-    } footer: {
-      if access.canSchedule, !NeededSlotsAdjuster.canAdd(resolved.position) {
-        Text("Add the first open slot in Planning Center.")
-          .font(.meta)
-          .foregroundStyle(.inkSecondary)
-      }
     }
   }
 

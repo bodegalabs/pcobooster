@@ -54,8 +54,14 @@ struct LineupNotifyBanner: View {
   let planningCenterURL: URL?
   let onOpen: () -> Void
 
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
   var body: some View {
-    HStack(alignment: .center, spacing: Spacing.md) {
+    let layout =
+      dynamicTypeSize.isAccessibilitySize
+      ? AnyLayout(VStackLayout(alignment: .leading, spacing: Spacing.md))
+      : AnyLayout(HStackLayout(alignment: .center, spacing: Spacing.md))
+    layout {
       Image(symbol: .mail)
         .font(.body)
         .foregroundStyle(.statusPendingText)
@@ -66,10 +72,11 @@ struct LineupNotifyBanner: View {
         Text(title)
           .font(.rowTitleEmphasized)
           .foregroundStyle(.ink)
+          .fixedSize(horizontal: false, vertical: true)
         Text(verbatim: names)
           .font(.meta)
           .foregroundStyle(.inkSecondary)
-          .lineLimit(2)
+          .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       if planningCenterURL != nil {

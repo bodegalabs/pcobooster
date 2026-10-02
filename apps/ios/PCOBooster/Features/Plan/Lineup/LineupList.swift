@@ -45,6 +45,7 @@ struct LineupList: View {
     }
     .listStyle(.insetGrouped)
     .listSectionSpacing(Spacing.md)
+    .contentMargins(.top, Spacing.xs, for: .scrollContent)
     .environment(\.defaultMinListRowHeight, 36)
     .canvasBackground()
     .refreshable { await model.reload() }
@@ -173,6 +174,8 @@ struct LineupRowStyle: ViewModifier {
 
   func body(content: Content) -> some View {
     content
+      // Every separator starts at the position names, past the symbol column.
+      .alignmentGuide(.listRowSeparatorLeading) { _ in LineupMetrics.personInset }
       .listRowInsets(EdgeInsets(top: 0, leading: Spacing.lg, bottom: 0, trailing: Spacing.lg))
       .listRowSeparator(separatorAbove ? .automatic : .hidden, edges: .top)
       .cardRowBackground()

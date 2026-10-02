@@ -45,7 +45,7 @@ struct AssignCandidateDetail: View {
       .frame(maxWidth: .infinity, alignment: .leading)
     }
     .background(.surfaceCanvas)
-    .modifier(AssignPhoneBottomAction(isPhone: isPhone) { primaryAction })
+    .modifier(AssignPhoneBottomAction(isPhone: isPhone) { phoneActions })
     .accessibilityIdentifier("assign-candidate-detail")
   }
 
@@ -111,6 +111,64 @@ struct AssignCandidateDetail: View {
       }
       .actionStyle(.primary, layer: isPhone ? .control : .content, size: .regular)
       .controlSize(.large)
+      .disabled(!canSchedule || presentation.addDisabledReason != nil || isScheduling)
+      .accessibilityHint(Text(verbatim: presentation.addDisabledReason ?? ""))
+      .accessibilityIdentifier("assign-detail-add")
+    }
+  }
+
+  private var canChangeStatus: Bool { canSchedule && person.scheduledPlanPersonId != nil }
+
+  /// iPhone: full-width actions at the bottom of the sheet. Add for someone not on the slot;
+  /// their status and Unschedule once they are.
+  @ViewBuilder private var phoneActions: some View {
+    if presentation.isScheduled {
+      let current = presentation.slotStatus ?? .pending
+      Menu {
+        Picker(
+          "Status",
+          selection: Binding(
+            get: { current },
+            set: { status in
+              guard status != current else { return }
+              actions.setStatus(status)
+            })
+        ) {
+          ForEach(ScheduleStatus.allCases) { status in
+            Label { Text(status.label) } icon: { status.symbol.image }
+              .tag(status)
+          }
+        }
+        .pickerStyle(.inline)
+      } label: {
+        Label {
+          Text("Status: \(Text(current.label))")
+        } icon: {
+          current.symbol.image
+        }
+        .frame(maxWidth: .infinity)
+      }
+      .menuStyle(.button)
+      .buttonStyle(GlassActionButtonStyle(isProminent: false))
+      .disabled(!canChangeStatus)
+      .accessibilityIdentifier("assign-detail-status")
+      Button(role: .destructive, action: actions.unschedule) {
+        Label("Unschedule", symbol: .delete)
+      }
+      .disabled(!canChangeStatus)
+      .accessibilityIdentifier("assign-detail-unschedule")
+    } else {
+      Button(action: actions.add) {
+        Label {
+          Text("Add to \(slot.positionName)")
+        } icon: {
+          if isScheduling {
+            ProgressView().controlSize(.small)
+          } else {
+            Image(symbol: .addToSchedule)
+          }
+        }
+      }
       .disabled(!canSchedule || presentation.addDisabledReason != nil || isScheduling)
       .accessibilityHint(Text(verbatim: presentation.addDisabledReason ?? ""))
       .accessibilityIdentifier("assign-detail-add")
@@ -254,18 +312,14 @@ private struct AssignLinkRow: View {
   }
 }
 
-/// On iPhone the slot action is a full-width button at the bottom of the sheet.
+/// On iPhone the slot actions are full-width buttons at the bottom of the sheet.
 private struct AssignPhoneBottomAction<Action: View>: ViewModifier {
   let isPhone: Bool
   @ViewBuilder let action: Action
 
   func body(content: Content) -> some View {
     if isPhone {
-      content.safeAreaBar(edge: .bottom, spacing: 0) {
-        action
-          .padding(.horizontal, Spacing.lg)
-          .padding(.vertical, Spacing.sm)
-      }
+      content.bottomActionBar { action }
     } else {
       content
     }
