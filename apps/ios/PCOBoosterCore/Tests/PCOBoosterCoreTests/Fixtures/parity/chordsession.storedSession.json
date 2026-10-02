@@ -1,0 +1,1461 @@
+{
+  "suite": "chordsession.storedSession",
+  "cases": [
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": {
+        "savedAt": 1790856000000,
+        "baseUpdatedAt": "2026-09-01T12:00:00Z",
+        "draft": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792065600000
+      },
+      "output": {
+        "savedAt": 1790856000000,
+        "baseUpdatedAt": "2026-09-01T12:00:00Z",
+        "draft": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792065600001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790769600000
+      },
+      "output": {
+        "savedAt": 1790856000000,
+        "baseUpdatedAt": "2026-09-01T12:00:00Z",
+        "draft": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"},\"baseUpdatedAt\":null}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{not json",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": null,
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "null",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "[]",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "42",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":null,\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": {
+        "savedAt": 1790856000000,
+        "baseUpdatedAt": "2026-09-01T12:00:00Z",
+        "draft": null,
+        "opening": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":null,\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": {
+        "savedAt": 1790856000000,
+        "baseUpdatedAt": null,
+        "draft": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":\"1\",\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":null,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1500000000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":-1,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":0,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1209600000
+      },
+      "output": {
+        "savedAt": 0,
+        "baseUpdatedAt": "2026-09-01T12:00:00Z",
+        "draft": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":0,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1209600001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":5,\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":null}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"extra\":{\"nested\":[1,2]}}",
+        "now": 1790856000000
+      },
+      "output": {
+        "savedAt": 1790856000000,
+        "baseUpdatedAt": "2026-09-01T12:00:00Z",
+        "draft": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":null,\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": {
+        "savedAt": 1790856000000,
+        "baseUpdatedAt": "2026-09-01T12:00:00Z",
+        "draft": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": null,
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":7,\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":7,\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":null,\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":null},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":\"12\",\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12.5,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":null,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": {
+        "savedAt": 1790856000000,
+        "baseUpdatedAt": "2026-09-01T12:00:00Z",
+        "draft": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": null,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":3,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\",\"extra\":true}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790856000000
+      },
+      "output": {
+        "savedAt": 1790856000000,
+        "baseUpdatedAt": "2026-09-01T12:00:00Z",
+        "draft": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": " {\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}\n",
+        "now": 1790856000000
+      },
+      "output": {
+        "savedAt": 1790856000000,
+        "baseUpdatedAt": "2026-09-01T12:00:00Z",
+        "draft": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790856000000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}x",
+        "now": 1790856000000
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790887380000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":16,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\\r\\n[G]A\",\"key\":\"Bb\",\"layout\":{\"font\":\"Noto Sans\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790887380000
+      },
+      "output": {
+        "savedAt": 1790887380000,
+        "baseUpdatedAt": "2026-09-01T12:00:00Z",
+        "draft": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 16,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE\r\n[G]A",
+          "key": "Bb",
+          "layout": {
+            "font": "Noto Sans",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790887380000,\"baseUpdatedAt\":\"2026-09-01T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":16,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\\r\\n[G]A\",\"key\":\"Bb\",\"layout\":{\"font\":\"Noto Sans\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792096980001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790903640000,\"baseUpdatedAt\":\"2026-09-02T12:00:00.000Z\",\"draft\":{\"chart\":\"é\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":null,\"columns\":null,\"chordColor\":null,\"pageSize\":null,\"orientation\":null,\"margin\":null}},\"opening\":{\"chart\":\"VERSE 1\\nG       D\\nAmazing grace how sweet\",\"key\":\"H\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790903640000
+      },
+      "output": {
+        "savedAt": 1790903640000,
+        "baseUpdatedAt": "2026-09-02T12:00:00.000Z",
+        "draft": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "opening": {
+          "chart": "VERSE 1\nG       D\nAmazing grace how sweet",
+          "key": "H",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "A4",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790903640000,\"baseUpdatedAt\":\"2026-09-02T12:00:00.000Z\",\"draft\":{\"chart\":\"é\",\"key\":\"G\",\"layout\":{\"font\":null,\"fontSize\":null,\"columns\":null,\"chordColor\":null,\"pageSize\":null,\"orientation\":null,\"margin\":null}},\"opening\":{\"chart\":\"VERSE 1\\nG       D\\nAmazing grace how sweet\",\"key\":\"H\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792113240001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790875800000,\"baseUpdatedAt\":\"2026-09-03T12:00:00Z\",\"draft\":null,\"opening\":{\"chart\":\"é\",\"key\":\"H\",\"layout\":{\"font\":null,\"fontSize\":null,\"columns\":null,\"chordColor\":null,\"pageSize\":null,\"orientation\":null,\"margin\":null}}}",
+        "now": 1790875800000
+      },
+      "output": {
+        "savedAt": 1790875800000,
+        "baseUpdatedAt": "2026-09-03T12:00:00Z",
+        "draft": null,
+        "opening": {
+          "chart": "é",
+          "key": "H",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790875800000,\"baseUpdatedAt\":\"2026-09-03T12:00:00Z\",\"draft\":null,\"opening\":{\"chart\":\"é\",\"key\":\"H\",\"layout\":{\"font\":null,\"fontSize\":null,\"columns\":null,\"chordColor\":null,\"pageSize\":null,\"orientation\":null,\"margin\":null}}}",
+        "now": 1792085400001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790895120000,\"baseUpdatedAt\":\"2026-09-02T12:00:00.000Z\",\"draft\":{\"chart\":\"[G]Grace\",\"key\":\"H\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790895120000
+      },
+      "output": {
+        "savedAt": 1790895120000,
+        "baseUpdatedAt": "2026-09-02T12:00:00.000Z",
+        "draft": {
+          "chart": "[G]Grace",
+          "key": "H",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790895120000,\"baseUpdatedAt\":\"2026-09-02T12:00:00.000Z\",\"draft\":{\"chart\":\"[G]Grace\",\"key\":\"H\",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792104720001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790857080000,\"baseUpdatedAt\":\"2026-08-31T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"CHORUS\\n[C]Grace [D]flows\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790857080000
+      },
+      "output": {
+        "savedAt": 1790857080000,
+        "baseUpdatedAt": "2026-08-31T12:00:00Z",
+        "draft": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "CHORUS\n[C]Grace [D]flows",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790857080000,\"baseUpdatedAt\":\"2026-08-31T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"CHORUS\\n[C]Grace [D]flows\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792066680001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790872200000,\"baseUpdatedAt\":\"2026-09-03T12:00:00Z\",\"draft\":{\"chart\":\"[G]Grace\",\"key\":\"\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\\r\\n[G]A\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790872200000
+      },
+      "output": {
+        "savedAt": 1790872200000,
+        "baseUpdatedAt": "2026-09-03T12:00:00Z",
+        "draft": {
+          "chart": "[G]Grace",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE\r\n[G]A",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790872200000,\"baseUpdatedAt\":\"2026-09-03T12:00:00Z\",\"draft\":{\"chart\":\"[G]Grace\",\"key\":\"\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\\r\\n[G]A\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792081800001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790896800000,\"baseUpdatedAt\":\"2026-09-02T12:00:00.000Z\",\"draft\":{\"chart\":\"é\",\"key\":\"Em\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"é\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790896800000
+      },
+      "output": {
+        "savedAt": 1790896800000,
+        "baseUpdatedAt": "2026-09-02T12:00:00.000Z",
+        "draft": {
+          "chart": "é",
+          "key": "Em",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790896800000,\"baseUpdatedAt\":\"2026-09-02T12:00:00.000Z\",\"draft\":{\"chart\":\"é\",\"key\":\"Em\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"é\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792106400001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790914020000,\"baseUpdatedAt\":\"2026-09-03T12:00:00Z\",\"draft\":{\"chart\":\"  \\n\",\"key\":\"H\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\\n[G]Amazing  \",\"key\":\"Gb\",\"layout\":{\"font\":null,\"fontSize\":16,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790914020000
+      },
+      "output": {
+        "savedAt": 1790914020000,
+        "baseUpdatedAt": "2026-09-03T12:00:00Z",
+        "draft": {
+          "chart": "  \n",
+          "key": "H",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "Gb",
+          "layout": {
+            "font": null,
+            "fontSize": 16,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790914020000,\"baseUpdatedAt\":\"2026-09-03T12:00:00Z\",\"draft\":{\"chart\":\"  \\n\",\"key\":\"H\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\\n[G]Amazing  \",\"key\":\"Gb\",\"layout\":{\"font\":null,\"fontSize\":16,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792123620001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790906580000,\"baseUpdatedAt\":\"2026-08-31T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing  \",\"key\":\"\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Landscape\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"Ñandú [Em]canción\",\"key\":null,\"layout\":{\"font\":null,\"fontSize\":null,\"columns\":null,\"chordColor\":null,\"pageSize\":null,\"orientation\":null,\"margin\":null}}}",
+        "now": 1790906580000
+      },
+      "output": {
+        "savedAt": 1790906580000,
+        "baseUpdatedAt": "2026-08-31T12:00:00Z",
+        "draft": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Landscape",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "Ñandú [Em]canción",
+          "key": null,
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790906580000,\"baseUpdatedAt\":\"2026-08-31T12:00:00Z\",\"draft\":{\"chart\":\"VERSE\\n[G]Amazing  \",\"key\":\"\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Landscape\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"Ñandú [Em]canción\",\"key\":null,\"layout\":{\"font\":null,\"fontSize\":null,\"columns\":null,\"chordColor\":null,\"pageSize\":null,\"orientation\":null,\"margin\":null}}}",
+        "now": 1792116180001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790892180000,\"baseUpdatedAt\":\"2026-09-04T12:00:00Z\",\"draft\":{\"chart\":\"é\",\"key\":\"Gb\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"é\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790892180000
+      },
+      "output": {
+        "savedAt": 1790892180000,
+        "baseUpdatedAt": "2026-09-04T12:00:00Z",
+        "draft": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790892180000,\"baseUpdatedAt\":\"2026-09-04T12:00:00Z\",\"draft\":{\"chart\":\"é\",\"key\":\"Gb\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"é\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792101780001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790894940000,\"baseUpdatedAt\":\"2026-09-04T12:00:00Z\",\"draft\":{\"chart\":\"é\",\"key\":\"A\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"A\\n\\n\",\"key\":\"A\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790894940000
+      },
+      "output": {
+        "savedAt": 1790894940000,
+        "baseUpdatedAt": "2026-09-04T12:00:00Z",
+        "draft": {
+          "chart": "é",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "A4",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "A\n\n",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "A4",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790894940000,\"baseUpdatedAt\":\"2026-09-04T12:00:00Z\",\"draft\":{\"chart\":\"é\",\"key\":\"A\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"A\\n\\n\",\"key\":\"A\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792104540001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790879280000,\"baseUpdatedAt\":\"2026-09-03T12:00:00Z\",\"draft\":{\"chart\":\"Ñandú [Bm]canción\",\"key\":\"Em\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"Ñandú [Em]canción\",\"key\":\"A\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790879280000
+      },
+      "output": {
+        "savedAt": 1790879280000,
+        "baseUpdatedAt": "2026-09-03T12:00:00Z",
+        "draft": {
+          "chart": "Ñandú [Bm]canción",
+          "key": "Em",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "A4",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "Ñandú [Em]canción",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "A4",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790879280000,\"baseUpdatedAt\":\"2026-09-03T12:00:00Z\",\"draft\":{\"chart\":\"Ñandú [Bm]canción\",\"key\":\"Em\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"Ñandú [Em]canción\",\"key\":\"A\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792088880001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790866260000,\"baseUpdatedAt\":\"2026-08-31T12:00:00Z\",\"draft\":{\"chart\":\"CHORUS\\n[C]Grace [D]flows\",\"key\":\"\",\"layout\":{\"font\":null,\"fontSize\":16,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"é\",\"key\":null,\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790866260000
+      },
+      "output": {
+        "savedAt": 1790866260000,
+        "baseUpdatedAt": "2026-08-31T12:00:00Z",
+        "draft": {
+          "chart": "CHORUS\n[C]Grace [D]flows",
+          "key": "",
+          "layout": {
+            "font": null,
+            "fontSize": 16,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "é",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790866260000,\"baseUpdatedAt\":\"2026-08-31T12:00:00Z\",\"draft\":{\"chart\":\"CHORUS\\n[C]Grace [D]flows\",\"key\":\"\",\"layout\":{\"font\":null,\"fontSize\":16,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"é\",\"key\":null,\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792075860001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790872140000,\"baseUpdatedAt\":\"2026-08-31T12:00:00Z\",\"draft\":{\"chart\":\"VERSE mine\",\"key\":\"A\",\"layout\":{\"font\":\"Helvetica\",\"fontSize\":48,\"columns\":1,\"chordColor\":0,\"pageSize\":\"Widescreen (16x9)\",\"orientation\":\"Landscape\",\"margin\":\"0.0in\"}},\"opening\":{\"chart\":\"[G]🎸 praise\\tline\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790872140000
+      },
+      "output": {
+        "savedAt": 1790872140000,
+        "baseUpdatedAt": "2026-08-31T12:00:00Z",
+        "draft": {
+          "chart": "VERSE mine",
+          "key": "A",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "opening": {
+          "chart": "[G]🎸 praise\tline",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790872140000,\"baseUpdatedAt\":\"2026-08-31T12:00:00Z\",\"draft\":{\"chart\":\"VERSE mine\",\"key\":\"A\",\"layout\":{\"font\":\"Helvetica\",\"fontSize\":48,\"columns\":1,\"chordColor\":0,\"pageSize\":\"Widescreen (16x9)\",\"orientation\":\"Landscape\",\"margin\":\"0.0in\"}},\"opening\":{\"chart\":\"[G]🎸 praise\\tline\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792081740001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790876700000,\"baseUpdatedAt\":\"2026-09-02T12:00:00Z\",\"draft\":{\"chart\":\"[G]🎸 praise\\tline\",\"key\":\"Em\",\"layout\":{\"font\":null,\"fontSize\":null,\"columns\":null,\"chordColor\":null,\"pageSize\":null,\"orientation\":null,\"margin\":null}},\"opening\":{\"chart\":\"VERSE\\r\\n[G]A\",\"key\":null,\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Landscape\",\"margin\":\"0.5in\"}}}",
+        "now": 1790876700000
+      },
+      "output": {
+        "savedAt": 1790876700000,
+        "baseUpdatedAt": "2026-09-02T12:00:00Z",
+        "draft": {
+          "chart": "[G]🎸 praise\tline",
+          "key": "Em",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "opening": {
+          "chart": "VERSE\r\n[G]A",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Landscape",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790876700000,\"baseUpdatedAt\":\"2026-09-02T12:00:00Z\",\"draft\":{\"chart\":\"[G]🎸 praise\\tline\",\"key\":\"Em\",\"layout\":{\"font\":null,\"fontSize\":null,\"columns\":null,\"chordColor\":null,\"pageSize\":null,\"orientation\":null,\"margin\":null}},\"opening\":{\"chart\":\"VERSE\\r\\n[G]A\",\"key\":null,\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Landscape\",\"margin\":\"0.5in\"}}}",
+        "now": 1792086300001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790892300000,\"baseUpdatedAt\":\"2026-09-02T14:00:00+02:00\",\"draft\":{\"chart\":\"\",\"key\":null,\"layout\":{\"font\":\"Noto Sans\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"é\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790892300000
+      },
+      "output": {
+        "savedAt": 1790892300000,
+        "baseUpdatedAt": "2026-09-02T14:00:00+02:00",
+        "draft": {
+          "chart": "",
+          "key": null,
+          "layout": {
+            "font": "Noto Sans",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790892300000,\"baseUpdatedAt\":\"2026-09-02T14:00:00+02:00\",\"draft\":{\"chart\":\"\",\"key\":null,\"layout\":{\"font\":\"Noto Sans\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"é\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792101900001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790876400000,\"baseUpdatedAt\":\"2026-09-02T12:00:00Z\",\"draft\":{\"chart\":\"A\\n\\n\",\"key\":\"Bb\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":1,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"H\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Landscape\",\"margin\":\"0.5in\"}}}",
+        "now": 1790876400000
+      },
+      "output": {
+        "savedAt": 1790876400000,
+        "baseUpdatedAt": "2026-09-02T12:00:00Z",
+        "draft": {
+          "chart": "A\n\n",
+          "key": "Bb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "H",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Landscape",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790876400000,\"baseUpdatedAt\":\"2026-09-02T12:00:00Z\",\"draft\":{\"chart\":\"A\\n\\n\",\"key\":\"Bb\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":1,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE\\n[G]Amazing\",\"key\":\"H\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Landscape\",\"margin\":\"0.5in\"}}}",
+        "now": 1792086000001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790908920000,\"baseUpdatedAt\":\"2026-09-02T14:00:00+02:00\",\"draft\":{\"chart\":\"CHORUS\\n[C]Grace [D]flows\",\"key\":\"A\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Landscape\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE 1\\nG       D\\nAmazing grace how sweet\",\"key\":null,\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790908920000
+      },
+      "output": {
+        "savedAt": 1790908920000,
+        "baseUpdatedAt": "2026-09-02T14:00:00+02:00",
+        "draft": {
+          "chart": "CHORUS\n[C]Grace [D]flows",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Landscape",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "VERSE 1\nG       D\nAmazing grace how sweet",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "A4",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790908920000,\"baseUpdatedAt\":\"2026-09-02T14:00:00+02:00\",\"draft\":{\"chart\":\"CHORUS\\n[C]Grace [D]flows\",\"key\":\"A\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Landscape\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"VERSE 1\\nG       D\\nAmazing grace how sweet\",\"key\":null,\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792118520001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790909220000,\"baseUpdatedAt\":\"2026-09-04T12:00:00Z\",\"draft\":{\"chart\":\"[G]Grace\",\"key\":\"Bb\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"é\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790909220000
+      },
+      "output": {
+        "savedAt": 1790909220000,
+        "baseUpdatedAt": "2026-09-04T12:00:00Z",
+        "draft": {
+          "chart": "[G]Grace",
+          "key": "Bb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "A4",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "A4",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790909220000,\"baseUpdatedAt\":\"2026-09-04T12:00:00Z\",\"draft\":{\"chart\":\"[G]Grace\",\"key\":\"Bb\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"é\",\"key\":\"G\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"A4\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792118820001
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790890740000,\"baseUpdatedAt\":\"garbled\",\"draft\":{\"chart\":\"[G]Grace\",\"key\":\" G \",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"\",\"key\":\"C#m\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":1,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1790890740000
+      },
+      "output": {
+        "savedAt": 1790890740000,
+        "baseUpdatedAt": "garbled",
+        "draft": {
+          "chart": "[G]Grace",
+          "key": " G ",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "opening": {
+          "chart": "",
+          "key": "C#m",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "raw": "{\"savedAt\":1790890740000,\"baseUpdatedAt\":\"garbled\",\"draft\":{\"chart\":\"[G]Grace\",\"key\":\" G \",\"layout\":{\"font\":null,\"fontSize\":12,\"columns\":2,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}},\"opening\":{\"chart\":\"\",\"key\":\"C#m\",\"layout\":{\"font\":\"Times-Roman\",\"fontSize\":12,\"columns\":1,\"chordColor\":1,\"pageSize\":\"Letter\",\"orientation\":\"Portrait\",\"margin\":\"0.5in\"}}}",
+        "now": 1792100340001
+      },
+      "output": null
+    }
+  ]
+}
