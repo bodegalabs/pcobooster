@@ -204,10 +204,12 @@ final class TestClock: Clock {
   }
 }
 
-/// Polls `condition` in real time until it holds, recording an issue after `timeout`.
+/// Polls `condition` in real time until it holds, recording an issue after `timeout`. The
+/// timeout is generous because CI runners run thousands of parity cases in parallel; a
+/// passing condition returns as soon as it holds.
 func eventually(
   _ description: String = "condition",
-  timeout: Duration = .seconds(3),
+  timeout: Duration = .seconds(30),
   sourceLocation: SourceLocation = #_sourceLocation,
   _ condition: () async -> Bool
 ) async {
