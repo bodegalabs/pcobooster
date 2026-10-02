@@ -1,0 +1,72 @@
+/// An input field the contract declares both optional and nullable (`.nullish()`), where leaving
+/// the key out and sending `null` mean different things. Such a property is `Nullable<Value>?`:
+/// `nil` leaves the key out (an update keeps the current value), `.null` sends `null` (an update
+/// clears the value), and `.value(x)` sends `x`.
+public enum Nullable<Wrapped> {
+  case null
+  case value(Wrapped)
+
+  /// `.value` for a value, `.null` for nil.
+  public init(_ optional: Wrapped?) {
+    if let optional {
+      self = .value(optional)
+    } else {
+      self = .null
+    }
+  }
+
+  /// The value, or nil for `.null`.
+  public var optionalValue: Wrapped? {
+    if case .value(let wrapped) = self { wrapped } else { nil }
+  }
+}
+
+extension Nullable: Sendable where Wrapped: Sendable {}
+extension Nullable: Equatable where Wrapped: Equatable {}
+extension Nullable: Hashable where Wrapped: Hashable {}
+
+extension Nullable: Encodable where Wrapped: Encodable {
+  public func encode(to encoder: any Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .null: try container.encodeNil()
+    case .value(let wrapped): try container.encode(wrapped)
+    }
+  }
+}
+
+extension Nullable: Decodable where Wrapped: Decodable {
+  public init(from decoder: any Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    self = try container.decodeNil() ? .null : .value(container.decode(Wrapped.self))
+  }
+}
+
+extension KeyedDecodingContainer {
+  /// Decodes a `.nullish()` input field: nil when the key is absent, `.null` for `null`.
+  func decodeNullable<Value: Decodable>(
+    _ type: Value.Type, forKey key: Key
+  ) throws -> Nullable<Value>? {
+    guard contains(key) else { return nil }
+    return try decodeNil(forKey: key) ? .null : .value(decode(type, forKey: key))
+  }
+}
+
+/// A string coding key, so dictionaries keyed by contract enums encode as JSON objects.
+struct ContractCodingKey: CodingKey {
+  let stringValue: String
+
+  var intValue: Int? { nil }
+
+  init(_ stringValue: String) {
+    self.stringValue = stringValue
+  }
+
+  init?(stringValue: String) {
+    self.stringValue = stringValue
+  }
+
+  init?(intValue: Int) {
+    self.stringValue = String(intValue)
+  }
+}
