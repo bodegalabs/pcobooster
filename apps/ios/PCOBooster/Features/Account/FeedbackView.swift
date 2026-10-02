@@ -63,6 +63,7 @@ struct FeedbackView: View {
         }
       }
       .disabled(!canSend)
+      .keyboardShortcut(.return, modifiers: .command)
       .accessibilityIdentifier("feedback-send-button")
     }
     .onAppear { isEditorFocused = true }
