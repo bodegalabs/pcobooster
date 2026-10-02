@@ -32,6 +32,15 @@ struct DebugSection: View {
       Button("Design system gallery") { isGalleryPresented = true }
         .foregroundStyle(.ink)
         .cardRowBackground()
+      NavigationLink("Access previews", value: AccountDestination.accessPreviews)
+        .foregroundStyle(.ink)
+        .cardRowBackground()
+      Button("Reset access review") {
+        AccessReviewDismissals.shared.reset()
+        resetCount += 1
+      }
+      .foregroundStyle(.ink)
+      .cardRowBackground()
       Button("Reset caches") {
         app.resetCaches()
         resetCount += 1
@@ -56,7 +65,7 @@ struct DebugSection: View {
     } header: {
       Text("Debug")
     } footer: {
-      Text("API and mock data changes apply the next time the app launches.")
+      Text("API and mock data changes apply the next time the app launches. Resetting the access review lets it open on its own again.")
     }
     .fullScreenCover(isPresented: $isGalleryPresented) {
       DesignSystemGallery()
