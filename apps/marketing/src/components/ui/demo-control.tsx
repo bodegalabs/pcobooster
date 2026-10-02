@@ -25,6 +25,11 @@ export type DemoButtonVariant =
   | "ghost"
   | "toolbar"
   | "toolbar-primary"
+  | "cover"
+  | "length"
+  | "chip"
+  | "icon-xs"
+  | "insert"
   | "day";
 
 export const DemoButton = ({
@@ -81,13 +86,58 @@ export const DemoSwitch = ({
 /** A single-line text field. */
 export const DemoTextInput = ({
   label,
+  labelHidden = false,
   ...props
 }: Omit<ComponentProps<"input">, "type" | "className" | "style"> & {
+  label: string;
+  /** Keep the label for assistive technology only. */
+  labelHidden?: boolean;
+}) => (
+  <label
+    className={styles["text-field"]}
+    data-label-hidden={labelHidden ? "" : undefined}
+  >
+    <span>{label}</span>
+    <input type="text" {...props} />
+  </label>
+);
+
+/** A native select with its label above, an optional control beside the label. */
+export const DemoSelect = ({
+  label,
+  accessory,
+  options,
+  ...props
+}: Omit<ComponentProps<"select">, "className" | "style" | "children"> & {
+  label: string;
+  accessory?: ReactNode;
+  options: readonly { readonly value: string; readonly label: string }[];
+}) => (
+  <label className={styles["text-field"]}>
+    <span>
+      {label}
+      {accessory}
+    </span>
+    <select {...props}>
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  </label>
+);
+
+/** A multi-line text field with its label above. */
+export const DemoTextarea = ({
+  label,
+  ...props
+}: Omit<ComponentProps<"textarea">, "className" | "style"> & {
   label: string;
 }) => (
   <label className={styles["text-field"]}>
     <span>{label}</span>
-    <input type="text" {...props} />
+    <textarea {...props} />
   </label>
 );
 

@@ -185,12 +185,20 @@ export const Panel = ({
   children,
   label,
   align = "start",
+  size = "menu",
 }: {
   children: ReactNode;
   label: string;
   align?: "start" | "end";
+  size?: "menu" | "wide";
 }) => (
-  <dialog open className={styles.panel} data-align={align} aria-label={label}>
+  <dialog
+    open
+    className={styles.panel}
+    data-align={align}
+    data-size={size}
+    aria-label={label}
+  >
     {children}
   </dialog>
 );

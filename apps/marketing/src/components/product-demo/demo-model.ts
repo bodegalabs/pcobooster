@@ -1,5 +1,3 @@
-import { useSyncExternalStore } from "react";
-
 import { PLAN_DAY_UTC, initialAssignments, people, teams } from "./fixtures";
 import type {
   DemoAssignment,
@@ -8,6 +6,7 @@ import type {
   DemoTeam,
   SlotStatus,
 } from "./fixtures";
+import { createStore } from "./store";
 
 // A simplified, illustrative stand-in for the product's recommendation score:
 // rested people who haven't served often rank highest, and the best candidate
@@ -376,32 +375,6 @@ export const teamOpenCount = (
       count + slotSummary(position, assignments, totals).open,
     0
   );
-
-const createStore = <T>(initial: T) => {
-  let value: T = initial;
-  const listeners = new Set<() => void>();
-  const subscribe = (listener: () => void) => {
-    listeners.add(listener);
-    return () => {
-      listeners.delete(listener);
-    };
-  };
-  return {
-    get: () => value,
-    set: (next: T) => {
-      value = next;
-      for (const listener of listeners) {
-        listener();
-      }
-    },
-    use: <Selected>(select: (state: T) => Selected): Selected =>
-      useSyncExternalStore(
-        subscribe,
-        () => select(value),
-        () => select(initial)
-      ),
-  };
-};
 
 interface PlanState {
   readonly assignments: Assignments;

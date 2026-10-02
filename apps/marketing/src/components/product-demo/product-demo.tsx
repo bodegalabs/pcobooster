@@ -26,6 +26,7 @@ import { plan } from "./fixtures";
 import { LineupView } from "./lineup-view";
 import { OverviewView } from "./overview-view";
 import { PeopleView } from "./people-view";
+import { resetPlan } from "./plan-model";
 import { PlanView } from "./plan-view";
 import { SongsView } from "./songs-view";
 import { TimesView } from "./times-view";
@@ -51,6 +52,11 @@ const sections: readonly ViewEntry<"people" | "songs">[] = [
   { id: "people", label: "People", icon: UsersIcon },
   { id: "songs", label: "Songs", icon: MusicNote03Icon },
 ];
+
+const resetDemo = () => {
+  resetAssignments();
+  resetPlan();
+};
 
 const viewLabel = (view: DemoView) =>
   [...planViews, ...sections].find((entry) => entry.id === view)?.label ?? "";
@@ -128,7 +134,7 @@ const Sidebar = ({
         <DemoIcon icon={dark ? Sun01Icon : Moon02Icon} />
         {dark ? "Light mode" : "Dark mode"}
       </DemoButton>
-      <DemoButton variant="nav" onClick={resetAssignments}>
+      <DemoButton variant="nav" onClick={resetDemo}>
         <RotateCcw className={styles.icon} aria-hidden />
         Reset demo
       </DemoButton>
@@ -276,7 +282,7 @@ const PhoneMenu = ({
         <DemoButton
           variant="nav"
           onClick={() => {
-            resetAssignments();
+            resetDemo();
             onClose();
           }}
         >
