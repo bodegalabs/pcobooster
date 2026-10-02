@@ -134,7 +134,7 @@ export const isInDateWindow = (
   }
 
   const nowKey = formatCalendarDayInTimeZone(new Date(), orgTz);
-  const maxKey = addCalendarDaysToDayKey(nowKey, days, orgTz);
+  const maxKey = addCalendarDaysToDayKey(nowKey, days);
   const dateKey = formatCalendarDayInTimeZone(date, orgTz);
 
   return dateKey >= nowKey && dateKey <= maxKey;

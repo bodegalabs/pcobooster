@@ -1,4 +1,8 @@
-import { formatCalendarDateLabel } from "@pcobooster/planning-center-models/calendar";
+import {
+  addCalendarDaysToDayKey,
+  formatCalendarDateLabel,
+  formatCalendarDayInTimeZone,
+} from "@pcobooster/planning-center-models/calendar";
 import type { CalendarDateLabelStyle } from "@pcobooster/planning-center-models/calendar";
 import { describe, expect, it } from "vitest";
 
@@ -72,5 +76,63 @@ describe(formatCalendarDateLabel, () => {
     expect(formatCalendarDateLabel(LATE_PACIFIC_EVENING, "", "monthDay")).toBe(
       "Sep 10"
     );
+  });
+});
+
+describe(addCalendarDaysToDayKey, () => {
+  it("rolls across month and leap-day boundaries", () => {
+    expect(addCalendarDaysToDayKey("2026-01-10", 0)).toBe("2026-01-10");
+    expect(addCalendarDaysToDayKey("2026-01-31", 1)).toBe("2026-02-01");
+    expect(addCalendarDaysToDayKey("2026-03-01", -1)).toBe("2026-02-28");
+    expect(addCalendarDaysToDayKey("2028-02-28", 1)).toBe("2028-02-29");
+  });
+
+  it("rolls across year boundaries", () => {
+    expect(addCalendarDaysToDayKey("2026-12-25", 7)).toBe("2027-01-01");
+    expect(addCalendarDaysToDayKey("2027-01-01", -1)).toBe("2026-12-31");
+  });
+
+  it("keeps a Pacific/Auckland org day across a month boundary", () => {
+    // 12:30 AM on Sunday, February 1, 2026 in Auckland (UTC+13); January 31 in UTC.
+    const firstOfFebruary = formatCalendarDayInTimeZone(
+      new Date("2026-01-31T11:30:00.000Z"),
+      "Pacific/Auckland"
+    );
+    expect(firstOfFebruary).toBe("2026-02-01");
+    expect(addCalendarDaysToDayKey(firstOfFebruary, 0)).toBe("2026-02-01");
+    expect(addCalendarDaysToDayKey(firstOfFebruary, -1)).toBe("2026-01-31");
+  });
+
+  it("keeps a Pacific/Auckland org day across a year boundary", () => {
+    // 11:00 PM on New Year's Eve 2026 in Auckland; 10:00 AM in UTC.
+    const newYearsEve = formatCalendarDayInTimeZone(
+      new Date("2026-12-31T10:00:00.000Z"),
+      "Pacific/Auckland"
+    );
+    expect(newYearsEve).toBe("2026-12-31");
+    expect(addCalendarDaysToDayKey(newYearsEve, 0)).toBe("2026-12-31");
+    expect(addCalendarDaysToDayKey(newYearsEve, 1)).toBe("2027-01-01");
+  });
+
+  it("keeps a Pacific/Kiritimati org day across a month boundary", () => {
+    // 11:00 PM on Friday, April 30, 2027 in Kiritimati (UTC+14); 9:00 AM in UTC.
+    const endOfApril = formatCalendarDayInTimeZone(
+      new Date("2027-04-30T09:00:00.000Z"),
+      "Pacific/Kiritimati"
+    );
+    expect(endOfApril).toBe("2027-04-30");
+    expect(addCalendarDaysToDayKey(endOfApril, 0)).toBe("2027-04-30");
+    expect(addCalendarDaysToDayKey(endOfApril, 1)).toBe("2027-05-01");
+  });
+
+  it("keeps a Pacific/Kiritimati org day across a year boundary", () => {
+    // 12:30 AM on New Year's Day 2027 in Kiritimati; still December 31 in UTC.
+    const newYearsDay = formatCalendarDayInTimeZone(
+      new Date("2026-12-31T10:30:00.000Z"),
+      "Pacific/Kiritimati"
+    );
+    expect(newYearsDay).toBe("2027-01-01");
+    expect(addCalendarDaysToDayKey(newYearsDay, 0)).toBe("2027-01-01");
+    expect(addCalendarDaysToDayKey(newYearsDay, -1)).toBe("2026-12-31");
   });
 });
