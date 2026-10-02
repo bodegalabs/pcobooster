@@ -1,0 +1,4286 @@
+{
+  "suite": "scheduling.planCandidateDetailsBatches",
+  "cases": [
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-busy",
+              "firstName": "Zed",
+              "lastName": "Busy",
+              "fullName": "Zed Busy",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-free",
+              "firstName": "Amy",
+              "lastName": "Free",
+              "fullName": "Amy Free",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 1
+      },
+      "output": [
+        [
+          "p-busy"
+        ],
+        [
+          "p-free"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": null,
+        "batchSize": 16
+      },
+      "output": []
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": []
+        },
+        "batchSize": 1
+      },
+      "output": []
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": []
+        },
+        "batchSize": 3
+      },
+      "output": []
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": []
+        },
+        "batchSize": 16
+      },
+      "output": []
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": []
+        },
+        "batchSize": 50
+      },
+      "output": []
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 1
+      },
+      "output": [
+        [
+          "p-0"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 3
+      },
+      "output": [
+        [
+          "p-0"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 16
+      },
+      "output": [
+        [
+          "p-0"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 50
+      },
+      "output": [
+        [
+          "p-0"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 1
+      },
+      "output": [
+        [
+          "p-0"
+        ],
+        [
+          "p-1"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 3
+      },
+      "output": [
+        [
+          "p-0",
+          "p-1"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 16
+      },
+      "output": [
+        [
+          "p-0",
+          "p-1"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 50
+      },
+      "output": [
+        [
+          "p-0",
+          "p-1"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-2",
+              "firstName": "Person",
+              "lastName": "2",
+              "fullName": "Person 2",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-3",
+              "firstName": "Person",
+              "lastName": "3",
+              "fullName": "Person 3",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-4",
+              "firstName": "Person",
+              "lastName": "4",
+              "fullName": "Person 4",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-5",
+              "firstName": "Person",
+              "lastName": "5",
+              "fullName": "Person 5",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-6",
+              "firstName": "Person",
+              "lastName": "6",
+              "fullName": "Person 6",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-7",
+              "firstName": "Person",
+              "lastName": "7",
+              "fullName": "Person 7",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-8",
+              "firstName": "Person",
+              "lastName": "8",
+              "fullName": "Person 8",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-9",
+              "firstName": "Person",
+              "lastName": "9",
+              "fullName": "Person 9",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-10",
+              "firstName": "Person",
+              "lastName": "10",
+              "fullName": "Person 10",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-11",
+              "firstName": "Person",
+              "lastName": "11",
+              "fullName": "Person 11",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-12",
+              "firstName": "Person",
+              "lastName": "12",
+              "fullName": "Person 12",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-13",
+              "firstName": "Person",
+              "lastName": "13",
+              "fullName": "Person 13",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-14",
+              "firstName": "Person",
+              "lastName": "14",
+              "fullName": "Person 14",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-15",
+              "firstName": "Person",
+              "lastName": "15",
+              "fullName": "Person 15",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 1
+      },
+      "output": [
+        [
+          "p-0"
+        ],
+        [
+          "p-1"
+        ],
+        [
+          "p-2"
+        ],
+        [
+          "p-3"
+        ],
+        [
+          "p-4"
+        ],
+        [
+          "p-5"
+        ],
+        [
+          "p-6"
+        ],
+        [
+          "p-7"
+        ],
+        [
+          "p-8"
+        ],
+        [
+          "p-9"
+        ],
+        [
+          "p-10"
+        ],
+        [
+          "p-11"
+        ],
+        [
+          "p-12"
+        ],
+        [
+          "p-13"
+        ],
+        [
+          "p-14"
+        ],
+        [
+          "p-15"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-2",
+              "firstName": "Person",
+              "lastName": "2",
+              "fullName": "Person 2",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-3",
+              "firstName": "Person",
+              "lastName": "3",
+              "fullName": "Person 3",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-4",
+              "firstName": "Person",
+              "lastName": "4",
+              "fullName": "Person 4",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-5",
+              "firstName": "Person",
+              "lastName": "5",
+              "fullName": "Person 5",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-6",
+              "firstName": "Person",
+              "lastName": "6",
+              "fullName": "Person 6",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-7",
+              "firstName": "Person",
+              "lastName": "7",
+              "fullName": "Person 7",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-8",
+              "firstName": "Person",
+              "lastName": "8",
+              "fullName": "Person 8",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-9",
+              "firstName": "Person",
+              "lastName": "9",
+              "fullName": "Person 9",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-10",
+              "firstName": "Person",
+              "lastName": "10",
+              "fullName": "Person 10",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-11",
+              "firstName": "Person",
+              "lastName": "11",
+              "fullName": "Person 11",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-12",
+              "firstName": "Person",
+              "lastName": "12",
+              "fullName": "Person 12",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-13",
+              "firstName": "Person",
+              "lastName": "13",
+              "fullName": "Person 13",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-14",
+              "firstName": "Person",
+              "lastName": "14",
+              "fullName": "Person 14",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-15",
+              "firstName": "Person",
+              "lastName": "15",
+              "fullName": "Person 15",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 3
+      },
+      "output": [
+        [
+          "p-0",
+          "p-1",
+          "p-2"
+        ],
+        [
+          "p-3",
+          "p-4",
+          "p-5"
+        ],
+        [
+          "p-6",
+          "p-7",
+          "p-8"
+        ],
+        [
+          "p-9",
+          "p-10",
+          "p-11"
+        ],
+        [
+          "p-12",
+          "p-13",
+          "p-14"
+        ],
+        [
+          "p-15"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-2",
+              "firstName": "Person",
+              "lastName": "2",
+              "fullName": "Person 2",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-3",
+              "firstName": "Person",
+              "lastName": "3",
+              "fullName": "Person 3",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-4",
+              "firstName": "Person",
+              "lastName": "4",
+              "fullName": "Person 4",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-5",
+              "firstName": "Person",
+              "lastName": "5",
+              "fullName": "Person 5",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-6",
+              "firstName": "Person",
+              "lastName": "6",
+              "fullName": "Person 6",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-7",
+              "firstName": "Person",
+              "lastName": "7",
+              "fullName": "Person 7",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-8",
+              "firstName": "Person",
+              "lastName": "8",
+              "fullName": "Person 8",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-9",
+              "firstName": "Person",
+              "lastName": "9",
+              "fullName": "Person 9",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-10",
+              "firstName": "Person",
+              "lastName": "10",
+              "fullName": "Person 10",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-11",
+              "firstName": "Person",
+              "lastName": "11",
+              "fullName": "Person 11",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-12",
+              "firstName": "Person",
+              "lastName": "12",
+              "fullName": "Person 12",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-13",
+              "firstName": "Person",
+              "lastName": "13",
+              "fullName": "Person 13",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-14",
+              "firstName": "Person",
+              "lastName": "14",
+              "fullName": "Person 14",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-15",
+              "firstName": "Person",
+              "lastName": "15",
+              "fullName": "Person 15",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 16
+      },
+      "output": [
+        [
+          "p-0",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-5",
+          "p-6",
+          "p-7",
+          "p-8",
+          "p-9",
+          "p-10",
+          "p-11",
+          "p-12",
+          "p-13",
+          "p-14",
+          "p-15"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-2",
+              "firstName": "Person",
+              "lastName": "2",
+              "fullName": "Person 2",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-3",
+              "firstName": "Person",
+              "lastName": "3",
+              "fullName": "Person 3",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-4",
+              "firstName": "Person",
+              "lastName": "4",
+              "fullName": "Person 4",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-5",
+              "firstName": "Person",
+              "lastName": "5",
+              "fullName": "Person 5",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-6",
+              "firstName": "Person",
+              "lastName": "6",
+              "fullName": "Person 6",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-7",
+              "firstName": "Person",
+              "lastName": "7",
+              "fullName": "Person 7",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-8",
+              "firstName": "Person",
+              "lastName": "8",
+              "fullName": "Person 8",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-9",
+              "firstName": "Person",
+              "lastName": "9",
+              "fullName": "Person 9",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-10",
+              "firstName": "Person",
+              "lastName": "10",
+              "fullName": "Person 10",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-11",
+              "firstName": "Person",
+              "lastName": "11",
+              "fullName": "Person 11",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-12",
+              "firstName": "Person",
+              "lastName": "12",
+              "fullName": "Person 12",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-13",
+              "firstName": "Person",
+              "lastName": "13",
+              "fullName": "Person 13",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-14",
+              "firstName": "Person",
+              "lastName": "14",
+              "fullName": "Person 14",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-15",
+              "firstName": "Person",
+              "lastName": "15",
+              "fullName": "Person 15",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 50
+      },
+      "output": [
+        [
+          "p-0",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-5",
+          "p-6",
+          "p-7",
+          "p-8",
+          "p-9",
+          "p-10",
+          "p-11",
+          "p-12",
+          "p-13",
+          "p-14",
+          "p-15"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-2",
+              "firstName": "Person",
+              "lastName": "2",
+              "fullName": "Person 2",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-3",
+              "firstName": "Person",
+              "lastName": "3",
+              "fullName": "Person 3",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-4",
+              "firstName": "Person",
+              "lastName": "4",
+              "fullName": "Person 4",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-5",
+              "firstName": "Person",
+              "lastName": "5",
+              "fullName": "Person 5",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-6",
+              "firstName": "Person",
+              "lastName": "6",
+              "fullName": "Person 6",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-7",
+              "firstName": "Person",
+              "lastName": "7",
+              "fullName": "Person 7",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-8",
+              "firstName": "Person",
+              "lastName": "8",
+              "fullName": "Person 8",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-9",
+              "firstName": "Person",
+              "lastName": "9",
+              "fullName": "Person 9",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-10",
+              "firstName": "Person",
+              "lastName": "10",
+              "fullName": "Person 10",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-11",
+              "firstName": "Person",
+              "lastName": "11",
+              "fullName": "Person 11",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-12",
+              "firstName": "Person",
+              "lastName": "12",
+              "fullName": "Person 12",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-13",
+              "firstName": "Person",
+              "lastName": "13",
+              "fullName": "Person 13",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-14",
+              "firstName": "Person",
+              "lastName": "14",
+              "fullName": "Person 14",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-15",
+              "firstName": "Person",
+              "lastName": "15",
+              "fullName": "Person 15",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-16",
+              "firstName": "Person",
+              "lastName": "16",
+              "fullName": "Person 16",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 1
+      },
+      "output": [
+        [
+          "p-0"
+        ],
+        [
+          "p-1"
+        ],
+        [
+          "p-2"
+        ],
+        [
+          "p-3"
+        ],
+        [
+          "p-4"
+        ],
+        [
+          "p-5"
+        ],
+        [
+          "p-6"
+        ],
+        [
+          "p-7"
+        ],
+        [
+          "p-8"
+        ],
+        [
+          "p-9"
+        ],
+        [
+          "p-10"
+        ],
+        [
+          "p-11"
+        ],
+        [
+          "p-12"
+        ],
+        [
+          "p-13"
+        ],
+        [
+          "p-14"
+        ],
+        [
+          "p-15"
+        ],
+        [
+          "p-16"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-2",
+              "firstName": "Person",
+              "lastName": "2",
+              "fullName": "Person 2",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-3",
+              "firstName": "Person",
+              "lastName": "3",
+              "fullName": "Person 3",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-4",
+              "firstName": "Person",
+              "lastName": "4",
+              "fullName": "Person 4",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-5",
+              "firstName": "Person",
+              "lastName": "5",
+              "fullName": "Person 5",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-6",
+              "firstName": "Person",
+              "lastName": "6",
+              "fullName": "Person 6",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-7",
+              "firstName": "Person",
+              "lastName": "7",
+              "fullName": "Person 7",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-8",
+              "firstName": "Person",
+              "lastName": "8",
+              "fullName": "Person 8",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-9",
+              "firstName": "Person",
+              "lastName": "9",
+              "fullName": "Person 9",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-10",
+              "firstName": "Person",
+              "lastName": "10",
+              "fullName": "Person 10",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-11",
+              "firstName": "Person",
+              "lastName": "11",
+              "fullName": "Person 11",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-12",
+              "firstName": "Person",
+              "lastName": "12",
+              "fullName": "Person 12",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-13",
+              "firstName": "Person",
+              "lastName": "13",
+              "fullName": "Person 13",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-14",
+              "firstName": "Person",
+              "lastName": "14",
+              "fullName": "Person 14",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-15",
+              "firstName": "Person",
+              "lastName": "15",
+              "fullName": "Person 15",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-16",
+              "firstName": "Person",
+              "lastName": "16",
+              "fullName": "Person 16",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 3
+      },
+      "output": [
+        [
+          "p-0",
+          "p-1",
+          "p-2"
+        ],
+        [
+          "p-3",
+          "p-4",
+          "p-5"
+        ],
+        [
+          "p-6",
+          "p-7",
+          "p-8"
+        ],
+        [
+          "p-9",
+          "p-10",
+          "p-11"
+        ],
+        [
+          "p-12",
+          "p-13",
+          "p-14"
+        ],
+        [
+          "p-15",
+          "p-16"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-2",
+              "firstName": "Person",
+              "lastName": "2",
+              "fullName": "Person 2",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-3",
+              "firstName": "Person",
+              "lastName": "3",
+              "fullName": "Person 3",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-4",
+              "firstName": "Person",
+              "lastName": "4",
+              "fullName": "Person 4",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-5",
+              "firstName": "Person",
+              "lastName": "5",
+              "fullName": "Person 5",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-6",
+              "firstName": "Person",
+              "lastName": "6",
+              "fullName": "Person 6",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-7",
+              "firstName": "Person",
+              "lastName": "7",
+              "fullName": "Person 7",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-8",
+              "firstName": "Person",
+              "lastName": "8",
+              "fullName": "Person 8",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-9",
+              "firstName": "Person",
+              "lastName": "9",
+              "fullName": "Person 9",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-10",
+              "firstName": "Person",
+              "lastName": "10",
+              "fullName": "Person 10",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-11",
+              "firstName": "Person",
+              "lastName": "11",
+              "fullName": "Person 11",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-12",
+              "firstName": "Person",
+              "lastName": "12",
+              "fullName": "Person 12",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-13",
+              "firstName": "Person",
+              "lastName": "13",
+              "fullName": "Person 13",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-14",
+              "firstName": "Person",
+              "lastName": "14",
+              "fullName": "Person 14",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-15",
+              "firstName": "Person",
+              "lastName": "15",
+              "fullName": "Person 15",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-16",
+              "firstName": "Person",
+              "lastName": "16",
+              "fullName": "Person 16",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 16
+      },
+      "output": [
+        [
+          "p-0",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-5",
+          "p-6",
+          "p-7",
+          "p-8",
+          "p-9",
+          "p-10",
+          "p-11",
+          "p-12",
+          "p-13",
+          "p-14",
+          "p-15"
+        ],
+        [
+          "p-16"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-2",
+              "firstName": "Person",
+              "lastName": "2",
+              "fullName": "Person 2",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-3",
+              "firstName": "Person",
+              "lastName": "3",
+              "fullName": "Person 3",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-4",
+              "firstName": "Person",
+              "lastName": "4",
+              "fullName": "Person 4",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-5",
+              "firstName": "Person",
+              "lastName": "5",
+              "fullName": "Person 5",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-6",
+              "firstName": "Person",
+              "lastName": "6",
+              "fullName": "Person 6",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-7",
+              "firstName": "Person",
+              "lastName": "7",
+              "fullName": "Person 7",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-8",
+              "firstName": "Person",
+              "lastName": "8",
+              "fullName": "Person 8",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-9",
+              "firstName": "Person",
+              "lastName": "9",
+              "fullName": "Person 9",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-10",
+              "firstName": "Person",
+              "lastName": "10",
+              "fullName": "Person 10",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-11",
+              "firstName": "Person",
+              "lastName": "11",
+              "fullName": "Person 11",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-12",
+              "firstName": "Person",
+              "lastName": "12",
+              "fullName": "Person 12",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-13",
+              "firstName": "Person",
+              "lastName": "13",
+              "fullName": "Person 13",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-14",
+              "firstName": "Person",
+              "lastName": "14",
+              "fullName": "Person 14",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-15",
+              "firstName": "Person",
+              "lastName": "15",
+              "fullName": "Person 15",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-16",
+              "firstName": "Person",
+              "lastName": "16",
+              "fullName": "Person 16",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 50
+      },
+      "output": [
+        [
+          "p-0",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-5",
+          "p-6",
+          "p-7",
+          "p-8",
+          "p-9",
+          "p-10",
+          "p-11",
+          "p-12",
+          "p-13",
+          "p-14",
+          "p-15",
+          "p-16"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-2",
+              "firstName": "Person",
+              "lastName": "2",
+              "fullName": "Person 2",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-3",
+              "firstName": "Person",
+              "lastName": "3",
+              "fullName": "Person 3",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-4",
+              "firstName": "Person",
+              "lastName": "4",
+              "fullName": "Person 4",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-5",
+              "firstName": "Person",
+              "lastName": "5",
+              "fullName": "Person 5",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-6",
+              "firstName": "Person",
+              "lastName": "6",
+              "fullName": "Person 6",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-7",
+              "firstName": "Person",
+              "lastName": "7",
+              "fullName": "Person 7",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-8",
+              "firstName": "Person",
+              "lastName": "8",
+              "fullName": "Person 8",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-9",
+              "firstName": "Person",
+              "lastName": "9",
+              "fullName": "Person 9",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-10",
+              "firstName": "Person",
+              "lastName": "10",
+              "fullName": "Person 10",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-11",
+              "firstName": "Person",
+              "lastName": "11",
+              "fullName": "Person 11",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-12",
+              "firstName": "Person",
+              "lastName": "12",
+              "fullName": "Person 12",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-13",
+              "firstName": "Person",
+              "lastName": "13",
+              "fullName": "Person 13",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-14",
+              "firstName": "Person",
+              "lastName": "14",
+              "fullName": "Person 14",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-15",
+              "firstName": "Person",
+              "lastName": "15",
+              "fullName": "Person 15",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-16",
+              "firstName": "Person",
+              "lastName": "16",
+              "fullName": "Person 16",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-17",
+              "firstName": "Person",
+              "lastName": "17",
+              "fullName": "Person 17",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-18",
+              "firstName": "Person",
+              "lastName": "18",
+              "fullName": "Person 18",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-19",
+              "firstName": "Person",
+              "lastName": "19",
+              "fullName": "Person 19",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-20",
+              "firstName": "Person",
+              "lastName": "20",
+              "fullName": "Person 20",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-21",
+              "firstName": "Person",
+              "lastName": "21",
+              "fullName": "Person 21",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-22",
+              "firstName": "Person",
+              "lastName": "22",
+              "fullName": "Person 22",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-23",
+              "firstName": "Person",
+              "lastName": "23",
+              "fullName": "Person 23",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-24",
+              "firstName": "Person",
+              "lastName": "24",
+              "fullName": "Person 24",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-25",
+              "firstName": "Person",
+              "lastName": "25",
+              "fullName": "Person 25",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-26",
+              "firstName": "Person",
+              "lastName": "26",
+              "fullName": "Person 26",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-27",
+              "firstName": "Person",
+              "lastName": "27",
+              "fullName": "Person 27",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-28",
+              "firstName": "Person",
+              "lastName": "28",
+              "fullName": "Person 28",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-29",
+              "firstName": "Person",
+              "lastName": "29",
+              "fullName": "Person 29",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-30",
+              "firstName": "Person",
+              "lastName": "30",
+              "fullName": "Person 30",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-31",
+              "firstName": "Person",
+              "lastName": "31",
+              "fullName": "Person 31",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-32",
+              "firstName": "Person",
+              "lastName": "32",
+              "fullName": "Person 32",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 1
+      },
+      "output": [
+        [
+          "p-0"
+        ],
+        [
+          "p-1"
+        ],
+        [
+          "p-2"
+        ],
+        [
+          "p-3"
+        ],
+        [
+          "p-4"
+        ],
+        [
+          "p-5"
+        ],
+        [
+          "p-6"
+        ],
+        [
+          "p-7"
+        ],
+        [
+          "p-8"
+        ],
+        [
+          "p-9"
+        ],
+        [
+          "p-10"
+        ],
+        [
+          "p-11"
+        ],
+        [
+          "p-12"
+        ],
+        [
+          "p-13"
+        ],
+        [
+          "p-14"
+        ],
+        [
+          "p-15"
+        ],
+        [
+          "p-16"
+        ],
+        [
+          "p-17"
+        ],
+        [
+          "p-18"
+        ],
+        [
+          "p-19"
+        ],
+        [
+          "p-20"
+        ],
+        [
+          "p-21"
+        ],
+        [
+          "p-22"
+        ],
+        [
+          "p-23"
+        ],
+        [
+          "p-24"
+        ],
+        [
+          "p-25"
+        ],
+        [
+          "p-26"
+        ],
+        [
+          "p-27"
+        ],
+        [
+          "p-28"
+        ],
+        [
+          "p-29"
+        ],
+        [
+          "p-30"
+        ],
+        [
+          "p-31"
+        ],
+        [
+          "p-32"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-2",
+              "firstName": "Person",
+              "lastName": "2",
+              "fullName": "Person 2",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-3",
+              "firstName": "Person",
+              "lastName": "3",
+              "fullName": "Person 3",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-4",
+              "firstName": "Person",
+              "lastName": "4",
+              "fullName": "Person 4",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-5",
+              "firstName": "Person",
+              "lastName": "5",
+              "fullName": "Person 5",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-6",
+              "firstName": "Person",
+              "lastName": "6",
+              "fullName": "Person 6",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-7",
+              "firstName": "Person",
+              "lastName": "7",
+              "fullName": "Person 7",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-8",
+              "firstName": "Person",
+              "lastName": "8",
+              "fullName": "Person 8",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-9",
+              "firstName": "Person",
+              "lastName": "9",
+              "fullName": "Person 9",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-10",
+              "firstName": "Person",
+              "lastName": "10",
+              "fullName": "Person 10",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-11",
+              "firstName": "Person",
+              "lastName": "11",
+              "fullName": "Person 11",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-12",
+              "firstName": "Person",
+              "lastName": "12",
+              "fullName": "Person 12",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-13",
+              "firstName": "Person",
+              "lastName": "13",
+              "fullName": "Person 13",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-14",
+              "firstName": "Person",
+              "lastName": "14",
+              "fullName": "Person 14",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-15",
+              "firstName": "Person",
+              "lastName": "15",
+              "fullName": "Person 15",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-16",
+              "firstName": "Person",
+              "lastName": "16",
+              "fullName": "Person 16",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-17",
+              "firstName": "Person",
+              "lastName": "17",
+              "fullName": "Person 17",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-18",
+              "firstName": "Person",
+              "lastName": "18",
+              "fullName": "Person 18",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-19",
+              "firstName": "Person",
+              "lastName": "19",
+              "fullName": "Person 19",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-20",
+              "firstName": "Person",
+              "lastName": "20",
+              "fullName": "Person 20",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-21",
+              "firstName": "Person",
+              "lastName": "21",
+              "fullName": "Person 21",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-22",
+              "firstName": "Person",
+              "lastName": "22",
+              "fullName": "Person 22",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-23",
+              "firstName": "Person",
+              "lastName": "23",
+              "fullName": "Person 23",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-24",
+              "firstName": "Person",
+              "lastName": "24",
+              "fullName": "Person 24",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-25",
+              "firstName": "Person",
+              "lastName": "25",
+              "fullName": "Person 25",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-26",
+              "firstName": "Person",
+              "lastName": "26",
+              "fullName": "Person 26",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-27",
+              "firstName": "Person",
+              "lastName": "27",
+              "fullName": "Person 27",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-28",
+              "firstName": "Person",
+              "lastName": "28",
+              "fullName": "Person 28",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-29",
+              "firstName": "Person",
+              "lastName": "29",
+              "fullName": "Person 29",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-30",
+              "firstName": "Person",
+              "lastName": "30",
+              "fullName": "Person 30",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-31",
+              "firstName": "Person",
+              "lastName": "31",
+              "fullName": "Person 31",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-32",
+              "firstName": "Person",
+              "lastName": "32",
+              "fullName": "Person 32",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 3
+      },
+      "output": [
+        [
+          "p-0",
+          "p-1",
+          "p-2"
+        ],
+        [
+          "p-3",
+          "p-4",
+          "p-5"
+        ],
+        [
+          "p-6",
+          "p-7",
+          "p-8"
+        ],
+        [
+          "p-9",
+          "p-10",
+          "p-11"
+        ],
+        [
+          "p-12",
+          "p-13",
+          "p-14"
+        ],
+        [
+          "p-15",
+          "p-16",
+          "p-17"
+        ],
+        [
+          "p-18",
+          "p-19",
+          "p-20"
+        ],
+        [
+          "p-21",
+          "p-22",
+          "p-23"
+        ],
+        [
+          "p-24",
+          "p-25",
+          "p-26"
+        ],
+        [
+          "p-27",
+          "p-28",
+          "p-29"
+        ],
+        [
+          "p-30",
+          "p-31",
+          "p-32"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-2",
+              "firstName": "Person",
+              "lastName": "2",
+              "fullName": "Person 2",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-3",
+              "firstName": "Person",
+              "lastName": "3",
+              "fullName": "Person 3",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-4",
+              "firstName": "Person",
+              "lastName": "4",
+              "fullName": "Person 4",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-5",
+              "firstName": "Person",
+              "lastName": "5",
+              "fullName": "Person 5",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-6",
+              "firstName": "Person",
+              "lastName": "6",
+              "fullName": "Person 6",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-7",
+              "firstName": "Person",
+              "lastName": "7",
+              "fullName": "Person 7",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-8",
+              "firstName": "Person",
+              "lastName": "8",
+              "fullName": "Person 8",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-9",
+              "firstName": "Person",
+              "lastName": "9",
+              "fullName": "Person 9",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-10",
+              "firstName": "Person",
+              "lastName": "10",
+              "fullName": "Person 10",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-11",
+              "firstName": "Person",
+              "lastName": "11",
+              "fullName": "Person 11",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-12",
+              "firstName": "Person",
+              "lastName": "12",
+              "fullName": "Person 12",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-13",
+              "firstName": "Person",
+              "lastName": "13",
+              "fullName": "Person 13",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-14",
+              "firstName": "Person",
+              "lastName": "14",
+              "fullName": "Person 14",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-15",
+              "firstName": "Person",
+              "lastName": "15",
+              "fullName": "Person 15",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-16",
+              "firstName": "Person",
+              "lastName": "16",
+              "fullName": "Person 16",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-17",
+              "firstName": "Person",
+              "lastName": "17",
+              "fullName": "Person 17",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-18",
+              "firstName": "Person",
+              "lastName": "18",
+              "fullName": "Person 18",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-19",
+              "firstName": "Person",
+              "lastName": "19",
+              "fullName": "Person 19",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-20",
+              "firstName": "Person",
+              "lastName": "20",
+              "fullName": "Person 20",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-21",
+              "firstName": "Person",
+              "lastName": "21",
+              "fullName": "Person 21",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-22",
+              "firstName": "Person",
+              "lastName": "22",
+              "fullName": "Person 22",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-23",
+              "firstName": "Person",
+              "lastName": "23",
+              "fullName": "Person 23",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-24",
+              "firstName": "Person",
+              "lastName": "24",
+              "fullName": "Person 24",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-25",
+              "firstName": "Person",
+              "lastName": "25",
+              "fullName": "Person 25",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-26",
+              "firstName": "Person",
+              "lastName": "26",
+              "fullName": "Person 26",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-27",
+              "firstName": "Person",
+              "lastName": "27",
+              "fullName": "Person 27",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-28",
+              "firstName": "Person",
+              "lastName": "28",
+              "fullName": "Person 28",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-29",
+              "firstName": "Person",
+              "lastName": "29",
+              "fullName": "Person 29",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-30",
+              "firstName": "Person",
+              "lastName": "30",
+              "fullName": "Person 30",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-31",
+              "firstName": "Person",
+              "lastName": "31",
+              "fullName": "Person 31",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-32",
+              "firstName": "Person",
+              "lastName": "32",
+              "fullName": "Person 32",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 16
+      },
+      "output": [
+        [
+          "p-0",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-5",
+          "p-6",
+          "p-7",
+          "p-8",
+          "p-9",
+          "p-10",
+          "p-11",
+          "p-12",
+          "p-13",
+          "p-14",
+          "p-15"
+        ],
+        [
+          "p-16",
+          "p-17",
+          "p-18",
+          "p-19",
+          "p-20",
+          "p-21",
+          "p-22",
+          "p-23",
+          "p-24",
+          "p-25",
+          "p-26",
+          "p-27",
+          "p-28",
+          "p-29",
+          "p-30",
+          "p-31"
+        ],
+        [
+          "p-32"
+        ]
+      ]
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-1",
+            "teamId": "team-1",
+            "selectedPositionName": "Keys"
+          },
+          "candidates": [
+            {
+              "id": "p-0",
+              "firstName": "Person",
+              "lastName": "0",
+              "fullName": "Person 0",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-1",
+              "firstName": "Person",
+              "lastName": "1",
+              "fullName": "Person 1",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-2",
+              "firstName": "Person",
+              "lastName": "2",
+              "fullName": "Person 2",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-3",
+              "firstName": "Person",
+              "lastName": "3",
+              "fullName": "Person 3",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-4",
+              "firstName": "Person",
+              "lastName": "4",
+              "fullName": "Person 4",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-5",
+              "firstName": "Person",
+              "lastName": "5",
+              "fullName": "Person 5",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-6",
+              "firstName": "Person",
+              "lastName": "6",
+              "fullName": "Person 6",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-7",
+              "firstName": "Person",
+              "lastName": "7",
+              "fullName": "Person 7",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-8",
+              "firstName": "Person",
+              "lastName": "8",
+              "fullName": "Person 8",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-9",
+              "firstName": "Person",
+              "lastName": "9",
+              "fullName": "Person 9",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-10",
+              "firstName": "Person",
+              "lastName": "10",
+              "fullName": "Person 10",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-11",
+              "firstName": "Person",
+              "lastName": "11",
+              "fullName": "Person 11",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-12",
+              "firstName": "Person",
+              "lastName": "12",
+              "fullName": "Person 12",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-13",
+              "firstName": "Person",
+              "lastName": "13",
+              "fullName": "Person 13",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-14",
+              "firstName": "Person",
+              "lastName": "14",
+              "fullName": "Person 14",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-15",
+              "firstName": "Person",
+              "lastName": "15",
+              "fullName": "Person 15",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-16",
+              "firstName": "Person",
+              "lastName": "16",
+              "fullName": "Person 16",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-17",
+              "firstName": "Person",
+              "lastName": "17",
+              "fullName": "Person 17",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-18",
+              "firstName": "Person",
+              "lastName": "18",
+              "fullName": "Person 18",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-19",
+              "firstName": "Person",
+              "lastName": "19",
+              "fullName": "Person 19",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-20",
+              "firstName": "Person",
+              "lastName": "20",
+              "fullName": "Person 20",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-21",
+              "firstName": "Person",
+              "lastName": "21",
+              "fullName": "Person 21",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-22",
+              "firstName": "Person",
+              "lastName": "22",
+              "fullName": "Person 22",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-23",
+              "firstName": "Person",
+              "lastName": "23",
+              "fullName": "Person 23",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-24",
+              "firstName": "Person",
+              "lastName": "24",
+              "fullName": "Person 24",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-25",
+              "firstName": "Person",
+              "lastName": "25",
+              "fullName": "Person 25",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-26",
+              "firstName": "Person",
+              "lastName": "26",
+              "fullName": "Person 26",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-27",
+              "firstName": "Person",
+              "lastName": "27",
+              "fullName": "Person 27",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-28",
+              "firstName": "Person",
+              "lastName": "28",
+              "fullName": "Person 28",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-29",
+              "firstName": "Person",
+              "lastName": "29",
+              "fullName": "Person 29",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-30",
+              "firstName": "Person",
+              "lastName": "30",
+              "fullName": "Person 30",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-31",
+              "firstName": "Person",
+              "lastName": "31",
+              "fullName": "Person 31",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            },
+            {
+              "id": "p-32",
+              "firstName": "Person",
+              "lastName": "32",
+              "fullName": "Person 32",
+              "photoUrl": null,
+              "photoThumbnailUrl": null,
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "batchSize": 50
+      },
+      "output": [
+        [
+          "p-0",
+          "p-1",
+          "p-2",
+          "p-3",
+          "p-4",
+          "p-5",
+          "p-6",
+          "p-7",
+          "p-8",
+          "p-9",
+          "p-10",
+          "p-11",
+          "p-12",
+          "p-13",
+          "p-14",
+          "p-15",
+          "p-16",
+          "p-17",
+          "p-18",
+          "p-19",
+          "p-20",
+          "p-21",
+          "p-22",
+          "p-23",
+          "p-24",
+          "p-25",
+          "p-26",
+          "p-27",
+          "p-28",
+          "p-29",
+          "p-30",
+          "p-31",
+          "p-32"
+        ]
+      ]
+    }
+  ]
+}
