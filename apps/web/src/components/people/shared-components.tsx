@@ -1,17 +1,23 @@
-import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
+import type {
+  PeopleDashboardMonthDay,
+  PeopleDashboardRosterPerson,
+} from "@pcobooster/contracts/people-schemas";
 import { Link } from "@tanstack/react-router";
 import type { CSSProperties, ReactNode } from "react";
 
+import { commitmentDotClassName } from "@/components/people/calendar";
+import type { CommitmentDot } from "@/components/people/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Item } from "@/components/ui/item";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { parsePlanRoute } from "@/lib/app-routes";
 import { cn } from "@/lib/utils";
 
+/** The position and service type of a commitment, the service type linking to its plan. */
 export const CommitmentEntryText = ({
   entry,
 }: {
-  entry: PeopleDashboardPerson["monthDays"][number];
+  entry: PeopleDashboardMonthDay;
 }) => {
   const hasServiceType =
     entry.serviceTypeName !== undefined && entry.serviceTypeName !== "";
@@ -42,7 +48,14 @@ export const CommitmentEntryText = ({
   );
 };
 
-export const PersonAvatar = ({ person }: { person: PeopleDashboardPerson }) => {
+export const PersonAvatar = ({
+  person,
+}: {
+  person: Pick<
+    PeopleDashboardRosterPerson,
+    "name" | "initials" | "photoThumbnailUrl"
+  >;
+}) => {
   const hasPhoto =
     person.photoThumbnailUrl !== null && person.photoThumbnailUrl !== "";
 
@@ -60,17 +73,48 @@ export const PersonAvatar = ({ person }: { person: PeopleDashboardPerson }) => {
   );
 };
 
-export const LegendDot = ({
+const legendLabels: Record<CommitmentDot, string> = {
+  confirmed: "Confirmed",
+  pending: "Pending",
+  rehearsal: "Rehearsal",
+};
+
+const ALL_DOTS: readonly CommitmentDot[] = [
+  "confirmed",
+  "pending",
+  "rehearsal",
+];
+
+/** A one-line legend for commitment markers, with optional leading notes. */
+export const CommitmentLegend = ({
+  dots = ALL_DOTS,
+  labels = legendLabels,
+  children,
   className,
-  label,
 }: {
-  className: string;
-  label: string;
+  dots?: readonly CommitmentDot[];
+  /** What each dot means here, when it differs from a single commitment's status. */
+  labels?: Record<CommitmentDot, string>;
+  children?: ReactNode;
+  className?: string;
 }) => (
-  <div className="flex items-center gap-2">
-    <span className={cn("size-2 rounded-full", className)} />
-    <span className="text-muted-foreground">{label}</span>
-  </div>
+  <p
+    className={cn(
+      "text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-xs",
+      className
+    )}
+  >
+    {children}
+    {dots.map((dot) => (
+      <span key={dot} className="flex items-center gap-1.5">
+        <span
+          aria-hidden
+          className={cn("size-2 rounded-full", commitmentDotClassName[dot])}
+        />
+        {labels[dot]}
+      </span>
+    ))}
+  </p>
 );
 
 export type MeterTone = "positive" | "attention" | "negative" | "neutral";
@@ -139,7 +183,7 @@ export const Metric = ({
   tone?: MeterTone;
 }) => (
   <div className="border-border/40 rounded-lg border px-3 py-2">
-    <p className="text-muted-foreground text-xs">{label}</p>
+    <p className="text-muted-foreground truncate text-xs">{label}</p>
     <p className="mt-1 truncate text-sm font-semibold tabular-nums">{value}</p>
     {meter === undefined ? null : (
       <Meter value={meter} tone={tone} className="mt-2" />
@@ -157,9 +201,9 @@ export const PersonRowButton = ({
   className,
   children,
 }: {
-  person: PeopleDashboardPerson;
-  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
-  onOpenPerson: (person: PeopleDashboardPerson) => void;
+  person: PeopleDashboardRosterPerson;
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardRosterPerson>;
+  onOpenPerson: (person: PeopleDashboardRosterPerson) => void;
   variant?: "default" | "outline" | "muted";
   size?: "default" | "sm" | "xs" | "row";
   className?: string;

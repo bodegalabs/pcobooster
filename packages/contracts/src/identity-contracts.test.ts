@@ -7,7 +7,7 @@ import {
   adminAccountsResponseSchema,
   adminUserResponseSchema,
 } from "@pcobooster/contracts/admin";
-import { featureSchema } from "@pcobooster/contracts/features";
+import { enabledFeaturesSchema } from "@pcobooster/contracts/features";
 import { sessionStatusSchema } from "@pcobooster/contracts/session";
 import { describe, expect, it } from "vitest";
 
@@ -127,9 +127,22 @@ describe("identity contracts", () => {
     expect(sessionStatusSchema.parse({ authenticated: false })).toStrictEqual({
       authenticated: false,
     });
-    expect(featureSchema.parse({ enabled: false })).toStrictEqual({
-      enabled: false,
-    });
+    expect(
+      enabledFeaturesSchema.parse({ people: false, chordCharts: false })
+    ).toStrictEqual({ people: false, chordCharts: false });
+  });
+
+  it("requires an answer for every feature flag", () => {
+    expect(
+      enabledFeaturesSchema.safeParse({ people: true }).success
+    ).toBeFalsy();
+    expect(
+      enabledFeaturesSchema.safeParse({
+        people: true,
+        chordCharts: true,
+        cleanup: true,
+      }).success
+    ).toBeFalsy();
   });
 
   it("requires a selected local account identifier and successful selection output", () => {

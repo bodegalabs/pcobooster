@@ -11,9 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import { useAccountsQuery } from "@/hooks/use-account-panel";
-import { chordChartsFeatureQueryOptions } from "@/lib/chord-charts-route";
-import { cleanupFeatureQueryOptions } from "@/lib/cleanup-route";
-import { peopleFeatureQueryOptions } from "@/lib/people-route";
+import { featuresQueryOptions } from "@/lib/features";
 import { visibleFeatureAccess } from "@/lib/planning-center-access";
 import { queryKeys } from "@/lib/query-keys";
 import { callForQuery } from "@/lib/request-priority";
@@ -57,23 +55,14 @@ export interface PlanningCenterAccessState {
 export const usePlanningCenterAccess = (): PlanningCenterAccessState => {
   const { data: snapshot, isError } = usePlanningCenterAccessQuery();
   const { data: accounts } = useAccountsQuery();
-  const { data: people } = useQuery(peopleFeatureQueryOptions);
-  const { data: songs } = useQuery(chordChartsFeatureQueryOptions);
-  const { data: cleanup } = useQuery(cleanupFeatureQueryOptions);
-  const peopleEnabled = people?.enabled ?? false;
-  const songsEnabled = songs?.enabled ?? false;
-  const cleanupEnabled = cleanup?.enabled ?? false;
+  const { data: enabledFeatures } = useQuery(featuresQueryOptions);
 
   const features = useMemo(
     () =>
       snapshot === undefined
         ? []
-        : visibleFeatureAccess(deriveFeatureAccess(snapshot), {
-            peopleDashboard: peopleEnabled,
-            songs: songsEnabled,
-            cleanup: cleanupEnabled,
-          }),
-    [snapshot, peopleEnabled, songsEnabled, cleanupEnabled]
+        : visibleFeatureAccess(deriveFeatureAccess(snapshot), enabledFeatures),
+    [snapshot, enabledFeatures]
   );
 
   const demo = accounts?.demo === true;

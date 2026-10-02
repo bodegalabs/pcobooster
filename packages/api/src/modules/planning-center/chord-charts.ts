@@ -86,18 +86,6 @@ const toChordColor = (value: JsonValue | undefined): number | null => {
     : null;
 };
 
-const toSequence = (attributes: JsonObject): string[] => {
-  const short = attributes.sequence_short;
-  const source =
-    Array.isArray(short) && short.length > 0 ? short : attributes.sequence;
-  if (!Array.isArray(source)) {
-    return [];
-  }
-  return source.filter(
-    (label): label is string => isString(label) && label.trim().length > 0
-  );
-};
-
 const belongsToArrangement = (key: PCResource, arrangementId: string) => {
   const relationship = key.relationships?.arrangement?.data;
   return (
@@ -129,9 +117,6 @@ export const normalizeChordChartArrangement = (
     id: resource.id,
     name: toText(attributes.name),
     archived: isNonEmptyString(attributes.archived_at),
-    bpm: toNumberOrNull(attributes.bpm),
-    meter: toTextOrNull(attributes.meter),
-    sequence: toSequence(attributes),
     chordChart: toText(attributes.chord_chart),
     chordChartKey: toTextOrNull(attributes.chord_chart_key),
     lyrics: toText(attributes.lyrics),
@@ -156,12 +141,6 @@ const normalizeChordChartSong = (resource: PCResource): ChordChartSong => ({
   id: resource.id,
   title: toText(resource.attributes.title),
   author: toText(resource.attributes.author),
-  copyright: toText(resource.attributes.copyright),
-  ccliNumber:
-    isNumber(resource.attributes.ccli_number) ||
-    isNonEmptyString(resource.attributes.ccli_number)
-      ? String(resource.attributes.ccli_number)
-      : null,
 });
 
 const normalizeArrangementResponse = (response: ArrangementResponse) =>
@@ -227,7 +206,11 @@ export interface PreparedChordChartUpdate {
   readonly attributes: JsonObject;
 }
 
-/** Refuses to overwrite a chart someone saved in Services after this edit began. */
+/**
+ * Refuses to overwrite a chart someone saved in Services after this edit began. An edit that
+ * names no version is refused too whenever Services reports one, so nothing saves blind; only
+ * an arrangement Services reports no version for skips the check.
+ */
 export const prepareChordChartUpdate = (
   input: ChordChartUpdateInput,
   songs: ChordChartSongsService
@@ -238,14 +221,10 @@ export const prepareChordChartUpdate = (
       input.arrangementId
     );
     const currentUpdatedAt = toTextOrNull(current.data.attributes.updated_at);
-    if (
-      input.baseUpdatedAt !== null &&
-      currentUpdatedAt !== null &&
-      currentUpdatedAt !== input.baseUpdatedAt
-    ) {
+    if (currentUpdatedAt !== null && currentUpdatedAt !== input.baseUpdatedAt) {
       return yield* new Conflict({
         message:
-          "This arrangement changed in Planning Center after you opened it. Reload to see the latest version.",
+          "Someone changed this arrangement in Planning Center since you opened it.",
         reason: "arrangement-updated",
       });
     }
@@ -436,8 +415,5 @@ export const getChordChartPdf = (
       );
     }
     const bytes = yield* readPdfBytes(response);
-    return {
-      filename: input.keyId === undefined ? "lyrics.pdf" : "chord-chart.pdf",
-      data: bytesToBase64(bytes),
-    };
+    return { data: bytesToBase64(bytes) };
   });

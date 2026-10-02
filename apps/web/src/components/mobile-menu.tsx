@@ -14,7 +14,6 @@ import {
   MobileMenuOverlay,
   useMobileMenu,
 } from "@pcobooster/ui/mobile-menu";
-import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useRouter } from "@tanstack/react-router";
 import type { ComponentProps, ReactElement, ReactNode } from "react";
 import { useEffect, useId } from "react";
@@ -31,11 +30,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { signOutLabel, useAccountPanel } from "@/hooks/use-account-panel";
+import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
 import { getAppSection } from "@/lib/app-routes";
-import { chordChartsFeatureQueryOptions } from "@/lib/chord-charts-route";
-import { cleanupFeatureQueryOptions } from "@/lib/cleanup-route";
 import { getInitials } from "@/lib/format/initials";
-import { peopleFeatureQueryOptions } from "@/lib/people-route";
 import { cn } from "@/lib/utils";
 
 const MOBILE_MENU_ID = "mobile-menu";
@@ -80,12 +77,8 @@ interface MenuEntry {
 const useMenuEntries = (): MenuEntry[] => {
   const pathname = useLocation({ select: (location) => location.pathname });
   const section = getAppSection(pathname);
-  const peopleEnabled =
-    useQuery(peopleFeatureQueryOptions).data?.enabled ?? false;
-  const songsEnabled =
-    useQuery(chordChartsFeatureQueryOptions).data?.enabled ?? false;
-  const cleanupEnabled =
-    useQuery(cleanupFeatureQueryOptions).data?.enabled ?? false;
+  const peopleEnabled = useFeatureEnabled("people");
+  const songsEnabled = useFeatureEnabled("chordCharts");
   const entries: MenuEntry[] = [
     {
       key: "services",
@@ -108,14 +101,6 @@ const useMenuEntries = (): MenuEntry[] => {
       link: <Link to="/songs" />,
       label: "Songs",
       active: section === "songs",
-    });
-  }
-  if (cleanupEnabled) {
-    entries.push({
-      key: "cleanup",
-      link: <Link to="/cleanup" />,
-      label: "Data cleanup",
-      active: section === "cleanup",
     });
   }
   return entries;

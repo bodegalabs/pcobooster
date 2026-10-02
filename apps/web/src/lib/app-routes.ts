@@ -65,7 +65,7 @@ export const parsePlanRoute = (pathname: string): PlanRoute | null => {
   return { serviceTypeId, planId, view };
 };
 
-export type AppSection = "services" | "people" | "songs" | "cleanup";
+export type AppSection = "services" | "people" | "songs";
 
 export const getAppSection = (pathname: string): AppSection => {
   if (pathname.startsWith("/people")) {
@@ -74,9 +74,6 @@ export const getAppSection = (pathname: string): AppSection => {
   if (pathname.startsWith("/songs")) {
     return "songs";
   }
-  if (pathname.startsWith("/cleanup")) {
-    return "cleanup";
-  }
   return "services";
 };
 
@@ -84,7 +81,6 @@ const appSectionLabels: Record<AppSection, string> = {
   services: "Services",
   people: "People",
   songs: "Songs",
-  cleanup: "Data cleanup",
 };
 
 export const getAppSectionLabel = (section: AppSection): string =>
@@ -93,16 +89,33 @@ export const getAppSectionLabel = (section: AppSection): string =>
 export interface DetailRoute {
   parentHref: "/people" | "/songs";
   parentLabel: string;
+  /** The page's label until something better (such as a person's name) is known. */
   label: string;
+  /** The person a People detail page shows, so the breadcrumb can name them. */
+  personId: string | null;
 }
+
+const personDetailPattern = /^\/people\/(?<personId>[^/]+)/u;
 
 /** Detail pages that sit one level under a top-level section. */
 export const parseDetailRoute = (pathname: string): DetailRoute | null => {
-  if (/^\/people\/[^/]+/u.test(pathname)) {
-    return { parentHref: "/people", parentLabel: "People", label: "Person" };
+  const personMatch = personDetailPattern.exec(pathname);
+  const encodedPersonId = personMatch?.groups?.personId;
+  if (encodedPersonId !== undefined) {
+    return {
+      parentHref: "/people",
+      parentLabel: "People",
+      label: "Person",
+      personId: decodeSegment(encodedPersonId),
+    };
   }
   if (/^\/songs\/[^/]+/u.test(pathname)) {
-    return { parentHref: "/songs", parentLabel: "Songs", label: "Chord chart" };
+    return {
+      parentHref: "/songs",
+      parentLabel: "Songs",
+      label: "Chord chart",
+      personId: null,
+    };
   }
   return null;
 };

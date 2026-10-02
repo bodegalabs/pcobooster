@@ -3,14 +3,12 @@ import type {
   ChordChartSong,
   LyricsSearchResult,
 } from "@pcobooster/contracts/chord-charts";
+import { parseKey } from "@pcobooster/planning-center-models/chord-chart-chords";
 import {
   importChordChart,
   lyricsToChordChart,
 } from "@pcobooster/planning-center-models/chord-chart-import";
-import type {
-  ChordChartImport,
-  ChordChartImportFormat,
-} from "@pcobooster/planning-center-models/chord-chart-import";
+import type { ChordChartImportFormat } from "@pcobooster/planning-center-models/chord-chart-import";
 import { useState } from "react";
 
 import { LyricsSearchPanel } from "@/components/songs/lyrics-search-panel";
@@ -29,6 +27,7 @@ import {
 } from "@/components/ui/responsive-dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import type { ChordChartImportText } from "@/lib/chord-chart-session";
 import { lyricsSearchQueryFor } from "@/lib/lyrics-search";
 
 type ImportTab = "search" | "paste" | "arrangement";
@@ -40,6 +39,9 @@ const formatLabels: Record<ChordChartImportFormat, string> = {
   lyrics: "Lyrics only",
 };
 
+const LYRICS_NOTE =
+  "Verses are numbered and repeated stanzas become choruses. Rename sections as needed.";
+
 /** Another arrangement's chart, or only its lyrics. */
 type ArrangementSource = `chart:${string}` | `lyrics:${string}`;
 
@@ -49,36 +51,61 @@ const isArrangementSource = (value: string): value is ArrangementSource =>
 const isImportTab = (value: string): value is ImportTab =>
   value === "search" || value === "paste" || value === "arrangement";
 
-interface ArrangementText {
-  readonly text: string;
-  /** Services' derived lyrics, which carry no section names. */
-  readonly lyricsOnly: boolean;
+/** What would land in the editor, and a line about how the text was read. */
+interface ImportPreview {
+  readonly text: ChordChartImportText;
+  readonly note: string;
 }
 
-const NO_ARRANGEMENT_TEXT: ArrangementText = { text: "", lyricsOnly: false };
+const fromLyrics = (lyrics: string): ImportPreview => ({
+  text: { chart: lyricsToChordChart(lyrics), key: null },
+  note: LYRICS_NOTE,
+});
 
-const arrangementText = (
+/** Another arrangement's chart arrives exactly as written there, codes and all. */
+const fromArrangement = (
   source: ArrangementSource | null,
   arrangements: readonly ChordChartArrangement[]
-): ArrangementText => {
+): ImportPreview | null => {
   if (source === null) {
-    return NO_ARRANGEMENT_TEXT;
+    return null;
   }
   const [kind, id] = source.split(":");
   const arrangement = arrangements.find((candidate) => candidate.id === id);
   if (arrangement === undefined) {
-    return NO_ARRANGEMENT_TEXT;
+    return null;
   }
-  return kind === "chart"
-    ? { text: arrangement.chordChart, lyricsOnly: false }
-    : { text: arrangement.lyrics, lyricsOnly: true };
+  if (kind === "lyrics") {
+    return arrangement.lyrics.trim() === ""
+      ? null
+      : fromLyrics(arrangement.lyrics);
+  }
+  if (arrangement.chordChart.trim() === "") {
+    return null;
+  }
+  const written =
+    arrangement.chordChartKey === null
+      ? ""
+      : `, written in ${arrangement.chordChartKey}`;
+  return {
+    text: { chart: arrangement.chordChart, key: arrangement.chordChartKey },
+    note: `An exact copy of the chart in “${arrangement.name}”${written}.`,
+  };
 };
 
-const fromLyrics = (lyrics: string): ChordChartImport => ({
-  format: "lyrics",
-  chart: lyricsToChordChart(lyrics),
-  metadata: {},
-});
+const fromPasted = (pasted: string): ImportPreview | null => {
+  if (pasted.trim() === "") {
+    return null;
+  }
+  const result = importChordChart(pasted);
+  return {
+    text: {
+      chart: result.chart,
+      key: parseKey(result.metadata.key)?.name ?? null,
+    },
+    note: `Detected: ${formatLabels[result.format]}.`,
+  };
+};
 
 interface ImportState {
   tab: ImportTab;
@@ -87,38 +114,29 @@ interface ImportState {
   arrangementSource: ArrangementSource | null;
 }
 
-const importFor = (
+const previewFor = (
   state: ImportState,
   arrangements: readonly ChordChartArrangement[]
-): ChordChartImport | null => {
+): ImportPreview | null => {
   if (state.tab === "search") {
     return state.found === null ? null : fromLyrics(state.found.lyrics);
   }
   if (state.tab === "paste") {
-    return state.pasted.trim() === "" ? null : importChordChart(state.pasted);
+    return fromPasted(state.pasted);
   }
-  const { text, lyricsOnly } = arrangementText(
-    state.arrangementSource,
-    arrangements
-  );
-  if (text.trim() === "") {
-    return null;
-  }
-  return lyricsOnly ? fromLyrics(text) : importChordChart(text);
+  return fromArrangement(state.arrangementSource, arrangements);
 };
 
 const statusText = (
   state: ImportState,
-  result: ChordChartImport | null
+  preview: ImportPreview | null
 ): string => {
-  if (state.tab === "search") {
-    return result === null
-      ? "Lyrics come from LRCLIB, a free community database. Check them against the official lyrics and your CCLI license."
-      : "Verses are numbered and repeated stanzas become choruses. Rename sections as needed.";
+  if (preview !== null) {
+    return preview.note;
   }
-  return result === null
-    ? "Nothing to import yet."
-    : `Detected: ${formatLabels[result.format]}.`;
+  return state.tab === "search"
+    ? "Lyrics come from LRCLIB, a free community database. Check them against the official lyrics and your CCLI license."
+    : "Nothing to import yet.";
 };
 
 export interface ChordChartImportDialogProps {
@@ -127,13 +145,13 @@ export interface ChordChartImportDialogProps {
   song: ChordChartSong;
   /** This song's arrangements, offered as starting points. */
   arrangements: readonly ChordChartArrangement[];
-  onImport: (result: ChordChartImport, mode: "replace" | "append") => void;
+  onImport: (text: ChordChartImportText, mode: "replace" | "append") => void;
 }
 
 /**
  * Starts a chart from lyrics found on the web, from text pasted from anywhere (SongSelect
- * ChordPro, a chord sheet, or lyrics), or from another arrangement, converted to Services'
- * format before it lands.
+ * ChordPro, a chord sheet, or lyrics) converted to Services' format, or from another
+ * arrangement's chart copied as is.
  */
 export const ChordChartImportDialog = ({
   open,
@@ -148,16 +166,16 @@ export const ChordChartImportDialog = ({
     found: null,
     arrangementSource: null,
   });
-  const result = importFor(state, arrangements);
+  const preview = previewFor(state, arrangements);
   const update = (change: Partial<ImportState>) => {
     setState((current) => ({ ...current, ...change }));
   };
 
   const finish = (mode: "replace" | "append") => {
-    if (result === null) {
+    if (preview === null) {
       return;
     }
-    onImport(result, mode);
+    onImport(preview.text, mode);
     update({ pasted: "", found: null });
     onOpenChange(false);
   };
@@ -194,7 +212,6 @@ export const ChordChartImportDialog = ({
           </Tabs>
           {state.tab === "search" ? (
             <LyricsSearchPanel
-              active={open}
               initialQuery={lyricsSearchQueryFor(song.title, song.author)}
               selectedId={state.found?.id ?? null}
               onSelect={(found) => {
@@ -251,19 +268,19 @@ export const ChordChartImportDialog = ({
               ))}
             </NativeSelect>
           ) : null}
-          {state.tab !== "paste" && result !== null ? (
+          {state.tab !== "paste" && preview !== null ? (
             <pre className="bg-muted/50 h-48 overflow-auto rounded-2xl p-3 font-mono text-xs whitespace-pre-wrap">
-              {result.chart}
+              {preview.text.chart}
             </pre>
           ) : null}
           <p className="text-muted-foreground text-xs" aria-live="polite">
-            {statusText(state, result)}
+            {statusText(state, preview)}
           </p>
         </div>
         <ResponsiveDialogFooter>
           <Button
             variant="outline"
-            disabled={result === null}
+            disabled={preview === null}
             onClick={() => {
               finish("append");
             }}
@@ -271,7 +288,7 @@ export const ChordChartImportDialog = ({
             Add to end
           </Button>
           <Button
-            disabled={result === null}
+            disabled={preview === null}
             onClick={() => {
               finish("replace");
             }}

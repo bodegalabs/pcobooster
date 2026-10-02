@@ -4,7 +4,7 @@ import {
   ChordChartEditorPage,
   ChordChartEditorPageSkeleton,
 } from "@/components/songs/chord-chart-editor-page";
-import { assertChordChartsEnabled } from "@/lib/chord-charts-route";
+import { featureGuard } from "@/lib/features";
 import { songChartSearchSchema } from "@/lib/route-search";
 
 const SongChartRoute = () => {
@@ -18,7 +18,7 @@ const SongChartRoute = () => {
 export const Route = createFileRoute("/_app/songs/$songId")({
   validateSearch: songChartSearchSchema,
   ssr: "data-only",
-  beforeLoad: assertChordChartsEnabled,
+  beforeLoad: featureGuard("chordCharts"),
   pendingComponent: ChordChartEditorPageSkeleton,
   component: SongChartRoute,
 });

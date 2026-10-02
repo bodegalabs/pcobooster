@@ -1,11 +1,7 @@
-import {
-  featureFlagNames,
-  featureFlags,
-} from "@pcobooster/api/config/feature-flags";
-import type {
-  DeploymentTier,
-  FeatureFlagName,
-} from "@pcobooster/api/config/feature-flags";
+import { featureFlags } from "@pcobooster/api/config/feature-flags";
+import type { DeploymentTier } from "@pcobooster/api/config/feature-flags";
+import { featureFlagNames } from "@pcobooster/contracts/features";
+import type { FeatureFlagName } from "@pcobooster/contracts/features";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import { Effect } from "effect";

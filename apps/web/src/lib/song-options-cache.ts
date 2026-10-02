@@ -101,6 +101,25 @@ export const writeCachedSongOptions = (
   }
 };
 
+/** Forgets one song's options in every service type, as after its arrangements change. */
+export const clearCachedSongOptionsForSong = (songId: string): void => {
+  const storage = globalThis.window?.localStorage;
+  if (storage === undefined) {
+    return;
+  }
+  const suffix = `:${encodeURIComponent(songId)}`;
+  try {
+    for (let index = storage.length - 1; index >= 0; index -= 1) {
+      const key = storage.key(index);
+      if (key?.startsWith(CACHE_KEY_PREFIX) === true && key.endsWith(suffix)) {
+        storage.removeItem(key);
+      }
+    }
+  } catch {
+    // Ignore storage failures; live queries will still fetch Planning Center.
+  }
+};
+
 export const clearCachedSongOptions = (): void => {
   const storage = globalThis.window?.localStorage;
   if (storage === undefined) {

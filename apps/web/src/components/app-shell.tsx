@@ -1,7 +1,6 @@
 import {
   ArrowDown01Icon,
   Calendar04Icon,
-  CleanIcon,
   KeyboardIcon,
   LaptopIcon,
   Logout01Icon,
@@ -17,7 +16,6 @@ import {
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import type { RegisterableHotkey } from "@tanstack/react-hotkeys";
-import { useQuery } from "@tanstack/react-query";
 import { Link, getRouteApi, useLocation } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import type { ReactNode } from "react";
@@ -88,13 +86,15 @@ import {
   useAccountPanel,
   useAccountsQuery,
 } from "@/hooks/use-account-panel";
+import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
+import { usePersonName } from "@/hooks/use-people-dashboard-person";
 import { usePlanRoute } from "@/hooks/use-plan-route";
 import {
   APP_SHORTCUTS,
   PLAN_BUILDER_SHORTCUTS,
   SHORTCUTS_PALETTE_HOTKEY,
 } from "@/lib/app-hotkeys";
-import type { PlanView } from "@/lib/app-routes";
+import type { DetailRoute, PlanView } from "@/lib/app-routes";
 import {
   getAppSection,
   getAppSectionLabel,
@@ -103,10 +103,7 @@ import {
   planViews,
 } from "@/lib/app-routes";
 import { presentationMode } from "@/lib/build-settings";
-import { chordChartsFeatureQueryOptions } from "@/lib/chord-charts-route";
-import { cleanupFeatureQueryOptions } from "@/lib/cleanup-route";
 import { getInitials } from "@/lib/format/initials";
-import { peopleFeatureQueryOptions } from "@/lib/people-route";
 import { cn } from "@/lib/utils";
 
 const APP_CHROME_ROW = "flex h-12 shrink-0 items-center gap-2";
@@ -190,6 +187,16 @@ const PlanViewTabs = () => {
   );
 };
 
+/** A detail page's breadcrumb: the person's name once it is known. */
+const DetailBreadcrumbLabel = ({ detail }: { detail: DetailRoute }) => {
+  const personName = usePersonName(detail.personId);
+  return (
+    <span className="block max-w-56 truncate">
+      {personName ?? detail.label}
+    </span>
+  );
+};
+
 const AppTopBar = () => {
   const pathname = usePathname();
   const planRoute = usePlanRoute();
@@ -222,7 +229,9 @@ const AppTopBar = () => {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{detail.label}</BreadcrumbPage>
+                <BreadcrumbPage>
+                  <DetailBreadcrumbLabel detail={detail} />
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </>
           ) : (
@@ -473,16 +482,10 @@ const ServicesSidebarMenuItem = () => {
   );
 };
 
-const useNavFeatures = () => {
-  const peopleFeatureQuery = useQuery(peopleFeatureQueryOptions);
-  const chordChartsFeatureQuery = useQuery(chordChartsFeatureQueryOptions);
-  const cleanupFeatureQuery = useQuery(cleanupFeatureQueryOptions);
-  return {
-    peopleNavEnabled: peopleFeatureQuery.data?.enabled ?? false,
-    songsNavEnabled: chordChartsFeatureQuery.data?.enabled ?? false,
-    cleanupNavEnabled: cleanupFeatureQuery.data?.enabled ?? false,
-  };
-};
+const useNavFeatures = () => ({
+  peopleNavEnabled: useFeatureEnabled("people"),
+  songsNavEnabled: useFeatureEnabled("chordCharts"),
+});
 
 const ShortcutList = ({
   shortcuts,
@@ -511,11 +514,9 @@ const ShortcutList = ({
 const AppSidebar = ({
   peopleNavEnabled,
   songsNavEnabled,
-  cleanupNavEnabled,
 }: {
   peopleNavEnabled: boolean;
   songsNavEnabled: boolean;
-  cleanupNavEnabled: boolean;
 }) => {
   const pathname = usePathname();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -565,18 +566,6 @@ const AppSidebar = ({
                     >
                       <SidebarNavIcon icon={MusicNote03Icon} />
                       <span>Songs</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ) : null}
-                {cleanupNavEnabled ? (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      render={<Link to="/cleanup" />}
-                      isActive={pathname.startsWith("/cleanup")}
-                      tooltip="Data cleanup"
-                    >
-                      <SidebarNavIcon icon={CleanIcon} />
-                      <span>Data cleanup</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ) : null}
@@ -702,8 +691,7 @@ const rootRoute = getRouteApi("__root__");
 /** Navigation chrome around every signed-in product page. */
 export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
   const { sidebarDefaultOpen } = rootRoute.useLoaderData();
-  const { peopleNavEnabled, songsNavEnabled, cleanupNavEnabled } =
-    useNavFeatures();
+  const { peopleNavEnabled, songsNavEnabled } = useNavFeatures();
 
   return (
     <AccessReviewProvider>
@@ -715,7 +703,6 @@ export const AppShell = ({ children }: { children: ReactNode }): ReactNode => {
         <AppSidebar
           peopleNavEnabled={peopleNavEnabled}
           songsNavEnabled={songsNavEnabled}
-          cleanupNavEnabled={cleanupNavEnabled}
         />
         <SidebarInset className="@container md:min-h-0 md:overflow-hidden">
           <AppInsetChromeHeader>

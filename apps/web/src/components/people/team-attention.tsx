@@ -1,10 +1,10 @@
-import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
-import { CalendarClock, HeartHandshake } from "lucide-react";
+import type { PeopleDashboardRosterPerson } from "@pcobooster/contracts/people-schemas";
+import { CalendarClock, HeartHandshake, MailQuestionMark } from "lucide-react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 
-import { CheckInReasonIcon } from "@/components/people/check-in-reason";
 import { PersonLineSkeletonList } from "@/components/people/people-skeletons";
+import { PersonSignalIcon } from "@/components/people/person-signal";
 import {
   Meter,
   PersonAvatar,
@@ -22,14 +22,16 @@ import {
 } from "@/components/ui/card";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import {
-  describeCadence,
-  describeCheckInReason,
-  describeDaysAgo,
+  describeDue,
+  describePersonSignal,
+  formatWeekdayDayKey,
 } from "@/lib/team-health";
-import type { CheckIn, DueForSlot, TeamMember } from "@/lib/team-health";
-
-/** The API's role label for someone with no schedules in the window. */
-const NO_RECENT_ROLE = "No recent role";
+import type {
+  CheckIn,
+  DueForSlot,
+  PersonSignal,
+  WaitingOnReply,
+} from "@/lib/team-health";
 
 /** The due list's gap bars share one scale: the six months serving history covers. */
 const GAP_SCALE_DAYS = 180;
@@ -37,51 +39,61 @@ const GAP_SCALE_DAYS = 180;
 /** Rows each list shows before "Show all". */
 const COLLAPSED_ROWS = 6;
 
-interface PersonListProps<Entry> {
+/** Whether a list's people have loaded: none yet, some, or all. */
+export type ListProgress = "loading" | "partial" | "complete";
+
+interface PersonListCallbacks {
+  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardRosterPerson>;
+  onOpenPerson: (person: PeopleDashboardRosterPerson) => void;
+}
+
+interface PersonListProps<Entry> extends PersonListCallbacks {
   entries: readonly Entry[];
-  isLoading: boolean;
+  progress: ListProgress;
   empty: string;
-  memberOf: (entry: Entry) => TeamMember;
+  personOf: (entry: Entry) => PeopleDashboardRosterPerson;
   renderDetail: (entry: Entry) => ReactNode;
   renderAside?: (entry: Entry) => ReactNode;
-  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
-  onOpenPerson: (person: PeopleDashboardPerson) => void;
 }
 
 const PersonList = <Entry,>({
   entries,
-  isLoading,
+  progress,
   empty,
-  memberOf,
+  personOf,
   renderDetail,
   renderAside,
   getPersonIntentProps,
   onOpenPerson,
 }: PersonListProps<Entry>) => {
   const [expanded, setExpanded] = useState(false);
-  if (isLoading) {
-    return <PersonLineSkeletonList rows={4} />;
+  if (progress === "loading") {
+    return <PersonLineSkeletonList rows={3} />;
   }
   if (entries.length === 0) {
-    return <p className="text-muted-foreground px-2 py-1.5 text-sm">{empty}</p>;
+    return (
+      <p className="text-muted-foreground px-1.5 py-1 text-sm">
+        {progress === "partial" ? "No one so far." : empty}
+      </p>
+    );
   }
   const shown = expanded ? entries : entries.slice(0, COLLAPSED_ROWS);
   return (
     <div className="flex flex-col">
       {shown.map((entry) => {
-        const member = memberOf(entry);
+        const person = personOf(entry);
         return (
           <PersonRowButton
-            key={member.id}
-            person={member}
+            key={person.id}
+            person={person}
             getPersonIntentProps={getPersonIntentProps}
             onOpenPerson={onOpenPerson}
             size="row"
           >
-            <PersonAvatar person={member} />
+            <PersonAvatar person={person} />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-medium">
-                {member.name}
+                {person.name}
               </span>
               <span className="text-muted-foreground block truncate text-xs">
                 {renderDetail(entry)}
@@ -111,140 +123,157 @@ const PersonList = <Entry,>({
   );
 };
 
-interface TeamCheckInsProps {
-  checkIns: readonly CheckIn[];
-  isLoading: boolean;
-  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
-  onOpenPerson: (person: PeopleDashboardPerson) => void;
-}
-
-/** People a leader may want to reach out to, with the reasons why. */
-export const TeamCheckIns = ({
-  checkIns,
-  isLoading,
-  getPersonIntentProps,
-  onOpenPerson,
-}: TeamCheckInsProps) => (
+const ListCard = ({
+  icon,
+  title,
+  description,
+  count,
+  children,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  /** Shown once the list has loaded anyone. */
+  count: number | null;
+  children: ReactNode;
+}) => (
   <Card size="sm">
     <CardHeader>
       <CardTitle>
         <span className="flex items-center gap-2">
-          <HeartHandshake className="text-muted-foreground size-4" />
-          Check in
+          <span className="text-muted-foreground" aria-hidden>
+            {icon}
+          </span>
+          {title}
         </span>
       </CardTitle>
-      <CardDescription>
-        Drifting, declining, not responding, or carrying a heavy load.
-      </CardDescription>
-      {checkIns.length > 0 && !isLoading ? (
+      <CardDescription>{description}</CardDescription>
+      {count !== null && count > 0 ? (
         <CardAction>
-          <Badge variant="secondary">{checkIns.length}</Badge>
+          <Badge variant="secondary">{count}</Badge>
         </CardAction>
       ) : null}
     </CardHeader>
-    <CardContent>
-      <PersonList
-        entries={checkIns}
-        isLoading={isLoading}
-        empty="Nobody needs a check-in right now."
-        memberOf={(checkIn) => checkIn.member}
-        renderDetail={(checkIn) =>
-          checkIn.reasons
-            .map((reason) => describeCheckInReason(reason).detail)
-            .join(" ")
-        }
-        renderAside={({ reasons: [primary, ...others] }) =>
-          primary === undefined ? null : (
-            <>
-              <Badge variant="outline">
-                <CheckInReasonIcon kind={primary.kind} />
-                {describeCheckInReason(primary).label}
-              </Badge>
-              {others.length > 0 ? (
-                <span className="text-muted-foreground text-xs tabular-nums">
-                  +{others.length}
-                </span>
-              ) : null}
-            </>
-          )
-        }
-        getPersonIntentProps={getPersonIntentProps}
-        onOpenPerson={onOpenPerson}
-      />
-    </CardContent>
+    <CardContent>{children}</CardContent>
   </Card>
 );
 
-const describeDue = ({ daysSinceServed, typicalGapDays }: DueForSlot) => {
-  if (daysSinceServed === null) {
-    return "No serving in the last 6 months";
-  }
-  const cadence =
-    typicalGapDays === null
-      ? ""
-      : ` · usually ${describeCadence(typicalGapDays)}`;
-  return `Last served ${describeDaysAgo(daysSinceServed)}${cadence}`;
-};
-
-interface TeamDueListProps {
-  dueForSlot: readonly DueForSlot[];
-  isLoading: boolean;
-  getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardPerson>;
-  onOpenPerson: (person: PeopleDashboardPerson) => void;
+interface TeamListProps<Entry> extends PersonListCallbacks {
+  entries: readonly Entry[];
+  progress: ListProgress;
 }
+
+/** People who have not answered a request for the coming week. */
+export const WaitingOnReplyList = ({
+  entries,
+  progress,
+  ...callbacks
+}: TeamListProps<WaitingOnReply>) => (
+  <ListCard
+    icon={<MailQuestionMark className="size-4" />}
+    title="Waiting on a reply"
+    description="Unanswered requests in the next 7 days."
+    count={progress === "loading" ? null : entries.length}
+  >
+    <PersonList
+      entries={entries}
+      progress={progress}
+      empty="Everyone has answered this week's requests."
+      personOf={(entry) => entry.member}
+      renderDetail={(entry) =>
+        entry.member.roles.length > 0
+          ? entry.member.roles.join(", ")
+          : entry.member.teams.join(", ")
+      }
+      renderAside={({ nextPendingOn, pending }) => (
+        <span className="text-muted-foreground text-xs tabular-nums">
+          {formatWeekdayDayKey(nextPendingOn)}
+          {pending > 1 ? ` +${pending - 1}` : null}
+        </span>
+      )}
+      {...callbacks}
+    />
+  </ListCard>
+);
+
+/** People a leader may want to reach out to, with the reasons why. */
+export const TeamCheckIns = ({
+  entries,
+  progress,
+  ...callbacks
+}: TeamListProps<CheckIn>) => (
+  <ListCard
+    icon={<HeartHandshake className="size-4" />}
+    title="Check in"
+    description="Declining, drifting, or carrying a heavy load."
+    count={progress === "loading" ? null : entries.length}
+  >
+    <PersonList
+      entries={entries}
+      progress={progress}
+      empty="Nobody needs a check-in right now."
+      personOf={(checkIn) => checkIn.member}
+      renderDetail={({ reasons }) =>
+        reasons
+          .map((reason: PersonSignal) => describePersonSignal(reason).detail)
+          .join(" ")
+      }
+      renderAside={({ reasons: [primary, ...others] }) =>
+        primary === undefined ? null : (
+          <>
+            <Badge variant="outline">
+              <PersonSignalIcon signal={primary} />
+              {describePersonSignal(primary).label}
+            </Badge>
+            {others.length > 0 ? (
+              <span className="text-muted-foreground text-xs tabular-nums">
+                +{others.length}
+              </span>
+            ) : null}
+          </>
+        )
+      }
+      {...callbacks}
+    />
+  </ListCard>
+);
 
 /** People with nothing scheduled who are past their usual gap between serves. */
 export const TeamDueList = ({
-  dueForSlot,
-  isLoading,
-  getPersonIntentProps,
-  onOpenPerson,
-}: TeamDueListProps) => (
-  <Card size="sm">
-    <CardHeader>
-      <CardTitle>
-        <span className="flex items-center gap-2">
-          <CalendarClock className="text-muted-foreground size-4" />
-          Due for a slot
-        </span>
-      </CardTitle>
-      <CardDescription>
-        Nothing scheduled and past their usual gap, at least six weeks. Bars
-        show time since serving; the tick is their usual gap.
-      </CardDescription>
-      {dueForSlot.length > 0 && !isLoading ? (
-        <CardAction>
-          <Badge variant="secondary">{dueForSlot.length}</Badge>
-        </CardAction>
-      ) : null}
-    </CardHeader>
-    <CardContent>
-      <PersonList
-        entries={dueForSlot}
-        isLoading={isLoading}
-        empty="Everyone has served recently or has something scheduled."
-        memberOf={(due) => due.member}
-        renderDetail={describeDue}
-        renderAside={({ member, daysSinceServed, typicalGapDays }) => (
-          <span className="flex w-20 flex-col items-end gap-1.5 sm:w-24">
-            <span className="text-muted-foreground max-w-full truncate text-xs">
-              {member.roles === NO_RECENT_ROLE
-                ? member.teams.join(", ")
-                : member.roles}
-            </span>
-            <Meter
-              value={(daysSinceServed ?? GAP_SCALE_DAYS) / GAP_SCALE_DAYS}
-              marker={
-                typicalGapDays === null ? null : typicalGapDays / GAP_SCALE_DAYS
-              }
-              tone={daysSinceServed === null ? "negative" : "attention"}
-              className="w-full"
-            />
+  entries,
+  progress,
+  ...callbacks
+}: TeamListProps<DueForSlot>) => (
+  <ListCard
+    icon={<CalendarClock className="size-4" />}
+    title="Due for a slot"
+    description="Nothing scheduled and past their usual gap."
+    count={progress === "loading" ? null : entries.length}
+  >
+    <PersonList
+      entries={entries}
+      progress={progress}
+      empty="Everyone has served recently or has something scheduled."
+      personOf={(due) => due.member}
+      renderDetail={describeDue}
+      renderAside={({ member, daysSinceServed, typicalGapDays }) => (
+        <span className="flex w-20 flex-col items-end gap-1.5 sm:w-24">
+          <span className="text-muted-foreground max-w-full truncate text-xs">
+            {member.roles.length > 0
+              ? member.roles.join(", ")
+              : member.teams.join(", ")}
           </span>
-        )}
-        getPersonIntentProps={getPersonIntentProps}
-        onOpenPerson={onOpenPerson}
-      />
-    </CardContent>
-  </Card>
+          <Meter
+            value={(daysSinceServed ?? GAP_SCALE_DAYS) / GAP_SCALE_DAYS}
+            marker={
+              typicalGapDays === null ? null : typicalGapDays / GAP_SCALE_DAYS
+            }
+            tone={daysSinceServed === null ? "negative" : "attention"}
+            className="w-full"
+          />
+        </span>
+      )}
+      {...callbacks}
+    />
+  </ListCard>
 );

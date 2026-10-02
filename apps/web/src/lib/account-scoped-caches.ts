@@ -1,5 +1,6 @@
 import { ACCOUNT_PANEL_CACHE_KEY } from "@/lib/account-panel-cache";
 import { writeBrowserStorage } from "@/lib/browser-storage";
+import { clearChordChartDrafts } from "@/lib/chord-chart-draft";
 import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
 import { clearCachedOrganizationTimeZone } from "@/lib/organization-time-zone-cache";
 import { clearCachedPeopleDashboards } from "@/lib/people-dashboard-cache";
@@ -22,6 +23,7 @@ export const clearAccountScopedCaches = (): void => {
   clearCachedOrganizationTimeZone();
   clearCachedPlanItems();
   clearRecentSongs();
+  clearChordChartDrafts();
   clearCachedScheduleCatalog();
   clearCachedSongOptions();
   clearCachedSongSearch();

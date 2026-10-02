@@ -28,13 +28,24 @@ const limited = [
 ];
 
 describe(visibleFeatureAccess, () => {
-  it("leaves out flagged features this deployment hides", () => {
+  it("leaves out flagged features this visitor's flags hide", () => {
     expect(
       visibleFeatureAccess(limited, {
-        peopleDashboard: true,
-        songs: false,
-        cleanup: true,
+        people: true,
+        chordCharts: false,
       }).map((item) => item.feature)
+    ).toStrictEqual(["plans", "scheduling"]);
+    expect(
+      visibleFeatureAccess(limited, {
+        people: false,
+        chordCharts: true,
+      }).map((item) => item.feature)
+    ).toStrictEqual(["plans", "scheduling", "songs"]);
+  });
+
+  it("hides every flagged feature until the flags answer", () => {
+    expect(
+      visibleFeatureAccess(limited).map((item) => item.feature)
     ).toStrictEqual(["plans", "scheduling"]);
   });
 });

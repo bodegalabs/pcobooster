@@ -1,4 +1,8 @@
 import type {
+  EnabledFeatures,
+  FeatureFlagName,
+} from "@pcobooster/contracts/features";
+import type {
   AppFeature,
   FeatureAccess,
   ServiceTypeAbilities,
@@ -7,25 +11,24 @@ import { z } from "zod";
 
 import type { DashboardView } from "@/lib/schedule-navigation";
 
-/** Features behind a deployment flag; the others are always in the product. */
-export type FlaggedFeature = Extract<
-  AppFeature,
-  "peopleDashboard" | "songs" | "cleanup"
->;
+/** The flag each flagged feature sits behind; the others are always in the product. */
+const featureFlagOf: Readonly<Partial<Record<AppFeature, FeatureFlagName>>> = {
+  peopleDashboard: "people",
+  songs: "chordCharts",
+};
 
-export type EnabledFlaggedFeatures = Readonly<Record<FlaggedFeature, boolean>>;
-
-const isFlagged = (feature: AppFeature): feature is FlaggedFeature =>
-  feature === "peopleDashboard" || feature === "songs" || feature === "cleanup";
-
-/** Leaves out features this deployment doesn't show, so the review never mentions them. */
+/**
+ * Leaves out features this visitor's flags hide, so the review never mentions them. Until the
+ * flags answer, every flagged feature counts as hidden.
+ */
 export const visibleFeatureAccess = (
   features: readonly FeatureAccess[],
-  enabled: EnabledFlaggedFeatures
+  enabled?: EnabledFeatures
 ): FeatureAccess[] =>
-  features.filter(
-    (entry) => !isFlagged(entry.feature) || enabled[entry.feature]
-  );
+  features.filter((entry) => {
+    const flag = featureFlagOf[entry.feature];
+    return flag === undefined || enabled?.[flag] === true;
+  });
 
 /**
  * Identifies what the review showed. A new fingerprint means the person's access changed,

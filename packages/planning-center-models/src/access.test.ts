@@ -86,7 +86,6 @@ describe(deriveFeatureAccess, () => {
       peopleSearch: "full",
       peopleDashboard: "full",
       songs: "full",
-      cleanup: "full",
     });
     expect(hasRestrictedAccess(deriveFeatureAccess(access))).toBeFalsy();
   });
@@ -162,7 +161,6 @@ describe(deriveFeatureAccess, () => {
       peopleSearch: "full",
       peopleDashboard: "none",
       songs: "none",
-      cleanup: "none",
     });
   });
 

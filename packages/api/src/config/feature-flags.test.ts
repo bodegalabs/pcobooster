@@ -1,8 +1,8 @@
 import {
   deploymentTier,
-  featureFlagNames,
   featureFlags,
 } from "@pcobooster/api/config/feature-flags";
+import { featureFlagNames } from "@pcobooster/contracts/features";
 import { describe, expect, it } from "vitest";
 
 /** Flagship: letters, numbers, hyphens, and underscores, at most 64 characters. */
@@ -10,7 +10,7 @@ const flagshipKeyPattern = /^[\w-]{1,64}$/u;
 const MAX_DESCRIPTION_LENGTH = 512;
 
 describe("feature flag registry", () => {
-  it("lists every flag", () => {
+  it("defines exactly the flags the contracts name", () => {
     expect(featureFlagNames).toStrictEqual(Object.keys(featureFlags));
   });
 
@@ -34,14 +34,6 @@ describe("feature flag registry", () => {
 
   it("keeps chord charts on locally and in previews, off in production", () => {
     expect(featureFlags.chordCharts.enabled).toStrictEqual({
-      local: true,
-      preview: true,
-      production: false,
-    });
-  });
-
-  it("keeps Data cleanup on locally and in previews, off in production", () => {
-    expect(featureFlags.cleanup.enabled).toStrictEqual({
       local: true,
       preview: true,
       production: false,

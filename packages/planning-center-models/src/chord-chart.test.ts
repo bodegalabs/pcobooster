@@ -55,4 +55,13 @@ describe(transposeChordChartText, () => {
       )
     ).toBe("VERSE\n[G]Beyond [Em]all\nG    D\nLyrics here");
   });
+
+  it("keeps trailing spaces and Windows line endings on chord lines", () => {
+    if (keyE === null || keyG === null) {
+      throw new Error("Test keys did not parse");
+    }
+    expect(
+      transposeChordChartText("E    B  \r\n[E]Beyond\r\n", keyE, keyG)
+    ).toBe("G    D  \r\n[G]Beyond\r\n");
+  });
 });

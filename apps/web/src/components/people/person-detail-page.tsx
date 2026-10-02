@@ -1,17 +1,26 @@
-import { Link } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
+import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
+import { ExternalLink } from "lucide-react";
+import { useMemo } from "react";
 
 import { PageShell } from "@/components/page-shell";
-import { buildCalendarCells } from "@/components/people/calendar";
 import {
+  PersonDetailBody,
   PersonDetailBodySkeleton,
-  PersonDetailState,
 } from "@/components/people/detail-body";
 import { PersonAvatar } from "@/components/people/shared-components";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
+import { HoverLabel } from "@/components/ui/hover-card";
 import { LoadingBar } from "@/components/ui/loading-bar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { usePeopleDashboardPerson } from "@/hooks/use-people-dashboard-person";
+import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
+import {
+  usePeopleDashboardPerson,
+  usePersonDashboardContext,
+} from "@/hooks/use-people-dashboard-person";
+import { planningCenterPersonUrl } from "@/lib/people/planning-center-person-url";
+import { personSignals } from "@/lib/team-health";
 
 const PersonHeaderSkeleton = () => (
   <div className="flex min-w-0 items-center gap-3">
@@ -23,23 +32,70 @@ const PersonHeaderSkeleton = () => (
   </div>
 );
 
-const MonthNavSkeleton = () => (
-  <div className="flex items-center gap-1">
-    <Skeleton variant="control" className="size-8" />
-    <Skeleton variant="text" className="h-8 w-36" />
-    <Skeleton variant="control" className="size-8" />
-  </div>
-);
-
 export const PersonDetailPageSkeleton = () => (
   <PageShell label="Loading person" busy>
-    <header className="flex shrink-0 flex-wrap items-center justify-between gap-3">
+    <header className="flex shrink-0 items-center justify-between gap-3">
       <PersonHeaderSkeleton />
-      <MonthNavSkeleton />
+      <Skeleton variant="control" className="size-8 shrink-0" />
     </header>
     <PersonDetailBodySkeleton />
   </PageShell>
 );
+
+const PlanningCenterPersonLink = ({
+  personId,
+  name,
+}: {
+  personId: string;
+  name: string;
+}) => (
+  <HoverLabel
+    label="Open in Planning Center"
+    side="bottom"
+    align="end"
+    sideOffset={8}
+    render={
+      <a
+        href={planningCenterPersonUrl(personId)}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Open ${name} in Planning Center`}
+        className={buttonVariants({
+          variant: "outline",
+          size: "icon-sm",
+          className: "shrink-0 max-md:size-9 max-md:rounded-full",
+        })}
+      />
+    }
+  >
+    <ExternalLink className="size-4" aria-hidden />
+  </HoverLabel>
+);
+
+const PersonHeading = ({
+  person,
+  teams,
+}: {
+  person: PeopleDashboardPerson;
+  teams: readonly string[];
+}) => {
+  const subtitle = [teams.join(", "), person.roles.join(", ")]
+    .filter((part) => part !== "")
+    .join(" · ");
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <PersonAvatar person={person} />
+      <div className="min-w-0">
+        <h1 className="truncate text-xl font-semibold tracking-tight md:text-2xl">
+          {person.name}
+        </h1>
+        {subtitle === "" ? null : (
+          <p className="text-muted-foreground truncate text-sm">{subtitle}</p>
+        )}
+      </div>
+    </div>
+  );
+};
 
 /**
  * Month paging only changes a search param; the query keeps the page populated while the
@@ -52,80 +108,36 @@ export const PersonDetailPage = ({
   personId: string;
   month: string | null;
 }) => {
-  const { data, isError, isFetching, isLoading, isPlaceholderData, refetch } =
+  const { data, isError, isFetching, isPlaceholderData, refetch } =
     usePeopleDashboardPerson(personId, month);
-  const handleRetry = () => {
-    void refetch();
-  };
+  const { rosterPerson, teamPace } = usePersonDashboardContext(personId);
+  const orgTimeZone = useOrganizationTimeZone();
+  const todayKey = formatCalendarDayInTimeZone(new Date(), orgTimeZone);
   const person = data?.person ?? null;
-  const monthLabel = data?.month.label ?? "Month";
-  const calendarCells = data
-    ? buildCalendarCells(data.month.startsOnWeekday, data.month.daysInMonth)
-    : [];
+  const rhythm = person?.rhythm ?? null;
+  const signals = useMemo(
+    () => (rhythm === null ? [] : personSignals(rhythm, todayKey, teamPace)),
+    [rhythm, teamPace, todayKey]
+  );
 
   return (
     <PageShell>
       <header className="flex shrink-0 flex-col gap-3">
-        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            {person ? (
-              <>
-                <PersonAvatar person={person} />
-                <div className="min-w-0">
-                  <h1 className="truncate text-xl font-semibold tracking-tight md:text-2xl">
-                    {person.name}
-                  </h1>
-                  <p className="text-muted-foreground truncate text-sm">
-                    {person.teams.join(", ")} · {person.roles}
-                  </p>
-                </div>
-              </>
-            ) : (
-              <PersonHeaderSkeleton />
-            )}
-          </div>
-
-          {data ? (
-            <div className="flex items-center gap-1">
-              <Button
-                nativeButton={false}
-                render={
-                  <Link
-                    to="/people/$personId"
-                    params={{ personId }}
-                    search={{ month: data.previousMonth }}
-                    aria-label="Previous month"
-                  />
-                }
-                variant="outline"
-                size="icon"
-                className="size-8"
-              >
-                <ChevronLeft className="size-4" />
-              </Button>
-              <div className="border-border/40 flex h-8 min-w-36 items-center justify-center rounded-md border px-3 text-sm font-medium">
-                {monthLabel}
-              </div>
-              <Button
-                nativeButton={false}
-                render={
-                  <Link
-                    to="/people/$personId"
-                    params={{ personId }}
-                    search={{ month: data.nextMonth }}
-                    aria-label="Next month"
-                  />
-                }
-                variant="outline"
-                size="icon"
-                className="size-8"
-              >
-                <ChevronRight className="size-4" />
-              </Button>
-            </div>
+        <div className="flex min-w-0 items-center justify-between gap-3">
+          {person ? (
+            <PersonHeading
+              person={person}
+              // The roster's team memberships, as the dashboard shows them; else the teams
+              // they served on lately.
+              teams={rosterPerson?.teams ?? person.teams}
+            />
           ) : (
-            <MonthNavSkeleton />
+            <PersonHeaderSkeleton />
           )}
+          <PlanningCenterPersonLink
+            personId={personId}
+            name={person?.name ?? rosterPerson?.name ?? "this person"}
+          />
         </div>
         <LoadingBar
           active={isPlaceholderData && !isError}
@@ -145,20 +157,23 @@ export const PersonDetailPage = ({
             variant="outline"
             size="xs"
             disabled={isFetching}
-            onClick={handleRetry}
+            onClick={() => {
+              void refetch();
+            }}
           >
             Retry
           </Button>
         </div>
-      ) : (
-        <PersonDetailState
+      ) : null}
+      {!isError && data === undefined ? <PersonDetailBodySkeleton /> : null}
+      {!isError && data !== undefined ? (
+        <PersonDetailBody
           data={data}
-          monthLabel={monthLabel}
-          calendarCells={calendarCells}
-          isLoading={isLoading}
+          signals={signals}
+          todayKey={todayKey}
           isPlaceholderData={isPlaceholderData}
         />
-      )}
+      ) : null}
     </PageShell>
   );
 };

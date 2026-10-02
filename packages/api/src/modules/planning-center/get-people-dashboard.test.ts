@@ -173,14 +173,15 @@ describe(getPeopleDashboardRoster, () => {
         name: "Alex Adams",
         initials: "AA",
         photoThumbnailUrl: "https://example.com/alex.png",
-        teams: ["Band", "Vocals", "Tech"],
+        teams: ["Band", "Vocals", "Tech", "Hosts"],
       },
       {
         id: "person-2",
         name: "Blair Adams",
         initials: "BA",
         photoThumbnailUrl: null,
-        teams: ["Services"],
+        // No made-up team for someone the team read did not place.
+        teams: [],
       },
       {
         id: "person-3",
@@ -277,7 +278,7 @@ describe(getPeopleDashboardActivity, () => {
     vi.useRealTimers();
   });
 
-  it("counts past and upcoming services from schedules after the 90-day window start", async () => {
+  it("reads the rhythm, roles, and month from schedules after the history window start", async () => {
     vi.useFakeTimers({ now: new Date("2026-05-23T12:00:00.000Z") });
     const { dependencies, getPersonSchedulesAfter } = activityDependencies({
       schedulesByPerson: {
@@ -307,11 +308,13 @@ describe(getPeopleDashboardActivity, () => {
       people: [
         {
           id: "person-1",
-          lastServed: "May 10",
-          nextScheduled: "May 31",
-          monthCount: 2,
-          thirtyDayCount: 2,
-          upcomingCount: 1,
+          roles: ["Vocals"],
+          rhythm: {
+            lastServedOn: "2026-05-10",
+            nextServingOn: "2026-05-31",
+            servedDays30: 1,
+            upcomingDays30: 1,
+          },
         },
       ],
     });
@@ -346,9 +349,9 @@ describe(getPeopleDashboardActivity, () => {
       getPeopleDashboardActivity({ personIds: ["person-1"], dependencies })
     );
 
-    expect(batch.people[0]).toMatchObject({
-      lastServed: "Sep 9",
-      nextScheduled: "Sep 19",
+    expect(batch.people[0]?.rhythm).toMatchObject({
+      lastServedOn: "2026-09-09",
+      nextServingOn: "2026-09-19",
     });
     expect(batch.people[0]?.monthDays.map(({ day }) => day)).toStrictEqual([
       9, 19,
@@ -394,12 +397,12 @@ describe(getPeopleDashboardActivity, () => {
       servedDays180: 3,
       upcomingDays30: 1,
       typicalGapDays: 53,
-      requests180: 5,
+      // The upcoming request has not come round yet.
+      requests180: 4,
       declined180: 1,
       pendingUpcoming: 1,
       nextPendingOn: "2026-06-07",
     });
-    expect(batch.people[0]).toMatchObject({ lastServed: "Apr 19" });
     expect(batch.people[0]?.monthDays).toStrictEqual([]);
   });
 
@@ -456,7 +459,11 @@ describe(getPeopleDashboardActivity, () => {
       ["person-1", ["14:rehearsal", "17:service"]],
       ["person-2", ["21:rehearsal"]],
     ]);
-    expect(batch.people[1]).toMatchObject({ monthCount: 0 });
+    // A rehearsal alone is not serving.
+    expect(batch.people[1]?.rhythm).toMatchObject({
+      lastServedOn: null,
+      nextServingOn: null,
+    });
     expect(batch.requestBudget.planTimeRequests).toBe(1);
   });
 
@@ -594,9 +601,9 @@ describe(getPeopleDashboardActivity, () => {
       getPeopleDashboardActivity({ personIds: ["person-1"], dependencies })
     );
 
-    expect(batch.people[0]).toMatchObject({
-      lastServed: "May 17",
-      thirtyDayCount: 1,
+    expect(batch.people[0]?.rhythm).toMatchObject({
+      lastServedOn: "2026-05-17",
+      servedDays30: 1,
     });
   });
 

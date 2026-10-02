@@ -1,5 +1,6 @@
 import { Activity } from "lucide-react";
 
+import { CoverageNote } from "@/components/people/dashboard-progress";
 import { Meter, Metric } from "@/components/people/shared-components";
 import {
   Card,
@@ -9,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { PeopleDashboardProgress } from "@/lib/people-dashboard";
+import type { PeopleDashboardCoverage } from "@/lib/people-dashboard";
 import type { TeamHealth, TeamHealthStatus } from "@/lib/team-health";
 import { cn } from "@/lib/utils";
 
@@ -77,22 +78,28 @@ const describeHealth = (health: TeamHealth): string => {
 interface TeamHealthSummaryProps {
   health: TeamHealth;
   scopeLabel: string;
-  progress: PeopleDashboardProgress | undefined;
-  isLoading: boolean;
+  coverage: PeopleDashboardCoverage | undefined;
+  /** Activity is still loading for the people health covers. */
+  isLoadingActivity: boolean;
+  canLoadMore: boolean;
+  onLoadMore: () => void;
 }
 
 /** Overall team health: a plain-language verdict and the numbers behind it. */
 export const TeamHealthSummary = ({
   health,
   scopeLabel,
-  progress,
-  isLoading,
+  coverage,
+  isLoadingActivity,
+  canLoadMore,
+  onLoadMore,
 }: TeamHealthSummaryProps) => {
-  const partial =
-    progress !== undefined &&
-    progress.hydratedPeopleCount < progress.scopePeopleCount;
+  // Nothing to say until someone's activity has loaded.
+  const waiting = health.memberCount === 0 && isLoadingActivity;
   const declineShare =
     health.requests === 0 ? null : health.declined / health.requests;
+  // A verdict could flip while more people load, so it waits for them.
+  const status = isLoadingActivity ? null : health.status;
 
   return (
     <Card size="sm">
@@ -102,35 +109,41 @@ export const TeamHealthSummary = ({
             <Activity className="text-muted-foreground mt-1 size-4 shrink-0" />
             <span className="min-w-0">
               {scopeLabel}
-              {health.status !== null && !isLoading ? (
+              {status === null ? null : (
                 <span
                   className={cn(
                     "ml-2 inline-block rounded-full px-2 py-0.5 align-middle text-xs font-medium",
-                    statusTone[health.status]
+                    statusTone[status]
                   )}
                 >
-                  {statusLabel[health.status]}
+                  {statusLabel[status]}
                 </span>
-              ) : null}
+              )}
             </span>
           </span>
         </CardTitle>
         <CardDescription>
-          {isLoading ? (
+          {waiting || coverage === undefined ? (
             <Skeleton variant="text" className="mt-0.5 h-3.5 w-72 max-w-full" />
           ) : (
             <>
-              {describeHealth(health)}
-              {partial
-                ? ` Based on ${progress.hydratedPeopleCount} of ${progress.scopePeopleCount} people so far.`
+              {health.memberCount > 0 ? `${describeHealth(health)} ` : null}
+              {coverage.scopePeopleCount === 0
+                ? "No one is on these teams."
                 : null}
+              <CoverageNote
+                coverage={coverage}
+                isLoading={isLoadingActivity}
+                canLoadMore={canLoadMore}
+                onLoadMore={onLoadMore}
+              />
             </>
           )}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-          {isLoading ? (
+        <div className="grid grid-cols-2 gap-2 @3xl:grid-cols-4">
+          {waiting ? (
             Array.from({ length: 4 }, (_, index) => (
               <Skeleton key={index} variant="control" className="h-14" />
             ))
@@ -164,11 +177,11 @@ export const TeamHealthSummary = ({
             </>
           )}
         </div>
-        {health.topShare !== null && !isLoading ? (
+        {health.topShare !== null && status !== null ? (
           <ServingSpread
             topCount={health.topCount}
             topShare={health.topShare}
-            stretched={health.status === "stretched"}
+            stretched={status === "stretched"}
           />
         ) : null}
       </CardContent>

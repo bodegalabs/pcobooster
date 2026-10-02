@@ -1,13 +1,11 @@
 import type { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
-import { NotFound } from "@pcobooster/api/application/errors/not-found";
-import { featureFlagSubjectFor } from "@pcobooster/api/application/feature-flags";
+import { requireFeatureFlag } from "@pcobooster/api/application/feature-flags";
 import {
   PlanningCenterAccess,
   explainPlanningCenterDenial,
   withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
-import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/planning-center-access";
 import { searchLyrics } from "@pcobooster/api/modules/lyrics/lrclib-search";
 import type { LyricsSearchDependencies } from "@pcobooster/api/modules/lyrics/lrclib-search";
 import {
@@ -19,7 +17,7 @@ import {
   prepareChordChartUpdate,
 } from "@pcobooster/api/modules/planning-center/chord-charts";
 import type { PreparedChordChartUpdate } from "@pcobooster/api/modules/planning-center/chord-charts";
-import { Server } from "@pcobooster/api/server";
+import type { Server } from "@pcobooster/api/server";
 import type {
   ChordChartArrangement,
   ChordChartCreateInput,
@@ -44,24 +42,6 @@ const editDenied = explainPlanningCenterDenial(
   "Your Planning Center account can't edit songs in Services. Ask a Services administrator for permission to edit songs."
 );
 
-/** The editor and its writes exist only where the `chordCharts` flag is on for this caller. */
-const requireChordCharts = (access: PlanningCenterRequestAccess) =>
-  Effect.gen(function* checkChordChartsFlag() {
-    const { featureFlags } = yield* Server;
-    const enabled = yield* featureFlags.isEnabled(
-      "chordCharts",
-      featureFlagSubjectFor(access.authentication)
-    );
-    if (!enabled) {
-      yield* Effect.fail(
-        new NotFound({
-          message: "The chord chart editor is not enabled.",
-          resource: "chord-charts",
-        })
-      );
-    }
-  });
-
 export const readChordChartSong = (
   input: ChordChartSongInput
 ): Effect.Effect<
@@ -71,7 +51,7 @@ export const readChordChartSong = (
 > =>
   Effect.gen(function* readSongCharts() {
     const access = yield* PlanningCenterAccess;
-    yield* requireChordCharts(access);
+    yield* requireFeatureFlag(access, "chordCharts");
     return yield* getChordChartSong(input.songId, access.services.songs);
   }).pipe(viewDenied, withPlanningCenterFaults);
 
@@ -84,7 +64,7 @@ export const prepareChordChartSave = (
 > =>
   Effect.gen(function* prepareSave() {
     const access = yield* PlanningCenterAccess;
-    yield* requireChordCharts(access);
+    yield* requireFeatureFlag(access, "chordCharts");
     return yield* prepareChordChartUpdate(input, access.services.songs);
   }).pipe(viewDenied, withPlanningCenterFaults);
 
@@ -109,7 +89,7 @@ export const createChordChart = (
 > =>
   Effect.gen(function* createArrangement() {
     const access = yield* PlanningCenterAccess;
-    yield* requireChordCharts(access);
+    yield* requireFeatureFlag(access, "chordCharts");
     return yield* createChordChartArrangement(input, access.services.songs);
   }).pipe(editDenied, withPlanningCenterFaults);
 
@@ -122,7 +102,7 @@ export const addChordChartSong = (
 > =>
   Effect.gen(function* addSong() {
     const access = yield* PlanningCenterAccess;
-    yield* requireChordCharts(access);
+    yield* requireFeatureFlag(access, "chordCharts");
     return yield* createChordChartSong(input, access.services.songs);
   }).pipe(editDenied, withPlanningCenterFaults);
 
@@ -135,7 +115,7 @@ export const readChordChartPdf = (
 ): Effect.Effect<ChordChartPdf, ApplicationFault, ChordChartRequirements> =>
   Effect.gen(function* readPdf() {
     const access = yield* PlanningCenterAccess;
-    yield* requireChordCharts(access);
+    yield* requireFeatureFlag(access, "chordCharts");
     return yield* getChordChartPdf(input, {
       songs: access.services.songs,
       fetch: async (request, init) => await globalThis.fetch(request, init),
@@ -157,6 +137,6 @@ export const searchChordChartLyrics = (
 > =>
   Effect.gen(function* searchSongLyrics() {
     const access = yield* PlanningCenterAccess;
-    yield* requireChordCharts(access);
+    yield* requireFeatureFlag(access, "chordCharts");
     return yield* searchLyrics(input.query, dependencies);
   }).pipe(withPlanningCenterFaults);

@@ -3,10 +3,8 @@ import type {
   FlagshipEvaluationContext,
 } from "@cloudflare/workers-types";
 import { featureFlags } from "@pcobooster/api/config/feature-flags";
-import type {
-  DeploymentTier,
-  FeatureFlagName,
-} from "@pcobooster/api/config/feature-flags";
+import type { DeploymentTier } from "@pcobooster/api/config/feature-flags";
+import type { FeatureFlagName } from "@pcobooster/contracts/features";
 import { Effect } from "effect";
 
 /** Who a flag is evaluated for. Null when the request has no signed-in user or account. */
@@ -51,6 +49,9 @@ export interface FlagshipFeatureFlagDependencies {
   readonly reportFailure: (failure: FeatureFlagFailure) => void;
 }
 
+/** Accounts whose organization an isolate remembers before starting over. */
+const MAX_REMEMBERED_ORGANIZATIONS = 1000;
+
 /**
  * Evaluates through Cloudflare Flagship. Targeting rules can match `userId` and
  * `organizationId` (the Planning Center organization); percentage rollouts bucket by
@@ -61,12 +62,33 @@ export const createFlagshipFeatureFlags = ({
   resolveOrganizationId,
   reportFailure,
 }: FlagshipFeatureFlagDependencies): FeatureFlags => {
+  // An account's organization never changes, so a found one serves every later flag and
+  // request in this isolate. Only the answer is kept, never a pending lookup: a Worker can't
+  // wait on I/O another request started. A miss (not recorded yet) is asked again next time.
+  const organizationIds = new Map<string, string>();
+  const lookUpOrganizationId = async (
+    accountId: string
+  ): Promise<string | null> => {
+    const known = organizationIds.get(accountId);
+    if (known !== undefined) {
+      return known;
+    }
+    const organizationId = await resolveOrganizationId(accountId);
+    if (organizationId !== null) {
+      if (organizationIds.size >= MAX_REMEMBERED_ORGANIZATIONS) {
+        organizationIds.clear();
+      }
+      organizationIds.set(accountId, organizationId);
+    }
+    return organizationId;
+  };
+
   const organizationIdFor = async (
     flag: FeatureFlagName,
     accountId: string
   ): Promise<string | null> => {
     try {
-      return await resolveOrganizationId(accountId);
+      return await lookUpOrganizationId(accountId);
     } catch (error) {
       // The flag still evaluates for the user; only organization targeting is lost.
       const cause = error instanceof Error ? error : new Error(String(error));

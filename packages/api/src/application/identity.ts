@@ -17,7 +17,6 @@ import {
   getSelectedPlanningCenterAccountId,
   linkedPlanningCenterAccounts,
 } from "@pcobooster/api/auth/planning-center-session";
-import type { FeatureFlagName } from "@pcobooster/api/config/feature-flags";
 import { getDemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
 import type { DemoOrganization } from "@pcobooster/api/modules/demo/get-demo-organization";
 import { anonymousFeatureFlagSubject } from "@pcobooster/api/modules/feature-flags/feature-flags";
@@ -26,6 +25,11 @@ import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-c
 import { createReadOnlyPlanningCenterServices } from "@pcobooster/api/planning-center/services/factory";
 import { Server } from "@pcobooster/api/server";
 import type { ServerDependencies } from "@pcobooster/api/server";
+import {
+  enabledFeaturesSchema,
+  featureFlagNames,
+} from "@pcobooster/contracts/features";
+import type { EnabledFeatures } from "@pcobooster/contracts/features";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { Cause, Effect } from "effect";
 import * as HttpClient from "effect/unstable/http/HttpClient";
@@ -423,17 +427,23 @@ const resolveFeatureFlagSubject = (
     };
   });
 
-export const getFeatureStatus = (
-  flag: FeatureFlagName,
+/** Every flag for this visitor, evaluated once each, so the browser asks once per visit. */
+export const getEnabledFeatures = (
   overrides?: IdentityDependencies
-): Effect.Effect<
-  { readonly enabled: boolean },
-  ApplicationFault,
-  RequestContext | Server
-> =>
-  Effect.gen(function* readFeatureStatus() {
+): Effect.Effect<EnabledFeatures, ApplicationFault, RequestContext | Server> =>
+  Effect.gen(function* readEnabledFeatures() {
     const dependencies = yield* resolveIdentityDependencies(overrides);
     const subject = yield* resolveFeatureFlagSubject(dependencies);
     const { featureFlags } = yield* Server;
-    return { enabled: yield* featureFlags.isEnabled(flag, subject) };
+    const answers = yield* Effect.forEach(
+      featureFlagNames,
+      (flag) => featureFlags.isEnabled(flag, subject),
+      { concurrency: "unbounded" }
+    );
+    // The schema checks every flag got an answer.
+    return enabledFeaturesSchema.parse(
+      Object.fromEntries(
+        featureFlagNames.map((flag, index) => [flag, answers[index]])
+      )
+    );
   });

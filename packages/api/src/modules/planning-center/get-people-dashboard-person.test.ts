@@ -1,3 +1,4 @@
+import { getPeopleDashboardActivity } from "@pcobooster/api/modules/planning-center/get-people-dashboard";
 import {
   getPeopleDashboardPerson,
   getPersonScheduleWindow,
@@ -189,22 +190,32 @@ const readDetail = async (
   );
 
 describe(getPersonScheduleWindow, () => {
-  it("starts at the earlier of the six trend months and the 90-day cadence window", () => {
+  it("reads the dashboard's 181 days of history, or the month when it starts earlier", () => {
     expect(
       getPersonScheduleWindow({ year: 2026, monthIndex: 8 }, NOW, LOS_ANGELES)
     ).toStrictEqual({
-      startDayKey: "2026-04-01",
-      afterDayKey: "2026-03-31",
+      startDayKey: "2026-03-27",
+      afterDayKey: "2026-03-26",
+      planTimesFromDayKey: "2026-06-25",
+      rangeStartDayKey: "2026-06-24",
       rangeEndDayKey: "2026-12-31",
       orgTimeZone: LOS_ANGELES,
     });
     expect(
       getPersonScheduleWindow({ year: 2027, monthIndex: 5 }, NOW, LOS_ANGELES)
     ).toStrictEqual({
-      startDayKey: "2026-06-26",
-      afterDayKey: "2026-06-25",
+      startDayKey: "2026-03-27",
+      afterDayKey: "2026-03-26",
+      planTimesFromDayKey: "2026-06-25",
+      rangeStartDayKey: "2026-06-24",
       rangeEndDayKey: "2027-06-30",
       orgTimeZone: LOS_ANGELES,
+    });
+    expect(
+      getPersonScheduleWindow({ year: 2026, monthIndex: 0 }, NOW, LOS_ANGELES)
+    ).toMatchObject({
+      startDayKey: "2026-01-01",
+      planTimesFromDayKey: "2026-01-01",
     });
   });
 });
@@ -267,14 +278,15 @@ describe(getPeopleDashboardPerson, () => {
 
     expect(fixture.getPersonSchedulesAfter).toHaveBeenCalledExactlyOnceWith(
       "person-1",
-      "2026-03-31T07:00:00.000Z",
-      5
+      "2026-03-26T07:00:00.000Z",
+      5,
+      { includeDeclined: true }
     );
     expect(
       fixture.getPlansWithIncludedInDateRange
     ).toHaveBeenCalledExactlyOnceWith(
       "service-type-1",
-      "2026-03-31",
+      "2026-06-24",
       "2026-12-31",
       "plan_times",
       LOS_ANGELES
@@ -283,13 +295,34 @@ describe(getPeopleDashboardPerson, () => {
     expect(fixture.getServiceTypesCached).not.toHaveBeenCalled();
   });
 
-  it("builds the month, cadence, and trend from distinct org calendar days", async () => {
+  it("builds the month and the rhythm from distinct org calendar days", async () => {
     vi.useFakeTimers({ now: NOW });
     const fixture = augustAndSeptemberFixture();
 
     const detail = await readDetail(fixture.dependencies);
     const { person: summary } = detail;
 
+    expect({
+      teams: summary.teams,
+      roles: summary.roles,
+      rhythm: summary.rhythm,
+    }).toStrictEqual({
+      teams: ["Band"],
+      roles: ["Keys"],
+      rhythm: {
+        lastServedOn: "2026-09-13",
+        nextServingOn: null,
+        servedDays30: 1,
+        servedDays90: 2,
+        servedDays180: 2,
+        upcomingDays30: 0,
+        typicalGapDays: null,
+        requests180: 2,
+        declined180: 0,
+        pendingUpcoming: 0,
+        nextPendingOn: null,
+      },
+    });
     expect(summary.monthDays).toStrictEqual([
       {
         day: 9,
@@ -307,32 +340,6 @@ describe(getPeopleDashboardPerson, () => {
         status: "C",
         planUrl: "/services/service-type-1/plans/plan-1/lineup",
       },
-    ]);
-    expect({
-      monthCount: summary.monthCount,
-      lastServed: summary.lastServed,
-      lastRehearsal: summary.lastRehearsal,
-      thirtyDayCount: summary.thirtyDayCount,
-      ninetyDayCount: summary.ninetyDayCount,
-    }).toStrictEqual({
-      monthCount: 1,
-      lastServed: "Sep 13",
-      lastRehearsal: "Sep 9",
-      thirtyDayCount: 1,
-      ninetyDayCount: 2,
-    });
-    expect(
-      detail.trend.map(
-        ({ month, services, rehearsals }) =>
-          `${month}:${services}/${rehearsals}`
-      )
-    ).toStrictEqual([
-      "2026-04:0/0",
-      "2026-05:0/0",
-      "2026-06:0/0",
-      "2026-07:0/0",
-      "2026-08:1/0",
-      "2026-09:1/1",
     ]);
   });
 
@@ -354,14 +361,13 @@ describe(getPeopleDashboardPerson, () => {
 
     const september = await readDetail(fixture.dependencies, "2026-09");
 
-    expect(september.person.monthCount).toBe(1);
     expect(september.person.monthDays.map((day) => day.day)).toStrictEqual([
       30,
     ]);
-    expect(september.trend.at(-1)?.services).toBe(1);
+    expect(september.person.rhythm.nextServingOn).toBe("2026-09-30");
   });
 
-  it("leaves declined schedules and declined requests out of every count", async () => {
+  it("counts declines as responses, never as serving", async () => {
     vi.useFakeTimers({ now: NOW });
     const fixture = dependenciesFor({
       schedules: {
@@ -393,14 +399,18 @@ describe(getPeopleDashboardPerson, () => {
 
     const detail = await readDetail(fixture.dependencies);
 
-    expect(detail.person.monthCount).toBe(0);
     expect(detail.person.monthDays).toStrictEqual([]);
-    expect(detail.person.upcomingCount).toBe(0);
-    expect(detail.trend.every((month) => month.services === 0)).toBeTruthy();
+    expect(detail.person.rhythm).toMatchObject({
+      lastServedOn: null,
+      nextServingOn: null,
+      servedDays180: 0,
+      requests180: 1,
+      declined180: 1,
+    });
     expect(fixture.getServiceTypesCached).not.toHaveBeenCalled();
   });
 
-  it("counts upcoming requests that were prepared but not sent", async () => {
+  it("shows upcoming requests that were prepared but not sent, without counting them as asked", async () => {
     vi.useFakeTimers({ now: NOW });
     const fixture = dependenciesFor({
       schedules: {
@@ -445,9 +455,12 @@ describe(getPeopleDashboardPerson, () => {
 
     const detail = await readDetail(fixture.dependencies);
 
-    expect(detail.person.monthCount).toBe(2);
-    expect(detail.person.upcomingCount).toBe(2);
-    expect(detail.person.nextScheduled).toBe("Sep 26");
+    // The person has not been asked yet, so the rhythm (like the dashboard's) leaves it out.
+    expect(detail.person.rhythm).toMatchObject({
+      nextServingOn: "2026-09-27",
+      upcomingDays30: 1,
+      pendingUpcoming: 0,
+    });
     expect(detail.person.monthDays).toContainEqual({
       day: 26,
       kind: "service",
@@ -456,7 +469,8 @@ describe(getPeopleDashboardPerson, () => {
       status: "U",
       planUrl: "/services/service-type-1/plans/plan-2/lineup",
     });
-    expect(detail.person.teams).toStrictEqual(["Choir", "Band"]);
+    // Most recent first.
+    expect(detail.person.teams).toStrictEqual(["Band", "Choir"]);
   });
 
   it("reads a plan's own times only when the plan range lacks them", async () => {
@@ -486,9 +500,89 @@ describe(getPeopleDashboardPerson, () => {
     const detail = await readDetail(fixture.dependencies);
 
     expect(fixture.getPlanPlanTimes).toHaveBeenCalledExactlyOnceWith("plan-1");
-    expect(detail.person.lastRehearsal).toBe("Sep 12");
-    expect(detail.trend.at(-1)?.rehearsals).toBe(1);
+    expect(
+      detail.person.monthDays.map(({ day, kind }) => `${day}:${kind}`)
+    ).toStrictEqual(["12:rehearsal", "13:service"]);
     expect(detail.requestBudget.unresolvedRehearsalTimes).toBe(0);
+  });
+
+  it("gives the person the same serving rhythm the dashboard reads", async () => {
+    vi.useFakeTimers({ now: NOW });
+    const fixture = dependenciesFor({
+      schedules: {
+        data: [
+          // Older than the rehearsal window on both pages.
+          schedule({
+            id: "schedule-may",
+            planId: "plan-may",
+            sortDate: "2026-05-03T17:00:00Z",
+            timeIds: ["time-may-rehearsal"],
+          }),
+          schedule({
+            id: "schedule-jul",
+            planId: "plan-jul",
+            sortDate: "2026-07-19T17:00:00Z",
+            timeIds: ["time-jul-service"],
+          }),
+          schedule({
+            id: "schedule-aug-declined",
+            planId: "plan-aug",
+            sortDate: "2026-08-16T17:00:00Z",
+            status: "D",
+            timeIds: ["time-aug-service"],
+          }),
+          schedule({
+            id: "schedule-sep",
+            planId: "plan-1",
+            sortDate: "2026-09-13T17:00:00Z",
+            timeIds: ["time-sep-rehearsal", "time-sep-service"],
+          }),
+          schedule({
+            id: "schedule-oct",
+            planId: "plan-oct",
+            sortDate: "2026-10-04T17:00:00Z",
+            status: "U",
+            timeIds: ["time-oct-service"],
+          }),
+        ],
+        included: [
+          planTime("time-jul-service", "2026-07-19T17:00:00Z", "service"),
+          planTime("time-aug-service", "2026-08-16T17:00:00Z", "service"),
+          planTime("time-sep-service", "2026-09-13T17:00:00Z", "service"),
+          planTime("time-oct-service", "2026-10-04T17:00:00Z", "service"),
+        ],
+      },
+      rangeIncluded: [
+        planTime("time-sep-rehearsal", "2026-09-10T02:00:00Z", "rehearsal"),
+      ],
+    });
+
+    const [detail, activity] = await Promise.all([
+      readDetail(fixture.dependencies),
+      Effect.runPromise(
+        getPeopleDashboardActivity({
+          personIds: ["person-1"],
+          dependencies: {
+            peopleService: fixture.dependencies.peopleService,
+            plansService: fixture.dependencies.plansService,
+            resolveTimeZone: Effect.succeed(LOS_ANGELES),
+          },
+        })
+      ),
+    ]);
+
+    expect(detail.person.rhythm).toStrictEqual(activity.people[0]?.rhythm);
+    expect(detail.person.rhythm).toMatchObject({
+      lastServedOn: "2026-09-13",
+      nextServingOn: "2026-10-04",
+      servedDays30: 1,
+      servedDays90: 2,
+      servedDays180: 3,
+      requests180: 4,
+      declined180: 1,
+      pendingUpcoming: 1,
+      nextPendingOn: "2026-10-04",
+    });
   });
 
   it("stays within the budget for someone serving in 12 service types and reports what it left unresolved", async () => {
@@ -694,6 +788,8 @@ describe("getPeopleDashboardPerson Planning Center failures", () => {
     expect(detail.person.monthDays).toContainEqual(
       expect.objectContaining({ day: 13, kind: "service" })
     );
-    expect(detail.trend.at(-1)?.rehearsals).toBe(0);
+    expect(
+      detail.person.monthDays.some(({ kind }) => kind === "rehearsal")
+    ).toBeFalsy();
   });
 });

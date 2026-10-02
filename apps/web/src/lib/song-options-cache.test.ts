@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   clearCachedSongOptions,
+  clearCachedSongOptionsForSong,
   readCachedSongOptions,
   writeCachedSongOptions,
 } from "@/lib/song-options-cache";
@@ -112,5 +113,17 @@ describe("song options cache", () => {
     expect(readCachedSongOptions("song-1", "st-1")).toBeUndefined();
     expect(readCachedSongOptions("song-2", "st-1")).toBeUndefined();
     expect(window.localStorage.getItem("unrelated")).toBe("keep");
+  });
+
+  it("clears one song's options in every service type", () => {
+    writeCachedSongOptions("song-1", "st-1", optionSet());
+    writeCachedSongOptions("song-1", "st-2", optionSet());
+    writeCachedSongOptions("song-11", "st-1", optionSet());
+
+    clearCachedSongOptionsForSong("song-1");
+
+    expect(readCachedSongOptions("song-1", "st-1")).toBeUndefined();
+    expect(readCachedSongOptions("song-1", "st-2")).toBeUndefined();
+    expect(readCachedSongOptions("song-11", "st-1")).toBeDefined();
   });
 });

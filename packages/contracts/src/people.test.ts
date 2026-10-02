@@ -14,25 +14,28 @@ import {
 } from "@pcobooster/contracts/people-schemas";
 import { describe, expect, it } from "vitest";
 
+const rhythm = {
+  lastServedOn: "2026-09-13",
+  nextServingOn: null,
+  servedDays30: 1,
+  servedDays90: 3,
+  servedDays180: 6,
+  upcomingDays30: 0,
+  typicalGapDays: 21,
+  requests180: 7,
+  declined180: 1,
+  pendingUpcoming: 0,
+  nextPendingOn: null,
+};
+
 const dashboardPerson = {
   id: "person-1",
   name: "Person",
   initials: "P",
   photoThumbnailUrl: null,
   teams: ["Band"],
-  roles: "Keys",
-  status: "Available",
-  load: "normal",
-  lastServed: "Yesterday",
-  lastRehearsal: "Thursday",
-  nextScheduled: "Sunday",
-  nextRehearsal: "Saturday",
-  monthCount: 2,
-  thirtyDayCount: 3,
-  ninetyDayCount: 9,
-  upcomingCount: 1,
-  streak: "Two weeks",
-  highlight: "Regular rotation",
+  rhythm,
+  roles: ["Keys"],
   monthDays: [
     {
       day: 20,
@@ -98,8 +101,15 @@ describe("people read contracts", () => {
   });
 
   it("splits a dashboard person into roster identity and batch activity", () => {
-    const { id, name, initials, photoThumbnailUrl, teams, ...activity } =
-      dashboardPerson;
+    const {
+      id,
+      name,
+      initials,
+      photoThumbnailUrl,
+      teams,
+      rhythm: _rhythm,
+      ...activity
+    } = dashboardPerson;
     const roster = {
       generatedAt: "2026-09-19T17:00:00Z",
       month,
@@ -113,19 +123,6 @@ describe("people read contracts", () => {
         },
       ],
       ledTeamIds: ["team-1"],
-    };
-    const rhythm = {
-      lastServedOn: "2026-09-13",
-      nextServingOn: null,
-      servedDays30: 1,
-      servedDays90: 3,
-      servedDays180: 6,
-      upcomingDays30: 0,
-      typicalGapDays: 21,
-      requests180: 7,
-      declined180: 1,
-      pendingUpcoming: 0,
-      nextPendingOn: null,
     };
     const batch = {
       generatedAt: roster.generatedAt,
@@ -144,9 +141,6 @@ describe("people read contracts", () => {
       previousMonth: "2026-08",
       nextMonth: "2026-10",
       person: dashboardPerson,
-      trend: [
-        { month: "2026-09", label: "September", services: 2, rehearsals: 1 },
-      ],
       requestBudget: {
         limit: 36,
         planningCenterRequests: 4,
@@ -158,7 +152,7 @@ describe("people read contracts", () => {
     expect(peopleDashboardActivityBatchSchema.parse(batch)).toStrictEqual(
       batch
     );
-    // The rhythm feeds the team dashboard; a person detail does not carry it.
+    // A person detail carries the same rhythm the dashboard reads.
     expect(
       peopleDashboardPersonSchema.parse({
         ...roster.people[0],
@@ -166,6 +160,12 @@ describe("people read contracts", () => {
         rhythm,
       })
     ).toStrictEqual(dashboardPerson);
+    expect(
+      peopleDashboardPersonSchema.safeParse({
+        ...roster.people[0],
+        ...activity,
+      }).success
+    ).toBeFalsy();
     expect(peopleDashboardPersonDetailSchema.parse(detail)).toStrictEqual(
       detail
     );

@@ -98,10 +98,26 @@ describe(buildServingRhythm, () => {
       servedDays180: 1,
       upcomingDays30: 2,
       typicalGapDays: null,
-      requests180: 6,
+      requests180: 3,
       declined180: 2,
       pendingUpcoming: 2,
       nextPendingOn: "2026-10-04",
     });
+  });
+
+  it("counts requests and declines over the last six months only, not upcoming ones", () => {
+    const rhythm = buildServingRhythm(
+      [
+        served("2026-09-13T16:00:00.000Z", "D"),
+        served("2026-09-25T09:00:00.000Z", "D"),
+        // A request declined ahead of time has not come round yet.
+        served("2026-10-11T16:00:00.000Z", "D"),
+        served("2026-10-18T16:00:00.000Z"),
+      ],
+      new Date("2026-09-25T18:00:00.000Z"),
+      "UTC"
+    );
+
+    expect(rhythm).toMatchObject({ requests180: 2, declined180: 2 });
   });
 });

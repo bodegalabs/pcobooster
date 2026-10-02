@@ -4,6 +4,7 @@ import {
   searchRunSheetSongs,
   suggestRunSheetSongs,
 } from "@pcobooster/api/application/run-sheet";
+import { readSongLibrary } from "@pcobooster/api/application/song-library";
 import { rpc } from "@pcobooster/api/transport/orpc/implementation";
 import { readWithPlanningCenter } from "@pcobooster/api/transport/orpc/planning-center-procedure";
 
@@ -14,6 +15,10 @@ const search = rpc.songs.search.handler(
 
 const suggestions = rpc.songs.suggestions.handler(
   async (call) => await readWithPlanningCenter(suggestRunSheetSongs(), call)
+);
+
+const library = rpc.songs.library.handler(
+  async (call) => await readWithPlanningCenter(readSongLibrary(), call)
 );
 
 const history = rpc.songs.history.handler(
@@ -29,6 +34,7 @@ const options = rpc.songs.options.handler(
 export const songsRouter = {
   search,
   suggestions,
+  library,
   history,
   options,
 };

@@ -48,6 +48,7 @@ Help the scheduler get a feel for the church's repertoire: which songs are stapl
 
 - Data: `Song.last_scheduled_at`, `last_scheduled_short_dates`, `song_schedules`, and plan items over a window. Cache past plans for a long time; they don't change.
 - Shape: a Songs tab with "staples", "in heavy rotation", "new and catching on", "resting" groups, plus a per-song timeline of when it was played.
+- Status: the Songs page lists the whole library by when each song was last on a plan, with "unused for 6 months / 1 year / 2 years" and "never scheduled" filters for tidying up (hiding a song happens in Planning Center). Rotation groups and per-song timelines are still to do.
 - Could later compare against wider popularity (for example CCLI's top songs) to separate "common at our church" from "common everywhere".
 
 ## Exploring
@@ -89,7 +90,7 @@ Long-term goal: agents can do anything a scheduler can do in the app. Build the 
 ## Parked
 
 - **Copy a past plan as a template** ("last year's Easter", with people adjusted for current availability). Most useful paired with the assistant.
-- **Cleanup: merge duplicates.** The public API has no song merge; the best we could do is flag likely duplicates, hide one (`Song.hidden`) or archive arrangements, and link to Planning Center for anything else. The People API exposes `person_mergers` as a history of merges, and we haven't confirmed that creating one through the API is supported. Revisit after checking the write side.
+- **Merge duplicate songs and people.** The public API has no song merge; the best we could do is flag likely duplicates, hide one (`Song.hidden`) or archive arrangements, and link to Planning Center for anything else. The People API exposes `person_mergers` as a history of merges, and we haven't confirmed that creating one through the API is supported. Revisit after checking the write side.
 
 ## Not yet discussed
 

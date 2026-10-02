@@ -193,19 +193,7 @@ export const candidateDetailsBatchSchema = z.object({
   }),
 });
 
-export const peopleDashboardLoadSchema = z.enum([
-  "low",
-  "high",
-  "normal",
-  "rest",
-]);
-
-export const peopleDashboardDayKindSchema = z.enum([
-  "service",
-  "rehearsal",
-  "rest",
-  "blockout",
-]);
+export const peopleDashboardDayKindSchema = z.enum(["service", "rehearsal"]);
 
 export const peopleDashboardMonthSchema = z.object({
   year: z.number(),
@@ -236,7 +224,7 @@ export const servingRhythmSchema = z.object({
   upcomingDays30: z.number(),
   /** Median days between served days in the last 180; null with too few. */
   typicalGapDays: z.number().nullable(),
-  /** Schedules dated in the last 180 days or later, declined included. */
+  /** Schedules dated in the last 180 days through today, declined included. */
   requests180: z.number(),
   declined180: z.number(),
   /** Upcoming schedules still unconfirmed. */
@@ -244,38 +232,30 @@ export const servingRhythmSchema = z.object({
   nextPendingOn: calendarDayKeySchema.nullable(),
 });
 
+/** A service or rehearsal day in a person's month, one per position, service type, and status. */
+export const peopleDashboardMonthDaySchema = z.object({
+  day: z.number(),
+  kind: peopleDashboardDayKindSchema,
+  positionName: z.string().optional(),
+  serviceTypeName: z.string().optional(),
+  status: z.string().optional(),
+  planUrl: z.string().optional(),
+});
+
 /** How one roster person is serving, derived from their own schedules. */
 export const peopleDashboardActivitySchema = z.object({
   id: z.string(),
   rhythm: servingRhythmSchema,
-  roles: z.string(),
-  status: z.string(),
-  load: peopleDashboardLoadSchema,
-  lastServed: z.string(),
-  lastRehearsal: z.string().optional(),
-  nextScheduled: z.string(),
-  nextRehearsal: z.string().optional(),
-  monthCount: z.number(),
-  thirtyDayCount: z.number(),
-  ninetyDayCount: z.number(),
-  upcomingCount: z.number(),
-  streak: z.string(),
-  highlight: z.string(),
-  monthDays: z.array(
-    z.object({
-      day: z.number(),
-      kind: peopleDashboardDayKindSchema,
-      positionName: z.string().optional(),
-      serviceTypeName: z.string().optional(),
-      status: z.string().optional(),
-      planUrl: z.string().optional(),
-    })
-  ),
+  /** Their most common positions, most common first; empty without schedules. */
+  roles: z.array(z.string()),
+  /** The month's services and rehearsals, by day. */
+  monthDays: z.array(peopleDashboardMonthDaySchema),
 });
 
+/** A roster person with their serving activity. */
 export const peopleDashboardPersonSchema =
   peopleDashboardRosterPersonSchema.extend(
-    peopleDashboardActivitySchema.omit({ id: true, rhythm: true }).shape
+    peopleDashboardActivitySchema.omit({ id: true }).shape
   );
 
 export const peopleDashboardTeamSchema = z.object({
@@ -318,15 +298,11 @@ export const peopleDashboardPersonDetailSchema = z.object({
   month: peopleDashboardMonthSchema,
   previousMonth: z.string(),
   nextMonth: z.string(),
+  /**
+   * The rhythm reads the same schedules the dashboard does; `teams` are the teams the person
+   * served on lately, and `monthDays` cover the requested month.
+   */
   person: peopleDashboardPersonSchema,
-  trend: z.array(
-    z.object({
-      month: z.string(),
-      label: z.string(),
-      services: z.number(),
-      rehearsals: z.number(),
-    })
-  ),
   requestBudget: z.object({
     limit: z.number(),
     /** Planning Center requests the call sent; cached reads cost none. */
@@ -361,11 +337,13 @@ export type PlanWindowHistoryBatch = z.output<
 export type CandidateDetailsBatch = z.output<
   typeof candidateDetailsBatchSchema
 >;
-export type PeopleDashboardLoad = z.output<typeof peopleDashboardLoadSchema>;
 export type PeopleDashboardDayKind = z.output<
   typeof peopleDashboardDayKindSchema
 >;
 export type PeopleDashboardMonth = z.output<typeof peopleDashboardMonthSchema>;
+export type PeopleDashboardMonthDay = z.output<
+  typeof peopleDashboardMonthDaySchema
+>;
 export type PeopleDashboardRosterPerson = z.output<
   typeof peopleDashboardRosterPersonSchema
 >;

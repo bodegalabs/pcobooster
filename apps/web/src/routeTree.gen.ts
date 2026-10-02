@@ -19,7 +19,6 @@ import { Route as VersionRouteImport } from './routes/version'
 import { Route as AdminSplatRouteImport } from './routes/admin/$'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as DemoKeyRouteImport } from './routes/demo/$key'
-import { Route as AppCleanupIndexRouteImport } from './routes/_app/cleanup/index'
 import { Route as AppPeopleIndexRouteImport } from './routes/_app/people/index'
 import { Route as AppPeoplePersonIdRouteImport } from './routes/_app/people/$personId'
 import { Route as AppServicesIndexRouteImport } from './routes/_app/services/index'
@@ -78,11 +77,6 @@ const DemoKeyRoute = DemoKeyRouteImport.update({
   path: '/demo/$key',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppCleanupIndexRoute = AppCleanupIndexRouteImport.update({
-  id: '/cleanup/',
-  path: '/cleanup/',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppPeopleIndexRoute = AppPeopleIndexRouteImport.update({
   id: '/people/',
   path: '/people/',
@@ -139,7 +133,6 @@ export interface FileRoutesByFullPath {
   '/demo/$key': typeof DemoKeyRoute
   '/people/$personId': typeof AppPeoplePersonIdRoute
   '/songs/$songId': typeof AppSongsSongIdRoute
-  '/cleanup/': typeof AppCleanupIndexRoute
   '/people/': typeof AppPeopleIndexRoute
   '/services/': typeof AppServicesIndexRoute
   '/songs/': typeof AppSongsIndexRoute
@@ -159,7 +152,6 @@ export interface FileRoutesByTo {
   '/demo/$key': typeof DemoKeyRoute
   '/people/$personId': typeof AppPeoplePersonIdRoute
   '/songs/$songId': typeof AppSongsSongIdRoute
-  '/cleanup': typeof AppCleanupIndexRoute
   '/people': typeof AppPeopleIndexRoute
   '/services': typeof AppServicesIndexRoute
   '/songs': typeof AppSongsIndexRoute
@@ -180,7 +172,6 @@ export interface FileRoutesById {
   '/demo/$key': typeof DemoKeyRoute
   '/_app/people/$personId': typeof AppPeoplePersonIdRoute
   '/_app/songs/$songId': typeof AppSongsSongIdRoute
-  '/_app/cleanup/': typeof AppCleanupIndexRoute
   '/_app/people/': typeof AppPeopleIndexRoute
   '/_app/services/': typeof AppServicesIndexRoute
   '/_app/songs/': typeof AppSongsIndexRoute
@@ -202,7 +193,6 @@ export interface FileRouteTypes {
     | '/demo/$key'
     | '/people/$personId'
     | '/songs/$songId'
-    | '/cleanup/'
     | '/people/'
     | '/services/'
     | '/songs/'
@@ -222,7 +212,6 @@ export interface FileRouteTypes {
     | '/demo/$key'
     | '/people/$personId'
     | '/songs/$songId'
-    | '/cleanup'
     | '/people'
     | '/services'
     | '/songs'
@@ -242,7 +231,6 @@ export interface FileRouteTypes {
     | '/demo/$key'
     | '/_app/people/$personId'
     | '/_app/songs/$songId'
-    | '/_app/cleanup/'
     | '/_app/people/'
     | '/_app/services/'
     | '/_app/songs/'
@@ -336,13 +324,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app/cleanup/': {
-      id: '/_app/cleanup/'
-      path: '/cleanup'
-      fullPath: '/cleanup/'
-      preLoaderRoute: typeof AppCleanupIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/people/': {
       id: '/_app/people/'
       path: '/people'
@@ -423,7 +404,6 @@ const AppServicesServiceTypeIdPlansPlanIdRouteRouteWithChildren =
 interface AppRouteChildren {
   AppPeoplePersonIdRoute: typeof AppPeoplePersonIdRoute
   AppSongsSongIdRoute: typeof AppSongsSongIdRoute
-  AppCleanupIndexRoute: typeof AppCleanupIndexRoute
   AppPeopleIndexRoute: typeof AppPeopleIndexRoute
   AppServicesIndexRoute: typeof AppServicesIndexRoute
   AppSongsIndexRoute: typeof AppSongsIndexRoute
@@ -433,7 +413,6 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppPeoplePersonIdRoute: AppPeoplePersonIdRoute,
   AppSongsSongIdRoute: AppSongsSongIdRoute,
-  AppCleanupIndexRoute: AppCleanupIndexRoute,
   AppPeopleIndexRoute: AppPeopleIndexRoute,
   AppServicesIndexRoute: AppServicesIndexRoute,
   AppSongsIndexRoute: AppSongsIndexRoute,

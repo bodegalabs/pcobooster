@@ -6,13 +6,22 @@ import { describe, expect, it } from "vitest";
 
 import {
   assemblePeopleDashboard,
+  buildMonthDays,
   defaultPeopleDashboardScope,
+  describeCoverage,
   initialScopeLoadCount,
+  matchesPeopleQuery,
+  matrixPageStart,
+  normalizePeopleQuery,
+  orderActivityBatches,
   parsePeopleDashboardScope,
+  parsePeopleDashboardView,
   PEOPLE_DASHBOARD_SAMPLE_SIZE,
   planPeopleDashboardBatches,
   resolveScopePersonIds,
+  serviceDays,
   teamScope,
+  unrequestedMatchIds,
 } from "@/lib/people-dashboard";
 
 const roster = (
@@ -71,20 +80,12 @@ const activity = (
     pendingUpcoming: 0,
     nextPendingOn: null,
   },
-  roles: "Vocals",
-  status: "Upcoming",
-  load: "normal",
-  lastServed: "May 10",
-  nextScheduled: "May 31",
-  monthCount: 1,
-  thirtyDayCount: 1,
-  ninetyDayCount: 2,
-  upcomingCount: 1,
-  streak: "1 in 30 days",
-  highlight: "Healthy cadence.",
+  roles: ["Keys"],
   monthDays: [{ day: 31, kind: "service", status: "C" }],
   ...overrides,
 });
+
+const noneLoading = new Set<string>();
 
 describe(planPeopleDashboardBatches, () => {
   it("splits the first requested scope people into fixed-size calls", () => {
@@ -92,6 +93,17 @@ describe(planPeopleDashboardBatches, () => {
       planPeopleDashboardBatches(["a", "b", "c", "d", "e"], 4, 3)
     ).toStrictEqual([["a", "b", "c"], ["d"]]);
     expect(planPeopleDashboardBatches([], 4, 3)).toStrictEqual([]);
+  });
+});
+
+describe(orderActivityBatches, () => {
+  it("starts search matches before sample batches still waiting, never ahead of ones under way", () => {
+    const started = new Set(["a"]);
+    expect(
+      orderActivityBatches([["a"], ["b"], ["c"]], [["s"]], ([first]) =>
+        started.has(first ?? "")
+      )
+    ).toStrictEqual([["a"], ["s"], ["b"], ["c"]]);
   });
 });
 
@@ -122,19 +134,52 @@ describe("people dashboard scopes", () => {
     expect(initialScopeLoadCount("all", 70)).toBe(PEOPLE_DASHBOARD_SAMPLE_SIZE);
   });
 
-  it("reads scopes back from select values", () => {
+  it("reads scopes back from select values and search params", () => {
     expect(parsePeopleDashboardScope("mine")).toBe("mine");
     expect(parsePeopleDashboardScope("team:42")).toBe("team:42");
     expect(parsePeopleDashboardScope("team:")).toBeNull();
     expect(parsePeopleDashboardScope("elsewhere")).toBeNull();
+    expect(parsePeopleDashboardScope()).toBeNull();
+  });
+
+  it("reads the view back from search params, Health unless it says Month", () => {
+    expect(parsePeopleDashboardView("month")).toBe("month");
+    expect(parsePeopleDashboardView("calendar")).toBe("health");
+    expect(parsePeopleDashboardView()).toBe("health");
+  });
+});
+
+const coverage = (loaded: number, sample: number, scope: number) => ({
+  loadedPeopleCount: loaded,
+  samplePeopleCount: sample,
+  scopePeopleCount: scope,
+});
+
+describe(describeCoverage, () => {
+  it("says how many people health covers while they load", () => {
+    expect(describeCoverage(coverage(16, 40, 40), true)).toBe(
+      "Based on 16 of 40 people so far"
+    );
+    expect(describeCoverage(coverage(40, 40, 40), false)).toBeNull();
+  });
+
+  it("says when all teams is a sample, not the whole roster", () => {
+    expect(describeCoverage(coverage(48, 48, 230), false)).toBe(
+      "Based on the first 48 of 230 people"
+    );
+    // A batch failed: no "first", since some of them are missing.
+    expect(describeCoverage(coverage(32, 48, 230), false)).toBe(
+      "Based on 32 of 230 people"
+    );
   });
 });
 
 describe(assemblePeopleDashboard, () => {
-  it("shows the roster teams before any activity arrives", () => {
+  it("shows the roster and teams before any activity arrives", () => {
     const dashboard = assemblePeopleDashboard(roster(3, ["band"]), [], {
       scopePersonIds: ["person-0", "person-1", "person-2"],
-      requestedPeopleCount: 3,
+      samplePeopleCount: 3,
+      loadingPersonIds: new Set(["person-0", "person-1", "person-2"]),
     });
 
     expect(dashboard.teams.map(({ id }) => id)).toStrictEqual([
@@ -142,68 +187,167 @@ describe(assemblePeopleDashboard, () => {
       "vocals",
     ]);
     expect(dashboard.ledTeamIds).toStrictEqual(["band"]);
-    expect(dashboard.people).toStrictEqual([]);
-    expect(dashboard.progress).toStrictEqual({
+    expect(
+      dashboard.sampleRows.map(({ person, member, loading }) => [
+        person.name,
+        member,
+        loading,
+      ])
+    ).toStrictEqual([
+      ["Person 0", null, true],
+      ["Person 1", null, true],
+      ["Person 2", null, true],
+    ]);
+    expect(dashboard.members).toStrictEqual([]);
+    expect(dashboard.coverage).toStrictEqual({
       scopePeopleCount: 3,
-      requestedPeopleCount: 3,
-      hydratedPeopleCount: 0,
+      samplePeopleCount: 3,
+      loadedPeopleCount: 0,
     });
   });
 
-  it("merges loaded activity into the scope's people, heaviest load first", () => {
+  it("fills in people as their batches answer, keeping roster order", () => {
     const dashboard = assemblePeopleDashboard(
       roster(4),
       [
-        activity("person-0", { load: "low", monthCount: 0 }),
-        activity("person-1", { load: "rest", monthCount: 4 }),
-        activity("person-2", {
-          load: "high",
-          monthCount: 3,
-          monthDays: [
-            { day: 3, kind: "rehearsal" },
-            { day: 4, kind: "service", status: "U" },
-          ],
-        }),
+        activity("person-2", { roles: ["Drums"] }),
+        activity("person-0"),
         // Loaded for another scope; not part of this one.
-        activity("person-3", { load: "rest", monthCount: 5 }),
-        activity("person-9"),
+        activity("person-3"),
       ],
       {
         scopePersonIds: ["person-0", "person-1", "person-2"],
-        requestedPeopleCount: 8,
+        samplePeopleCount: 3,
+        loadingPersonIds: new Set(["person-1"]),
       }
     );
 
-    expect(dashboard.people.map(({ id }) => id)).toStrictEqual([
-      "person-1",
-      "person-2",
-      "person-0",
+    expect(
+      dashboard.sampleRows.map(({ person, member, loading }) => [
+        person.id,
+        member?.roles ?? null,
+        loading,
+      ])
+    ).toStrictEqual([
+      ["person-0", ["Keys"], false],
+      ["person-1", null, true],
+      ["person-2", ["Drums"], false],
     ]);
-    expect(dashboard.people[0]).toMatchObject({
-      id: "person-1",
-      name: "Person 1",
-      teams: ["Band"],
-      load: "rest",
+    expect(dashboard.members[1]).toMatchObject({
+      id: "person-2",
+      name: "Person 2",
+      teams: ["Vocals", "Band"],
       rhythm: { lastServedOn: "2026-05-10" },
     });
-    expect(dashboard.monthDays.find(({ day }) => day === 4)).toStrictEqual({
-      day: 4,
-      serviceCount: 1,
-      confirmedServiceCount: 0,
-      potentialServiceCount: 1,
-      rehearsalCount: 0,
-      blockoutCount: 0,
+    expect(dashboard.coverage).toStrictEqual({
+      scopePeopleCount: 3,
+      samplePeopleCount: 3,
+      loadedPeopleCount: 2,
     });
-    expect({
-      matrixDays: dashboard.matrixDays,
-      progress: dashboard.progress,
-    }).toStrictEqual({
-      matrixDays: [4, 31],
-      progress: {
-        scopePeopleCount: 3,
-        requestedPeopleCount: 3,
-        hydratedPeopleCount: 3,
+  });
+
+  it("keeps health to the sample while search matches beyond it load too", () => {
+    const dashboard = assemblePeopleDashboard(
+      roster(6),
+      [activity("person-0"), activity("person-1"), activity("person-5")],
+      {
+        scopePersonIds: roster(6).people.map(({ id }) => id),
+        samplePeopleCount: 2,
+        loadingPersonIds: noneLoading,
+      }
+    );
+
+    expect(dashboard.members.map(({ id }) => id)).toStrictEqual([
+      "person-0",
+      "person-1",
+    ]);
+    expect(dashboard.scopeRows.at(-1)?.member?.id).toBe("person-5");
+    expect(dashboard.coverage).toStrictEqual({
+      scopePeopleCount: 6,
+      samplePeopleCount: 2,
+      loadedPeopleCount: 2,
+    });
+  });
+});
+
+describe("people search", () => {
+  const dashboard = assemblePeopleDashboard(
+    roster(5),
+    [activity("person-0", { roles: ["Bass"] })],
+    {
+      scopePersonIds: roster(5).people.map(({ id }) => id),
+      samplePeopleCount: 1,
+      loadingPersonIds: new Set(["person-1"]),
+    }
+  );
+
+  it("matches names and teams across the whole scope, and roles once loaded", () => {
+    const vocals = normalizePeopleQuery("  VOCALS ");
+    expect(
+      dashboard.scopeRows
+        .filter((row) => matchesPeopleQuery(row, vocals))
+        .map(({ person }) => person.id)
+    ).toStrictEqual(["person-0", "person-2", "person-4"]);
+    expect(
+      dashboard.scopeRows
+        .filter((row) => matchesPeopleQuery(row, "bass"))
+        .map(({ person }) => person.id)
+    ).toStrictEqual(["person-0"]);
+  });
+
+  it("asks for matches nobody has requested yet, in roster order", () => {
+    expect(
+      unrequestedMatchIds(dashboard.scopeRows, "band", new Set(["person-1"]))
+    ).toStrictEqual(["person-2", "person-3", "person-4"]);
+    expect(
+      unrequestedMatchIds(dashboard.scopeRows, "", new Set())
+    ).toStrictEqual([]);
+  });
+});
+
+describe(buildMonthDays, () => {
+  it("counts people serving, pending, and rehearsing on each day", () => {
+    const days = buildMonthDays([
+      {
+        monthDays: [
+          { day: 3, kind: "rehearsal" },
+          { day: 4, kind: "service", status: "U" },
+        ],
       },
+      {
+        monthDays: [
+          { day: 4, kind: "service", status: "C" },
+          // Two services on one day are one person serving.
+          { day: 11, kind: "service", status: "C" },
+          { day: 11, kind: "service", status: "C", positionName: "Keys" },
+        ],
+      },
+    ]);
+
+    expect(days[3]).toStrictEqual({
+      day: 4,
+      serviceCount: 2,
+      confirmedServiceCount: 1,
+      pendingServiceCount: 1,
+      rehearsalCount: 0,
     });
+    expect(days[10]?.serviceCount).toBe(1);
+    expect(serviceDays(days)).toStrictEqual([4, 11]);
+  });
+});
+
+describe(matrixPageStart, () => {
+  const days = [1, 5, 8, 12, 15, 19, 22, 26, 29];
+
+  it("pages the matrix to the selected service day", () => {
+    expect(matrixPageStart(days, 1)).toBe(0);
+    expect(matrixPageStart(days, 15)).toBe(0);
+    expect(matrixPageStart(days, 19)).toBe(5);
+  });
+
+  it("pages to the next service day, or the last page after the last one", () => {
+    expect(matrixPageStart(days, 20)).toBe(5);
+    expect(matrixPageStart(days, 31)).toBe(5);
+    expect(matrixPageStart([], 3)).toBe(0);
   });
 });

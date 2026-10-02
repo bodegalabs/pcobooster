@@ -112,6 +112,7 @@
         "@orpc/zod": "^1.15.0",
         "@pcobooster/api": "workspace:*",
         "@pcobooster/config": "workspace:*",
+        "@pcobooster/contracts": "workspace:*",
         "alchemy": "2.0.0-beta.79",
         "better-auth": "1.7.5",
         "effect": "4.0.0-rc.117",

@@ -3,7 +3,7 @@ import {
   RequestContext,
 } from "@pcobooster/api/application/context";
 import {
-  getFeatureStatus,
+  getEnabledFeatures,
   getPlanningCenterAccounts,
   getSessionStatus,
   selectPlanningCenterAccount,
@@ -237,12 +237,12 @@ describe("identity application programs", () => {
   });
 });
 
-const readPeopleFeature = async (
+const readFeatures = async (
   dependencies: IdentityDependencies,
   featureFlags = testFeatureFlags({ people: true })
 ) => {
   const result = await Effect.runPromise(
-    getFeatureStatus("people", dependencies).pipe(
+    getEnabledFeatures(dependencies).pipe(
       Effect.provideService(RequestContext, createRequestContext(request)),
       Effect.provideService(Server, testServer({ featureFlags }))
     )
@@ -250,21 +250,25 @@ const readPeopleFeature = async (
   return { result, evaluations: featureFlags.evaluations };
 };
 
-describe(getFeatureStatus, () => {
-  it("evaluates the flag anonymously for a signed-out visitor", async () => {
-    const { result, evaluations } = await readPeopleFeature(
+describe(getEnabledFeatures, () => {
+  it("evaluates every flag anonymously for a signed-out visitor", async () => {
+    const { result, evaluations } = await readFeatures(
       unauthenticatedDependencies()
     );
-    expect(result).toStrictEqual({ enabled: true });
+    expect(result).toStrictEqual({ people: true, chordCharts: false });
     expect(evaluations).toStrictEqual([
       {
         flag: "people",
         subject: { userId: null, planningCenterAccountId: null },
       },
+      {
+        flag: "chordCharts",
+        subject: { userId: null, planningCenterAccountId: null },
+      },
     ]);
   });
 
-  it("evaluates the flag for the user and their selected Planning Center account", async () => {
+  it("evaluates the flags for the user and their selected Planning Center account", async () => {
     const dependencies: IdentityDependencies = {
       ...authenticatedDependencies(),
       listUserAccounts: vi
@@ -282,13 +286,13 @@ describe(getFeatureStatus, () => {
           ),
         ]),
     };
-    const unselected = await readPeopleFeature(dependencies);
+    const unselected = await readFeatures(dependencies);
     expect(unselected.evaluations[0]?.subject).toStrictEqual({
       userId: getDevBypassSession().user.id,
       planningCenterAccountId: "first-linked",
     });
 
-    const selected = await readPeopleFeature({
+    const selected = await readFeatures({
       ...dependencies,
       getSelectedAccountId: () => "later-linked",
     });
@@ -299,7 +303,7 @@ describe(getFeatureStatus, () => {
 
   it("evaluates a demo session anonymously without reading Better Auth", async () => {
     const { dependencies } = demoDependencies();
-    const { evaluations } = await readPeopleFeature(dependencies);
+    const { evaluations } = await readFeatures(dependencies);
     expect(evaluations[0]?.subject).toStrictEqual({
       userId: null,
       planningCenterAccountId: null,
@@ -307,11 +311,11 @@ describe(getFeatureStatus, () => {
     expect(dependencies.getSession).not.toHaveBeenCalled();
   });
 
-  it("reports the flag's off value", async () => {
-    const { result } = await readPeopleFeature(
+  it("reports each flag's off value", async () => {
+    const { result } = await readFeatures(
       unauthenticatedDependencies(),
       testFeatureFlags()
     );
-    expect(result).toStrictEqual({ enabled: false });
+    expect(result).toStrictEqual({ people: false, chordCharts: false });
   });
 });

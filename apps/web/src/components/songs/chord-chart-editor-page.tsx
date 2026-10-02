@@ -8,29 +8,36 @@ import {
   transposeKey,
 } from "@pcobooster/planning-center-models/chord-chart-chords";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Check,
   ChevronDown,
   Copy,
+  Ellipsis,
   ExternalLink,
   Eye,
   FileInput,
+  Lock,
   Plus,
   Search,
+  TriangleAlert,
   Undo2,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { toast } from "sonner";
 
+import { HotkeyChord } from "@/components/hotkey-chord";
 import { PageShell } from "@/components/page-shell";
 import { ChordChartCreateDialog } from "@/components/songs/chord-chart-create-dialog";
+import type { ChordChartCreateContent } from "@/components/songs/chord-chart-create-dialog";
 import { highlightChordChart } from "@/components/songs/chord-chart-highlight";
 import { ChordChartImportDialog } from "@/components/songs/chord-chart-import-dialog";
 import { ChordChartLayoutPopover } from "@/components/songs/chord-chart-layout-popover";
 import { PlanningCenterPdfPreview } from "@/components/songs/planning-center-pdf-preview";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
 import {
   Drawer,
   DrawerContent,
@@ -40,6 +47,7 @@ import {
 } from "@/components/ui/drawer";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -54,6 +62,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { HighlightedTextarea } from "@/components/ui/highlighted-textarea";
+import { HoverLabel } from "@/components/ui/hover-card";
 import {
   NativeSelect,
   NativeSelectOptGroup,
@@ -61,12 +70,16 @@ import {
 } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
-import { useChordChartSong } from "@/hooks/use-chord-chart-song";
+import { useChordChartEditAccess } from "@/hooks/use-chord-chart-access";
+import {
+  chordChartErrorMessage,
+  chordChartLoadFailure,
+  useChordChartSong,
+} from "@/hooks/use-chord-chart-song";
 import { useChordChartWorkspace } from "@/hooks/use-chord-chart-workspace";
 import type { ChordChartWorkspace } from "@/hooks/use-chord-chart-workspace";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { writeChordChartDraft } from "@/lib/chord-chart-draft";
-import type { ChordChartDraft } from "@/lib/chord-chart-draft";
+import type { ChordChartEditAccess } from "@/lib/chord-chart-access";
 import { rememberRecentSong } from "@/lib/recent-songs";
 
 const SAVE_HOTKEY = "Mod+S";
@@ -94,20 +107,23 @@ const CODE_SNIPPETS = [
   { label: "Key change up a step", text: "TRANSPOSE KEY +2" },
 ] as const;
 
-/** A new arrangement inherits every print setting from the organization's defaults. */
-const EMPTY_DRAFT: ChordChartDraft = {
+/** A new arrangement starts empty and inherits every print setting. */
+const EMPTY_ARRANGEMENT: ChordChartCreateContent = {
   chart: "",
   key: null,
-  layout: {
-    font: null,
-    fontSize: null,
-    columns: null,
-    chordColor: null,
-    pageSize: null,
-    orientation: null,
-    margin: null,
-  },
+  layout: {},
 };
+
+type SaveStatusLabel = "checking" | ChordChartWorkspace["status"];
+
+/** Each status in full, and short enough for a phone's header. */
+const STATUS_LABELS: Record<SaveStatusLabel, { full: string; short: string }> =
+  {
+    checking: { full: "Checking Planning Center…", short: "Checking…" },
+    saving: { full: "Saving…", short: "Saving…" },
+    unsaved: { full: "Unsaved changes", short: "Unsaved" },
+    saved: { full: "Saved to Planning Center", short: "Saved" },
+  };
 
 /** The chart's twelve keys in its own mode, for previewing and transposing. */
 const keysInMode = (writtenKey: string | null): string[] => {
@@ -176,12 +192,21 @@ const useCopyChart = (chart: string) => {
 
 const InsertMenu = ({
   textareaRef,
+  disabled,
 }: {
   textareaRef: RefObject<HTMLTextAreaElement | null>;
+  disabled: boolean;
 }) => (
   <DropdownMenu>
     <DropdownMenuTrigger
-      render={<Button variant="ghost" size="sm" aria-label="Insert" />}
+      render={
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={disabled}
+          aria-label="Insert"
+        />
+      }
     >
       <Plus aria-hidden />
       <span className="max-sm:hidden">Insert</span>
@@ -216,9 +241,11 @@ const InsertMenu = ({
 
 const TransposeMenu = ({
   writtenKey,
+  disabled,
   onTranspose,
 }: {
   writtenKey: string | null;
+  disabled: boolean;
   onTranspose: (key: string) => void;
 }) => {
   const current = parseKey(writtenKey);
@@ -229,7 +256,7 @@ const TransposeMenu = ({
           <Button
             variant="ghost"
             size="sm"
-            disabled={current === null}
+            disabled={disabled || current === null}
             aria-label="Transpose chords"
           />
         }
@@ -257,23 +284,32 @@ const TransposeMenu = ({
   );
 };
 
+/** A key Planning Center holds that the list lacks (such as Gb) stays shown as written. */
 const WrittenKeySelect = ({
   value,
+  disabled,
   onChange,
 }: {
   value: string | null;
+  disabled: boolean;
   onChange: (key: string | null) => void;
 }) => (
   <NativeSelect
     aria-label="Key the chords are written in"
     size="sm"
     value={value ?? ""}
+    disabled={disabled}
     onChange={(event) => {
       const next = event.target.value;
       onChange(next === "" ? null : next);
     }}
   >
     <NativeSelectOption value="">No key</NativeSelectOption>
+    {value === null || CHORD_CHART_KEYS.includes(value) ? null : (
+      <NativeSelectOption
+        value={value}
+      >{`Written in ${value}`}</NativeSelectOption>
+    )}
     <NativeSelectOptGroup label="Major">
       {CHORD_CHART_KEYS.slice(0, KEYS_PER_MODE).map((key) => (
         <NativeSelectOption key={key} value={key}>
@@ -292,30 +328,83 @@ const WrittenKeySelect = ({
 );
 
 /**
- * With Auto-refresh on, edits save as typing pauses and this only reports progress;
- * otherwise, or after a failed save, saving is a button.
+ * Where the chart stands against Planning Center, and the Save as you type setting behind it.
+ * Saving as you type keeps Planning Center's own PDF preview current while you write.
  */
-const SaveControl = ({ workspace }: { workspace: ChordChartWorkspace }) => {
-  if (workspace.autoRefresh && !workspace.paused) {
+const SaveStatusMenu = ({ workspace }: { workspace: ChordChartWorkspace }) => {
+  const status: SaveStatusLabel = workspace.ready
+    ? workspace.status
+    : "checking";
+  const label = STATUS_LABELS[status];
+  const busy = status === "saving" || status === "checking";
+  return (
+    <DropdownMenu>
+      <span className="sr-only" aria-live="polite">
+        {label.full}
+      </span>
+      <DropdownMenuTrigger render={<Button variant="ghost" size="sm" />}>
+        {busy ? <Spinner aria-hidden /> : null}
+        {status === "saved" ? <Check aria-hidden /> : null}
+        <span className="text-muted-foreground text-xs">
+          <span className="max-md:hidden">{label.full}</span>
+          <span className="md:hidden">{label.short}</span>
+        </span>
+        <ChevronDown className="text-muted-foreground" aria-hidden />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-72">
+        <DropdownMenuCheckboxItem
+          checked={workspace.saveAsYouType}
+          onCheckedChange={(checked) => {
+            workspace.handleSaveAsYouTypeChange(checked);
+          }}
+        >
+          Save as you type
+        </DropdownMenuCheckboxItem>
+        <p className="text-muted-foreground px-3 pb-2 text-xs">
+          Saves to Planning Center a moment after you stop typing, so its
+          preview keeps up. Turn it off to save only when you choose.
+        </p>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          disabled={!workspace.canSave}
+          onClick={workspace.handleSave}
+        >
+          Save now
+          <HotkeyChord
+            id="save-chord-chart"
+            binding={SAVE_HOTKEY}
+            className="ml-auto"
+          />
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+const SaveControls = ({
+  workspace,
+  access,
+}: {
+  workspace: ChordChartWorkspace;
+  access: ChordChartEditAccess;
+}) => {
+  if (!access.canEdit) {
     return (
-      <p
-        className="text-muted-foreground flex min-w-24 items-center justify-end gap-1.5 text-xs"
-        aria-live="polite"
-      >
-        {workspace.saving ? <Spinner aria-hidden /> : null}
-        {workspace.saving || workspace.dirty ? "Saving…" : "Saved"}
+      <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
+        <Lock className="size-3.5" aria-hidden />
+        View only
       </p>
     );
   }
   return (
-    <Button
-      size="sm"
-      disabled={!workspace.dirty || workspace.saving}
-      onClick={workspace.handleSave}
-    >
-      {workspace.saving ? <Spinner aria-hidden /> : null}
-      {workspace.dirty ? "Save to Planning Center" : "Saved"}
-    </Button>
+    <>
+      <SaveStatusMenu workspace={workspace} />
+      {workspace.needsSave ? (
+        <Button size="sm" onClick={workspace.handleSave}>
+          Save
+        </Button>
+      ) : null}
+    </>
   );
 };
 
@@ -324,20 +413,29 @@ interface WorkspaceHeaderProps {
   arrangement: ChordChartArrangement;
   arrangements: readonly ChordChartArrangement[];
   workspace: ChordChartWorkspace;
+  access: ChordChartEditAccess;
   onImport: () => void;
-  onCreate: () => void;
+  onCopy: () => void;
+  onRevert: () => void;
 }
 
+/**
+ * Phones put the save status beside the title and the arrangement and actions on the row
+ * below; wider screens keep one row with the save status last.
+ */
 const WorkspaceHeader = ({
   song,
   arrangement,
   arrangements,
   workspace,
+  access,
   onImport,
-  onCreate,
+  onCopy,
+  onRevert,
 }: WorkspaceHeaderProps) => {
   const navigate = useNavigate();
   const { copied, copy } = useCopyChart(workspace.draft.chart);
+  const editable = access.canEdit && workspace.ready;
   return (
     <header className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2">
       <div className="min-w-0 flex-1">
@@ -350,31 +448,36 @@ const WorkspaceHeader = ({
           </p>
         )}
       </div>
-      <NativeSelect
-        aria-label="Arrangement"
-        size="sm"
-        value={arrangement.id}
-        onChange={(event) => {
-          void navigate({
-            to: "/songs/$songId",
-            params: { songId: song.id },
-            search: { arrangement: event.target.value },
-            replace: true,
-          });
-        }}
-      >
-        {arrangements.map((candidate) => (
-          <NativeSelectOption key={candidate.id} value={candidate.id}>
-            {candidate.archived
-              ? `${candidate.name} (archived)`
-              : candidate.name}
-          </NativeSelectOption>
-        ))}
-      </NativeSelect>
-      <div className="flex items-center gap-1.5">
+      <div className="flex shrink-0 items-center gap-1.5 md:order-last">
+        <SaveControls workspace={workspace} access={access} />
+      </div>
+      <div className="flex min-w-0 items-center gap-1.5 max-md:w-full">
+        <NativeSelect
+          aria-label="Arrangement"
+          size="sm"
+          className="min-w-0 max-md:flex-1"
+          value={arrangement.id}
+          onChange={(event) => {
+            void navigate({
+              to: "/songs/$songId",
+              params: { songId: song.id },
+              search: { arrangement: event.target.value },
+              replace: true,
+            });
+          }}
+        >
+          {arrangements.map((candidate) => (
+            <NativeSelectOption key={candidate.id} value={candidate.id}>
+              {candidate.archived
+                ? `${candidate.name} (archived)`
+                : candidate.name}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
         <Button
           variant="outline"
           size="sm"
+          disabled={!editable}
           aria-label="Import lyrics or chords"
           onClick={onImport}
         >
@@ -382,17 +485,23 @@ const WorkspaceHeader = ({
           <span className="max-sm:hidden">Import</span>
         </Button>
         <DropdownMenu>
-          <DropdownMenuTrigger
+          <HoverLabel
+            label="More actions"
+            side="bottom"
             render={
-              <Button
-                variant="outline"
-                size="icon-sm"
-                aria-label="More actions"
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    aria-label="More actions"
+                  />
+                }
               />
             }
           >
-            <ChevronDown aria-hidden />
-          </DropdownMenuTrigger>
+            <Ellipsis aria-hidden />
+          </HoverLabel>
           <DropdownMenuContent align="end" className="w-64">
             <DropdownMenuItem
               onClick={() => {
@@ -402,17 +511,21 @@ const WorkspaceHeader = ({
               <Copy aria-hidden />
               Copy chart text
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={onCreate}>
-              <Plus aria-hidden />
-              Save as new arrangement…
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              disabled={!workspace.revertable}
-              onClick={workspace.handleRevert}
-            >
-              <Undo2 aria-hidden />
-              Revert all changes
-            </DropdownMenuItem>
+            {access.canEdit ? (
+              <>
+                <DropdownMenuItem disabled={!editable} onClick={onCopy}>
+                  <Plus aria-hidden />
+                  Copy to new arrangement…
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={!editable || !workspace.revertable}
+                  onClick={onRevert}
+                >
+                  <Undo2 aria-hidden />
+                  Revert all changes…
+                </DropdownMenuItem>
+              </>
+            ) : null}
             <DropdownMenuItem
               onClick={() => {
                 window.open(
@@ -427,7 +540,6 @@ const WorkspaceHeader = ({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <SaveControl workspace={workspace} />
       </div>
       {copied ? (
         <p className="text-muted-foreground w-full text-xs" aria-live="polite">
@@ -438,12 +550,96 @@ const WorkspaceHeader = ({
   );
 };
 
+/**
+ * Someone saved a newer version in Planning Center while this editor had unsaved edits.
+ * Saving waits until the person keeps one, and keeping theirs over yours asks first.
+ */
+const ConflictNotice = ({ workspace }: { workspace: ChordChartWorkspace }) => {
+  const [confirming, setConfirming] = useState(false);
+  // Taking theirs discards this editor's text, so it can be copied out first.
+  const { copied, copy } = useCopyChart(workspace.draft.chart);
+  const theirsLoaded = (workspace.conflict?.theirs ?? null) !== null;
+  return (
+    <>
+      <Alert className="shrink-0">
+        <TriangleAlert aria-hidden />
+        <AlertTitle>Someone changed this chart in Planning Center</AlertTitle>
+        <AlertDescription>
+          <p>
+            Saving is paused so neither version is lost. Keep theirs, or replace
+            it with yours. Copy yours first to keep it either way.
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                void copy();
+              }}
+            >
+              {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
+              {copied ? "Copied" : "Copy mine"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!theirsLoaded}
+              onClick={workspace.handleUseTheirs}
+            >
+              Use the Planning Center version
+            </Button>
+            <Button
+              size="sm"
+              disabled={!theirsLoaded}
+              onClick={() => {
+                setConfirming(true);
+              }}
+            >
+              Keep mine
+            </Button>
+            {theirsLoaded ? null : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={workspace.handleRetryTheirs}
+              >
+                Load their version
+              </Button>
+            )}
+          </div>
+        </AlertDescription>
+      </Alert>
+      <DeleteConfirmationDialog
+        open={confirming}
+        onOpenChange={setConfirming}
+        title="Replace their version with yours?"
+        description="Saves your chart to Planning Center as it is now. The changes they saved are lost."
+        confirmLabel="Keep mine"
+        onConfirm={() => {
+          setConfirming(false);
+          workspace.handleKeepMine();
+        }}
+      />
+    </>
+  );
+};
+
+const ViewOnlyNotice = ({ reason }: { reason: string }) => (
+  <Alert variant="info" className="shrink-0">
+    <Lock aria-hidden />
+    <AlertTitle>View only</AlertTitle>
+    <AlertDescription>{reason}</AlertDescription>
+  </Alert>
+);
+
 const EditorPane = ({
   workspace,
+  access,
   onFindLyrics,
   onPreview,
 }: {
   workspace: ChordChartWorkspace;
+  access: ChordChartEditAccess;
   onFindLyrics: () => void;
   /** On phones the preview opens from here instead of sitting beside the editor. */
   onPreview: (() => void) | null;
@@ -454,22 +650,29 @@ const EditorPane = ({
     () => highlightChordChart(draft.chart),
     [draft.chart]
   );
+  const editable = access.canEdit && workspace.ready;
   return (
     <section
       aria-label="Chart text"
       className="flex min-h-0 flex-1 flex-col gap-2"
     >
+      {access.canEdit ? null : <ViewOnlyNotice reason={access.reason} />}
+      {access.canEdit && workspace.conflict !== null ? (
+        <ConflictNotice workspace={workspace} />
+      ) : null}
       <div className="flex flex-wrap items-center gap-1.5">
         <WrittenKeySelect
           value={draft.key}
+          disabled={!editable}
           onChange={workspace.handleKeyChange}
         />
         <TransposeMenu
           writtenKey={draft.key}
+          disabled={!editable}
           onTranspose={workspace.handleTranspose}
         />
-        <InsertMenu textareaRef={textareaRef} />
-        {draft.chart.trim() === "" ? (
+        <InsertMenu textareaRef={textareaRef} disabled={!editable} />
+        {editable && draft.chart.trim() === "" ? (
           <Button variant="secondary" size="sm" onClick={onFindLyrics}>
             <Search aria-hidden />
             Find lyrics
@@ -488,7 +691,7 @@ const EditorPane = ({
         )}
         {workspace.restored ? (
           <p className="text-muted-foreground ml-auto flex items-center gap-1 text-xs">
-            Unsaved draft restored.
+            Unsaved draft restored from this browser.
             <Button variant="link" size="xs" onClick={workspace.handleDiscard}>
               Discard
             </Button>
@@ -502,6 +705,7 @@ const EditorPane = ({
         placeholder={
           "VERSE 1\n[G]Type lyrics with [C]chords in brackets\n\nCHORUS\n..."
         }
+        readOnly={!editable}
         value={draft.chart}
         highlight={highlighted}
         onChange={(event) => {
@@ -514,20 +718,20 @@ const EditorPane = ({
 
 /** Why the preview may trail the editor, with a way to catch it up. */
 const PreviewStatus = ({ workspace }: { workspace: ChordChartWorkspace }) => {
-  if (!workspace.dirty || (workspace.autoRefresh && !workspace.paused)) {
+  if (workspace.conflict !== null) {
+    return (
+      <p className="text-muted-foreground px-3 pb-2 text-xs">
+        The preview shows the version saved in Planning Center.
+      </p>
+    );
+  }
+  if (!workspace.needsSave) {
     return null;
   }
   return (
     <p className="text-muted-foreground flex items-center gap-2 px-3 pb-2 text-xs">
-      {workspace.paused
-        ? "Auto-refresh paused. Planning Center shows the last saved chart."
-        : "Planning Center shows the last saved chart."}
-      <Button
-        size="xs"
-        disabled={workspace.saving}
-        onClick={workspace.handleSave}
-      >
-        {workspace.saving ? <Spinner aria-hidden /> : null}
+      The preview shows the last saved chart.
+      <Button size="xs" onClick={workspace.handleSave}>
         Save to update
       </Button>
     </p>
@@ -538,10 +742,12 @@ const PreviewPane = ({
   songId,
   arrangement,
   workspace,
+  access,
 }: {
   songId: string;
   arrangement: ChordChartArrangement;
   workspace: ChordChartWorkspace;
+  access: ChordChartEditAccess;
 }) => (
   <section
     aria-label="Preview"
@@ -552,27 +758,19 @@ const PreviewPane = ({
       arrangement={arrangement}
       status={<PreviewStatus workspace={workspace} />}
       actions={
-        <>
-          <Button
-            variant="ghost"
-            size="sm"
-            aria-pressed={workspace.autoRefresh}
-            onClick={() => {
-              workspace.handleAutoRefreshChange(!workspace.autoRefresh);
-            }}
-          >
-            {workspace.autoRefresh ? <Check aria-hidden /> : null}
-            Auto-refresh
-          </Button>
+        access.canEdit ? (
           <ChordChartLayoutPopover
             layout={workspace.draft.layout}
+            disabled={!workspace.ready}
             onChange={workspace.handleLayoutChange}
           />
-        </>
+        ) : null
       }
     />
   </section>
 );
+
+type WorkspaceDialog = "import" | "copy" | "revert";
 
 interface WorkspaceProps {
   song: ChordChartSong;
@@ -586,11 +784,20 @@ const ChordChartWorkspaceView = ({
   arrangements,
 }: WorkspaceProps) => {
   const navigate = useNavigate();
-  const workspace = useChordChartWorkspace(song.id, arrangement);
+  const access = useChordChartEditAccess();
+  const [dialog, setDialog] = useState<WorkspaceDialog | null>(null);
+  const workspace = useChordChartWorkspace({
+    songId: song.id,
+    arrangement,
+    canEdit: access.canEdit,
+    // Copying sends the chart as it is now; saving the original meanwhile would surprise.
+    held: dialog === "copy",
+  });
   const isMobile = useIsMobile();
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
+  const dialogOpenChange = (name: WorkspaceDialog) => (open: boolean) => {
+    setDialog(open ? name : null);
+  };
 
   useHotkey(SAVE_HOTKEY, workspace.handleSave, {
     ignoreInputs: false,
@@ -604,18 +811,23 @@ const ChordChartWorkspaceView = ({
         arrangement={arrangement}
         arrangements={arrangements}
         workspace={workspace}
+        access={access}
         onImport={() => {
-          setImportOpen(true);
+          setDialog("import");
         }}
-        onCreate={() => {
-          setCreateOpen(true);
+        onCopy={() => {
+          setDialog("copy");
+        }}
+        onRevert={() => {
+          setDialog("revert");
         }}
       />
       <div className="flex min-h-0 flex-1 gap-3 max-md:min-h-[70svh] md:grid md:grid-cols-2">
         <EditorPane
           workspace={workspace}
+          access={access}
           onFindLyrics={() => {
-            setImportOpen(true);
+            setDialog("import");
           }}
           onPreview={
             isMobile
@@ -630,6 +842,7 @@ const ChordChartWorkspaceView = ({
             songId={song.id}
             arrangement={arrangement}
             workspace={workspace}
+            access={access}
           />
         )}
       </div>
@@ -653,30 +866,50 @@ const ChordChartWorkspaceView = ({
               songId={song.id}
               arrangement={arrangement}
               workspace={workspace}
+              access={access}
             />
           </div>
         </DrawerContent>
       </Drawer>
       <ChordChartImportDialog
-        open={importOpen}
-        onOpenChange={setImportOpen}
+        open={dialog === "import"}
+        onOpenChange={dialogOpenChange("import")}
         song={song}
         arrangements={arrangements}
         onImport={workspace.handleImport}
       />
       <ChordChartCreateDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
+        open={dialog === "copy"}
+        onOpenChange={dialogOpenChange("copy")}
         songId={song.id}
-        draft={workspace.draft}
+        content={workspace.copy ?? EMPTY_ARRANGEMENT}
+        copyOf={{
+          name: arrangement.name,
+          savedChanges: workspace.savedChanges,
+          unsavedChanges: workspace.unsavedChanges,
+        }}
         onCreated={(created) => {
-          // The chart now lives in the new arrangement; this one keeps its saved version.
-          writeChordChartDraft(arrangement.id, null);
+          workspace.handleCopied();
           void navigate({
             to: "/songs/$songId",
             params: { songId: song.id },
             search: { arrangement: created.id },
           });
+        }}
+      />
+      <DeleteConfirmationDialog
+        open={dialog === "revert"}
+        onOpenChange={dialogOpenChange("revert")}
+        title="Revert all changes?"
+        description={
+          workspace.saveAsYouType
+            ? "Puts back the chart, key, and formatting as they were before your changes, and saves that to Planning Center."
+            : "Puts back the chart, key, and formatting as they were before your changes. Save to update Planning Center."
+        }
+        confirmLabel="Revert"
+        onConfirm={() => {
+          setDialog(null);
+          workspace.handleRevert();
         }}
       />
     </PageShell>
@@ -693,8 +926,15 @@ export const ChordChartEditorPageSkeleton = () => (
   </PageShell>
 );
 
+const BackToSongs = () => (
+  <Button variant="outline" nativeButton={false} render={<Link to="/songs" />}>
+    Back to Songs
+  </Button>
+);
+
 const NoArrangements = ({ song }: { song: ChordChartSong }) => {
   const navigate = useNavigate();
+  const access = useChordChartEditAccess();
   const [createOpen, setCreateOpen] = useState(false);
   return (
     <PageShell layout="center">
@@ -702,24 +942,31 @@ const NoArrangements = ({ song }: { song: ChordChartSong }) => {
         <EmptyHeader>
           <EmptyTitle>{song.title} has no arrangements</EmptyTitle>
           <EmptyDescription>
-            Chord charts belong to an arrangement. Create one to start writing.
+            {access.canEdit
+              ? "Chord charts belong to an arrangement. Create one to start writing."
+              : "Chord charts belong to an arrangement, and this song has none yet."}
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <Button
-            onClick={() => {
-              setCreateOpen(true);
-            }}
-          >
-            Create arrangement
-          </Button>
+          {access.canEdit ? (
+            <Button
+              onClick={() => {
+                setCreateOpen(true);
+              }}
+            >
+              Create arrangement
+            </Button>
+          ) : (
+            <BackToSongs />
+          )}
         </EmptyContent>
       </Empty>
       <ChordChartCreateDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
         songId={song.id}
-        draft={EMPTY_DRAFT}
+        content={EMPTY_ARRANGEMENT}
+        copyOf={null}
         onCreated={(created) => {
           void navigate({
             to: "/songs/$songId",
@@ -732,6 +979,48 @@ const NoArrangements = ({ song }: { song: ChordChartSong }) => {
   );
 };
 
+/** Says why a song didn't open, and offers what would help. */
+const SongLoadError = ({
+  error,
+  onRetry,
+}: {
+  error: Error;
+  onRetry: () => void;
+}) => {
+  const failure = chordChartLoadFailure(error);
+  let title = "This song didn’t load";
+  let description = "Planning Center didn’t answer. Try again in a moment.";
+  if (failure === "not-found") {
+    title = "Song not found";
+    description =
+      "Planning Center has no song at this link. It may have been deleted, or it belongs to another organization.";
+  } else if (failure === "no-access") {
+    title = "You can’t open this song";
+    description = chordChartErrorMessage(
+      error,
+      "Your Planning Center account can’t view songs in Services."
+    );
+  }
+  return (
+    <PageShell layout="center">
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>{title}</EmptyTitle>
+          <EmptyDescription>{description}</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <div className="flex flex-wrap justify-center gap-2">
+            {failure === "failed" ? (
+              <Button onClick={onRetry}>Try again</Button>
+            ) : null}
+            <BackToSongs />
+          </div>
+        </EmptyContent>
+      </Empty>
+    </PageShell>
+  );
+};
+
 export const ChordChartEditorPage = ({
   songId,
   arrangementId,
@@ -739,33 +1028,24 @@ export const ChordChartEditorPage = ({
   songId: string;
   arrangementId: string | null;
 }) => {
-  const { data, isError, refetch } = useChordChartSong(songId);
+  const { data, error, refetch } = useChordChartSong(songId);
   const openedSong = data?.song;
   useEffect(() => {
     if (openedSong !== undefined) {
       rememberRecentSong(openedSong);
     }
   }, [openedSong]);
-  if (isError && data === undefined) {
-    return (
-      <PageShell layout="center">
-        <p className="text-muted-foreground text-sm">
-          This song did not load from Planning Center.
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            void refetch();
-          }}
-        >
-          Try again
-        </Button>
-      </PageShell>
-    );
-  }
   if (data === undefined) {
-    return <ChordChartEditorPageSkeleton />;
+    return error === null ? (
+      <ChordChartEditorPageSkeleton />
+    ) : (
+      <SongLoadError
+        error={error}
+        onRetry={() => {
+          void refetch();
+        }}
+      />
+    );
   }
   const arrangement =
     data.arrangements.find((candidate) => candidate.id === arrangementId) ??

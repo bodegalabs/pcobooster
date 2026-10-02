@@ -17,6 +17,7 @@
     "./position-candidates": "./src/position-candidates.ts",
     "./schedule-constants": "./src/schedule-constants.ts",
     "./scheduling-preferences": "./src/scheduling-preferences.ts",
+    "./song-search": "./src/song-search.ts",
     "./types": "./src/types.ts"
   },
   "scripts": {

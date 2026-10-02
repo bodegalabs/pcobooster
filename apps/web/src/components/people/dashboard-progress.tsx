@@ -1,52 +1,67 @@
 import { Button } from "@/components/ui/button";
-import type { PeopleDashboardProgress as Progress } from "@/lib/people-dashboard";
+import { describeCoverage } from "@/lib/people-dashboard";
+import type { PeopleDashboardCoverage } from "@/lib/people-dashboard";
 
-interface PeopleDashboardProgressProps {
-  progress: Progress | undefined;
-  isLoadingActivity: boolean;
-  failedBatchCount: number;
+const peopleCount = (count: number) =>
+  `${count} ${count === 1 ? "person" : "people"}`;
+
+/** "Based on the first 48 of 230 people · Load more", or nothing once everyone is in. */
+export const CoverageNote = ({
+  coverage,
+  isLoading,
+  canLoadMore,
+  onLoadMore,
+}: {
+  coverage: PeopleDashboardCoverage;
+  isLoading: boolean;
   canLoadMore: boolean;
-  onRetry: () => void;
   onLoadMore: () => void;
-}
-
-const describeProgress = (
-  progress: Progress,
-  isLoadingActivity: boolean
-): string => {
-  if (isLoadingActivity) {
-    return `Loading schedules: ${progress.hydratedPeopleCount} of ${progress.requestedPeopleCount} people.`;
+}) => {
+  const text = describeCoverage(coverage, isLoading);
+  if (text === null) {
+    return null;
   }
-  return `Showing ${progress.hydratedPeopleCount} of ${progress.scopePeopleCount} people.`;
+  return (
+    <span className="inline-flex flex-wrap items-center gap-x-1">
+      <span>
+        {text}
+        {canLoadMore ? null : "."}
+      </span>
+      {canLoadMore ? (
+        <Button variant="link" size="xs" onClick={onLoadMore}>
+          Load more
+        </Button>
+      ) : null}
+    </span>
+  );
 };
 
-/** How much of the roster has schedules loaded, with retry and load-more actions. */
+interface PeopleDashboardProgressProps {
+  coverage: PeopleDashboardCoverage | undefined;
+  isLoadingActivity: boolean;
+  failedBatchCount: number;
+  onRetry: () => void;
+}
+
+/** Schedules still loading, or a retry when some failed. */
 export const PeopleDashboardProgress = ({
-  progress,
+  coverage,
   isLoadingActivity,
   failedBatchCount,
-  canLoadMore,
   onRetry,
-  onLoadMore,
 }: PeopleDashboardProgressProps) => {
-  if (!progress) {
+  if (
+    coverage === undefined ||
+    (!isLoadingActivity && failedBatchCount === 0)
+  ) {
     return null;
   }
-  const complete =
-    !isLoadingActivity &&
-    failedBatchCount === 0 &&
-    progress.hydratedPeopleCount >= progress.scopePeopleCount;
-  if (complete) {
-    return null;
-  }
+  const sampleLoading = coverage.loadedPeopleCount < coverage.samplePeopleCount;
   return (
     <div
       className="text-muted-foreground flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs"
       aria-live="polite"
     >
-      <span className="tabular-nums">
-        {describeProgress(progress, isLoadingActivity)}
-      </span>
       {failedBatchCount > 0 ? (
         <>
           <span className="text-destructive">
@@ -56,12 +71,13 @@ export const PeopleDashboardProgress = ({
             Retry
           </Button>
         </>
-      ) : null}
-      {canLoadMore && failedBatchCount === 0 ? (
-        <Button variant="outline" size="xs" onClick={onLoadMore}>
-          Load more people
-        </Button>
-      ) : null}
+      ) : (
+        <span className="tabular-nums">
+          {sampleLoading
+            ? `Loading schedules · ${coverage.loadedPeopleCount} of ${peopleCount(coverage.samplePeopleCount)}`
+            : "Loading schedules"}
+        </span>
+      )}
     </div>
   );
 };
