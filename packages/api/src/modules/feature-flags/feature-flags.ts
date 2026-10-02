@@ -62,35 +62,25 @@ export const createFlagshipFeatureFlags = ({
   resolveOrganizationId,
   reportFailure,
 }: FlagshipFeatureFlagDependencies): FeatureFlags => {
-  // An account's organization never changes, so one lookup serves every flag and request in
-  // this isolate. A miss (not recorded yet) or a failed lookup is asked again next time.
-  const organizationIds = new Map<string, Promise<string | null>>();
-  const forgetUnlessFound = async (
-    accountId: string,
-    lookup: Promise<string | null>
-  ): Promise<void> => {
-    try {
-      if ((await lookup) === null) {
-        organizationIds.delete(accountId);
-      }
-    } catch {
-      organizationIds.delete(accountId);
-    }
-  };
+  // An account's organization never changes, so a found one serves every later flag and
+  // request in this isolate. Only the answer is kept, never a pending lookup: a Worker can't
+  // wait on I/O another request started. A miss (not recorded yet) is asked again next time.
+  const organizationIds = new Map<string, string>();
   const lookUpOrganizationId = async (
     accountId: string
   ): Promise<string | null> => {
     const known = organizationIds.get(accountId);
     if (known !== undefined) {
-      return await known;
+      return known;
     }
-    if (organizationIds.size >= MAX_REMEMBERED_ORGANIZATIONS) {
-      organizationIds.clear();
+    const organizationId = await resolveOrganizationId(accountId);
+    if (organizationId !== null) {
+      if (organizationIds.size >= MAX_REMEMBERED_ORGANIZATIONS) {
+        organizationIds.clear();
+      }
+      organizationIds.set(accountId, organizationId);
     }
-    const lookup = resolveOrganizationId(accountId);
-    organizationIds.set(accountId, lookup);
-    void forgetUnlessFound(accountId, lookup);
-    return await lookup;
+    return organizationId;
   };
 
   const organizationIdFor = async (

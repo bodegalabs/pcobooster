@@ -128,7 +128,7 @@ describe(createFlagshipFeatureFlags, () => {
     ]);
   });
 
-  it("looks up an account's organization once for every flag", async () => {
+  it("remembers an account's organization once it is found", async () => {
     const resolveOrganizationId = vi
       .fn<(accountId: string) => Promise<string | null>>()
       .mockResolvedValue("org-1");
@@ -137,10 +137,8 @@ describe(createFlagshipFeatureFlags, () => {
       resolveOrganizationId
     );
 
-    await Promise.all([
-      Effect.runPromise(flags.isEnabled("people", signedIn)),
-      Effect.runPromise(flags.isEnabled("chordCharts", signedIn)),
-    ]);
+    await Effect.runPromise(flags.isEnabled("people", signedIn));
+    await Effect.runPromise(flags.isEnabled("chordCharts", signedIn));
     await Effect.runPromise(flags.isEnabled("people", signedIn));
 
     expect(resolveOrganizationId).toHaveBeenCalledOnce();

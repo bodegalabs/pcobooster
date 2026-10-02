@@ -142,7 +142,7 @@ export const TeamHealthSummary = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 @3xl:grid-cols-4">
           {waiting ? (
             Array.from({ length: 4 }, (_, index) => (
               <Skeleton key={index} variant="control" className="h-14" />
