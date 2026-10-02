@@ -75,12 +75,12 @@ const RowsSkeleton = ({ rows }: { rows: number }) => (
 
 export const PersonDetailBodySkeleton = () => (
   <div
-    className="grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]"
+    className="grid items-start gap-3 @5xl:grid-cols-[minmax(0,1fr)_20rem]"
     aria-busy
     aria-label="Loading person"
   >
     <section className="flex min-w-0 flex-col gap-3">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 @3xl:grid-cols-4">
         {metricKeys.map((key) => (
           <div
             key={key}
@@ -97,7 +97,7 @@ export const PersonDetailBodySkeleton = () => (
           <Skeleton variant="text" className="mt-1 h-3.5 w-48 max-w-full" />
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-[15rem_minmax(0,1fr)]">
+          <div className="grid gap-4 @2xl:grid-cols-[15rem_minmax(0,1fr)]">
             <div className="grid grid-cols-7 gap-0.5">
               {Array.from({ length: 35 }, (_, index) => (
                 <Skeleton
@@ -300,7 +300,8 @@ const Rotation = ({
 
 /** One-directional counts: served looks back, scheduled looks ahead. */
 const ServingNumbers = ({ rhythm }: { rhythm: ServingRhythm }) => (
-  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+  // Sized by the page's own width (the inset is a container), so an open sidebar counts.
+  <div className="grid grid-cols-2 gap-2 @3xl:grid-cols-4">
     <Metric label="Served, last 30 days" value={String(rhythm.servedDays30)} />
     <Metric label="Served, last 90 days" value={String(rhythm.servedDays90)} />
     <Metric
@@ -333,7 +334,7 @@ export const PersonDetailBody = ({
   const { person, month } = data;
   return (
     <div
-      className="stale-while-busy grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]"
+      className="stale-while-busy grid items-start gap-3 @5xl:grid-cols-[minmax(0,1fr)_20rem]"
       aria-busy={isPlaceholderData}
     >
       <section className="flex min-w-0 flex-col gap-3">
@@ -353,7 +354,7 @@ export const PersonDetailBody = ({
             </CardAction>
           </CardHeader>
           <CardContent>
-            <div className="grid items-start gap-4 md:grid-cols-[15rem_minmax(0,1fr)]">
+            <div className="grid items-start gap-4 @2xl:grid-cols-[15rem_minmax(0,1fr)]">
               <div className="flex flex-col gap-3">
                 <PersonMonthCalendar
                   month={month}

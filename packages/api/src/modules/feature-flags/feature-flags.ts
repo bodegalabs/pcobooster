@@ -49,6 +49,9 @@ export interface FlagshipFeatureFlagDependencies {
   readonly reportFailure: (failure: FeatureFlagFailure) => void;
 }
 
+/** Accounts whose organization an isolate remembers before starting over. */
+const MAX_REMEMBERED_ORGANIZATIONS = 1000;
+
 /**
  * Evaluates through Cloudflare Flagship. Targeting rules can match `userId` and
  * `organizationId` (the Planning Center organization); percentage rollouts bucket by
@@ -59,12 +62,43 @@ export const createFlagshipFeatureFlags = ({
   resolveOrganizationId,
   reportFailure,
 }: FlagshipFeatureFlagDependencies): FeatureFlags => {
+  // An account's organization never changes, so one lookup serves every flag and request in
+  // this isolate. A miss (not recorded yet) or a failed lookup is asked again next time.
+  const organizationIds = new Map<string, Promise<string | null>>();
+  const forgetUnlessFound = async (
+    accountId: string,
+    lookup: Promise<string | null>
+  ): Promise<void> => {
+    try {
+      if ((await lookup) === null) {
+        organizationIds.delete(accountId);
+      }
+    } catch {
+      organizationIds.delete(accountId);
+    }
+  };
+  const lookUpOrganizationId = async (
+    accountId: string
+  ): Promise<string | null> => {
+    const known = organizationIds.get(accountId);
+    if (known !== undefined) {
+      return await known;
+    }
+    if (organizationIds.size >= MAX_REMEMBERED_ORGANIZATIONS) {
+      organizationIds.clear();
+    }
+    const lookup = resolveOrganizationId(accountId);
+    organizationIds.set(accountId, lookup);
+    void forgetUnlessFound(accountId, lookup);
+    return await lookup;
+  };
+
   const organizationIdFor = async (
     flag: FeatureFlagName,
     accountId: string
   ): Promise<string | null> => {
     try {
-      return await resolveOrganizationId(accountId);
+      return await lookUpOrganizationId(accountId);
     } catch (error) {
       // The flag still evaluates for the user; only organization targeting is lost.
       const cause = error instanceof Error ? error : new Error(String(error));

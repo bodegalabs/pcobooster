@@ -128,6 +128,51 @@ describe(createFlagshipFeatureFlags, () => {
     ]);
   });
 
+  it("looks up an account's organization once for every flag", async () => {
+    const resolveOrganizationId = vi
+      .fn<(accountId: string) => Promise<string | null>>()
+      .mockResolvedValue("org-1");
+    const { flags, getBooleanDetails } = setup(
+      serve(true),
+      resolveOrganizationId
+    );
+
+    await Promise.all([
+      Effect.runPromise(flags.isEnabled("people", signedIn)),
+      Effect.runPromise(flags.isEnabled("chordCharts", signedIn)),
+    ]);
+    await Effect.runPromise(flags.isEnabled("people", signedIn));
+
+    expect(resolveOrganizationId).toHaveBeenCalledOnce();
+    expect(getBooleanDetails).toHaveBeenCalledTimes(3);
+    expect(getBooleanDetails).toHaveBeenLastCalledWith("people-page", false, {
+      targetingKey: "user-1",
+      userId: "user-1",
+      organizationId: "org-1",
+    });
+  });
+
+  it("asks again for an organization not recorded yet", async () => {
+    const resolveOrganizationId = vi
+      .fn<(accountId: string) => Promise<string | null>>()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce("org-1");
+    const { flags, getBooleanDetails } = setup(
+      serve(true),
+      resolveOrganizationId
+    );
+
+    await Effect.runPromise(flags.isEnabled("people", signedIn));
+    await Effect.runPromise(flags.isEnabled("people", signedIn));
+
+    expect(resolveOrganizationId).toHaveBeenCalledTimes(2);
+    expect(getBooleanDetails).toHaveBeenLastCalledWith("people-page", false, {
+      targetingKey: "user-1",
+      userId: "user-1",
+      organizationId: "org-1",
+    });
+  });
+
   it("still evaluates for the user when the organization lookup fails", async () => {
     const lookupError = new Error("D1 unavailable");
     const { flags, getBooleanDetails, failures } = setup(

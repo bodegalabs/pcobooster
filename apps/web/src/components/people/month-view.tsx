@@ -468,7 +468,8 @@ const PeopleMonthMatrix = ({
             No one is scheduled this month.
           </p>
         ) : (
-          <div className="overflow-x-auto" style={columns}>
+          // `relative` keeps the cells' absolutely positioned screen-reader text in the scroller.
+          <div className="relative overflow-x-auto" style={columns}>
             <div className="min-w-fit">
               <div
                 className={cn(
@@ -566,7 +567,7 @@ const SelectedDayPanel = ({
 /** Before any activity loads: the month's shape with placeholders. */
 export const MonthViewSkeleton = () => (
   <div
-    className="grid shrink-0 items-start gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]"
+    className="grid shrink-0 items-start gap-3 @5xl:grid-cols-[minmax(0,1fr)_20rem]"
     aria-busy
     aria-label="Loading month view"
   >
@@ -630,7 +631,7 @@ export const MonthView = ({
     1;
 
   return (
-    <div className="grid shrink-0 items-start gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <div className="grid shrink-0 items-start gap-3 @5xl:grid-cols-[minmax(0,1fr)_20rem]">
       <section className="flex min-w-0 flex-col gap-3">
         <MonthHeatmap
           month={month}
