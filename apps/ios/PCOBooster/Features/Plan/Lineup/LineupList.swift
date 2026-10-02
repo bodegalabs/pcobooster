@@ -78,7 +78,10 @@ struct LineupList: View {
   @ViewBuilder
   private func positionRows(group: TeamPositionGroup, position: TeamPosition) -> some View {
     let slot = SlotRef.roster(group: group, position: position)
-    LineupPositionRow(group: group, position: position, actions: actions)
+    LineupPositionRow(
+      group: group, position: position, actions: actions,
+      stepper: actions.canSchedule ? model.adjuster : nil
+    )
       .modifier(LineupRowStyle(separatorAbove: true))
       .swipeActions(edge: .leading, allowsFullSwipe: false) {
         slotSwipe(position, change: .add)

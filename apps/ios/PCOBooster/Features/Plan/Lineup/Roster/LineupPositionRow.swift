@@ -3,12 +3,12 @@ import SwiftUI
 
 /// A position (`PositionRows`): its symbol (from the position and team names) and name,
 /// italic when it isn't one of the team's own positions. Tapping it opens the position in
-/// Assign. Where there's room (iPad), the open-slot stepper sits beside it.
+/// Assign. When the user can schedule, the open-slot stepper sits beside it.
 struct LineupPositionRow: View {
   let group: TeamPositionGroup
   let position: TeamPosition
   let actions: LineupActions
-  /// The open-slot stepper beside the name (iPad); phones adjust from the menu and swipes.
+  /// The open-slot stepper beside the name; swipes and the context menu also adjust slots.
   var stepper: NeededSlotsAdjuster?
 
   private var slot: SlotRef { SlotRef.roster(group: group, position: position) }
