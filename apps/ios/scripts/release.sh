@@ -142,11 +142,25 @@ cat >"$out/ExportOptions.plist" <<PLIST
 PLIST
 
 echo "==> Exporting ($destination)"
-xcodebuild -exportArchive \
-  -archivePath "$out/PCOBooster.xcarchive" \
-  -exportOptionsPlist "$out/ExportOptions.plist" \
-  -exportPath "$out/export" \
-  "${auth[@]}"
+export_archive() {
+  xcodebuild -exportArchive \
+    -archivePath "$out/PCOBooster.xcarchive" \
+    -exportOptionsPlist "$out/ExportOptions.plist" \
+    -exportPath "$out/export" \
+    "$@"
+}
+
+# A key without the Admin role can upload but cannot create the cloud-managed distribution
+# certificate ("Cloud signing permission error"). Fall back to the Apple ID signed in to Xcode.
+if ! export_archive "${auth[@]}"; then
+  if [[ ${#auth[@]} -gt 1 ]]; then
+    echo "==> Export with the API key failed; retrying with the Apple ID signed in to Xcode"
+    rm -rf "$out/export"
+    export_archive -allowProvisioningUpdates
+  else
+    exit 1
+  fi
+fi
 
 if [[ "$destination" == upload ]]; then
   echo "==> Uploaded PCOBooster $version ($build). It appears in TestFlight after processing."

@@ -92,7 +92,7 @@ struct LineupUnsentBadge: View {
 }
 
 /// Shared lineup row geometry.
-enum LineupMetrics {
+nonisolated enum LineupMetrics {
   /// The column for position and team symbols; people sit past it, under the position name.
   static let symbolWidth: CGFloat = 22
   /// Where people and open slots start, past the symbol column.
