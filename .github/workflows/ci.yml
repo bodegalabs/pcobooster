@@ -61,6 +61,52 @@ jobs:
       - name: Test
         run: bun run test
 
+  ios:
+    # Builds and tests the native iOS app (apps/ios) when a change can affect it. Not a
+    # required check; the TypeScript side of the iOS contract (generated models and parity
+    # fixtures) is enforced by the `ci` job's tests.
+    if: github.event.action != 'labeled'
+    runs-on: macos-26
+    timeout-minutes: 30
+    concurrency:
+      group: ios-${{ github.event.pull_request.number || github.sha }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Detect iOS changes
+        id: changes
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "ios=true" >> "$GITHUB_OUTPUT"
+          elif git diff --quiet "origin/$BASE_REF...HEAD" -- apps/ios packages/contracts scripts/ios scripts/parity .github/workflows/ci.yml; then
+            echo "ios=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ios=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test PCOBoosterCore
+        if: steps.changes.outputs.ios == 'true'
+        run: swift test --package-path apps/ios/PCOBoosterCore
+
+      - name: Build the app
+        if: steps.changes.outputs.ios == 'true'
+        run: |
+          xcodebuild build -quiet \
+            -project apps/ios/PCOBooster.xcodeproj -scheme PCOBooster \
+            -destination "generic/platform=iOS Simulator" \
+            -derivedDataPath "$RUNNER_TEMP/dd" \
+            CODE_SIGNING_ALLOWED=NO
+
   cloudflare-build:
     if: github.event.action != 'labeled'
     runs-on: ubuntu-latest
