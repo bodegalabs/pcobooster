@@ -1,0 +1,575 @@
+{
+  "suite": "people.calendar.status",
+  "cases": [
+    {
+      "input": {
+        "kind": "service"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "pending",
+        "commitmentCellTone": "scheduled",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Pending service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "C"
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "confirmed",
+        "commitmentCellTone": "confirmed",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Confirmed service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "U"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "pending",
+        "commitmentCellTone": "scheduled",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Pending service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "D"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "pending",
+        "commitmentCellTone": "scheduled",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Pending service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "c"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "pending",
+        "commitmentCellTone": "scheduled",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Pending service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "confirmed"
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "confirmed",
+        "commitmentCellTone": "confirmed",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Confirmed service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "Confirmed"
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "confirmed",
+        "commitmentCellTone": "confirmed",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Confirmed service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "CONFIRMED"
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "confirmed",
+        "commitmentCellTone": "confirmed",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Confirmed service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": " confirmed "
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "confirmed",
+        "commitmentCellTone": "confirmed",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Confirmed service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "\tC\n"
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "confirmed",
+        "commitmentCellTone": "confirmed",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Confirmed service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "C "
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "confirmed",
+        "commitmentCellTone": "confirmed",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Confirmed service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": " C"
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "confirmed",
+        "commitmentCellTone": "confirmed",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Confirmed service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "C　"
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "confirmed",
+        "commitmentCellTone": "confirmed",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Confirmed service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "confirmed."
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "pending",
+        "commitmentCellTone": "scheduled",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Pending service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "Confirmed service"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "pending",
+        "commitmentCellTone": "scheduled",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Pending service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": ""
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "pending",
+        "commitmentCellTone": "scheduled",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Pending service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "  "
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "pending",
+        "commitmentCellTone": "scheduled",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Pending service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "unconfirmed"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "pending",
+        "commitmentCellTone": "scheduled",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Pending service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "Declined"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "pending",
+        "commitmentCellTone": "scheduled",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Pending service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "CONFİRMED"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "pending",
+        "commitmentCellTone": "scheduled",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Pending service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "ＣＯＮＦＩＲＭＥＤ"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "pending",
+        "commitmentCellTone": "scheduled",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Pending service"
+      }
+    },
+    {
+      "input": {
+        "kind": "service",
+        "status": "confirm­ed"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "pending",
+        "commitmentCellTone": "scheduled",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Pending service"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "C"
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "U"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "D"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "c"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "confirmed"
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "Confirmed"
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "CONFIRMED"
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": " confirmed "
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "\tC\n"
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "C "
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": " C"
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "C　"
+      },
+      "output": {
+        "isConfirmedStatus": true,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Confirmed",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "confirmed."
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "Confirmed service"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": ""
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "  "
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "unconfirmed"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "Declined"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "CONFİRMED"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "ＣＯＮＦＩＲＭＥＤ"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Rehearsal"
+      }
+    },
+    {
+      "input": {
+        "kind": "rehearsal",
+        "status": "confirm­ed"
+      },
+      "output": {
+        "isConfirmedStatus": false,
+        "commitmentDot": "rehearsal",
+        "commitmentCellTone": "rehearsal",
+        "commitmentStatusLabel": "Pending",
+        "engagementLabel": "Rehearsal"
+      }
+    }
+  ]
+}

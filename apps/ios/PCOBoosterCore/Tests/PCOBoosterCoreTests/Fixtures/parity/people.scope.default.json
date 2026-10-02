@@ -1,0 +1,2178 @@
+{
+  "suite": "people.scope.default",
+  "cases": [
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "person-0",
+            "name": "Person 0",
+            "initials": "P",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Vocals",
+              "Band"
+            ]
+          },
+          {
+            "id": "person-1",
+            "name": "Person 1",
+            "initials": "P",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Band"
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "id": "band",
+            "name": "Band",
+            "serviceTypeName": "Sunday",
+            "personIds": [
+              "person-0",
+              "person-1"
+            ]
+          },
+          {
+            "id": "vocals",
+            "name": "Vocals",
+            "serviceTypeName": "Sunday",
+            "personIds": [
+              "person-0"
+            ]
+          }
+        ],
+        "ledTeamIds": [
+          "vocals"
+        ]
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "person-0",
+            "name": "Person 0",
+            "initials": "P",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Vocals",
+              "Band"
+            ]
+          },
+          {
+            "id": "person-1",
+            "name": "Person 1",
+            "initials": "P",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Band"
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "id": "band",
+            "name": "Band",
+            "serviceTypeName": "Sunday",
+            "personIds": [
+              "person-0",
+              "person-1"
+            ]
+          },
+          {
+            "id": "vocals",
+            "name": "Vocals",
+            "serviceTypeName": "Sunday",
+            "personIds": [
+              "person-0"
+            ]
+          }
+        ],
+        "ledTeamIds": []
+      },
+      "output": "all"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "person-0",
+            "name": "Person 0",
+            "initials": "P",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Vocals",
+              "Band"
+            ]
+          },
+          {
+            "id": "person-1",
+            "name": "Person 1",
+            "initials": "P",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Band"
+            ]
+          },
+          {
+            "id": "person-2",
+            "name": "Person 2",
+            "initials": "P",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Vocals",
+              "Band"
+            ]
+          },
+          {
+            "id": "person-3",
+            "name": "Person 3",
+            "initials": "P",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Band"
+            ]
+          },
+          {
+            "id": "person-4",
+            "name": "Person 4",
+            "initials": "P",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Vocals",
+              "Band"
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "id": "band",
+            "name": "Band",
+            "serviceTypeName": "Sunday",
+            "personIds": [
+              "person-0",
+              "person-1",
+              "person-2",
+              "person-3",
+              "person-4"
+            ]
+          },
+          {
+            "id": "vocals",
+            "name": "Vocals",
+            "serviceTypeName": "Sunday",
+            "personIds": [
+              "person-0",
+              "person-2",
+              "person-4"
+            ]
+          }
+        ],
+        "ledTeamIds": [
+          "vocals"
+        ]
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [],
+        "teams": [
+          {
+            "id": "band",
+            "name": "Band",
+            "serviceTypeName": "Sunday",
+            "personIds": []
+          },
+          {
+            "id": "vocals",
+            "name": "Vocals",
+            "serviceTypeName": "Sunday",
+            "personIds": []
+          }
+        ],
+        "ledTeamIds": []
+      },
+      "output": "all"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p0-0",
+            "name": "Sam",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": []
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "Greeters",
+            "serviceTypeName": "Zion",
+            "personIds": [
+              "p0-0",
+              "missing-person"
+            ]
+          },
+          {
+            "id": "team-1",
+            "name": "ΧΟΡΩΔΊΑ",
+            "serviceTypeName": "",
+            "personIds": []
+          }
+        ],
+        "ledTeamIds": [
+          "team-0"
+        ]
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p1-0",
+            "name": "fiona Ray",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Tech"
+            ]
+          },
+          {
+            "id": "p1-1",
+            "name": "#hash",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Vocals"
+            ]
+          },
+          {
+            "id": "p1-2",
+            "name": "Straße Ute",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "ΧΟΡΩΔΊΑ"
+            ]
+          },
+          {
+            "id": "p1-3",
+            "name": "Anna Lopez",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Band"
+            ]
+          },
+          {
+            "id": "p1-4",
+            "name": "Fiona Ray",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "ΧΟΡΩΔΊΑ"
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "Équipe",
+            "serviceTypeName": "alpha",
+            "personIds": [
+              "p1-0",
+              "p1-3",
+              "p1-4"
+            ]
+          },
+          {
+            "id": "team-1",
+            "name": "Kids",
+            "serviceTypeName": "Youth",
+            "personIds": [
+              "p1-0",
+              "p1-2",
+              "p1-3",
+              "p1-4"
+            ]
+          },
+          {
+            "id": "team-2",
+            "name": "Vocals",
+            "serviceTypeName": "Other teams",
+            "personIds": [
+              "p1-0",
+              "p1-1",
+              "p1-2",
+              "p1-3"
+            ]
+          }
+        ],
+        "ledTeamIds": [
+          "team-0",
+          "team-2"
+        ]
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p2-0",
+            "name": "Jose Diaz",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Tech"
+            ]
+          },
+          {
+            "id": "p2-1",
+            "name": "Strasse Ute",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Kids"
+            ]
+          },
+          {
+            "id": "p2-2",
+            "name": "José Díaz",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Vocals"
+            ]
+          }
+        ],
+        "teams": [],
+        "ledTeamIds": []
+      },
+      "output": "all"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p3-0",
+            "name": "1st Choir",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Production"
+            ]
+          },
+          {
+            "id": "p3-1",
+            "name": "Zoë Adams",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p3-2",
+            "name": "Sam",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Tech"
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "Kids",
+            "serviceTypeName": "Sunday",
+            "personIds": [
+              "p3-1",
+              "p3-2"
+            ]
+          },
+          {
+            "id": "team-1",
+            "name": "Production",
+            "serviceTypeName": null,
+            "personIds": [
+              "p3-1",
+              "p3-2",
+              "missing-person"
+            ]
+          },
+          {
+            "id": "team-2",
+            "name": "Vocals",
+            "serviceTypeName": null,
+            "personIds": [
+              "p3-2"
+            ]
+          },
+          {
+            "id": "team-3",
+            "name": "Équipe",
+            "serviceTypeName": "Other teams",
+            "personIds": [
+              "p3-0",
+              "p3-1"
+            ]
+          }
+        ],
+        "ledTeamIds": []
+      },
+      "output": "all"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p4-0",
+            "name": "fiona Ray",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p4-1",
+            "name": "王芳",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Vocals"
+            ]
+          },
+          {
+            "id": "p4-2",
+            "name": "Anna Lopez",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p4-3",
+            "name": "S‍am",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Équipe"
+            ]
+          },
+          {
+            "id": "p4-4",
+            "name": "Zoe Adams",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Tech"
+            ]
+          },
+          {
+            "id": "p4-5",
+            "name": "김민준",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p4-6",
+            "name": "İlker Kaya",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Band"
+            ]
+          },
+          {
+            "id": "p4-7",
+            "name": "#hash",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Kids"
+            ]
+          },
+          {
+            "id": "p4-8",
+            "name": "2nd Choir",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Production"
+            ]
+          },
+          {
+            "id": "p4-9",
+            "name": "ana lopez",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": []
+          },
+          {
+            "id": "p4-10",
+            "name": "Mary-Jane Fox",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": []
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "Équipe",
+            "serviceTypeName": "alpha",
+            "personIds": [
+              "p4-1",
+              "p4-2",
+              "p4-4",
+              "p4-6",
+              "p4-7",
+              "p4-10"
+            ]
+          }
+        ],
+        "ledTeamIds": [
+          "team-0"
+        ]
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p5-0",
+            "name": "王芳",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": []
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "ΧΟΡΩΔΊΑ",
+            "serviceTypeName": "Évènements",
+            "personIds": [
+              "missing-person"
+            ]
+          },
+          {
+            "id": "team-1",
+            "name": "Équipe",
+            "serviceTypeName": "Other teams",
+            "personIds": []
+          },
+          {
+            "id": "team-2",
+            "name": "Production",
+            "serviceTypeName": "alpha",
+            "personIds": [
+              "p5-0"
+            ]
+          }
+        ],
+        "ledTeamIds": []
+      },
+      "output": "all"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p6-0",
+            "name": "zoe adams",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p6-1",
+            "name": "SAM",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p6-2",
+            "name": "fiona Ray",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Production"
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "Tech",
+            "serviceTypeName": "Évènements",
+            "personIds": [
+              "p6-1"
+            ]
+          },
+          {
+            "id": "team-1",
+            "name": "Tech",
+            "serviceTypeName": "Youth",
+            "personIds": [
+              "p6-0",
+              "p6-1",
+              "p6-2"
+            ]
+          }
+        ],
+        "ledTeamIds": [
+          "gone"
+        ]
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p7-0",
+            "name": "Ana Lopez",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Tech"
+            ]
+          },
+          {
+            "id": "p7-1",
+            "name": "Mary Jane Fox",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Tech"
+            ]
+          },
+          {
+            "id": "p7-2",
+            "name": "Zoë Adams",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "Band",
+            "serviceTypeName": "Évènements",
+            "personIds": [
+              "p7-2"
+            ]
+          },
+          {
+            "id": "team-1",
+            "name": "Greeters",
+            "serviceTypeName": "Other teams",
+            "personIds": [
+              "p7-0",
+              "p7-1",
+              "p7-2"
+            ]
+          },
+          {
+            "id": "team-2",
+            "name": "ΧΟΡΩΔΊΑ",
+            "serviceTypeName": "Other teams",
+            "personIds": [
+              "p7-0",
+              "p7-2"
+            ]
+          }
+        ],
+        "ledTeamIds": [
+          "team-0",
+          "team-1",
+          "team-2"
+        ]
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p8-0",
+            "name": "Ilker Kaya",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p8-1",
+            "name": "Aero Hansen",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Production"
+            ]
+          },
+          {
+            "id": "p8-2",
+            "name": "(paren)",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Greeters"
+            ]
+          },
+          {
+            "id": "p8-3",
+            "name": "José Diaz",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": []
+          },
+          {
+            "id": "p8-4",
+            "name": "🙏 Grace",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Vocals"
+            ]
+          },
+          {
+            "id": "p8-5",
+            "name": "Ed",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Production"
+            ]
+          },
+          {
+            "id": "p8-6",
+            "name": "SAM",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Kids"
+            ]
+          }
+        ],
+        "teams": [],
+        "ledTeamIds": []
+      },
+      "output": "all"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p9-0",
+            "name": "Οδυσσέας Σ",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Vocals"
+            ]
+          },
+          {
+            "id": "p9-1",
+            "name": "王芳",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "ΧΟΡΩΔΊΑ"
+            ]
+          },
+          {
+            "id": "p9-2",
+            "name": "이서연",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Band"
+            ]
+          },
+          {
+            "id": "p9-3",
+            "name": "Ana Lopez",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": []
+          },
+          {
+            "id": "p9-4",
+            "name": "Fiona Ray",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p9-5",
+            "name": "ana lopez",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p9-6",
+            "name": "Anna Lopez",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p9-7",
+            "name": " ",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": []
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "Tech",
+            "serviceTypeName": "Sunday",
+            "personIds": [
+              "p9-0",
+              "p9-1",
+              "p9-2",
+              "p9-5",
+              "p9-7"
+            ]
+          }
+        ],
+        "ledTeamIds": []
+      },
+      "output": "all"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p10-0",
+            "name": "Mary Jane Fox",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Production"
+            ]
+          },
+          {
+            "id": "p10-1",
+            "name": "O Brien Kelly",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "ΧΟΡΩΔΊΑ"
+            ]
+          },
+          {
+            "id": "p10-2",
+            "name": "Ed",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p10-3",
+            "name": "zoe adams",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Greeters"
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "ΧΟΡΩΔΊΑ",
+            "serviceTypeName": "Évènements",
+            "personIds": [
+              "p10-0",
+              "p10-1",
+              "p10-3"
+            ]
+          }
+        ],
+        "ledTeamIds": []
+      },
+      "output": "all"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p11-0",
+            "name": "Ána López",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Production"
+            ]
+          },
+          {
+            "id": "p11-1",
+            "name": "이서연",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Greeters"
+            ]
+          },
+          {
+            "id": "p11-2",
+            "name": "Zoe Adams",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "ΧΟΡΩΔΊΑ"
+            ]
+          },
+          {
+            "id": "p11-3",
+            "name": "Fiona Ray",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Greeters"
+            ]
+          },
+          {
+            "id": "p11-4",
+            "name": "Ana Lopez",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Kids"
+            ]
+          },
+          {
+            "id": "p11-5",
+            "name": "Иван Петров",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Greeters"
+            ]
+          },
+          {
+            "id": "p11-6",
+            "name": "(paren)",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Kids"
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "ΧΟΡΩΔΊΑ",
+            "serviceTypeName": "Other teams",
+            "personIds": [
+              "p11-0",
+              "p11-5"
+            ]
+          },
+          {
+            "id": "team-1",
+            "name": "Tech",
+            "serviceTypeName": "Sunday",
+            "personIds": [
+              "p11-0",
+              "p11-4"
+            ]
+          },
+          {
+            "id": "team-2",
+            "name": "Kids",
+            "serviceTypeName": "Saturday Night",
+            "personIds": [
+              "p11-0",
+              "p11-2",
+              "p11-3"
+            ]
+          }
+        ],
+        "ledTeamIds": [
+          "team-0",
+          "team-2"
+        ]
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p12-0",
+            "name": "Sam",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Band"
+            ]
+          },
+          {
+            "id": "p12-1",
+            "name": "(paren)",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Greeters"
+            ]
+          },
+          {
+            "id": "p12-2",
+            "name": "Sam­",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Greeters"
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "Équipe",
+            "serviceTypeName": "",
+            "personIds": [
+              "p12-1",
+              "p12-2"
+            ]
+          },
+          {
+            "id": "team-1",
+            "name": "Band",
+            "serviceTypeName": "alpha",
+            "personIds": [
+              "p12-0",
+              "p12-1",
+              "missing-person"
+            ]
+          },
+          {
+            "id": "team-2",
+            "name": "Vocals",
+            "serviceTypeName": "alpha",
+            "personIds": [
+              "p12-0",
+              "p12-2"
+            ]
+          }
+        ],
+        "ledTeamIds": [
+          "team-0",
+          "team-1"
+        ]
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p13-0",
+            "name": "Aero Hansen",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Équipe"
+            ]
+          },
+          {
+            "id": "p13-1",
+            "name": "ANA LOPEZ",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Greeters"
+            ]
+          },
+          {
+            "id": "p13-2",
+            "name": "Ana Lopez",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Band"
+            ]
+          },
+          {
+            "id": "p13-3",
+            "name": "이서연",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p13-4",
+            "name": "ana lopez",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "ΧΟΡΩΔΊΑ"
+            ]
+          },
+          {
+            "id": "p13-5",
+            "name": "(paren)",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": []
+          },
+          {
+            "id": "p13-6",
+            "name": "José Díaz",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": []
+          },
+          {
+            "id": "p13-7",
+            "name": "O'Brien Kelly",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Vocals"
+            ]
+          },
+          {
+            "id": "p13-8",
+            "name": "fiona Ray",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Band"
+            ]
+          },
+          {
+            "id": "p13-9",
+            "name": "ana lopez",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Vocals"
+            ]
+          }
+        ],
+        "teams": [],
+        "ledTeamIds": [
+          "gone"
+        ]
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p14-0",
+            "name": "Edd",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p14-1",
+            "name": "Mary-Jane Fox",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": []
+          },
+          {
+            "id": "p14-2",
+            "name": "иван петров",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p14-3",
+            "name": "Aero Hansen",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "ΧΟΡΩΔΊΑ"
+            ]
+          }
+        ],
+        "teams": [],
+        "ledTeamIds": []
+      },
+      "output": "all"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p15-0",
+            "name": "Zoë Adams",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "ΧΟΡΩΔΊΑ"
+            ]
+          },
+          {
+            "id": "p15-1",
+            "name": "Ána López",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Production"
+            ]
+          },
+          {
+            "id": "p15-2",
+            "name": "Éd",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": []
+          },
+          {
+            "id": "p15-3",
+            "name": "ﬁona Ray",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": []
+          },
+          {
+            "id": "p15-4",
+            "name": "김민준",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Équipe"
+            ]
+          },
+          {
+            "id": "p15-5",
+            "name": "OBrien Kelly",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "Band",
+            "serviceTypeName": "sunday",
+            "personIds": [
+              "p15-0",
+              "p15-3",
+              "p15-5"
+            ]
+          }
+        ],
+        "ledTeamIds": [
+          "team-0"
+        ]
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p16-0",
+            "name": "Edd",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "ΧΟΡΩΔΊΑ"
+            ]
+          },
+          {
+            "id": "p16-1",
+            "name": "Grace 🙏",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Kids"
+            ]
+          },
+          {
+            "id": "p16-2",
+            "name": "Οδυσσέας Σ",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Production"
+            ]
+          },
+          {
+            "id": "p16-3",
+            "name": "Strasse Ute",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p16-4",
+            "name": "张伟",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Production"
+            ]
+          },
+          {
+            "id": "p16-5",
+            "name": "O'Brien Kelly",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Band"
+            ]
+          },
+          {
+            "id": "p16-6",
+            "name": "Ána López",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Kids"
+            ]
+          },
+          {
+            "id": "p16-7",
+            "name": "Ærø Hansen",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "ΧΟΡΩΔΊΑ"
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "ΧΟΡΩΔΊΑ",
+            "serviceTypeName": "Zion",
+            "personIds": [
+              "p16-0",
+              "p16-1",
+              "p16-3",
+              "p16-4",
+              "p16-5",
+              "p16-6",
+              "p16-7"
+            ]
+          },
+          {
+            "id": "team-1",
+            "name": "ΧΟΡΩΔΊΑ",
+            "serviceTypeName": null,
+            "personIds": [
+              "p16-0",
+              "p16-1",
+              "p16-3",
+              "p16-5",
+              "p16-6",
+              "p16-7"
+            ]
+          },
+          {
+            "id": "team-2",
+            "name": "Équipe",
+            "serviceTypeName": "Zion",
+            "personIds": [
+              "p16-0",
+              "p16-2",
+              "p16-3",
+              "p16-4",
+              "p16-5",
+              "p16-6",
+              "p16-7"
+            ]
+          },
+          {
+            "id": "team-3",
+            "name": "Tech",
+            "serviceTypeName": "Saturday Night",
+            "personIds": [
+              "p16-0",
+              "p16-3",
+              "p16-5",
+              "p16-6",
+              "p16-7"
+            ]
+          }
+        ],
+        "ledTeamIds": [
+          "team-0",
+          "team-1"
+        ]
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p17-0",
+            "name": " ",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Équipe"
+            ]
+          },
+          {
+            "id": "p17-1",
+            "name": "(paren)",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Vocals"
+            ]
+          },
+          {
+            "id": "p17-2",
+            "name": "Fiona Ray",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Production"
+            ]
+          },
+          {
+            "id": "p17-3",
+            "name": "Aero Hansen",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Band"
+            ]
+          },
+          {
+            "id": "p17-4",
+            "name": "张　伟",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Équipe"
+            ]
+          },
+          {
+            "id": "p17-5",
+            "name": "Ben Ortiz",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Greeters"
+            ]
+          },
+          {
+            "id": "p17-6",
+            "name": "Aero Hansen",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Équipe"
+            ]
+          }
+        ],
+        "teams": [],
+        "ledTeamIds": []
+      },
+      "output": "all"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "Tech",
+            "serviceTypeName": "Évènements",
+            "personIds": []
+          },
+          {
+            "id": "team-1",
+            "name": "Greeters",
+            "serviceTypeName": "alpha",
+            "personIds": []
+          }
+        ],
+        "ledTeamIds": [
+          "team-1"
+        ]
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p19-0",
+            "name": "Fiona Ray",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Tech"
+            ]
+          },
+          {
+            "id": "p19-1",
+            "name": "ﬁona Ray",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "ΧΟΡΩΔΊΑ"
+            ]
+          },
+          {
+            "id": "p19-2",
+            "name": "José Diaz",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Équipe"
+            ]
+          },
+          {
+            "id": "p19-3",
+            "name": "José Díaz",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Greeters"
+            ]
+          },
+          {
+            "id": "p19-4",
+            "name": "Ben Ortiz",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": []
+          },
+          {
+            "id": "p19-5",
+            "name": "ANA LOPEZ",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p19-6",
+            "name": "zoe adams",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Production"
+            ]
+          },
+          {
+            "id": "p19-7",
+            "name": "José Diaz",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Équipe"
+            ]
+          },
+          {
+            "id": "p19-8",
+            "name": "OBrien Kelly",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p19-9",
+            "name": "ANA LOPEZ",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Greeters"
+            ]
+          },
+          {
+            "id": "p19-10",
+            "name": "Иван Петров",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": []
+          }
+        ],
+        "teams": [],
+        "ledTeamIds": []
+      },
+      "output": "all"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p20-0",
+            "name": "Ed",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Greeters"
+            ]
+          },
+          {
+            "id": "p20-1",
+            "name": "Mary-Jane Fox",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Tech"
+            ]
+          },
+          {
+            "id": "p20-2",
+            "name": "Sam",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p20-3",
+            "name": "Lukasz Nowak",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Greeters"
+            ]
+          },
+          {
+            "id": "p20-4",
+            "name": "Ana Lopez",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "ΧΟΡΩΔΊΑ"
+            ]
+          },
+          {
+            "id": "p20-5",
+            "name": "Fiona Ray",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Kids"
+            ]
+          },
+          {
+            "id": "p20-6",
+            "name": "José Díaz",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Kids"
+            ]
+          },
+          {
+            "id": "p20-7",
+            "name": "王芳",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "ΧΟΡΩΔΊΑ"
+            ]
+          },
+          {
+            "id": "p20-8",
+            "name": "张 伟",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Kids"
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "Kids",
+            "serviceTypeName": "",
+            "personIds": [
+              "p20-0",
+              "p20-2",
+              "p20-3",
+              "p20-4",
+              "p20-7",
+              "p20-8",
+              "missing-person"
+            ]
+          },
+          {
+            "id": "team-1",
+            "name": "Kids",
+            "serviceTypeName": "Sunday",
+            "personIds": [
+              "p20-0",
+              "p20-2",
+              "p20-3",
+              "p20-5",
+              "p20-6"
+            ]
+          }
+        ],
+        "ledTeamIds": [
+          "team-1"
+        ]
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p21-0",
+            "name": "#hash",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p21-1",
+            "name": "OBrien Kelly",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Band"
+            ]
+          },
+          {
+            "id": "p21-2",
+            "name": "Sam",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Tech"
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "Kids",
+            "serviceTypeName": "Sunday",
+            "personIds": [
+              "p21-0",
+              "p21-1"
+            ]
+          }
+        ],
+        "ledTeamIds": []
+      },
+      "output": "all"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p22-0",
+            "name": "Grace 🙏",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p22-1",
+            "name": "ANA LOPEZ",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Greeters"
+            ]
+          },
+          {
+            "id": "p22-2",
+            "name": "S‍am",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Production"
+            ]
+          },
+          {
+            "id": "p22-3",
+            "name": "MaryJane Fox",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": []
+          },
+          {
+            "id": "p22-4",
+            "name": "张伟",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Band"
+            ]
+          },
+          {
+            "id": "p22-5",
+            "name": "Grace 🙏",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Vocals"
+            ]
+          },
+          {
+            "id": "p22-6",
+            "name": "Zoë Adams",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Band"
+            ]
+          },
+          {
+            "id": "p22-7",
+            "name": "Οδυσσέας Σ",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Kids"
+            ]
+          },
+          {
+            "id": "p22-8",
+            "name": "#hash",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Vocals"
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "Production",
+            "serviceTypeName": "Saturday Night",
+            "personIds": [
+              "p22-7",
+              "p22-8"
+            ]
+          },
+          {
+            "id": "team-1",
+            "name": "Équipe",
+            "serviceTypeName": null,
+            "personIds": [
+              "p22-2",
+              "p22-4",
+              "p22-5",
+              "p22-6",
+              "p22-7",
+              "p22-8"
+            ]
+          }
+        ],
+        "ledTeamIds": []
+      },
+      "output": "all"
+    },
+    {
+      "input": {
+        "generatedAt": "2026-05-23T12:00:00.000Z",
+        "month": {
+          "year": 2026,
+          "monthIndex": 4,
+          "label": "May 2026",
+          "daysInMonth": 31,
+          "startsOnWeekday": 5
+        },
+        "people": [
+          {
+            "id": "p23-0",
+            "name": "Sam­",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Vocals"
+            ]
+          },
+          {
+            "id": "p23-1",
+            "name": "张 伟",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Vocals"
+            ]
+          },
+          {
+            "id": "p23-2",
+            "name": "Ána López",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Tech"
+            ]
+          },
+          {
+            "id": "p23-3",
+            "name": "Sam",
+            "initials": "",
+            "photoThumbnailUrl": "https://example.com/p.jpg",
+            "teams": [
+              "Band"
+            ]
+          },
+          {
+            "id": "p23-4",
+            "name": "#hash",
+            "initials": "",
+            "photoThumbnailUrl": null,
+            "teams": [
+              "Équipe"
+            ]
+          }
+        ],
+        "teams": [
+          {
+            "id": "team-0",
+            "name": "Greeters",
+            "serviceTypeName": null,
+            "personIds": [
+              "p23-0",
+              "p23-1",
+              "p23-2",
+              "p23-3"
+            ]
+          }
+        ],
+        "ledTeamIds": []
+      },
+      "output": "all"
+    }
+  ]
+}

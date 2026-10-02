@@ -2,6 +2,7 @@ import { calendarParitySuites } from "./calendar.parity";
 import { chordChartParitySuites } from "./chord-charts.parity";
 import { musicParitySuites } from "./music.parity";
 import type { ParitySuite } from "./parity";
+import { peopleParitySuites } from "./people.parity";
 import { plansParitySuites } from "./plans.parity";
 import { routesParitySuites } from "./routes.parity";
 import { schedulingParitySuites } from "./scheduling.parity";
@@ -18,4 +19,5 @@ export const paritySuites: readonly ParitySuite[] = [
   ...schedulingParitySuites,
   ...plansParitySuites,
   ...songsParitySuites,
+  ...peopleParitySuites,
 ];
