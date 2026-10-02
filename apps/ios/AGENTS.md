@@ -5,7 +5,8 @@ Native SwiftUI app for pcobooster.com on iOS 26 (iPhone and iPad), built on the 
 ## Layout
 
 - `PCOBooster.xcodeproj`: hand-written, folder-synced (objectVersion 77). New files under `PCOBooster/` and `PCOBoosterUITests/` join their target automatically; do not add file references to the project. The shared scheme is `PCOBooster`.
-- `PCOBooster/`: the app target. `App/` (entry, app model, routing), `DesignSystem/` (tokens, components, motion), `Features/<Area>/` (one folder per product area), `Resources/` (`Assets.xcassets`, `AppIcon.icon`, `PrivacyInfo.xcprivacy`), `Info.plist`.
+- `PCOBooster/`: the app target. `App/` (entry, `AppModel`, routing, root views, analytics, support), `DesignSystem/` (tokens, components, motion), `Features/<Area>/` (one folder per product area), `Resources/` (`Assets.xcassets`, `AppIcon.icon`, `PrivacyInfo.xcprivacy`), `Info.plist`. Keep non-source files (READMEs) out of `PCOBooster/`: the synced folder copies them into the app bundle.
+- `PCOBoosterUITests/`: XCUITest launch and shell smoke tests on mock data.
 - `PCOBoosterCore/`: local Swift package, platform-neutral (Foundation only, no UIKit/SwiftUI), so `swift test` runs on the Mac without a simulator.
   - `API/Generated/`: models and procedure descriptors generated from `packages/contracts` by `bun run ios:models` (`scripts/ios/generate-swift-models.ts`). Never edit by hand; a Vitest drift test fails when they are stale.
   - `API/Runtime/`: transport, client, errors, request scheduler, JSON coding.
@@ -19,8 +20,93 @@ Native SwiftUI app for pcobooster.com on iOS 26 (iPhone and iPad), built on the 
 - `swift test --package-path apps/ios/PCOBoosterCore`: package tests only.
 - `bun run ios:models`: regenerate API models after a contract change.
 - `bun run parity:update`: regenerate parity fixtures after changing ported TypeScript.
-- `bun run ios:release`: archive and upload to TestFlight (see `scripts/release.sh`).
+- `bun run ios:release` (`--no-upload` to export only): test, archive, and upload to TestFlight. Run it under `infisical run --env=prod --path=/ --projectId=2eca20e1-20ac-4f06-a086-99ea5c590483 --` so the PostHog key is built in; see the header of `scripts/release.sh` for `BUILD_NUMBER`, `ALLOW_DIRTY`, and the App Store Connect key variables.
 - Build into `apps/ios/build/` (ignored) with `-derivedDataPath`, never the default DerivedData, so worktrees do not collide.
+
+## App shell
+
+The shell (`App/`) owns the session, navigation, and app-wide services; features fill `Features/<Area>/` and keep the initializers listed below.
+
+### AppModel and the environment
+
+- `AppModel` (`App/AppModel.swift`) is the root `@Observable`, injected at the window. Read it with `@Environment(AppModel.self) private var app`. It holds `services` (`rpc`, `queries`, `session`), `router`, `toasts`, `analytics`, `network`, `clock`, `configuration`, `appearance`, and `account`.
+- `app.account` (`AccountContext`) holds the reads every screen shares for the current account context: `features`, `accounts`, `access`, and `organization`. A new one is built whenever the query scope changes (sign-in, account or organization switch, demo, sign-out), and the root view rebuilds with `.id(queries.scope)`, so nothing crosses accounts.
+- Environment values set at the root: `AppModel`, `AppRouter`, `ToastCenter` (from `.errorToasts`), `\.orgTimeZone` (validated congregation zone), and `\.appClock`.
+- Session states (`app.state`): `.launching` (brand splash while the session restores or a new account's flags load, at most 1.5 s), `.signedOut(expired:)` and `.signingIn` (the sign-in screen; `expired` shows "Jordan's session ended"), `.signedIn` (also local development), and `.demo`. A 401 on the active token moves to `.signedOut(expired:)`; signing in again as the same person keeps the cache.
+
+### Building a screen
+
+- Hold reads in an `@Observable` model built with `@ScreenModel` (`App/Support/ScreenModel.swift`): it builds once per view identity, with the app's dependencies, before the first frame, so disk-cached values paint without a skeleton flash.
+
+  ```swift
+  struct RunSheetView: View {
+    let context: PlanContext
+    @ScreenModel private var model: RunSheetModel
+    init(context: PlanContext) {
+      self.context = context
+      _model = ScreenModel { app in RunSheetModel(queries: app.queries, context: context) }
+    }
+    var body: some View { list.queryLifecycle(model.items) }
+  }
+  ```
+
+- Call `.queryLifecycle(state1, state2)` on the screen that holds `QueryState`s, so returning to it revalidates stale data and invalidations skip covered screens.
+- Dates: `@Environment(\.orgTimeZone) private var timeZone`, then `OrgCalendar.label(date, timeZone: timeZone, style: .weekdayMonthDay)` or the other `Logic/Calendar` helpers. Outside views, `app.timeZone` or `await app.queries.resolveOrganizationTimeZone()`. Never the device zone.
+- "Now": `app.clock.now` (or `@Environment(\.appClock)`), never `Date()`, for anything labeled relative to today, so fixed-clock screenshots line up with the fixtures.
+- Errors: writes through `queries.write` toast automatically. For anything else, `app.showError(error)` (or `toasts.showError(message)`). Reads show their own error state with Retry. No success toasts.
+- Abilities: `app.capabilities` (`AppCapabilities`): `isEnabled(.people)`, `isEnabled(.chordCharts)`, `isReadOnly` (demo: hide or disable writes), `canSearchPeople`, `canSendFeedback`, `hasNoServicesAccess`, and the raw `access` snapshot. Per service type abilities come from the `serviceTypeAbilities` port (ios/logic-access) fed with `capabilities.access`.
+
+### Navigation
+
+- Root: `TabView` with Services, People (`people` flag), Songs (`chordCharts` flag), and `Tab(role: .search)`; `.sidebarAdaptable` (iPad sidebar headed by the brand lockup), `.tabBarMinimizeBehavior(.onScrollDown)`. Each tab owns a `NavigationStack` bound to `AppRouter`; the avatar on every tab root opens the account sheet.
+- `AppRoute` (`App/Routing/AppRoute.swift`) is the only route type, and `appRouteDestinations()` maps every case in every tab, behind its flag: `.plan(PlanRoute)`, `.assign(PlanRoute, teamId:, positionId:)`, `.person(id:, month:)`, `.song(id:)`, `.chordChart(songId:, arrangementId:)`.
+- Push with `@Environment(AppRouter.self) private var router` and `router.push(route)` (stays in the current tab: a person opened from the lineup returns to the lineup). `router.open(route, visibleTabs: app.visibleTabs)` switches to the owning tab (deep links, cross-section jumps). Also `pop()`, `popToRoot()`, `show(tab, path:)`, `presentAccount()`.
+- While a plan is open in Services and another tab shows, a "back to plan" accessory sits above the tab bar (iOS 26.1 and later). It reads the plan header from the cache key `planDetails`, so load plan headers with that key.
+- Screen events: tab roots and pushed routes send `$screen` with the web route template automatically; `PlanScreen` sends `.trackScreen(.plan(segment.view))`. Never send ids.
+
+### Plan screen contract
+
+- `PlanScreen(route: PlanRoute)` builds a `PlanContext` (`Features/Plan/PlanContext.swift`) and shows a segmented control (Overview, Lineup, Plan, Times) pinned under the navigation bar. No page swipe between segments (rows use swipe actions).
+- Segment views take the context: `PlanOverviewView(context:)`, `LineupView(context:)`, `RunSheetView(context:)`, `PlanTimesView(context:)`. `PlanContext` has `serviceTypeId`, `planId`, `segment` (set it to switch), `plan` (`QueryState<Plan?>` for `catalog.plan`), `header`, `isMissing`, `route`, and `assignRoute(teamId:positionId:)`. Add fields freely; never rename or remove them.
+- Assign is a push, never a segment: `router.push(context.assignRoute(teamId: team.id, positionId: position.id))`, rendered by `AssignView(route:teamId:positionId:)`.
+- Other fixed initializers: `ServicesHomeView()`, `PeopleHomeView()`, `PersonDetailView(personId:month:)`, `SongsHomeView()`, `SongDetailView(songId:)`, `ChordChartEditorView(songId:arrangementId:)`, `SearchHomeView()`, `AccountSheet()`.
+
+### Haptics and motion
+
+- `.haptic(.success, trigger:)` when a write the person made lands (assigned, confirmed, saved), `.selection` for segment and status switches, `.tap` for reorder drops, `.warning` for declines; error toasts play `.error` themselves.
+- Animate layout, never color; wrap animations in `Motion.respecting(reduceMotion:...)`.
+
+### Debug launch arguments
+
+Debug builds only (Release ignores them). Pass with `xcrun simctl launch <udid> com.pcobooster.ios.debug <args>` or `XCUIApplication.launchArguments`.
+
+| Argument | Effect |
+| --- | --- |
+| `-PCOBMock YES` | Fixtures through `MockTransport`, signed in as Jordan Hale (Cedar Grove Church) with a second remembered account. |
+| `-PCOBMockSession signedIn\|signedOut\|expired\|demo` | The mock session to start in (default `signedIn`). Sign-in in mock mode signs in as Jordan. |
+| `-PCOBMockLatency <ms>` | Mock reply delay (default 250; UI tests use 0). |
+| `-PCOBFeatures all\|none\|people\|songs` | Overrides `features.status` in mock mode (`none` is production today). |
+| `-PCOBFixedNow YES` | Pins the mock data and `app.clock` to `MockFixtures.anchorNow` (Thu Oct 1 2026, 10 AM Pacific). |
+| `-PCOBRoute <path>` | Opens a path at launch, for example `/services/1101/plans/881261004/lineup`, `/services/1101/plans/881261004/assign`, `/people/4100104`, `/songs/5501`, `/songs/5501/chart`, `/account`. |
+| `-PCOBTab services\|people\|songs\|search` | Selects a tab at launch. |
+| `-PCOBAppearance light\|dark` | Forces the appearance for this launch. |
+| `-PCOBGallery YES` | Shows the design system gallery instead of the app. |
+| `-PCOBOffline YES` | Shows the offline banner (requests still go out). |
+
+Screenshot recipe: `xcrun simctl launch <udid> com.pcobooster.ios.debug -PCOBMock YES -PCOBFixedNow YES -PCOBRoute /services/1101/plans/881261004/lineup`, then `xcrun simctl io <udid> screenshot shot.png`. Toggle `xcrun simctl ui <udid> appearance dark` and `content_size accessibility-extra-large` for dark mode and Dynamic Type.
+
+### Links and sign-in
+
+- `onOpenURL` accepts `<scheme>://demo/<key>` and `https://pcobooster.com/demo/<key>` plus the app paths above (`AppLink`); anything else is ignored. A demo link while signed in asks first. The sign-in screen's "Have a demo link?" takes a pasted link or key; keys are never compiled in.
+- Native sign-in runs in an ephemeral `ASWebAuthenticationSession` through SwiftUI's `webAuthenticationSession` environment, with the `PCOBURLScheme` callback.
+
+### Analytics
+
+`PostHogAnalytics` adapts the runtime's `AnalyticsSink`. It sets PostHog up only in a production build against `pcobooster.com` with a `PCOBPostHogKey`, after a non-demo `accounts.list`, identified by the Better Auth user id (as on the web). No autocapture, lifecycle or screen autocapture, session replay, surveys, or flag calls. "Share usage analytics" in the account sheet opts out.
+
+### UI tests
+
+`PCOBoosterUITests` launch on mock data (`XCUIApplication.mock(session:arguments:)`). Set `TEST_RUNNER_PCOB_SHOT_DIR=<dir>` to save each checkpoint's screenshot. Run with `bun run ios:test --ui` or `xcodebuild test -scheme PCOBooster -destination 'platform=iOS Simulator,id=<udid>' -derivedDataPath apps/ios/build/<yours>`.
 
 ## Talking to the API
 
