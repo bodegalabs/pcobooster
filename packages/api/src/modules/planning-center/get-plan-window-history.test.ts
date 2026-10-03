@@ -4,6 +4,7 @@ import type {
   PlanWindowHistoryDependencies,
   PlanWindowHistoryInput,
 } from "@pcobooster/api/modules/planning-center/get-plan-window-history";
+import { planTimeResourceSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
 import {
@@ -16,7 +17,7 @@ import { isString } from "@pcobooster/planning-center-models/json";
 import { expandPlanWindowHistory } from "@pcobooster/planning-center-models/plan-window-history";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 /** Sunday May 3, 2026, 10:00 UTC. */
 const PLAN_DATE = "2026-05-03T10:00:00.000Z";
@@ -364,5 +365,116 @@ describe(getPlanWindowHistory, () => {
       upcomingRehearsals: 1,
       nextRehearsal: "2026-05-30T18:00:00.000Z",
     });
+  });
+});
+
+const includedTime = (id: string, planId: string): PCResource => ({
+  type: "PlanTime",
+  id,
+  attributes: { starts_at: "2026-04-20T10:00:00Z", time_type: "service" },
+  relationships: {
+    plan: {
+      data: [
+        { type: "Plan", id: planId },
+        { type: "Plan", id: "st-0-plan-2" },
+      ],
+    },
+  },
+});
+
+describe("range plan-time parsing", () => {
+  it("preserves included order, explicit references, and fallback plan relationships", async () => {
+    const org = createOrg({
+      serviceTypes: 1,
+      plansPerServiceType: 3,
+      rangeRequests: 1,
+      planPeople: () => 0,
+    });
+    const included: PCResource[] = [
+      includedTime("a", "st-0-plan-2"),
+      includedTime("b", "st-0-plan-1"),
+      includedTime("c", "st-0-plan-1"),
+      {
+        ...includedTime("invalid", "st-0-plan-1"),
+        attributes: { starts_at: 123 },
+      },
+      { type: "Team", id: "a", attributes: {} },
+    ];
+    const dependencies: PlanWindowHistoryDependencies = {
+      ...org,
+      plans: {
+        getPlansWithIncludedInDateRange: (serviceTypeId) =>
+          org.plans.getPlansWithIncludedInDateRange(serviceTypeId).pipe(
+            Effect.map((range) => ({
+              ...range,
+              included,
+              data: range.data.map((plan, index) =>
+                index === 0
+                  ? {
+                      ...plan,
+                      relationships: {
+                        plan_times: {
+                          data: [
+                            { type: "PlanTime", id: "b" },
+                            { type: "PlanTime", id: "a" },
+                            { type: "PlanTime", id: "missing" },
+                          ],
+                        },
+                      },
+                    }
+                  : plan
+              ),
+            }))
+          ),
+      },
+    };
+    const { batch } = await runCall({ date: PLAN_DATE }, dependencies);
+    expect(batch.loadedPlanCount).toBe(3);
+    expect(batch.planTimes.map(({ id }) => id)).toStrictEqual([
+      "a",
+      "b",
+      "b",
+      "c",
+      "a",
+    ]);
+  });
+
+  it("validates included times once per range rather than once per plan", async () => {
+    const org = createOrg({
+      serviceTypes: 1,
+      plansPerServiceType: 35,
+      rangeRequests: 1,
+      planPeople: () => 0,
+    });
+    const included: PCResource[] = Array.from({ length: 100 }, (_, index) => ({
+      type: "PlanTime",
+      id: `time-${index}`,
+      attributes: { starts_at: "2026-04-20T10:00:00Z", time_type: "service" },
+      relationships: {
+        plan: { data: { type: "Plan", id: `st-0-plan-${index % 35}` } },
+      },
+    }));
+    const dependencies: PlanWindowHistoryDependencies = {
+      ...org,
+      plans: {
+        getPlansWithIncludedInDateRange: (serviceTypeId) =>
+          org.plans
+            .getPlansWithIncludedInDateRange(serviceTypeId)
+            .pipe(Effect.map((range) => ({ ...range, included }))),
+      },
+    };
+    const parse = vi.spyOn(planTimeResourceSchema, "safeParse");
+    try {
+      const { batch, requests } = await runCall(
+        { date: PLAN_DATE },
+        dependencies
+      );
+      expect(batch.loadedPlanCount).toBe(35);
+      expect(batch.planTimes).toHaveLength(100);
+      expect(requests).toBe(3);
+      expect(parse).toHaveBeenCalledTimes(included.length);
+    } finally {
+      parse.mockRestore();
+    }
   });
 });
