@@ -16,6 +16,7 @@ import {
   scheduleSortDate,
   scheduleStatus,
 } from "@pcobooster/api/modules/planning-center/serving-rhythm";
+import type { RhythmSchedule } from "@pcobooster/api/modules/planning-center/serving-rhythm";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import {
@@ -121,9 +122,9 @@ const getSingleRelationshipId = (
 const buildPlanWorkspaceUrl = (serviceTypeId: string, planId: string) =>
   `/services/${encodeURIComponent(serviceTypeId)}/plans/${encodeURIComponent(planId)}/lineup`;
 
-export const mapScheduleToDashboardItems = (
+const mapScheduleWithPlanTimeLookup = (
   schedule: PCResource,
-  included: PCResource[]
+  findPlanTime: (id: string) => PCResource | undefined
 ): ScheduleItem[] => {
   const fallbackDate = isNonEmptyString(schedule.attributes.sort_date)
     ? new Date(schedule.attributes.sort_date)
@@ -170,7 +171,7 @@ export const mapScheduleToDashboardItems = (
   }
 
   return ids.flatMap((id) => {
-    const planTime = findIncluded(included, "PlanTime", id);
+    const planTime = findPlanTime(id);
     const rawType = planTime?.attributes.time_type;
     const timeType =
       rawType === "service" || rawType === "rehearsal" || rawType === "other"
@@ -183,6 +184,24 @@ export const mapScheduleToDashboardItems = (
     const date = isString(startsAt) ? new Date(startsAt) : fallbackDate;
     return [buildItem(`${schedule.id}:${id}`, date, timeType)];
   });
+};
+
+export const mapScheduleToDashboardItems = (
+  schedule: PCResource,
+  included: PCResource[]
+): ScheduleItem[] =>
+  mapScheduleWithPlanTimeLookup(schedule, (id) =>
+    findIncluded(included, "PlanTime", id)
+  );
+
+const indexPlanTimes = (included: readonly PCResource[]) => {
+  const times = new Map<string, PCResource>();
+  for (const resource of included) {
+    if (resource.type === "PlanTime" && !times.has(resource.id)) {
+      times.set(resource.id, resource);
+    }
+  }
+  return times;
 };
 
 const isConfirmedStatus = (status: string | undefined) => {
@@ -316,6 +335,18 @@ export const scheduleItemsUnlessDeclined = (
     ? []
     : mapScheduleToDashboardItems(schedule, included);
 
+const toRhythmSchedule = (
+  schedule: PCResource,
+  items: readonly ScheduleItem[],
+  now: Date
+): RhythmSchedule => ({
+  status: scheduleStatus(schedule),
+  sortDate: scheduleSortDate(schedule) ?? items[0]?.date ?? now,
+  serviceDates: items.flatMap((item) =>
+    item.timeType === "rehearsal" ? [] : [item.date]
+  ),
+});
+
 /**
  * The serving rhythm of a person's own schedules, declined ones included. The dashboard and
  * the person page both read it this way, so they agree about the same person.
@@ -327,16 +358,13 @@ export const buildRhythmFromSchedules = (
   orgTimeZone: string
 ): ServingRhythm =>
   buildServingRhythm(
-    schedules.map((schedule) => {
-      const items = scheduleItemsUnlessDeclined(schedule, included);
-      return {
-        status: scheduleStatus(schedule),
-        sortDate: scheduleSortDate(schedule) ?? items[0]?.date ?? now,
-        serviceDates: items.flatMap((item) =>
-          item.timeType === "rehearsal" ? [] : [item.date]
-        ),
-      };
-    }),
+    schedules.map((schedule) =>
+      toRhythmSchedule(
+        schedule,
+        scheduleItemsUnlessDeclined(schedule, included),
+        now
+      )
+    ),
     now,
     orgTimeZone
   );
@@ -362,13 +390,21 @@ const buildPersonActivity = (
   now: Date,
   orgTimeZone: string
 ): PeopleDashboardActivity => {
-  const items = allSchedules.flatMap((schedule) =>
-    scheduleItemsUnlessDeclined(schedule, included)
-  );
+  const planTimes = indexPlanTimes(included);
+  const findPlanTime = (id: string) => planTimes.get(id);
+  const items: ScheduleItem[] = [];
+  const rhythmSchedules: RhythmSchedule[] = [];
+  for (const schedule of allSchedules) {
+    const scheduleItems = isDeclinedStatus(scheduleStatus(schedule))
+      ? []
+      : mapScheduleWithPlanTimeLookup(schedule, findPlanTime);
+    items.push(...scheduleItems);
+    rhythmSchedules.push(toRhythmSchedule(schedule, scheduleItems, now));
+  }
   const monthKey = formatCalendarDayInTimeZone(now, orgTimeZone).slice(0, 7);
   return {
     id: personId,
-    rhythm: buildRhythmFromSchedules(allSchedules, included, now, orgTimeZone),
+    rhythm: buildServingRhythm(rhythmSchedules, now, orgTimeZone),
     roles: getMostCommonRoles(items),
     monthDays: buildPersonMonthDays(
       itemsInMonth(items, monthKey, orgTimeZone),
