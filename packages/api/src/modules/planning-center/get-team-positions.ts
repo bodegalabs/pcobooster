@@ -191,7 +191,11 @@ const applyPlanTeamMemberSummary = (
       slot.filledPeople = [entry];
     }
   }
+};
 
+const sortFilledPositionPeople = (
+  positionsByTeamAndName: Map<string, TeamPosition>
+) => {
   for (const slot of positionsByTeamAndName.values()) {
     if (!slot.filledPeople || slot.filledPeople.length === 0) {
       continue;
@@ -604,6 +608,7 @@ const groupNeededTeamPositions = (
     teamMap,
     positionsByTeamAndName
   );
+  sortFilledPositionPeople(positionsByTeamAndName);
   addFilledPositionsToGroups(teamMap, positionsByTeamAndName);
 
   const groupedPositions: TeamPositionGroup[] = [...teamMap.values()];
