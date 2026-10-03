@@ -17,6 +17,19 @@ import type { PersonWithAvailability } from "@pcobooster/planning-center-models/
  */
 export const CANDIDATE_DETAILS_BATCH_CONCURRENCY = 2;
 
+/** Speculative availability uses the same bounded batches as the visible candidate list. */
+export const prefetchCandidateDetailBatches = async (
+  batches: readonly string[][],
+  fetchBatch: (personIds: string[]) => Promise<void>
+): Promise<void> => {
+  const current = batches.slice(0, CANDIDATE_DETAILS_BATCH_CONCURRENCY);
+  await Promise.all(current.map(fetchBatch));
+  const remaining = batches.slice(CANDIDATE_DETAILS_BATCH_CONCURRENCY);
+  if (remaining.length > 0) {
+    await prefetchCandidateDetailBatches(remaining, fetchBatch);
+  }
+};
+
 export type CandidateDetail = CandidateDetailsBatch["people"][number];
 
 /** Candidate IDs in list order, cut into detail batches. */
