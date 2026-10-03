@@ -58,6 +58,7 @@ final class PeopleDashboardModel {
   @ObservationIgnored private var extraPeople = ExtraPeople(scope: nil, count: 0)
   @ObservationIgnored private var searchLoad = SearchLoad(scope: nil, query: "", batches: [])
   @ObservationIgnored private var settledQuery = ""
+  @ObservationIgnored private var isVisible = true
   @ObservationIgnored private var settleTask: Task<Void, Never>?
   @ObservationIgnored private var batches: [[String]: ActivityBatchState] = [:]
   @ObservationIgnored private var scopePersonIds: [String] = []
@@ -197,11 +198,13 @@ final class PeopleDashboardModel {
   /// The screen is showing again: the roster revalidates, and calls older than their stale time
   /// load again behind the values on screen.
   func appear() {
+    isVisible = true
     roster.appear()
-    revalidateStaleBatches()
+    revalidateBatches()
   }
 
   func disappear() {
+    isVisible = false
     roster.disappear()
   }
 
@@ -271,6 +274,7 @@ final class PeopleDashboardModel {
   /// Starts waiting calls in order (calls under way, then search matches, then the rest of the
   /// sample) while fewer than two are in flight anywhere on the screen.
   private func pump() {
+    guard isVisible else { return }
     let order = orderActivityBatches(sample: sampleBatches, search: currentSearchBatches) {
       batches[$0]?.hasStarted == true
     }
@@ -304,7 +308,6 @@ final class PeopleDashboardModel {
       state.activities = people
       state.phase = .loaded
       state.error = nil
-      state.loadedAt = Date.now
     } else if let error, !error.isCancellation {
       state.phase = .failed
       state.error = error
@@ -316,23 +319,14 @@ final class PeopleDashboardModel {
     recompute()
   }
 
-  private func revalidateStaleBatches() {
-    let staleTime = QueryFamily.peopleDashboardActivity.policy.staleTime ?? .seconds(120)
-    let staleAfter = Double(staleTime.components.seconds)
-    var changed = false
-    for ids in plannedBatches {
-      guard let state = batches[ids], state.phase == .loaded,
-        let loadedAt = state.loadedAt, Date.now.timeIntervalSince(loadedAt) >= staleAfter
-      else {
-        continue
-      }
+  private func revalidateBatches() {
+    // Ask the shared cache again: fresh answers return without a request, while invalidations
+    // from writes and stale entries reload. Keep the previous activities on screen throughout.
+    for ids in plannedBatches where batches[ids]?.phase == .loaded {
       batches[ids]?.phase = .waiting
-      changed = true
     }
-    if changed {
-      pump()
-      recompute()
-    }
+    pump()
+    recompute()
   }
 
   // MARK: Search

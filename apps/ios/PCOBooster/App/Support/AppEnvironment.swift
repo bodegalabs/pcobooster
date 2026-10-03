@@ -2,25 +2,6 @@ import Foundation
 import PCOBoosterCore
 import SwiftUI
 
-/// The app's notion of "now". Use it instead of `Date()` for anything labeled relative to today
-/// ("This Sunday", "In 3 days", "2w ago"), so `-PCOBFixedNow YES` screenshots line up with the
-/// mock fixtures. Read it from `app.clock` or `@Environment(\.appClock)`.
-struct AppClock: Sendable {
-  private let fixed: Date?
-
-  nonisolated var now: Date { fixed ?? Date() }
-
-  nonisolated static let live = AppClock(fixed: nil)
-
-  nonisolated static func fixed(_ date: Date) -> AppClock {
-    AppClock(fixed: date)
-  }
-
-  nonisolated private init(fixed: Date?) {
-    self.fixed = fixed
-  }
-}
-
 extension EnvironmentValues {
   /// The congregation's IANA zone (`catalog.organization`, validated; the saved zone on a cold
   /// launch; `America/Los_Angeles` only before any zone has loaded). Label every congregation

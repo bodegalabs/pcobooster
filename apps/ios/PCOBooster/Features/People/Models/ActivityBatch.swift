@@ -19,8 +19,6 @@ struct ActivityBatchState {
   /// The latest answer, possibly restored from disk and older than the stale time.
   var activities: [PeopleDashboardActivity]?
   var error: (any Error)?
-  /// When `activities` last arrived from a load in this session.
-  var loadedAt: Date?
 
   /// Answered once (or restored), or loading now: the web's `hasStarted`, which keeps a call's
   /// place ahead of search batches.
