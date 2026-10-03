@@ -295,7 +295,11 @@ export const getCandidateDetails = (
         blocked: false,
       };
       const checked = new Set(progress.checkedBlockoutIds);
-      const blockoutIds = progress.blocked
+      // One-time parents can already prove unavailability; recurring dates add no information.
+      const knownBlocked =
+        progress.blocked ||
+        isBlockedOnPlanDate(read.blockouts, new Map(), planSortAt);
+      const blockoutIds = knownBlocked
         ? []
         : repeatingBlockoutsToRead(read.blockouts, planSortAt).flatMap(
             ({ id }) => (checked.has(id) ? [] : [id])
