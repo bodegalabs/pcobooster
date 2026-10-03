@@ -53,7 +53,7 @@ export const createIntentPrefetcher = <Target>({
 }: IntentPrefetcherOptions<Target>): IntentPrefetcher<Target> => {
   let pending: { key: string; timer: ReturnType<typeof setTimeout> } | null =
     null;
-  let waiting: AbortController | null = null;
+  let waiting: { key: string; controller: AbortController } | null = null;
   let inFlight = false;
 
   const cancelDwell = () => {
@@ -66,7 +66,7 @@ export const createIntentPrefetcher = <Target>({
 
   const cancel = () => {
     cancelDwell();
-    waiting?.abort();
+    waiting?.controller.abort();
     waiting = null;
   };
 
@@ -74,11 +74,11 @@ export const createIntentPrefetcher = <Target>({
     if (inFlight || isFresh(target)) {
       return;
     }
-    waiting?.abort();
+    waiting?.controller.abort();
     const turn = new AbortController();
-    waiting = turn;
+    waiting = { key: keyOf(target), controller: turn };
     const task = async () => {
-      if (waiting === turn) {
+      if (waiting?.controller === turn) {
         waiting = null;
       }
       // The target may have loaded while this prefetch waited for its turn.
@@ -111,8 +111,13 @@ export const createIntentPrefetcher = <Target>({
   };
 
   const end = (target: Target) => {
-    if (pending?.key === keyOf(target)) {
+    const key = keyOf(target);
+    if (pending?.key === key) {
       cancelDwell();
+    }
+    if (waiting?.key === key) {
+      waiting.controller.abort();
+      waiting = null;
     }
   };
 
