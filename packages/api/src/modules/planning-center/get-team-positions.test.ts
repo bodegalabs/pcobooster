@@ -592,6 +592,93 @@ describe(getNeededTeamPositionsForPlan, () => {
     ]);
   });
 
+  it("preserves fill counts and stable name ties across known and roster-only positions", async () => {
+    mocks.getServiceTypeTeamPositionsWithTeams.mockReturnValue(
+      Effect.succeed({
+        data: [teamPosition("tp-vocals", "team-band", "Vocals")],
+        included: [team("team-band", "Band")],
+      })
+    );
+    mocks.getServiceTypePlanNeededPositionsWithTeams.mockReturnValue(
+      Effect.succeed({ data: [], included: [] })
+    );
+    const positions = ["Vocals", "Keys", "Strings"];
+    const assignments = positions.flatMap((positionName) => [
+      {
+        id: `${positionName}-pending`,
+        positionName,
+        name: "Aaron",
+        status: "U",
+      },
+      { id: `${positionName}-zed`, positionName, name: "Zed", status: "C" },
+      {
+        id: `${positionName}-tie-first`,
+        positionName,
+        name: "Alice",
+        status: "C",
+      },
+      {
+        id: `${positionName}-declined`,
+        positionName,
+        name: "Alice",
+        status: "D",
+      },
+      {
+        id: `${positionName}-tie-second`,
+        positionName,
+        name: "Alice",
+        status: "C",
+      },
+    ]);
+    mocks.getPlanTeamMembers.mockReturnValue(
+      Effect.succeed({
+        data: assignments.map(({ id, positionName, status }) =>
+          planTeamMember({
+            id,
+            teamId: "team-band",
+            teamPositionName: positionName,
+            status,
+            personId: `person-${id}`,
+          })
+        ),
+        included: [
+          team("team-band", "Band"),
+          ...assignments.map(({ id, name }) =>
+            person(`person-${id}`, name, "")
+          ),
+        ],
+      })
+    );
+
+    const result = await Effect.runPromise(
+      getNeededTeamPositionsForPlan("st-1", "plan-1", undefined, dependencies)
+    );
+
+    expect(result[0]?.positions.map(({ name }) => name)).toStrictEqual([
+      "Keys",
+      "Strings",
+      "Vocals",
+    ]);
+    for (const positionName of positions) {
+      const slot = result[0]?.positions.find(
+        ({ name }) => name === positionName
+      );
+      expect(slot?.source).toBe(
+        positionName === "Vocals" ? "team_position" : "plan_member"
+      );
+      expect(slot?.filledConfirmedCount).toBe(3);
+      expect(slot?.filledPendingCount).toBe(1);
+      expect(
+        slot?.filledPeople?.map(({ planPersonId }) => planPersonId)
+      ).toStrictEqual([
+        `${positionName}-tie-first`,
+        `${positionName}-tie-second`,
+        `${positionName}-zed`,
+        `${positionName}-pending`,
+      ]);
+    }
+  });
+
   it("keeps multiple people in the same plan-member-only position", async () => {
     mocks.getServiceTypeTeamPositionsWithTeams.mockReturnValue(
       Effect.succeed({
