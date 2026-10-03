@@ -118,20 +118,29 @@ final class ServicesHomeModel {
 
   /// Starts the plans read for every selected service type (and, for recent plans, the lookup
   /// back from each one's first upcoming plan). Reads already started are kept, so switching a
-  /// service type off and on again doesn't refetch.
+  /// service type off and on again reuses fresh data and revalidates stale or invalidated data.
   func syncQueries() {
-    for id in selectedIds where planStates[id] == nil {
-      let state = queries.query(.plans(serviceTypeId: id), RPC.Catalog.plans, PlansInput(serviceTypeId: id))
-      if !isVisible { state.disappear() }
-      planStates[id] = state
+    let selected = selectedIds
+    for (id, state) in planStates {
+      if isVisible && selected.contains(id) { state.appear() } else { state.disappear() }
+    }
+    for state in recentStates.values { state.disappear() }
+    guard isVisible else { return }
+    for id in selected where planStates[id] == nil {
+      planStates[id] = queries.query(
+        .plans(serviceTypeId: id), RPC.Catalog.plans, PlansInput(serviceTypeId: id))
     }
     guard window == .recent else { return }
-    for (serviceTypeId, planId) in recentAnchors where recentStates[serviceTypeId]?.key != recentKey(serviceTypeId, planId) {
-      let state = queries.query(
-        recentKey(serviceTypeId, planId), RPC.Catalog.adjacentPlans,
-        AdjacentPlansInput(serviceTypeId: serviceTypeId, planId: planId, direction: .previous))
-      if !isVisible { state.disappear() }
-      recentStates[serviceTypeId] = state
+    for (serviceTypeId, planId) in recentAnchors {
+      let key = recentKey(serviceTypeId, planId)
+      if let state = recentStates[serviceTypeId], state.key == key {
+        state.appear()
+      } else {
+        recentStates[serviceTypeId]?.disappear()
+        recentStates[serviceTypeId] = queries.query(
+          key, RPC.Catalog.adjacentPlans,
+          AdjacentPlansInput(serviceTypeId: serviceTypeId, planId: planId, direction: .previous))
+      }
     }
   }
 
@@ -165,22 +174,21 @@ final class ServicesHomeModel {
     guard hasLoaded else { return false }
     let selected = selectedIds
     let plans = planStates.contains { selected.contains($0.key) && $0.value.isLoading }
-    let recent = window == .recent && recentStates.values.contains { $0.isLoading }
+    let recent = window == .recent && recentStates.contains { selectedIds.contains($0.key) && $0.value.isLoading }
     return plans || recent
   }
 
   /// Recent plans are still being looked up and there is nothing to show yet.
   var isLoadingRecent: Bool {
     window == .recent && (recentStates.isEmpty && !recentAnchors.isEmpty
-      || recentStates.values.contains { $0.isLoading })
+      || recentStates.contains { selectedIds.contains($0.key) && $0.value.isLoading })
   }
 
   func appear() {
     isVisible = true
     serviceTypes.appear()
     myPlans.appear()
-    planStates.values.forEach { $0.appear() }
-    recentStates.values.forEach { $0.appear() }
+    syncQueries()
   }
 
   func disappear() {
@@ -200,7 +208,7 @@ final class ServicesHomeModel {
         group.addTask { await state.refresh() }
       }
       if window == .recent {
-        for state in recentStates.values {
+        for (id, state) in recentStates where selectedIds.contains(id) {
           group.addTask { await state.refresh() }
         }
       }
