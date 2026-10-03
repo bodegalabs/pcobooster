@@ -1,4 +1,3 @@
-import { findIncluded } from "@pcobooster/api/planning-center/utils";
 import { isDeclinedAssignmentStatus } from "@pcobooster/planning-center-models/candidate-frequency";
 import {
   isNonEmptyString,
@@ -12,6 +11,24 @@ import type {
 
 type HistoryTimeType = "service" | "rehearsal" | "other";
 
+type IncludedIndex = ReadonlyMap<string, ReadonlyMap<string, PCResource>>;
+
+// Relationship lookups keep the first resource of each type/id, just like array.find.
+const indexIncluded = (included: readonly PCResource[]): IncludedIndex => {
+  const index = new Map<string, Map<string, PCResource>>();
+  for (const resource of included) {
+    let byId = index.get(resource.type);
+    if (byId === undefined) {
+      byId = new Map<string, PCResource>();
+      index.set(resource.type, byId);
+    }
+    if (!byId.has(resource.id)) {
+      byId.set(resource.id, resource);
+    }
+  }
+  return index;
+};
+
 const getRelationshipIds = (
   relationship: { data?: { id: string } | { id: string }[] | null } | undefined
 ): string[] => {
@@ -24,7 +41,7 @@ const getRelationshipIds = (
 
 const classifyScheduleTimeType = (
   schedule: RawSchedule,
-  historyIncluded: PCResource[]
+  included: IncludedIndex
 ): HistoryTimeType | undefined => {
   const planTimeIds = [
     ...getRelationshipIds(schedule.relationships?.plan_times),
@@ -35,8 +52,7 @@ const classifyScheduleTimeType = (
   if (uniquePlanTimeIds.length > 0) {
     const timeTypes = new Set<string>();
     for (const id of uniquePlanTimeIds) {
-      const timeType = findIncluded(historyIncluded, "PlanTime", id)?.attributes
-        .time_type;
+      const timeType = included.get("PlanTime")?.get(id)?.attributes.time_type;
       if (isString(timeType)) {
         timeTypes.add(timeType);
       }
@@ -56,7 +72,7 @@ const classifyScheduleTimeType = (
   const teamRel = schedule.relationships?.team?.data;
   const teamId = teamRel?.id;
   if (isNonEmptyString(teamId)) {
-    const team = findIncluded(historyIncluded, "Team", teamId);
+    const team = included.get("Team")?.get(teamId);
     if (team?.attributes.rehearsal_team === true) {
       return "rehearsal";
     }
@@ -67,7 +83,7 @@ const classifyScheduleTimeType = (
 
 const getSchedulePlanTimes = (
   schedule: RawSchedule,
-  historyIncluded: PCResource[]
+  included: IncludedIndex
 ): PCResource[] => {
   const planTimeIds = [
     ...getRelationshipIds(schedule.relationships?.plan_times),
@@ -76,7 +92,7 @@ const getSchedulePlanTimes = (
 
   const planTimes: PCResource[] = [];
   for (const id of new Set(planTimeIds)) {
-    const planTime = findIncluded(historyIncluded, "PlanTime", id);
+    const planTime = included.get("PlanTime")?.get(id);
     if (planTime !== undefined) {
       planTimes.push(planTime);
     }
@@ -88,8 +104,9 @@ const getSchedulePlanTimes = (
 export const mapSchedulesToServiceHistory = (
   schedules: RawSchedule[],
   historyIncluded: PCResource[]
-): ServiceHistoryItem[] =>
-  schedules.flatMap((schedule) => {
+): ServiceHistoryItem[] => {
+  const included = indexIncluded(historyIncluded);
+  return schedules.flatMap((schedule) => {
     if (isDeclinedAssignmentStatus(schedule.attributes.status)) {
       return [];
     }
@@ -97,12 +114,12 @@ export const mapSchedulesToServiceHistory = (
     const planRel = schedule.relationships?.plan?.data;
     const planId = planRel?.id;
     const plan = isNonEmptyString(planId)
-      ? findIncluded(historyIncluded, "Plan", planId)
+      ? included.get("Plan")?.get(planId)
       : undefined;
 
     const fallbackSortDate =
       schedule.attributes.sort_date ?? plan?.attributes.sort_date;
-    const planTimes = getSchedulePlanTimes(schedule, historyIncluded);
+    const planTimes = getSchedulePlanTimes(schedule, included);
 
     const buildItem = (
       id: string,
@@ -131,7 +148,7 @@ export const mapSchedulesToServiceHistory = (
         buildItem(
           schedule.id,
           date,
-          classifyScheduleTimeType(schedule, historyIncluded)
+          classifyScheduleTimeType(schedule, included)
         ),
       ];
     }
@@ -163,7 +180,7 @@ export const mapSchedulesToServiceHistory = (
         buildItem(
           schedule.id,
           date,
-          classifyScheduleTimeType(schedule, historyIncluded)
+          classifyScheduleTimeType(schedule, included)
         ),
       ];
     }
@@ -172,3 +189,4 @@ export const mapSchedulesToServiceHistory = (
       (item) => item.timeType === "service" || item.timeType === "rehearsal"
     );
   });
+};
