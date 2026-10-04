@@ -2,7 +2,7 @@ import { applicationRuntimeFor } from "@pcobooster/api/application/runtime";
 import { deploymentTier } from "@pcobooster/api/config/feature-flags";
 import type { ServerEnvironment } from "@pcobooster/api/config/server-config";
 import { resolveServerConfig } from "@pcobooster/api/config/server-config";
-import { logger } from "@pcobooster/api/logger";
+import { boundaryLog, structuredLogging } from "@pcobooster/api/logging";
 import { appRouter } from "@pcobooster/api/orpc";
 import { PlanningCenterPacing } from "@pcobooster/api/planning-center/pacing";
 import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
@@ -201,7 +201,7 @@ export default class Api extends Cloudflare.Worker<Api>()(
             return outcome.success;
           },
           server,
-          log: logger.for("server"),
+          log: boundaryLog("server"),
           router: appRouter,
         });
       })
@@ -225,6 +225,8 @@ export default class Api extends Cloudflare.Worker<Api>()(
       }),
     };
   }).pipe(
+    // Workers Logs indexes each field of a structured line.
+    Effect.provide(structuredLogging),
     Effect.provide(
       Layer.unwrap(currentStageSettings.pipe(Effect.map(apiWorkerTelemetry)))
     ),

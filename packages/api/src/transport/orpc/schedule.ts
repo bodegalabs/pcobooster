@@ -11,13 +11,15 @@ import {
 } from "@pcobooster/api/application/schedule";
 import { recordActivityEvent } from "@pcobooster/api/db/activity-events";
 import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
-import { logger } from "@pcobooster/api/logger";
+import { boundaryLog } from "@pcobooster/api/logging";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
 import { rpc } from "@pcobooster/api/transport/orpc/implementation";
 import { applyPrivateNoStore } from "@pcobooster/api/transport/orpc/response-headers";
 import { scheduleActivityEvent } from "@pcobooster/api/transport/orpc/schedule-activity";
 import type { ScheduleOperation } from "@pcobooster/api/transport/orpc/schedule-activity";
 import { Effect } from "effect";
+
+const scheduleLog = boundaryLog("schedule");
 
 export interface ScheduleRouterDependencies {
   readonly access?: PlanningCenterAccessDependencies;
@@ -61,10 +63,15 @@ export const createScheduleRouter = (
             })
           );
         } catch (error) {
-          logger
-            .withRequest(context.request)
-            .child({ requestId: context.requestId })
-            .warn({ err: error }, "Failed to record scheduling activity event");
+          scheduleLog.warn(
+            "Failed to record scheduling activity event",
+            {
+              requestId: context.requestId,
+              method: context.request.method,
+              path: new URL(context.request.url).pathname,
+            },
+            error instanceof Error ? error : new Error(String(error))
+          );
         }
       };
       try {

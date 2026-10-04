@@ -1,4 +1,4 @@
-import { logger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import { buildPlanningCenterUrl } from "@pcobooster/api/planning-center/core-client";
 import type {
   PlanningCenterCoreClient,
@@ -16,7 +16,7 @@ import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
-const log = logger.for("planning-center/plans");
+const log = moduleLog("planning-center/plans");
 const PLANS_RANGE_CACHE_TTL_MS = 5 * 60 * 1000;
 /** Pages of 100 plans `getPlansWithIncludedInDateRange` reads, at most. */
 export const PLAN_RANGE_MAX_PAGES = 3;
@@ -188,15 +188,12 @@ export class PlanningCenterPlansService {
         stableParams(params),
       ].join(":");
       const load = Effect.gen(function* loadPlansInDateRange() {
-        log.info(
-          {
-            serviceTypeId,
-            after: afterDayKey,
-            before: beforeDayKey,
-            include: include || null,
-          },
-          "Fetching plans in date range"
-        );
+        yield* log.info("Fetching plans in date range", {
+          serviceTypeId,
+          after: afterDayKey,
+          before: beforeDayKey,
+          include: include || null,
+        });
         const fetched = yield* core.fetchAllWithIncluded(
           `/services/v2/service_types/${serviceTypeId}/plans`,
           params,
@@ -211,15 +208,12 @@ export class PlanningCenterPlansService {
           const planId = Array.isArray(planRel) ? planRel[0]?.id : planRel?.id;
           return !isNonEmptyString(planId) || planIds.has(planId);
         });
-        log.info(
-          {
-            serviceTypeId,
-            count: plans.length,
-            rawCount: fetched.data.length,
-            includedCount: included.length,
-          },
-          "Plans fetched"
-        );
+        yield* log.info("Plans fetched", {
+          serviceTypeId,
+          count: plans.length,
+          rawCount: fetched.data.length,
+          includedCount: included.length,
+        });
         return { data: plans, included };
       });
       const response = yield* cachedRead(

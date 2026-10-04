@@ -1,4 +1,4 @@
-import { logger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import type {
   PlanningCenterCoreClient,
   PlanningCenterError,
@@ -10,7 +10,7 @@ import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
-const log = logger.for("planning-center/catalog");
+const log = moduleLog("planning-center/catalog");
 const SERVICE_TYPES_CACHE_TTL_MS = 5 * 60 * 1000;
 const TEAM_POSITIONS_CACHE_TTL_MS = 5 * 60 * 1000;
 const NEEDED_POSITIONS_CACHE_TTL_MS = 60 * 1000;
@@ -100,13 +100,16 @@ export class PlanningCenterCatalogService {
           `/services/v2/service_types/${serviceTypeId}/team_positions?include=team&per_page=100`
         )
         .pipe(
-          Effect.map((result) => {
-            log.info(
-              { serviceTypeId, positionCount: result.data.length },
-              "Team positions fetched"
-            );
-            return { data: result.data, included: result.included ?? [] };
-          })
+          Effect.tap((result) =>
+            log.info("Team positions fetched", {
+              serviceTypeId,
+              positionCount: result.data.length,
+            })
+          ),
+          Effect.map((result) => ({
+            data: result.data,
+            included: result.included ?? [],
+          }))
         );
     return cachedRead(
       this.caches.reads,
@@ -129,11 +132,10 @@ export class PlanningCenterCatalogService {
         )
         .pipe(
           Effect.tap((result) =>
-            Effect.sync(() => {
-              log.info(
-                { seriesId, planId, neededPositionCount: result.data.length },
-                "Plan needed positions fetched"
-              );
+            log.info("Plan needed positions fetched", {
+              seriesId,
+              planId,
+              neededPositionCount: result.data.length,
             })
           )
         );
@@ -158,15 +160,10 @@ export class PlanningCenterCatalogService {
         )
         .pipe(
           Effect.tap((result) =>
-            Effect.sync(() => {
-              log.info(
-                {
-                  serviceTypeId,
-                  planId,
-                  neededPositionCount: result.data.length,
-                },
-                "Service type plan needed positions fetched"
-              );
+            log.info("Service type plan needed positions fetched", {
+              serviceTypeId,
+              planId,
+              neededPositionCount: result.data.length,
             })
           )
         );

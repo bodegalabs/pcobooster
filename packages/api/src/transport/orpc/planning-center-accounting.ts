@@ -1,14 +1,15 @@
-import { logger } from "@pcobooster/api/logger";
+import { logOutsideEffect } from "@pcobooster/api/logging";
 import {
   PlanningCenterRequestAccounting,
   logPlanningCenterProcedureSummary,
 } from "@pcobooster/api/planning-center/request-accounting";
-import type { PlanningCenterLogger } from "@pcobooster/api/planning-center/request-accounting";
 import { PLANNING_CENTER_REQUEST_CAP } from "@pcobooster/api/planning-center/request-budget";
 import type { RequestPriority } from "@pcobooster/contracts/request-priority";
+import type { Effect } from "effect";
 
 export interface PlanningCenterProcedureAccountingOptions {
-  readonly logger?: PlanningCenterLogger;
+  /** Writes the summary line; tests capture it. Defaults to `logOutsideEffect`. */
+  readonly writeLog?: (line: Effect.Effect<void>) => void;
   /** Defaults to `PLANNING_CENTER_REQUEST_CAP`. */
   readonly requestBudget?: number;
   readonly now?: () => number;
@@ -54,16 +55,17 @@ export const accountPlanningCenterProcedure = async <Result>(
     outcome = "success";
     return result;
   } finally {
-    logPlanningCenterProcedureSummary(
-      options.logger ?? logger.for("planning-center/procedure"),
-      {
-        procedure,
-        requestId,
-        priority,
-        durationMs: now() - startedAt,
-        outcome,
-      },
-      accounting
+    (options.writeLog ?? logOutsideEffect)(
+      logPlanningCenterProcedureSummary(
+        {
+          procedure,
+          requestId,
+          priority,
+          durationMs: now() - startedAt,
+          outcome,
+        },
+        accounting
+      )
     );
   }
 };

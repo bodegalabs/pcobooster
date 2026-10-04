@@ -11,12 +11,9 @@ import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-c
 import { PlanningCenterPacing } from "@pcobooster/api/planning-center/pacing";
 import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
-import type {
-  PlanningCenterLogFields,
-  PlanningCenterLogger,
-} from "@pcobooster/api/planning-center/request-accounting";
 import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user-agent";
 import { httpClientFor } from "@pcobooster/api/testing/http-client";
+import { recordLogs } from "@pcobooster/api/testing/logs";
 import { testPlanningCenterToken } from "@pcobooster/api/testing/server";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import { Cause, Clock, Effect, Exit, Fiber } from "effect";
@@ -547,23 +544,9 @@ describe(PlanningCenterCoreClient, () => {
   });
 });
 
-interface LoggedLine {
-  readonly level: "info" | "warn";
-  readonly message: string;
-  readonly fields: PlanningCenterLogFields;
-}
-
 const recordingLogger = () => {
-  const lines: LoggedLine[] = [];
-  const logger: PlanningCenterLogger = {
-    info: (fields, message) => {
-      lines.push({ level: "info", message, fields });
-    },
-    warn: (fields, message) => {
-      lines.push({ level: "warn", message, fields });
-    },
-  };
-  return { lines, logger };
+  const { lines, capture } = recordLogs();
+  return { lines, logger: capture };
 };
 
 const rateLimitedResponse = (count: number): Response =>
@@ -588,23 +571,24 @@ const limits = (
   pacer = new PlanningCenterRatePacer()
 ): Limits => ({ pacer, accounting });
 
+type LogCapture = ReturnType<typeof recordLogs>["capture"];
+
 const withLimits =
-  ({ pacer, accounting }: Limits) =>
+  ({ pacer, accounting }: Limits, logger?: LogCapture) =>
   <Value, Failure>(
     effect: Effect.Effect<Value, Failure>
-  ): Effect.Effect<Value, Failure> =>
-    effect.pipe(
+  ): Effect.Effect<Value, Failure> => {
+    const limited = effect.pipe(
       Effect.provideService(PlanningCenterPacing, pacer),
       Effect.provideService(PlanningCenterAccounting, accounting)
     );
+    return logger === undefined ? limited : logger(limited);
+  };
 
-const pacedClient = (
-  fetch: FetchMock,
-  logger: PlanningCenterLogger
-): PlanningCenterCoreClient =>
+const pacedClient = (fetch: FetchMock): PlanningCenterCoreClient =>
   new PlanningCenterCoreClient(
     { kind: "bearer", accessToken: "paced-account-token" },
-    { httpClient: httpClientFor(fetch), logger }
+    { httpClient: httpClientFor(fetch) }
   );
 
 describe("Planning Center pacing and accounting", () => {
@@ -614,7 +598,7 @@ describe("Planning Center pacing and accounting", () => {
     );
     const { lines, logger } = recordingLogger();
     const scope = limits();
-    const client = pacedClient(fetch, logger);
+    const client = pacedClient(fetch);
     await Effect.runPromise(
       Effect.gen(function* paceConcurrentReads() {
         yield* client.fetch("/services/v2/people/1");
@@ -635,7 +619,7 @@ describe("Planning Center pacing and accounting", () => {
         expect(fetch).toHaveBeenCalledTimes(2);
         yield* TestClock.adjust("1 millis");
         yield* Fiber.join(fiber);
-      }).pipe(withLimits(scope), Effect.provide(TestClock.layer()))
+      }).pipe(withLimits(scope, logger), Effect.provide(TestClock.layer()))
     );
     expect(fetch).toHaveBeenCalledTimes(3);
     expect(scope.accounting.totals).toStrictEqual({
@@ -679,11 +663,13 @@ describe("Planning Center pacing and accounting", () => {
     );
     const { lines, logger } = recordingLogger();
     const scope = limits();
-    const client = pacedClient(fetch, logger);
+    const client = pacedClient(fetch);
 
     await expect(
       failureOf(
-        client.fetch("/services/v2/people?where[id]=1").pipe(withLimits(scope))
+        client
+          .fetch("/services/v2/people?where[id]=1")
+          .pipe(withLimits(scope, logger))
       )
     ).resolves.toMatchObject({
       _tag: "PlanningCenterApiError",
@@ -713,7 +699,9 @@ describe("Planning Center pacing and accounting", () => {
 
     // The credential stays blocked, so the next read is refused without a request.
     await expect(
-      failureOf(client.fetch("/services/v2/people/2").pipe(withLimits(scope)))
+      failureOf(
+        client.fetch("/services/v2/people/2").pipe(withLimits(scope, logger))
+      )
     ).resolves.toMatchObject({
       _tag: "PlanningCenterRateLimitError",
       retryAfterSeconds: 30,
@@ -747,7 +735,7 @@ describe("Planning Center pacing and accounting", () => {
     );
     const { lines, logger } = recordingLogger();
     const pacer = new PlanningCenterRatePacer();
-    const client = pacedClient(fetch, logger);
+    const client = pacedClient(fetch);
     const interactive = limits(new PlanningCenterRequestAccounting(), pacer);
     const speculative = limits(
       new PlanningCenterRequestAccounting({ priority: "speculative" }),
@@ -755,11 +743,15 @@ describe("Planning Center pacing and accounting", () => {
     );
 
     await Effect.runPromise(
-      client.fetch("/services/v2/people/1").pipe(withLimits(interactive))
+      client
+        .fetch("/services/v2/people/1")
+        .pipe(withLimits(interactive, logger))
     );
     await expect(
       failureOf(
-        client.fetch("/services/v2/people/2").pipe(withLimits(speculative))
+        client
+          .fetch("/services/v2/people/2")
+          .pipe(withLimits(speculative, logger))
       )
     ).resolves.toMatchObject({
       _tag: "PlanningCenterRateLimitError",
@@ -767,7 +759,9 @@ describe("Planning Center pacing and accounting", () => {
     });
     // The same read from an interactive procedure still goes out.
     await Effect.runPromise(
-      client.fetch("/services/v2/people/2").pipe(withLimits(interactive))
+      client
+        .fetch("/services/v2/people/2")
+        .pipe(withLimits(interactive, logger))
     );
     expect({
       fetches: fetch.mock.calls.length,
@@ -800,7 +794,7 @@ describe("Planning Center pacing and accounting", () => {
       .mockReturnValueOnce(pending);
     const { lines, logger } = recordingLogger();
     const pacer = new PlanningCenterRatePacer();
-    const client = pacedClient(fetch, logger);
+    const client = pacedClient(fetch);
     const interactive = limits(new PlanningCenterRequestAccounting(), pacer);
     const speculative = limits(
       new PlanningCenterRequestAccounting({ priority: "speculative" }),
@@ -808,22 +802,30 @@ describe("Planning Center pacing and accounting", () => {
     );
 
     await Effect.runPromise(
-      client.fetch("/services/v2/people/1").pipe(withLimits(interactive))
+      client
+        .fetch("/services/v2/people/1")
+        .pipe(withLimits(interactive, logger))
     );
     const inFlightRead = Effect.runPromise(
-      client.fetch("/services/v2/people/2").pipe(withLimits(interactive))
+      client
+        .fetch("/services/v2/people/2")
+        .pipe(withLimits(interactive, logger))
     );
     await vi.waitFor(() => {
       expect(fetch).toHaveBeenCalledTimes(2);
     });
     await expect(
       failureOf(
-        client.fetch("/services/v2/people/3").pipe(withLimits(speculative))
+        client
+          .fetch("/services/v2/people/3")
+          .pipe(withLimits(speculative, logger))
       )
     ).resolves.toMatchObject({ reason: "speculative" });
     await expect(
       failureOf(
-        client.fetch("/services/v2/people/4").pipe(withLimits(speculative))
+        client
+          .fetch("/services/v2/people/4")
+          .pipe(withLimits(speculative, logger))
       )
     ).resolves.toMatchObject({ reason: "speculative" });
     answerPending(jsonResponse({ data: person }, { headers: rateHeaders }));
@@ -852,14 +854,14 @@ describe("Planning Center pacing and accounting", () => {
     await Effect.runPromise(
       Effect.gen(function* retryShortRateLimit() {
         const fiber = yield* Effect.forkChild(
-          pacedClient(fetch, logger).fetch("/services/v2/people/1")
+          pacedClient(fetch).fetch("/services/v2/people/1")
         );
         yield* settle;
         yield* TestClock.adjust("2 seconds");
         yield* settle;
         expect(fetch).toHaveBeenCalledTimes(2);
         yield* Fiber.join(fiber);
-      }).pipe(withLimits(scope), Effect.provide(TestClock.layer()))
+      }).pipe(withLimits(scope, logger), Effect.provide(TestClock.layer()))
     );
     expect(lines).toMatchObject([
       {
@@ -882,14 +884,16 @@ describe("Planning Center pacing and accounting", () => {
     const scope = limits(
       new PlanningCenterRequestAccounting({ requestBudget: 1 })
     );
-    const client = pacedClient(fetch, logger);
+    const client = pacedClient(fetch);
 
     await Effect.runPromise(
-      client.fetch("/services/v2/people/1").pipe(withLimits(scope))
+      client.fetch("/services/v2/people/1").pipe(withLimits(scope, logger))
     );
     expect(scope.accounting.remainingBudget).toBe(0);
     await expect(
-      failureOf(client.fetch("/services/v2/people/2").pipe(withLimits(scope)))
+      failureOf(
+        client.fetch("/services/v2/people/2").pipe(withLimits(scope, logger))
+      )
     ).resolves.toMatchObject({
       _tag: "PlanningCenterSubrequestLimitError",
       source: "budget",
@@ -918,14 +922,13 @@ describe("Planning Center pacing and accounting", () => {
           jsonResponse({ error: "Temporarily unavailable" }, { status: 503 })
         )
     );
-    const { logger } = recordingLogger();
     const scope = limits(
       new PlanningCenterRequestAccounting({ requestBudget: 2 })
     );
     const failure = await Effect.runPromise(
       Effect.gen(function* retryUntilBudget() {
         const fiber = yield* Effect.forkChild(
-          Effect.flip(pacedClient(fetch, logger).fetch("/services/v2/people/1"))
+          Effect.flip(pacedClient(fetch).fetch("/services/v2/people/1"))
         );
         yield* settle;
         yield* TestClock.adjust("500 millis");
@@ -955,17 +958,21 @@ describe("Planning Center pacing and accounting", () => {
     );
     const { lines, logger } = recordingLogger();
     const scope = limits();
-    const client = pacedClient(fetch, logger);
+    const client = pacedClient(fetch);
 
     await expect(
-      failureOf(client.fetch("/services/v2/people/1").pipe(withLimits(scope)))
+      failureOf(
+        client.fetch("/services/v2/people/1").pipe(withLimits(scope, logger))
+      )
     ).resolves.toMatchObject({
       _tag: "PlanningCenterSubrequestLimitError",
       source: "worker",
       requests: 1,
     });
     await expect(
-      failureOf(client.fetch("/services/v2/people/2").pipe(withLimits(scope)))
+      failureOf(
+        client.fetch("/services/v2/people/2").pipe(withLimits(scope, logger))
+      )
     ).resolves.toMatchObject({
       _tag: "PlanningCenterSubrequestLimitError",
       source: "worker",
@@ -993,9 +1000,8 @@ describe("Planning Center pacing and accounting", () => {
     const fetch = fetchMock()
       .mockResolvedValueOnce(rateLimitedResponse(100))
       .mockResolvedValueOnce(jsonResponse({ data: person }));
-    const { logger } = recordingLogger();
     const scope = limits();
-    const client = pacedClient(fetch, logger);
+    const client = pacedClient(fetch);
     await Effect.runPromise(
       client.fetch("/services/v2/people/1").pipe(withLimits(scope))
     );
@@ -1010,10 +1016,9 @@ describe("Planning Center pacing and accounting", () => {
 
   it("releases a paced reservation when the wait is interrupted", async () => {
     const fetch = fetchMock().mockResolvedValue(rateLimitedResponse(100));
-    const { logger } = recordingLogger();
     const pacer = new PlanningCenterRatePacer({ maxWaitMs: 60_000 });
     const scope = limits(new PlanningCenterRequestAccounting(), pacer);
-    const client = pacedClient(fetch, logger);
+    const client = pacedClient(fetch);
     await Effect.runPromise(
       Effect.gen(function* interruptPacedRead() {
         yield* client.fetch("/services/v2/people/1");

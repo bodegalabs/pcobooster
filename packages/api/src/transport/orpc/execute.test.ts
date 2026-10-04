@@ -1,7 +1,9 @@
 import { RequestContext } from "@pcobooster/api/application/context";
 import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
+import { moduleLog } from "@pcobooster/api/logging";
 import { currentPlanningCenterRequestCount } from "@pcobooster/api/planning-center/accounting";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
+import { recordLogs } from "@pcobooster/api/testing/logs";
 import { testRuntime } from "@pcobooster/api/testing/runtime";
 import { testServer } from "@pcobooster/api/testing/server";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
@@ -43,6 +45,27 @@ describe(executeApplicationEffect, () => {
       procedure: "people.planWindowHistory",
       requestId: "request-1",
     });
+  });
+
+  it("annotates a program's log lines with its procedure and request", async () => {
+    const { lines, capture } = recordLogs();
+
+    await executeApplicationEffect(
+      capture(moduleLog("test").info("Roster read", { rosterCount: 3 })),
+      { ...createRpcContext(), procedure: "people.dashboard" }
+    );
+
+    expect(lines).toStrictEqual([
+      {
+        level: "info",
+        message: "Roster read",
+        fields: {
+          procedure: "people.dashboard",
+          requestId: "request-1",
+          rosterCount: 3,
+        },
+      },
+    ]);
   });
 
   it("shares the procedure's Planning Center accounting with the program", async () => {

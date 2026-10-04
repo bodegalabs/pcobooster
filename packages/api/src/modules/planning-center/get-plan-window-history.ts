@@ -1,4 +1,4 @@
-import { logger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import {
   planPersonResourceSchema,
   planTimeResourceSchema,
@@ -41,7 +41,7 @@ import type {
 } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
-const log = logger.for("planning-center/plan-window-history");
+const log = moduleLog("planning-center/plan-window-history");
 
 /** A Worker keeps at most 6 connections waiting for response headers. */
 const READ_CONCURRENCY = 6;
@@ -568,15 +568,12 @@ export const getPlanWindowHistory = (
         rosterRequests: spent - afterRanges,
       },
     };
-    log.info(
-      {
-        ...batch.requestBudget,
-        loadedPlanCount: batch.loadedPlanCount,
-        deferredPlanCount: batch.deferredPlans.length,
-        deferredServiceTypeCount: batch.deferredServiceTypeIds.length,
-        rosterPeopleCount: batch.people.length,
-      },
-      "Plan window history read"
-    );
+    yield* log.info("Plan window history read", {
+      ...batch.requestBudget,
+      loadedPlanCount: batch.loadedPlanCount,
+      deferredPlanCount: batch.deferredPlans.length,
+      deferredServiceTypeCount: batch.deferredServiceTypeIds.length,
+      rosterPeopleCount: batch.people.length,
+    });
     return batch;
   }).pipe(withPlanningCenterRequestCount);

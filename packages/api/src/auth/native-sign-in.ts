@@ -25,7 +25,7 @@ import type {
   SignInFailure,
   SignInFailureCode,
 } from "@pcobooster/api/auth/sign-in-failure";
-import { logger } from "@pcobooster/api/logger";
+import { boundaryLog } from "@pcobooster/api/logging";
 import {
   APIError,
   HIDE_METADATA,
@@ -165,7 +165,7 @@ export interface NativeSignInExchangeResult {
   readonly selectedAccountId: string | null;
 }
 
-const nativeSignInLog = logger.for("auth/native-sign-in");
+const nativeSignInLog = boundaryLog("auth/native-sign-in");
 
 const NATIVE_ERROR_BY_FAILURE: ReadonlyMap<
   SignInFailureCode,
@@ -319,8 +319,9 @@ const issueHandoffCode = async (
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
     nativeSignInLog.error(
-      { err, userId: handoff.userId },
-      "Failed to store native sign-in handoff"
+      "Failed to store native sign-in handoff",
+      { userId: handoff.userId },
+      err
     );
     return null;
   }
@@ -335,7 +336,7 @@ const discardSession = async (
     await ctx.context.internalAdapter.deleteSession(sessionToken);
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
-    nativeSignInLog.warn({ err }, "Failed to discard native sign-in session");
+    nativeSignInLog.warn("Failed to discard native sign-in session", {}, err);
   }
 };
 
@@ -427,7 +428,7 @@ export const nativeSignIn = () =>
           } catch (error) {
             const err =
               error instanceof Error ? error : new Error(String(error));
-            nativeSignInLog.error({ err }, "Native sign-in failed to start");
+            nativeSignInLog.error("Native sign-in failed to start", {}, err);
             throw failure("server_error");
           }
           throw ctx.redirect(authorizationUrl.toString());
@@ -451,10 +452,9 @@ export const nativeSignIn = () =>
             );
           }
           const rejected = (reason: string): APIError => {
-            nativeSignInLog.warn(
-              { reason },
-              "Native sign-in exchange rejected"
-            );
+            nativeSignInLog.warn("Native sign-in exchange rejected", {
+              reason,
+            });
             return apiError(
               "INVALID_GRANT",
               "That sign-in code is invalid or expired. Please sign in again."
@@ -489,10 +489,9 @@ export const nativeSignIn = () =>
             throw rejected("session_ended");
           }
           const { session, user } = found;
-          nativeSignInLog.info(
-            { userId: user.id },
-            "Native sign-in code exchanged"
-          );
+          nativeSignInLog.info("Native sign-in code exchanged", {
+            userId: user.id,
+          });
           const result: NativeSignInExchangeResult = {
             token: `${session.token}.${await makeSignature(session.token, ctx.context.secret)}`,
             user: {
@@ -559,10 +558,9 @@ export const nativeSignIn = () =>
               fail("server_error");
               return;
             }
-            nativeSignInLog.info(
-              { userId: created.user.id },
-              "Native sign-in code issued"
-            );
+            nativeSignInLog.info("Native sign-in code issued", {
+              userId: created.user.id,
+            });
             ctx.setHeader(
               "location",
               appRedirect(marker.redirectUri, { code, state: marker.appState })

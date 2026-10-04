@@ -7,6 +7,7 @@ import { ResponseHeadersPlugin } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import type { ApplicationRuntime } from "@pcobooster/api/application/runtime";
 import { NATIVE_SIGN_IN_START_PATH } from "@pcobooster/api/auth/native-sign-in";
+import type { BoundaryLog } from "@pcobooster/api/logging";
 import {
   createPostHogExceptionReporter,
   requestErrorSchema,
@@ -28,17 +29,7 @@ const requestLogContextSchema = z.object({
 });
 type RequestLogContext = z.infer<typeof requestLogContextSchema>;
 
-interface ErrorLogger {
-  error: (
-    bindings: {
-      err: unknown;
-      requestId?: string;
-      method?: string;
-      path?: string;
-    },
-    message: string
-  ) => void;
-}
+type ErrorLogger = Pick<BoundaryLog, "error">;
 
 const preventSharedCaching = (response: Response): Response => {
   response.headers.set("Cache-Control", privateNoStore);
@@ -110,13 +101,13 @@ export const createServerApp = ({
     requestContext: RequestLogContext | null
   ): Promise<void> => {
     if (requestContext === null) {
-      log.error({ err: failure }, message);
+      log.error(message, {}, failure);
       return;
     }
     const { request, requestId } = requestContext;
     const { method } = request;
     const { pathname: path } = new URL(request.url);
-    log.error({ err: failure, requestId, method, path }, message);
+    log.error(message, { requestId, method, path }, failure);
     if (reportError === null) {
       return;
     }
@@ -125,8 +116,9 @@ export const createServerApp = ({
       await reportError({ error: failure, path, method, requestId });
     } catch (error) {
       log.error(
-        { err: error, requestId, method, path },
-        "Failed to report exception to PostHog"
+        "Failed to report exception to PostHog",
+        { requestId, method, path },
+        error instanceof Error ? error : new Error(String(error))
       );
     }
   };
