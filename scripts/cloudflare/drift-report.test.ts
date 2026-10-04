@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { driftReport } from "./drift-report";
+import { differingFields, driftReport } from "./drift-report";
 
 const resource = (fqn: string, status: "in-sync" | "drifted" | "missing") => ({
   fqn,
@@ -31,5 +31,40 @@ describe(driftReport, () => {
       report.markdown.indexOf("`Web`")
     );
     expect(report.markdown).not.toContain("`Api`");
+  });
+});
+
+describe(differingFields, () => {
+  it("names the nested paths that differ, never their values", () => {
+    const fields = differingFields(
+      {
+        compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
+        observability: { enabled: true, logs: { invocationLogs: true } },
+        name: "pcobooster-prod-web",
+      },
+      {
+        compatibility: { date: "2026-09-01", flags: [] },
+        observability: { enabled: true, logs: { invocationLogs: false } },
+        name: "pcobooster-prod-web",
+        tags: ["dashboard"],
+      }
+    );
+    expect(fields).toStrictEqual([
+      "compatibility.flags",
+      "observability.logs.invocationLogs",
+      "tags",
+    ]);
+  });
+
+  it("lists a drifted resource's fields in its row", () => {
+    const report = driftReport(
+      "alchemy.run.ts",
+      "prod",
+      [resource("Web", "drifted")],
+      new Map([["Web", ["compatibility.flags", "tags"]]])
+    );
+    expect(report.markdown).toContain(
+      "| `Web` | Cloudflare.Worker | drifted | `compatibility.flags`, `tags` |"
+    );
   });
 });

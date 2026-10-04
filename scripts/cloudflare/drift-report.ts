@@ -1,6 +1,55 @@
 import type * as Alchemist from "alchemy/Alchemist";
+import { z } from "zod";
 
 type DriftedResource = Alchemist.Drift.DriftedResource;
+
+/** Deployed or live resource attributes, round-tripped through JSON. */
+export const driftValueSchema = z.json();
+export type DriftValue = z.infer<typeof driftValueSchema>;
+
+/** How many differing fields a row lists before summarizing the rest. */
+const MAX_LISTED_FIELDS = 6;
+
+const isRecord = (value: DriftValue): value is { [key: string]: DriftValue } =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+
+/**
+ * Dotted paths whose deployed and live values differ. Only paths are reported, never values:
+ * attributes can carry tokens and binding secrets. Arrays compare as a whole.
+ */
+export const differingFields = (
+  expected: DriftValue,
+  actual: DriftValue,
+  path = ""
+): string[] => {
+  if (isRecord(expected) && isRecord(actual)) {
+    const keys = [
+      ...new Set([...Object.keys(expected), ...Object.keys(actual)]),
+    ].toSorted();
+    return keys.flatMap((key) =>
+      differingFields(
+        expected[key] ?? null,
+        actual[key] ?? null,
+        path === "" ? key : `${path}.${key}`
+      )
+    );
+  }
+  return JSON.stringify(expected) === JSON.stringify(actual)
+    ? []
+    : [path === "" ? "(whole value)" : path];
+};
+
+const describeFields = (fields: readonly string[] | undefined): string => {
+  if (fields === undefined || fields.length === 0) {
+    return "";
+  }
+  const listed = fields
+    .slice(0, MAX_LISTED_FIELDS)
+    .map((field) => `\`${field}\``)
+    .join(", ");
+  const more = fields.length - MAX_LISTED_FIELDS;
+  return more > 0 ? `${listed}, and ${more} more` : listed;
+};
 
 export interface DriftReport {
   readonly drifted: boolean;
@@ -11,7 +60,9 @@ export interface DriftReport {
 export const driftReport = (
   entrypoint: string,
   stage: string,
-  resources: readonly DriftedResource[]
+  resources: readonly DriftedResource[],
+  /** Differing field paths per drifted resource, by FQN. */
+  fieldsByResource: ReadonlyMap<string, readonly string[]> = new Map()
 ): DriftReport => {
   const outOfSync = resources
     .filter((resource) => resource.status !== "in-sync")
@@ -25,7 +76,7 @@ export const driftReport = (
   }
   const rows = outOfSync.map(
     (resource) =>
-      `| \`${resource.fqn}\` | ${resource.resourceType} | ${resource.status} |`
+      `| \`${resource.fqn}\` | ${resource.resourceType} | ${resource.status} | ${describeFields(fieldsByResource.get(resource.fqn))} |`
   );
   return {
     drifted: true,
@@ -34,8 +85,8 @@ export const driftReport = (
       "",
       `${outOfSync.length} of ${resources.length} resources differ from their last deploy:`,
       "",
-      "| Resource | Type | Status |",
-      "| --- | --- | --- |",
+      "| Resource | Type | Status | Differing fields |",
+      "| --- | --- | --- | --- |",
       ...rows,
     ].join("\n"),
   };
