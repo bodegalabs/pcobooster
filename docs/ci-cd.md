@@ -68,6 +68,18 @@ To roll back, revert the change on `main`; the revert deploys like any other mer
 
 A deploy you run yourself (`bun run deploy:production`, `bun run infra:deploy`) is still a manual production change: confirm it with Jake first.
 
+## iOS releases (TestFlight)
+
+A push to `main` that changes `apps/ios` uploads the app to TestFlight once production has deployed the same revision, so the API the build calls is already live. A manual CI run on `main` with `release_ios` uploads at any time. The `testflight` job runs on a macOS runner in the `testflight` environment (`main` only, no reviewers), rejects a superseded revision, reads production's secrets through OIDC, and runs `bun run ios:release` (`apps/ios/scripts/release.sh`). The build number is the commit count of `main`, so every release is newer than the last.
+
+A release shares production's trust level and Infisical project: the build embeds `POSTHOG_PROJECT_KEY`, and signs and uploads with an App Store Connect API key stored there as `ASC_KEY_ID`, `ASC_ISSUER_ID`, and `ASC_KEY_P8_BASE64`. The key needs the **Admin** role, because CI has no Apple ID and cloud-managed distribution signing creates the certificate on demand; without the key, the job stops before archiving. `alchemy.ci.ts` declares the environment and extends production's OIDC binding to it. To set it up once:
+
+1. In App Store Connect, Users and Access, Integrations, create a team API key with the Admin role and download its `.p8`.
+2. Add the three secrets to Infisical Production `/`: the key ID, the issuer ID, and `base64 < AuthKey_<id>.p8`.
+3. Run `bun run infra:plan`, then, after Jake confirms, `bun run infra:deploy`. It creates the environment, updates the OIDC binding, and sets the repository variable `TESTFLIGHT_RELEASES=enabled`, which turns the job on. Until then the job is skipped.
+
+Locally, `bun run ios:release` still works with the Apple ID signed in to Xcode.
+
 ## OIDC and token scope
 
 GitHub environment variables are `INFISICAL_PROJECT_ID`, `INFISICAL_IDENTITY_ID`, `INFISICAL_ENV_SLUG`, and `CLOUDFLARE_ACCOUNT_ID`. Infisical supplies `CLOUDFLARE_API_TOKEN`; no long-lived Infisical or Cloudflare credential is stored in GitHub.
@@ -75,7 +87,7 @@ GitHub environment variables are `INFISICAL_PROJECT_ID`, `INFISICAL_IDENTITY_ID`
 The issuer/discovery URL is `https://token.actions.githubusercontent.com`; audience is `https://github.com/bodegalabs/pcobooster`. This repository uses immutable OIDC subjects:
 
 - Preview, cleanup, and staging: `repo:bodegalabs@305914027/pcobooster@1125110564:environment:{cloudflare-preview,cloudflare-preview-cleanup,cloudflare-staging}`. This is an Infisical glob that matches exactly those three environments.
-- Production: `repo:bodegalabs@305914027/pcobooster@1125110564:environment:cloudflare-production`
+- Production and TestFlight: `repo:bodegalabs@305914027/pcobooster@1125110564:environment:{cloudflare-production,testflight}`
 
 Access tokens have a one-hour TTL and maximum TTL. The preview identity is Viewer only in `pcobooster-preview`. Its Cloudflare token permits Workers Scripts Write, Workers KV Storage Write, D1 Write, Secrets Store Write, and Flagship Write in the current account. Each stage's API declares a KV namespace for the shared Planning Center read cache (`apps/server/src/planning-center-cache.ts`), which needs Workers KV Storage Write. It has no DNS, registrar, R2, or token-administration permission. These account-level permissions can affect other resources in that account; project separation does not create resource-level Cloudflare isolation. Only revisions on a PR you labeled may deploy previews.
 
@@ -89,7 +101,7 @@ The production token has the same account-level deployment permissions, plus Zon
 
 - Repository merge settings on `bodegalabs/pcobooster`: squash on, merge commits off, auto-merge on, delete branches on merge. `allowRebaseMerge` is deliberately unmanaged; the ruleset alone keeps `main` squash-only.
 - The `main` ruleset "Protect main via pull requests" (`scripts/infra/main-ruleset.ts`): required checks `ci` and `cloudflare-build` from GitHub Actions, the squash merge queue, squash-only merges, linear history, no deletion or force pushes, and no bypass actors. `main-ruleset.test.ts` compares it with a snapshot of the live ruleset.
-- The `cloudflare-preview` (any branch, no reviewers), `cloudflare-preview-cleanup` (`main` only), `cloudflare-staging` (`main` only, no reviewers), and `cloudflare-production` (`main` only, no reviewers) environments and their variables. The repository is public, so GitHub accepts environment protection rules on the Free plan.
+- The `cloudflare-preview` (any branch, no reviewers), `cloudflare-preview-cleanup` (`main` only), `cloudflare-staging` (`main` only, no reviewers), `cloudflare-production` (`main` only, no reviewers), and `testflight` (`main` only, no reviewers) environments and their variables. The repository is public, so GitHub accepts environment protection rules on the Free plan.
 - The preview and production Cloudflare deploy tokens, as account-owned API tokens.
 - `CLOUDFLARE_API_TOKEN` in each Infisical deployment project (preview `staging`, production `prod`, path `/`), written from the token Alchemy just created.
 - Staging's Access service token and its three secrets in the preview project (see [Staging](#staging)).
