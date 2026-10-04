@@ -76,6 +76,7 @@ import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useLineupColumnOrder } from "@/hooks/use-lineup-column-order";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
+import { isSavedPlanPersonId } from "@/hooks/use-schedule-cache-optimism";
 import { getInitials } from "@/lib/format/initials";
 import {
   applyLineupColumnOrder,
@@ -245,6 +246,8 @@ const EditablePersonRow = ({
         render={
           <button
             type="button"
+            // Someone just assigned can't be edited until their assign lands.
+            disabled={!isSavedPlanPersonId(person.planPersonId)}
             aria-label={[
               `Edit ${person.name} assignment`,
               ...describePerson(person, otherAssignments),

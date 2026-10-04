@@ -10,9 +10,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   cancelScheduleMutationQueries,
   invalidateCandidateHistoryQueries,
+  isSavedPlanPersonId,
   optimisticallySchedulePerson,
   optimisticallyUnschedulePlanPerson,
   optimisticallyUpdatePlanPersonStatus,
+  createOptimisticPlanPersonId,
   reconcileOptimisticPlanPersonId,
   restoreScheduleCaches,
   SCHEDULE_MUTATION_RECONCILE_DELAY_MS,
@@ -149,6 +151,19 @@ const installLocalStorageMock = () => {
     },
   });
 };
+
+describe(isSavedPlanPersonId, () => {
+  it("rejects a stand-in until the assign returns Planning Center's ID", () => {
+    const standIn = createOptimisticPlanPersonId(
+      { planId: "plan-1", teamId: "team-1", positionId: "position-1" },
+      "person-1"
+    );
+    expect(isSavedPlanPersonId(standIn)).toBeFalsy();
+    expect(isSavedPlanPersonId("")).toBeFalsy();
+    expect(isSavedPlanPersonId(null)).toBeFalsy();
+    expect(isSavedPlanPersonId("123456")).toBeTruthy();
+  });
+});
 
 describe("schedule cache optimism", () => {
   afterEach(() => {

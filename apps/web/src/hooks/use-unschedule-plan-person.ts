@@ -5,6 +5,8 @@ import { z } from "zod";
 
 import {
   cancelScheduleMutationQueries,
+  isMissingPlanPersonError,
+  isSavedPlanPersonId,
   optimisticallyUnschedulePlanPerson,
   restoreScheduleCaches,
   settleScheduleMutationQueries,
@@ -68,8 +70,11 @@ export const useUnschedulePlanPerson = ({
       settleScheduleMutationQueries(queryClient, variables.context ?? {});
       onSuccess?.();
     },
-    onError: (error, _variables, context) => {
+    onError: (error, variables, context) => {
       restoreScheduleCaches(queryClient, context?.snapshot);
+      if (isMissingPlanPersonError(error)) {
+        settleScheduleMutationQueries(queryClient, variables.context ?? {});
+      }
       onError?.(formatUnscheduleError(error));
     },
   });
@@ -78,7 +83,7 @@ export const useUnschedulePlanPerson = ({
     planPersonId: string | null | undefined,
     context?: ScheduleMutationInvalidateContext & { personId?: string | null }
   ) => {
-    if (!isNonEmptyString(planPersonId) || unscheduleMutation.isPending) {
+    if (!isSavedPlanPersonId(planPersonId) || unscheduleMutation.isPending) {
       return;
     }
     unscheduleMutation.mutate({ planPersonId, context });
