@@ -173,7 +173,7 @@ public enum RPC {
     ///
     /// Contract `neededPositions.adjust` in `packages/contracts/src/needed-positions.ts`, REST
     /// `POST /plans/{planId}/needed-positions/adjust`. Errors: `UNAUTHORIZED`, `FORBIDDEN`,
-    /// `TOO_MANY_REQUESTS`, `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
+    /// `TOO_MANY_REQUESTS`, `BAD_REQUEST`, `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
     public static let adjust =
       Procedure<NeededPositionsAdjustInput, NeededPositionsAdjustOutput>("neededPositions/adjust")
   }
@@ -255,36 +255,36 @@ public enum RPC {
     /// List a plan's run-sheet items.
     ///
     /// Contract `planItems.list` in `packages/contracts/src/plan-items.ts`, REST `GET /plan-items`.
-    /// Errors: `UNAUTHORIZED`, `FORBIDDEN`, `TOO_MANY_REQUESTS`, `BAD_GATEWAY`,
+    /// Errors: `UNAUTHORIZED`, `FORBIDDEN`, `TOO_MANY_REQUESTS`, `BAD_REQUEST`, `BAD_GATEWAY`,
     /// `INTERNAL_SERVER_ERROR`.
     public static let list = Procedure<PlanItemsListInput, [PlanItem]>("planItems/list")
 
     /// Create a run-sheet item.
     ///
     /// Contract `planItems.create` in `packages/contracts/src/plan-items.ts`, REST
-    /// `POST /plan-items`. Errors: `UNAUTHORIZED`, `FORBIDDEN`, `TOO_MANY_REQUESTS`, `BAD_GATEWAY`,
-    /// `INTERNAL_SERVER_ERROR`.
+    /// `POST /plan-items`. Errors: `UNAUTHORIZED`, `FORBIDDEN`, `TOO_MANY_REQUESTS`, `BAD_REQUEST`,
+    /// `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
     public static let create = Procedure<PlanItemsCreateInput, PlanItem>("planItems/create")
 
     /// Update a run-sheet item.
     ///
     /// Contract `planItems.update` in `packages/contracts/src/plan-items.ts`, REST
     /// `PATCH /plan-items/{itemId}`. Errors: `UNAUTHORIZED`, `FORBIDDEN`, `TOO_MANY_REQUESTS`,
-    /// `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
+    /// `BAD_REQUEST`, `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
     public static let update = Procedure<PlanItemsUpdateInput, PlanItem>("planItems/update")
 
     /// Delete a run-sheet item.
     ///
     /// Contract `planItems.delete` in `packages/contracts/src/plan-items.ts`, REST
     /// `DELETE /plan-items/{itemId}`. Errors: `UNAUTHORIZED`, `FORBIDDEN`, `TOO_MANY_REQUESTS`,
-    /// `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
+    /// `BAD_REQUEST`, `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
     public static let delete = Procedure<PlanItemsDeleteInput, PlanItemsSuccess>("planItems/delete")
 
     /// Reorder a plan's run-sheet items.
     ///
     /// Contract `planItems.reorder` in `packages/contracts/src/plan-items.ts`, REST
     /// `POST /plan-items/reorder`. Errors: `UNAUTHORIZED`, `FORBIDDEN`, `TOO_MANY_REQUESTS`,
-    /// `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
+    /// `BAD_REQUEST`, `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
     public static let reorder =
       Procedure<PlanItemsReorderInput, PlanItemsSuccess>("planItems/reorder")
   }
@@ -294,7 +294,7 @@ public enum RPC {
     ///
     /// Contract `planPeople.updateTimes` in `packages/contracts/src/plan-people.ts`, REST
     /// `PATCH /plan-people/{planPersonId}/times`. Errors: `UNAUTHORIZED`, `FORBIDDEN`,
-    /// `TOO_MANY_REQUESTS`, `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
+    /// `TOO_MANY_REQUESTS`, `BAD_REQUEST`, `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
     public static let updateTimes =
       Procedure<PlanPeopleUpdateTimesInput, PlanPeopleUpdateTimesOutput>("planPeople/updateTimes")
   }
@@ -304,28 +304,28 @@ public enum RPC {
     ///
     /// Contract `planTimes.list` in `packages/contracts/src/plan-times.ts`, REST
     /// `GET /plans/{planId}/times`. Errors: `UNAUTHORIZED`, `FORBIDDEN`, `TOO_MANY_REQUESTS`,
-    /// `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
+    /// `BAD_REQUEST`, `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
     public static let list = Procedure<PlanTimesListInput, [PlanTime]>("planTimes/list")
 
     /// Create a plan time.
     ///
     /// Contract `planTimes.create` in `packages/contracts/src/plan-times.ts`, REST
     /// `POST /plans/{planId}/times`. Errors: `UNAUTHORIZED`, `FORBIDDEN`, `TOO_MANY_REQUESTS`,
-    /// `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
+    /// `BAD_REQUEST`, `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
     public static let create = Procedure<PlanTimesCreateInput, PlanTime>("planTimes/create")
 
     /// Update a plan time and its assignments.
     ///
     /// Contract `planTimes.update` in `packages/contracts/src/plan-times.ts`, REST
     /// `PATCH /plan-times/{planTimeId}`. Errors: `UNAUTHORIZED`, `FORBIDDEN`, `TOO_MANY_REQUESTS`,
-    /// `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
+    /// `BAD_REQUEST`, `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
     public static let update = Procedure<PlanTimesUpdateInput, PlanTime>("planTimes/update")
 
     /// Delete a plan time.
     ///
     /// Contract `planTimes.delete` in `packages/contracts/src/plan-times.ts`, REST
     /// `DELETE /plan-times/{planTimeId}`. Errors: `UNAUTHORIZED`, `FORBIDDEN`, `TOO_MANY_REQUESTS`,
-    /// `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
+    /// `BAD_REQUEST`, `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
     public static let delete = Procedure<PlanTimesDeleteInput, EmptyOutput>("planTimes/delete")
   }
 
@@ -333,8 +333,9 @@ public enum RPC {
     /// Assign a person to a plan position.
     ///
     /// Contract `schedule.assign` in `packages/contracts/src/schedule.ts`, REST `POST /schedule`.
-    /// Errors: `UNAUTHORIZED`, `FORBIDDEN`, `BAD_REQUEST`, `CONFLICT`, `ALREADY_SCHEDULED`,
-    /// `POSITION_MISMATCH`, `TOO_MANY_REQUESTS`, `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
+    /// Errors: `UNAUTHORIZED`, `FORBIDDEN`, `BAD_REQUEST`, `NOT_FOUND`, `CONFLICT`,
+    /// `ALREADY_SCHEDULED`, `POSITION_MISMATCH`, `TOO_MANY_REQUESTS`, `BAD_GATEWAY`,
+    /// `INTERNAL_SERVER_ERROR`.
     public static let assign =
       Procedure<ScheduleAssignInput, ScheduleAssignOutput>("schedule/assign")
 
@@ -342,8 +343,8 @@ public enum RPC {
     ///
     /// Contract `schedule.remove` in `packages/contracts/src/schedule.ts`, REST
     /// `DELETE /schedule/{planPersonId}`. Errors: `UNAUTHORIZED`, `FORBIDDEN`, `BAD_REQUEST`,
-    /// `CONFLICT`, `ALREADY_SCHEDULED`, `POSITION_MISMATCH`, `TOO_MANY_REQUESTS`, `BAD_GATEWAY`,
-    /// `INTERNAL_SERVER_ERROR`.
+    /// `NOT_FOUND`, `CONFLICT`, `ALREADY_SCHEDULED`, `POSITION_MISMATCH`, `TOO_MANY_REQUESTS`,
+    /// `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
     public static let remove =
       Procedure<ScheduleRemoveInput, ScheduleMutationOutput>("schedule/remove")
 
@@ -351,8 +352,8 @@ public enum RPC {
     ///
     /// Contract `schedule.updateStatus` in `packages/contracts/src/schedule.ts`, REST
     /// `PATCH /schedule/{planPersonId}/status`. Errors: `UNAUTHORIZED`, `FORBIDDEN`, `BAD_REQUEST`,
-    /// `CONFLICT`, `ALREADY_SCHEDULED`, `POSITION_MISMATCH`, `TOO_MANY_REQUESTS`, `BAD_GATEWAY`,
-    /// `INTERNAL_SERVER_ERROR`.
+    /// `NOT_FOUND`, `CONFLICT`, `ALREADY_SCHEDULED`, `POSITION_MISMATCH`, `TOO_MANY_REQUESTS`,
+    /// `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
     public static let updateStatus =
       Procedure<ScheduleUpdateStatusInput, ScheduleMutationOutput>("schedule/updateStatus")
   }
