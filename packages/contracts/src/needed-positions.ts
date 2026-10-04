@@ -21,6 +21,7 @@ const neededPositionsProcedure = oc.errors({
   UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
   FORBIDDEN: applicationErrorMap.FORBIDDEN,
   TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
+  BAD_REQUEST: applicationErrorMap.BAD_REQUEST,
   BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
   INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
 });

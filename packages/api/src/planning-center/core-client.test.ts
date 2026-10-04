@@ -230,6 +230,29 @@ describe(PlanningCenterCoreClient, () => {
     ).resolves.toMatchObject({ status: 401, code: "TRASH_PANDA" });
   });
 
+  it("names a JSON:API validation failure's detail in its message", async () => {
+    const fetch = fetchMock().mockResolvedValue(
+      jsonResponse(
+        {
+          errors: [
+            {
+              status: "422",
+              title: "Unprocessable Entity",
+              detail: "Length must be a number",
+            },
+          ],
+        },
+        { status: 422 }
+      )
+    );
+    await expect(
+      failureOf(basicClient(fetch).fetch("/services/v2/items/1"))
+    ).resolves.toMatchObject({
+      status: 422,
+      message: "Planning Center API error: 422 - Length must be a number",
+    });
+  });
+
   it("rejects an empty response where a JSON resource is required", async () => {
     const fetch = fetchMock().mockResolvedValue(
       new Response(null, { status: 204 })
@@ -899,6 +922,7 @@ describe("Planning Center pacing and accounting", () => {
       source: "budget",
       requests: 1,
       limit: 1,
+      rateLimitedResponses: 0,
     });
     expect(fetch).toHaveBeenCalledOnce();
     expect(lines).toStrictEqual([
