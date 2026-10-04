@@ -1,3 +1,4 @@
+import { testRuntime } from "@pcobooster/api/testing/runtime";
 import { testServer } from "@pcobooster/api/testing/server";
 import {
   appendSelectedPlanningCenterAccountCookie,
@@ -24,6 +25,7 @@ describe("identity oRPC response headers", () => {
         request: new Request("https://pcobooster.com/api/rpc/accounts/select"),
         requestId: "request-1",
         resHeaders: headers,
+        runtime: testRuntime(),
         server: testServer(),
       },
       "account-1"

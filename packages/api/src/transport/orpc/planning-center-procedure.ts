@@ -5,7 +5,6 @@ import type { PlanningCenterAccess } from "@pcobooster/api/application/planning-
 import type { Server } from "@pcobooster/api/server";
 import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
-import { applicationRuntime } from "@pcobooster/api/transport/orpc/implementation";
 import type { Effect } from "effect";
 import type { HttpClient } from "effect/unstable/http/HttpClient";
 
@@ -29,7 +28,6 @@ export const readWithPlanningCenter = async <Value>(
   { context, signal }: PlanningCenterCall
 ): Promise<Value> =>
   await executeApplicationEffect(
-    applicationRuntime,
     withPlanningCenterAccess(program),
     context,
     signal

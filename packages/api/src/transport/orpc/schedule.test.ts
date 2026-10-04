@@ -19,6 +19,7 @@ import {
 } from "@pcobooster/api/planning-center/services/factory";
 import type { SuccessOf } from "@pcobooster/api/testing/effect";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
+import { testRuntime } from "@pcobooster/api/testing/runtime";
 import { testServer } from "@pcobooster/api/testing/server";
 import { createScheduleRouter } from "@pcobooster/api/transport/orpc/schedule";
 import type { ScheduleAssignInput } from "@pcobooster/contracts/schedule";
@@ -121,6 +122,7 @@ const setup = () => {
     }),
     requestId: "request-1",
     resHeaders: new Headers(),
+    runtime: testRuntime(),
     server: testServer(),
   };
   return {

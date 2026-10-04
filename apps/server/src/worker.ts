@@ -1,21 +1,25 @@
+import { applicationRuntimeFor } from "@pcobooster/api/application/runtime";
 import { deploymentTier } from "@pcobooster/api/config/feature-flags";
 import type { ServerEnvironment } from "@pcobooster/api/config/server-config";
 import { resolveServerConfig } from "@pcobooster/api/config/server-config";
 import { logger } from "@pcobooster/api/logger";
 import { appRouter } from "@pcobooster/api/orpc";
+import { PlanningCenterPacing } from "@pcobooster/api/planning-center/pacing";
+import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
 import type { SharedReadStore } from "@pcobooster/api/planning-center/services/shared-read-store";
 import { createServerDependencies } from "@pcobooster/api/server";
 import type { FeatureFlagSource } from "@pcobooster/api/server";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
-import { Config, Effect, Redacted } from "effect";
+import { Config, Context, Effect, Layer, Redacted } from "effect";
+import type * as HttpClient from "effect/unstable/http/HttpClient";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
 
 import { AUTH_RATE_LIMIT_PERIOD_SECONDS, createServerApp } from "./app";
 import { Database } from "./database";
 import { FeatureFlagApp } from "./feature-flags";
-import { workerObservability } from "./observability";
+import { apiWorkerObservability, apiWorkerTelemetry } from "./observability";
 import { PlanningCenterCache } from "./planning-center-cache";
 import { cachedAcrossRequests } from "./shared-initialization";
 import { currentStageSettings } from "./stage";
@@ -121,13 +125,13 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
 export default class Api extends Cloudflare.Worker<Api>()(
   "Api",
   Effect.gen(function* apiProps() {
-    const { stage, production, apiDevPort } = yield* currentStageSettings;
+    const { stage, apiDevPort } = yield* currentStageSettings;
     return {
       name: `pcobooster-${stage}-api`,
       main: import.meta.url,
       workersDev: false,
       compatibility: { date: "2026-09-01", flags: ["nodejs_compat"] },
-      observability: workerObservability(production),
+      observability: apiWorkerObservability(),
       dev: { host: "127.0.0.1", port: apiDevPort, strictPort: true },
       env: {
         // CI deploys the checked-out commit; post-deploy verification expects it from health.
@@ -157,6 +161,8 @@ export default class Api extends Cloudflare.Worker<Api>()(
       },
     });
     const resolveEnvironment = yield* readEnvironment;
+    // One pacer per isolate shares each credential's Planning Center budget across requests.
+    const pacer = new PlanningCenterRatePacer();
     // The D1, KV, and Flagship bindings and a runtime-minted secret are only readable inside a
     // request, so the app is built by the first one and shared by the rest of the isolate's
     // lifetime. Not `Effect.cached`: requests that arrive while the first one builds must not
@@ -206,13 +212,22 @@ export default class Api extends Cloudflare.Worker<Api>()(
           yield* HttpServerRequest.HttpServerRequest
         ).pipe(Effect.orDie);
         const handler = yield* app;
+        // Procedures run on this request's fiber context (Alchemy's HTTP client, logger, and
+        // per-event tracer), so their spans land in this invocation's Workers trace.
+        const services = yield* Effect.context<HttpClient.HttpClient>();
+        const runtime = applicationRuntimeFor(
+          Context.add(services, PlanningCenterPacing, pacer)
+        );
         const response = yield* Effect.promise(
-          async () => await handler.fetch(request)
+          async () => await handler.fetch(request, { runtime })
         );
         return HttpServerResponse.fromWeb(response);
       }),
     };
   }).pipe(
+    Effect.provide(
+      Layer.unwrap(currentStageSettings.pipe(Effect.map(apiWorkerTelemetry)))
+    ),
     Effect.provide(Cloudflare.D1.QueryDatabaseBinding),
     Effect.provide(Cloudflare.KV.ReadWriteNamespaceBinding),
     Effect.provide(Cloudflare.Flagship.ReadFlagsBinding),

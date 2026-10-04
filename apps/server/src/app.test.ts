@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { createServerApp } from "./app";
+import { serveForTest } from "./test-app";
 
 const allowedOrigin = "https://pcobooster.com";
 const server = testServer({
@@ -73,22 +74,26 @@ const rpcRequest = (path: string, requestId?: string) => {
 };
 
 const createTestApp = (authHandler: TestAuthHandler) =>
-  createServerApp({
-    authHandler,
-    server,
-    enableRequestLogging: false,
-    log: { error: vi.fn<TestErrorLogger>() },
-    router: testRouter,
-  });
-
-describe(createServerApp, () => {
-  it("composes the production router for both API transports", async () => {
-    const productionApp = createServerApp({
+  serveForTest(
+    createServerApp({
+      authHandler,
       server,
       enableRequestLogging: false,
       log: { error: vi.fn<TestErrorLogger>() },
-      router: appRouter,
-    });
+      router: testRouter,
+    })
+  );
+
+describe(createServerApp, () => {
+  it("composes the production router for both API transports", async () => {
+    const productionApp = serveForTest(
+      createServerApp({
+        server,
+        enableRequestLogging: false,
+        log: { error: vi.fn<TestErrorLogger>() },
+        router: appRouter,
+      })
+    );
 
     const rpcResponse = await productionApp.request(rpcRequest("health"));
     const referenceResponse = await productionApp.request(
@@ -176,13 +181,15 @@ describe(createServerApp, () => {
 
   it("logs the request ID and path for an unexpected RPC failure", async () => {
     const log = { error: vi.fn<TestErrorLogger>() };
-    const app = createServerApp({
-      authHandler: () => new Response(null, { status: 501 }),
-      server,
-      enableRequestLogging: false,
-      log,
-      router: testRouter,
-    });
+    const app = serveForTest(
+      createServerApp({
+        authHandler: () => new Response(null, { status: 501 }),
+        server,
+        enableRequestLogging: false,
+        log,
+        router: testRouter,
+      })
+    );
 
     await app.request(rpcRequest("defect", "request-123"));
 
@@ -200,14 +207,16 @@ describe(createServerApp, () => {
     const reportError = vi.fn<ReportRequestError>(async () => {
       await Promise.resolve();
     });
-    const app = createServerApp({
-      authHandler: () => new Response(null, { status: 501 }),
-      server,
-      enableRequestLogging: false,
-      log: { error: vi.fn<TestErrorLogger>() },
-      reportError,
-      router: testRouter,
-    });
+    const app = serveForTest(
+      createServerApp({
+        authHandler: () => new Response(null, { status: 501 }),
+        server,
+        enableRequestLogging: false,
+        log: { error: vi.fn<TestErrorLogger>() },
+        reportError,
+        router: testRouter,
+      })
+    );
 
     await app.request(rpcRequest("defect", "request-123"));
 
@@ -222,16 +231,18 @@ describe(createServerApp, () => {
 
   it("still answers when error reporting fails", async () => {
     const log = { error: vi.fn<TestErrorLogger>() };
-    const app = createServerApp({
-      authHandler: () => new Response(null, { status: 501 }),
-      server,
-      enableRequestLogging: false,
-      log,
-      reportError: async () => {
-        await Promise.reject(new Error("PostHog down"));
-      },
-      router: testRouter,
-    });
+    const app = serveForTest(
+      createServerApp({
+        authHandler: () => new Response(null, { status: 501 }),
+        server,
+        enableRequestLogging: false,
+        log,
+        reportError: async () => {
+          await Promise.reject(new Error("PostHog down"));
+        },
+        router: testRouter,
+      })
+    );
 
     const response = await app.request(rpcRequest("defect"));
 
@@ -329,13 +340,15 @@ describe(createServerApp, () => {
         );
       }
     );
-    const app = createServerApp({
-      authHandler,
-      server,
-      enableRequestLogging: false,
-      log: { error: vi.fn<TestErrorLogger>() },
-      router: testRouter,
-    });
+    const app = serveForTest(
+      createServerApp({
+        authHandler,
+        server,
+        enableRequestLogging: false,
+        log: { error: vi.fn<TestErrorLogger>() },
+        router: testRouter,
+      })
+    );
 
     const response = await app.request("/api/auth/sign-in", {
       body: JSON.stringify({ provider: "test" }),
@@ -362,14 +375,16 @@ describe(createServerApp, () => {
     const allowAuthWrite = vi.fn<(clientIp: string) => Promise<boolean>>(
       async () => await Promise.resolve(false)
     );
-    const app = createServerApp({
-      allowAuthWrite,
-      authHandler,
-      server,
-      enableRequestLogging: false,
-      log: { error: vi.fn<TestErrorLogger>() },
-      router: testRouter,
-    });
+    const app = serveForTest(
+      createServerApp({
+        allowAuthWrite,
+        authHandler,
+        server,
+        enableRequestLogging: false,
+        log: { error: vi.fn<TestErrorLogger>() },
+        router: testRouter,
+      })
+    );
 
     const response = await app.request("/api/auth/sign-in/social", {
       headers: { "cf-connecting-ip": "203.0.113.7" },
@@ -387,14 +402,16 @@ describe(createServerApp, () => {
     const allowAuthWrite = vi.fn<(clientIp: string) => Promise<boolean>>(
       async () => await Promise.resolve(false)
     );
-    const app = createServerApp({
-      allowAuthWrite,
-      authHandler,
-      server,
-      enableRequestLogging: false,
-      log: { error: vi.fn<TestErrorLogger>() },
-      router: testRouter,
-    });
+    const app = serveForTest(
+      createServerApp({
+        allowAuthWrite,
+        authHandler,
+        server,
+        enableRequestLogging: false,
+        log: { error: vi.fn<TestErrorLogger>() },
+        router: testRouter,
+      })
+    );
     const headers = { "cf-connecting-ip": "203.0.113.7" };
 
     const start = await app.request(
@@ -422,14 +439,16 @@ describe(createServerApp, () => {
     const allowAuthWrite = vi.fn<(clientIp: string) => Promise<boolean>>(
       async () => await Promise.resolve(false)
     );
-    const app = createServerApp({
-      allowAuthWrite,
-      authHandler,
-      server,
-      enableRequestLogging: false,
-      log: { error: vi.fn<TestErrorLogger>() },
-      router: testRouter,
-    });
+    const app = serveForTest(
+      createServerApp({
+        allowAuthWrite,
+        authHandler,
+        server,
+        enableRequestLogging: false,
+        log: { error: vi.fn<TestErrorLogger>() },
+        router: testRouter,
+      })
+    );
 
     const sessionRead = await app.request("/api/auth/get-session", {
       headers: { "cf-connecting-ip": "203.0.113.7" },

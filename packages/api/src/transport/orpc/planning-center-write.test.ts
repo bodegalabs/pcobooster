@@ -1,15 +1,13 @@
 import { PlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
-import { createApplicationRuntime } from "@pcobooster/api/application/runtime";
 import {
   createPlanningCenterServices,
   createPlanningCenterReadCaches,
 } from "@pcobooster/api/planning-center/services/factory";
-import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
+import { testRuntime } from "@pcobooster/api/testing/runtime";
 import { testServer } from "@pcobooster/api/testing/server";
 import { executePreparedPlanningCenterWrite } from "@pcobooster/api/transport/orpc/planning-center-write";
-import { Effect, Layer } from "effect";
-import * as HttpClient from "effect/unstable/http/HttpClient";
+import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 describe(executePreparedPlanningCenterWrite, () => {
@@ -39,37 +37,30 @@ describe(executePreparedPlanningCenterWrite, () => {
       presentationMode: () => false,
       presentationSeed: "test-seed",
     };
-    const runtime = createApplicationRuntime(
-      Layer.succeed(HttpClient.HttpClient, unreachableHttpClient)
-    );
     const context = {
       request: new Request("https://pcobooster.com/api/rpc/plan-items"),
       requestId: "request-1",
+      runtime: testRuntime(),
       server: testServer(),
     };
 
-    try {
-      const result = await executePreparedPlanningCenterWrite(
-        runtime,
-        context,
-        context.request.signal,
-        Effect.gen(function* prepare() {
+    const result = await executePreparedPlanningCenterWrite(
+      context,
+      context.request.signal,
+      Effect.gen(function* prepare() {
+        const access = yield* PlanningCenterAccess;
+        return access.cacheScope;
+      }),
+      (preparedScope) =>
+        Effect.gen(function* commit() {
           const access = yield* PlanningCenterAccess;
-          return access.cacheScope;
+          return { preparedScope, committedScope: access.cacheScope };
         }),
-        (preparedScope) =>
-          Effect.gen(function* commit() {
-            const access = yield* PlanningCenterAccess;
-            return { preparedScope, committedScope: access.cacheScope };
-          }),
-        dependencies
-      );
+      dependencies
+    );
 
-      expect(authorize).toHaveBeenCalledOnce();
-      expect(result.preparedScope).toBe(result.committedScope);
-      expect(result.preparedScope).toMatch(/^bearer:/u);
-    } finally {
-      await runtime.dispose();
-    }
+    expect(authorize).toHaveBeenCalledOnce();
+    expect(result.preparedScope).toBe(result.committedScope);
+    expect(result.preparedScope).toMatch(/^bearer:/u);
   });
 });

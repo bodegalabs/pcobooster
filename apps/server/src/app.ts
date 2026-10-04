@@ -5,6 +5,7 @@ import type { AnyRouter } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ResponseHeadersPlugin } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
+import type { ApplicationRuntime } from "@pcobooster/api/application/runtime";
 import { NATIVE_SIGN_IN_START_PATH } from "@pcobooster/api/auth/native-sign-in";
 import {
   createPostHogExceptionReporter,
@@ -12,6 +13,7 @@ import {
 } from "@pcobooster/api/modules/analytics/posthog-exception";
 import type { ReportRequestError } from "@pcobooster/api/modules/analytics/posthog-exception";
 import type { ServerDependencies } from "@pcobooster/api/server";
+import type { HttpClient } from "effect/unstable/http/HttpClient";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger as requestLogger } from "hono/logger";
@@ -60,6 +62,13 @@ const isAuthWrite = (request: Request): boolean =>
   (request.method === "GET" &&
     new URL(request.url).pathname === NATIVE_SIGN_IN_START);
 
+/** What the Worker hands each request: a runtime bound to that request's Effect fiber. */
+export interface ServerAppBindings {
+  readonly runtime: ApplicationRuntime<HttpClient>;
+}
+
+export type ServerApp = Hono<{ Bindings: ServerAppBindings }>;
+
 export interface CreateServerAppOptions {
   /**
    * Limits auth writes per client IP: every POST (sign-in, sign-out, the native sign-in
@@ -91,8 +100,8 @@ export const createServerApp = ({
     fetch: globalThis.fetch,
   }),
   router,
-}: CreateServerAppOptions): Hono => {
-  const app = new Hono();
+}: CreateServerAppOptions): ServerApp => {
+  const app: ServerApp = new Hono();
 
   /** Logs every failed procedure and reports the unexpected ones; never throws. */
   const handleProcedureError = async (
@@ -208,9 +217,12 @@ export const createServerApp = ({
     ],
   });
 
-  const handleRpcRequest = async (request: Request): Promise<Response> => {
+  const handleRpcRequest = async (
+    request: Request,
+    { runtime }: ServerAppBindings
+  ): Promise<Response> => {
     const result = await rpcHandler.handle(request, {
-      context: createContext({ request, server }),
+      context: createContext({ request, runtime, server }),
       prefix: "/api/rpc",
     });
 
@@ -221,9 +233,12 @@ export const createServerApp = ({
     );
   };
 
-  const handleOpenApiRequest = async (request: Request): Promise<Response> => {
+  const handleOpenApiRequest = async (
+    request: Request,
+    { runtime }: ServerAppBindings
+  ): Promise<Response> => {
     const result = await apiHandler.handle(request, {
-      context: createContext({ request, server }),
+      context: createContext({ request, runtime, server }),
       prefix: "/api/reference",
     });
 
@@ -234,12 +249,15 @@ export const createServerApp = ({
     );
   };
 
-  app.all("/api/rpc", async (c) => await handleRpcRequest(c.req.raw));
-  app.all("/api/rpc/*", async (c) => await handleRpcRequest(c.req.raw));
-  app.all("/api/reference", async (c) => await handleOpenApiRequest(c.req.raw));
+  app.all("/api/rpc", async (c) => await handleRpcRequest(c.req.raw, c.env));
+  app.all("/api/rpc/*", async (c) => await handleRpcRequest(c.req.raw, c.env));
+  app.all(
+    "/api/reference",
+    async (c) => await handleOpenApiRequest(c.req.raw, c.env)
+  );
   app.all(
     "/api/reference/*",
-    async (c) => await handleOpenApiRequest(c.req.raw)
+    async (c) => await handleOpenApiRequest(c.req.raw, c.env)
   );
 
   app.get("/", (c) => c.text("OK"));
