@@ -1,10 +1,13 @@
 import type { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import {
-  PlanningCenterAccess,
+  provideAccess,
   resolvePlanningCenterAccess,
 } from "@pcobooster/api/application/planning-center-access";
-import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
+import type {
+  PlanningCenterAccessDependencies,
+  PlanningCenterRequest,
+} from "@pcobooster/api/application/planning-center-access";
 import type { Server } from "@pcobooster/api/server";
 import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
@@ -17,14 +20,14 @@ export const executePreparedPlanningCenterWrite = async <Preparation, Value>(
   prepare: Effect.Effect<
     Preparation,
     ApplicationFault,
-    PlanningCenterAccess | RequestContext | Server
+    PlanningCenterRequest | RequestContext | Server
   >,
   commit: (
     prepared: Preparation
   ) => Effect.Effect<
     Value,
     ApplicationFault,
-    PlanningCenterAccess | RequestContext
+    PlanningCenterRequest | RequestContext
   >,
   dependencies?: PlanningCenterAccessDependencies
 ): Promise<Value> => {
@@ -35,12 +38,12 @@ export const executePreparedPlanningCenterWrite = async <Preparation, Value>(
   );
   try {
     const prepared = await executeApplicationEffect(
-      Effect.provideService(prepare, PlanningCenterAccess, access),
+      provideAccess(prepare, access),
       context,
       signal
     );
     return await executeApplicationEffect(
-      Effect.provideService(commit(prepared), PlanningCenterAccess, access),
+      provideAccess(commit(prepared), access),
       context,
       signal,
       { interruptOnAbort: false }

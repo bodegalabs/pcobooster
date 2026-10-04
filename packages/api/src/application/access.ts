@@ -1,9 +1,7 @@
-import type { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
-import {
-  PlanningCenterAccess,
-  withPlanningCenterFaults,
-} from "@pcobooster/api/application/planning-center-access";
+import { withPlanningCenterFaults } from "@pcobooster/api/application/planning-center-access";
+import { PlanningCenterCatalog } from "@pcobooster/api/application/planning-center/catalog";
+import { PlanningCenterProductAccess } from "@pcobooster/api/application/planning-center/product-access";
 import { getAccessSnapshot } from "@pcobooster/api/modules/planning-center/get-access-snapshot";
 import type { PlanningCenterAccessSnapshot } from "@pcobooster/planning-center-models/access";
 import { Effect } from "effect";
@@ -12,13 +10,14 @@ import { Effect } from "effect";
 export const getPlanningCenterAccessSnapshot: Effect.Effect<
   PlanningCenterAccessSnapshot,
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterCatalog | PlanningCenterProductAccess
 > = Effect.gen(function* readAccessSnapshot() {
-  const access = yield* PlanningCenterAccess;
+  const catalogService = yield* PlanningCenterCatalog;
+  const productAccess = yield* PlanningCenterProductAccess;
   return yield* withPlanningCenterFaults(
     getAccessSnapshot({
-      accessService: access.services.access,
-      catalogService: access.services.catalog,
+      accessService: productAccess,
+      catalogService,
     })
   );
 });

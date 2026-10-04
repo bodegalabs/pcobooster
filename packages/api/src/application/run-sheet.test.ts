@@ -1,4 +1,4 @@
-import { PlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
+import { provideAccess } from "@pcobooster/api/application/planning-center-access";
 import {
   commitRunSheetItemCreate,
   prepareRunSheetItemCreate,
@@ -49,11 +49,6 @@ const setup = () => {
   };
   return { access, services };
 };
-
-const provideAccess = <Value, Failure, Requirements>(
-  program: Effect.Effect<Value, Failure, Requirements>,
-  access: ReturnType<typeof setup>["access"]
-) => Effect.provideService(program, PlanningCenterAccess, access);
 
 describe("run-sheet mutation cancellation", () => {
   it("does not start a create after an aborted song-default preflight", async () => {
