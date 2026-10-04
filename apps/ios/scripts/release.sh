@@ -22,6 +22,8 @@
 #                       App Store Connect API key for signing and upload. The base64 key is
 #                       decoded into a private temporary file that is deleted on exit. Without a
 #                       key, xcodebuild uses the Apple ID signed in to Xcode (Settings > Accounts).
+#                       CI has no Apple ID, so there the key is required, and it needs the Admin
+#                       role to create the cloud-managed distribution certificate.
 #
 # Signing is automatic for team 6C46GY4Z38. The archive is unsigned (automatic signing would
 # want a development profile, which needs a registered device); the export signs it for
@@ -107,6 +109,12 @@ if [[ -n "${ASC_KEY_ID:-}" && -n "${ASC_ISSUER_ID:-}" ]]; then
   fi
 fi
 
+if [[ "${CI:-}" == "true" && ${#auth[@]} -eq 1 && "$destination" == upload ]]; then
+  echo "CI has no Apple ID to sign with. Add ASC_KEY_ID, ASC_ISSUER_ID, and ASC_KEY_P8_BASE64" >&2
+  echo "(an Admin App Store Connect API key) to Infisical Production \"/\"; see docs/ci-cd.md." >&2
+  exit 1
+fi
+
 echo "==> Testing PCOBoosterCore"
 swift test --package-path "$ios/PCOBoosterCore" --quiet
 
@@ -153,7 +161,7 @@ export_archive() {
 # A key without the Admin role can upload but cannot create the cloud-managed distribution
 # certificate ("Cloud signing permission error"). Fall back to the Apple ID signed in to Xcode.
 if ! export_archive "${auth[@]}"; then
-  if [[ ${#auth[@]} -gt 1 ]]; then
+  if [[ ${#auth[@]} -gt 1 && "${CI:-}" != "true" ]]; then
     echo "==> Export with the API key failed; retrying with the Apple ID signed in to Xcode"
     rm -rf "$out/export"
     export_archive -allowProvisioningUpdates

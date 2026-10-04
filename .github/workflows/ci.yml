@@ -13,6 +13,10 @@ on:
         description: Request a production deployment after checks pass
         type: boolean
         default: false
+      release_ios:
+        description: Upload this main revision to TestFlight after checks pass
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -68,6 +72,9 @@ jobs:
     if: github.event.action != 'labeled'
     runs-on: macos-26
     timeout-minutes: 30
+    outputs:
+      # Whether this push to `main` changed the app, so `testflight` ships it.
+      release: ${{ steps.changes.outputs.release }}
     concurrency:
       group: ios-${{ github.event.pull_request.number || github.sha }}
       cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -84,8 +91,16 @@ jobs:
         id: changes
         env:
           BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
+          if [ "$EVENT_NAME" = "push" ]; then
+            if git cat-file -e "$BEFORE^{commit}" 2>/dev/null && git diff --quiet "$BEFORE" HEAD -- apps/ios; then
+              echo "release=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "release=true" >> "$GITHUB_OUTPUT"
+            fi
+          fi
           if [ "$EVENT_NAME" != "pull_request" ]; then
             echo "ios=true" >> "$GITHUB_OUTPUT"
           elif git diff --quiet "origin/$BASE_REF...HEAD" -- apps/ios packages/contracts scripts/ios scripts/parity .github/workflows/ci.yml; then
@@ -312,3 +327,49 @@ jobs:
       # Warns and skips when POSTHOG_ANNOTATION_API_KEY is absent; never fails the deploy.
       - name: Mark the deploy on PostHog charts
         run: bun scripts/posthog/annotate-deploy.ts "$GITHUB_SHA"
+
+  testflight:
+    # Ships the app from the revision production just served, so the API it calls is live
+    # first. Pushes to `main` that change apps/ios release; a manual run can release any time.
+    needs: [ios, production]
+    # `alchemy.ci.ts` sets TESTFLIGHT_RELEASES once release signing is configured.
+    if: >-
+      !cancelled() && vars.TESTFLIGHT_RELEASES == 'enabled' && github.ref == 'refs/heads/main' && needs.ios.result == 'success' && (
+        (github.event_name == 'push' && needs.production.result == 'success' && needs.ios.outputs.release == 'true') ||
+        (github.event_name == 'workflow_dispatch' && inputs.release_ios && needs.production.result != 'failure'))
+    runs-on: macos-26
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      id-token: write
+    environment:
+      name: testflight
+      url: https://appstoreconnect.apple.com/apps
+    concurrency:
+      group: testflight
+      cancel-in-progress: false
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - name: Checkout verified main revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # The build number is the commit count of main.
+          fetch-depth: 0
+      - name: Setup toolchain
+        uses: ./.github/actions/setup
+      - name: Reject superseded revisions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)
+          test "$current" = "$GITHUB_SHA"
+      - name: Read release secrets
+        uses: ./.github/actions/infisical
+        with:
+          identity-id: ${{ vars.INFISICAL_IDENTITY_ID }}
+          project-id: ${{ vars.INFISICAL_PROJECT_ID }}
+          env-slug: ${{ vars.INFISICAL_ENV_SLUG }}
+      - name: Archive and upload to TestFlight
+        run: bun run ios:release
