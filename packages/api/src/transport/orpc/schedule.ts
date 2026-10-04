@@ -13,10 +13,7 @@ import { recordActivityEvent } from "@pcobooster/api/db/activity-events";
 import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
 import { logger } from "@pcobooster/api/logger";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
-import {
-  applicationRuntime,
-  rpc,
-} from "@pcobooster/api/transport/orpc/implementation";
+import { rpc } from "@pcobooster/api/transport/orpc/implementation";
 import { applyPrivateNoStore } from "@pcobooster/api/transport/orpc/response-headers";
 import { scheduleActivityEvent } from "@pcobooster/api/transport/orpc/schedule-activity";
 import type { ScheduleOperation } from "@pcobooster/api/transport/orpc/schedule-activity";
@@ -34,7 +31,6 @@ export const createScheduleRouter = (
     rpc.schedule.use(async ({ context, next, signal }, input) => {
       applyPrivateNoStore(context.resHeaders);
       const access = await executeApplicationEffect(
-        applicationRuntime,
         resolvePlanningCenterAccess(dependencies.access),
         context,
         signal
@@ -90,7 +86,6 @@ export const createScheduleRouter = (
   const assign = audited("assign").assign.handler(
     async ({ input, context, signal }) => {
       const preparation = await executeApplicationEffect(
-        applicationRuntime,
         Effect.provideService(
           prepareScheduledPerson(input),
           PlanningCenterAccess,
@@ -100,7 +95,6 @@ export const createScheduleRouter = (
         signal
       );
       return await executeApplicationEffect(
-        applicationRuntime,
         Effect.provideService(
           commitScheduledPerson(input, preparation),
           PlanningCenterAccess,
@@ -115,7 +109,6 @@ export const createScheduleRouter = (
   const remove = audited("remove").remove.handler(
     async ({ input, context, signal }) =>
       await executeApplicationEffect(
-        applicationRuntime,
         Effect.provideService(
           removeScheduledPerson(input),
           PlanningCenterAccess,
@@ -129,7 +122,6 @@ export const createScheduleRouter = (
   const updateStatus = audited("updateStatus").updateStatus.handler(
     async ({ input, context, signal }) =>
       await executeApplicationEffect(
-        applicationRuntime,
         Effect.provideService(
           updateScheduledPersonStatus(input),
           PlanningCenterAccess,

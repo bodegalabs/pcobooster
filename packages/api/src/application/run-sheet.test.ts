@@ -10,9 +10,9 @@ import {
 } from "@pcobooster/api/planning-center/services/factory";
 import type { SuccessOf } from "@pcobooster/api/testing/effect";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
+import { testRuntime } from "@pcobooster/api/testing/runtime";
 import { testServer } from "@pcobooster/api/testing/server";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
-import { applicationRuntime } from "@pcobooster/api/transport/orpc/implementation";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
@@ -22,6 +22,7 @@ const context = {
   }),
   requestId: "run-sheet-request",
   resHeaders: new Headers(),
+  runtime: testRuntime(),
   server: testServer(),
 };
 
@@ -72,7 +73,6 @@ describe("run-sheet mutation cancellation", () => {
     const create = vi.spyOn(services.planItems, "createPlanItem");
 
     const pending = executeApplicationEffect(
-      applicationRuntime,
       provideAccess(
         prepareRunSheetItemCreate({
           serviceTypeId: "service-1",
@@ -123,7 +123,6 @@ describe("run-sheet mutation cancellation", () => {
       );
 
     const pending = executeApplicationEffect(
-      applicationRuntime,
       provideAccess(
         commitRunSheetItemCreate({
           serviceTypeId: "service-1",
@@ -184,7 +183,6 @@ describe("run-sheet mutation cancellation", () => {
       );
 
     const pending = executeApplicationEffect(
-      applicationRuntime,
       provideAccess(
         updateRunSheetTime({
           serviceTypeId: "service-1",

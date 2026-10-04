@@ -9,16 +9,12 @@ import {
 } from "@pcobooster/api/application/chord-charts";
 import { withPlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
-import {
-  applicationRuntime,
-  rpc,
-} from "@pcobooster/api/transport/orpc/implementation";
+import { rpc } from "@pcobooster/api/transport/orpc/implementation";
 import { executePreparedPlanningCenterWrite } from "@pcobooster/api/transport/orpc/planning-center-write";
 
 const song = rpc.chordCharts.song.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
-      applicationRuntime,
       withPlanningCenterAccess(readChordChartSong(input)),
       context,
       signal
@@ -28,7 +24,6 @@ const song = rpc.chordCharts.song.handler(
 const update = rpc.chordCharts.update.handler(
   async ({ input, context, signal }) =>
     await executePreparedPlanningCenterWrite(
-      applicationRuntime,
       context,
       signal,
       prepareChordChartSave(input),
@@ -39,7 +34,6 @@ const update = rpc.chordCharts.update.handler(
 const create = rpc.chordCharts.create.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
-      applicationRuntime,
       withPlanningCenterAccess(createChordChart(input)),
       context,
       signal,
@@ -50,7 +44,6 @@ const create = rpc.chordCharts.create.handler(
 const lyricsSearch = rpc.chordCharts.lyricsSearch.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
-      applicationRuntime,
       withPlanningCenterAccess(searchChordChartLyrics(input)),
       context,
       signal
@@ -60,7 +53,6 @@ const lyricsSearch = rpc.chordCharts.lyricsSearch.handler(
 const pdf = rpc.chordCharts.pdf.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
-      applicationRuntime,
       withPlanningCenterAccess(readChordChartPdf(input)),
       context,
       signal
@@ -70,7 +62,6 @@ const pdf = rpc.chordCharts.pdf.handler(
 const createSong = rpc.chordCharts.createSong.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
-      applicationRuntime,
       withPlanningCenterAccess(addChordChartSong(input)),
       context,
       signal,

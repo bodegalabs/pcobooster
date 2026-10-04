@@ -1,10 +1,15 @@
+import { testRuntime } from "@pcobooster/api/testing/runtime";
 import { testServer } from "@pcobooster/api/testing/server";
 import { describe, expect, it, vi } from "vitest";
 
 import { createContext } from "./context";
 
 const contextFor = (server: ReturnType<typeof testServer>) =>
-  createContext({ request: new Request("http://api.test/"), server });
+  createContext({
+    request: new Request("http://api.test/"),
+    runtime: testRuntime(),
+    server,
+  });
 
 describe(createContext, () => {
   it("gives each request its own loads while sharing loaded values", async () => {
