@@ -137,6 +137,9 @@ const setup = () => {
   };
 };
 
+const missingPlanPerson = () =>
+  Effect.fail(new PlanningCenterApiError({ status: 404, message: "" }));
+
 describe("scheduling oRPC transport", () => {
   it("uses the request cache scope for each mutation and hides duplicate details in presentation mode", async () => {
     const { services, authorize, context, create } = setup();
@@ -407,6 +410,28 @@ describe("scheduling oRPC transport", () => {
         success: true,
         metadata: { ...removalInput, status: "D" },
       })
+    );
+  });
+
+  it("reports a plan person Planning Center no longer has as not found", async () => {
+    const { router, context, recordActivity, remove, update } = setup();
+    remove.mockReturnValueOnce(missingPlanPerson());
+    update.mockReturnValueOnce(missingPlanPerson());
+    const target = { planPersonId: "plan-person-1", planId: "plan-1" };
+    const notFound = {
+      code: "NOT_FOUND",
+      status: 404,
+      data: { resource: "plan-person" },
+    };
+
+    await expect(
+      call(router.remove, target, { context })
+    ).rejects.toMatchObject(notFound);
+    await expect(
+      call(router.updateStatus, { ...target, status: "C" }, { context })
+    ).rejects.toMatchObject(notFound);
+    expect(recordActivity).toHaveBeenCalledWith(
+      expect.objectContaining({ success: false, errorCode: "NOT_FOUND" })
     );
   });
 

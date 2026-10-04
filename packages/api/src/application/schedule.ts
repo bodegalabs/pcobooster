@@ -1,6 +1,7 @@
 import { ensureRequestIsOpen } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import { AlreadyScheduled } from "@pcobooster/api/application/errors/already-scheduled";
+import { NotFound } from "@pcobooster/api/application/errors/not-found";
 import { PositionMismatch } from "@pcobooster/api/application/errors/position-mismatch";
 import {
   PlanningCenterAccess,
@@ -11,6 +12,8 @@ import {
   matchesScheduleTarget,
   resolveScheduleTarget,
 } from "@pcobooster/api/modules/planning-center/schedule-person";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type {
   ScheduleAssignInput,
   ScheduleRemoveInput,
@@ -121,6 +124,26 @@ export const commitScheduledPerson = (
     return { success: true as const, data: { id: created.id } };
   });
 
+const PLANNING_CENTER_NOT_FOUND_STATUS = 404;
+
+/**
+ * Someone else may have removed the plan person in Planning Center since the lineup loaded.
+ * That is a stale lineup, not a provider outage.
+ */
+const reportMissingPlanPerson = <Value, Requirements>(
+  effect: Effect.Effect<Value, PlanningCenterError, Requirements>
+): Effect.Effect<Value, PlanningCenterError | NotFound, Requirements> =>
+  Effect.mapError(effect, (failure) =>
+    failure instanceof PlanningCenterApiError &&
+    failure.status === PLANNING_CENTER_NOT_FOUND_STATUS
+      ? new NotFound({
+          message:
+            "This person is no longer on the plan in Planning Center. Refresh to see the current lineup.",
+          resource: "plan-person",
+        })
+      : failure
+  );
+
 export const removeScheduledPerson = (
   input: ScheduleRemoveInput
 ): Effect.Effect<
@@ -131,7 +154,9 @@ export const removeScheduledPerson = (
   Effect.gen(function* removePerson() {
     const access = yield* PlanningCenterAccess;
     yield* ensureRequestIsOpen;
-    yield* access.services.people.deletePlanPerson(input.planPersonId, input);
+    yield* reportMissingPlanPerson(
+      access.services.people.deletePlanPerson(input.planPersonId, input)
+    );
     access.services.people.invalidatePlanWindowRosters();
     return { success: true as const };
   }).pipe(withPlanningCenterFaults);
@@ -146,10 +171,12 @@ export const updateScheduledPersonStatus = (
   Effect.gen(function* updateStatus() {
     const access = yield* PlanningCenterAccess;
     yield* ensureRequestIsOpen;
-    yield* access.services.people.updatePlanPersonStatus(
-      input.planPersonId,
-      input.status,
-      input
+    yield* reportMissingPlanPerson(
+      access.services.people.updatePlanPersonStatus(
+        input.planPersonId,
+        input.status,
+        input
+      )
     );
     access.services.people.invalidatePlanWindowRosters();
     return { success: true as const };
