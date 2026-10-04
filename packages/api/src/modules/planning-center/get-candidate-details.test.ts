@@ -105,6 +105,7 @@ type People = CandidateDetailsDependencies["people"];
 interface PersonFixture {
   readonly plans?: readonly ServedPlan[];
   readonly repeatingBlockouts?: number;
+  readonly oneTimeBlockout?: PCResource;
   /** Index of the repeating blockout whose date covers the plan day. */
   readonly coveringBlockout?: number;
 }
@@ -118,12 +119,14 @@ const createPeople = (fixtures: Readonly<Record<string, PersonFixture>>) => {
   }
   const people = {
     getPersonBlockouts: vi.fn<People["getPersonBlockouts"]>((personId) => {
-      const { repeatingBlockouts = 0 } = fixtures[personId] ?? {};
-      return countedRead(
-        Array.from({ length: repeatingBlockouts }, (_, index) =>
+      const { repeatingBlockouts = 0, oneTimeBlockout } =
+        fixtures[personId] ?? {};
+      return countedRead([
+        ...(oneTimeBlockout === undefined ? [] : [oneTimeBlockout]),
+        ...Array.from({ length: repeatingBlockouts }, (_, index) =>
           weeklyBlockout(`${personId}-blockout-${index}`)
-        )
-      );
+        ),
+      ]);
     }),
     getPersonBlockoutDates: vi.fn<People["getPersonBlockoutDates"]>(
       (personId, blockoutId) => {
@@ -280,6 +283,88 @@ describe(getCandidateDetails, () => {
       planReads: [plans[0]?.planId],
       rehearsals: [`${plans[0]?.schedule.id}:${plans[0]?.rehearsal.id}`],
     });
+  });
+
+  it.each([false, true])(
+    "skips recurring expansion after a covering one-time blockout (history=%s)",
+    async (scheduleHistory) => {
+      const pastPlan = servedPlan("p1", -7);
+      const people = createPeople({
+        p1: {
+          repeatingBlockouts: 90,
+          plans: [pastPlan],
+          oneTimeBlockout: {
+            ...weeklyBlockout("one-time"),
+            attributes: {
+              starts_at: "2026-05-03T07:00:00Z",
+              ends_at: "2026-05-04T06:59:59Z",
+              time_zone: "America/Los_Angeles",
+              repeat_frequency: "no_repeat",
+            },
+          },
+        },
+        p2: {},
+      });
+      const { batch, requests } = await runCall(
+        {
+          personIds: ["p1", "p2"],
+          planId: PLAN_ID,
+          date: PLAN_DATE,
+          scheduleHistory,
+        },
+        people
+      );
+      expect(
+        batch.people.map(({ personId, isBlockedForDate }) => ({
+          personId,
+          isBlockedForDate,
+        }))
+      ).toStrictEqual([
+        { personId: "p1", isBlockedForDate: true },
+        { personId: "p2", isBlockedForDate: false },
+      ]);
+      expect(batch.deferredPersonIds).toStrictEqual([]);
+      expect(people.getPersonBlockoutDates).not.toHaveBeenCalled();
+      expect(requests).toBe(scheduleHistory ? 6 : 3);
+      expect(rehearsalItems(batch.people[0])).toStrictEqual(
+        scheduleHistory
+          ? [`${pastPlan.schedule.id}:${pastPlan.rehearsal.id}`]
+          : []
+      );
+    }
+  );
+
+  it("still reads recurring dates when a one-time blockout misses the local plan day", async () => {
+    const people = createPeople({
+      p1: {
+        repeatingBlockouts: 1,
+        coveringBlockout: 0,
+        oneTimeBlockout: {
+          ...weeklyBlockout("one-time"),
+          attributes: {
+            starts_at: "2026-05-04T07:00:00Z",
+            ends_at: "2026-05-05T06:59:59Z",
+            time_zone: "America/Los_Angeles",
+            repeat_frequency: "no_repeat",
+          },
+        },
+      },
+    });
+    const { batch, requests } = await runCall(
+      {
+        personIds: ["p1"],
+        planId: PLAN_ID,
+        date: PLAN_DATE,
+        scheduleHistory: false,
+      },
+      people
+    );
+    expect(batch.people[0]?.isBlockedForDate).toBeTruthy();
+    expect(people.getPersonBlockoutDates).toHaveBeenCalledExactlyOnceWith(
+      "p1",
+      "p1-blockout-0"
+    );
+    expect(requests).toBe(3);
   });
 
   it("makes progress on a person whose repeating blockouts need more reads than one call allows", async () => {
