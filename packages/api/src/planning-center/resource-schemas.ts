@@ -1,3 +1,4 @@
+import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import type {
   PCApiResponse,
   PCRelationship,
@@ -23,11 +24,17 @@ export const pcRelationshipSchema = z.object({
   links: z.object({ related: optionalLinkSchema }).optional(),
 }) satisfies z.ZodType<PCRelationship>;
 
+/**
+ * Resources are only decoded from `JSON.parse` output, whose values are JSON by construction.
+ * Walking every attribute again with `z.json()` cost several ms of Worker CPU per page.
+ */
+const parsedJsonValueSchema = z.custom<JsonValue>();
+
 // Preserve API attributes so each module can validate the fields it consumes.
 export const pcResourceSchema = z.object({
   type: z.string(),
   id: z.string(),
-  attributes: z.record(z.string(), z.json()).default({}),
+  attributes: z.record(z.string(), parsedJsonValueSchema).default({}),
   relationships: z.record(z.string(), pcRelationshipSchema).optional(),
 }) satisfies z.ZodType<PCResource>;
 

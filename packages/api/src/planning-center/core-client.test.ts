@@ -281,6 +281,35 @@ describe(PlanningCenterCoreClient, () => {
     });
   });
 
+  it("keeps nested attribute values exactly as Planning Center sent them", async () => {
+    const attributes = {
+      title: "Sunday",
+      length: 5400,
+      public: false,
+      series_title: null,
+      notes: [{ category: "Band", lines: ["Capo 2", null] }],
+      layout: { columns: { order: [3, 1, 2] } },
+    };
+    const fetch = fetchMock().mockResolvedValue(
+      jsonResponse({ data: [{ id: "1", type: "Plan", attributes }] })
+    );
+    const response = await run(
+      basicClient(fetch).fetchCollection("/services/v2/plans")
+    );
+    expect(response.data).toStrictEqual([
+      { id: "1", type: "Plan", attributes },
+    ]);
+  });
+
+  it("rejects a body that is not JSON", async () => {
+    const fetch = fetchMock().mockResolvedValue(
+      new Response("<html>Bad gateway</html>", { status: 200 })
+    );
+    await expect(
+      failureOf(basicClient(fetch).fetch("/services/v2/people/1"))
+    ).resolves.toMatchObject({ code: "INVALID_RESPONSE", status: 200 });
+  });
+
   it("normalizes a singleton collection and preserves null relationships", async () => {
     const fetch = fetchMock().mockResolvedValue(
       jsonResponse({
