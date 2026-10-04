@@ -12,6 +12,11 @@ export class PlanningCenterSubrequestLimitError extends Data.TaggedError(
   /** Planning Center requests this invocation had sent. */
   readonly requests: number;
   readonly limit?: number;
+  /**
+   * 429s Planning Center answered this invocation before the budget ran out. Retrying them
+   * spends the budget, so a budget hit after any is really a rate limit.
+   */
+  readonly rateLimitedResponses?: number;
   readonly cause?: unknown;
 }> {
   override readonly message =

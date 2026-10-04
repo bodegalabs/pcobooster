@@ -228,19 +228,42 @@ const readRateLimitInfo = (
   retryAfterSeconds: readIntegerHeader(headers, "retry-after"),
 });
 
+/** Planning Center reports JSON:API errors as `{ errors: [{ code, title, detail }] }`. */
+const listedErrorCodeSchema = z.object({
+  errors: z.array(z.object({ code: z.string() })).min(1),
+});
+
+/** What a JSON:API error list says went wrong; validation errors put it in `detail`. */
+export const listedErrorDetailsSchema = z.object({
+  errors: z
+    .array(
+      z.object({ title: z.string().optional(), detail: z.string().optional() })
+    )
+    .min(1),
+});
+
+/** Each listed error's detail, or its title when it has none. */
+export const listedErrorDetails = (
+  body: z.infer<typeof listedErrorDetailsSchema>
+): string[] =>
+  body.errors.flatMap(({ detail, title }) => {
+    const text = detail ?? title;
+    return isNonEmptyString(text) ? [text] : [];
+  });
+
 const errorTitle = (
   body: z.infer<typeof errorBodySchema>
 ): string | undefined => {
   if (isString(body.error)) {
     return body.error;
   }
-  return isString(body.message) ? body.message : undefined;
+  if (isString(body.message)) {
+    return body.message;
+  }
+  const listed = listedErrorDetailsSchema.safeParse(body);
+  const details = listed.success ? listedErrorDetails(listed.data) : [];
+  return details.length > 0 ? details.join("; ") : undefined;
 };
-
-/** Planning Center reports JSON:API errors as `{ errors: [{ code, title }] }`. */
-const listedErrorCodeSchema = z.object({
-  errors: z.array(z.object({ code: z.string() })).min(1),
-});
 
 const errorCode = (
   body: z.infer<typeof errorBodySchema>
@@ -376,6 +399,7 @@ const ensureSubrequestAvailable = (
           source: "budget",
           requests,
           limit,
+          rateLimitedResponses: accounting.totals.rateLimited,
         })
       )
     );
