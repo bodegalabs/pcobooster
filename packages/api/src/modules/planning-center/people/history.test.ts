@@ -76,6 +76,62 @@ const team = (id: string, rehearsalTeam: boolean): PCResource => ({
 });
 
 describe(mapSchedulesToServiceHistory, () => {
+  it("preserves relationship order and first matching resources across duplicate ids", () => {
+    const resource = schedule({
+      id: "mixed",
+      sortDate: "2026-02-22T00:00:00Z",
+      planTimeIds: ["rehearsal", "service", "rehearsal", "missing"],
+    });
+    resource.relationships = {
+      ...resource.relationships,
+      plan: { data: { type: "Plan", id: "service" } },
+      times: { data: [{ type: "PlanTime", id: "service" }] },
+    };
+    const included: PCResource[] = [
+      { type: "Plan", id: "service", attributes: { title: "First plan" } },
+      planTime("service", "service"),
+      planTime("rehearsal", "rehearsal"),
+      planTime("service", "other"),
+      { type: "Plan", id: "service", attributes: { title: "Duplicate plan" } },
+    ];
+    const result = mapSchedulesToServiceHistory(
+      [scheduleResourceSchema.parse(resource)],
+      included
+    );
+    expect(
+      result.map(({ id, timeType, planTitle }) => ({ id, timeType, planTitle }))
+    ).toStrictEqual([
+      { id: "mixed:rehearsal", timeType: "rehearsal", planTitle: "First plan" },
+      { id: "mixed:service", timeType: "service", planTitle: "First plan" },
+    ]);
+  });
+
+  it("keeps the team fallback for missing and other-only plan times", () => {
+    const schedules = [
+      schedule({
+        id: "missing",
+        sortDate: "2026-02-22T00:00:00Z",
+        teamId: "rehearsal",
+        planTimeIds: ["missing"],
+      }),
+      schedule({
+        id: "other",
+        sortDate: "2026-02-22T00:00:00Z",
+        teamId: "rehearsal",
+        planTimeIds: ["other"],
+      }),
+    ].map((resource) => scheduleResourceSchema.parse(resource));
+    const result = mapSchedulesToServiceHistory(schedules, [
+      planTime("other", "other"),
+      team("rehearsal", true),
+      team("rehearsal", false),
+    ]);
+    expect(result.map(({ id, timeType }) => ({ id, timeType }))).toStrictEqual([
+      { id: "missing", timeType: "rehearsal" },
+      { id: "other", timeType: "other" },
+    ]);
+  });
+
   it("classifies rehearsal/service entries and tracks counters separately", () => {
     const referenceDate = new Date("2026-02-22T00:00:00Z");
     const schedules = [
