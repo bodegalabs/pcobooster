@@ -27,7 +27,6 @@ import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user
 import {
   isNonEmptyString,
   isString,
-  jsonValueSchema,
 } from "@pcobooster/planning-center-models/json";
 import type {
   JsonObject,
@@ -306,45 +305,48 @@ const readResponseText = (
 ): Effect.Effect<string, PlanningCenterNetworkError> =>
   Effect.mapError(response.text, networkFailure);
 
-const decodeResponse = <Output>(
-  schema: z.ZodType<Output>,
-  json: JsonValue
-): Effect.Effect<Output, PlanningCenterApiError> => {
-  const parsed = schema.safeParse(json);
-  return parsed.success
-    ? Effect.succeed(parsed.data)
-    : Effect.fail(invalidProviderResponse(200, parsed.error));
-};
-
-/** Reads the JSON body within whatever remains of the attempt's time budget. */
-const readJsonBody = ({
-  response,
-  startedAt,
-}: SentResponse): Effect.Effect<JsonValue, AttemptError> =>
-  Effect.gen(function* readJson() {
-    const elapsedMs = (yield* Clock.currentTimeMillis) - startedAt;
-    const text = yield* readResponseText(response).pipe(
-      Effect.timeoutOrElse({
-        duration: Duration.millis(Math.max(ATTEMPT_TIMEOUT_MS - elapsedMs, 0)),
-        orElse: () => Effect.fail(attemptTimedOut()),
-      })
-    );
-    if (response.status === 204 || text.trim() === "") {
-      return yield* Effect.fail(
-        new PlanningCenterApiError({
-          message:
-            "Planning Center returned an empty response where JSON was required",
-          status: response.status,
-          code: "INVALID_RESPONSE",
+/**
+ * Reads the JSON body within whatever remains of the attempt's time budget and decodes it with
+ * `schema`. The schema is the only validation pass: `JSON.parse` output is JSON by
+ * construction, and re-walking a 100-plan page with `z.json()` cost ~14 ms of Worker CPU.
+ */
+const readJsonBody =
+  <Output>(schema: z.ZodType<Output>) =>
+  ({
+    response,
+    startedAt,
+  }: SentResponse): Effect.Effect<Output, AttemptError> =>
+    Effect.gen(function* readJson() {
+      const elapsedMs = (yield* Clock.currentTimeMillis) - startedAt;
+      const text = yield* readResponseText(response).pipe(
+        Effect.timeoutOrElse({
+          duration: Duration.millis(
+            Math.max(ATTEMPT_TIMEOUT_MS - elapsedMs, 0)
+          ),
+          orElse: () => Effect.fail(attemptTimedOut()),
         })
       );
-    }
-    // Both a syntax error and a non-JSON value mean the provider response is unusable.
-    return yield* Effect.try({
-      try: () => jsonValueSchema.parse(JSON.parse(text)),
-      catch: (error) => invalidProviderResponse(response.status, error),
+      if (response.status === 204 || text.trim() === "") {
+        return yield* Effect.fail(
+          new PlanningCenterApiError({
+            message:
+              "Planning Center returned an empty response where JSON was required",
+            status: response.status,
+            code: "INVALID_RESPONSE",
+          })
+        );
+      }
+      const decoded = yield* Effect.try({
+        try: () => schema.safeParse(JSON.parse(text)),
+        catch: (error) => invalidProviderResponse(response.status, error),
+      });
+      if (!decoded.success) {
+        return yield* Effect.fail(
+          invalidProviderResponse(response.status, decoded.error)
+        );
+      }
+      return decoded.data;
     });
-  });
 
 /** Fails before sending when this invocation may not make another request. */
 const ensureSubrequestAvailable = (
@@ -702,29 +704,26 @@ export class PlanningCenterCoreClient {
     return Effect.map(this.send(endpoint, options), ({ response }) => response);
   }
 
-  private fetchJson(
+  private fetchJson<Output>(
     endpoint: string,
-    options: PlanningCenterRequestOptions
-  ): Effect.Effect<JsonValue, PlanningCenterError> {
-    return Effect.flatMap(this.send(endpoint, options), readJsonBody);
+    options: PlanningCenterRequestOptions,
+    schema: z.ZodType<Output>
+  ): Effect.Effect<Output, PlanningCenterError> {
+    return Effect.flatMap(this.send(endpoint, options), readJsonBody(schema));
   }
 
   fetch(
     endpoint: string,
     options: PlanningCenterRequestOptions = {}
   ): Effect.Effect<PCApiResponse<PCResource>, PlanningCenterError> {
-    return Effect.flatMap(this.fetchJson(endpoint, options), (json) =>
-      decodeResponse(pcResourceResponseSchema, json)
-    );
+    return this.fetchJson(endpoint, options, pcResourceResponseSchema);
   }
 
   fetchCollection(
     endpoint: string,
     options: PlanningCenterRequestOptions = {}
   ): Effect.Effect<PCApiResponse<PCResource[]>, PlanningCenterError> {
-    return Effect.flatMap(this.fetchJson(endpoint, options), (json) =>
-      decodeResponse(pcCollectionResponseSchema, json)
-    );
+    return this.fetchJson(endpoint, options, pcCollectionResponseSchema);
   }
 
   fetchAll(
