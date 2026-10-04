@@ -8,7 +8,7 @@
  *
  * It runs only in the API Worker; browser apps never import `packages/api`.
  */
-import { logger } from "@pcobooster/api/logger";
+import { boundaryLog } from "@pcobooster/api/logging";
 import type { PlanningCenterPersonalAccessToken } from "@pcobooster/api/planning-center/core-client";
 import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user-agent";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
@@ -20,7 +20,7 @@ const DEV_BYPASS_PROVIDER_ID = "planning-center";
 const PC_BASE_URL = "https://api.planningcenteronline.com";
 const IDENTITY_TTL_MS = 10 * 60 * 1000;
 
-const log = logger.for("auth/dev-bypass");
+const log = boundaryLog("auth/dev-bypass");
 
 export interface DevBypassSession {
   user: {
@@ -134,8 +134,9 @@ const fetchPcResource = async <T>(
     return result.success ? result.data : null;
   } catch (error) {
     log.warn(
-      { err: error instanceof Error ? error : new Error(String(error)), path },
-      "Failed to hydrate dev identity"
+      "Failed to hydrate dev identity",
+      { path },
+      error instanceof Error ? error : new Error(String(error))
     );
     return null;
   }

@@ -10,6 +10,7 @@ import { z } from "zod";
 import {
   cancelScheduleMutationQueries,
   optimisticallySchedulePerson,
+  createOptimisticPlanPersonId,
   reconcileOptimisticPlanPersonId,
   restoreScheduleCaches,
   settleScheduleMutationQueries,
@@ -142,7 +143,10 @@ export const useSchedulePlanPerson = ({
         return {};
       }
 
-      const optimisticPlanPersonId = `optimistic:${planId}:${teamId}:${positionId}:${person.id}`;
+      const optimisticPlanPersonId = createOptimisticPlanPersonId(
+        { planId, teamId, positionId },
+        person.id
+      );
       await cancelScheduleMutationQueries(queryClient, {
         serviceTypeId,
         planId,

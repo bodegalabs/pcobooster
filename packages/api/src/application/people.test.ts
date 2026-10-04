@@ -7,8 +7,9 @@ import {
   getPeopleDashboardPerson,
   getPeopleDashboardRoster,
 } from "@pcobooster/api/application/people";
-import { PlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
+import { provideAccess } from "@pcobooster/api/application/planning-center-access";
 import type {
+  PlanningCenterRequest,
   PlanningCenterRequestAccess,
   RequestAuthentication,
 } from "@pcobooster/api/application/planning-center-access";
@@ -58,7 +59,7 @@ const runWithFlagOff = async <Value, Failure>(
   program: Effect.Effect<
     Value,
     Failure,
-    PlanningCenterAccess | RequestContext | Server
+    PlanningCenterRequest | RequestContext | Server
   >,
   authentication: RequestAuthentication
 ) => {
@@ -66,7 +67,7 @@ const runWithFlagOff = async <Value, Failure>(
   const result = await Effect.runPromise(
     Effect.result(
       program.pipe(
-        Effect.provideService(PlanningCenterAccess, access(authentication)),
+        (withRequest) => provideAccess(withRequest, access(authentication)),
         Effect.provideService(
           RequestContext,
           createRequestContext(

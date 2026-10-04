@@ -1,4 +1,4 @@
-import { logger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import {
   buildPlanSchedulingContext,
   buildSlotKey,
@@ -30,7 +30,7 @@ import type {
 } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
-const log = logger.for("module/get-team-positions");
+const log = moduleLog("module/get-team-positions");
 
 interface NeededPositionsResolution {
   response: { data: PCResource[]; included: PCResource[] };
@@ -297,7 +297,7 @@ const getSeriesIdForPlan = (
   planId: string,
   dependencies: TeamPositionDependencies
 ): Effect.Effect<string | null, PlanningCenterError> =>
-  Effect.map(
+  Effect.flatMap(
     dependencies.plansService.getPlanForServiceTypeWithSeries(
       serviceTypeId,
       planId
@@ -307,27 +307,27 @@ const getSeriesIdForPlan = (
         extractSeriesIdFromPlanResource(scopedPlan.data) ??
         extractSeriesIdFromIncluded(scopedPlan.included);
 
-      if (isNonEmptyString(resolvedSeriesId)) {
-        log.info(
-          { planId, serviceTypeId, resolvedSeriesId },
-          "Resolved series ID for fallback"
-        );
-      } else {
-        log.warn(
-          {
+      const line = isNonEmptyString(resolvedSeriesId)
+        ? log.info("Resolved series ID for fallback", {
             planId,
             serviceTypeId,
-            hasSeriesRelationshipData: hasSeriesRelationshipData(
-              scopedPlan.data
-            ),
-            seriesRelationshipLink: getSeriesRelationshipLink(scopedPlan.data),
-            includedTypes: scopedPlan.included.map((r) => r.type),
-          },
-          "Unable to resolve series ID for needed positions fallback"
-        );
-      }
-
-      return resolvedSeriesId;
+            resolvedSeriesId,
+          })
+        : log.warn(
+            "Unable to resolve series ID for needed positions fallback",
+            {
+              planId,
+              serviceTypeId,
+              hasSeriesRelationshipData: hasSeriesRelationshipData(
+                scopedPlan.data
+              ),
+              seriesRelationshipLink: getSeriesRelationshipLink(
+                scopedPlan.data
+              ),
+              includedTypes: scopedPlan.included.map((r) => r.type),
+            }
+          );
+      return Effect.as(line, resolvedSeriesId);
     }
   );
 
@@ -377,11 +377,7 @@ const resolveNeededPositions = (
         ) {
           return Effect.failCause(cause);
         }
-        log.warn(
-          { serviceTypeId, planId, error: describePlanningCenterCause(cause) },
-          "Service-type needed positions fetch failed, trying series lookup fallback"
-        );
-        return Effect.flatMap(
+        const fallback = Effect.flatMap(
           getSeriesIdForPlan(serviceTypeId, planId, dependencies),
           (resolvedSeriesId) =>
             isNonEmptyString(resolvedSeriesId)
@@ -398,6 +394,17 @@ const resolveNeededPositions = (
                   })
                 )
               : Effect.failCause(cause)
+        );
+        return Effect.andThen(
+          log.warn(
+            "Service-type needed positions fetch failed, trying series lookup fallback",
+            {
+              serviceTypeId,
+              planId,
+              error: describePlanningCenterCause(cause),
+            }
+          ),
+          fallback
         );
       })
     );
@@ -561,7 +568,7 @@ const groupNeededTeamPositions = (
     neededPositionsResolution: NeededPositionsResolution;
     planTeamMembersResponse: { data: PCResource[]; included: PCResource[] };
   }
-): TeamPositionGroup[] => {
+): Effect.Effect<TeamPositionGroup[]> => {
   const {
     response: neededPositionResponse,
     resolvedSeriesId,
@@ -612,47 +619,49 @@ const groupNeededTeamPositions = (
     group.positions.sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  log.info(
-    {
-      serviceTypeId,
-      planId,
-      seriesId: resolvedSeriesId ?? null,
-      neededPositionSource,
-      usedSeriesFallback,
-      serviceTypeTeamPositionCount: teamPositions.length,
-      neededPositionCount: neededPositions.length,
-      planTeamMemberCount: planTeamMembers.length,
-      matchedTeamCount: groupedPositions.length,
-      matchedPositionCount: groupedPositions.reduce(
-        (sum, g) => sum + g.positions.length,
-        0
-      ),
-    },
-    "Resolved plan needed positions"
-  );
+  const resolved = log.info("Resolved plan needed positions", {
+    serviceTypeId,
+    planId,
+    seriesId: resolvedSeriesId ?? null,
+    neededPositionSource,
+    usedSeriesFallback,
+    serviceTypeTeamPositionCount: teamPositions.length,
+    neededPositionCount: neededPositions.length,
+    planTeamMemberCount: planTeamMembers.length,
+    matchedTeamCount: groupedPositions.length,
+    matchedPositionCount: groupedPositions.reduce(
+      (sum, g) => sum + g.positions.length,
+      0
+    ),
+  });
 
-  if (groupedPositions.length === 0 && neededPositions.length > 0) {
-    const neededSamples = neededPositions.slice(0, 10).map((np) => {
-      const needed = np;
-      const teamData = needed.relationships?.team?.data;
-      const teamId = !Array.isArray(teamData) && teamData ? teamData.id : null;
-      return {
-        teamId,
-        name: isString(needed.attributes.team_position_name)
-          ? needed.attributes.team_position_name
-          : null,
-        quantity: isNumber(needed.attributes.quantity)
-          ? needed.attributes.quantity
-          : null,
-      };
-    });
-    log.warn(
-      { planId, neededSamples },
-      "No needed positions matched service type team positions (possible name mismatch)"
-    );
+  if (groupedPositions.length > 0 || neededPositions.length === 0) {
+    return Effect.as(resolved, groupedPositions);
   }
-
-  return groupedPositions;
+  const neededSamples = neededPositions.slice(0, 10).map((np) => {
+    const needed = np;
+    const teamData = needed.relationships?.team?.data;
+    const teamId = !Array.isArray(teamData) && teamData ? teamData.id : null;
+    return {
+      teamId,
+      name: isString(needed.attributes.team_position_name)
+        ? needed.attributes.team_position_name
+        : null,
+      quantity: isNumber(needed.attributes.quantity)
+        ? needed.attributes.quantity
+        : null,
+    };
+  });
+  return Effect.as(
+    Effect.andThen(
+      resolved,
+      log.warn(
+        "No needed positions matched service type team positions (possible name mismatch)",
+        { planId, neededSamples }
+      )
+    ),
+    groupedPositions
+  );
 };
 
 export const getNeededTeamPositionsForPlan = (
@@ -661,13 +670,13 @@ export const getNeededTeamPositionsForPlan = (
   seriesId: string | null | undefined,
   dependencies: TeamPositionDependencies
 ): Effect.Effect<TeamPositionGroup[], PlanningCenterError> =>
-  Effect.suspend(() => {
-    log.info(
-      { serviceTypeId, planId, providedSeriesId: seriesId ?? null },
-      "Fetching needed team positions for plan"
-    );
-
-    return Effect.map(
+  Effect.andThen(
+    log.info("Fetching needed team positions for plan", {
+      serviceTypeId,
+      planId,
+      providedSeriesId: seriesId ?? null,
+    }),
+    Effect.flatMap(
       Effect.all(
         [
           dependencies.catalogService.getServiceTypeTeamPositionsWithTeams(
@@ -693,5 +702,5 @@ export const getNeededTeamPositionsForPlan = (
           neededPositionsResolution,
           planTeamMembersResponse,
         })
-    );
-  });
+    )
+  );

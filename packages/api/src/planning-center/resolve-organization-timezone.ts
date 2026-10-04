@@ -1,4 +1,4 @@
-import { logger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import { recoverPlanningCenterFailure } from "@pcobooster/api/planning-center/recover-failure";
 import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-center/services/catalog-service";
@@ -12,7 +12,7 @@ import { Effect } from "effect";
 const HIT_TTL_MS = 60 * 60 * 1000;
 const MISS_TTL_MS = 2 * 60 * 1000;
 
-const log = logger.for("planning-center/organization-time-zone");
+const log = moduleLog("planning-center/organization-time-zone");
 
 /** Resolved zones by credential cache scope, one per isolate (see `PlanningCenterReadCaches`). */
 export type OrganizationTimeZoneCache = Map<
@@ -63,15 +63,17 @@ export const resolveOrganizationTimeZone = (
     }
 
     return dependencies.catalogService.getOrganization().pipe(
-      Effect.map((organization) => {
+      Effect.flatMap((organization) => {
         const tz = readTimeZoneFromOrganization(organization);
-        if (tz === null) {
-          log.info(
-            { fallbackTimeZone: dependencies.fallbackTimeZone },
-            "Organization has no time zone; using the configured time zone"
-          );
-        }
-        return tz;
+        return tz === null
+          ? Effect.as(
+              log.info(
+                "Organization has no time zone; using the configured time zone",
+                { fallbackTimeZone: dependencies.fallbackTimeZone }
+              ),
+              tz
+            )
+          : Effect.succeed(tz);
       }),
       recoverPlanningCenterFailure({
         kinds: ["not-found", "provider-failure", "unusable-response"],

@@ -231,6 +231,47 @@ describe("PlanningCenterAccess", () => {
     });
   });
 
+  it("reports a budget spent on rate-limited retries as rate limited", () => {
+    expect(
+      toApplicationFault(
+        new PlanningCenterSubrequestLimitError({
+          source: "budget",
+          requests: 40,
+          limit: 40,
+          rateLimitedResponses: 6,
+        })
+      )
+    ).toMatchObject({
+      _tag: "RateLimited",
+      service: "planning-center",
+      retryAfterSeconds: 20,
+    });
+  });
+
+  it("explains a change Planning Center rejected in its own words", () => {
+    expect(
+      toApplicationFault(
+        new PlanningCenterApiError({
+          status: 422,
+          message: "Planning Center API error: 422 - Length must be a number",
+          details: {
+            errors: [
+              {
+                status: "422",
+                title: "Unprocessable Entity",
+                detail: "Length must be a number",
+              },
+            ],
+          },
+        })
+      )
+    ).toMatchObject({
+      _tag: "InvalidInput",
+      message:
+        "Planning Center didn't accept that change: Length must be a number",
+    });
+  });
+
   it("explains a blocked demo write as forbidden", () => {
     expect(
       toApplicationFault(

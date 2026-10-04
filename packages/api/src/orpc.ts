@@ -6,10 +6,7 @@ import { demoRouter } from "@pcobooster/api/transport/orpc/demo";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
 import { feedbackRouter } from "@pcobooster/api/transport/orpc/feedback";
 import { identityRouter } from "@pcobooster/api/transport/orpc/identity";
-import {
-  applicationRuntime,
-  rpc,
-} from "@pcobooster/api/transport/orpc/implementation";
+import { rpc } from "@pcobooster/api/transport/orpc/implementation";
 import { neededPositionsRouter } from "@pcobooster/api/transport/orpc/needed-positions";
 import { peopleRouter } from "@pcobooster/api/transport/orpc/people";
 import { planItemsRouter } from "@pcobooster/api/transport/orpc/plan-items";
@@ -24,7 +21,6 @@ import { Effect } from "effect";
 const health = rpc.health.handler(
   async ({ context, signal }) =>
     await executeApplicationEffect(
-      applicationRuntime,
       Server.pipe(
         Effect.map(({ config }) => ({
           status: "ok" as const,
@@ -56,7 +52,3 @@ export const appRouter = rpc.router({
 });
 
 export type AppRouter = typeof appRouter;
-
-export const disposeApplicationRuntime = async (): Promise<void> => {
-  await applicationRuntime.dispose();
-};

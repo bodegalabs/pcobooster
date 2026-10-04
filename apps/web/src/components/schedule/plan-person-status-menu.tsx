@@ -17,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { isSavedPlanPersonId } from "@/hooks/use-schedule-cache-optimism";
 import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
 import { useUpdatePlanPersonStatus } from "@/hooks/use-update-plan-person-status";
 
@@ -58,8 +59,8 @@ export const PlanPersonStatusMenu = ({
   });
   const isBusy = isUpdating || isUnscheduling;
   const currentItem = getPlanPersonStatusMeta(currentStatus);
-  const hasPlanPersonId =
-    planPersonId !== null && planPersonId !== undefined && planPersonId !== "";
+  // Someone just assigned can't change until their assign lands.
+  const isSaved = isSavedPlanPersonId(planPersonId);
 
   return (
     <>
@@ -73,7 +74,7 @@ export const PlanPersonStatusMenu = ({
               data-icon="inline-start"
               className="shrink-0 max-sm:h-10"
               aria-label={`Change status: ${currentItem.label}`}
-              disabled={!hasPlanPersonId || isBusy}
+              disabled={!isSaved || isBusy}
             />
           }
         >

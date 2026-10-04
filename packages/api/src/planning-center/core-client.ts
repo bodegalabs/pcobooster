@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import { logger as apiLogger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterRateLimitInfo } from "@pcobooster/api/planning-center/api-error";
@@ -12,7 +12,6 @@ import type { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/ra
 import { PlanningCenterReadOnlyError } from "@pcobooster/api/planning-center/read-only-error";
 import type {
   PlanningCenterEndpoint,
-  PlanningCenterLogger,
   PlanningCenterRequestAccounting,
 } from "@pcobooster/api/planning-center/request-accounting";
 import {
@@ -27,7 +26,6 @@ import { PLANNING_CENTER_USER_AGENT } from "@pcobooster/api/planning-center/user
 import {
   isNonEmptyString,
   isString,
-  jsonValueSchema,
 } from "@pcobooster/planning-center-models/json";
 import type {
   JsonObject,
@@ -45,7 +43,7 @@ import type { HttpClientResponse } from "effect/unstable/http/HttpClientResponse
 import type { HttpMethod } from "effect/unstable/http/HttpMethod";
 import { z } from "zod";
 
-const log = apiLogger.for("planning-center/core");
+const log = moduleLog("planning-center/core");
 const PC_BASE_URL = "https://api.planningcenteronline.com";
 /** Each attempt (request, error body, and rate-limit pause) and its JSON body share this budget. */
 const ATTEMPT_TIMEOUT_MS = 15_000;
@@ -186,30 +184,27 @@ const isRateLimitedResponse = (error: AttemptError): boolean =>
  */
 const transientReadRetries = (
   endpoint: PlanningCenterEndpoint,
-  method: HttpMethod,
-  logger: PlanningCenterLogger
+  method: HttpMethod
 ) =>
   Schedule.recurs(MAX_RETRIES).pipe(
     Schedule.setInputType<AttemptError>(),
     Schedule.while(({ input }) => isRetryableError(input)),
-    Schedule.addDelay(({ attempt, input }) =>
-      Effect.sync(() => {
-        const delayMs = retryDelayMs(attempt, input);
-        if (!isRateLimitedResponse(input)) {
-          logger.warn(
-            {
+    Schedule.addDelay(({ attempt, input }) => {
+      const delayMs = retryDelayMs(attempt, input);
+      const delay = Effect.succeed(Duration.millis(delayMs));
+      return isRateLimitedResponse(input)
+        ? delay
+        : Effect.andThen(
+            log.warn("Planning Center request failed, retrying", {
               endpoint,
               method,
               attempt,
               retryDelayMs: delayMs,
               error: input.message.slice(0, 100),
-            },
-            "Planning Center request failed, retrying"
+            }),
+            delay
           );
-        }
-        return Duration.millis(delayMs);
-      })
-    )
+    })
   );
 
 const readIntegerHeader = (
@@ -233,19 +228,42 @@ const readRateLimitInfo = (
   retryAfterSeconds: readIntegerHeader(headers, "retry-after"),
 });
 
+/** Planning Center reports JSON:API errors as `{ errors: [{ code, title, detail }] }`. */
+const listedErrorCodeSchema = z.object({
+  errors: z.array(z.object({ code: z.string() })).min(1),
+});
+
+/** What a JSON:API error list says went wrong; validation errors put it in `detail`. */
+export const listedErrorDetailsSchema = z.object({
+  errors: z
+    .array(
+      z.object({ title: z.string().optional(), detail: z.string().optional() })
+    )
+    .min(1),
+});
+
+/** Each listed error's detail, or its title when it has none. */
+export const listedErrorDetails = (
+  body: z.infer<typeof listedErrorDetailsSchema>
+): string[] =>
+  body.errors.flatMap(({ detail, title }) => {
+    const text = detail ?? title;
+    return isNonEmptyString(text) ? [text] : [];
+  });
+
 const errorTitle = (
   body: z.infer<typeof errorBodySchema>
 ): string | undefined => {
   if (isString(body.error)) {
     return body.error;
   }
-  return isString(body.message) ? body.message : undefined;
+  if (isString(body.message)) {
+    return body.message;
+  }
+  const listed = listedErrorDetailsSchema.safeParse(body);
+  const details = listed.success ? listedErrorDetails(listed.data) : [];
+  return details.length > 0 ? details.join("; ") : undefined;
 };
-
-/** Planning Center reports JSON:API errors as `{ errors: [{ code, title }] }`. */
-const listedErrorCodeSchema = z.object({
-  errors: z.array(z.object({ code: z.string() })).min(1),
-});
 
 const errorCode = (
   body: z.infer<typeof errorBodySchema>
@@ -306,51 +324,53 @@ const readResponseText = (
 ): Effect.Effect<string, PlanningCenterNetworkError> =>
   Effect.mapError(response.text, networkFailure);
 
-const decodeResponse = <Output>(
-  schema: z.ZodType<Output>,
-  json: JsonValue
-): Effect.Effect<Output, PlanningCenterApiError> => {
-  const parsed = schema.safeParse(json);
-  return parsed.success
-    ? Effect.succeed(parsed.data)
-    : Effect.fail(invalidProviderResponse(200, parsed.error));
-};
-
-/** Reads the JSON body within whatever remains of the attempt's time budget. */
-const readJsonBody = ({
-  response,
-  startedAt,
-}: SentResponse): Effect.Effect<JsonValue, AttemptError> =>
-  Effect.gen(function* readJson() {
-    const elapsedMs = (yield* Clock.currentTimeMillis) - startedAt;
-    const text = yield* readResponseText(response).pipe(
-      Effect.timeoutOrElse({
-        duration: Duration.millis(Math.max(ATTEMPT_TIMEOUT_MS - elapsedMs, 0)),
-        orElse: () => Effect.fail(attemptTimedOut()),
-      })
-    );
-    if (response.status === 204 || text.trim() === "") {
-      return yield* Effect.fail(
-        new PlanningCenterApiError({
-          message:
-            "Planning Center returned an empty response where JSON was required",
-          status: response.status,
-          code: "INVALID_RESPONSE",
+/**
+ * Reads the JSON body within whatever remains of the attempt's time budget and decodes it with
+ * `schema`. The schema is the only validation pass: `JSON.parse` output is JSON by
+ * construction, and re-walking a 100-plan page with `z.json()` cost ~14 ms of Worker CPU.
+ */
+const readJsonBody =
+  <Output>(schema: z.ZodType<Output>) =>
+  ({
+    response,
+    startedAt,
+  }: SentResponse): Effect.Effect<Output, AttemptError> =>
+    Effect.gen(function* readJson() {
+      const elapsedMs = (yield* Clock.currentTimeMillis) - startedAt;
+      const text = yield* readResponseText(response).pipe(
+        Effect.timeoutOrElse({
+          duration: Duration.millis(
+            Math.max(ATTEMPT_TIMEOUT_MS - elapsedMs, 0)
+          ),
+          orElse: () => Effect.fail(attemptTimedOut()),
         })
       );
-    }
-    // Both a syntax error and a non-JSON value mean the provider response is unusable.
-    return yield* Effect.try({
-      try: () => jsonValueSchema.parse(JSON.parse(text)),
-      catch: (error) => invalidProviderResponse(response.status, error),
+      if (response.status === 204 || text.trim() === "") {
+        return yield* Effect.fail(
+          new PlanningCenterApiError({
+            message:
+              "Planning Center returned an empty response where JSON was required",
+            status: response.status,
+            code: "INVALID_RESPONSE",
+          })
+        );
+      }
+      const decoded = yield* Effect.try({
+        try: () => schema.safeParse(JSON.parse(text)),
+        catch: (error) => invalidProviderResponse(response.status, error),
+      });
+      if (!decoded.success) {
+        return yield* Effect.fail(
+          invalidProviderResponse(response.status, decoded.error)
+        );
+      }
+      return decoded.data;
     });
-  });
 
 /** Fails before sending when this invocation may not make another request. */
 const ensureSubrequestAvailable = (
   { accounting, endpoint }: AttemptContext,
-  method: HttpMethod,
-  logger: PlanningCenterLogger
+  method: HttpMethod
 ): Effect.Effect<void, PlanningCenterSubrequestLimitError> =>
   Effect.suspend(() => {
     if (accounting === undefined) {
@@ -367,42 +387,52 @@ const ensureSubrequestAvailable = (
       return Effect.void;
     }
     accounting.recordSubrequestLimit("budget");
-    logger.info(
-      { endpoint, method, requests, requestBudget: limit },
-      "Planning Center request budget for this invocation is spent"
-    );
-    return Effect.fail(
-      new PlanningCenterSubrequestLimitError({
-        source: "budget",
+    return Effect.andThen(
+      log.info("Planning Center request budget for this invocation is spent", {
+        endpoint,
+        method,
         requests,
-        limit,
-      })
+        requestBudget: limit,
+      }),
+      Effect.fail(
+        new PlanningCenterSubrequestLimitError({
+          source: "budget",
+          requests,
+          limit,
+          rateLimitedResponses: accounting.totals.rateLimited,
+        })
+      )
     );
   });
 
 /** Cloudflare's subrequest cap is final for the invocation, so it is not a network error. */
 const transportFailure = (
   error: HttpClientError,
-  { accounting, endpoint }: AttemptContext,
-  method: HttpMethod,
-  logger: PlanningCenterLogger
+  { accounting }: AttemptContext
 ): PlanningCenterNetworkError | PlanningCenterSubrequestLimitError => {
   const cause = error.cause ?? error;
   if (!isTooManySubrequestsError(cause)) {
     return networkFailure(error);
   }
   accounting?.recordSubrequestLimit("worker");
-  const requests = accounting?.requestCount ?? 0;
-  logger.warn(
-    { endpoint, method, requests },
-    "Cloudflare refused a Planning Center request: too many subrequests"
-  );
   return new PlanningCenterSubrequestLimitError({
     source: "worker",
-    requests,
+    requests: accounting?.requestCount ?? 0,
     cause,
   });
 };
+
+const logWorkerSubrequestLimit = (
+  failure: PlanningCenterNetworkError | PlanningCenterSubrequestLimitError,
+  { endpoint }: AttemptContext,
+  method: HttpMethod
+): Effect.Effect<void> =>
+  failure instanceof PlanningCenterSubrequestLimitError
+    ? log.warn(
+        "Cloudflare refused a Planning Center request: too many subrequests",
+        { endpoint, method, requests: failure.requests }
+      )
+    : Effect.void;
 
 /**
  * Reserves a pacer slot and returns how long to wait before sending. A
@@ -412,8 +442,7 @@ const reserveSlot = (
   pacer: PlanningCenterRatePacer,
   scope: string,
   { accounting, endpoint, attempt }: AttemptContext,
-  method: HttpMethod,
-  logger: PlanningCenterLogger
+  method: HttpMethod
 ): Effect.Effect<number, PlanningCenterRateLimitError> =>
   Clock.currentTimeMillis.pipe(
     Effect.flatMap((now) => {
@@ -426,41 +455,44 @@ const reserveSlot = (
       );
       if (decision.kind === "reject") {
         accounting?.recordRateLimitRejection();
-        logger.info(
-          {
-            endpoint,
-            method,
-            attempt,
-            priority,
-            retryAfterMs: decision.retryAfterMs,
-            rateLimit: decision.window,
-          },
-          decision.reason === "speculative"
-            ? "Planning Center speculative request held back: budget kept for interactive requests"
-            : "Planning Center request rejected: rate limit budget is spent"
-        );
-        return Effect.fail(
-          new PlanningCenterRateLimitError({
-            retryAfterSeconds: Math.ceil(decision.retryAfterMs / MS_PER_SECOND),
-            reason: decision.reason,
-          })
+        return Effect.andThen(
+          log.info(
+            decision.reason === "speculative"
+              ? "Planning Center speculative request held back: budget kept for interactive requests"
+              : "Planning Center request rejected: rate limit budget is spent",
+            {
+              endpoint,
+              method,
+              attempt,
+              priority,
+              retryAfterMs: decision.retryAfterMs,
+              rateLimit: decision.window,
+            }
+          ),
+          Effect.fail(
+            new PlanningCenterRateLimitError({
+              retryAfterSeconds: Math.ceil(
+                decision.retryAfterMs / MS_PER_SECOND
+              ),
+              reason: decision.reason,
+            })
+          )
         );
       }
       if (decision.waitMs === 0) {
         return Effect.succeed(0);
       }
       accounting?.recordPaced(decision.waitMs);
-      logger.info(
-        {
+      return Effect.as(
+        log.info("Planning Center request paced", {
           endpoint,
           method,
           attempt,
           waitMs: decision.waitMs,
           rateLimit: decision.window,
-        },
-        "Planning Center request paced"
+        }),
+        decision.waitMs
       );
-      return Effect.succeed(decision.waitMs);
     })
   );
 
@@ -479,8 +511,6 @@ export interface PlanningCenterCoreClientOptions {
   readonly httpClient: HttpClient.HttpClient;
   /** Rejects every non-read request before it reaches Planning Center. */
   readonly readOnly?: boolean;
-  /** Receives pacing, 429, and subrequest-limit lines; defaults to the module logger. */
-  readonly logger?: PlanningCenterLogger;
 }
 
 export interface PlanningCenterRequestOptions {
@@ -508,7 +538,6 @@ export class PlanningCenterCoreClient {
   private readonly cacheScope: string;
   private readonly httpClient: HttpClient.HttpClient;
   private readonly readOnly: boolean;
-  private readonly logger: PlanningCenterLogger;
 
   constructor(
     auth: PlanningCenterAuthentication,
@@ -544,7 +573,6 @@ export class PlanningCenterCoreClient {
       Effect.provideService(effect, HttpClient.TracerPropagationEnabled, false)
     );
     this.readOnly = options.readOnly ?? false;
-    this.logger = options.logger ?? log;
   }
 
   getCacheScope(): string {
@@ -555,26 +583,25 @@ export class PlanningCenterCoreClient {
     request: HttpClientRequest.HttpClientRequest,
     context: AttemptContext
   ): Effect.Effect<SentResponse, AttemptError> {
-    const { cacheScope, httpClient, logger } = this;
+    const { cacheScope, httpClient } = this;
     const { method } = request;
     const { accounting, endpoint, pacer } = context;
     const execute = Effect.gen(function* sendRequest() {
       accounting?.recordRequest();
       const startedAt = yield* Clock.currentTimeMillis;
-      const response = yield* httpClient
-        .execute(request)
-        .pipe(
-          Effect.mapError((error) =>
-            transportFailure(error, context, method, logger)
-          )
-        );
+      const response = yield* httpClient.execute(request).pipe(
+        Effect.mapError((error) => transportFailure(error, context)),
+        Effect.tapError((failure) =>
+          logWorkerSubrequestLimit(failure, context, method)
+        )
+      );
       return { response, startedAt };
     });
     const paced =
       pacer === undefined
         ? execute
         : Effect.acquireUseRelease(
-            reserveSlot(pacer, cacheScope, context, method, logger),
+            reserveSlot(pacer, cacheScope, context, method),
             (waitMs) =>
               waitMs === 0
                 ? execute
@@ -602,7 +629,7 @@ export class PlanningCenterCoreClient {
               })
           );
     return Effect.gen(function* attemptRequest() {
-      yield* ensureSubrequestAvailable(context, method, logger);
+      yield* ensureSubrequestAvailable(context, method);
       const sent = yield* paced;
       const { response } = sent;
       if (response.status >= 200 && response.status < 300) {
@@ -616,20 +643,17 @@ export class PlanningCenterCoreClient {
       );
       if (error.status === 429) {
         accounting?.recordRateLimited();
-        logger.info(
-          {
-            endpoint,
-            method,
-            attempt: context.attempt,
-            retryAfterSeconds: error.retryAfterSeconds,
-            rateLimit: error.rateLimit,
-            willRetry:
-              isReadMethod(method) &&
-              context.attempt <= MAX_RETRIES &&
-              isRetryableError(error),
-          },
-          "Planning Center rate limited a request"
-        );
+        yield* log.info("Planning Center rate limited a request", {
+          endpoint,
+          method,
+          attempt: context.attempt,
+          retryAfterSeconds: error.retryAfterSeconds,
+          rateLimit: error.rateLimit,
+          willRetry:
+            isReadMethod(method) &&
+            context.attempt <= MAX_RETRIES &&
+            isRetryableError(error),
+        });
       }
       return yield* Effect.fail(error);
     }).pipe(
@@ -665,7 +689,6 @@ export class PlanningCenterCoreClient {
             JSON.stringify(options.body),
             "application/json"
           );
-    const { logger } = this;
     const attemptRequest = (context: AttemptContext) =>
       this.attempt(request, context);
     return Effect.gen(function* sendWithRetries() {
@@ -686,10 +709,7 @@ export class PlanningCenterCoreClient {
         });
       });
       return yield* isReadMethod(method)
-        ? Effect.retry(
-            nextAttempt,
-            transientReadRetries(description, method, logger)
-          )
+        ? Effect.retry(nextAttempt, transientReadRetries(description, method))
         : nextAttempt;
     });
   }
@@ -702,29 +722,26 @@ export class PlanningCenterCoreClient {
     return Effect.map(this.send(endpoint, options), ({ response }) => response);
   }
 
-  private fetchJson(
+  private fetchJson<Output>(
     endpoint: string,
-    options: PlanningCenterRequestOptions
-  ): Effect.Effect<JsonValue, PlanningCenterError> {
-    return Effect.flatMap(this.send(endpoint, options), readJsonBody);
+    options: PlanningCenterRequestOptions,
+    schema: z.ZodType<Output>
+  ): Effect.Effect<Output, PlanningCenterError> {
+    return Effect.flatMap(this.send(endpoint, options), readJsonBody(schema));
   }
 
   fetch(
     endpoint: string,
     options: PlanningCenterRequestOptions = {}
   ): Effect.Effect<PCApiResponse<PCResource>, PlanningCenterError> {
-    return Effect.flatMap(this.fetchJson(endpoint, options), (json) =>
-      decodeResponse(pcResourceResponseSchema, json)
-    );
+    return this.fetchJson(endpoint, options, pcResourceResponseSchema);
   }
 
   fetchCollection(
     endpoint: string,
     options: PlanningCenterRequestOptions = {}
   ): Effect.Effect<PCApiResponse<PCResource[]>, PlanningCenterError> {
-    return Effect.flatMap(this.fetchJson(endpoint, options), (json) =>
-      decodeResponse(pcCollectionResponseSchema, json)
-    );
+    return this.fetchJson(endpoint, options, pcCollectionResponseSchema);
   }
 
   fetchAll(

@@ -6,6 +6,8 @@ import { z } from "zod";
 
 import {
   cancelScheduleMutationQueries,
+  isMissingPlanPersonError,
+  isSavedPlanPersonId,
   optimisticallyUpdatePlanPersonStatus,
   restoreScheduleCaches,
   settleScheduleMutationQueries,
@@ -73,8 +75,11 @@ export const useUpdatePlanPersonStatus = ({
       settleScheduleMutationQueries(queryClient, variables.context ?? {});
       onSuccess?.();
     },
-    onError: (err, _variables, context) => {
+    onError: (err, variables, context) => {
       restoreScheduleCaches(queryClient, context?.snapshot);
+      if (isMissingPlanPersonError(err)) {
+        settleScheduleMutationQueries(queryClient, variables.context ?? {});
+      }
       const message = formatUpdateStatusError(err);
       setUpdateError(message);
       onError?.(message);
@@ -86,7 +91,7 @@ export const useUpdatePlanPersonStatus = ({
     status: PlanPersonStatusCode,
     context?: ScheduleMutationInvalidateContext
   ) => {
-    if (!isNonEmptyString(planPersonId) || updateMutation.isPending) {
+    if (!isSavedPlanPersonId(planPersonId) || updateMutation.isPending) {
       return;
     }
 
@@ -103,7 +108,7 @@ export const useUpdatePlanPersonStatus = ({
       status: PlanPersonStatusCode,
       context?: ScheduleMutationInvalidateContext
     ) => {
-      if (!isNonEmptyString(planPersonId)) {
+      if (!isSavedPlanPersonId(planPersonId)) {
         throw new Error("Missing plan person");
       }
       if (updateMutation.isPending) {

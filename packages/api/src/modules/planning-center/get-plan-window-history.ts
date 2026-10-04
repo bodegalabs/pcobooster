@@ -1,4 +1,4 @@
-import { logger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import {
   planPersonResourceSchema,
   planTimeResourceSchema,
@@ -41,7 +41,7 @@ import type {
 } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
-const log = logger.for("planning-center/plan-window-history");
+const log = moduleLog("planning-center/plan-window-history");
 
 /** A Worker keeps at most 6 connections waiting for response headers. */
 const READ_CONCURRENCY = 6;
@@ -123,9 +123,28 @@ export const isSettledPlan = (
   return sawDay;
 };
 
+interface IncludedPlanTime {
+  readonly time: RawPlanTime;
+  readonly planId: string | undefined;
+}
+
+// Validate once per range; keep the original relationship because the time schema strips it.
+const parseIncludedPlanTimes = (
+  included: readonly PCResource[]
+): IncludedPlanTime[] =>
+  included.flatMap((resource) => {
+    const parsed = planTimeResourceSchema.safeParse(resource);
+    if (!parsed.success) {
+      return [];
+    }
+    const planRel = resource.relationships?.plan?.data;
+    const planId = Array.isArray(planRel) ? planRel[0]?.id : planRel?.id;
+    return [{ time: parsed.data, planId }];
+  });
+
 const getIncludedPlanTimesForPlan = (
   plan: PCResource,
-  included: PCResource[]
+  included: readonly IncludedPlanTime[]
 ): RawPlanTime[] => {
   const relationshipData = plan.relationships?.plan_times?.data;
   const relationshipIds = new Set<string>();
@@ -138,21 +157,15 @@ const getIncludedPlanTimesForPlan = (
   }
 
   const planTimes: RawPlanTime[] = [];
-  for (const resource of included) {
-    const parsed = planTimeResourceSchema.safeParse(resource);
-    if (!parsed.success) {
-      continue;
-    }
+  for (const { time, planId } of included) {
     if (relationshipIds.size > 0) {
-      if (relationshipIds.has(parsed.data.id)) {
-        planTimes.push(parsed.data);
+      if (relationshipIds.has(time.id)) {
+        planTimes.push(time);
       }
       continue;
     }
-    const planRel = resource.relationships?.plan?.data;
-    const planId = Array.isArray(planRel) ? planRel[0]?.id : planRel?.id;
     if (planId === plan.id) {
-      planTimes.push(parsed.data);
+      planTimes.push(time);
     }
   }
   return planTimes;
@@ -442,7 +455,11 @@ export const getPlanWindowHistory = (
             "plan_times",
             orgTimeZone
           ),
-          (response) => ({ serviceTypeId, ...response })
+          (response) => ({
+            serviceTypeId,
+            ...response,
+            planTimes: parseIncludedPlanTimes(response.included),
+          })
         ),
       { concurrency: READ_CONCURRENCY }
     );
@@ -452,7 +469,7 @@ export const getPlanWindowHistory = (
     const toWindowPlan = (
       serviceTypeId: string,
       plan: PCResource,
-      included: PCResource[]
+      included: readonly IncludedPlanTime[]
     ): WindowPlan => ({
       serviceTypeId,
       plan,
@@ -470,7 +487,9 @@ export const getPlanWindowHistory = (
       const plan = range.data.find(({ id }) => id === ref.planId);
       // A plan that left the window since the last call has no history to add.
       if (plan !== undefined) {
-        windowPlans.push(toWindowPlan(ref.serviceTypeId, plan, range.included));
+        windowPlans.push(
+          toWindowPlan(ref.serviceTypeId, plan, range.planTimes)
+        );
       }
     }
     for (const serviceTypeId of listedIds) {
@@ -479,7 +498,7 @@ export const getPlanWindowHistory = (
         const windowPlan = toWindowPlan(
           serviceTypeId,
           plan,
-          range?.included ?? []
+          range?.planTimes ?? []
         );
         if (
           addsWindowHistory(
@@ -549,15 +568,12 @@ export const getPlanWindowHistory = (
         rosterRequests: spent - afterRanges,
       },
     };
-    log.info(
-      {
-        ...batch.requestBudget,
-        loadedPlanCount: batch.loadedPlanCount,
-        deferredPlanCount: batch.deferredPlans.length,
-        deferredServiceTypeCount: batch.deferredServiceTypeIds.length,
-        rosterPeopleCount: batch.people.length,
-      },
-      "Plan window history read"
-    );
+    yield* log.info("Plan window history read", {
+      ...batch.requestBudget,
+      loadedPlanCount: batch.loadedPlanCount,
+      deferredPlanCount: batch.deferredPlans.length,
+      deferredServiceTypeCount: batch.deferredServiceTypeIds.length,
+      rosterPeopleCount: batch.people.length,
+    });
     return batch;
   }).pipe(withPlanningCenterRequestCount);

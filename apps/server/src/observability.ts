@@ -1,4 +1,6 @@
-import type * as Cloudflare from "alchemy/Cloudflare";
+import * as Cloudflare from "alchemy/Cloudflare";
+
+import type { StageSettings } from "./stage";
 
 /**
  * Share of production invocations that record a trace. Traces count against the same Workers
@@ -8,18 +10,35 @@ import type * as Cloudflare from "alchemy/Cloudflare";
  */
 const productionTraceSamplingRate = 0.2;
 
+const traceSamplingRate = (production: boolean): number =>
+  production ? productionTraceSamplingRate : 1;
+
+const workerLogs = { enabled: true, invocationLogs: true };
+
 /**
  * Workers Logs as Alchemy enables them by default, plus Workers Traces. Traces show each
  * invocation's subrequests, which is how to see which procedures approach the 50-subrequest
- * limit (AGENTS.md, Request Budget).
+ * limit (AGENTS.md, Request Budget). For the product and admin Workers.
  */
 export const workerObservability = (
   production: boolean
 ): Cloudflare.Workers.WorkerObservability => ({
   enabled: true,
-  logs: { enabled: true, invocationLogs: true },
-  traces: {
-    enabled: true,
-    headSamplingRate: production ? productionTraceSamplingRate : 1,
-  },
+  logs: workerLogs,
+  traces: { enabled: true, headSamplingRate: traceSamplingRate(production) },
 });
+
+/** The API Worker's logs; `apiWorkerTelemetry` turns on its traces. */
+export const apiWorkerObservability =
+  (): Cloudflare.Workers.WorkerObservability => ({
+    enabled: true,
+    logs: workerLogs,
+  });
+
+/**
+ * The API Worker's traces, with its Effect spans (`Effect.withSpan`, `Effect.fn`) mirrored into
+ * each invocation's waterfall beside the fetch, D1, and KV subrequests Cloudflare records, so
+ * a trace shows where a procedure spends its time as well as its subrequests.
+ */
+export const apiWorkerTelemetry = ({ production }: StageSettings) =>
+  Cloudflare.Telemetry({ headSamplingRate: traceSamplingRate(production) });

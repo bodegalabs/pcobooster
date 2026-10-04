@@ -1,5 +1,5 @@
 import {
-  PlanningCenterAccess,
+  provideAccess,
   resolvePlanningCenterAccess,
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
@@ -11,16 +11,15 @@ import {
 } from "@pcobooster/api/application/schedule";
 import { recordActivityEvent } from "@pcobooster/api/db/activity-events";
 import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
-import { logger } from "@pcobooster/api/logger";
+import { boundaryLog } from "@pcobooster/api/logging";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
-import {
-  applicationRuntime,
-  rpc,
-} from "@pcobooster/api/transport/orpc/implementation";
+import { rpc } from "@pcobooster/api/transport/orpc/implementation";
 import { applyPrivateNoStore } from "@pcobooster/api/transport/orpc/response-headers";
 import { scheduleActivityEvent } from "@pcobooster/api/transport/orpc/schedule-activity";
 import type { ScheduleOperation } from "@pcobooster/api/transport/orpc/schedule-activity";
 import { Effect } from "effect";
+
+const scheduleLog = boundaryLog("schedule");
 
 export interface ScheduleRouterDependencies {
   readonly access?: PlanningCenterAccessDependencies;
@@ -34,7 +33,6 @@ export const createScheduleRouter = (
     rpc.schedule.use(async ({ context, next, signal }, input) => {
       applyPrivateNoStore(context.resHeaders);
       const access = await executeApplicationEffect(
-        applicationRuntime,
         resolvePlanningCenterAccess(dependencies.access),
         context,
         signal
@@ -65,10 +63,15 @@ export const createScheduleRouter = (
             })
           );
         } catch (error) {
-          logger
-            .withRequest(context.request)
-            .child({ requestId: context.requestId })
-            .warn({ err: error }, "Failed to record scheduling activity event");
+          scheduleLog.warn(
+            "Failed to record scheduling activity event",
+            {
+              requestId: context.requestId,
+              method: context.request.method,
+              path: new URL(context.request.url).pathname,
+            },
+            error instanceof Error ? error : new Error(String(error))
+          );
         }
       };
       try {
@@ -90,20 +93,16 @@ export const createScheduleRouter = (
   const assign = audited("assign").assign.handler(
     async ({ input, context, signal }) => {
       const preparation = await executeApplicationEffect(
-        applicationRuntime,
-        Effect.provideService(
+        provideAccess(
           prepareScheduledPerson(input),
-          PlanningCenterAccess,
           context.planningCenterAccess
         ),
         context,
         signal
       );
       return await executeApplicationEffect(
-        applicationRuntime,
-        Effect.provideService(
+        provideAccess(
           commitScheduledPerson(input, preparation),
-          PlanningCenterAccess,
           context.planningCenterAccess
         ),
         context,
@@ -115,10 +114,8 @@ export const createScheduleRouter = (
   const remove = audited("remove").remove.handler(
     async ({ input, context, signal }) =>
       await executeApplicationEffect(
-        applicationRuntime,
-        Effect.provideService(
+        provideAccess(
           removeScheduledPerson(input),
-          PlanningCenterAccess,
           context.planningCenterAccess
         ),
         context,
@@ -129,10 +126,8 @@ export const createScheduleRouter = (
   const updateStatus = audited("updateStatus").updateStatus.handler(
     async ({ input, context, signal }) =>
       await executeApplicationEffect(
-        applicationRuntime,
-        Effect.provideService(
+        provideAccess(
           updateScheduledPersonStatus(input),
-          PlanningCenterAccess,
           context.planningCenterAccess
         ),
         context,

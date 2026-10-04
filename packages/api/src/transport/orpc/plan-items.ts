@@ -9,16 +9,12 @@ import {
   reorderRunSheetItems,
 } from "@pcobooster/api/application/run-sheet";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
-import {
-  applicationRuntime,
-  rpc,
-} from "@pcobooster/api/transport/orpc/implementation";
+import { rpc } from "@pcobooster/api/transport/orpc/implementation";
 import { executePreparedPlanningCenterWrite } from "@pcobooster/api/transport/orpc/planning-center-write";
 
 const list = rpc.planItems.list.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
-      applicationRuntime,
       withPlanningCenterAccess(listPlanItems(input)),
       context,
       signal
@@ -28,7 +24,6 @@ const list = rpc.planItems.list.handler(
 const create = rpc.planItems.create.handler(
   async ({ input, context, signal }) =>
     await executePreparedPlanningCenterWrite(
-      applicationRuntime,
       context,
       signal,
       prepareRunSheetItemCreate(input),
@@ -39,7 +34,6 @@ const create = rpc.planItems.create.handler(
 const update = rpc.planItems.update.handler(
   async ({ input, context, signal }) =>
     await executePreparedPlanningCenterWrite(
-      applicationRuntime,
       context,
       signal,
       prepareRunSheetItemUpdate(input),
@@ -50,7 +44,6 @@ const update = rpc.planItems.update.handler(
 const deleteItem = rpc.planItems.delete.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
-      applicationRuntime,
       withPlanningCenterAccess(deleteRunSheetItem(input)),
       context,
       signal,
@@ -61,7 +54,6 @@ const deleteItem = rpc.planItems.delete.handler(
 const reorder = rpc.planItems.reorder.handler(
   async ({ input, context, signal }) =>
     await executeApplicationEffect(
-      applicationRuntime,
       withPlanningCenterAccess(reorderRunSheetItems(input)),
       context,
       signal,

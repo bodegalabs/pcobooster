@@ -1,6 +1,8 @@
+import { moduleLog } from "@pcobooster/api/logging";
 import type { PlanningCenterRateLimitInfo } from "@pcobooster/api/planning-center/api-error";
 import type { PlanningCenterRateSnapshot } from "@pcobooster/api/planning-center/rate-pacer";
 import type { RequestPriority } from "@pcobooster/contracts/request-priority";
+import { Effect } from "effect";
 
 /** A request's path and query parameter names; never values, tokens, or bodies. */
 export interface PlanningCenterEndpoint {
@@ -38,16 +40,6 @@ export interface PlanningCenterProcedureLogFields extends PlanningCenterProcedur
   readonly planningCenter: PlanningCenterRequestTotals & {
     readonly requestBudget: number | undefined;
   };
-}
-
-export type PlanningCenterLogFields =
-  | PlanningCenterRequestLogFields
-  | PlanningCenterProcedureLogFields;
-
-/** The structured logger shape Planning Center observability writes to. */
-export interface PlanningCenterLogger {
-  readonly info: (fields: PlanningCenterLogFields, message: string) => void;
-  readonly warn: (fields: PlanningCenterLogFields, message: string) => void;
 }
 
 /** What one Worker invocation spent on Planning Center. */
@@ -148,28 +140,24 @@ export class PlanningCenterRequestAccounting {
   }
 }
 
+const procedureLog = moduleLog("planning-center/procedure");
+
 /** One `info` line per procedure that touched Planning Center. */
 export const logPlanningCenterProcedureSummary = (
-  logger: PlanningCenterLogger,
   summary: PlanningCenterProcedureSummary,
   accounting: PlanningCenterRequestAccounting
-): void => {
+): Effect.Effect<void> => {
   const { totals } = accounting;
   if (
     totals.requests === 0 &&
     totals.rateLimitRejections === 0 &&
     totals.subrequestLimitHits === 0
   ) {
-    return;
+    return Effect.void;
   }
-  logger.info(
-    {
-      ...summary,
-      planningCenter: {
-        ...totals,
-        requestBudget: accounting.requestBudget,
-      },
-    },
-    "Planning Center procedure summary"
-  );
+  const fields: PlanningCenterProcedureLogFields = {
+    ...summary,
+    planningCenter: { ...totals, requestBudget: accounting.requestBudget },
+  };
+  return procedureLog.info("Planning Center procedure summary", { ...fields });
 };

@@ -5,13 +5,16 @@ import type { AnyRouter } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
 import { ResponseHeadersPlugin } from "@orpc/server/plugins";
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
+import type { ApplicationRuntime } from "@pcobooster/api/application/runtime";
 import { NATIVE_SIGN_IN_START_PATH } from "@pcobooster/api/auth/native-sign-in";
+import type { BoundaryLog } from "@pcobooster/api/logging";
 import {
   createPostHogExceptionReporter,
   requestErrorSchema,
 } from "@pcobooster/api/modules/analytics/posthog-exception";
 import type { ReportRequestError } from "@pcobooster/api/modules/analytics/posthog-exception";
 import type { ServerDependencies } from "@pcobooster/api/server";
+import type { HttpClient } from "effect/unstable/http/HttpClient";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger as requestLogger } from "hono/logger";
@@ -26,17 +29,7 @@ const requestLogContextSchema = z.object({
 });
 type RequestLogContext = z.infer<typeof requestLogContextSchema>;
 
-interface ErrorLogger {
-  error: (
-    bindings: {
-      err: unknown;
-      requestId?: string;
-      method?: string;
-      path?: string;
-    },
-    message: string
-  ) => void;
-}
+type ErrorLogger = Pick<BoundaryLog, "error">;
 
 const preventSharedCaching = (response: Response): Response => {
   response.headers.set("Cache-Control", privateNoStore);
@@ -59,6 +52,13 @@ const isAuthWrite = (request: Request): boolean =>
   request.method === "POST" ||
   (request.method === "GET" &&
     new URL(request.url).pathname === NATIVE_SIGN_IN_START);
+
+/** What the Worker hands each request: a runtime bound to that request's Effect fiber. */
+export interface ServerAppBindings {
+  readonly runtime: ApplicationRuntime<HttpClient>;
+}
+
+export type ServerApp = Hono<{ Bindings: ServerAppBindings }>;
 
 export interface CreateServerAppOptions {
   /**
@@ -91,8 +91,8 @@ export const createServerApp = ({
     fetch: globalThis.fetch,
   }),
   router,
-}: CreateServerAppOptions): Hono => {
-  const app = new Hono();
+}: CreateServerAppOptions): ServerApp => {
+  const app: ServerApp = new Hono();
 
   /** Logs every failed procedure and reports the unexpected ones; never throws. */
   const handleProcedureError = async (
@@ -101,13 +101,13 @@ export const createServerApp = ({
     requestContext: RequestLogContext | null
   ): Promise<void> => {
     if (requestContext === null) {
-      log.error({ err: failure }, message);
+      log.error(message, {}, failure);
       return;
     }
     const { request, requestId } = requestContext;
     const { method } = request;
     const { pathname: path } = new URL(request.url);
-    log.error({ err: failure, requestId, method, path }, message);
+    log.error(message, { requestId, method, path }, failure);
     if (reportError === null) {
       return;
     }
@@ -116,8 +116,9 @@ export const createServerApp = ({
       await reportError({ error: failure, path, method, requestId });
     } catch (error) {
       log.error(
-        { err: error, requestId, method, path },
-        "Failed to report exception to PostHog"
+        "Failed to report exception to PostHog",
+        { requestId, method, path },
+        error instanceof Error ? error : new Error(String(error))
       );
     }
   };
@@ -208,9 +209,12 @@ export const createServerApp = ({
     ],
   });
 
-  const handleRpcRequest = async (request: Request): Promise<Response> => {
+  const handleRpcRequest = async (
+    request: Request,
+    { runtime }: ServerAppBindings
+  ): Promise<Response> => {
     const result = await rpcHandler.handle(request, {
-      context: createContext({ request, server }),
+      context: createContext({ request, runtime, server }),
       prefix: "/api/rpc",
     });
 
@@ -221,9 +225,12 @@ export const createServerApp = ({
     );
   };
 
-  const handleOpenApiRequest = async (request: Request): Promise<Response> => {
+  const handleOpenApiRequest = async (
+    request: Request,
+    { runtime }: ServerAppBindings
+  ): Promise<Response> => {
     const result = await apiHandler.handle(request, {
-      context: createContext({ request, server }),
+      context: createContext({ request, runtime, server }),
       prefix: "/api/reference",
     });
 
@@ -234,12 +241,15 @@ export const createServerApp = ({
     );
   };
 
-  app.all("/api/rpc", async (c) => await handleRpcRequest(c.req.raw));
-  app.all("/api/rpc/*", async (c) => await handleRpcRequest(c.req.raw));
-  app.all("/api/reference", async (c) => await handleOpenApiRequest(c.req.raw));
+  app.all("/api/rpc", async (c) => await handleRpcRequest(c.req.raw, c.env));
+  app.all("/api/rpc/*", async (c) => await handleRpcRequest(c.req.raw, c.env));
+  app.all(
+    "/api/reference",
+    async (c) => await handleOpenApiRequest(c.req.raw, c.env)
+  );
   app.all(
     "/api/reference/*",
-    async (c) => await handleOpenApiRequest(c.req.raw)
+    async (c) => await handleOpenApiRequest(c.req.raw, c.env)
   );
 
   app.get("/", (c) => c.text("OK"));

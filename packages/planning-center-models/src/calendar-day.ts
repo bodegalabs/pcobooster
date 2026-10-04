@@ -1,16 +1,26 @@
+/** Formatters contain no account data and can be shared by every date in the same zone. */
+const calendarDayFormatters = new Map<string, Intl.DateTimeFormat>();
+
 /**
  * Calendar YYYY-MM-DD for an instant in an IANA timezone (matches Planning Center wall times).
  */
 export const formatCalendarDayInTimeZone = (
   instant: Date,
   timeZone: string
-): string =>
-  new Intl.DateTimeFormat("en-CA", {
-    timeZone: timeZone || "UTC",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(instant);
+): string => {
+  const zone = timeZone === "" ? "UTC" : timeZone;
+  let formatter = calendarDayFormatters.get(zone);
+  if (formatter === undefined) {
+    formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: zone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    calendarDayFormatters.set(zone, formatter);
+  }
+  return formatter.format(instant);
+};
 
 /**
  * True if the plan's sort instant falls on a local calendar day that is touched by the

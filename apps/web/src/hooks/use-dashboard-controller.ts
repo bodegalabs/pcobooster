@@ -199,6 +199,7 @@ const usePlanWorkspaceData = (
   const planDateKey = toPlanDateKey(selectedPlan?.sortDate ?? null);
   const candidateSlot = useMemo<CandidateSlot | null>(
     () =>
+      routeIds.view === "assign" &&
       planDateKey !== null &&
       isNonEmptyString(selectedPosition) &&
       selectedPositionUsesRoster
@@ -213,6 +214,7 @@ const usePlanWorkspaceData = (
         : null,
     [
       planDateKey,
+      routeIds.view,
       routePlanId,
       routeServiceTypeId,
       selectedPosition,
