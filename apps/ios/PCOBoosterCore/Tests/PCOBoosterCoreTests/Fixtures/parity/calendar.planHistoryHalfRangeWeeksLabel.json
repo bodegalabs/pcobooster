@@ -1,0 +1,39 @@
+{
+  "suite": "calendar.planHistoryHalfRangeWeeksLabel",
+  "cases": [
+    {
+      "input": {},
+      "output": "4 weeks"
+    },
+    {
+      "input": {
+        "weeks": 0
+      },
+      "output": "0 weeks"
+    },
+    {
+      "input": {
+        "weeks": 1
+      },
+      "output": "1 week"
+    },
+    {
+      "input": {
+        "weeks": 2
+      },
+      "output": "2 weeks"
+    },
+    {
+      "input": {
+        "weeks": 4
+      },
+      "output": "4 weeks"
+    },
+    {
+      "input": {
+        "weeks": 12
+      },
+      "output": "12 weeks"
+    }
+  ]
+}

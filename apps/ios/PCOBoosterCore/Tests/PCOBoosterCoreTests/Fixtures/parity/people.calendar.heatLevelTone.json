@@ -1,0 +1,277 @@
+{
+  "suite": "people.calendar.heatLevelTone",
+  "cases": [
+    {
+      "input": {
+        "serviceCount": 0
+      },
+      "output": "empty"
+    },
+    {
+      "input": {
+        "serviceCount": 0,
+        "rehearsalCount": 0
+      },
+      "output": "empty"
+    },
+    {
+      "input": {
+        "serviceCount": 0,
+        "rehearsalCount": 1
+      },
+      "output": "light"
+    },
+    {
+      "input": {
+        "serviceCount": 0,
+        "rehearsalCount": 2
+      },
+      "output": "light"
+    },
+    {
+      "input": {
+        "serviceCount": 0,
+        "rehearsalCount": 5
+      },
+      "output": "light"
+    },
+    {
+      "input": {
+        "serviceCount": 1
+      },
+      "output": "light"
+    },
+    {
+      "input": {
+        "serviceCount": 1,
+        "rehearsalCount": 0
+      },
+      "output": "light"
+    },
+    {
+      "input": {
+        "serviceCount": 1,
+        "rehearsalCount": 1
+      },
+      "output": "light"
+    },
+    {
+      "input": {
+        "serviceCount": 1,
+        "rehearsalCount": 2
+      },
+      "output": "light"
+    },
+    {
+      "input": {
+        "serviceCount": 1,
+        "rehearsalCount": 5
+      },
+      "output": "light"
+    },
+    {
+      "input": {
+        "serviceCount": 2
+      },
+      "output": "light"
+    },
+    {
+      "input": {
+        "serviceCount": 2,
+        "rehearsalCount": 0
+      },
+      "output": "light"
+    },
+    {
+      "input": {
+        "serviceCount": 2,
+        "rehearsalCount": 1
+      },
+      "output": "light"
+    },
+    {
+      "input": {
+        "serviceCount": 2,
+        "rehearsalCount": 2
+      },
+      "output": "light"
+    },
+    {
+      "input": {
+        "serviceCount": 2,
+        "rehearsalCount": 5
+      },
+      "output": "light"
+    },
+    {
+      "input": {
+        "serviceCount": 3
+      },
+      "output": "busy"
+    },
+    {
+      "input": {
+        "serviceCount": 3,
+        "rehearsalCount": 0
+      },
+      "output": "busy"
+    },
+    {
+      "input": {
+        "serviceCount": 3,
+        "rehearsalCount": 1
+      },
+      "output": "busy"
+    },
+    {
+      "input": {
+        "serviceCount": 3,
+        "rehearsalCount": 2
+      },
+      "output": "busy"
+    },
+    {
+      "input": {
+        "serviceCount": 3,
+        "rehearsalCount": 5
+      },
+      "output": "busy"
+    },
+    {
+      "input": {
+        "serviceCount": 7
+      },
+      "output": "busy"
+    },
+    {
+      "input": {
+        "serviceCount": 7,
+        "rehearsalCount": 0
+      },
+      "output": "busy"
+    },
+    {
+      "input": {
+        "serviceCount": 7,
+        "rehearsalCount": 1
+      },
+      "output": "busy"
+    },
+    {
+      "input": {
+        "serviceCount": 7,
+        "rehearsalCount": 2
+      },
+      "output": "busy"
+    },
+    {
+      "input": {
+        "serviceCount": 7,
+        "rehearsalCount": 5
+      },
+      "output": "busy"
+    },
+    {
+      "input": {
+        "serviceCount": 8
+      },
+      "output": "peak"
+    },
+    {
+      "input": {
+        "serviceCount": 8,
+        "rehearsalCount": 0
+      },
+      "output": "peak"
+    },
+    {
+      "input": {
+        "serviceCount": 8,
+        "rehearsalCount": 1
+      },
+      "output": "peak"
+    },
+    {
+      "input": {
+        "serviceCount": 8,
+        "rehearsalCount": 2
+      },
+      "output": "peak"
+    },
+    {
+      "input": {
+        "serviceCount": 8,
+        "rehearsalCount": 5
+      },
+      "output": "peak"
+    },
+    {
+      "input": {
+        "serviceCount": 9
+      },
+      "output": "peak"
+    },
+    {
+      "input": {
+        "serviceCount": 9,
+        "rehearsalCount": 0
+      },
+      "output": "peak"
+    },
+    {
+      "input": {
+        "serviceCount": 9,
+        "rehearsalCount": 1
+      },
+      "output": "peak"
+    },
+    {
+      "input": {
+        "serviceCount": 9,
+        "rehearsalCount": 2
+      },
+      "output": "peak"
+    },
+    {
+      "input": {
+        "serviceCount": 9,
+        "rehearsalCount": 5
+      },
+      "output": "peak"
+    },
+    {
+      "input": {
+        "serviceCount": 30
+      },
+      "output": "peak"
+    },
+    {
+      "input": {
+        "serviceCount": 30,
+        "rehearsalCount": 0
+      },
+      "output": "peak"
+    },
+    {
+      "input": {
+        "serviceCount": 30,
+        "rehearsalCount": 1
+      },
+      "output": "peak"
+    },
+    {
+      "input": {
+        "serviceCount": 30,
+        "rehearsalCount": 2
+      },
+      "output": "peak"
+    },
+    {
+      "input": {
+        "serviceCount": 30,
+        "rehearsalCount": 5
+      },
+      "output": "peak"
+    }
+  ]
+}

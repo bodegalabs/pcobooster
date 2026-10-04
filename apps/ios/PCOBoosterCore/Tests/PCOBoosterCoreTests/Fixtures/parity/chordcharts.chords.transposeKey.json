@@ -1,0 +1,8189 @@
+{
+  "suite": "chordcharts.chords.transposeKey",
+  "cases": [
+    {
+      "input": {
+        "key": "C",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "C",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "Db",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "D",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "Eb",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "E",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "F",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "F#",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "G",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "Ab",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "A",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "Bb",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 1,
+        "minor": false,
+        "name": "Db"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 2,
+        "minor": false,
+        "name": "D"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 4,
+        "minor": false,
+        "name": "E"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 5,
+        "minor": false,
+        "name": "F"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 6,
+        "minor": false,
+        "name": "F#"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 8,
+        "minor": false,
+        "name": "Ab"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 9,
+        "minor": false,
+        "name": "A"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 11,
+        "minor": false,
+        "name": "B"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 7,
+        "minor": false,
+        "name": "G"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 10,
+        "minor": false,
+        "name": "Bb"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 0,
+        "minor": false,
+        "name": "C"
+      }
+    },
+    {
+      "input": {
+        "key": "B",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 3,
+        "minor": false,
+        "name": "Eb"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Cm",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "C#m",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Dm",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Ebm",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Em",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Fm",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "F#m",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Gm",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "G#m",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Am",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bbm",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -12
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -11
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -10
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -9
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -8
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -7
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -6
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -5
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -4
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -3
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -2
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -1
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 0
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 1
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 2
+      },
+      "output": {
+        "pitch": 1,
+        "minor": true,
+        "name": "C#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 3
+      },
+      "output": {
+        "pitch": 2,
+        "minor": true,
+        "name": "Dm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 4
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 5
+      },
+      "output": {
+        "pitch": 4,
+        "minor": true,
+        "name": "Em"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 6
+      },
+      "output": {
+        "pitch": 5,
+        "minor": true,
+        "name": "Fm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 7
+      },
+      "output": {
+        "pitch": 6,
+        "minor": true,
+        "name": "F#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 8
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 9
+      },
+      "output": {
+        "pitch": 8,
+        "minor": true,
+        "name": "G#m"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 10
+      },
+      "output": {
+        "pitch": 9,
+        "minor": true,
+        "name": "Am"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 11
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 12
+      },
+      "output": {
+        "pitch": 11,
+        "minor": true,
+        "name": "Bm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -100
+      },
+      "output": {
+        "pitch": 7,
+        "minor": true,
+        "name": "Gm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -25
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": -13
+      },
+      "output": {
+        "pitch": 10,
+        "minor": true,
+        "name": "Bbm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 13
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 25
+      },
+      "output": {
+        "pitch": 0,
+        "minor": true,
+        "name": "Cm"
+      }
+    },
+    {
+      "input": {
+        "key": "Bm",
+        "semitones": 100
+      },
+      "output": {
+        "pitch": 3,
+        "minor": true,
+        "name": "Ebm"
+      }
+    }
+  ]
+}

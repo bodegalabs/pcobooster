@@ -1,0 +1,93 @@
+{
+  "suite": "scheduling.positionFromLabel",
+  "cases": [
+    {
+      "input": "Band - Keys",
+      "output": "Keys"
+    },
+    {
+      "input": "Keys",
+      "output": "Keys"
+    },
+    {
+      "input": "band - keys",
+      "output": "keys"
+    },
+    {
+      "input": " Keys ",
+      "output": " Keys "
+    },
+    {
+      "input": "Vocals - Keys",
+      "output": "Keys"
+    },
+    {
+      "input": "Band - Electric Guitar",
+      "output": "Electric Guitar"
+    },
+    {
+      "input": "Electric Guitar",
+      "output": "Electric Guitar"
+    },
+    {
+      "input": "Band - Bass - Left",
+      "output": "Bass - Left"
+    },
+    {
+      "input": "Bass - Left",
+      "output": "Left"
+    },
+    {
+      "input": "Left",
+      "output": "Left"
+    },
+    {
+      "input": "",
+      "output": ""
+    },
+    {
+      "input": " - Keys",
+      "output": "Keys"
+    },
+    {
+      "input": "Band -Keys",
+      "output": "Band -Keys"
+    },
+    {
+      "input": "Band - Keys - Band - Keys",
+      "output": "Keys - Band - Keys"
+    },
+    {
+      "input": "Band - Keys",
+      "output": "Keys"
+    },
+    {
+      "input": "İ - Keys",
+      "output": "Keys"
+    },
+    {
+      "input": "Band  - Keys",
+      "output": "Keys"
+    },
+    {
+      "input": "Band - ",
+      "output": ""
+    },
+    {
+      "input": " - ",
+      "output": ""
+    },
+    {
+      "input": "-",
+      "output": "-"
+    },
+    {
+      "input": "Band-Keys",
+      "output": "Band-Keys"
+    },
+    {
+      "input": "Band - Keys",
+      "output": "Band - Keys"
+    }
+  ]
+}

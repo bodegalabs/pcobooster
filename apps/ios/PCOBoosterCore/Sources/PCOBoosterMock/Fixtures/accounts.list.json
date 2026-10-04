@@ -1,0 +1,11 @@
+{
+  "default": {
+    "session": {"userId": "usr_9f3c2a7d1e", "name": "Jordan Hale", "email": "jordan.hale@cedargrove.example", "image": null},
+    "selectedAccountId": "acct_cedargrove",
+    "accounts": [
+      {"id": "acct_cedargrove", "providerId": "planning-center", "updatedAt": "2026-09-28T15:12:44.000Z", "identity": {"sub": "4100114", "name": "Jordan Hale", "email": "jordan.hale@cedargrove.example", "organizationId": "406221", "organizationName": "Cedar Grove Church"}},
+      {"id": "acct_northside", "providerId": "planning-center", "updatedAt": "2026-08-14T02:40:10.000Z", "identity": {"sub": "5208841", "name": "Jordan Hale", "email": "jordan@northsidefellowship.example", "organizationId": "512009", "organizationName": "Northside Fellowship"}}
+    ],
+    "demo": false
+  }
+}

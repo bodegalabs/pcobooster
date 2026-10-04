@@ -1,0 +1,48 @@
+{
+  "suite": "music.keyTransitionAdvice.suggestionNote",
+  "cases": [
+    {
+      "input": [
+        {
+          "kind": "text",
+          "text": "End on "
+        },
+        {
+          "kind": "chord",
+          "text": "Gm"
+        },
+        {
+          "kind": "text",
+          "text": ", then C7."
+        }
+      ],
+      "output": "End on Gm, then C7."
+    },
+    {
+      "input": [],
+      "output": ""
+    },
+    {
+      "input": [
+        {
+          "kind": "chord",
+          "text": "Ab7"
+        }
+      ],
+      "output": "Ab7"
+    },
+    {
+      "input": [
+        {
+          "kind": "text",
+          "text": ""
+        },
+        {
+          "kind": "chord",
+          "text": ""
+        }
+      ],
+      "output": ""
+    }
+  ]
+}

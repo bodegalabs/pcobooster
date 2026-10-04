@@ -1,0 +1,1 @@
+Swift ports of browser-only TypeScript logic. Each port names its TypeScript source in a header comment and is pinned by a parity suite in `scripts/parity/` (fixtures in `Tests/PCOBoosterCoreTests/Fixtures/parity/`).

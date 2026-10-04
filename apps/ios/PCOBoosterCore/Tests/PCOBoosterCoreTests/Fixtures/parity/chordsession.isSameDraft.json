@@ -1,0 +1,6081 @@
+{
+  "suite": "chordsession.isSameDraft",
+  "cases": [
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "right": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "right": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "right": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        },
+        "right": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "right": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "right": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "right": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        },
+        "right": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "A",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": null,
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 1,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "VERSE\n[G]Amazing  ",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "G",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "é",
+          "key": "Gb",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "[G]Grace",
+          "key": "G",
+          "layout": {
+            "font": null,
+            "fontSize": null,
+            "columns": null,
+            "chordColor": null,
+            "pageSize": null,
+            "orientation": null,
+            "margin": null
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "A\n\n",
+          "key": "Em",
+          "layout": {
+            "font": "Helvetica",
+            "fontSize": 48,
+            "columns": 1,
+            "chordColor": 0,
+            "pageSize": "Widescreen (16x9)",
+            "orientation": "Landscape",
+            "margin": "0.0in"
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "left": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        },
+        "right": {
+          "chart": "CHORUS",
+          "key": "",
+          "layout": {
+            "font": "Times-Roman",
+            "fontSize": 12,
+            "columns": 2,
+            "chordColor": 1,
+            "pageSize": "Letter",
+            "orientation": "Portrait",
+            "margin": "0.5in"
+          }
+        }
+      },
+      "output": true
+    }
+  ]
+}

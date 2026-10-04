@@ -1,0 +1,6020 @@
+{
+  "suite": "plans.buildPlanInsights",
+  "cases": [
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-27T17:00:00.000Z",
+              "id": "song-a",
+              "title": "a",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "a",
+            "title": "a",
+            "itemType": "song",
+            "sequence": 0,
+            "servicePosition": "during",
+            "length": null,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-a",
+              "name": "C",
+              "startingKey": "C",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-b",
+              "title": "b",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "b",
+            "title": "b",
+            "itemType": "song",
+            "sequence": 0,
+            "servicePosition": "during",
+            "length": null,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-b",
+              "name": "F#",
+              "startingKey": "F#",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-c",
+              "title": "c",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "c",
+            "title": "c",
+            "itemType": "song",
+            "sequence": 0,
+            "servicePosition": "during",
+            "length": null,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-c",
+              "name": "G",
+              "startingKey": "G",
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 7,
+            "itemId": "a"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": null,
+            "fromItemId": "a",
+            "itemId": "b",
+            "level": "rough"
+          },
+          {
+            "bridgedBy": null,
+            "fromItemId": "b",
+            "itemId": "c",
+            "level": "smooth"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Prayer",
+            "itemType": "media",
+            "sequence": 1,
+            "servicePosition": "post",
+            "length": 86400,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "🎸 Jam",
+            "itemType": "header",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 0.4,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Welcome",
+            "itemType": "header",
+            "sequence": 3,
+            "servicePosition": "post",
+            "length": -5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-08-31T19:00:00.000Z",
+              "id": "song-2",
+              "title": "It Is Well",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-3",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 60,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Female lead (highest note is C# at bridge)",
+              "startingKey": "F#",
+              "endingKey": "F#"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-17T05:00:00.000Z",
+              "id": "song-4",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-4",
+            "title": "",
+            "itemType": "song",
+            "sequence": 5,
+            "servicePosition": "post",
+            "length": -5,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "",
+              "startingKey": "A",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-5",
+            "title": "Offering",
+            "itemType": "header",
+            "sequence": 6,
+            "servicePosition": "pre",
+            "length": 3600,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "Emily",
+              "startingKey": null,
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 17,
+            "itemId": "item-4"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-3",
+            "itemId": "item-4",
+            "level": "worth-a-look"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-2",
+              "title": "Amazing Grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "What a Beautiful Name",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 86400,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Default",
+              "startingKey": "Bbm",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Prayer",
+            "itemType": "header",
+            "sequence": 2,
+            "servicePosition": "post",
+            "length": 30,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Sermon",
+            "itemType": "item",
+            "sequence": 3,
+            "servicePosition": "pre",
+            "length": 59.5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-18T15:00:00.000Z",
+              "id": "song-4",
+              "title": "Égypte",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": -5,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "G -> A",
+              "startingKey": "A",
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 16,
+            "itemId": "item-0"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-5",
+              "title": "Égypte",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 3600,
+              "name": "Default"
+            },
+            "id": "item-0",
+            "title": "Égypte",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "pre",
+            "length": 3661,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "G -> A",
+              "startingKey": "Cm",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "",
+            "itemType": "item",
+            "sequence": 0.5,
+            "servicePosition": "during",
+            "length": 300,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Welcome",
+            "itemType": "media",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 3661,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-24T01:00:00.000Z",
+              "id": "song-3",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": 86400,
+              "name": "Default"
+            },
+            "id": "item-3",
+            "title": "amazing grace",
+            "itemType": "song",
+            "sequence": 1.5,
+            "servicePosition": "during",
+            "length": 240,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 10,
+            "itemId": "item-3"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-06T17:00:00.000Z",
+              "id": "song-4",
+              "title": "amazing grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": null,
+              "name": "Default"
+            },
+            "id": "item-0",
+            "title": "Goodness of God",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "post",
+            "length": 0.4,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "",
+              "startingKey": "Cb",
+              "endingKey": "Dm"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-26T08:00:00.000Z",
+              "id": "song-6",
+              "title": "10,000 Reasons",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": 12.5,
+              "name": "Acoustic"
+            },
+            "id": "item-1",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 86400,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "",
+              "startingKey": "Bb",
+              "endingKey": "Gm"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Communion",
+            "itemType": "header",
+            "sequence": 3,
+            "servicePosition": "post",
+            "length": 3600,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-3",
+            "title": "Announcements",
+            "itemType": "item",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 3599,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "Welcome",
+            "itemType": "item",
+            "sequence": 5,
+            "servicePosition": "pre",
+            "length": 3661,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-25T00:00:00.000Z",
+              "id": "song-1",
+              "title": "What a Beautiful Name",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-5",
+            "title": "What a Beautiful Name",
+            "itemType": "song",
+            "sequence": 6,
+            "servicePosition": "during",
+            "length": 180,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "",
+              "title": "amazing grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-6",
+            "title": "Égypte",
+            "itemType": "song",
+            "sequence": 7,
+            "servicePosition": "during",
+            "length": 60,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 28,
+            "itemId": "item-0"
+          },
+          {
+            "days": 8,
+            "itemId": "item-1"
+          },
+          {
+            "days": 9,
+            "itemId": "item-5"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-0",
+            "itemId": "item-1",
+            "level": "smooth"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Café Fellowship",
+            "itemType": "header",
+            "sequence": 1,
+            "servicePosition": "post",
+            "length": 60,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Scripture Reading",
+            "itemType": "media",
+            "sequence": 2,
+            "servicePosition": "pre",
+            "length": 3599,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "",
+              "title": "",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 300,
+              "name": "Acoustic"
+            },
+            "id": "item-2",
+            "title": "10,000 Reasons",
+            "itemType": "song",
+            "sequence": 3,
+            "servicePosition": "post",
+            "length": null,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": " G ",
+              "startingKey": "C",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-3",
+            "title": "Sermon",
+            "itemType": "item",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 3600,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-08-31T13:00:00.000Z",
+              "id": "song-2",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-4",
+            "title": "What a Beautiful Name",
+            "itemType": "song",
+            "sequence": 1.5,
+            "servicePosition": "during",
+            "length": 240,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "  Jake  ",
+              "startingKey": "Em",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-5",
+            "title": "Communion",
+            "itemType": "media",
+            "sequence": 6,
+            "servicePosition": "pre",
+            "length": 30,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "Female lead (highest note is C# at bridge)",
+              "startingKey": "B",
+              "endingKey": ""
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": [
+          {
+            "bridgedBy": "Sermon",
+            "fromItemId": "item-2",
+            "itemId": "item-4",
+            "level": "smooth"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Sermon",
+            "itemType": "media",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 3600,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-2",
+              "title": "",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Way Maker",
+            "itemType": "song",
+            "sequence": 0.5,
+            "servicePosition": "pre",
+            "length": 0,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-10-04T03:00:00.000Z",
+              "id": "song-1",
+              "title": "amazing grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 86400,
+              "name": "Default"
+            },
+            "id": "item-0",
+            "title": "amazing grace",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 59,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-15T10:00:00.000Z",
+              "id": "song-2",
+              "title": "",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-1",
+            "title": "10,000 Reasons",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "post",
+            "length": 59.5,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Prayer",
+            "itemType": "header",
+            "sequence": 3,
+            "servicePosition": "pre",
+            "length": 59,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-03T08:00:00.000Z",
+              "id": "song-1",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-3",
+            "title": "amazing grace",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 90,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "",
+              "startingKey": "Ab",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "Benediction",
+            "itemType": "media",
+            "sequence": 1.5,
+            "servicePosition": "post",
+            "length": 300,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 19,
+            "itemId": "item-1"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-08T07:00:00.000Z",
+              "id": "song-6",
+              "title": "amazing grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": 61,
+              "name": "Default"
+            },
+            "id": "item-0",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "post",
+            "length": 125,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-6",
+              "title": "Amazing Grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": 180,
+              "name": "Acoustic"
+            },
+            "id": "item-1",
+            "title": "Égypte",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "pre",
+            "length": -5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Original",
+              "startingKey": "F#m",
+              "endingKey": "Bbm"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-13T01:00:00.000Z",
+              "id": "song-1",
+              "title": "10,000 Reasons",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": 30,
+              "name": "Key of G"
+            },
+            "id": "item-2",
+            "title": "Goodness of God",
+            "itemType": "song",
+            "sequence": 3,
+            "servicePosition": "post",
+            "length": 2400,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "G",
+              "startingKey": "C#m",
+              "endingKey": "Worship"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-3",
+            "title": "Announcements",
+            "itemType": "item",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 0.4,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": " G ",
+              "startingKey": "Gb",
+              "endingKey": "Em"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-10-07T06:00:00.000Z",
+              "id": "song-4",
+              "title": "Build My Life",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-4",
+            "title": "amazing grace",
+            "itemType": "song",
+            "sequence": 5,
+            "servicePosition": "during",
+            "length": 240,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "Female lead (highest note is C# at bridge)",
+              "startingKey": null,
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-07T04:00:00.000Z",
+              "id": "song-5",
+              "title": "It Is Well",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": 2400,
+              "name": "Key of G"
+            },
+            "id": "item-5",
+            "title": "",
+            "itemType": "song",
+            "sequence": 6,
+            "servicePosition": "during",
+            "length": 0,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": " G ",
+              "startingKey": null,
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-10-01T18:00:00.000Z",
+              "id": "song-1",
+              "title": "amazing grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-6",
+            "title": "What a Beautiful Name",
+            "itemType": "song",
+            "sequence": 7,
+            "servicePosition": "post",
+            "length": 125,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "Female lead (highest note is C# at bridge)",
+              "startingKey": "H",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-7",
+            "title": "Communion",
+            "itemType": "media",
+            "sequence": 8,
+            "servicePosition": "during",
+            "length": 240,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 26,
+            "itemId": "item-0"
+          },
+          {
+            "days": 21,
+            "itemId": "item-2"
+          },
+          {
+            "days": 27,
+            "itemId": "item-5"
+          },
+          {
+            "days": 2,
+            "itemId": "item-6"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-1",
+            "itemId": "item-2",
+            "level": "worth-a-look"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Benediction",
+            "itemType": "item",
+            "sequence": 1,
+            "servicePosition": "post",
+            "length": 300,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Prayer",
+            "itemType": "item",
+            "sequence": 1.5,
+            "servicePosition": "during",
+            "length": 240,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-16T12:00:00.000Z",
+              "id": "song-5",
+              "title": "What a Beautiful Name",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-2",
+            "title": "amazing grace",
+            "itemType": "song",
+            "sequence": 3,
+            "servicePosition": "during",
+            "length": -5,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "G -> A",
+              "startingKey": "F#m",
+              "endingKey": "F#m"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-3",
+            "title": "Scripture Reading",
+            "itemType": "item",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 125,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "Offering",
+            "itemType": "header",
+            "sequence": 5,
+            "servicePosition": "during",
+            "length": null,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 18,
+            "itemId": "item-2"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-3",
+              "title": "What a Beautiful Name",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "It Is Well",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 3661,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "",
+              "startingKey": "Em",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-6",
+              "title": "",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Égypte",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 3661,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Communion",
+            "itemType": "header",
+            "sequence": 3,
+            "servicePosition": "during",
+            "length": -5,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-3",
+              "title": "",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": 300,
+              "name": "Key of G"
+            },
+            "id": "item-3",
+            "title": "Goodness of God",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "pre",
+            "length": null,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "",
+              "startingKey": "Am",
+              "endingKey": "Am"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-11T22:00:00.000Z",
+              "id": "",
+              "title": "10,000 Reasons",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": 3600,
+              "name": "Acoustic"
+            },
+            "id": "item-4",
+            "title": "Égypte",
+            "itemType": "song",
+            "sequence": 5,
+            "servicePosition": "post",
+            "length": null,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "D -> null",
+              "startingKey": "Ab",
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 22,
+            "itemId": "item-4"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-3",
+            "itemId": "item-4",
+            "level": "rough"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Café Fellowship",
+            "itemType": "media",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 3599,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-1",
+              "title": "",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": null,
+              "name": "Key of G"
+            },
+            "id": "item-1",
+            "title": "Égypte",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "pre",
+            "length": 61,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Low key",
+              "startingKey": null,
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Café Fellowship",
+            "itemType": "item",
+            "sequence": 3,
+            "servicePosition": "during",
+            "length": 61,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-14T16:00:00.000Z",
+              "id": "song-4",
+              "title": "Way Maker",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-3",
+            "title": "amazing grace",
+            "itemType": "song",
+            "sequence": 0.5,
+            "servicePosition": "during",
+            "length": 2400,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "  Jake  ",
+              "startingKey": "F#m",
+              "endingKey": "C#m"
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 20,
+            "itemId": "item-3"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-08-27T05:00:00.000Z",
+              "id": "song-3",
+              "title": "10,000 Reasons",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Way Maker",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "pre",
+            "length": 90,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": " ",
+              "startingKey": null,
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Offering",
+            "itemType": "item",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 12.5,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "찬양",
+            "itemType": "item",
+            "sequence": 3,
+            "servicePosition": "during",
+            "length": 2400,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-3",
+            "title": "Café Fellowship",
+            "itemType": "item",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 12.5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "Announcements",
+            "itemType": "item",
+            "sequence": 5,
+            "servicePosition": "post",
+            "length": null,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Offering",
+            "itemType": "media",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 59,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Café Fellowship",
+            "itemType": "item",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 12.5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Sermon",
+            "itemType": "header",
+            "sequence": 1.5,
+            "servicePosition": "during",
+            "length": 0.4,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-3",
+            "title": "",
+            "itemType": "item",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": null,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": " ",
+              "startingKey": "Gb",
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-4",
+              "title": "What a Beautiful Name",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Goodness of God",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "pre",
+            "length": 30,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Original",
+              "startingKey": null,
+              "endingKey": "Gb"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Offering",
+            "itemType": "item",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 86400,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Announcements",
+            "itemType": "item",
+            "sequence": 1,
+            "servicePosition": "pre",
+            "length": 0,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "D -> null",
+              "startingKey": " D",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "🎸 Jam",
+            "itemType": "item",
+            "sequence": 0.5,
+            "servicePosition": "during",
+            "length": 2400,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Announcements",
+            "itemType": "header",
+            "sequence": 3,
+            "servicePosition": "during",
+            "length": null,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-17T10:00:00.000Z",
+              "id": "song-2",
+              "title": "It Is Well",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": -5,
+              "name": "Default"
+            },
+            "id": "item-3",
+            "title": "What a Beautiful Name",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "pre",
+            "length": 59.5,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "Default",
+              "startingKey": "D",
+              "endingKey": "Cb"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-08T14:00:00.000Z",
+              "id": "song-6",
+              "title": "Amazing Grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-4",
+            "title": "Way Maker",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "pre",
+            "length": 86400,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "G",
+              "startingKey": "G",
+              "endingKey": "G"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-05T01:00:00.000Z",
+              "id": "song-5",
+              "title": "Amazing Grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-5",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 6,
+            "servicePosition": "pre",
+            "length": null,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Emily",
+              "startingKey": "C#",
+              "endingKey": "C#"
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 17,
+            "itemId": "item-3"
+          },
+          {
+            "days": 26,
+            "itemId": "item-4"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-3",
+            "itemId": "item-4",
+            "level": "worth-a-look"
+          },
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-4",
+            "itemId": "item-5",
+            "level": "rough"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-6",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": -5,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "Default",
+              "startingKey": "Eb",
+              "endingKey": "Eb"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-13T18:00:00.000Z",
+              "id": "song-6",
+              "title": "Amazing Grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": 300,
+              "name": "Key of G"
+            },
+            "id": "item-1",
+            "title": "10,000 Reasons",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 2400,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "Default",
+              "startingKey": "G#m",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Benediction",
+            "itemType": "item",
+            "sequence": 3,
+            "servicePosition": "during",
+            "length": 3600,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-1",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": 30,
+              "name": "Acoustic"
+            },
+            "id": "item-3",
+            "title": "10,000 Reasons",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "post",
+            "length": null,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "찬양",
+            "itemType": "media",
+            "sequence": 5,
+            "servicePosition": "during",
+            "length": 3600,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-5",
+            "title": "Offering",
+            "itemType": "media",
+            "sequence": 6,
+            "servicePosition": "during",
+            "length": 125,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 20,
+            "itemId": "item-1"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-0",
+            "itemId": "item-1",
+            "level": "worth-a-look"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-4",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "It Is Well",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 0.4,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "G",
+              "startingKey": "A#",
+              "endingKey": "A#"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-6",
+              "title": "Égypte",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Way Maker",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "pre",
+            "length": 2400,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Prayer",
+            "itemType": "media",
+            "sequence": 0.5,
+            "servicePosition": "post",
+            "length": null,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-6",
+              "title": "It Is Well",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": -5,
+              "name": "Acoustic"
+            },
+            "id": "item-3",
+            "title": "What a Beautiful Name",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 0,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Low key",
+              "startingKey": "Ebm",
+              "endingKey": "Ebm"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-10T10:00:00.000Z",
+              "id": "song-3",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-4",
+            "title": "What a Beautiful Name",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "post",
+            "length": 12.5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "G -> A",
+              "startingKey": "A#",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-5",
+            "title": "Scripture Reading",
+            "itemType": "item",
+            "sequence": 6,
+            "servicePosition": "during",
+            "length": 60,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-6",
+            "title": "Sermon",
+            "itemType": "media",
+            "sequence": 7,
+            "servicePosition": "during",
+            "length": 12.5,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 24,
+            "itemId": "item-4"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-3",
+            "itemId": "item-4",
+            "level": "worth-a-look"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Announcements",
+            "itemType": "item",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 180,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "찬양",
+            "itemType": "item",
+            "sequence": 0.5,
+            "servicePosition": "during",
+            "length": 2400,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-10-01T13:00:00.000Z",
+              "id": "song-2",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": null,
+              "name": "Acoustic"
+            },
+            "id": "item-1",
+            "title": "10,000 Reasons",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 3599,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "Female lead (highest note is C# at bridge)",
+              "startingKey": "c",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-08-28T00:00:00.000Z",
+              "id": "song-1",
+              "title": "What a Beautiful Name",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": 300,
+              "name": "Default"
+            },
+            "id": "item-2",
+            "title": "It Is Well",
+            "itemType": "song",
+            "sequence": 3,
+            "servicePosition": "pre",
+            "length": 59.5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "G -> A",
+              "startingKey": "Bb",
+              "endingKey": ""
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-3",
+            "title": "Offering",
+            "itemType": "header",
+            "sequence": 4,
+            "servicePosition": "post",
+            "length": 30,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-3",
+              "title": "",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": 86400,
+              "name": "Key of G"
+            },
+            "id": "item-4",
+            "title": "Goodness of God",
+            "itemType": "song",
+            "sequence": 5,
+            "servicePosition": "during",
+            "length": 12.5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "  Jake  ",
+              "startingKey": "Gm",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-5",
+            "title": "Sermon",
+            "itemType": "header",
+            "sequence": 6,
+            "servicePosition": "during",
+            "length": 180,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 3,
+            "itemId": "item-1"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-10-02T13:00:00.000Z",
+              "id": "song-1",
+              "title": "amazing grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "post",
+            "length": 61,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Emily",
+              "startingKey": "Cm",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Benediction",
+            "itemType": "media",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 61,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-2",
+              "title": "Amazing Grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 125,
+              "name": "Default"
+            },
+            "id": "item-2",
+            "title": "Build My Life",
+            "itemType": "song",
+            "sequence": 3,
+            "servicePosition": "during",
+            "length": 240,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "  Jake  ",
+              "startingKey": "Dm",
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 2,
+            "itemId": "item-0"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": "Benediction",
+            "fromItemId": "item-0",
+            "itemId": "item-2",
+            "level": "smooth"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-3",
+              "title": "Amazing Grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "pre",
+            "length": 30,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "Bb",
+              "startingKey": "G",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-23T12:00:00.000Z",
+              "id": "song-3",
+              "title": "10,000 Reasons",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": 86400,
+              "name": "Default"
+            },
+            "id": "item-1",
+            "title": "Goodness of God",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "pre",
+            "length": 90,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Communion",
+            "itemType": "header",
+            "sequence": 3,
+            "servicePosition": "pre",
+            "length": 86400,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-5",
+              "title": "What a Beautiful Name",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-3",
+            "title": "amazing grace",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "pre",
+            "length": 0.4,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "  Jake  ",
+              "startingKey": "Bbmaj7",
+              "endingKey": "Bbmaj7"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "🎸 Jam",
+            "itemType": "media",
+            "sequence": 5,
+            "servicePosition": "during",
+            "length": 59.5,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-5",
+            "title": "찬양",
+            "itemType": "item",
+            "sequence": 6,
+            "servicePosition": "post",
+            "length": -5,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "Emily",
+              "startingKey": null,
+              "endingKey": "E"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-6",
+            "title": "🎸 Jam",
+            "itemType": "media",
+            "sequence": 7,
+            "servicePosition": "during",
+            "length": 59,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 11,
+            "itemId": "item-1"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-5",
+              "title": "amazing grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Goodness of God",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 59.5,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-24T23:00:00.000Z",
+              "id": "song-5",
+              "title": "amazing grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": 3661,
+              "name": "Key of G"
+            },
+            "id": "item-1",
+            "title": "What a Beautiful Name",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 3600,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "Female lead (highest note is C# at bridge)",
+              "startingKey": "Eb",
+              "endingKey": "G"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-08-27T12:00:00.000Z",
+              "id": "song-6",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-2",
+            "title": "amazing grace",
+            "itemType": "song",
+            "sequence": 3,
+            "servicePosition": "during",
+            "length": 3599,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": " G ",
+              "startingKey": "Eb",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-15T17:00:00.000Z",
+              "id": "song-6",
+              "title": "Égypte",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-3",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 3599,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "Default",
+              "startingKey": "A#",
+              "endingKey": "H"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-3",
+              "title": "What a Beautiful Name",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": null,
+              "name": "Key of G"
+            },
+            "id": "item-4",
+            "title": "amazing grace",
+            "itemType": "song",
+            "sequence": 5,
+            "servicePosition": "during",
+            "length": 3600,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Emily",
+              "startingKey": "F♯",
+              "endingKey": "F♯"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-5",
+            "title": "Benediction",
+            "itemType": "header",
+            "sequence": 6,
+            "servicePosition": "post",
+            "length": 3600,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-6",
+            "title": "🎸 Jam",
+            "itemType": "item",
+            "sequence": 7,
+            "servicePosition": "during",
+            "length": 61,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 9,
+            "itemId": "item-1"
+          },
+          {
+            "days": 19,
+            "itemId": "item-3"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-1",
+            "itemId": "item-2",
+            "level": "worth-a-look"
+          },
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-2",
+            "itemId": "item-3",
+            "level": "smooth"
+          },
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-3",
+            "itemId": "item-4",
+            "level": "worth-a-look"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-10-01T19:00:00.000Z",
+              "id": "",
+              "title": "Amazing Grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Goodness of God",
+            "itemType": "song",
+            "sequence": 0.5,
+            "servicePosition": "post",
+            "length": 125,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "",
+            "itemType": "item",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 125,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Offering",
+            "itemType": "header",
+            "sequence": 3,
+            "servicePosition": "pre",
+            "length": 3599,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-10-06T06:00:00.000Z",
+              "id": "song-6",
+              "title": "Build My Life",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-3",
+            "title": "What a Beautiful Name",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 125,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "Original",
+              "startingKey": "B",
+              "endingKey": "B"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "",
+            "itemType": "item",
+            "sequence": 5,
+            "servicePosition": "post",
+            "length": 3600,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-3",
+              "title": "What a Beautiful Name",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 180,
+              "name": "Key of G"
+            },
+            "id": "item-5",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 6,
+            "servicePosition": "post",
+            "length": 12.5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 2,
+            "itemId": "item-0"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Welcome",
+            "itemType": "header",
+            "sequence": 1,
+            "servicePosition": "post",
+            "length": null,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Welcome",
+            "itemType": "item",
+            "sequence": 1,
+            "servicePosition": "post",
+            "length": 86400,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-12T10:00:00.000Z",
+              "id": "song-4",
+              "title": "amazing grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Build My Life",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "post",
+            "length": 0.4,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "  Jake  ",
+              "startingKey": "B",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-08-29T15:00:00.000Z",
+              "id": "song-4",
+              "title": "",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": 300,
+              "name": "Acoustic"
+            },
+            "id": "item-2",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": null,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "G -> A",
+              "startingKey": "F",
+              "endingKey": "Ebm"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-3",
+            "title": "Communion",
+            "itemType": "item",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 12.5,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Default",
+              "startingKey": "B",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "",
+            "itemType": "media",
+            "sequence": 5,
+            "servicePosition": "during",
+            "length": null,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-01T00:00:00.000Z",
+              "id": "song-1",
+              "title": "What a Beautiful Name",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": 125,
+              "name": "Acoustic"
+            },
+            "id": "item-5",
+            "title": "",
+            "itemType": "song",
+            "sequence": 6,
+            "servicePosition": "post",
+            "length": 3599,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "G",
+              "startingKey": "Em",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-6",
+            "title": "Communion",
+            "itemType": "header",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 60,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-7",
+            "title": "Sermon",
+            "itemType": "media",
+            "sequence": 8,
+            "servicePosition": "pre",
+            "length": 86400,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 22,
+            "itemId": "item-1"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-1",
+            "itemId": "item-2",
+            "level": "rough"
+          },
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-2",
+            "itemId": "item-5",
+            "level": "smooth"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "",
+            "itemType": "item",
+            "sequence": 1,
+            "servicePosition": "pre",
+            "length": 59.5,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-6",
+              "title": "Égypte",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 59.5,
+              "name": "Default"
+            },
+            "id": "item-0",
+            "title": "Way Maker",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "pre",
+            "length": 90,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "Bb",
+              "startingKey": "Dm",
+              "endingKey": "Bbm"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Scripture Reading",
+            "itemType": "header",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 300,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-24T15:00:00.000Z",
+              "id": "song-6",
+              "title": "It Is Well",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Build My Life",
+            "itemType": "song",
+            "sequence": 3,
+            "servicePosition": "pre",
+            "length": 180,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "Bb",
+              "startingKey": "F#",
+              "endingKey": "F#"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": 61,
+              "name": "Default"
+            },
+            "id": "item-3",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 86400,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "Offering",
+            "itemType": "media",
+            "sequence": 5,
+            "servicePosition": "pre",
+            "length": 0,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-1",
+              "title": "Build My Life",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-5",
+            "title": "",
+            "itemType": "song",
+            "sequence": 6,
+            "servicePosition": "during",
+            "length": 300,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "",
+              "startingKey": "B",
+              "endingKey": "Bb"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-17T09:00:00.000Z",
+              "id": "song-3",
+              "title": "Amazing Grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-6",
+            "title": "Égypte",
+            "itemType": "song",
+            "sequence": 7,
+            "servicePosition": "post",
+            "length": 59.5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "Emily",
+              "startingKey": null,
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 10,
+            "itemId": "item-2"
+          },
+          {
+            "days": 17,
+            "itemId": "item-6"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Announcements",
+            "itemType": "item",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 59.5,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "",
+            "itemType": "media",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 3661,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Sermon",
+            "itemType": "media",
+            "sequence": 3,
+            "servicePosition": "post",
+            "length": -5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-1",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 30,
+              "name": "Acoustic"
+            },
+            "id": "item-3",
+            "title": "What a Beautiful Name",
+            "itemType": "song",
+            "sequence": 0,
+            "servicePosition": "during",
+            "length": 300,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "D -> null",
+              "startingKey": "Cb",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "Offering",
+            "itemType": "item",
+            "sequence": 5,
+            "servicePosition": "post",
+            "length": -5,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-5",
+            "title": "Offering",
+            "itemType": "header",
+            "sequence": 6,
+            "servicePosition": "pre",
+            "length": 3661,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-18T07:00:00.000Z",
+              "id": "song-4",
+              "title": "amazing grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": null,
+              "name": "Default"
+            },
+            "id": "item-6",
+            "title": "Goodness of God",
+            "itemType": "song",
+            "sequence": 7,
+            "servicePosition": "during",
+            "length": -5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "G",
+              "startingKey": null,
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-7",
+            "title": "찬양",
+            "itemType": "item",
+            "sequence": 1.5,
+            "servicePosition": "pre",
+            "length": 61,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 16,
+            "itemId": "item-6"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-27T07:00:00.000Z",
+              "id": "song-3",
+              "title": "Way Maker",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 12.5,
+              "name": "Default"
+            },
+            "id": "item-0",
+            "title": "Way Maker",
+            "itemType": "song",
+            "sequence": 1.5,
+            "servicePosition": "post",
+            "length": 0.4,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Welcome",
+            "itemType": "item",
+            "sequence": 2,
+            "servicePosition": "post",
+            "length": null,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-25T18:00:00.000Z",
+              "id": "song-5",
+              "title": "It Is Well",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": -5,
+              "name": "Key of G"
+            },
+            "id": "item-2",
+            "title": "",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "post",
+            "length": 59,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "Low key",
+              "startingKey": "Gm",
+              "endingKey": "Gm"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-3",
+            "title": "찬양",
+            "itemType": "item",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 125,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-10-05T13:00:00.000Z",
+              "id": "song-1",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-4",
+            "title": "Way Maker",
+            "itemType": "song",
+            "sequence": 5,
+            "servicePosition": "during",
+            "length": 90,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "G -> A",
+              "startingKey": "Em",
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": null
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": [
+          {
+            "bridgedBy": "찬양",
+            "fromItemId": "item-2",
+            "itemId": "item-4",
+            "level": "smooth"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-5",
+              "title": "Way Maker",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 86400,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Low key",
+              "startingKey": "Db",
+              "endingKey": "Db"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Offering",
+            "itemType": "item",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 240,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "",
+            "itemType": "item",
+            "sequence": 3,
+            "servicePosition": "post",
+            "length": 59,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-3",
+              "title": "amazing grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": 90,
+              "name": "Acoustic"
+            },
+            "id": "item-3",
+            "title": "amazing grace",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": null,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Female lead (highest note is C# at bridge)",
+              "startingKey": "Bm",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-27T09:00:00.000Z",
+              "id": "",
+              "title": "Amazing Grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-4",
+            "title": "10,000 Reasons",
+            "itemType": "song",
+            "sequence": 1.5,
+            "servicePosition": "during",
+            "length": 30,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": " G ",
+              "startingKey": "A#",
+              "endingKey": "Cm"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-6",
+              "title": "Égypte",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 90,
+              "name": "Key of G"
+            },
+            "id": "item-5",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 6,
+            "servicePosition": "during",
+            "length": 60,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 7,
+            "itemId": "item-4"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": "Offering",
+            "fromItemId": "item-0",
+            "itemId": "item-3",
+            "level": "smooth"
+          },
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-3",
+            "itemId": "item-4",
+            "level": "rough"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Benediction",
+            "itemType": "media",
+            "sequence": 1,
+            "servicePosition": "post",
+            "length": 61,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "Original",
+              "startingKey": null,
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Offering",
+            "itemType": "media",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": null,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "Default",
+              "startingKey": "Em",
+              "endingKey": "D#"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-02T11:00:00.000Z",
+              "id": "song-3",
+              "title": "",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 59,
+              "name": "Acoustic"
+            },
+            "id": "item-2",
+            "title": "Goodness of God",
+            "itemType": "song",
+            "sequence": 3,
+            "servicePosition": "during",
+            "length": 3600,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "G",
+              "startingKey": "G",
+              "endingKey": "G"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-3",
+            "title": "Communion",
+            "itemType": "item",
+            "sequence": 4,
+            "servicePosition": "post",
+            "length": 0,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "Sermon",
+            "itemType": "header",
+            "sequence": 5,
+            "servicePosition": "pre",
+            "length": 300,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-5",
+            "title": "Café Fellowship",
+            "itemType": "item",
+            "sequence": 6,
+            "servicePosition": "during",
+            "length": null,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": " G ",
+              "startingKey": "Ebmin",
+              "endingKey": "Ebmin"
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Benediction",
+            "itemType": "item",
+            "sequence": 1,
+            "servicePosition": "post",
+            "length": 2400,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-18T04:00:00.000Z",
+              "id": "song-1",
+              "title": "It Is Well",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 59,
+              "name": "Key of G"
+            },
+            "id": "item-1",
+            "title": "Way Maker",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 61,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": " G ",
+              "startingKey": "Eb",
+              "endingKey": "Db"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Welcome",
+            "itemType": "header",
+            "sequence": 3,
+            "servicePosition": "during",
+            "length": 2400,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-3",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-3",
+            "title": "Égypte",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "pre",
+            "length": 12.5,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "Female lead (highest note is C# at bridge)",
+              "startingKey": "Gm",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "Sermon",
+            "itemType": "item",
+            "sequence": 5,
+            "servicePosition": "post",
+            "length": null,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-5",
+            "title": "Sermon",
+            "itemType": "header",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 3599,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 16,
+            "itemId": "item-1"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "🎸 Jam",
+            "itemType": "header",
+            "sequence": 1,
+            "servicePosition": "pre",
+            "length": 2400,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Benediction",
+            "itemType": "item",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 90,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Prayer",
+            "itemType": "item",
+            "sequence": 3,
+            "servicePosition": "during",
+            "length": 86400,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-20T14:00:00.000Z",
+              "id": "song-5",
+              "title": "It Is Well",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-3",
+            "title": "What a Beautiful Name",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "post",
+            "length": null,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "G -> A",
+              "startingKey": "C#",
+              "endingKey": "C#"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "찬양",
+            "itemType": "item",
+            "sequence": 5,
+            "servicePosition": "pre",
+            "length": 3599,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-5",
+            "title": "Scripture Reading",
+            "itemType": "item",
+            "sequence": 6,
+            "servicePosition": "post",
+            "length": 12.5,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 14,
+            "itemId": "item-3"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-4",
+              "title": "Amazing Grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 3661,
+              "name": "Acoustic"
+            },
+            "id": "item-0",
+            "title": "Way Maker",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": null,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-03T09:00:00.000Z",
+              "id": "song-2",
+              "title": "Égypte",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": 61,
+              "name": "Default"
+            },
+            "id": "item-1",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 3600,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "G",
+              "startingKey": "",
+              "endingKey": ""
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-4",
+              "title": "It Is Well",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 59,
+              "name": "Acoustic"
+            },
+            "id": "item-2",
+            "title": "amazing grace",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "pre",
+            "length": 12.5,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "Female lead (highest note is C# at bridge)",
+              "startingKey": "C#m",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-08-26T12:00:00.000Z",
+              "id": "song-2",
+              "title": "Build My Life",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 0,
+              "name": "Key of G"
+            },
+            "id": "item-3",
+            "title": "amazing grace",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 125,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "D -> null",
+              "startingKey": "E",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "Announcements",
+            "itemType": "media",
+            "sequence": 5,
+            "servicePosition": "during",
+            "length": null,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-5",
+            "title": "Prayer",
+            "itemType": "header",
+            "sequence": 6,
+            "servicePosition": "during",
+            "length": 30,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-17T09:00:00.000Z",
+              "id": "song-5",
+              "title": "It Is Well",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 90,
+              "name": "Acoustic"
+            },
+            "id": "item-6",
+            "title": "What a Beautiful Name",
+            "itemType": "song",
+            "sequence": 7,
+            "servicePosition": "during",
+            "length": 12.5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "  Jake  ",
+              "startingKey": "Ebm",
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 17,
+            "itemId": "item-6"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-2",
+            "itemId": "item-3",
+            "level": "smooth"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-22T02:00:00.000Z",
+              "id": "song-4",
+              "title": "Way Maker",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": 300,
+              "name": "Acoustic"
+            },
+            "id": "item-0",
+            "title": "Goodness of God",
+            "itemType": "song",
+            "sequence": 1.5,
+            "servicePosition": "during",
+            "length": 300,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Emily",
+              "startingKey": "F#m",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Café Fellowship",
+            "itemType": "item",
+            "sequence": 2,
+            "servicePosition": "post",
+            "length": null,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": null
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-2",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 3599,
+              "name": "Default"
+            },
+            "id": "item-0",
+            "title": "Égypte",
+            "itemType": "song",
+            "sequence": 1.5,
+            "servicePosition": "pre",
+            "length": 61,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-10-03T09:00:00.000Z",
+              "id": "song-3",
+              "title": "Égypte",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": 125,
+              "name": "Acoustic"
+            },
+            "id": "item-0",
+            "title": "What a Beautiful Name",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 3599,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": " G ",
+              "startingKey": "A#",
+              "endingKey": "A#"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Sermon",
+            "itemType": "media",
+            "sequence": 2,
+            "servicePosition": "post",
+            "length": 300,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 1,
+            "itemId": "item-0"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-26T22:00:00.000Z",
+              "id": "song-6",
+              "title": "What a Beautiful Name",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "It Is Well",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": null,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "Bb",
+              "startingKey": "Bb",
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 7,
+            "itemId": "item-0"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-10-04T22:00:00.000Z",
+              "id": "song-3",
+              "title": "10,000 Reasons",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 3600,
+              "name": "Default"
+            },
+            "id": "item-0",
+            "title": "10,000 Reasons",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 59,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "Emily",
+              "startingKey": "Em",
+              "endingKey": "Em"
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-1",
+              "title": "amazing grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Build My Life",
+            "itemType": "song",
+            "sequence": 1.5,
+            "servicePosition": "post",
+            "length": 59,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "Low key",
+              "startingKey": "D",
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-6",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": 300,
+              "name": "Key of G"
+            },
+            "id": "item-0",
+            "title": "Goodness of God",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "pre",
+            "length": 0.4,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "Default",
+              "startingKey": "Ebm",
+              "endingKey": "Ebm"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Café Fellowship",
+            "itemType": "media",
+            "sequence": 2,
+            "servicePosition": "post",
+            "length": 12.5,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "",
+            "itemType": "item",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 300,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Café Fellowship",
+            "itemType": "item",
+            "sequence": 2,
+            "servicePosition": "post",
+            "length": 3599,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Welcome",
+            "itemType": "item",
+            "sequence": 3,
+            "servicePosition": "pre",
+            "length": 3599,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-10-06T00:00:00.000Z",
+              "id": "song-5",
+              "title": "Way Maker",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": 59.5,
+              "name": "Default"
+            },
+            "id": "item-0",
+            "title": "",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "pre",
+            "length": 2400,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "찬양",
+            "itemType": "item",
+            "sequence": 2,
+            "servicePosition": "pre",
+            "length": null,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Benediction",
+            "itemType": "media",
+            "sequence": 1.5,
+            "servicePosition": "post",
+            "length": 59.5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-28T22:00:00.000Z",
+              "id": "song-5",
+              "title": "",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-3",
+            "title": "",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 61,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Female lead (highest note is C# at bridge)",
+              "startingKey": "Bbmaj7",
+              "endingKey": "Bbmaj7"
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 5,
+            "itemId": "item-3"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "🎸 Jam",
+            "itemType": "item",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 180,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Low key",
+              "startingKey": null,
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Announcements",
+            "itemType": "item",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 59.5,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Welcome",
+            "itemType": "media",
+            "sequence": 3,
+            "servicePosition": "during",
+            "length": 300,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-22T22:00:00.000Z",
+              "id": "song-6",
+              "title": "It Is Well",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-3",
+            "title": "amazing grace",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 60,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "  Jake  ",
+              "startingKey": null,
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 11,
+            "itemId": "item-3"
+          }
+        ],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-3",
+              "title": "",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Égypte",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": null,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "G -> A",
+              "startingKey": "Ebm",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Sermon",
+            "itemType": "media",
+            "sequence": 2,
+            "servicePosition": "pre",
+            "length": 3599,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "  Jake  ",
+              "startingKey": "Dm",
+              "endingKey": "Ab"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "",
+            "itemType": "media",
+            "sequence": 3,
+            "servicePosition": "pre",
+            "length": 3600,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-3",
+            "title": "Prayer",
+            "itemType": "header",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 2400,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-01T08:00:00.000Z",
+              "id": "song-4",
+              "title": "Égypte",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-4",
+            "title": "Way Maker",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 0.4,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "Low key",
+              "startingKey": "Am",
+              "endingKey": "Db"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-5",
+            "title": "Prayer",
+            "itemType": "header",
+            "sequence": 6,
+            "servicePosition": "pre",
+            "length": -5,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "  Jake  ",
+              "startingKey": "Gm",
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-13T03:00:00.000Z",
+              "id": "",
+              "title": "It Is Well",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 61,
+              "name": "Default"
+            },
+            "id": "item-0",
+            "title": "Way Maker",
+            "itemType": "song",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": null,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "",
+              "startingKey": "F#",
+              "endingKey": "F#"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Sermon",
+            "itemType": "item",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 3661,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-08-26T01:00:00.000Z",
+              "id": "",
+              "title": "",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 59.5,
+              "name": "Acoustic"
+            },
+            "id": "item-2",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 3,
+            "servicePosition": "pre",
+            "length": null,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "Bb",
+              "startingKey": "C",
+              "endingKey": "Bm"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-09T10:00:00.000Z",
+              "id": "",
+              "title": "Way Maker",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-3",
+            "title": "",
+            "itemType": "song",
+            "sequence": 4,
+            "servicePosition": "post",
+            "length": 3600,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "Female lead (highest note is C# at bridge)",
+              "startingKey": "Gb",
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": null
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": [
+          {
+            "bridgedBy": "Sermon",
+            "fromItemId": "item-0",
+            "itemId": "item-2",
+            "level": "smooth"
+          },
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-2",
+            "itemId": "item-3",
+            "level": "worth-a-look"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "🎸 Jam",
+            "itemType": "media",
+            "sequence": 1,
+            "servicePosition": "pre",
+            "length": 300,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "Original",
+              "startingKey": "Em",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Welcome",
+            "itemType": "header",
+            "sequence": 0.5,
+            "servicePosition": "pre",
+            "length": 90,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-24T12:00:00.000Z",
+              "id": "song-2",
+              "title": "amazing grace",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 3,
+            "servicePosition": "pre",
+            "length": 90,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-1",
+              "name": "G -> A",
+              "startingKey": "B",
+              "endingKey": "Ab"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-3",
+            "title": "Prayer",
+            "itemType": "item",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 2400,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "찬양",
+            "itemType": "item",
+            "sequence": 5,
+            "servicePosition": "post",
+            "length": 125,
+            "description": "Intro",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-1",
+              "title": "Way Maker",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-3",
+              "sequence": [],
+              "length": null,
+              "name": "Default"
+            },
+            "id": "item-5",
+            "title": "Build My Life",
+            "itemType": "song",
+            "sequence": 6,
+            "servicePosition": "during",
+            "length": 90,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "Female lead (highest note is C# at bridge)",
+              "startingKey": "Bm",
+              "endingKey": "Bm"
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-2",
+              "title": "It Is Well",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": 125,
+              "name": "Key of G"
+            },
+            "id": "item-6",
+            "title": "Égypte",
+            "itemType": "song",
+            "sequence": 7,
+            "servicePosition": "during",
+            "length": 12.5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": "G -> A",
+              "startingKey": "D",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-7",
+            "title": "Offering",
+            "itemType": "header",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": 0,
+            "description": "",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 10,
+            "itemId": "item-2"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": "찬양",
+            "fromItemId": "item-2",
+            "itemId": "item-5",
+            "level": "smooth"
+          },
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-5",
+            "itemId": "item-6",
+            "level": "smooth"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Announcements",
+            "itemType": "item",
+            "sequence": 0.5,
+            "servicePosition": "during",
+            "length": 61,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-28T14:00:00.000Z",
+              "id": "",
+              "title": "Way Maker",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-1",
+            "title": "Amazing Grace",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "pre",
+            "length": 59,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": " ",
+              "startingKey": "B♭m",
+              "endingKey": null
+            },
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-10-06T10:00:00.000Z",
+              "id": "song-1",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-2",
+              "sequence": [],
+              "length": 0.4,
+              "name": "Acoustic"
+            },
+            "id": "item-2",
+            "title": "Build My Life",
+            "itemType": "song",
+            "sequence": 3,
+            "servicePosition": "post",
+            "length": null,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-4",
+              "name": " ",
+              "startingKey": "A#",
+              "endingKey": "A#"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-3",
+            "title": "Prayer",
+            "itemType": "header",
+            "sequence": 4,
+            "servicePosition": "post",
+            "length": 0,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "Café Fellowship",
+            "itemType": "header",
+            "sequence": 5,
+            "servicePosition": "during",
+            "length": 180,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "D -> null",
+              "startingKey": "A#",
+              "endingKey": null
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 6,
+            "itemId": "item-1"
+          }
+        ],
+        "transitions": [
+          {
+            "bridgedBy": null,
+            "fromItemId": "item-1",
+            "itemId": "item-2",
+            "level": "smooth"
+          }
+        ]
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Announcements",
+            "itemType": "item",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": -5,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": null,
+              "id": "song-2",
+              "title": "Goodness of God",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": {
+              "archivedAt": null,
+              "id": "arr-1",
+              "sequence": [],
+              "length": 90,
+              "name": "Default"
+            },
+            "id": "item-1",
+            "title": "Build My Life",
+            "itemType": "song",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 3600,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "Emily",
+              "startingKey": "A",
+              "endingKey": "A"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Offering",
+            "itemType": "header",
+            "sequence": 3,
+            "servicePosition": "pre",
+            "length": -5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [],
+        "transitions": []
+      }
+    },
+    {
+      "input": {
+        "items": [
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-0",
+            "title": "Benediction",
+            "itemType": "item",
+            "sequence": 1,
+            "servicePosition": "during",
+            "length": -5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-1",
+            "title": "🎸 Jam",
+            "itemType": "header",
+            "sequence": 2,
+            "servicePosition": "during",
+            "length": 0,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-3",
+              "name": "G",
+              "startingKey": "B",
+              "endingKey": "B"
+            },
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-2",
+            "title": "Prayer",
+            "itemType": "media",
+            "sequence": 3,
+            "servicePosition": "during",
+            "length": 300,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-3",
+            "title": "",
+            "itemType": "header",
+            "sequence": 4,
+            "servicePosition": "during",
+            "length": 125,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": null,
+            "arrangement": null,
+            "id": "item-4",
+            "title": "Announcements",
+            "itemType": "item",
+            "sequence": 5,
+            "servicePosition": "during",
+            "length": 60,
+            "description": "Before service",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": null,
+            "layout": null
+          },
+          {
+            "song": {
+              "lastScheduledAt": "2026-09-30T09:00:00.000Z",
+              "id": "song-2",
+              "title": "What a Beautiful Name",
+              "author": "",
+              "themes": ""
+            },
+            "arrangement": null,
+            "id": "item-5",
+            "title": "What a Beautiful Name",
+            "itemType": "song",
+            "sequence": 6,
+            "servicePosition": "pre",
+            "length": 12.5,
+            "description": "Café",
+            "htmlDetails": "",
+            "customArrangementSequence": [],
+            "key": {
+              "id": "key-2",
+              "name": "Emily",
+              "startingKey": "G",
+              "endingKey": "C"
+            },
+            "layout": null
+          }
+        ],
+        "planDate": "2026-10-04T17:00:00.000Z"
+      },
+      "output": {
+        "recentPlays": [
+          {
+            "days": 4,
+            "itemId": "item-5"
+          }
+        ],
+        "transitions": []
+      }
+    }
+  ]
+}

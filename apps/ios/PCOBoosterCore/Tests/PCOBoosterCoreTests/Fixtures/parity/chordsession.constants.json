@@ -1,0 +1,12 @@
+{
+  "suite": "chordsession.constants",
+  "cases": [
+    {
+      "input": null,
+      "output": {
+        "saveAsYouTypePauseMs": 2000,
+        "draftLifetimeMs": 1209600000
+      }
+    }
+  ]
+}

@@ -1,0 +1,4522 @@
+{
+  "suite": "scheduling.windowHistoryAdvanced",
+  "cases": [
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-2"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 1,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-2"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-2"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-2"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-2"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-2"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-2"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 1,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-2",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 1,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-2",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 2,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-2"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [],
+          "serviceTypeIds": [
+            "st-1",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 1,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-2"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": []
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 1,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [],
+          "serviceTypeIds": [
+            "st-1",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 2,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-2"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": []
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-2"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-2",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-2"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": []
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-2",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-2"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-2"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 1,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-2"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 2,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-2",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-2",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-2",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": []
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 1,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": []
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-2",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [],
+          "serviceTypeIds": []
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 2,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": []
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 2,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": []
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 1,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [],
+          "deferredServiceTypeIds": [
+            "st-2",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-2",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-2",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 2,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-2"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-2"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-2",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": []
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": []
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-2"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": []
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 2,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-2",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [],
+          "serviceTypeIds": [
+            "st-1",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 1,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-2",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-2"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [],
+          "serviceTypeIds": [
+            "st-1"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-2",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-2",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 2,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-2",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 1,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-2"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-2",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-2",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-2"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 2,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-2"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-2"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 1,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1",
+            "st-2",
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-2"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": []
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 2,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-3",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 2,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": []
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [],
+          "serviceTypeIds": [
+            "st-3"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": [
+            "st-1"
+          ]
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-2",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "continuation": {
+          "plans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-3",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-4",
+              "rosterRequests": 1
+            }
+          ],
+          "serviceTypeIds": []
+        },
+        "batch": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "loadedPlanCount": 0,
+          "plans": [
+            {
+              "id": "plan-0",
+              "title": "Two weeks ago",
+              "sortDate": "2026-09-13T17:00:00.000Z",
+              "serviceTypeName": "Sunday"
+            }
+          ],
+          "planTimes": [],
+          "people": [
+            {
+              "personId": "p-busy",
+              "rows": [
+                {
+                  "id": "pp-0",
+                  "planId": "plan-0",
+                  "teamId": "team-1",
+                  "teamPositionName": "Keys",
+                  "status": "C",
+                  "createdAt": "2026-09-27T17:00:00.000Z",
+                  "timeIds": [],
+                  "serviceTimeIds": [],
+                  "declineReason": null
+                }
+              ]
+            }
+          ],
+          "deferredPlans": [
+            {
+              "serviceTypeId": "st-1",
+              "planId": "plan-1",
+              "rosterRequests": 1
+            },
+            {
+              "serviceTypeId": "st-2",
+              "planId": "plan-2",
+              "rosterRequests": 1
+            }
+          ],
+          "deferredServiceTypeIds": [
+            "st-1",
+            "st-3"
+          ],
+          "requestBudget": {
+            "limit": 36,
+            "planningCenterRequests": 3,
+            "planRangeRequests": 1,
+            "rosterRequests": 1
+          }
+        }
+      },
+      "output": true
+    }
+  ]
+}

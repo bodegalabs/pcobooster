@@ -1,0 +1,33 @@
+{
+  "suite": "account.signOutLabel",
+  "cases": [
+    {
+      "input": {
+        "demo": false,
+        "pending": false
+      },
+      "output": "Sign out"
+    },
+    {
+      "input": {
+        "demo": false,
+        "pending": true
+      },
+      "output": "Signing out…"
+    },
+    {
+      "input": {
+        "demo": true,
+        "pending": false
+      },
+      "output": "Exit demo"
+    },
+    {
+      "input": {
+        "demo": true,
+        "pending": true
+      },
+      "output": "Leaving demo…"
+    }
+  ]
+}

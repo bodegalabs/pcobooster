@@ -1,0 +1,181 @@
+{
+  "suite": "people.search.normalizePeopleQuery",
+  "cases": [
+    {
+      "input": "",
+      "output": ""
+    },
+    {
+      "input": "  VOCALS ",
+      "output": "vocals"
+    },
+    {
+      "input": "vocals",
+      "output": "vocals"
+    },
+    {
+      "input": "bass",
+      "output": "bass"
+    },
+    {
+      "input": "BASS",
+      "output": "bass"
+    },
+    {
+      "input": "ana",
+      "output": "ana"
+    },
+    {
+      "input": "ána",
+      "output": "ána"
+    },
+    {
+      "input": "lopez",
+      "output": "lopez"
+    },
+    {
+      "input": "á",
+      "output": "á"
+    },
+    {
+      "input": "a",
+      "output": "a"
+    },
+    {
+      "input": "e",
+      "output": "e"
+    },
+    {
+      "input": "zoe",
+      "output": "zoe"
+    },
+    {
+      "input": "zoë",
+      "output": "zoë"
+    },
+    {
+      "input": "o'brien",
+      "output": "o'brien"
+    },
+    {
+      "input": "lee chan",
+      "output": "lee chan"
+    },
+    {
+      "input": "lee chan",
+      "output": "lee chan"
+    },
+    {
+      "input": "οδυσσευς",
+      "output": "οδυσσευς"
+    },
+    {
+      "input": "οδυσσευσ",
+      "output": "οδυσσευσ"
+    },
+    {
+      "input": "οδυσσέας σ",
+      "output": "οδυσσέας σ"
+    },
+    {
+      "input": "ς",
+      "output": "ς"
+    },
+    {
+      "input": "σ",
+      "output": "σ"
+    },
+    {
+      "input": "i̇lker",
+      "output": "i̇lker"
+    },
+    {
+      "input": "ilker",
+      "output": "ilker"
+    },
+    {
+      "input": "straße",
+      "output": "straße"
+    },
+    {
+      "input": "strasse",
+      "output": "strasse"
+    },
+    {
+      "input": "fi",
+      "output": "fi"
+    },
+    {
+      "input": "ﬁ",
+      "output": "ﬁ"
+    },
+    {
+      "input": "band vocals",
+      "output": "band vocals"
+    },
+    {
+      "input": "kids",
+      "output": "kids"
+    },
+    {
+      "input": "张",
+      "output": "张"
+    },
+    {
+      "input": "민준",
+      "output": "민준"
+    },
+    {
+      "input": "иван",
+      "output": "иван"
+    },
+    {
+      "input": "🙏",
+      "output": "🙏"
+    },
+    {
+      "input": " ",
+      "output": ""
+    },
+    {
+      "input": "\t",
+      "output": ""
+    },
+    {
+      "input": "x\u2013y",
+      "output": "x\u2013y"
+    },
+    {
+      "input": "sam",
+      "output": "sam"
+    },
+    {
+      "input": "ΟΔΥΣΣΕΥΣ",
+      "output": "οδυσσευς"
+    },
+    {
+      "input": "ΑΣ'Β",
+      "output": "ασ'β"
+    },
+    {
+      "input": "ΣΑΣ ΚΑΙ",
+      "output": "σας και"
+    },
+    {
+      "input": "İSTANBUL",
+      "output": "i̇stanbul"
+    },
+    {
+      "input": " Keys　",
+      "output": "keys"
+    },
+    {
+      "input": "ǅ",
+      "output": "ǆ"
+    },
+    {
+      "input": "ẞ",
+      "output": "ß"
+    }
+  ]
+}

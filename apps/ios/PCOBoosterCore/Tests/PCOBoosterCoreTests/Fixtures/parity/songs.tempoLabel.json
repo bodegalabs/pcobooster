@@ -1,0 +1,129 @@
+{
+  "suite": "songs.tempoLabel",
+  "cases": [
+    {
+      "input": {},
+      "output": ""
+    },
+    {
+      "input": {
+        "arrangement": {
+          "id": "both",
+          "name": "Default",
+          "sequence": [],
+          "length": 333,
+          "bpm": 72,
+          "meter": "4/4",
+          "archived": false,
+          "keys": []
+        }
+      },
+      "output": "72 bpm · 4/4"
+    },
+    {
+      "input": {
+        "arrangement": {
+          "id": "bpm",
+          "name": "Default",
+          "sequence": [],
+          "length": 333,
+          "bpm": 72,
+          "meter": null,
+          "archived": false,
+          "keys": []
+        }
+      },
+      "output": "72 bpm"
+    },
+    {
+      "input": {
+        "arrangement": {
+          "id": "meter",
+          "name": "Default",
+          "sequence": [],
+          "length": 333,
+          "bpm": null,
+          "meter": "4/4",
+          "archived": false,
+          "keys": []
+        }
+      },
+      "output": "4/4"
+    },
+    {
+      "input": {
+        "arrangement": {
+          "id": "neither",
+          "name": "Default",
+          "sequence": [],
+          "length": 333,
+          "bpm": null,
+          "meter": null,
+          "archived": false,
+          "keys": []
+        }
+      },
+      "output": ""
+    },
+    {
+      "input": {
+        "arrangement": {
+          "id": "empty-meter",
+          "name": "Default",
+          "sequence": [],
+          "length": 333,
+          "bpm": null,
+          "meter": "",
+          "archived": false,
+          "keys": []
+        }
+      },
+      "output": ""
+    },
+    {
+      "input": {
+        "arrangement": {
+          "id": "fraction",
+          "name": "Default",
+          "sequence": [],
+          "length": 333,
+          "bpm": 72.5,
+          "meter": "6/8",
+          "archived": false,
+          "keys": []
+        }
+      },
+      "output": "72.5 bpm · 6/8"
+    },
+    {
+      "input": {
+        "arrangement": {
+          "id": "zero",
+          "name": "Default",
+          "sequence": [],
+          "length": 333,
+          "bpm": 0,
+          "meter": "3/4",
+          "archived": false,
+          "keys": []
+        }
+      },
+      "output": "0 bpm · 3/4"
+    },
+    {
+      "input": {
+        "arrangement": {
+          "id": "big",
+          "name": "Default",
+          "sequence": [],
+          "length": 333,
+          "bpm": 1e+21,
+          "meter": null,
+          "archived": false,
+          "keys": []
+        }
+      },
+      "output": "1e+21 bpm"
+    }
+  ]
+}

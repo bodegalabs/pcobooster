@@ -1,0 +1,57 @@
+{
+  "suite": "people.teamHealth.dueThresholdDays",
+  "cases": [
+    {
+      "input": null,
+      "output": 42
+    },
+    {
+      "input": 0,
+      "output": 42
+    },
+    {
+      "input": 7,
+      "output": 42
+    },
+    {
+      "input": 27.9,
+      "output": 42
+    },
+    {
+      "input": 28,
+      "output": 42
+    },
+    {
+      "input": 28.3,
+      "output": 42
+    },
+    {
+      "input": 29,
+      "output": 44
+    },
+    {
+      "input": 41.9,
+      "output": 63
+    },
+    {
+      "input": 42,
+      "output": 63
+    },
+    {
+      "input": 42.3,
+      "output": 63
+    },
+    {
+      "input": 60,
+      "output": 90
+    },
+    {
+      "input": 0.5,
+      "output": 42
+    },
+    {
+      "input": 180,
+      "output": 270
+    }
+  ]
+}
