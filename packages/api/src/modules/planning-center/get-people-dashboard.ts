@@ -1,4 +1,4 @@
-import { logger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import type {
   PeopleDashboardActivity,
   PeopleDashboardActivityBatch,
@@ -68,7 +68,7 @@ const SCHEDULE_HISTORY_DAYS = RHYTHM_HISTORY_DAYS + 1;
 const FUTURE_WINDOW_DAYS = 366;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const log = logger.for("planning-center/people-dashboard");
+const log = moduleLog("planning-center/people-dashboard");
 
 export interface PeopleDashboardRosterDependencies {
   readonly peopleService: Pick<
@@ -530,14 +530,11 @@ export const getPeopleDashboardRoster = ({
               ? [team.id]
               : []
           );
-    log.info(
-      {
-        rosterPeopleCount: people.length,
-        teamCount: teams.length,
-        ledTeamCount: ledTeamIds.length,
-      },
-      "People dashboard roster read"
-    );
+    yield* log.info("People dashboard roster read", {
+      rosterPeopleCount: people.length,
+      teamCount: teams.length,
+      ledTeamCount: ledTeamIds.length,
+    });
     return {
       generatedAt: now.toISOString(),
       month: getMonthInfo(now, orgTimeZone),
@@ -755,20 +752,17 @@ export const getPeopleDashboardActivity = ({
       scheduleRequests: afterSchedules - beforeSchedules,
       planTimeRequests: spent - afterSchedules,
     };
-    log.info(
-      {
-        ...requestBudget,
-        requestedPeopleCount: uniquePersonIds.length,
-        hydratedPeopleCount: people.length,
-        deferredPeopleCount: deferred.size,
-        unreadFirstPersonServiceTypeCount: unreadFirstPersonTypes,
-        // Full reads may have stopped at the page cap, dropping oldest history.
-        scheduleCapReachedPeopleCount: schedules.filter(
-          ({ data }) => data.length >= SCHEDULE_MAX_PAGES * SCHEDULE_PAGE_SIZE
-        ).length,
-      },
-      "People dashboard activity read"
-    );
+    yield* log.info("People dashboard activity read", {
+      ...requestBudget,
+      requestedPeopleCount: uniquePersonIds.length,
+      hydratedPeopleCount: people.length,
+      deferredPeopleCount: deferred.size,
+      unreadFirstPersonServiceTypeCount: unreadFirstPersonTypes,
+      // Full reads may have stopped at the page cap, dropping oldest history.
+      scheduleCapReachedPeopleCount: schedules.filter(
+        ({ data }) => data.length >= SCHEDULE_MAX_PAGES * SCHEDULE_PAGE_SIZE
+      ).length,
+    });
     return {
       generatedAt: now.toISOString(),
       people,

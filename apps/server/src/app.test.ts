@@ -1,4 +1,5 @@
 import { ORPCError, os } from "@orpc/server";
+import type { BoundaryLog } from "@pcobooster/api/logging";
 import type { ReportRequestError } from "@pcobooster/api/modules/analytics/posthog-exception";
 import { appRouter } from "@pcobooster/api/orpc";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
@@ -15,15 +16,7 @@ const server = testServer({
 const recordedAt = new Date("2026-09-19T12:34:56.000Z");
 const privateNoStore = "private, no-store";
 type TestAuthHandler = (request: Request) => Promise<Response> | Response;
-type TestErrorLogger = (
-  bindings: {
-    err: unknown;
-    requestId?: string;
-    path?: string;
-    method?: string;
-  },
-  message: string
-) => void;
+type TestErrorLogger = BoundaryLog["error"];
 
 const testProcedure = os.$context<{ resHeaders?: Headers }>();
 
@@ -194,12 +187,13 @@ describe(createServerApp, () => {
     await app.request(rpcRequest("defect", "request-123"));
 
     expect(log.error).toHaveBeenCalledWith(
-      expect.objectContaining({
+      "oRPC request failed",
+      {
         requestId: "request-123",
         path: "/api/rpc/defect",
         method: "POST",
-      }),
-      "oRPC request failed"
+      },
+      expect.any(Error)
     );
   });
 
@@ -248,8 +242,9 @@ describe(createServerApp, () => {
 
     expect(response.status).toBe(500);
     expect(log.error).toHaveBeenCalledWith(
+      "Failed to report exception to PostHog",
       expect.objectContaining({ path: "/api/rpc/defect" }),
-      "Failed to report exception to PostHog"
+      expect.any(Error)
     );
   });
 

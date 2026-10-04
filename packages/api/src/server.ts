@@ -5,7 +5,7 @@ import type { DeploymentTier } from "@pcobooster/api/config/feature-flags";
 import type { ServerConfig } from "@pcobooster/api/config/server-config";
 import { createDatabase } from "@pcobooster/api/db/client";
 import type { Db } from "@pcobooster/api/db/client";
-import { logger } from "@pcobooster/api/logger";
+import { boundaryLog } from "@pcobooster/api/logging";
 import { getPlanningCenterAccountIdentity } from "@pcobooster/api/modules/admin/planning-center-account-identities";
 import {
   createFlagshipFeatureFlags,
@@ -53,8 +53,8 @@ export type FeatureFlagSource =
   | { readonly kind: "flagship"; readonly binding: FlagshipBinding }
   | { readonly kind: "registry"; readonly tier: DeploymentTier };
 
-const featureFlagLog = logger.for("feature-flags");
-const readCacheLog = logger.for("planning-center-cache");
+const featureFlagLog = boundaryLog("feature-flags");
+const readCacheLog = boundaryLog("planning-center-cache");
 
 const createFeatureFlags = (
   source: FeatureFlagSource,
@@ -73,8 +73,9 @@ const createFeatureFlags = (
         },
         reportFailure: ({ cause, ...failure }) => {
           featureFlagLog.error(
-            { ...failure, err: cause },
-            "Feature flag evaluation failed; serving off"
+            "Feature flag evaluation failed; serving off",
+            { ...failure },
+            cause ?? undefined
           );
         },
       });
@@ -95,7 +96,7 @@ export const createServerDependencies = (
     planningCenterReadCaches: createPlanningCenterReadCaches({
       store: planningCenterReadStore,
       reportError: (message, error) => {
-        readCacheLog.warn({ err: error }, message);
+        readCacheLog.warn(message, {}, error);
       },
     }),
     moduleReadCaches: createModuleReadCaches(),

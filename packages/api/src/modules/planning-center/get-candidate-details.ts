@@ -1,4 +1,4 @@
-import { logger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import { mapSchedulesToServiceHistory } from "@pcobooster/api/modules/planning-center/people/history";
 import { scheduleResourceSchema } from "@pcobooster/api/modules/planning-center/people/resource-schemas";
 import { selectedPlanAssignmentsFor } from "@pcobooster/api/modules/planning-center/people/selected-plan-assignments";
@@ -30,7 +30,7 @@ import type {
 } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
-const log = logger.for("planning-center/candidate-details");
+const log = moduleLog("planning-center/candidate-details");
 
 /**
  * Schedules are read from the start of the plan window in date order, so the first page (100
@@ -415,16 +415,13 @@ export const getCandidateDetails = (
         planTimeRequests: spent - afterBlockoutDates,
       },
     };
-    log.info(
-      {
-        ...batch.requestBudget,
-        requestedPeopleCount: uniquePersonIds.length,
-        detailedPeopleCount: details.length,
-        deferredPeopleCount: deferredPersonIds.length,
-        advancedPeopleCount: nextProgress.length,
-        unreadRehearsalPlanCount: unreadRehearsalPlans,
-      },
-      "Candidate details read"
-    );
+    yield* log.info("Candidate details read", {
+      ...batch.requestBudget,
+      requestedPeopleCount: uniquePersonIds.length,
+      detailedPeopleCount: details.length,
+      deferredPeopleCount: deferredPersonIds.length,
+      advancedPeopleCount: nextProgress.length,
+      unreadRehearsalPlanCount: unreadRehearsalPlans,
+    });
     return batch;
   }).pipe(withPlanningCenterRequestCount);

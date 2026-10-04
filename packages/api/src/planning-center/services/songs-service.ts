@@ -1,4 +1,4 @@
-import { logger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import type {
   PlanningCenterCoreClient,
   PlanningCenterError,
@@ -11,7 +11,7 @@ import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
-const log = logger.for("planning-center/songs");
+const log = moduleLog("planning-center/songs");
 /** Songs change rarely; this app writes only arrangement chord charts. */
 const DEFAULT_CATALOG_TTL_MS = 60 * 60 * 1000;
 export const DEFAULT_CATALOG_MAX_PAGES = 15;
@@ -90,11 +90,9 @@ export class PlanningCenterSongsService {
         .fetchAll("/services/v2/songs", { order: "title" }, maxPages)
         .pipe(
           Effect.tap((songs) =>
-            Effect.sync(() => {
-              log.info(
-                { cacheKey: scopedCacheKey, songCount: songs.length },
-                "Songs catalog cached"
-              );
+            log.info("Songs catalog cached", {
+              cacheKey: scopedCacheKey,
+              songCount: songs.length,
             })
           )
         );

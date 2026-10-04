@@ -1,23 +1,21 @@
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
-import type {
-  PlanningCenterLogFields,
-  PlanningCenterLogger,
-} from "@pcobooster/api/planning-center/request-accounting";
 import { PLANNING_CENTER_REQUEST_CAP } from "@pcobooster/api/planning-center/request-budget";
+import { recordLogs } from "@pcobooster/api/testing/logs";
+import type { LoggedLine } from "@pcobooster/api/testing/logs";
 import { accountPlanningCenterProcedure } from "@pcobooster/api/transport/orpc/planning-center-accounting";
+import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
 const recordingLogger = () => {
-  const lines: { message: string; fields: PlanningCenterLogFields }[] = [];
-  const logger: PlanningCenterLogger = {
-    info: (fields, message) => {
+  const { lines: logged, capture } = recordLogs();
+  const lines: Pick<LoggedLine, "message" | "fields">[] = [];
+  const writeLog = (line: Effect.Effect<void>) => {
+    Effect.runSync(capture(line));
+    for (const { message, fields } of logged.splice(0)) {
       lines.push({ message, fields });
-    },
-    warn: (fields, message) => {
-      lines.push({ message, fields });
-    },
+    }
   };
-  return { lines, logger };
+  return { lines, writeLog };
 };
 
 /** A clock that advances 25 ms per reading. */
@@ -36,7 +34,7 @@ const procedure = {
 
 describe(accountPlanningCenterProcedure, () => {
   it("logs one summary for a procedure that called Planning Center", async () => {
-    const { lines, logger } = recordingLogger();
+    const { lines, writeLog } = recordingLogger();
     const result = await accountPlanningCenterProcedure(
       procedure,
       async (accounting) => {
@@ -46,7 +44,7 @@ describe(accountPlanningCenterProcedure, () => {
         accounting.recordRateLimited();
         return await Promise.resolve("done");
       },
-      { logger, requestBudget: 40, now: steppingClock() }
+      { writeLog, requestBudget: 40, now: steppingClock() }
     );
     expect(result).toBe("done");
     expect(lines).toStrictEqual([
@@ -73,7 +71,7 @@ describe(accountPlanningCenterProcedure, () => {
   });
 
   it("logs the summary of a failed procedure and rethrows", async () => {
-    const { lines, logger } = recordingLogger();
+    const { lines, writeLog } = recordingLogger();
     const failure = new Error("provider down");
     await expect(
       accountPlanningCenterProcedure(
@@ -82,7 +80,7 @@ describe(accountPlanningCenterProcedure, () => {
           accounting.recordRequest();
           await Promise.reject(failure);
         },
-        { logger, now: steppingClock() }
+        { writeLog, now: steppingClock() }
       )
     ).rejects.toBe(failure);
     expect(lines).toMatchObject([
@@ -111,7 +109,7 @@ describe(accountPlanningCenterProcedure, () => {
   });
 
   it("gives the pacer and the summary the browser's priority", async () => {
-    const { lines, logger } = recordingLogger();
+    const { lines, writeLog } = recordingLogger();
     let received: PlanningCenterRequestAccounting | undefined;
     await accountPlanningCenterProcedure(
       { ...procedure, priority: "speculative" },
@@ -120,7 +118,7 @@ describe(accountPlanningCenterProcedure, () => {
         accounting.recordRateLimitRejection();
         await Promise.resolve();
       },
-      { logger }
+      { writeLog }
     );
     expect(received?.priority).toBe("speculative");
     expect(lines).toMatchObject([
@@ -134,19 +132,19 @@ describe(accountPlanningCenterProcedure, () => {
   });
 
   it("stays quiet for procedures that never called Planning Center", async () => {
-    const { lines, logger } = recordingLogger();
+    const { lines, writeLog } = recordingLogger();
     await accountPlanningCenterProcedure(
       procedure,
       async () => {
         await Promise.resolve();
       },
-      { logger }
+      { writeLog }
     );
     expect(lines).toStrictEqual([]);
   });
 
   it("reuses accounting that an outer middleware already provides", async () => {
-    const { lines, logger } = recordingLogger();
+    const { lines, writeLog } = recordingLogger();
     const existing = new PlanningCenterRequestAccounting();
     let received: PlanningCenterRequestAccounting | undefined;
     await accountPlanningCenterProcedure(
@@ -156,7 +154,7 @@ describe(accountPlanningCenterProcedure, () => {
         accounting.recordRequest();
         await Promise.resolve();
       },
-      { logger }
+      { writeLog }
     );
     expect(received).toBe(existing);
     expect(lines).toStrictEqual([]);

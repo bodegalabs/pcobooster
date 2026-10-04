@@ -12,6 +12,7 @@ import type { PlanningCenterProfile } from "@pcobooster/api/auth/native-sign-in.
 import { PLANNING_CENTER_SELECTED_ACCOUNT_HEADER } from "@pcobooster/api/auth/planning-center-session";
 import { createDatabase } from "@pcobooster/api/db/client";
 import { account } from "@pcobooster/api/db/schema";
+import type { BoundaryLog } from "@pcobooster/api/logging";
 import { appRouter } from "@pcobooster/api/orpc";
 import type { ServerDependencies } from "@pcobooster/api/server";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
@@ -24,7 +25,7 @@ import { createServerApp } from "./app";
 import { serveForTest } from "./test-app";
 import type { TestServerApp } from "./test-app";
 
-type TestErrorLogger = (bindings: { err: unknown }, message: string) => void;
+type TestErrorLogger = BoundaryLog["error"];
 
 const { runtime, binding } = await createLocalD1("native-sign-in-app");
 const database = createDatabase(binding);

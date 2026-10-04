@@ -1,4 +1,4 @@
-import { logger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import {
   getSelectedPlanRosterOverlay,
   mergeAssignedAndSelectedPlanSlotPeople,
@@ -18,7 +18,7 @@ import type {
 } from "@pcobooster/planning-center-models/position-candidates";
 import { Effect } from "effect";
 
-const log = logger.for("planning-center/position-candidates");
+const log = moduleLog("planning-center/position-candidates");
 
 export interface PositionCandidatesInput {
   readonly serviceTypeId: string;
@@ -112,7 +112,9 @@ export const getPositionCandidates = (
         },
       ];
     });
-    log.info({ candidateCount: candidates.length }, "Position candidates read");
+    yield* log.info("Position candidates read", {
+      candidateCount: candidates.length,
+    });
     return {
       generatedAt: new Date().toISOString(),
       timeZone,
