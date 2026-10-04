@@ -278,6 +278,93 @@ describe(getPeopleDashboardActivity, () => {
     vi.useRealTimers();
   });
 
+  it("bounds resource scans independently of schedule count and keeps the first time", async () => {
+    vi.useFakeTimers({ now: new Date("2026-05-23T12:00:00Z") });
+    let resourceReads = 0;
+    const included: PCResource[] = Array.from({ length: 100 }, (_, index) => ({
+      get type() {
+        resourceReads += 1;
+        return "Person";
+      },
+      id: index === 0 ? "service" : `unrelated-${index}`,
+      attributes: {},
+    }));
+    included.push(
+      planTime("service", "service", "2026-05-10T17:00:00Z"),
+      planTime("service", "rehearsal", "2026-05-11T17:00:00Z")
+    );
+    const data = Array.from({ length: 100 }, (_, index) =>
+      schedule(`past-${index}`, "2026-05-10T17:00:00Z", {
+        timeIds: ["service", "service"],
+      })
+    );
+    const { dependencies: base } = activityDependencies({});
+    const dependencies: PeopleDashboardActivityDependencies = {
+      ...base,
+      peopleService: {
+        getPersonSchedulesAfter: () =>
+          countedRead({ data, included: [] }).pipe(
+            Effect.map((response) => ({ ...response, included }))
+          ),
+      },
+    };
+    const batch = await Effect.runPromise(
+      getPeopleDashboardActivity({ personIds: ["person-1"], dependencies })
+    );
+    expect(batch.people[0]?.rhythm).toMatchObject({
+      servedDays30: 1,
+      lastServedOn: "2026-05-10",
+    });
+    expect(batch.people[0]?.monthDays).toHaveLength(1);
+    expect(batch.people[0]?.monthDays[0]).toMatchObject({
+      day: 10,
+      kind: "service",
+    });
+    expect(resourceReads).toBeLessThanOrEqual(included.length * 3);
+  });
+
+  it("maps each schedule's time once for both activity and rhythm", async () => {
+    vi.useFakeTimers({ now: new Date("2026-05-23T12:00:00Z") });
+    let timeReads = 0;
+    const included: PCResource = {
+      type: "PlanTime",
+      id: "service",
+      attributes: {
+        time_type: "service",
+        get starts_at() {
+          timeReads += 1;
+          return "2026-05-10T17:00:00Z";
+        },
+      },
+    };
+    const { dependencies: base } = activityDependencies({});
+    const dependencies: PeopleDashboardActivityDependencies = {
+      ...base,
+      peopleService: {
+        getPersonSchedulesAfter: () =>
+          countedRead({
+            data: [
+              schedule("past", "2026-05-10T17:00:00Z", {
+                timeIds: ["service"],
+              }),
+            ],
+            included: [],
+          }).pipe(
+            Effect.map((response) => ({ ...response, included: [included] }))
+          ),
+      },
+    };
+    const batch = await Effect.runPromise(
+      getPeopleDashboardActivity({ personIds: ["person-1"], dependencies })
+    );
+    expect(batch.people[0]).toMatchObject({
+      roles: ["Vocals"],
+      rhythm: { servedDays30: 1, lastServedOn: "2026-05-10" },
+      monthDays: [{ day: 10 }],
+    });
+    expect(timeReads).toBe(1);
+  });
+
   it("reads the rhythm, roles, and month from schedules after the history window start", async () => {
     vi.useFakeTimers({ now: new Date("2026-05-23T12:00:00.000Z") });
     const { dependencies, getPersonSchedulesAfter } = activityDependencies({
