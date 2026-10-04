@@ -143,6 +143,22 @@ describe(createIntentPrefetcher, () => {
     expect(calls).toStrictEqual(["a", "b"]);
   });
 
+  it("lets a started prefetch finish after intent leaves", async () => {
+    const { calls, deferreds, prefetcher } = setup();
+
+    prefetcher.start("a");
+    await vi.advanceTimersByTimeAsync(INTENT_PREFETCH_DWELL_MS);
+    prefetcher.end("a");
+    prefetcher.start("b");
+    await vi.advanceTimersByTimeAsync(INTENT_PREFETCH_DWELL_MS);
+    expect(calls).toStrictEqual(["a"]);
+
+    await settle(deferreds[0]);
+    prefetcher.start("b");
+    await vi.advanceTimersByTimeAsync(INTENT_PREFETCH_DWELL_MS);
+    expect(calls).toStrictEqual(["a", "b"]);
+  });
+
   it("never prefetches a row whose data is fresh", async () => {
     const { calls, prefetcher } = setup({ fresh: new Set(["a"]) });
 
@@ -230,6 +246,28 @@ describe("intent prefetches waiting in a lane", () => {
     await lane.open();
 
     expect(calls).toStrictEqual([]);
+  });
+
+  it("drops a waiting prefetch when intent leaves its target", async () => {
+    const { calls, lane, prefetcher } = setupWithLane();
+
+    prefetcher.start("a");
+    await vi.advanceTimersByTimeAsync(INTENT_PREFETCH_DWELL_MS);
+    prefetcher.end("a");
+    await lane.open();
+
+    expect(calls).toStrictEqual([]);
+  });
+
+  it("keeps a waiting prefetch when an unrelated target loses intent", async () => {
+    const { calls, lane, prefetcher } = setupWithLane();
+
+    prefetcher.start("a");
+    await vi.advanceTimersByTimeAsync(INTENT_PREFETCH_DWELL_MS);
+    prefetcher.end("b");
+    await lane.open();
+
+    expect(calls).toStrictEqual(["a"]);
   });
 
   it("skips a target that loaded while its prefetch waited", async () => {
