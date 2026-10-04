@@ -8,6 +8,8 @@ import {
   planningCenterFault,
   withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
+import { PlanningCenterCatalog } from "@pcobooster/api/application/planning-center/catalog";
+import { PlanningCenterPeople } from "@pcobooster/api/application/planning-center/people";
 import {
   matchesScheduleTarget,
   resolveScheduleTarget,
@@ -37,14 +39,15 @@ export const prepareScheduledPerson = (
 ): Effect.Effect<
   ScheduleAssignmentPreparation,
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterCatalog | PlanningCenterPeople
 > =>
   Effect.gen(function* preparePerson() {
-    const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
+    const catalogService = yield* PlanningCenterCatalog;
     const normalizedInput = { ...input, oneOff: input.oneOff ?? false };
     const target = yield* resolveScheduleTarget(normalizedInput, {
-      catalog: access.services.catalog,
-      people: access.services.people,
+      catalog: catalogService,
+      people: peopleService,
     });
     return { target };
   }).pipe(withPlanningCenterFaults);
@@ -59,14 +62,15 @@ export const commitScheduledPerson = (
 ): Effect.Effect<
   { readonly success: true; readonly data: { readonly id: string } },
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterAccess | PlanningCenterPeople | RequestContext
 > =>
   Effect.gen(function* commitPerson() {
     const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
     yield* ensureRequestIsOpen;
     // The scheduling transport does not interrupt this provider mutation,
     // so its outcome is audited accurately.
-    const created = yield* access.services.people
+    const created = yield* peopleService
       .createPlanPerson(
         input.serviceTypeId,
         input.personId,
@@ -81,8 +85,8 @@ export const commitScheduledPerson = (
               "has already been scheduled for this position"
             )
           ) {
-            access.services.people.invalidateScheduleReadCaches(input);
-            access.services.people.invalidatePlanWindowRosters();
+            peopleService.invalidateScheduleReadCaches(input);
+            peopleService.invalidatePlanWindowRosters();
             return Effect.fail(
               new AlreadyScheduled({
                 message:
@@ -95,8 +99,8 @@ export const commitScheduledPerson = (
         })
       );
 
-    access.services.people.invalidateScheduleReadCaches(input);
-    access.services.people.invalidatePlanWindowRosters();
+    peopleService.invalidateScheduleReadCaches(input);
+    peopleService.invalidatePlanWindowRosters();
     const name = created.attributes.team_position_name;
     const createdPositionName = isString(name) ? name : "";
 
@@ -149,15 +153,15 @@ export const removeScheduledPerson = (
 ): Effect.Effect<
   { readonly success: true },
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterPeople | RequestContext
 > =>
   Effect.gen(function* removePerson() {
-    const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
     yield* ensureRequestIsOpen;
     yield* reportMissingPlanPerson(
-      access.services.people.deletePlanPerson(input.planPersonId, input)
+      peopleService.deletePlanPerson(input.planPersonId, input)
     );
-    access.services.people.invalidatePlanWindowRosters();
+    peopleService.invalidatePlanWindowRosters();
     return { success: true as const };
   }).pipe(withPlanningCenterFaults);
 
@@ -166,18 +170,18 @@ export const updateScheduledPersonStatus = (
 ): Effect.Effect<
   { readonly success: true },
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterPeople | RequestContext
 > =>
   Effect.gen(function* updateStatus() {
-    const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
     yield* ensureRequestIsOpen;
     yield* reportMissingPlanPerson(
-      access.services.people.updatePlanPersonStatus(
+      peopleService.updatePlanPersonStatus(
         input.planPersonId,
         input.status,
         input
       )
     );
-    access.services.people.invalidatePlanWindowRosters();
+    peopleService.invalidatePlanWindowRosters();
     return { success: true as const };
   }).pipe(withPlanningCenterFaults);

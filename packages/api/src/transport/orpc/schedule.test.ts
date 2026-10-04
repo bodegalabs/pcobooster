@@ -4,7 +4,7 @@ import {
   RequestContext,
 } from "@pcobooster/api/application/context";
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
-import { PlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
+import { provideAccess } from "@pcobooster/api/application/planning-center-access";
 import {
   commitScheduledPerson,
   prepareScheduledPerson,
@@ -167,24 +167,14 @@ describe("scheduling oRPC transport", () => {
       );
     const prepareAssignment = async () =>
       await Effect.runPromise(
-        withRequestContext(
-          Effect.provideService(
-            prepareScheduledPerson(input),
-            PlanningCenterAccess,
-            access
-          )
-        )
+        withRequestContext(provideAccess(prepareScheduledPerson(input), access))
       );
     const commitAssignment = async (
       preparation: Awaited<ReturnType<typeof prepareAssignment>>
     ) =>
       await Effect.runPromise(
         withRequestContext(
-          Effect.provideService(
-            commitScheduledPerson(input, preparation),
-            PlanningCenterAccess,
-            access
-          )
+          provideAccess(commitScheduledPerson(input, preparation), access)
         )
       );
     const assign = async () =>
@@ -198,18 +188,13 @@ describe("scheduling oRPC transport", () => {
     };
     await Effect.runPromise(
       withRequestContext(
-        Effect.provideService(
-          removeScheduledPerson(existingInput),
-          PlanningCenterAccess,
-          access
-        )
+        provideAccess(removeScheduledPerson(existingInput), access)
       )
     );
     await Effect.runPromise(
       withRequestContext(
-        Effect.provideService(
+        provideAccess(
           updateScheduledPersonStatus({ ...existingInput, status: "C" }),
-          PlanningCenterAccess,
           access
         )
       )
@@ -226,9 +211,8 @@ describe("scheduling oRPC transport", () => {
     const duplicate = await Effect.runPromise(
       Effect.result(
         withRequestContext(
-          Effect.provideService(
+          provideAccess(
             commitScheduledPerson(input, duplicatePreparation),
-            PlanningCenterAccess,
             access
           )
         )

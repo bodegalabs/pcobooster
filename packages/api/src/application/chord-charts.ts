@@ -6,6 +6,7 @@ import {
   explainPlanningCenterDenial,
   withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
+import { PlanningCenterSongs } from "@pcobooster/api/application/planning-center/songs";
 import { searchLyrics } from "@pcobooster/api/modules/lyrics/lrclib-search";
 import type { LyricsSearchDependencies } from "@pcobooster/api/modules/lyrics/lrclib-search";
 import {
@@ -47,12 +48,13 @@ export const readChordChartSong = (
 ): Effect.Effect<
   ChordChartSongOutput,
   ApplicationFault,
-  ChordChartRequirements
+  PlanningCenterAccess | PlanningCenterSongs | Server
 > =>
   Effect.gen(function* readSongCharts() {
     const access = yield* PlanningCenterAccess;
+    const songsService = yield* PlanningCenterSongs;
     yield* requireFeatureFlag(access, "chordCharts");
-    return yield* getChordChartSong(input.songId, access.services.songs);
+    return yield* getChordChartSong(input.songId, songsService);
   }).pipe(viewDenied, withPlanningCenterFaults);
 
 export const prepareChordChartSave = (
@@ -60,12 +62,13 @@ export const prepareChordChartSave = (
 ): Effect.Effect<
   PreparedChordChartUpdate,
   ApplicationFault,
-  ChordChartRequirements
+  PlanningCenterAccess | PlanningCenterSongs | Server
 > =>
   Effect.gen(function* prepareSave() {
     const access = yield* PlanningCenterAccess;
+    const songsService = yield* PlanningCenterSongs;
     yield* requireFeatureFlag(access, "chordCharts");
-    return yield* prepareChordChartUpdate(input, access.services.songs);
+    return yield* prepareChordChartUpdate(input, songsService);
   }).pipe(viewDenied, withPlanningCenterFaults);
 
 export const commitChordChartSave = (
@@ -73,11 +76,11 @@ export const commitChordChartSave = (
 ): Effect.Effect<
   ChordChartArrangement,
   ApplicationFault,
-  PlanningCenterAccess
+  PlanningCenterSongs
 > =>
   Effect.gen(function* commitSave() {
-    const access = yield* PlanningCenterAccess;
-    return yield* commitChordChartUpdate(prepared, access.services.songs);
+    const songsService = yield* PlanningCenterSongs;
+    return yield* commitChordChartUpdate(prepared, songsService);
   }).pipe(editDenied, withPlanningCenterFaults);
 
 export const createChordChart = (
@@ -85,12 +88,13 @@ export const createChordChart = (
 ): Effect.Effect<
   ChordChartArrangement,
   ApplicationFault,
-  ChordChartRequirements
+  PlanningCenterAccess | PlanningCenterSongs | Server
 > =>
   Effect.gen(function* createArrangement() {
     const access = yield* PlanningCenterAccess;
+    const songsService = yield* PlanningCenterSongs;
     yield* requireFeatureFlag(access, "chordCharts");
-    return yield* createChordChartArrangement(input, access.services.songs);
+    return yield* createChordChartArrangement(input, songsService);
   }).pipe(editDenied, withPlanningCenterFaults);
 
 export const addChordChartSong = (
@@ -98,12 +102,13 @@ export const addChordChartSong = (
 ): Effect.Effect<
   ChordChartSongOutput,
   ApplicationFault,
-  ChordChartRequirements
+  PlanningCenterAccess | PlanningCenterSongs | Server
 > =>
   Effect.gen(function* addSong() {
     const access = yield* PlanningCenterAccess;
+    const songsService = yield* PlanningCenterSongs;
     yield* requireFeatureFlag(access, "chordCharts");
-    return yield* createChordChartSong(input, access.services.songs);
+    return yield* createChordChartSong(input, songsService);
   }).pipe(editDenied, withPlanningCenterFaults);
 
 /**
@@ -112,12 +117,17 @@ export const addChordChartSong = (
  */
 export const readChordChartPdf = (
   input: ChordChartPdfInput
-): Effect.Effect<ChordChartPdf, ApplicationFault, ChordChartRequirements> =>
+): Effect.Effect<
+  ChordChartPdf,
+  ApplicationFault,
+  PlanningCenterAccess | PlanningCenterSongs | Server
+> =>
   Effect.gen(function* readPdf() {
     const access = yield* PlanningCenterAccess;
+    const songsService = yield* PlanningCenterSongs;
     yield* requireFeatureFlag(access, "chordCharts");
     return yield* getChordChartPdf(input, {
-      songs: access.services.songs,
+      songs: songsService,
       fetch: async (request, init) => await globalThis.fetch(request, init),
     });
   }).pipe(viewDenied, withPlanningCenterFaults);

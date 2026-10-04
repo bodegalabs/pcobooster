@@ -1,9 +1,10 @@
-import type { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
-import {
-  PlanningCenterAccess,
-  withPlanningCenterFaults,
-} from "@pcobooster/api/application/planning-center-access";
+import type { PlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
+import { withPlanningCenterFaults } from "@pcobooster/api/application/planning-center-access";
+import { PlanningCenterCatalog } from "@pcobooster/api/application/planning-center/catalog";
+import { OrganizationTimeZone } from "@pcobooster/api/application/planning-center/organization-time-zone";
+import { PlanningCenterPeople } from "@pcobooster/api/application/planning-center/people";
+import { PlanningCenterPlans } from "@pcobooster/api/application/planning-center/plans";
 import { requestPresentationDependencies } from "@pcobooster/api/application/presentation";
 import {
   getAdjacentPlans,
@@ -26,12 +27,10 @@ import { Effect } from "effect";
 export const getCatalogServiceTypes: Effect.Effect<
   ServiceType[],
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterCatalog
 > = Effect.gen(function* listServiceTypes() {
-  const access = yield* PlanningCenterAccess;
-  return yield* withPlanningCenterFaults(
-    getServiceTypes(access.services.catalog)
-  );
+  const catalogService = yield* PlanningCenterCatalog;
+  return yield* withPlanningCenterFaults(getServiceTypes(catalogService));
 });
 
 export const getCatalogPlans = (input: {
@@ -39,14 +38,15 @@ export const getCatalogPlans = (input: {
 }): Effect.Effect<
   Plan[],
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  OrganizationTimeZone | PlanningCenterPlans
 > =>
   Effect.gen(function* listPlans() {
-    const access = yield* PlanningCenterAccess;
+    const plansService = yield* PlanningCenterPlans;
+    const organizationTimeZone = yield* OrganizationTimeZone;
     return yield* withPlanningCenterFaults(
       getPlansForServiceType(input.serviceTypeId, {
-        plansService: access.services.plans,
-        resolveTimeZone: access.services.organizationTimeZone,
+        plansService,
+        resolveTimeZone: organizationTimeZone,
       })
     );
   });
@@ -54,16 +54,12 @@ export const getCatalogPlans = (input: {
 export const getCatalogPlan = (input: {
   readonly serviceTypeId: string;
   readonly planId: string;
-}): Effect.Effect<
-  Plan | null,
-  ApplicationFault,
-  PlanningCenterAccess | RequestContext
-> =>
+}): Effect.Effect<Plan | null, ApplicationFault, PlanningCenterPlans> =>
   Effect.gen(function* getPlan() {
-    const access = yield* PlanningCenterAccess;
+    const plansService = yield* PlanningCenterPlans;
     return yield* withPlanningCenterFaults(
       getPlanDetails(input.serviceTypeId, input.planId, {
-        plansService: access.services.plans,
+        plansService,
       })
     );
   });
@@ -75,14 +71,15 @@ export const getCatalogAdjacentPlans = (input: {
 }): Effect.Effect<
   Plan[],
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  OrganizationTimeZone | PlanningCenterPlans
 > =>
   Effect.gen(function* findAdjacentPlans() {
-    const access = yield* PlanningCenterAccess;
+    const plansService = yield* PlanningCenterPlans;
+    const organizationTimeZone = yield* OrganizationTimeZone;
     return yield* withPlanningCenterFaults(
       getAdjacentPlans(input.serviceTypeId, input.planId, input.direction, {
-        plansService: access.services.plans,
-        resolveTimeZone: access.services.organizationTimeZone,
+        plansService,
+        resolveTimeZone: organizationTimeZone,
       })
     );
   });
@@ -90,13 +87,11 @@ export const getCatalogAdjacentPlans = (input: {
 export const getCatalogOrganization: Effect.Effect<
   { readonly timeZone: string },
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  OrganizationTimeZone
 > = Effect.gen(function* getOrganization() {
-  const access = yield* PlanningCenterAccess;
+  const organizationTimeZone = yield* OrganizationTimeZone;
   return {
-    timeZone: yield* withPlanningCenterFaults(
-      access.services.organizationTimeZone
-    ),
+    timeZone: yield* withPlanningCenterFaults(organizationTimeZone),
   };
 });
 
@@ -107,14 +102,20 @@ export const getCatalogTeamPositions = (input: {
 }): Effect.Effect<
   TeamPositionGroup[],
   ApplicationFault,
-  PlanningCenterAccess | RequestContext | Server
+  | PlanningCenterAccess
+  | PlanningCenterCatalog
+  | PlanningCenterPeople
+  | PlanningCenterPlans
+  | Server
 > =>
   Effect.gen(function* getTeamPositions() {
-    const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
+    const catalogService = yield* PlanningCenterCatalog;
+    const plansService = yield* PlanningCenterPlans;
     const dependencies: TeamPositionDependencies = {
-      catalogService: access.services.catalog,
-      peopleService: access.services.people,
-      plansService: access.services.plans,
+      catalogService,
+      peopleService,
+      plansService,
     };
     const groups = yield* getNeededTeamPositionsForPlan(
       input.serviceTypeId,

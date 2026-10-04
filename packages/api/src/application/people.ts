@@ -6,6 +6,10 @@ import {
   withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterRequestAccess } from "@pcobooster/api/application/planning-center-access";
+import { PlanningCenterCatalog } from "@pcobooster/api/application/planning-center/catalog";
+import { OrganizationTimeZone } from "@pcobooster/api/application/planning-center/organization-time-zone";
+import { PlanningCenterPeople } from "@pcobooster/api/application/planning-center/people";
+import { PlanningCenterPlans } from "@pcobooster/api/application/planning-center/plans";
 import { requestPresentationDependencies } from "@pcobooster/api/application/presentation";
 import { loadDevBypassIdentity } from "@pcobooster/api/auth/dev-bypass";
 import { getPlanningCenterIdentityForAccount } from "@pcobooster/api/auth/planning-center-account-identity";
@@ -89,13 +93,18 @@ export const getPeoplePositionCandidates = (input: {
 }): Effect.Effect<
   PositionCandidatesResult,
   ApplicationFault,
-  PlanningCenterAccess | RequestContext | Server
+  | OrganizationTimeZone
+  | PlanningCenterAccess
+  | PlanningCenterCatalog
+  | PlanningCenterPeople
+  | Server
 > =>
   Effect.gen(function* listPositionCandidates() {
-    const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
+    const organizationTimeZone = yield* OrganizationTimeZone;
     const result = yield* getPositionCandidates(input, {
-      people: access.services.people,
-      resolveTimeZone: access.services.organizationTimeZone,
+      people: peopleService,
+      resolveTimeZone: organizationTimeZone,
     });
     return yield* presentPositionCandidates(
       result,
@@ -108,15 +117,23 @@ export const getPeoplePlanWindowHistory = (
 ): Effect.Effect<
   PlanWindowHistoryBatch,
   ApplicationFault,
-  PlanningCenterAccess | RequestContext | Server
+  | OrganizationTimeZone
+  | PlanningCenterAccess
+  | PlanningCenterCatalog
+  | PlanningCenterPeople
+  | PlanningCenterPlans
 > =>
   Effect.gen(function* readPlanWindowHistory() {
     const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
+    const catalogService = yield* PlanningCenterCatalog;
+    const plansService = yield* PlanningCenterPlans;
+    const organizationTimeZone = yield* OrganizationTimeZone;
     const batch = yield* getPlanWindowHistory(input, {
-      catalog: access.services.catalog,
-      people: access.services.people,
-      plans: access.services.plans,
-      resolveTimeZone: access.services.organizationTimeZone,
+      catalog: catalogService,
+      people: peopleService,
+      plans: plansService,
+      resolveTimeZone: organizationTimeZone,
     });
     return presentPlanWindowHistory(batch, access.presentation);
   }).pipe(withPlanningCenterFaults);
@@ -126,13 +143,15 @@ export const getPeopleCandidateDetails = (
 ): Effect.Effect<
   CandidateDetailsBatch,
   ApplicationFault,
-  PlanningCenterAccess | RequestContext | Server
+  OrganizationTimeZone | PlanningCenterAccess | PlanningCenterPeople
 > =>
   Effect.gen(function* readCandidateDetails() {
     const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
+    const organizationTimeZone = yield* OrganizationTimeZone;
     const batch = yield* getCandidateDetails(input, {
-      people: access.services.people,
-      resolveTimeZone: access.services.organizationTimeZone,
+      people: peopleService,
+      resolveTimeZone: organizationTimeZone,
     });
     return presentCandidateDetails(batch, access.presentation);
   }).pipe(withPlanningCenterFaults);
@@ -142,12 +161,12 @@ export const getPeopleSearch = (input: {
 }): Effect.Effect<
   PeopleSearchResult[],
   ApplicationFault,
-  PlanningCenterAccess | RequestContext | Server
+  PlanningCenterAccess | PlanningCenterCatalog | PlanningCenterPeople | Server
 > =>
   Effect.gen(function* searchDirectory() {
-    const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
     return yield* searchPeople(input.query, 15, {
-      people: access.services.people,
+      people: peopleService,
       getIdentityMapper: getPresentationIdentityMapper(
         yield* requestPresentationDependencies
       ),
@@ -159,12 +178,13 @@ export const getPeopleBlockouts = (input: {
 }): Effect.Effect<
   Blockout[],
   ApplicationFault,
-  PlanningCenterAccess | RequestContext | Server
+  PlanningCenterAccess | PlanningCenterPeople
 > =>
   Effect.gen(function* listPeopleBlockouts() {
     const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
     const blockouts = yield* getFutureBlockoutsForPerson(input.personId, {
-      peopleService: access.services.people,
+      peopleService,
     });
     return presentBlockouts(blockouts, access.presentation);
   }).pipe(withPlanningCenterFaults);
@@ -172,14 +192,21 @@ export const getPeopleBlockouts = (input: {
 export const getPeopleDashboardRoster = (): Effect.Effect<
   PeopleDashboardRoster,
   ApplicationFault,
-  PlanningCenterAccess | RequestContext | Server
+  | OrganizationTimeZone
+  | PlanningCenterAccess
+  | PlanningCenterCatalog
+  | PlanningCenterPeople
+  | RequestContext
+  | Server
 > =>
   Effect.gen(function* readPeopleDashboardRoster() {
     const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
+    const organizationTimeZone = yield* OrganizationTimeZone;
     yield* requireFeatureFlag(access, "people");
     const roster = yield* getPeopleDashboardRosterData({
-      peopleService: access.services.people,
-      resolveTimeZone: access.services.organizationTimeZone,
+      peopleService,
+      resolveTimeZone: organizationTimeZone,
       viewerPersonId: yield* currentUserPersonId(access),
     });
     return yield* presentDashboardRoster(
@@ -193,17 +220,24 @@ export const getPeopleDashboardActivity = (input: {
 }): Effect.Effect<
   PeopleDashboardActivityBatch,
   ApplicationFault,
-  PlanningCenterAccess | RequestContext | Server
+  | OrganizationTimeZone
+  | PlanningCenterAccess
+  | PlanningCenterPeople
+  | PlanningCenterPlans
+  | Server
 > =>
   Effect.gen(function* readPeopleDashboardActivity() {
     const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
+    const plansService = yield* PlanningCenterPlans;
+    const organizationTimeZone = yield* OrganizationTimeZone;
     yield* requireFeatureFlag(access, "people");
     return yield* getPeopleDashboardActivityData({
       personIds: input.personIds,
       dependencies: {
-        peopleService: access.services.people,
-        plansService: access.services.plans,
-        resolveTimeZone: access.services.organizationTimeZone,
+        peopleService,
+        plansService,
+        resolveTimeZone: organizationTimeZone,
       },
     });
   }).pipe(withPlanningCenterFaults);
@@ -214,19 +248,28 @@ export const getPeopleDashboardPerson = (input: {
 }): Effect.Effect<
   PeopleDashboardPersonDetail,
   ApplicationFault,
-  PlanningCenterAccess | RequestContext | Server
+  | OrganizationTimeZone
+  | PlanningCenterAccess
+  | PlanningCenterCatalog
+  | PlanningCenterPeople
+  | PlanningCenterPlans
+  | Server
 > =>
   Effect.gen(function* readPeopleDashboardPerson() {
     const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
+    const catalogService = yield* PlanningCenterCatalog;
+    const plansService = yield* PlanningCenterPlans;
+    const organizationTimeZone = yield* OrganizationTimeZone;
     yield* requireFeatureFlag(access, "people");
     const detail = yield* getPeopleDashboardPersonDetail({
       personId: input.personId,
       month: input.month,
       dependencies: {
-        peopleService: access.services.people,
-        catalogService: access.services.catalog,
-        plansService: access.services.plans,
-        resolveTimeZone: access.services.organizationTimeZone,
+        peopleService,
+        catalogService,
+        plansService,
+        resolveTimeZone: organizationTimeZone,
         detailCache: (yield* Server).moduleReadCaches.peopleDashboardPerson,
       },
     });
@@ -239,10 +282,16 @@ export const getPeopleDashboardPerson = (input: {
 export const getMyScheduledPlans = (): Effect.Effect<
   { readonly planIds: string[] },
   ApplicationFault,
-  PlanningCenterAccess | RequestContext | Server
+  | OrganizationTimeZone
+  | PlanningCenterAccess
+  | PlanningCenterPeople
+  | RequestContext
+  | Server
 > =>
   Effect.gen(function* readMyScheduledPlans() {
     const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
+    const organizationTimeZone = yield* OrganizationTimeZone;
     const { request } = yield* RequestContext;
     // A demo visitor is not a person in the demo organization.
     if (access.authentication.kind === "demo") {
@@ -251,8 +300,8 @@ export const getMyScheduledPlans = (): Effect.Effect<
     const { account } = access.authentication;
     const planIds = yield* getCurrentUserScheduledPlanIds(request, account, {
       ...(yield* currentUserIdentityDependencies),
-      peopleService: access.services.people,
-      resolveTimeZone: access.services.organizationTimeZone,
+      peopleService,
+      resolveTimeZone: organizationTimeZone,
     });
     return { planIds };
   }).pipe(withPlanningCenterFaults);

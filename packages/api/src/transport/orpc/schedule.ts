@@ -1,5 +1,5 @@
 import {
-  PlanningCenterAccess,
+  provideAccess,
   resolvePlanningCenterAccess,
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
@@ -93,18 +93,16 @@ export const createScheduleRouter = (
   const assign = audited("assign").assign.handler(
     async ({ input, context, signal }) => {
       const preparation = await executeApplicationEffect(
-        Effect.provideService(
+        provideAccess(
           prepareScheduledPerson(input),
-          PlanningCenterAccess,
           context.planningCenterAccess
         ),
         context,
         signal
       );
       return await executeApplicationEffect(
-        Effect.provideService(
+        provideAccess(
           commitScheduledPerson(input, preparation),
-          PlanningCenterAccess,
           context.planningCenterAccess
         ),
         context,
@@ -116,9 +114,8 @@ export const createScheduleRouter = (
   const remove = audited("remove").remove.handler(
     async ({ input, context, signal }) =>
       await executeApplicationEffect(
-        Effect.provideService(
+        provideAccess(
           removeScheduledPerson(input),
-          PlanningCenterAccess,
           context.planningCenterAccess
         ),
         context,
@@ -129,9 +126,8 @@ export const createScheduleRouter = (
   const updateStatus = audited("updateStatus").updateStatus.handler(
     async ({ input, context, signal }) =>
       await executeApplicationEffect(
-        Effect.provideService(
+        provideAccess(
           updateScheduledPersonStatus(input),
-          PlanningCenterAccess,
           context.planningCenterAccess
         ),
         context,
