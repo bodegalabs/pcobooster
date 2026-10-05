@@ -12,7 +12,7 @@ Development PAT bypass belongs to the local API; it is not a credential to embed
 
 ## Build without a paid service
 
-The supported toolchain is pinned to Expo 57.0.26, React Native 0.86.3 and React 19.2.3, matching Expo's bundled native module manifest. iOS builds require Xcode 26.4 or newer; CI explicitly selects Xcode 26.6. Apple requires macOS Tahoe 26.2 or newer for that toolchain. Local native validation of these pins is pending the approved macOS/Xcode upgrade; earlier SDK 55 simulator and archive results do not validate SDK 57. See [Expo SDK requirements](https://docs.expo.dev/versions/latest/) and [Apple system requirements](https://developer.apple.com/xcode/system-requirements).
+The supported toolchain is pinned to Expo 57.0.26, React Native 0.86.3 and React 19.2.3, matching Expo's bundled native module manifest. iOS builds require Xcode 26.4 or newer; CI explicitly selects Xcode 26.6. Apple requires macOS Tahoe 26.2 or newer for that toolchain. The local Mac now runs macOS Tahoe 26.7.1 and Xcode 27.0 (27A266a). The current SDK 57 ad hoc signed simulator build passes with the iOS 27 SDK; runtime verification and release compilation are tracked in the migration inventory. Earlier SDK 55 results remain historical. See [Expo SDK requirements](https://docs.expo.dev/versions/latest/) and [Apple system requirements](https://developer.apple.com/xcode/system-requirements).
 
 - `bun run build` exports native JavaScript assets alongside the web builds.
 - `bun run mobile:test:ios` generates the native iOS project, installs pods and builds an ad hoc signed simulator app with Keychain entitlements.
