@@ -4,12 +4,14 @@ import Testing
 @testable import PCOBoosterMock
 
 struct MockFixturesTests {
-  /// `appContract` has 49 procedures; `scripts/ios/fixtures.test.ts` checks the names.
+  /// `appContract` has 51 procedures; `scripts/ios/fixtures.test.ts` checks the names.
   @Test func bundlesOneFixturePerProcedure() {
     let paths = MockFixtures.procedurePaths
-    #expect(paths.count == 49)
+    #expect(paths.count == 51)
     #expect(paths.contains("health"))
     #expect(paths.contains("people/positionCandidates"))
+    #expect(paths.contains("planFiles/list"))
+    #expect(paths.contains("planFiles/open"))
     #expect(Set(paths).count == paths.count)
   }
 

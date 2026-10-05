@@ -10,6 +10,8 @@ struct ProcedureDescriptorTests {
     #expect(RPC.People.positionCandidates.path == "people/positionCandidates")
     #expect(RPC.PlanTimes.delete.path == "planTimes/delete")
     #expect(RPC.ChordCharts.lyricsSearch.path == "chordCharts/lyricsSearch")
+    #expect(RPC.PlanFiles.list.path == "planFiles/list")
+    #expect(RPC.PlanFiles.open.path == "planFiles/open")
   }
 
   @Test func onlyProceduresWithoutAnInputSendAnEmptyBody() {
@@ -21,7 +23,7 @@ struct ProcedureDescriptorTests {
   }
 
   @Test func listsEveryProcedureOnce() {
-    #expect(RPC.allPaths.count == 49)
+    #expect(RPC.allPaths.count == 51)
     #expect(Set(RPC.allPaths).count == RPC.allPaths.count)
   }
 
