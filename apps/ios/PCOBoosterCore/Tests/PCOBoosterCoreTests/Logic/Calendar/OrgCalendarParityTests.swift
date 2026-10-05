@@ -30,6 +30,7 @@ struct OrgCalendarParityTests {
   struct InstantPairInput: Decodable, Sendable {
     let a: Date
     let b: Date
+    let timeZone: String
   }
 
   struct WeeksInput: Decodable, Sendable {
