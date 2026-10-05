@@ -90,6 +90,8 @@ const staticStatefulFieldPattern =
   /^\s*(?:(?:private|protected|public|readonly)\s+)*static\s+(?:readonly\s+)?[\w$#]+[^=\n]*=\s*new\s+(?:Map|WeakMap|PlanningCenterReadCache)\b/mu;
 /** Code after the first function in an initializer runs only when called, as in a cache factory. */
 const functionStartPattern = /=>|\bfunction\b/u;
+const nativeGenerationCommandPattern =
+  /\b(?:prebuild|native:generate|xcodebuild|pod\s+install|gradlew?)\b/u;
 /**
  * Module-scope state allowed under the checked roots, and why each is not request state.
  * Caches belong in `createPlanningCenterReadCaches` or `createModuleReadCaches` instead.
@@ -273,6 +275,24 @@ describe("monorepo architecture boundaries", () => {
     }
 
     expectNoViolations("package and feature-module naming", violations);
+  });
+
+  it("keeps JavaScript export builds independent from native project generation", () => {
+    const mobilePackage = z
+      .object({ scripts: z.record(z.string(), z.string()) })
+      .parse(
+        JSON.parse(
+          readFileSync(join(repositoryRoot, "apps/mobile/package.json"), "utf8")
+        )
+      );
+
+    // Bun runs these hooks automatically; Expo 57 generation recreates native folders, including Pods.
+    expect(mobilePackage.scripts).not.toHaveProperty("prebuild");
+    expect(mobilePackage.scripts).not.toHaveProperty("postbuild");
+    expect(mobilePackage.scripts.build).toContain("expo export");
+    expect(mobilePackage.scripts.build).not.toMatch(
+      nativeGenerationCommandPattern
+    );
   });
 
   it("keeps the web app independent from API implementation modules", () => {

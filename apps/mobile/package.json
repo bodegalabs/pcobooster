@@ -8,7 +8,7 @@
     "build": "expo export --platform ios --platform android",
     "ios": "expo run:ios",
     "android": "expo run:android",
-    "prebuild": "expo prebuild --no-install",
+    "native:generate": "expo prebuild --no-install",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --root ../.. apps/mobile/src",
     "release:ios": "bash scripts/build-ios.sh"
@@ -24,6 +24,7 @@
     "core-js": "3.50.0",
     "effect": "4.0.1",
     "expo": "57.0.26",
+    "expo-build-properties": "57.0.22",
     "expo-constants": "57.0.20",
     "expo-crypto": "57.0.3",
     "expo-file-system": "57.0.7",

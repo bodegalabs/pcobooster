@@ -25,6 +25,10 @@ The stack document's `rnd` build reference could not be matched to an authoritat
 
 ## Validation and cutover
 
+Xcode 27 requires the UIKit scene lifecycle. The pinned `expo-build-properties` 57.0.22 plugin enables `ios.enableSceneSupport`, using Expo 57's official scene delegate and URL/lifecycle forwarding. See [Expo's SDK 57 scene migration guide](https://github.com/expo/fyi/blob/main/ios-scene-lifecycle.md#staying-on-sdk-57-with-xcode-27).
+
+Explicit native generation uses `bun run --cwd apps/mobile native:generate`. Keep generation, pod installation and compilation sequential. The package deliberately has no `prebuild` lifecycle script: Bun runs that hook before `build`, and Expo 57 regenerates native directories by default, which can erase Pods during another native build.
+
 `bun run ci` checks native types and tests as part of the workspace gate. Retained fictional Swift fixtures now exercise shared TypeScript behavior, including timezone boundaries, distinct-day frequency, blockout continuation and chart transformations. Native SecureStore/auth/cache/lifecycle tests and synthetic server mutation tests cover separate platform boundaries.
 
 This is a coordinated breaking client/server migration. Deploy the matching web/API revision and release the matching Expo app together after acceptance. Rollback restores both transport and clients together; older Swift binaries cannot talk to the new native Effect RPC protocol. No upload or deployment is performed by these development commands.

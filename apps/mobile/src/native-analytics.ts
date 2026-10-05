@@ -1,5 +1,6 @@
 import { RpcError } from "@pcobooster/contracts/errors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Schema } from "effect";
 import * as Crypto from "expo-crypto";
 
 import { createNativeAnalytics } from "./analytics";
@@ -10,8 +11,11 @@ import type {
 
 let installationId = "";
 let enabled = () => false;
+const analyticsKey = Schema.decodeUnknownSync(
+  Schema.Union([Schema.String, Schema.Undefined])
+)(process.env.EXPO_PUBLIC_POSTHOG_PROJECT_KEY);
 const analytics = createNativeAnalytics({
-  key: process.env.EXPO_PUBLIC_POSTHOG_PROJECT_KEY,
+  key: analyticsKey,
   enabled: () => enabled(),
   distinctId: () => installationId,
 });
@@ -19,7 +23,7 @@ const send = async (
   event: NativeAnalyticsEvent,
   properties: NativeAnalyticsProperties = {}
 ): Promise<void> => {
-  if (!enabled() || process.env.EXPO_PUBLIC_POSTHOG_PROJECT_KEY === undefined) {
+  if (!enabled() || analyticsKey === undefined) {
     return;
   }
   try {

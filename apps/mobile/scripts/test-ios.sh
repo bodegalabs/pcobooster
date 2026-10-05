@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 bash scripts/check-ios-toolchain.sh
-bun run prebuild -- --clean --platform ios
+bun run native:generate -- --clean --platform ios
 pod install --project-directory=ios
 destination="generic/platform=iOS Simulator"
 if [[ -n "${MOBILE_SIMULATOR_ID:-}" ]]; then destination="platform=iOS Simulator,id=$MOBILE_SIMULATOR_ID"; fi

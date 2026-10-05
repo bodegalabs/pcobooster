@@ -97,7 +97,12 @@ const config: ExpoConfig = {
     package: "com.pcobooster.ios",
     versionCode: Number(buildNumber),
   },
-  plugins: ["expo-router", "expo-secure-store", "expo-web-browser"],
+  plugins: [
+    "expo-router",
+    "expo-secure-store",
+    "expo-web-browser",
+    ["expo-build-properties", { ios: { enableSceneSupport: true } }],
+  ],
   experiments: { typedRoutes: true },
 };
 export default config;
