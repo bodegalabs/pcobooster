@@ -1,3 +1,5 @@
+import { describePersonSignal } from "@pcobooster/client/team-health";
+import type { PersonSignal } from "@pcobooster/client/team-health";
 import type { LucideIcon } from "lucide-react";
 import {
   CalendarClock,
@@ -10,8 +12,6 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { HoverLabel } from "@/components/ui/hover-card";
-import { describePersonSignal } from "@/lib/team-health";
-import type { PersonSignal } from "@/lib/team-health";
 import { cn } from "@/lib/utils";
 
 type SignalLook =

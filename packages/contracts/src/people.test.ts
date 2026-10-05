@@ -12,6 +12,7 @@ import {
   positionCandidatesSchema,
   scheduleFrequencySchema,
 } from "@pcobooster/contracts/people-schemas";
+import { Schema, Result } from "effect";
 import { describe, expect, it } from "vitest";
 
 const rhythm = {
@@ -84,19 +85,27 @@ describe("people read contracts", () => {
       share: false,
       timeZone: "America/Los_Angeles",
     };
-    expect(blockoutSchema.parse(blockout)).toStrictEqual(blockout);
-    expect(scheduleFrequencySchema.parse(frequency)).toStrictEqual(frequency);
+    expect(Schema.decodeUnknownSync(blockoutSchema)(blockout)).toStrictEqual(
+      blockout
+    );
     expect(
-      blockoutSchema.safeParse({
-        ...blockout,
-        startsAt: blockout.startsAt.toISOString(),
-      }).success
+      Schema.decodeUnknownSync(scheduleFrequencySchema)(frequency)
+    ).toStrictEqual(frequency);
+    expect(
+      Result.isSuccess(
+        Schema.decodeUnknownResult(blockoutSchema)({
+          ...blockout,
+          startsAt: blockout.startsAt.toISOString(),
+        })
+      )
     ).toBeFalsy();
     expect(
-      scheduleFrequencySchema.safeParse({
-        ...frequency,
-        lastServedDate: "2026-09-13T17:00:00Z",
-      }).success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(scheduleFrequencySchema)({
+          ...frequency,
+          lastServedDate: "2026-09-13T17:00:00Z",
+        })
+      )
     ).toBeFalsy();
   });
 
@@ -148,27 +157,31 @@ describe("people read contracts", () => {
       },
     };
 
-    expect(peopleDashboardRosterSchema.parse(roster)).toStrictEqual(roster);
-    expect(peopleDashboardActivityBatchSchema.parse(batch)).toStrictEqual(
-      batch
-    );
+    expect(
+      Schema.decodeUnknownSync(peopleDashboardRosterSchema)(roster)
+    ).toStrictEqual(roster);
+    expect(
+      Schema.decodeUnknownSync(peopleDashboardActivityBatchSchema)(batch)
+    ).toStrictEqual(batch);
     // A person detail carries the same rhythm the dashboard reads.
     expect(
-      peopleDashboardPersonSchema.parse({
+      Schema.decodeUnknownSync(peopleDashboardPersonSchema)({
         ...roster.people[0],
         ...activity,
         rhythm,
       })
     ).toStrictEqual(dashboardPerson);
     expect(
-      peopleDashboardPersonSchema.safeParse({
-        ...roster.people[0],
-        ...activity,
-      }).success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(peopleDashboardPersonSchema)({
+          ...roster.people[0],
+          ...activity,
+        })
+      )
     ).toBeFalsy();
-    expect(peopleDashboardPersonDetailSchema.parse(detail)).toStrictEqual(
-      detail
-    );
+    expect(
+      Schema.decodeUnknownSync(peopleDashboardPersonDetailSchema)(detail)
+    ).toStrictEqual(detail);
   });
 
   it("keeps an empty slot distinct from a missing one", () => {
@@ -198,39 +211,46 @@ describe("people read contracts", () => {
       ],
     };
 
-    expect(positionCandidatesSchema.parse(candidates)).toStrictEqual(
-      candidates
-    );
     expect(
-      positionCandidatesSchema.safeParse({
-        ...candidates,
-        candidates: [
-          { ...candidates.candidates[0], selectedPlanSlot: undefined },
-        ],
-      }).success
+      Schema.decodeUnknownSync(positionCandidatesSchema)(candidates)
+    ).toStrictEqual(candidates);
+    expect(
+      Result.isSuccess(
+        Schema.decodeUnknownResult(positionCandidatesSchema)({
+          ...candidates,
+          candidates: [
+            { ...candidates.candidates[0], selectedPlanSlot: undefined },
+          ],
+        })
+      )
     ).toBeFalsy();
   });
 
   it("retains the full plan instant and bounds batch lookups", () => {
     const history = { date: "2026-09-20T00:30:00-07:00" };
 
-    expect(peoplePlanWindowHistoryInputSchema.parse(history)).toStrictEqual(
-      history
-    );
     expect(
-      peoplePlanWindowHistoryInputSchema.safeParse({ date: "2026-09-20" })
-        .success
+      Schema.decodeUnknownSync(peoplePlanWindowHistoryInputSchema)(history)
+    ).toStrictEqual(history);
+    expect(
+      Result.isSuccess(
+        Schema.decodeUnknownResult(peoplePlanWindowHistoryInputSchema)({
+          date: "2026-09-20",
+        })
+      )
     ).toBeFalsy();
     expect(
-      peopleCandidateDetailsInputSchema.safeParse({
-        personIds: Array.from(
-          { length: PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE + 1 },
-          (_, index) => String(index)
-        ),
-        planId: "plan-1",
-        date: history.date,
-        scheduleHistory: false,
-      }).success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(peopleCandidateDetailsInputSchema)({
+          personIds: Array.from(
+            { length: PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE + 1 },
+            (_, index) => String(index)
+          ),
+          planId: "plan-1",
+          date: history.date,
+          scheduleHistory: false,
+        })
+      )
     ).toBeFalsy();
     const continuation = {
       personIds: ["1"],
@@ -241,8 +261,8 @@ describe("people read contracts", () => {
         { personId: "1", checkedBlockoutIds: ["blockout-1"], blocked: false },
       ],
     };
-    expect(peopleCandidateDetailsInputSchema.parse(continuation)).toStrictEqual(
-      continuation
-    );
+    expect(
+      Schema.decodeUnknownSync(peopleCandidateDetailsInputSchema)(continuation)
+    ).toStrictEqual(continuation);
   });
 });

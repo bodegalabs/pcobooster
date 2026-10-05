@@ -5,7 +5,7 @@ import {
 } from "@pcobooster/analytics/reports";
 import type { DashboardDefinition } from "@pcobooster/analytics/reports";
 import { Effect, Redacted } from "effect";
-import { FetchHttpClient, HttpClient } from "effect/unstable/http";
+import { FetchHttpClient, HttpClient } from "effect/http";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 

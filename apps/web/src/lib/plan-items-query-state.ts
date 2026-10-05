@@ -1,3 +1,4 @@
+import type { queryKeys } from "@pcobooster/client/query-keys";
 import type {
   PlanItem,
   PlanItemArrangement,
@@ -8,7 +9,6 @@ import type {
 import type { QueryClient } from "@tanstack/react-query";
 
 import { clearCachedPlanItems } from "@/lib/plan-items-cache";
-import type { queryKeys } from "@/lib/query-keys";
 import { clearCachedSongOptions } from "@/lib/song-options-cache";
 import { clearCachedSongSearch } from "@/lib/song-search-cache";
 

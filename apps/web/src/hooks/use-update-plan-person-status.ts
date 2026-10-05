@@ -1,4 +1,4 @@
-import { ORPCError } from "@orpc/client";
+import { RpcError } from "@pcobooster/contracts/errors";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -13,14 +13,14 @@ import {
   settleScheduleMutationQueries,
 } from "@/hooks/use-schedule-cache-optimism";
 import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cache-optimism";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 export type PlanPersonStatusCode = "C" | "U" | "D";
 
 const messageErrorDataSchema = z.object({ message: z.string().optional() });
 
 const formatUpdateStatusError = (error: Error): string => {
-  if (error instanceof ORPCError) {
+  if (error instanceof RpcError) {
     const parsed = messageErrorDataSchema.safeParse(error.data);
     const message = parsed.success ? parsed.data.message : undefined;
     if (isNonEmptyString(message)) {
@@ -54,7 +54,7 @@ export const useUpdatePlanPersonStatus = ({
       status: PlanPersonStatusCode;
       context?: ScheduleMutationInvalidateContext;
     }) =>
-      await orpc.schedule.updateStatus({
+      await rpc("schedule.updateStatus", {
         planPersonId,
         status,
         serviceTypeId: context?.serviceTypeId ?? undefined,

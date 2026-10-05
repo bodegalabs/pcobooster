@@ -1,3 +1,4 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
 import type {
   PlanWindowHistoryBatch,
   PositionCandidates,
@@ -30,7 +31,6 @@ import {
   writeCachedCandidateAvailability,
   writeCachedPositionCandidates,
 } from "@/lib/position-candidates-cache";
-import { queryKeys } from "@/lib/query-keys";
 import {
   readCachedTeamPositions,
   writeCachedTeamPositions,

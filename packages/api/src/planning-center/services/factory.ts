@@ -51,7 +51,7 @@ import {
 } from "@pcobooster/api/planning-center/services/songs-service";
 import type { PlanningCenterSongsServiceCaches } from "@pcobooster/api/planning-center/services/songs-service";
 import { Effect } from "effect";
-import type { HttpClient } from "effect/unstable/http/HttpClient";
+import type { HttpClient } from "effect/http/HttpClient";
 
 /**
  * Planning Center read caches for one Worker isolate: in-memory caches shared by every

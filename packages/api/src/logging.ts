@@ -42,7 +42,7 @@ export const moduleLog = (module: string): ModuleLog => ({
 export const structuredLogging = Logger.layer([Logger.consoleStructured]);
 
 /**
- * Writes a log line from code that runs outside any Effect, such as Better Auth hooks and Hono
+ * Writes a log line from code that runs outside any Effect, such as Better Auth hooks and HTTP
  * handlers, in the same structured shape.
  */
 export const logOutsideEffect = (line: Effect.Effect<void>): void => {

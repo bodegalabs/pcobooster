@@ -1,59 +1,72 @@
-import { z } from "zod";
+import { Schema, Struct } from "effect";
 
-export const planItemSongSchema = z.object({
-  lastScheduledAt: z.date().nullable(),
-  id: z.string(),
-  title: z.string(),
-  author: z.string(),
-  themes: z.string(),
-});
+export const planItemSongSchema = Schema.Struct({
+  lastScheduledAt: Schema.NullOr(Schema.Date),
+  id: Schema.String,
+  title: Schema.String,
+  author: Schema.String,
+  themes: Schema.String,
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const planItemArrangementSchema = z.object({
-  archivedAt: z.date().nullable(),
-  id: z.string(),
-  sequence: z.array(z.string()),
-  length: z.number().nullable(),
-  name: z.string(),
-});
+export const planItemArrangementSchema = Schema.Struct({
+  archivedAt: Schema.NullOr(Schema.Date),
+  id: Schema.String,
+  sequence: Schema.mutable(Schema.Array(Schema.String)),
+  length: Schema.NullOr(Schema.Finite),
+  name: Schema.String,
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const planItemTypeSchema = z.enum(["song", "header", "item", "media"]);
+export const planItemTypeSchema = Schema.Literals([
+  "song",
+  "header",
+  "item",
+  "media",
+]);
 
-export const planItemServicePositionSchema = z.enum(["pre", "during", "post"]);
+export const planItemServicePositionSchema = Schema.Literals([
+  "pre",
+  "during",
+  "post",
+]);
 
-export const planItemKeySchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  startingKey: z.string().nullable(),
-  endingKey: z.string().nullable(),
-});
+export const planItemKeySchema = Schema.Struct({
+  id: Schema.String,
+  name: Schema.String,
+  startingKey: Schema.NullOr(Schema.String),
+  endingKey: Schema.NullOr(Schema.String),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const layoutOptionSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-});
+export const layoutOptionSchema = Schema.Struct({
+  id: Schema.String,
+  name: Schema.String,
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const planItemSchema = z.object({
-  song: planItemSongSchema.nullable(),
-  arrangement: planItemArrangementSchema.nullable(),
-  id: z.string(),
-  title: z.string(),
+export const planItemSchema = Schema.Struct({
+  song: Schema.NullOr(planItemSongSchema),
+  arrangement: Schema.NullOr(planItemArrangementSchema),
+  id: Schema.String,
+  title: Schema.String,
   itemType: planItemTypeSchema,
-  sequence: z.number(),
+  sequence: Schema.Finite,
   servicePosition: planItemServicePositionSchema,
-  length: z.number().nullable(),
-  description: z.string(),
-  htmlDetails: z.string(),
-  customArrangementSequence: z.array(z.string()),
-  key: planItemKeySchema.nullable(),
-  layout: layoutOptionSchema.nullable(),
-});
+  length: Schema.NullOr(Schema.Finite),
+  description: Schema.String,
+  htmlDetails: Schema.String,
+  customArrangementSequence: Schema.mutable(Schema.Array(Schema.String)),
+  key: Schema.NullOr(planItemKeySchema),
+  layout: Schema.NullOr(layoutOptionSchema),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export type PlanItemSong = z.output<typeof planItemSongSchema>;
-export type PlanItemArrangement = z.output<typeof planItemArrangementSchema>;
-export type PlanItemType = z.output<typeof planItemTypeSchema>;
-export type PlanItemServicePosition = z.output<
-  typeof planItemServicePositionSchema
->;
-export type PlanItemKey = z.output<typeof planItemKeySchema>;
-export type LayoutOption = z.output<typeof layoutOptionSchema>;
-export type PlanItem = z.output<typeof planItemSchema>;
+export type PlanItemSong = typeof planItemSongSchema.Type;
+
+export type PlanItemArrangement = typeof planItemArrangementSchema.Type;
+
+export type PlanItemType = typeof planItemTypeSchema.Type;
+
+export type PlanItemServicePosition = typeof planItemServicePositionSchema.Type;
+
+export type PlanItemKey = typeof planItemKeySchema.Type;
+
+export type LayoutOption = typeof layoutOptionSchema.Type;
+
+export type PlanItem = typeof planItemSchema.Type;

@@ -1,3 +1,4 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
 import type {
   PlanItem,
   PlanTime,
@@ -20,7 +21,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { PlanOverviewTab } from "@/components/schedule/plan-overview-tab";
-import { queryKeys } from "@/lib/query-keys";
 
 const createClient = () => {
   const client = new QueryClient({

@@ -1,3 +1,4 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
 import type {
   EnabledFeatures,
   FeatureFlagName,
@@ -5,8 +6,6 @@ import type {
 import { queryOptions } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import { notFound } from "@tanstack/react-router";
-
-import { queryKeys } from "@/lib/query-keys";
 
 /** Flag changes reach open tabs within this window (Flagship itself propagates in 30 s). */
 const FEATURE_STALE_TIME_MS = 5 * 60 * 1000;

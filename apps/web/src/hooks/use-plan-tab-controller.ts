@@ -1,3 +1,8 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
+import {
+  requestScheduler,
+  speculativeQuery,
+} from "@pcobooster/client/request-priority";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   PlanItem,
@@ -35,9 +40,7 @@ import type {
   PlanInsertion,
   PlanItemsOptimisticSnapshot,
 } from "@/lib/plan-items-query-state";
-import { queryKeys } from "@/lib/query-keys";
-import { requestScheduler, speculativeQuery } from "@/lib/request-priority";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 export type AddedPlanItemKind = "song" | "header" | "item";
 
@@ -197,7 +200,7 @@ export const usePlanTabController = ({
     if (sequence.at(-1) === created.id) {
       return;
     }
-    await orpc.planItems.reorder({ serviceTypeId, planId, sequence });
+    await rpc("planItems.reorder", { serviceTypeId, planId, sequence });
   };
 
   const createItemMutation = useMutation<
@@ -216,7 +219,7 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      const created = await orpc.planItems.create({
+      const created = await rpc("planItems.create", {
         serviceTypeId,
         planId,
         itemType: kind,
@@ -295,7 +298,7 @@ export const usePlanTabController = ({
           (arrangement) => arrangement.id === songOptions.suggestedArrangementId
         ) ?? null;
 
-      const created = await orpc.planItems.create({
+      const created = await rpc("planItems.create", {
         serviceTypeId,
         planId,
         title: songOptions?.song.title ?? song.title,
@@ -360,7 +363,7 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      await orpc.planItems.delete({ itemId: item.id, serviceTypeId, planId });
+      await rpc("planItems.delete", { itemId: item.id, serviceTypeId, planId });
     },
     onSuccess: async (_result, item) => {
       // Drop it from the cache before it stops being hidden, or it shows again until
@@ -447,7 +450,7 @@ export const usePlanTabController = ({
         if (isNonEmptyString(serviceTypeId) && isNonEmptyString(planId)) {
           void (async () => {
             try {
-              await orpc.planItems.delete({
+              await rpc("planItems.delete", {
                 itemId: item.id,
                 serviceTypeId,
                 planId,
@@ -474,7 +477,7 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      await orpc.planItems.reorder({
+      await rpc("planItems.reorder", {
         serviceTypeId,
         planId,
         sequence: nextItems.map((item) => item.id),
@@ -532,7 +535,7 @@ export const usePlanTabController = ({
         throw new Error("A service type and plan must be selected.");
       }
 
-      return await orpc.planItems.update({
+      return await rpc("planItems.update", {
         itemId: item.id,
         serviceTypeId,
         planId,

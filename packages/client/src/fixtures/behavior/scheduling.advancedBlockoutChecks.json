@@ -1,0 +1,1454 @@
+{
+  "suite": "scheduling.advancedBlockoutChecks",
+  "sourceCaseIndices": [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+    40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58,
+    59, 60, 61, 62, 63, 64
+  ],
+  "cases": [
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-2"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-9"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [],
+        "after": []
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [],
+        "after": []
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-3", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2", "b-3"],
+            "blocked": true
+          }
+        ],
+        "after": []
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-4"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-3", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": [],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-4"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": [],
+            "blocked": true
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": [],
+            "blocked": true
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-3", "b-4"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-2", "b-3"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-2", "b-3"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-2"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": [],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": [],
+            "blocked": false
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": false
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": true
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-2"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3", "b-4"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-2", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": [],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-3"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-3"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-4"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-4"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [],
+        "after": []
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2", "b-4"],
+            "blocked": true
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2", "b-4"],
+            "blocked": true
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-3", "b-4"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-2", "b-3"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-2", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": [],
+            "blocked": false
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-3", "b-4"],
+            "blocked": false
+          }
+        ],
+        "after": []
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2", "b-3", "b-4"],
+            "blocked": true
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": true
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2", "b-3", "b-4"],
+            "blocked": true
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": true
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": true
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-2", "b-3"],
+            "blocked": true
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-3"],
+            "blocked": true
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-3"],
+            "blocked": true
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-2", "b-3"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": [],
+            "blocked": false
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": [],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": [],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": true
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": [],
+            "blocked": true
+          }
+        ],
+        "after": []
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": false
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-3"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [],
+        "after": []
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": true
+          }
+        ],
+        "after": []
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [],
+        "after": []
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-3", "b-4"],
+            "blocked": true
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": false
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": [],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": [],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": [],
+            "blocked": true
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2", "b-3"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": [],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": [],
+            "blocked": true
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3", "b-4"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3", "b-4"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": [],
+            "blocked": false
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": true
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3", "b-4"],
+            "blocked": true
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": true
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3", "b-4"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-3", "b-4"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-3", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-4"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-2"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-2"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-4"],
+            "blocked": true
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-4"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-3", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": [],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": [],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-3", "b-4"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2", "b-3", "b-4"],
+            "blocked": true
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": false
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-4"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2", "b-3", "b-4"],
+            "blocked": true
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": false
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-4"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": true
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-4"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-4"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-3", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-3"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2", "b-4"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": true
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-2", "b-4"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [],
+        "after": []
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [],
+        "after": []
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": false
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": true
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-3"],
+            "blocked": true
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": [],
+            "blocked": false
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-2", "b-3"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2", "b-4"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [],
+        "after": []
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": true
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-2", "b-4"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-1", "b-3"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-3", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-4"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": [],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": true
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": [],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": false
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-2", "b-4"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": true
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-3", "b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-3"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2", "b-3"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-2"],
+            "blocked": true
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-2", "b-3"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-1", "b-2"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-2", "b-3"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-2",
+            "checkedBlockoutIds": ["b-2"],
+            "blocked": true
+          }
+        ]
+      },
+      "output": true
+    },
+    {
+      "input": {
+        "before": [
+          {
+            "personId": "p-1",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": false
+          }
+        ],
+        "after": [
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-4"],
+            "blocked": false
+          },
+          {
+            "personId": "p-3",
+            "checkedBlockoutIds": ["b-1", "b-4"],
+            "blocked": false
+          }
+        ]
+      },
+      "output": true
+    }
+  ]
+}

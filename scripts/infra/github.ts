@@ -16,7 +16,7 @@ import { isResolved } from "alchemy/Diff";
 import * as GitHub from "alchemy/GitHub";
 import * as Provider from "alchemy/Provider";
 import { Effect, Layer, Option, Schema } from "effect";
-import { FetchHttpClient } from "effect/unstable/http";
+import { FetchHttpClient } from "effect/http";
 
 import { sendJson, sendJsonRequired } from "./http";
 import type { HttpMethod } from "./http";

@@ -1,6 +1,6 @@
 import { BubbleChatEditIcon } from "@hugeicons/core-free-icons";
-import { ORPCError } from "@orpc/client";
 import { getAnalyticsSessionId } from "@pcobooster/analytics/client";
+import { RpcError } from "@pcobooster/contracts/errors";
 import { FEEDBACK_MESSAGE_MAX_LENGTH } from "@pcobooster/contracts/feedback";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import { useState } from "react";
@@ -21,7 +21,7 @@ import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useAccountsQuery } from "@/hooks/use-account-panel";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 const SEND_FEEDBACK_HOTKEY = "Mod+Enter";
 const SEND_FAILED_MESSAGE = "Couldn't send feedback. Try again.";
@@ -44,7 +44,7 @@ export const SidebarFeedback = () => {
     }
     setSending(true);
     try {
-      await orpc.feedback.submit({
+      await rpc("feedback.submit", {
         message,
         path: window.location.pathname,
         sessionId: getAnalyticsSessionId(),
@@ -57,7 +57,7 @@ export const SidebarFeedback = () => {
       setSending(false);
       // Application errors carry a user-facing message in their data.
       const errorData =
-        error instanceof ORPCError
+        error instanceof RpcError
           ? messageErrorDataSchema.safeParse(error.data)
           : null;
       toast.error(

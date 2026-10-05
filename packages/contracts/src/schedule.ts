@@ -1,130 +1,89 @@
-import { oc } from "@orpc/contract";
-import {
-  applicationErrorMap,
-  conflictErrorDataSchema,
+import { RpcError } from "@pcobooster/contracts/errors";
+import type {
+  scheduleAlreadyScheduledErrorDataSchema,
+  schedulePositionMismatchErrorDataSchema,
 } from "@pcobooster/contracts/errors";
-import { z } from "zod";
+import { Schema, Struct, Effect } from "effect";
+import { Rpc, RpcGroup } from "effect/rpc";
 
-const requiredId = z.string().trim().min(1);
-const optionalId = requiredId.optional();
+export {
+  scheduleAlreadyScheduledErrorDataSchema,
+  schedulePositionMismatchErrorDataSchema,
+} from "@pcobooster/contracts/errors";
+const requiredId = Schema.Trim.check(Schema.isMinLength(1));
 
-export const scheduleAssignInputSchema = z.object({
+const optionalId = Schema.optional(requiredId);
+
+export const scheduleAssignInputSchema = Schema.Struct({
   serviceTypeId: requiredId,
   personId: requiredId,
   planId: requiredId,
   teamId: requiredId,
   positionId: requiredId,
-  teamName: requiredId.optional(),
-  positionName: requiredId.optional(),
-  oneOff: z.boolean().default(false),
-});
+  teamName: Schema.optional(requiredId),
+  positionName: Schema.optional(requiredId),
+  oneOff: Schema.Boolean.pipe(
+    Schema.withDecodingDefault(Effect.succeed(false))
+  ),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const scheduleRemoveInputSchema = z.object({
+export const scheduleRemoveInputSchema = Schema.Struct({
   planPersonId: requiredId,
   serviceTypeId: optionalId,
   personId: optionalId,
   planId: optionalId,
-});
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const scheduleUpdateStatusInputSchema = z.object({
+export const scheduleUpdateStatusInputSchema = Schema.Struct({
   planPersonId: requiredId,
-  status: z.enum(["C", "U", "D"]),
+  status: Schema.Literals(["C", "U", "D"]),
   serviceTypeId: optionalId,
   personId: optionalId,
   planId: optionalId,
-});
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const scheduleAssignOutputSchema = z.object({
-  success: z.literal(true),
-  data: z.object({ id: requiredId }),
-});
+export const scheduleAssignOutputSchema = Schema.Struct({
+  success: Schema.Literal(true),
+  data: Schema.Struct({ id: requiredId }).mapFields(
+    Struct.map(Schema.mutableKey)
+  ),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const scheduleMutationOutputSchema = z.object({
-  success: z.literal(true),
-});
+export const scheduleMutationOutputSchema = Schema.Struct({
+  success: Schema.Literal(true),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const scheduleAlreadyScheduledErrorDataSchema = z.object({
-  message: z.string(),
-  details: z.string().optional(),
-});
-
-export const schedulePositionMismatchErrorDataSchema = z.object({
-  message: z.string(),
-  details: z.object({
-    selected: z.object({
-      teamId: requiredId,
-      teamName: z.string(),
-      positionId: requiredId,
-      positionName: z.string(),
-    }),
-    created: z.object({
-      planPersonId: requiredId,
-      teamPositionName: z.string(),
-    }),
+export const scheduleRpc = RpcGroup.make(
+  Rpc.make("schedule.assign", {
+    payload: scheduleAssignInputSchema,
+    success: scheduleAssignOutputSchema,
+    error: RpcError,
   }),
-});
+  Rpc.make("schedule.remove", {
+    payload: scheduleRemoveInputSchema,
+    success: scheduleMutationOutputSchema,
+    error: RpcError,
+  }),
+  Rpc.make("schedule.updateStatus", {
+    payload: scheduleUpdateStatusInputSchema,
+    success: scheduleMutationOutputSchema,
+    error: RpcError,
+  })
+);
 
-const scheduleProcedure = oc.errors({
-  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-  FORBIDDEN: applicationErrorMap.FORBIDDEN,
-  BAD_REQUEST: applicationErrorMap.BAD_REQUEST,
-  NOT_FOUND: applicationErrorMap.NOT_FOUND,
-  CONFLICT: {
-    status: 409,
-    data: conflictErrorDataSchema,
-  },
-  ALREADY_SCHEDULED: {
-    status: 409,
-    data: scheduleAlreadyScheduledErrorDataSchema,
-  },
-  POSITION_MISMATCH: {
-    status: 409,
-    data: schedulePositionMismatchErrorDataSchema,
-  },
-  TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-  BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
+export type ScheduleAssignInput = typeof scheduleAssignInputSchema.Encoded;
 
-export const scheduleContract = {
-  assign: scheduleProcedure
-    .route({
-      method: "POST",
-      path: "/schedule",
-      summary: "Assign a person to a plan position",
-    })
-    .input(scheduleAssignInputSchema)
-    .output(scheduleAssignOutputSchema),
-  remove: scheduleProcedure
-    .route({
-      method: "DELETE",
-      path: "/schedule/{planPersonId}",
-      summary: "Remove a person from a plan",
-    })
-    .input(scheduleRemoveInputSchema)
-    .output(scheduleMutationOutputSchema),
-  updateStatus: scheduleProcedure
-    .route({
-      method: "PATCH",
-      path: "/schedule/{planPersonId}/status",
-      summary: "Update a person's schedule status",
-    })
-    .input(scheduleUpdateStatusInputSchema)
-    .output(scheduleMutationOutputSchema),
-};
+export type ScheduleRemoveInput = typeof scheduleRemoveInputSchema.Encoded;
 
-export type ScheduleAssignInput = z.input<typeof scheduleAssignInputSchema>;
-export type ScheduleRemoveInput = z.input<typeof scheduleRemoveInputSchema>;
-export type ScheduleUpdateStatusInput = z.input<
-  typeof scheduleUpdateStatusInputSchema
->;
-export type ScheduleAssignOutput = z.output<typeof scheduleAssignOutputSchema>;
-export type ScheduleMutationOutput = z.output<
-  typeof scheduleMutationOutputSchema
->;
-export type ScheduleAlreadyScheduledErrorData = z.output<
-  typeof scheduleAlreadyScheduledErrorDataSchema
->;
-export type SchedulePositionMismatchErrorData = z.output<
-  typeof schedulePositionMismatchErrorDataSchema
->;
+export type ScheduleUpdateStatusInput =
+  typeof scheduleUpdateStatusInputSchema.Encoded;
+
+export type ScheduleAssignOutput = typeof scheduleAssignOutputSchema.Type;
+
+export type ScheduleMutationOutput = typeof scheduleMutationOutputSchema.Type;
+
+export type ScheduleAlreadyScheduledErrorData =
+  typeof scheduleAlreadyScheduledErrorDataSchema.Type;
+
+export type SchedulePositionMismatchErrorData =
+  typeof schedulePositionMismatchErrorDataSchema.Type;

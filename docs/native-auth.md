@@ -1,6 +1,6 @@
 # Native app sign-in
 
-The native iOS app signs in with the same Planning Center OAuth flow as the web, run inside an `ASWebAuthenticationSession`, and then holds a Better Auth session as a bearer token instead of a cookie. The web sign-in is unchanged: a callback that a native start did not begin never takes the native path.
+The native iOS app signs in with the same Planning Center OAuth flow as the web, run with Expo WebBrowser `openAuthSessionAsync` (iOS uses the system authentication session), and then holds a Better Auth session as a bearer token instead of a cookie. The web sign-in is unchanged: a callback that a native start did not begin never takes the native path.
 
 Code: `packages/api/src/auth/native-sign-in.ts` (start, exchange, callback hook), `packages/api/src/auth/bearer-sessions.ts` (bearer tokens), `packages/api/src/auth/planning-center-session.ts` and `packages/api/src/auth/demo-access.ts` (request headers), and `apps/server/src/app.ts` (rate limit).
 
@@ -78,7 +78,7 @@ Headers: `Content-Type: application/json`, and no `Cookie` header (Better Auth a
 }
 ```
 
-- `token` is the Better Auth session token with its HMAC signature, the same value the web keeps in its session cookie. Store it in the Keychain and send it as `Authorization: Bearer <token>`.
+- `token` is the Better Auth session token with its HMAC signature, the same value the web keeps in its session cookie. Store it in Expo SecureStore and send it as `Authorization: Bearer <token>`.
 - `selectedAccountId` is the Planning Center organization (account row) this sign-in used, the one the web would select. Send it as `x-pcobooster-account`.
 
 `400` JSON errors:
@@ -94,19 +94,19 @@ A code is consumed by its first exchange attempt, including one with the wrong v
 
 | Header | Value | Read by |
 | --- | --- | --- |
-| `Authorization` | `Bearer <token>` | Better Auth's `bearer` plugin, before every Better Auth endpoint and every `auth.api.*` call, so oRPC (`/api/rpc/*`) and `/api/auth/*` both accept it |
+| `Authorization` | `Bearer <token>` | Better Auth's `bearer` plugin, before every Better Auth endpoint and every `auth.api.*` call, so Effect RPC (`/api/rpc/*`) and `/api/auth/*` both accept it |
 | `x-pcobooster-account` | An account row id from `accounts.list` | `getSelectedPlanningCenterAccountId`, before the `pco-selected-account-id` cookie |
-| `x-pcobooster-demo` | The demo token from `demo.start`'s `Set-Cookie: pcobooster-demo=<token>` | `resolveDemoSession`, before the `pcobooster-demo` cookie |
+| `x-pcobooster-demo` | The `sessionToken` returned by `demo.start` (web also receives `Set-Cookie`) | `resolveDemoSession`, before the `pcobooster-demo` cookie |
 
 - Only the signed `token.signature` form authenticates (`requireSignature: true`). A raw session token, which appears in D1 and some JSON responses, does not.
 - The account header is validated like the cookie: it only chooses among the signed-in user's own linked accounts. An unknown or foreign id falls back to the first linked account, and `accounts.list` reports the account actually used in `selectedAccountId`. To switch organizations, call `accounts.select` (it validates the id) and send the new id; ignore its `Set-Cookie`.
 - The demo header is validated exactly like the cookie: it must match the token derived from the current `DEMO_ACCESS_KEY`.
-- Use a cookieless `URLSession` (`httpCookieStorage = nil`, `httpShouldSetCookies = false`, `httpCookieAcceptPolicy = .never`). Cookies on a POST to `/api/auth/*` cause `403 MISSING_OR_NULL_ORIGIN`, and a stale session cache cookie could identify the wrong user.
-- Sessions last 7 days, extended at most once a day while used; the token does not change when it is extended. An expired or revoked token makes oRPC answer `401 UNAUTHORIZED` and `session.status` report `{authenticated: false}`: sign in again.
+- Native HTTP requests use `credentials: "omit"` and header-based identity. Cookies on a POST to `/api/auth/*` cause `403 MISSING_OR_NULL_ORIGIN`, and a stale session cache cookie could identify the wrong user.
+- Sessions last 7 days, extended at most once a day while used; the token does not change when it is extended. An expired or revoked token makes Effect RPC return a declared `UNAUTHORIZED` failure with status 401 in its Exit envelope and `session.status` report `{authenticated: false}`: sign in again.
 
 ### Sign-out
 
-`POST /api/auth/sign-out` with `Authorization: Bearer <token>`, `Content-Type: application/json`, body `{}`, and no cookies. Better Auth deletes the session, so the token stops working at once (bearer clients have no session cache to outlive it). Then delete the token from the Keychain.
+`POST /api/auth/sign-out` with `Authorization: Bearer <token>`, `Content-Type: application/json`, body `{}`, and no cookies. Better Auth deletes the session, so the token stops working at once (bearer clients have no session cache to outlive it). Then delete the token from Expo SecureStore.
 
 ## Native error vocabulary
 

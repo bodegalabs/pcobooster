@@ -13,7 +13,6 @@ import { PLANNING_CENTER_SELECTED_ACCOUNT_HEADER } from "@pcobooster/api/auth/pl
 import { createDatabase } from "@pcobooster/api/db/client";
 import { account } from "@pcobooster/api/db/schema";
 import type { BoundaryLog } from "@pcobooster/api/logging";
-import { appRouter } from "@pcobooster/api/orpc";
 import type { ServerDependencies } from "@pcobooster/api/server";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { eq } from "drizzle-orm";
@@ -77,10 +76,18 @@ const rpc = async (
   headers: Readonly<Record<string, string>>
 ): Promise<Response> =>
   await app.request(
-    new Request(`${origin}/api/rpc/${path}`, {
+    new Request(`${origin}/api/rpc`, {
       method: "POST",
       headers: { "content-type": "application/json", ...headers },
-      body: JSON.stringify({ json: {} }),
+      body: JSON.stringify([
+        {
+          _tag: "Request",
+          id: "0",
+          tag: path.replace("/", "."),
+          payload: {},
+          headers: [],
+        },
+      ]),
     })
   );
 
@@ -88,12 +95,20 @@ const isAuthenticated = async (
   headers: Readonly<Record<string, string>>
 ): Promise<boolean> => {
   const response = await rpc("session/status", headers);
-  return sessionStatusSchema.parse(await response.json()).json.authenticated;
+  return sessionStatusSchema.parse({
+    json: z
+      .array(z.object({ exit: z.object({ value: z.unknown() }) }))
+      .parse(await response.json())[0]?.exit.value,
+  }).json.authenticated;
 };
 
 const listAccounts = async (headers: Readonly<Record<string, string>>) => {
   const response = await rpc("accounts/list", headers);
-  return accountsSchema.parse(await response.json()).json;
+  return accountsSchema.parse({
+    json: z
+      .array(z.object({ exit: z.object({ value: z.unknown() }) }))
+      .parse(await response.json())[0]?.exit.value,
+  }).json;
 };
 
 const accountIdFor = async (person: PlanningCenterProfile): Promise<string> => {
@@ -113,10 +128,8 @@ describe("native sign-in through the API Worker", () => {
     app = serveForTest(
       createServerApp({
         server,
-        enableRequestLogging: false,
         log: { error: vi.fn<TestErrorLogger>() },
         reportError: null,
-        router: appRouter,
       })
     );
   });
@@ -126,7 +139,7 @@ describe("native sign-in through the API Worker", () => {
     await runtime.dispose();
   });
 
-  it("hands the app a code through Hono's auth routes", async () => {
+  it("hands the app a code through the HTTP auth routes", async () => {
     planningCenter.signInAs(profile("round-trip"));
     const run = await runNativeSignIn(handler, origin);
     const exchanged = await exchangeRun(handler, origin, run);
@@ -141,7 +154,7 @@ describe("native sign-in through the API Worker", () => {
     await expect(parseExchange(exchanged)).resolves.toHaveProperty("token");
   });
 
-  it("authenticates oRPC calls with the bearer token", async () => {
+  it("authenticates Effect RPC calls with the bearer token", async () => {
     const person = profile("rpc");
     planningCenter.signInAs(person);
     const { token, user, selectedAccountId } = await signInNatively(
@@ -208,10 +221,8 @@ describe("native sign-in through the API Worker", () => {
       createServerApp({
         server,
         allowAuthWrite: async () => await Promise.resolve(false),
-        enableRequestLogging: false,
         log: { error: vi.fn<TestErrorLogger>() },
         reportError: null,
-        router: appRouter,
       })
     );
     const query = new URLSearchParams({
@@ -261,6 +272,7 @@ describe("native sign-in through the API Worker", () => {
 
     expect(signOut.status).toBe(200);
     await expect(isAuthenticated({ authorization })).resolves.toBeFalsy();
-    expect(accounts.status).toBe(401);
+    expect(accounts.status).toBe(200);
+    await expect(accounts.text()).resolves.toContain("UNAUTHORIZED");
   });
 });

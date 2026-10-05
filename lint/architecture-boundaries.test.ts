@@ -403,7 +403,7 @@ describe("monorepo architecture boundaries", () => {
     expectNoViolations("Planning Center models boundary", violations);
   });
 
-  it("keeps oRPC contracts browser-safe and transport-only", () => {
+  it("keeps Effect RPC contracts browser-safe and transport-only", () => {
     const contractsRoot = join(repositoryRoot, "packages/contracts");
     const violations: string[] = [];
 
@@ -440,7 +440,7 @@ describe("monorepo architecture boundaries", () => {
       }
     }
 
-    expectNoViolations("oRPC contracts boundary", violations);
+    expectNoViolations("Effect RPC contracts boundary", violations);
   });
 
   it("contains no replaced REST route or obsolete server registry", () => {
@@ -461,7 +461,7 @@ describe("monorepo architecture boundaries", () => {
         );
         if (replacedSegment && !routeExceptions.has(replacedSegment)) {
           violations.push(
-            `${file.relativePath} is a replaced REST route (${replacedSegment}); use the oRPC transport`
+            `${file.relativePath} is a replaced REST route (${replacedSegment}); use the Effect RPC transport`
           );
         }
       }

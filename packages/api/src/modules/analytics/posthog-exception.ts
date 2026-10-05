@@ -1,6 +1,6 @@
-import { ORPCError } from "@orpc/server";
 import { createPostHogCaptureSender } from "@pcobooster/api/modules/analytics/posthog-capture";
 import type { PostHogCaptureBody } from "@pcobooster/api/modules/analytics/posthog-capture";
+import { RpcError } from "@pcobooster/contracts/errors";
 import { z } from "zod";
 
 const SERVER_ERROR_STATUS = 500;
@@ -10,7 +10,7 @@ const STACK_FRAME =
 /** API exceptions are not tied to a person: the handler would need a session lookup. */
 const SERVER_DISTINCT_ID = "pcobooster-api";
 
-/** Anything a handler throws, as an `Error`; oRPC's own errors pass through intact. */
+/** Anything a handler throws, as an `Error`; Effect RPC's own errors pass through intact. */
 export const requestErrorSchema = z
   .unknown()
   .transform((value) =>
@@ -27,11 +27,11 @@ export interface ReportedRequestError {
 
 /**
  * Only failures the product should not produce are reported: 5xx responses and anything
- * that was not an `ORPCError`. Expected faults (auth, validation, conflicts, rate limits)
+ * that was not an `RpcError`. Expected faults (auth, validation, conflicts, rate limits)
  * are ordinary outcomes and stay in the logs.
  */
 export const isReportableRequestError = (error: Error): boolean =>
-  !(error instanceof ORPCError) || error.status >= SERVER_ERROR_STATUS;
+  !(error instanceof RpcError) || error.status >= SERVER_ERROR_STATUS;
 
 interface ExceptionFrame {
   readonly platform: "node:javascript";
@@ -66,7 +66,7 @@ const parseStackFrames = (stack: string | undefined): ExceptionFrame[] => {
 
 /** The underlying cause explains a 5xx better than the generic transport error wrapping it. */
 const rootCause = (error: Error): Error =>
-  error instanceof ORPCError && error.cause !== undefined
+  error instanceof RpcError && error.cause !== undefined
     ? requestErrorSchema.parse(error.cause)
     : error;
 
@@ -76,7 +76,7 @@ interface ExceptionEntry {
   readonly mechanism: {
     readonly handled: true;
     readonly synthetic: false;
-    readonly type: "orpc";
+    readonly type: "effect-rpc";
   };
   stacktrace?: { readonly type: "raw"; readonly frames: ExceptionFrame[] };
 }
@@ -85,7 +85,7 @@ const toExceptionEntry = (cause: Error): ExceptionEntry => {
   const entry: ExceptionEntry = {
     type: cause.name,
     value: cause.message.slice(0, EXCEPTION_MESSAGE_MAX_LENGTH),
-    mechanism: { handled: true, synthetic: false, type: "orpc" },
+    mechanism: { handled: true, synthetic: false, type: "effect-rpc" },
   };
   const frames = parseStackFrames(cause.stack);
   if (frames.length > 0) {
@@ -100,7 +100,7 @@ export const toPostHogExceptionCapture = (
   now: Date
 ): PostHogCaptureBody => {
   const code =
-    reported.error instanceof ORPCError
+    reported.error instanceof RpcError
       ? z.string().parse(reported.error.code)
       : "UNHANDLED";
   return {

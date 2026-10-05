@@ -1,6 +1,6 @@
 import { peopleSearchResultSchema } from "@pcobooster/contracts/people-schemas";
 import type { PeopleSearchResult } from "@pcobooster/contracts/people-schemas";
-import { z } from "zod";
+import { Schema, Result } from "effect";
 
 import { presentationCacheKey } from "@/lib/presentation-cache";
 
@@ -17,9 +17,9 @@ export interface PeopleSearchCacheEntry {
   data: PeopleSearchResult[];
 }
 
-const cachedPayloadSchema = z.object({
-  savedAt: z.number(),
-  data: z.array(peopleSearchResultSchema),
+const cachedPayloadSchema = Schema.Struct({
+  savedAt: Schema.Finite,
+  data: Schema.mutable(Schema.Array(peopleSearchResultSchema)),
 });
 
 export const normalizePeopleSearchQuery = (query: string): string =>
@@ -42,11 +42,13 @@ export const readCachedPeopleSearch = (
     if (raw === null) {
       return undefined;
     }
-    const parsed = cachedPayloadSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success) {
+    const parsed = Schema.decodeUnknownResult(
+      Schema.toCodecJson(cachedPayloadSchema)
+    )(JSON.parse(raw));
+    if (Result.isFailure(parsed)) {
       return undefined;
     }
-    return parsed.data;
+    return parsed.success;
   } catch {
     return undefined;
   }

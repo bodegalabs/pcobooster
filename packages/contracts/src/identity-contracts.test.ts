@@ -9,6 +9,7 @@ import {
 } from "@pcobooster/contracts/admin";
 import { enabledFeaturesSchema } from "@pcobooster/contracts/features";
 import { sessionStatusSchema } from "@pcobooster/contracts/session";
+import { Schema, Result } from "effect";
 import { describe, expect, it } from "vitest";
 
 const identity = {
@@ -69,18 +70,18 @@ describe("identity contracts", () => {
       })),
     };
 
-    expect(planningCenterAccountsSchema.parse(withCredentials)).toStrictEqual(
-      panel
-    );
     expect(
-      planningCenterAccountsSchema.parse({
+      Schema.decodeUnknownSync(planningCenterAccountsSchema)(withCredentials)
+    ).toStrictEqual(panel);
+    expect(
+      Schema.decodeUnknownSync(planningCenterAccountsSchema)({
         ...panel,
         selectedAccountId: null,
         accounts: [],
       })
     ).toStrictEqual({ ...panel, selectedAccountId: null, accounts: [] });
     expect(
-      planningCenterAccountsSchema.parse({
+      Schema.decodeUnknownSync(planningCenterAccountsSchema)({
         ...panel,
         accounts: panel.accounts.map((account) => ({
           ...account,
@@ -116,47 +117,70 @@ describe("identity contracts", () => {
       ],
     };
 
-    expect(adminAccountsResponseSchema.parse(accounts)).toStrictEqual(accounts);
-    expect(adminUserResponseSchema.parse({ user })).toStrictEqual({ user });
-    expect(adminUserResponseSchema.parse({ user: null })).toStrictEqual({
+    expect(
+      Schema.decodeUnknownSync(adminAccountsResponseSchema)(accounts)
+    ).toStrictEqual(accounts);
+    expect(
+      Schema.decodeUnknownSync(adminUserResponseSchema)({ user })
+    ).toStrictEqual({ user });
+    expect(
+      Schema.decodeUnknownSync(adminUserResponseSchema)({ user: null })
+    ).toStrictEqual({
       user: null,
     });
   });
 
   it("accepts anonymous and disabled results without requiring authentication", () => {
-    expect(sessionStatusSchema.parse({ authenticated: false })).toStrictEqual({
+    expect(
+      Schema.decodeUnknownSync(sessionStatusSchema)({ authenticated: false })
+    ).toStrictEqual({
       authenticated: false,
     });
     expect(
-      enabledFeaturesSchema.parse({ people: false, chordCharts: false })
+      Schema.decodeUnknownSync(enabledFeaturesSchema)({
+        people: false,
+        chordCharts: false,
+      })
     ).toStrictEqual({ people: false, chordCharts: false });
   });
 
   it("requires an answer for every feature flag", () => {
     expect(
-      enabledFeaturesSchema.safeParse({ people: true }).success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(enabledFeaturesSchema)({ people: true })
+      )
     ).toBeFalsy();
     expect(
-      enabledFeaturesSchema.safeParse({
-        people: true,
-        chordCharts: true,
-        cleanup: true,
-      }).success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(enabledFeaturesSchema)({
+          people: true,
+          chordCharts: true,
+          cleanup: true,
+        })
+      )
     ).toBeFalsy();
   });
 
   it("requires a selected local account identifier and successful selection output", () => {
     expect(
-      accountsSelectInputSchema.safeParse({ accountId: " " }).success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(accountsSelectInputSchema)({
+          accountId: " ",
+        })
+      )
     ).toBeFalsy();
     expect(
-      accountsSelectInputSchema.parse({ accountId: "local-account-1" })
+      Schema.decodeUnknownSync(accountsSelectInputSchema)({
+        accountId: "local-account-1",
+      })
     ).toStrictEqual({ accountId: "local-account-1" });
     expect(
-      accountSwitchSchema.safeParse({
-        success: false,
-        selectedAccountId: "local-account-1",
-      }).success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(accountSwitchSchema)({
+          success: false,
+          selectedAccountId: "local-account-1",
+        })
+      )
     ).toBeFalsy();
   });
 });

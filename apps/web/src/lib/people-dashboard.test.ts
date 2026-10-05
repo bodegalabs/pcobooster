@@ -1,9 +1,3 @@
-import type {
-  PeopleDashboardActivity,
-  PeopleDashboardRoster,
-} from "@pcobooster/contracts/people-schemas";
-import { describe, expect, it } from "vitest";
-
 import {
   assemblePeopleDashboard,
   buildMonthDays,
@@ -22,7 +16,12 @@ import {
   serviceDays,
   teamScope,
   unrequestedMatchIds,
-} from "@/lib/people-dashboard";
+} from "@pcobooster/client/people-dashboard";
+import type {
+  PeopleDashboardActivity,
+  PeopleDashboardRoster,
+} from "@pcobooster/contracts/people-schemas";
+import { describe, expect, it } from "vitest";
 
 const roster = (
   count: number,

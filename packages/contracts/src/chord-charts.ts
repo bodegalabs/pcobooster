@@ -1,14 +1,15 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
+import { RpcError } from "@pcobooster/contracts/errors";
 import { keyOptionSchema } from "@pcobooster/contracts/song-schemas";
-import { z } from "zod";
+import { Schema, Struct } from "effect";
+import { Rpc, RpcGroup } from "effect/rpc";
 
-const requiredId = z.string().trim().min(1);
+const requiredId = Schema.Trim.check(Schema.isMinLength(1));
 
 /** Font sizes Services accepts for `chord_chart_font_size`. */
 export const CHORD_CHART_FONT_SIZES = [
   10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 26, 28, 32, 36, 42, 48,
 ] as const;
+
 export const CHORD_CHART_PAGE_SIZES = [
   "Letter",
   "A4",
@@ -17,7 +18,9 @@ export const CHORD_CHART_PAGE_SIZES = [
   "Widescreen (16x9)",
   "Fullscreen (4x3)",
 ] as const;
+
 export const CHORD_CHART_ORIENTATIONS = ["Portrait", "Landscape"] as const;
+
 export const CHORD_CHART_MARGINS = [
   "0.0in",
   "0.25in",
@@ -25,8 +28,10 @@ export const CHORD_CHART_MARGINS = [
   "0.75in",
   "1.0in",
 ] as const;
+
 /** Services lays charts out in one or two columns. */
 export const CHORD_CHART_MAX_COLUMNS = 2;
+
 /** Fonts Services' Formatting dialog offers, stored in `chord_chart_font` by value. */
 export const CHORD_CHART_FONTS = [
   { value: "Helvetica", label: "Arial, Helvetica" },
@@ -35,6 +40,7 @@ export const CHORD_CHART_FONTS = [
   { value: "Times-Roman", label: "Times New Roman" },
   { value: "Noto Sans", label: "Noto Sans (International)" },
 ] as const;
+
 /** Chord colors in Services' order; `chord_chart_chord_color` stores the index. */
 export const CHORD_CHART_CHORD_COLORS = [
   "Black",
@@ -45,188 +51,182 @@ export const CHORD_CHART_CHORD_COLORS = [
   "Red",
 ] as const;
 
-const fontSizeSchema = z
-  .number()
-  .int()
-  .refine(
+const fontSizeSchema = Schema.Finite.check(Schema.isInt()).check(
+  Schema.makeFilter(
     (size) => CHORD_CHART_FONT_SIZES.some((allowed) => allowed === size),
-    "Font size must be one Services offers"
-  );
+    { message: "Font size must be one Services offers" }
+  )
+);
 
 /** Print settings Services stores beside the chart and uses for its PDFs. */
-export const chordChartLayoutSchema = z.object({
-  font: z.string().nullable(),
-  fontSize: fontSizeSchema.nullable(),
-  columns: z.number().int().min(1).max(CHORD_CHART_MAX_COLUMNS).nullable(),
-  chordColor: z
-    .number()
-    .int()
-    .min(0)
-    .max(CHORD_CHART_CHORD_COLORS.length - 1)
-    .nullable(),
-  pageSize: z.enum(CHORD_CHART_PAGE_SIZES).nullable(),
-  orientation: z.enum(CHORD_CHART_ORIENTATIONS).nullable(),
-  margin: z.enum(CHORD_CHART_MARGINS).nullable(),
-});
+export const chordChartLayoutSchema = Schema.Struct({
+  font: Schema.NullOr(Schema.String),
+  fontSize: Schema.NullOr(fontSizeSchema),
+  columns: Schema.NullOr(
+    Schema.Finite.check(Schema.isInt())
+      .check(Schema.isGreaterThanOrEqualTo(1))
+      .check(Schema.isLessThanOrEqualTo(CHORD_CHART_MAX_COLUMNS))
+  ),
+  chordColor: Schema.NullOr(
+    Schema.Finite.check(Schema.isInt())
+      .check(Schema.isGreaterThanOrEqualTo(0))
+      .check(Schema.isLessThanOrEqualTo(CHORD_CHART_CHORD_COLORS.length - 1))
+  ),
+  pageSize: Schema.NullOr(Schema.Literals(CHORD_CHART_PAGE_SIZES)),
+  orientation: Schema.NullOr(Schema.Literals(CHORD_CHART_ORIENTATIONS)),
+  margin: Schema.NullOr(Schema.Literals(CHORD_CHART_MARGINS)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const chordChartArrangementSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  archived: z.boolean(),
+export const chordChartArrangementSchema = Schema.Struct({
+  id: Schema.String,
+  name: Schema.String,
+  archived: Schema.Boolean,
   /** Lyrics & Chords text in Services' ChordPro-based format. */
-  chordChart: z.string(),
+  chordChart: Schema.String,
   /** The key the chords are written in. */
-  chordChartKey: z.string().nullable(),
+  chordChartKey: Schema.NullOr(Schema.String),
   /** Lyrics Services derives from the chart, used to start a new chart from lyrics only. */
-  lyrics: z.string(),
-  keys: z.array(keyOptionSchema),
+  lyrics: Schema.String,
+  keys: Schema.mutable(Schema.Array(keyOptionSchema)),
   layout: chordChartLayoutSchema,
-  updatedAt: z.string().nullable(),
-});
+  updatedAt: Schema.NullOr(Schema.String),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const chordChartSongSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  author: z.string(),
-});
+export const chordChartSongSchema = Schema.Struct({
+  id: Schema.String,
+  title: Schema.String,
+  author: Schema.String,
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const chordChartSongOutputSchema = z.object({
+export const chordChartSongOutputSchema = Schema.Struct({
   song: chordChartSongSchema,
-  arrangements: z.array(chordChartArrangementSchema),
-});
+  arrangements: Schema.mutable(Schema.Array(chordChartArrangementSchema)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const chordChartSongInputSchema = z.object({ songId: requiredId });
+export const chordChartSongInputSchema = Schema.Struct({
+  songId: requiredId,
+}).mapFields(Struct.map(Schema.mutableKey));
 
-const chordChartEditSchema = z.object({
-  chordChart: z.string(),
-  chordChartKey: z.string().trim().min(1).nullable(),
-  layout: chordChartLayoutSchema.partial().optional(),
-});
+const chordChartEditSchema = Schema.Struct({
+  chordChart: Schema.String,
+  chordChartKey: Schema.NullOr(Schema.Trim.check(Schema.isMinLength(1))),
+  layout: Schema.optional(
+    chordChartLayoutSchema.mapFields(Struct.map(Schema.optional))
+  ),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const chordChartUpdateInputSchema = chordChartEditSchema.extend({
+export const chordChartUpdateInputSchema = Schema.Struct({
+  ...chordChartEditSchema.fields,
   songId: requiredId,
   arrangementId: requiredId,
-  /** The `updatedAt` the edit started from; a newer arrangement is a conflict. */
-  baseUpdatedAt: z.string().nullable(),
-});
+  baseUpdatedAt: Schema.NullOr(Schema.String),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const chordChartCreateInputSchema = chordChartEditSchema.extend({
+export const chordChartCreateInputSchema = Schema.Struct({
+  ...chordChartEditSchema.fields,
   songId: requiredId,
-  name: z.string().trim().min(1).max(255),
-});
+  name: Schema.Trim.check(Schema.isMinLength(1)).check(Schema.isMaxLength(255)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const chordChartSongCreateInputSchema = z.object({
+export const chordChartSongCreateInputSchema = Schema.Struct({
   /** A title, or a CCLI number for Services to fill in the song from SongSelect. */
-  title: z.string().trim().min(1).max(255),
-  author: z.string().trim().max(255).optional(),
-  copyright: z.string().trim().max(255).optional(),
-  ccliNumber: z.number().int().positive().optional(),
-});
+  title: Schema.Trim.check(Schema.isMinLength(1)).check(
+    Schema.isMaxLength(255)
+  ),
+  author: Schema.optional(Schema.Trim.check(Schema.isMaxLength(255))),
+  copyright: Schema.optional(Schema.Trim.check(Schema.isMaxLength(255))),
+  ccliNumber: Schema.optional(
+    Schema.Finite.check(Schema.isInt()).check(Schema.isGreaterThan(0))
+  ),
+}).mapFields(Struct.map(Schema.mutableKey));
 
 /** A chart Services renders: one of the arrangement's keys, or its lyrics sheet. */
-export const chordChartPdfInputSchema = z.object({
+export const chordChartPdfInputSchema = Schema.Struct({
   songId: requiredId,
   arrangementId: requiredId,
   /** The arrangement key to render chords in; absent for the lyrics sheet. */
-  keyId: requiredId.optional(),
-});
+  keyId: Schema.optional(requiredId),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const chordChartPdfOutputSchema = z.object({
+export const chordChartPdfOutputSchema = Schema.Struct({
   /** The PDF Services rendered, base64 encoded. */
-  data: z.string(),
-});
+  data: Schema.String,
+}).mapFields(Struct.map(Schema.mutableKey));
 
 /** A song's lyrics found by a web search, to start a chart from. */
-export const lyricsSearchResultSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  artist: z.string(),
-  album: z.string().nullable(),
-  durationSeconds: z.number().nullable(),
-  lyrics: z.string(),
-});
+export const lyricsSearchResultSchema = Schema.Struct({
+  id: Schema.String,
+  title: Schema.String,
+  artist: Schema.String,
+  album: Schema.NullOr(Schema.String),
+  durationSeconds: Schema.NullOr(Schema.Finite),
+  lyrics: Schema.String,
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const lyricsSearchInputSchema = z.object({
-  query: z.string().trim().min(2).max(200),
-});
+export const lyricsSearchInputSchema = Schema.Struct({
+  query: Schema.Trim.check(Schema.isMinLength(2)).check(
+    Schema.isMaxLength(200)
+  ),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const lyricsSearchOutputSchema = z.array(lyricsSearchResultSchema);
+export const lyricsSearchOutputSchema = Schema.mutable(
+  Schema.Array(lyricsSearchResultSchema)
+);
 
-const chordChartsProcedure = oc.errors({
-  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-  FORBIDDEN: applicationErrorMap.FORBIDDEN,
-  NOT_FOUND: applicationErrorMap.NOT_FOUND,
-  BAD_REQUEST: applicationErrorMap.BAD_REQUEST,
-  CONFLICT: applicationErrorMap.CONFLICT,
-  TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-  BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
+export const chordChartsRpc = RpcGroup.make(
+  Rpc.make("chordCharts.song", {
+    payload: chordChartSongInputSchema,
+    success: chordChartSongOutputSchema,
+    error: RpcError,
+  }),
+  Rpc.make("chordCharts.update", {
+    payload: chordChartUpdateInputSchema,
+    success: chordChartArrangementSchema,
+    error: RpcError,
+  }),
+  Rpc.make("chordCharts.create", {
+    payload: chordChartCreateInputSchema,
+    success: chordChartArrangementSchema,
+    error: RpcError,
+  }),
+  Rpc.make("chordCharts.createSong", {
+    payload: chordChartSongCreateInputSchema,
+    success: chordChartSongOutputSchema,
+    error: RpcError,
+  }),
+  Rpc.make("chordCharts.pdf", {
+    payload: chordChartPdfInputSchema,
+    success: chordChartPdfOutputSchema,
+    error: RpcError,
+  }),
+  Rpc.make("chordCharts.lyricsSearch", {
+    payload: lyricsSearchInputSchema,
+    success: lyricsSearchOutputSchema,
+    error: RpcError,
+  })
+);
 
-export const chordChartsContract = {
-  song: chordChartsProcedure
-    .route({
-      method: "GET",
-      path: "/chord-charts/songs/{songId}",
-      summary: "Read a song's arrangements with their chord charts",
-    })
-    .input(chordChartSongInputSchema)
-    .output(chordChartSongOutputSchema),
-  update: chordChartsProcedure
-    .route({
-      method: "PATCH",
-      path: "/chord-charts/songs/{songId}/arrangements/{arrangementId}",
-      summary: "Save an arrangement's chord chart to Planning Center",
-    })
-    .input(chordChartUpdateInputSchema)
-    .output(chordChartArrangementSchema),
-  create: chordChartsProcedure
-    .route({
-      method: "POST",
-      path: "/chord-charts/songs/{songId}/arrangements",
-      summary: "Create an arrangement from a chord chart in Planning Center",
-    })
-    .input(chordChartCreateInputSchema)
-    .output(chordChartArrangementSchema),
-  createSong: chordChartsProcedure
-    .route({
-      method: "POST",
-      path: "/chord-charts/songs",
-      summary: "Add a song to Planning Center, ready for a chord chart",
-    })
-    .input(chordChartSongCreateInputSchema)
-    .output(chordChartSongOutputSchema),
-  pdf: chordChartsProcedure
-    .route({
-      method: "GET",
-      path: "/chord-charts/songs/{songId}/arrangements/{arrangementId}/pdf",
-      summary: "Read the PDF Planning Center renders from the saved chart",
-    })
-    .input(chordChartPdfInputSchema)
-    .output(chordChartPdfOutputSchema),
-  lyricsSearch: chordChartsProcedure
-    .route({
-      method: "GET",
-      path: "/chord-charts/lyrics",
-      summary: "Search published song lyrics to start a chart from",
-    })
-    .input(lyricsSearchInputSchema)
-    .output(lyricsSearchOutputSchema),
-};
+export type ChordChartLayout = typeof chordChartLayoutSchema.Type;
 
-export type ChordChartLayout = z.output<typeof chordChartLayoutSchema>;
-export type ChordChartArrangement = z.output<
-  typeof chordChartArrangementSchema
->;
-export type ChordChartSong = z.output<typeof chordChartSongSchema>;
-export type ChordChartSongOutput = z.output<typeof chordChartSongOutputSchema>;
-export type ChordChartSongInput = z.input<typeof chordChartSongInputSchema>;
-export type ChordChartUpdateInput = z.input<typeof chordChartUpdateInputSchema>;
-export type ChordChartCreateInput = z.input<typeof chordChartCreateInputSchema>;
-export type ChordChartSongCreateInput = z.input<
-  typeof chordChartSongCreateInputSchema
->;
-export type ChordChartPdfInput = z.input<typeof chordChartPdfInputSchema>;
-export type ChordChartPdf = z.output<typeof chordChartPdfOutputSchema>;
-export type LyricsSearchResult = z.output<typeof lyricsSearchResultSchema>;
-export type LyricsSearchInput = z.input<typeof lyricsSearchInputSchema>;
+export type ChordChartArrangement = typeof chordChartArrangementSchema.Type;
+
+export type ChordChartSong = typeof chordChartSongSchema.Type;
+
+export type ChordChartSongOutput = typeof chordChartSongOutputSchema.Type;
+
+export type ChordChartSongInput = typeof chordChartSongInputSchema.Encoded;
+
+export type ChordChartUpdateInput = typeof chordChartUpdateInputSchema.Encoded;
+
+export type ChordChartCreateInput = typeof chordChartCreateInputSchema.Encoded;
+
+export type ChordChartSongCreateInput =
+  typeof chordChartSongCreateInputSchema.Encoded;
+
+export type ChordChartPdfInput = typeof chordChartPdfInputSchema.Encoded;
+
+export type ChordChartPdf = typeof chordChartPdfOutputSchema.Type;
+
+export type LyricsSearchResult = typeof lyricsSearchResultSchema.Type;
+
+export type LyricsSearchInput = typeof lyricsSearchInputSchema.Encoded;

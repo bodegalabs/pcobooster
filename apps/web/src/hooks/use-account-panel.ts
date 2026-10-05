@@ -2,6 +2,7 @@ import {
   initializeAnalytics,
   resetAnalytics,
 } from "@pcobooster/analytics/client";
+import { queryKeys } from "@pcobooster/client/query-keys";
 import type { PlanningCenterAccountsResponse } from "@pcobooster/contracts/accounts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
@@ -19,13 +20,12 @@ import {
 import { clearAccountScopedCaches } from "@/lib/account-scoped-caches";
 import { authClient } from "@/lib/auth-client";
 import { writeBrowserStorage } from "@/lib/browser-storage";
-import { queryKeys } from "@/lib/query-keys";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 export const fetchAccounts = async ({
   signal,
 }: QueryFunctionContext): Promise<PlanningCenterAccountsResponse> => {
-  const response = await orpc.accounts.list({}, { signal });
+  const response = await rpc("accounts.list", {}, { signal });
   if (response.demo) {
     resetAnalytics();
   } else {
@@ -65,7 +65,7 @@ const leaveSession = async () => {
 };
 
 const exitDemoSession = async () => {
-  await orpc.demo.exit({});
+  await rpc("demo.exit", {});
 };
 
 export const signOutLabel = (demo: boolean, pending: boolean): string => {

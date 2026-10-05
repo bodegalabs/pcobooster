@@ -1,3 +1,8 @@
+import type { PeopleDashboardCoverage } from "@pcobooster/client/people-dashboard";
+import type {
+  TeamHealth,
+  TeamHealthStatus,
+} from "@pcobooster/client/team-health";
 import { Activity } from "lucide-react";
 
 import { CoverageNote } from "@/components/people/dashboard-progress";
@@ -10,8 +15,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { PeopleDashboardCoverage } from "@/lib/people-dashboard";
-import type { TeamHealth, TeamHealthStatus } from "@/lib/team-health";
 import { cn } from "@/lib/utils";
 
 const statusLabel: Record<TeamHealthStatus, string> = {

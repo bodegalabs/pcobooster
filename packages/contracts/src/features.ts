@@ -1,6 +1,6 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
-import { z } from "zod";
+import { RpcError } from "@pcobooster/contracts/errors";
+import { Schema } from "effect";
+import { Rpc, RpcGroup } from "effect/rpc";
 
 /**
  * Every feature flag by name. The API's registry (`packages/api/src/config/feature-flags.ts`)
@@ -8,27 +8,24 @@ import { z } from "zod";
  */
 export const featureFlagNames = ["people", "chordCharts"] as const;
 
-export const featureFlagNameSchema = z.enum(featureFlagNames);
+export const featureFlagNameSchema = Schema.Literals(featureFlagNames);
 
 /** Whether each flag is on for this visitor; every flag is present. */
-export const enabledFeaturesSchema = z.record(
-  featureFlagNameSchema,
-  z.boolean()
+export const enabledFeaturesSchema = Schema.Record(
+  Schema.String,
+  Schema.Boolean
+)
+  .check(Schema.isPropertyNames(featureFlagNameSchema))
+  .pipe(Schema.decodeTo(Schema.Record(featureFlagNameSchema, Schema.Boolean)));
+
+export const featuresRpc = RpcGroup.make(
+  Rpc.make("features.status", {
+    payload: Schema.Struct({}),
+    success: enabledFeaturesSchema,
+    error: RpcError,
+  })
 );
 
-const featureProcedure = oc.errors({
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
+export type FeatureFlagName = typeof featureFlagNameSchema.Type;
 
-export const featuresContract = {
-  status: featureProcedure
-    .route({
-      method: "GET",
-      path: "/features",
-      summary: "Check which feature flags are on for this visitor",
-    })
-    .output(enabledFeaturesSchema),
-};
-
-export type FeatureFlagName = z.output<typeof featureFlagNameSchema>;
-export type EnabledFeatures = z.output<typeof enabledFeaturesSchema>;
+export type EnabledFeatures = typeof enabledFeaturesSchema.Type;

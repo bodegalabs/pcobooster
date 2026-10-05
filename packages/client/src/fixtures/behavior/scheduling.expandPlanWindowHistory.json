@@ -1,0 +1,673 @@
+{
+  "suite": "scheduling.expandPlanWindowHistory",
+  "sourceCaseIndices": [0, 1, 2, 3],
+  "cases": [
+    {
+      "input": {
+        "calls": [
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 1,
+            "plans": [
+              {
+                "id": "plan-ok",
+                "title": "Ok",
+                "sortDate": "2026-02-12T00:00:00Z",
+                "serviceTypeName": "Sunday"
+              },
+              {
+                "id": "plan-no",
+                "title": "Declined plan",
+                "sortDate": "2026-02-10T00:00:00Z",
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-service",
+                "startsAt": "2026-02-12T17:00:00Z",
+                "timeType": "service"
+              },
+              {
+                "id": "t-rehearsal",
+                "startsAt": "2026-02-11T02:00:00Z",
+                "timeType": "rehearsal"
+              }
+            ],
+            "people": [
+              {
+                "personId": "p1",
+                "rows": [
+                  {
+                    "id": "pp-d",
+                    "planId": "plan-no",
+                    "teamId": "team-1",
+                    "teamPositionName": "Band - Vocals",
+                    "status": "D",
+                    "createdAt": "2026-02-01T00:00:00Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-c",
+                    "planId": "plan-ok",
+                    "teamId": "team-1",
+                    "teamPositionName": "Band - Vocals",
+                    "status": "C",
+                    "createdAt": "2026-02-01T00:00:00Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "selectedPlanId": "plan-no"
+      },
+      "output": [
+        {
+          "key": "p1",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-c",
+                "sourceScheduleId": "pp-c",
+                "planId": "plan-ok",
+                "date": "2026-02-12T00:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Ok",
+                "status": "C",
+                "timeType": "service"
+              }
+            ],
+            "selectedPlanAssignments": [
+              {
+                "source": "planPerson",
+                "id": "pp-d",
+                "planId": "plan-no",
+                "teamId": "team-1",
+                "teamName": null,
+                "teamPositionName": "Band - Vocals",
+                "status": "D",
+                "planPersonId": null,
+                "declineReason": null
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "input": {
+        "calls": [
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 1,
+            "plans": [
+              {
+                "id": "plan-ok",
+                "title": "Ok",
+                "sortDate": "2026-02-12T00:00:00Z",
+                "serviceTypeName": "Sunday"
+              },
+              {
+                "id": "plan-no",
+                "title": "Declined plan",
+                "sortDate": "2026-02-10T00:00:00Z",
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-service",
+                "startsAt": "2026-02-12T17:00:00Z",
+                "timeType": "service"
+              },
+              {
+                "id": "t-rehearsal",
+                "startsAt": "2026-02-11T02:00:00Z",
+                "timeType": "rehearsal"
+              }
+            ],
+            "people": [
+              {
+                "personId": "p1",
+                "rows": [
+                  {
+                    "id": "pp-1",
+                    "planId": "plan-ok",
+                    "teamId": "team-1",
+                    "teamPositionName": "Band - Vocals",
+                    "status": "C",
+                    "createdAt": "2026-02-01T00:00:00Z",
+                    "timeIds": ["t-service", "t-rehearsal"],
+                    "serviceTimeIds": ["t-service"],
+                    "declineReason": null
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "selectedPlanId": "plan-x"
+      },
+      "output": [
+        {
+          "key": "p1",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-1:t-service",
+                "sourceScheduleId": "pp-1",
+                "planId": "plan-ok",
+                "date": "2026-02-12T17:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Ok",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1:t-rehearsal",
+                "sourceScheduleId": "pp-1",
+                "planId": "plan-ok",
+                "date": "2026-02-11T02:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Ok",
+                "status": "C",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        }
+      ]
+    },
+    {
+      "input": {
+        "calls": [
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 1,
+            "plans": [
+              {
+                "id": "plan-6",
+                "title": "Plan 0.0",
+                "sortDate": null,
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-5",
+                "title": "Plan 0.1",
+                "sortDate": "2026-10-21T19:00:00Z",
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-3",
+                "startsAt": "",
+                "timeType": "rehearsal"
+              }
+            ],
+            "people": [],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 3,
+            "plans": [
+              {
+                "id": "plan-4",
+                "title": "Plan 1.0",
+                "sortDate": "",
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-4",
+                "startsAt": "2026-09-15T07:00:00.5Z",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-8",
+                "startsAt": "2026-10-27T01:00:00+05:30",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-7",
+                "startsAt": "2026-10-28T20:00:00+05:30",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-2",
+                "startsAt": null,
+                "timeType": "other"
+              },
+              {
+                "id": "t-8",
+                "startsAt": "2026-09-29T12:00:00.123456Z",
+                "timeType": "other"
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-4",
+                "rows": []
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "selectedPlanId": "plan-1"
+      },
+      "output": [
+        {
+          "key": "person-4",
+          "value": {
+            "serviceHistory": [],
+            "selectedPlanAssignments": []
+          }
+        }
+      ]
+    },
+    {
+      "input": {
+        "calls": [
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 3,
+            "plans": [],
+            "planTimes": [
+              {
+                "id": "t-4",
+                "startsAt": "2026-09-02T18:00:00Z",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-8",
+                "startsAt": null,
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-7",
+                "startsAt": "",
+                "timeType": "service"
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-4",
+                "rows": []
+              },
+              {
+                "personId": "person-2",
+                "rows": [
+                  {
+                    "id": "pp-0-10",
+                    "planId": "plan-sel",
+                    "teamId": "team-vox",
+                    "teamPositionName": "Band  -  Keys",
+                    "status": "declined",
+                    "createdAt": "2026-07-29T01:00:00+05:30",
+                    "timeIds": ["t-2", "t-4", "t-5", "t-9"],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-0-6",
+                    "planId": "plan-sel",
+                    "teamId": "team-vox",
+                    "teamPositionName": " - Keys",
+                    "status": "D",
+                    "createdAt": "2026-09-02T01:00:00-08:00",
+                    "timeIds": ["t-1", "t-4", "t-8", "t-9"],
+                    "serviceTimeIds": ["t-7", "t-8"],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-0-14",
+                    "planId": "plan-7",
+                    "teamId": null,
+                    "teamPositionName": "Band -Keys",
+                    "status": "declined",
+                    "createdAt": "2026-08-15T01:00:00.123456Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-4",
+                      "t-5",
+                      "t-8",
+                      "t-9",
+                      "t-1",
+                      "t-4",
+                      "t-5",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": ["t-1", "t-9"],
+                    "declineReason": "  Busy  "
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 2,
+            "plans": [
+              {
+                "id": "plan-2",
+                "title": "Plan 1.0",
+                "sortDate": "",
+                "serviceTypeName": "Sunday"
+              },
+              {
+                "id": "plan-2",
+                "title": null,
+                "sortDate": "2026-09-06T09:00:00.000Z",
+                "serviceTypeName": "Sunday"
+              },
+              {
+                "id": "plan-1",
+                "title": "Plan 1.2",
+                "sortDate": null,
+                "serviceTypeName": null
+              },
+              {
+                "id": "plan-3",
+                "title": "Plan 1.3",
+                "sortDate": "2026-09-07T17:00:00-08:00",
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-3",
+                "startsAt": null,
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-4",
+                "startsAt": "2026-10-29T19:00Z",
+                "timeType": "Rehearsal"
+              },
+              {
+                "id": "t-1",
+                "startsAt": "2026-10-14T22:00:00Z",
+                "timeType": "service"
+              },
+              {
+                "id": "t-2",
+                "startsAt": "",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-3",
+                "startsAt": "2026-08-31T17:00:00Z",
+                "timeType": "other"
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-1",
+                "rows": []
+              },
+              {
+                "personId": "person-4",
+                "rows": [
+                  {
+                    "id": "pp-1-29",
+                    "planId": "plan-5",
+                    "teamId": null,
+                    "teamPositionName": "Band - Electric Guitar",
+                    "status": "U",
+                    "createdAt": "2026-07-09T01:00:00.5Z",
+                    "timeIds": [
+                      "t-3",
+                      "t-4",
+                      "t-5",
+                      "t-6",
+                      "t-7",
+                      "t-3",
+                      "t-4",
+                      "t-5",
+                      "t-6",
+                      "t-7"
+                    ],
+                    "serviceTimeIds": ["t-5"],
+                    "declineReason": "  Busy  "
+                  }
+                ]
+              },
+              {
+                "personId": "person-2",
+                "rows": [
+                  {
+                    "id": "pp-1-2",
+                    "planId": "plan-5",
+                    "teamId": null,
+                    "teamPositionName": " - Keys",
+                    "status": "C",
+                    "createdAt": "2026-09-10T01:00:00.000Z",
+                    "timeIds": ["t-1", "t-4", "t-6", "t-8", "t-9"],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-3",
+                      "t-4",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-1-18",
+                    "planId": null,
+                    "teamId": "team-band",
+                    "teamPositionName": "A - B - C",
+                    "status": "Declined",
+                    "createdAt": "2026-07-17T01:00:00Z",
+                    "timeIds": ["t-6", "t-7"],
+                    "serviceTimeIds": ["t-7"],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "selectedPlanId": "plan-1"
+      },
+      "output": [
+        {
+          "key": "person-4",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-1-29:t-5",
+                "sourceScheduleId": "pp-1-29",
+                "planId": "plan-5",
+                "date": "2026-07-09T01:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-29:t-4",
+                "sourceScheduleId": "pp-1-29",
+                "planId": "plan-5",
+                "date": "2026-10-29T19:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "U",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-29:t-6",
+                "sourceScheduleId": "pp-1-29",
+                "planId": "plan-5",
+                "date": "2026-07-09T01:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "U",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-29:t-7",
+                "sourceScheduleId": "pp-1-29",
+                "planId": "plan-5",
+                "date": "2026-07-09T01:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "U",
+                "timeType": "service"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-2",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-1-2:t-1",
+                "sourceScheduleId": "pp-1-2",
+                "planId": "plan-5",
+                "date": "2026-10-14T22:00:00.000Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-2:t-2",
+                "sourceScheduleId": "pp-1-2",
+                "planId": "plan-5",
+                "date": "2026-09-10T01:00:00.000Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-2:t-3",
+                "sourceScheduleId": "pp-1-2",
+                "planId": "plan-5",
+                "date": "2026-08-31T17:00:00.000Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-2:t-4",
+                "sourceScheduleId": "pp-1-2",
+                "planId": "plan-5",
+                "date": "2026-10-29T19:00:00.000Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-2:t-8",
+                "sourceScheduleId": "pp-1-2",
+                "planId": "plan-5",
+                "date": "2026-09-10T01:00:00.000Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-2:t-9",
+                "sourceScheduleId": "pp-1-2",
+                "planId": "plan-5",
+                "date": "2026-09-10T01:00:00.000Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-2:t-6",
+                "sourceScheduleId": "pp-1-2",
+                "planId": "plan-5",
+                "date": "2026-09-10T01:00:00.000Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-1",
+          "value": {
+            "serviceHistory": [],
+            "selectedPlanAssignments": []
+          }
+        }
+      ]
+    }
+  ]
+}

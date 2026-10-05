@@ -1,0 +1,111 @@
+{
+  "suite": "chordcharts.import.mergeChordsIntoLyrics",
+  "sourceCaseIndices": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+  "cases": [
+    {
+      "input": {
+        "chordLine": "D          Bm       G",
+        "lyricLine": "Be thou my vision O Lord of my heart"
+      },
+      "output": "[D]Be thou my [Bm]vision O [G]Lord of my heart"
+    },
+    {
+      "input": {
+        "chordLine": "G       D",
+        "lyricLine": "Amen"
+      },
+      "output": "[G]Amen    [D]"
+    },
+    {
+      "input": {
+        "chordLine": "",
+        "lyricLine": "Just lyrics  "
+      },
+      "output": "Just lyrics"
+    },
+    {
+      "input": {
+        "chordLine": "   ",
+        "lyricLine": "Just lyrics"
+      },
+      "output": "Just lyrics"
+    },
+    {
+      "input": {
+        "chordLine": "  G",
+        "lyricLine": "Indented"
+      },
+      "output": "In[G]dented"
+    },
+    {
+      "input": {
+        "chordLine": "G",
+        "lyricLine": ""
+      },
+      "output": "[G]"
+    },
+    {
+      "input": {
+        "chordLine": "G     C",
+        "lyricLine": "\ud83d\ude4f Praise him"
+      },
+      "output": "[G]\ud83d\ude4f Pra[C]ise him"
+    },
+    {
+      "input": {
+        "chordLine": "G   C",
+        "lyricLine": "\ud83d\ude4f\ud83d\ude4f Praise"
+      },
+      "output": "[G]\ud83d\ude4f\ud83d\ude4f[C] Praise"
+    },
+    {
+      "input": {
+        "chordLine": "G     C",
+        "lyricLine": "n\u0303a\u0303o lyric"
+      },
+      "output": "[G]n\u0303a\u0303o [C]lyric"
+    },
+    {
+      "input": {
+        "chordLine": "G     C     D",
+        "lyricLine": "\uc0ac\ub791\ud574 \uc0ac\ub791\ud574"
+      },
+      "output": "[G]\uc0ac\ub791\ud574 \uc0ac\ub791[C]\ud574     [D]"
+    },
+    {
+      "input": {
+        "chordLine": "G\tC",
+        "lyricLine": "Tab\tbed"
+      },
+      "output": "[G]Ta[C]b\tbed"
+    },
+    {
+      "input": {
+        "chordLine": "G C",
+        "lyricLine": "Trailing\u00a0\ufeff"
+      },
+      "output": "[G]Tr[C]ailing"
+    },
+    {
+      "input": {
+        "chordLine": "| G | C |",
+        "lyricLine": "Bars over words"
+      },
+      "output": "[|]Ba[G]rs[|] o[C]ve[|]r words"
+    },
+    {
+      "input": {
+        "chordLine": "G\u0085C",
+        "lyricLine": "Next line"
+      },
+      "output": "[G\u0085C]Next line"
+    },
+    {
+      "input": {
+        "chordLine": "G\ud83c\udfb8 C",
+        "lyricLine": "Emoji in a chord token"
+      },
+      "output": "[G\ud83c\udfb8]Emoj[C]i in a chord token"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { ORPCError } from "@orpc/client";
+import { RpcError } from "@pcobooster/contracts/errors";
 import {
   isNonEmptyString,
   isString,
@@ -16,7 +16,7 @@ import {
   settleScheduleMutationQueries,
 } from "@/hooks/use-schedule-cache-optimism";
 import type { OptimisticSchedulePerson } from "@/hooks/use-schedule-cache-optimism";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 const mismatchDetailsSchema = z.object({
   selected: z
@@ -34,7 +34,7 @@ const scheduleErrorDataSchema = z.object({
 });
 
 const formatScheduleClientError = (error: Error): string => {
-  if (!(error instanceof ORPCError)) {
+  if (!(error instanceof RpcError)) {
     return error.message;
   }
 
@@ -122,7 +122,7 @@ export const useSchedulePlanPerson = ({
         throw new Error("Missing schedule assignment details");
       }
 
-      return await orpc.schedule.assign({
+      return await rpc("schedule.assign", {
         serviceTypeId,
         personId: person.id,
         planId,
@@ -187,7 +187,7 @@ export const useSchedulePlanPerson = ({
       onScheduleSuccess?.();
     },
     onError: (err, _variables, context) => {
-      if (err instanceof ORPCError && err.code === "ALREADY_SCHEDULED") {
+      if (err instanceof RpcError && err.code === "ALREADY_SCHEDULED") {
         setScheduleSuccess(true);
         settleScheduleMutationQueries(queryClient, {
           serviceTypeId,

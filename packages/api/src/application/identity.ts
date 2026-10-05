@@ -31,8 +31,8 @@ import {
 } from "@pcobooster/contracts/features";
 import type { EnabledFeatures } from "@pcobooster/contracts/features";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
-import { Cause, Effect } from "effect";
-import * as HttpClient from "effect/unstable/http/HttpClient";
+import { Cause, Effect, Schema } from "effect";
+import * as HttpClient from "effect/http/HttpClient";
 
 const PLANNING_CENTER_PROVIDER_ID = "planning-center";
 const DEMO_ACCOUNT_ID = "demo";
@@ -441,7 +441,7 @@ export const getEnabledFeatures = (
       { concurrency: "unbounded" }
     );
     // The schema checks every flag got an answer.
-    return enabledFeaturesSchema.parse(
+    return Schema.decodeUnknownSync(enabledFeaturesSchema)(
       Object.fromEntries(
         featureFlagNames.map((flag, index) => [flag, answers[index]])
       )

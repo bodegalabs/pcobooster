@@ -1,3 +1,10 @@
+import {
+  buildMonthDays,
+  MATRIX_DAY_COUNT,
+  matrixPageStart,
+  serviceDays,
+} from "@pcobooster/client/people-dashboard";
+import type { PeopleDashboardDay } from "@pcobooster/client/people-dashboard";
 import type {
   PeopleDashboardMonth,
   PeopleDashboardMonthDay,
@@ -51,13 +58,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  buildMonthDays,
-  MATRIX_DAY_COUNT,
-  matrixPageStart,
-  serviceDays,
-} from "@/lib/people-dashboard";
-import type { PeopleDashboardDay } from "@/lib/people-dashboard";
 import { cn } from "@/lib/utils";
 
 interface PersonCallbacks {

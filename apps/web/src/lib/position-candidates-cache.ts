@@ -6,7 +6,7 @@ import type {
   PlanWindowHistoryBatch,
   PositionCandidates,
 } from "@pcobooster/contracts/people-schemas";
-import { z } from "zod";
+import { Schema, Result } from "effect";
 
 import { presentationCacheKey } from "@/lib/presentation-cache";
 
@@ -32,38 +32,44 @@ export interface CacheEntry<Data> {
   data: Data;
 }
 
-const cachedCandidatesSchema = z.object({
-  savedAt: z.number(),
+const cachedCandidatesSchema = Schema.Struct({
+  savedAt: Schema.Finite,
   data: positionCandidatesSchema,
 });
 
-const cachedWindowHistorySchema = z.record(
-  z.string(),
-  z.object({
-    savedAt: z.number(),
-    data: z.array(planWindowHistoryBatchSchema),
-  })
+const cachedWindowHistorySchema = Schema.Record(
+  Schema.String,
+  Schema.mutableKey(
+    Schema.Struct({
+      savedAt: Schema.Finite,
+      data: Schema.mutable(Schema.Array(planWindowHistoryBatchSchema)),
+    })
+  )
 );
-type CachedWindowHistory = z.output<typeof cachedWindowHistorySchema>;
+type CachedWindowHistory = typeof cachedWindowHistorySchema.Type;
 
-const cachedAvailabilitySchema = z.record(
-  z.string(),
-  z.object({ savedAt: z.number(), isBlockedForDate: z.boolean() })
+const cachedAvailabilitySchema = Schema.Record(
+  Schema.String,
+  Schema.mutableKey(
+    Schema.Struct({ savedAt: Schema.Finite, isBlockedForDate: Schema.Boolean })
+  )
 );
-type CachedAvailability = z.output<typeof cachedAvailabilitySchema>;
+type CachedAvailability = typeof cachedAvailabilitySchema.Type;
 
-const readJson = <Value>(
+const readJson = <S extends Schema.ConstraintDecoder<unknown>>(
   key: string,
-  schema: z.ZodType<Value>
-): Value | undefined => {
+  schema: S
+): S["Type"] | undefined => {
   const raw = globalThis.window?.localStorage.getItem(
     presentationCacheKey(key)
   );
   if (raw === null || raw === undefined) {
     return undefined;
   }
-  const parsed = schema.safeParse(JSON.parse(raw));
-  return parsed.success ? parsed.data : undefined;
+  const parsed = Schema.decodeUnknownResult(Schema.toCodecJson(schema))(
+    JSON.parse(raw)
+  );
+  return Result.isSuccess(parsed) ? parsed.success : undefined;
 };
 
 type StoredPayload =

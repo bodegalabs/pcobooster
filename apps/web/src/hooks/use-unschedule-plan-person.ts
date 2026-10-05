@@ -1,4 +1,4 @@
-import { ORPCError } from "@orpc/client";
+import { RpcError } from "@pcobooster/contracts/errors";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
@@ -12,12 +12,12 @@ import {
   settleScheduleMutationQueries,
 } from "@/hooks/use-schedule-cache-optimism";
 import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cache-optimism";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 const messageErrorDataSchema = z.object({ message: z.string().optional() });
 
 const formatUnscheduleError = (error: Error): string => {
-  if (error instanceof ORPCError) {
+  if (error instanceof RpcError) {
     const parsed = messageErrorDataSchema.safeParse(error.data);
     const message = parsed.success ? parsed.data.message : undefined;
     if (isNonEmptyString(message)) {
@@ -50,7 +50,7 @@ export const useUnschedulePlanPerson = ({
         personId?: string | null;
       };
     }) =>
-      await orpc.schedule.remove({
+      await rpc("schedule.remove", {
         planPersonId,
         serviceTypeId: context?.serviceTypeId ?? undefined,
         personId: context?.personId ?? undefined,

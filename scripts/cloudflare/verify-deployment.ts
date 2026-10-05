@@ -1,7 +1,7 @@
 /**
  * Wait until a deployed origin serves the expected commit from both Workers that CI redeploys
  * on every commit: the web Worker at `/version`, and the API through the web -> API binding at
- * `/api/rpc/health`. Then check the public home page. Workers roll out gradually, so the old
+ * `/api/health`. Then check the public home page. Workers roll out gradually, so the old
  * version may answer briefly after `alchemy deploy` returns.
  *
  *   bun scripts/cloudflare/verify-deployment.ts <origin> <commit-sha>
@@ -16,30 +16,30 @@ import { z } from "zod";
 const attemptIntervalMs = 5000;
 const defaultDeadlineMs = 180_000;
 
-const rpcHealthResponse = z.object({
-  json: z.object({ status: z.literal("ok"), version: z.string() }),
+const apiHealthResponse = z.object({
+  status: z.literal("ok"),
+  version: z.string(),
 });
 
 const webVersionResponse = z.object({ version: z.string() });
 
 type Fetch = typeof fetch;
 
-/** The API's deployed version, or undefined until it answers with a healthy oRPC reply. */
+/** The API's deployed version, or undefined until it answers with a healthy HTTP reply. */
 export const readVersion = async (
   origin: string,
   fetchImpl: Fetch = fetch
 ): Promise<string | undefined> => {
   try {
-    const response = await fetchImpl(`${origin}/api/rpc/health`, {
-      body: JSON.stringify({ json: {} }),
-      headers: { "content-type": "application/json" },
-      method: "POST",
+    const response = await fetchImpl(`${origin}/api/health`, {
+      headers: { accept: "application/json" },
+      redirect: "manual",
     });
     if (!response.ok) {
       return undefined;
     }
-    const parsed = rpcHealthResponse.safeParse(await response.json());
-    return parsed.success ? parsed.data.json.version : undefined;
+    const parsed = apiHealthResponse.safeParse(await response.json());
+    return parsed.success ? parsed.data.version : undefined;
   } catch {
     return undefined;
   }

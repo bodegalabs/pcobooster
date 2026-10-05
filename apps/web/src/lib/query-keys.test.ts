@@ -27,7 +27,7 @@ const knownFamilies = (): Set<string> =>
   new Set(
     [
       ...readFileSync(
-        path.join(SOURCE_ROOT, "lib", "query-keys.ts"),
+        path.resolve(SOURCE_ROOT, "../../../packages/client/src/query-keys.ts"),
         "utf-8"
       ).matchAll(KEY_FAMILY),
     ].map(({ groups }) => groups?.family ?? "")

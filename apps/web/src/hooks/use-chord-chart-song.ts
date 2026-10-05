@@ -1,4 +1,5 @@
-import { ORPCError } from "@orpc/client";
+import { queryKeys } from "@pcobooster/client/query-keys";
+import { callForQuery } from "@pcobooster/client/request-priority";
 import type {
   ChordChartArrangement,
   ChordChartCreateInput,
@@ -8,21 +9,20 @@ import type {
   ChordChartUpdateInput,
   LyricsSearchResult,
 } from "@pcobooster/contracts/chord-charts";
+import { RpcError } from "@pcobooster/contracts/errors";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryClient, QueryFunctionContext } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-import { queryKeys } from "@/lib/query-keys";
-import { callForQuery } from "@/lib/request-priority";
 import { clearCachedSongOptionsForSong } from "@/lib/song-options-cache";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 export const createChordChartSongQueryOptions = (songId: string) => ({
   queryKey: queryKeys.chordChartSong(songId),
   queryFn: async (context: QueryFunctionContext) =>
     await callForQuery(
       context,
-      async (options) => await orpc.chordCharts.song({ songId }, options)
+      async (options) => await rpc("chordCharts.song", { songId }, options)
     ),
   staleTime: 30 * 1000,
 });
@@ -107,23 +107,23 @@ const rememberWrittenArrangement = (
 };
 
 export const isChordChartConflict = (error: Error): boolean =>
-  error instanceof ORPCError && error.code === "CONFLICT";
+  error instanceof RpcError && error.code === "CONFLICT";
 
 /** The API's safe message, or `fallback` for network and unexpected failures. */
 export const chordChartErrorMessage = (
   error: Error,
   fallback: string
 ): string =>
-  error instanceof ORPCError && error.message !== "" ? error.message : fallback;
+  error instanceof RpcError && error.message !== "" ? error.message : fallback;
 
 export type ChordChartLoadFailure = "not-found" | "no-access" | "failed";
 
 /** Why a song didn't load, so the page can say what would help. */
 export const chordChartLoadFailure = (error: Error): ChordChartLoadFailure => {
-  if (error instanceof ORPCError && error.code === "NOT_FOUND") {
+  if (error instanceof RpcError && error.code === "NOT_FOUND") {
     return "not-found";
   }
-  if (error instanceof ORPCError && error.code === "FORBIDDEN") {
+  if (error instanceof RpcError && error.code === "FORBIDDEN") {
     return "no-access";
   }
   return "failed";
@@ -133,7 +133,7 @@ export const useSaveChordChart = (songId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: ChordChartUpdateInput) =>
-      await orpc.chordCharts.update(input),
+      await rpc("chordCharts.update", input),
     onSuccess: (arrangement) => {
       rememberWrittenArrangement(queryClient, songId, arrangement);
     },
@@ -144,7 +144,7 @@ export const useCreateChordChart = (songId: string) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: ChordChartCreateInput) =>
-      await orpc.chordCharts.create(input),
+      await rpc("chordCharts.create", input),
     onSuccess: (arrangement) => {
       rememberWrittenArrangement(queryClient, songId, arrangement);
     },
@@ -162,7 +162,7 @@ export const useLyricsSearch = (query: string) =>
       await callForQuery(
         context,
         async (options) =>
-          await orpc.chordCharts.lyricsSearch({ query }, options)
+          await rpc("chordCharts.lyricsSearch", { query }, options)
       ),
     enabled: query.length >= 2,
     staleTime: 60 * 60 * 1000,
@@ -174,7 +174,7 @@ export const useCreateSong = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: ChordChartSongCreateInput) =>
-      await orpc.chordCharts.createSong(input),
+      await rpc("chordCharts.createSong", input),
     onSuccess: (created) => {
       queryClient.setQueryData(
         queryKeys.chordChartSong(created.song.id),
@@ -205,7 +205,8 @@ export const useChordChartPdf = (target: ChordChartPdfTarget) =>
       await callForQuery(
         context,
         async (options) =>
-          await orpc.chordCharts.pdf(
+          await rpc(
+            "chordCharts.pdf",
             {
               songId: target.songId,
               arrangementId: target.arrangementId,

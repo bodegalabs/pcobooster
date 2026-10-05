@@ -12,7 +12,7 @@ import type { SuccessOf } from "@pcobooster/api/testing/effect";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testRuntime } from "@pcobooster/api/testing/runtime";
 import { testServer } from "@pcobooster/api/testing/server";
-import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
+import { executeApplicationEffect } from "@pcobooster/api/transport/rpc/execute";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 

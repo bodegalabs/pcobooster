@@ -1,8 +1,8 @@
 import type { ApplicationRuntime } from "@pcobooster/api/application/runtime";
 import { serverDependenciesForRequest } from "@pcobooster/api/server";
 import type { ServerDependencies } from "@pcobooster/api/server";
-import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
-import type { HttpClient } from "effect/unstable/http/HttpClient";
+import type { RpcContext } from "@pcobooster/api/transport/rpc/context";
+import type { HttpClient } from "effect/http/HttpClient";
 
 export const createContext = ({
   request,

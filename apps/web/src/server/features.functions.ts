@@ -18,5 +18,5 @@ const createRequestRpcClient = () => {
  * and organization on each call.
  */
 export const getEnabledFeatures = createServerFn({ method: "GET" }).handler(
-  async () => await createRequestRpcClient().features.status()
+  async () => await createRequestRpcClient().call("features.status", {})
 );

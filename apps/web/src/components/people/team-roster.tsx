@@ -1,3 +1,10 @@
+import type { PeopleDashboardRow } from "@pcobooster/client/people-dashboard";
+import {
+  describePersonSignal,
+  formatDayKey,
+  isRosterSignal,
+} from "@pcobooster/client/team-health";
+import type { PersonSignal } from "@pcobooster/client/team-health";
 import type {
   PeopleDashboardPerson,
   PeopleDashboardRosterPerson,
@@ -32,13 +39,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
-import type { PeopleDashboardRow } from "@/lib/people-dashboard";
-import {
-  describePersonSignal,
-  formatDayKey,
-  isRosterSignal,
-} from "@/lib/team-health";
-import type { PersonSignal } from "@/lib/team-health";
 
 type RosterSort = "name" | "lastServed" | "served90";
 

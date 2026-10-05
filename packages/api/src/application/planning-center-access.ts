@@ -31,7 +31,7 @@ import {
   isPresentationMode,
 } from "@pcobooster/presentation-mode";
 import { Context, Effect } from "effect";
-import * as HttpClient from "effect/unstable/http/HttpClient";
+import * as HttpClient from "effect/http/HttpClient";
 
 /** A signed-in user acting through their linked Planning Center account. */
 export interface AccountAuthentication {

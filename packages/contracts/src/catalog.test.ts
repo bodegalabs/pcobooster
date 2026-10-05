@@ -3,6 +3,7 @@ import {
   teamPositionsInputSchema,
   teamPositionsOutputSchema,
 } from "@pcobooster/contracts/catalog";
+import { Schema, Result } from "effect";
 import { describe, expect, it } from "vitest";
 
 describe("catalog contracts", () => {
@@ -19,13 +20,22 @@ describe("catalog contracts", () => {
       sortDate,
     };
 
-    expect(planSchema.parse(plan)).toStrictEqual(plan);
+    expect(Schema.decodeUnknownSync(planSchema)(plan)).toStrictEqual(plan);
     expect(
-      planSchema.safeParse({ ...plan, sortDate: sortDate.toISOString() })
-        .success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(planSchema)({
+          ...plan,
+          sortDate: sortDate.toISOString(),
+        })
+      )
     ).toBeFalsy();
     expect(
-      planSchema.safeParse({ ...plan, createdAt: new Date(Number.NaN) }).success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(planSchema)({
+          ...plan,
+          createdAt: new Date(Number.NaN),
+        })
+      )
     ).toBeFalsy();
   });
 
@@ -70,27 +80,33 @@ describe("catalog contracts", () => {
       },
     ];
 
-    expect(teamPositionsOutputSchema.parse(groups)).toStrictEqual(groups);
+    expect(
+      Schema.decodeUnknownSync(teamPositionsOutputSchema)(groups)
+    ).toStrictEqual(groups);
   });
 
   it("requires plan-scoped camelCase identifiers and leaves absent series IDs absent", () => {
     expect(
-      teamPositionsInputSchema.parse({
+      Schema.decodeUnknownSync(teamPositionsInputSchema)({
         serviceTypeId: "service-1",
         planId: "plan-1",
       })
     ).toStrictEqual({ serviceTypeId: "service-1", planId: "plan-1" });
     expect(
-      teamPositionsInputSchema.safeParse({
-        service_type_id: "service-1",
-        plan_id: "plan-1",
-      }).success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(teamPositionsInputSchema)({
+          service_type_id: "service-1",
+          plan_id: "plan-1",
+        })
+      )
     ).toBeFalsy();
     expect(
-      teamPositionsInputSchema.safeParse({
-        serviceTypeId: "service-1",
-        planId: " ",
-      }).success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(teamPositionsInputSchema)({
+          serviceTypeId: "service-1",
+          planId: " ",
+        })
+      )
     ).toBeFalsy();
   });
 });

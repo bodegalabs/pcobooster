@@ -103,9 +103,8 @@ const preview: DeployTarget = {
 };
 
 /**
- * Production also ships the iOS app: the `testflight` job releases the same verified `main`
- * revision the production deploy just served, so it shares production's trust level and secrets
- * (the PostHog key built into the app and the App Store Connect API key).
+ * The reserved `testflight` environment retains production trust for a future explicitly
+ * authorized native release workflow. The Expo migration removes automatic uploads.
  */
 const production: DeployTarget = {
   key: "Production",
@@ -372,8 +371,8 @@ export default Alchemy.Stack(
       }
     }
 
-    // Turns on the `testflight` CI job. Deploy it only once the App Store Connect key is in
-    // Infisical Production (docs/ci-cd.md, iOS releases).
+    // Retain the historical release opt-in variable; no current workflow consumes it.
+    // Re-enabling uploads requires a separately reviewed native release workflow.
     yield* GitHub.Variable("TestFlightReleases", {
       ...target,
       name: "TESTFLIGHT_RELEASES",

@@ -19,7 +19,7 @@ import { Server } from "@pcobooster/api/server";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testFeatureFlags, testServer } from "@pcobooster/api/testing/server";
 import { Cause, Effect, Exit, Option } from "effect";
-import * as HttpClient from "effect/unstable/http/HttpClient";
+import * as HttpClient from "effect/http/HttpClient";
 import { describe, expect, it, vi } from "vitest";
 
 const request = new Request("https://pcobooster.com/api/rpc/accounts");

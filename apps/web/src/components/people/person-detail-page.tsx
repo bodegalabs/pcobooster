@@ -1,3 +1,4 @@
+import { personSignals } from "@pcobooster/client/team-health";
 import type { PeopleDashboardPerson } from "@pcobooster/contracts/people-schemas";
 import { formatCalendarDayInTimeZone } from "@pcobooster/planning-center-models/calendar";
 import { ExternalLink } from "lucide-react";
@@ -20,7 +21,6 @@ import {
   usePersonDashboardContext,
 } from "@/hooks/use-people-dashboard-person";
 import { planningCenterPersonUrl } from "@/lib/people/planning-center-person-url";
-import { personSignals } from "@/lib/team-health";
 
 const PersonHeaderSkeleton = () => (
   <div className="flex min-w-0 items-center gap-3">

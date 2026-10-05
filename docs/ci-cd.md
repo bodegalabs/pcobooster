@@ -31,7 +31,7 @@ Deploys build from source: Alchemy runs each Vite app's build itself and skips a
 
 A preview job authenticates to Infisical using GitHub OIDC, checks the PR is still open at the expected head, and runs `bun alchemy deploy --stage pr-<number>`. Alchemy owns a separate D1 database, Planning Center cache KV namespace, API/web/admin Workers, and Cloudflare Access application for each PR, so opening a preview asks for the same one-time-code sign-in as staging (see [Staging](#staging)). The preview URL is exposed in GitHub's deployment environment. Production data is never copied into these databases.
 
-Every deploy then runs `scripts/cloudflare/verify-deployment.ts`. Both the web and API Workers carry the deployed `GITHUB_SHA` as a `PCOBOOSTER_VERSION` env prop, so every commit redeploys both even when only one app changed. The script polls the web Worker's `GET /version` and the API's `POST /api/rpc/health` (through the web Worker) until both report the commit, then checks that `/` returns 200. A deploy that finishes without the new code live in either Worker, or with a broken web → API binding, fails the job.
+Every deploy then runs `scripts/cloudflare/verify-deployment.ts`. Both the web and API Workers carry the deployed `GITHUB_SHA` as a `PCOBOOSTER_VERSION` env prop, so every commit redeploys both even when only one app changed. The script polls the web Worker's `GET /version` and the API's `GET /api/health` (through the web Worker) until both report the commit, then checks that `/` returns 200. A deploy that finishes without the new code live in either Worker, or with a broken web → API binding, fails the job.
 
 Pass a value a Worker must redeploy for as an `env` prop, not a `Config` read inside an Effect-native Worker's init (`apps/server/src/worker.ts`): Alchemy's change detection hashes `env` props and file inputs but not init-time `Config` reads, so changing only such a value (including rotating a secret) plans as a noop. Force a redeploy with `bun alchemy deploy --force` after rotating one.
 
@@ -68,17 +68,11 @@ To roll back, revert the change on `main`; the revert deploys like any other mer
 
 A deploy you run yourself (`bun run deploy:production`, `bun run infra:deploy`) is still a manual production change: confirm it with Jake first.
 
-## iOS releases (TestFlight)
+## Native builds
 
-A push to `main` that changes `apps/ios` uploads the app to TestFlight once production has deployed the same revision, so the API the build calls is already live. A manual CI run on `main` with `release_ios` uploads at any time. The `testflight` job runs on a macOS runner in the `testflight` environment (`main` only, no reviewers), rejects a superseded revision, reads production's secrets through OIDC, and runs `bun run ios:release` (`apps/ios/scripts/release.sh`). The build number is the commit count of `main`, so every release is newer than the last.
+CI builds the Expo app for iOS Simulator and Android debug without signing credentials, paid EAS, uploads, or store submission. The normal TypeScript gate includes mobile and the retained behavior fixtures. See [mobile development](mobile.md) for prebuild, device development, and local release archives.
 
-A release shares production's trust level and Infisical project: the build embeds `POSTHOG_PROJECT_KEY`, and signs and uploads with an App Store Connect API key stored there as `ASC_KEY_ID`, `ASC_ISSUER_ID`, and `ASC_KEY_P8_BASE64`. The key needs the **Admin** role, because CI has no Apple ID and cloud-managed distribution signing creates the certificate on demand; without the key, the job stops before archiving. `alchemy.ci.ts` declares the environment and extends production's OIDC binding to it. To set it up once:
-
-1. In App Store Connect, Users and Access, Integrations, create a team API key with the Admin role and download its `.p8`.
-2. Add the three secrets to Infisical Production `/`: the key ID, the issuer ID, and `base64 < AuthKey_<id>.p8`.
-3. Run `bun run infra:plan`, then, after Jake confirms, `bun run infra:deploy`. It creates the environment, updates the OIDC binding, and sets the repository variable `TESTFLIGHT_RELEASES=enabled`, which turns the job on. Until then the job is skipped.
-
-Locally, `bun run ios:release` still works with the Apple ID signed in to Xcode.
+The former Swift TestFlight upload job has been removed during the coordinated migration. Existing Apple signing identity and the reserved `testflight` environment/OIDC configuration remain available, but no workflow consumes them. Upload and submission require a separately authorized release workflow after native acceptance.
 
 ## OIDC and token scope
 
@@ -91,7 +85,7 @@ The issuer/discovery URL is `https://token.actions.githubusercontent.com`; audie
 
 Access tokens have a one-hour TTL and maximum TTL. The preview identity is Viewer only in `pcobooster-preview`. Its Cloudflare token permits Workers Scripts Write, Workers KV Storage Write, D1 Write, Secrets Store Write, and Flagship Write in the current account. Each stage's API declares a KV namespace for the shared Planning Center read cache (`apps/server/src/planning-center-cache.ts`), which needs Workers KV Storage Write. It has no DNS, registrar, R2, or token-administration permission. These account-level permissions can affect other resources in that account; project separation does not create resource-level Cloudflare isolation. Only revisions on a PR you labeled may deploy previews.
 
-Each deployed stage's API declares a Cloudflare Flagship app and flags ([Feature flags](environment.md#feature-flags)), so both deploy tokens also carry the account-level **Flagship Write** permission group (it includes read). Alchemy 2.0.0-beta.79's typed permission catalog does not list Flagship yet, so `alchemy.ci.ts` references it by ID (`521a41dc78f94eaba5e643528846cb7b`). App-scoped Flagship tokens do not fit, because previews create their apps. Changing `deployPermissions` updates both tokens in place (their values do not change), so apply it with `CLOUDFLARE_TOKEN_ADMIN_API_TOKEN` as described in [Control plane as code](#control-plane-as-code).
+Each deployed stage's API declares a Cloudflare Flagship app and flags ([Feature flags](environment.md#feature-flags)), so both deploy tokens also carry the account-level **Flagship Write** permission group (it includes read). Alchemy 2.0.0-beta.81's typed permission catalog does not list Flagship yet, so `alchemy.ci.ts` references it by ID (`521a41dc78f94eaba5e643528846cb7b`). App-scoped Flagship tokens do not fit, because previews create their apps. Changing `deployPermissions` updates both tokens in place (their values do not change), so apply it with `CLOUDFLARE_TOKEN_ADMIN_API_TOKEN` as described in [Control plane as code](#control-plane-as-code).
 
 The production token has the same account-level deployment permissions, plus Zone Read, DNS Write, Dynamic URL Redirects Write, Zone WAF Write, and Bot Management Write scoped to two zones: `pcobooster.com` and the former `worshipadmin.com`, which the `prod` stage answers with a redirect rule (see the [former domain cutover](cloudflare-cutover.md#former-domain-cutover)). It has no Zone Write, so it can neither create nor delete zones: a new zone is created by hand and then adopted. `alchemy.ci.ts` resolves their IDs by name at plan time, so a zone must exist before `infra:plan` or `infra:deploy` can run. The token is stored only in the production Infisical project. `Cloudflare.state()` shares the bootstrapped Alchemy state Worker and Secrets Store across stages. Keep their credentials out of application bindings, artifacts, and logs.
 

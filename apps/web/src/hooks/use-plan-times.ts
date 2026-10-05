@@ -1,11 +1,11 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
+import { callForQuery } from "@pcobooster/client/request-priority";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { PlanTime } from "@pcobooster/planning-center-models/types";
 import { useQuery } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
 
-import { queryKeys } from "@/lib/query-keys";
-import { callForQuery } from "@/lib/request-priority";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 const PLAN_TIMES_STALE_TIME_MS = 60 * 1000;
 
@@ -22,7 +22,7 @@ export const createPlanTimesQueryOptions = (
     return await callForQuery(
       context,
       async (options) =>
-        await orpc.planTimes.list({ serviceTypeId, planId }, options)
+        await rpc("planTimes.list", { serviceTypeId, planId }, options)
     );
   },
   staleTime: PLAN_TIMES_STALE_TIME_MS,

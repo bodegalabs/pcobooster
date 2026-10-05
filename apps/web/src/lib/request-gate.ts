@@ -49,6 +49,7 @@ const proceed = (
 /** Sign-in and the API endpoints the signed-out browser needs stay reachable. */
 const isSignedOutPath = (pathname: string): boolean =>
   pathname.startsWith("/api/auth") ||
+  pathname === "/api/health" ||
   pathname === "/api/rpc" ||
   pathname.startsWith("/api/rpc/") ||
   pathname === "/auth";

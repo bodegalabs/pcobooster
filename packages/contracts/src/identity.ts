@@ -1,13 +1,11 @@
-import { z } from "zod";
+import { Schema, Struct } from "effect";
 
-export const planningCenterIdentitySchema = z.object({
-  sub: z.string().nullable(),
-  name: z.string().nullable(),
-  email: z.string().nullable(),
-  organizationId: z.string().nullable(),
-  organizationName: z.string().nullable(),
-});
+export const planningCenterIdentitySchema = Schema.Struct({
+  sub: Schema.NullOr(Schema.String),
+  name: Schema.NullOr(Schema.String),
+  email: Schema.NullOr(Schema.String),
+  organizationId: Schema.NullOr(Schema.String),
+  organizationName: Schema.NullOr(Schema.String),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export type PlanningCenterIdentity = z.output<
-  typeof planningCenterIdentitySchema
->;
+export type PlanningCenterIdentity = typeof planningCenterIdentitySchema.Type;

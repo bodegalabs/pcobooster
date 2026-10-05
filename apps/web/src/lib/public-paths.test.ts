@@ -14,6 +14,7 @@ describe("public marketing routes", () => {
     "/robots.txt",
     "/sitemap.xml",
     "/version",
+    "/.well-known/apple-app-site-association",
     "/marketing/assets/index.js",
     "/marketing/screenshots/assign.webp",
   ])("allows %s without a session", (pathname) => {
@@ -29,6 +30,7 @@ describe("public marketing routes", () => {
     "/marketing-private",
     "/marketing",
     "/versions",
+    "/.well-known/private",
   ])("does not exempt %s from product authentication", (pathname) => {
     expect(isPublicPath(pathname)).toBeFalsy();
   });

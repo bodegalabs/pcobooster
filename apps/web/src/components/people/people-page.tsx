@@ -1,3 +1,17 @@
+import {
+  parsePeopleDashboardScope,
+  scopeTeamIds,
+  teamScope,
+} from "@pcobooster/client/people-dashboard";
+import type {
+  PeopleDashboardScope,
+  PeopleDashboardView,
+} from "@pcobooster/client/people-dashboard";
+import { speculativeQuery } from "@pcobooster/client/request-priority";
+import {
+  computePersonSignals,
+  computeTeamHealth,
+} from "@pcobooster/client/team-health";
 import type {
   PeopleDashboardPerson,
   PeopleDashboardRosterPerson,
@@ -35,17 +49,6 @@ import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { usePeopleDashboard } from "@/hooks/use-people-dashboard";
 import { createPeopleDashboardPersonQueryOptions } from "@/hooks/use-people-dashboard-person";
 import { isQueryFresh } from "@/lib/intent-prefetch";
-import {
-  parsePeopleDashboardScope,
-  scopeTeamIds,
-  teamScope,
-} from "@/lib/people-dashboard";
-import type {
-  PeopleDashboardScope,
-  PeopleDashboardView,
-} from "@/lib/people-dashboard";
-import { speculativeQuery } from "@/lib/request-priority";
-import { computePersonSignals, computeTeamHealth } from "@/lib/team-health";
 
 const EMPTY_MEMBERS: PeopleDashboardPerson[] = [];
 const EMPTY_TEAMS: PeopleDashboardTeam[] = [];

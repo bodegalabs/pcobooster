@@ -1,3 +1,4 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
 import { formatWallTimeInTimeZone } from "@pcobooster/planning-center-models/calendar";
 import type {
   FilledPositionPerson,
@@ -40,8 +41,7 @@ import type { ScheduleMutationInvalidateContext } from "@/hooks/use-schedule-cac
 import { useUnschedulePlanPerson } from "@/hooks/use-unschedule-plan-person";
 import { useUpdatePlanPersonStatus } from "@/hooks/use-update-plan-person-status";
 import { getInitials } from "@/lib/format/initials";
-import { queryKeys } from "@/lib/query-keys";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 interface PlanPersonEditDialogProps {
   person: FilledPositionPerson;
@@ -245,7 +245,7 @@ const PlanPersonEditDialogBody = ({
       return;
     }
 
-    await orpc.planPeople.updateTimes({
+    await rpc("planPeople.updateTimes", {
       planPersonId: person.planPersonId,
       serviceTypeId,
       planId,

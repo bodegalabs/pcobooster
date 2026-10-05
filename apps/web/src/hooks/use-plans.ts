@@ -1,3 +1,5 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
+import { callForQuery } from "@pcobooster/client/request-priority";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { Plan } from "@pcobooster/planning-center-models/types";
 import { useQuery } from "@tanstack/react-query";
@@ -5,13 +7,11 @@ import type { QueryFunctionContext } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
-import { queryKeys } from "@/lib/query-keys";
-import { callForQuery } from "@/lib/request-priority";
 import {
   readCachedPlansEntry,
   writeCachedPlans,
 } from "@/lib/schedule-catalog-cache";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 export const usePlans = (serviceTypeId: string | null) => {
   const queryKey = queryKeys.plans(serviceTypeId);
@@ -27,7 +27,7 @@ export const usePlans = (serviceTypeId: string | null) => {
       if (!isNonEmptyString(serviceTypeId)) {
         return [];
       }
-      return await orpc.catalog.plans({ serviceTypeId }, { signal });
+      return await rpc("catalog.plans", { serviceTypeId }, { signal });
     },
     enabled: isNonEmptyString(serviceTypeId),
     // 5 minutes
@@ -61,7 +61,7 @@ export const usePlanDetails = (
       await callForQuery(
         context,
         async (options) =>
-          await orpc.catalog.plan({ serviceTypeId, planId }, options)
+          await rpc("catalog.plan", { serviceTypeId, planId }, options)
       ),
     enabled,
     staleTime: PLAN_DETAILS_STALE_TIME_MS,
@@ -78,7 +78,8 @@ export const createAdjacentPlansQueryOptions = (
     await callForQuery(
       context,
       async (options) =>
-        await orpc.catalog.adjacentPlans(
+        await rpc(
+          "catalog.adjacentPlans",
           { serviceTypeId, planId, direction },
           options
         )

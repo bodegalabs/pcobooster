@@ -1,6 +1,7 @@
+import { describeCoverage } from "@pcobooster/client/people-dashboard";
+import type { PeopleDashboardCoverage } from "@pcobooster/client/people-dashboard";
+
 import { Button } from "@/components/ui/button";
-import { describeCoverage } from "@/lib/people-dashboard";
-import type { PeopleDashboardCoverage } from "@/lib/people-dashboard";
 
 const peopleCount = (count: number) =>
   `${count} ${count === 1 ? "person" : "people"}`;

@@ -3,7 +3,6 @@ import { deploymentTier } from "@pcobooster/api/config/feature-flags";
 import type { ServerEnvironment } from "@pcobooster/api/config/server-config";
 import { resolveServerConfig } from "@pcobooster/api/config/server-config";
 import { boundaryLog, structuredLogging } from "@pcobooster/api/logging";
-import { appRouter } from "@pcobooster/api/orpc";
 import { PlanningCenterPacing } from "@pcobooster/api/planning-center/pacing";
 import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
 import type { SharedReadStore } from "@pcobooster/api/planning-center/services/shared-read-store";
@@ -12,9 +11,9 @@ import type { FeatureFlagSource } from "@pcobooster/api/server";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import { Config, Context, Effect, Layer, Redacted } from "effect";
-import type * as HttpClient from "effect/unstable/http/HttpClient";
-import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
-import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
+import type * as HttpClient from "effect/http/HttpClient";
+import * as HttpServerRequest from "effect/http/HttpServerRequest";
+import * as HttpServerResponse from "effect/http/HttpServerResponse";
 
 import { AUTH_RATE_LIMIT_PERIOD_SECONDS, createServerApp } from "./app";
 import { Database } from "./database";
@@ -121,7 +120,7 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
   );
 });
 
-/** Hono serves Better Auth, oRPC, and the OpenAPI reference; see `app.ts`. */
+/** The Effect HTTP runtime serves Better Auth, product RPC, health and version; see `app.ts`. */
 export default class Api extends Cloudflare.Worker<Api>()(
   "Api",
   Effect.gen(function* apiProps() {
@@ -202,7 +201,6 @@ export default class Api extends Cloudflare.Worker<Api>()(
           },
           server,
           log: boundaryLog("server"),
-          router: appRouter,
         });
       })
     );

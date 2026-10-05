@@ -5,12 +5,8 @@
 import type { JsonValue } from "@pcobooster/analytics/reports";
 import { Config, Context, Data, Effect, Layer } from "effect";
 import type { Redacted } from "effect";
-import {
-  FetchHttpClient,
-  HttpClient,
-  HttpClientRequest,
-} from "effect/unstable/http";
-import type { HttpClientResponse } from "effect/unstable/http";
+import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/http";
+import type { HttpClientResponse } from "effect/http";
 import { z } from "zod";
 
 import type { JsonRecord, Tile } from "./drift";

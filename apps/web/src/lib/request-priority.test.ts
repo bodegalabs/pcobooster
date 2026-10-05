@@ -1,15 +1,15 @@
-import { ORPCError } from "@orpc/client";
-import { QueryClient, QueryObserver } from "@tanstack/react-query";
-import type { QueryFunctionContext } from "@tanstack/react-query";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
 import {
   callForQuery,
   createRequestScheduler,
   queryCallPriority,
   speculativeQuery,
-} from "./request-priority";
-import type { QueryCallOptions } from "./request-priority";
+} from "@pcobooster/client/request-priority";
+import type { QueryCallOptions } from "@pcobooster/client/request-priority";
+import { makeRpcError } from "@pcobooster/client/testing";
+import { RpcError } from "@pcobooster/contracts/errors";
+import { QueryClient, QueryObserver } from "@tanstack/react-query";
+import type { QueryFunctionContext } from "@tanstack/react-query";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const QUIET_MS = 250;
 
@@ -87,7 +87,7 @@ describe(createRequestScheduler, () => {
     expect(started).toStrictEqual(["first", "second"]);
   });
 
-  it("does not hold speculative calls back behind each other's oRPC traffic", async () => {
+  it("does not hold speculative calls back behind each other's Effect RPC traffic", async () => {
     const scheduler = createRequestScheduler({ quietMs: QUIET_MS });
     const started: string[] = [];
     const prefetchCall = deferred();
@@ -175,7 +175,7 @@ const setupQuery = (
 };
 
 const rateLimited = () =>
-  new ORPCError("TOO_MANY_REQUESTS", {
+  makeRpcError("TOO_MANY_REQUESTS", {
     data: { message: "held back", service: "planning-center" },
   });
 
@@ -228,13 +228,13 @@ describe(callForQuery, () => {
     });
     await expect(
       queryClient.query(speculativeQuery(options))
-    ).rejects.toBeInstanceOf(ORPCError);
+    ).rejects.toBeInstanceOf(RpcError);
     expect(priorities).toStrictEqual(["speculative"]);
   });
 
   it("does not repeat a speculative call that failed for another reason", async () => {
     const response = deferred();
-    const failure = new ORPCError("BAD_GATEWAY", {
+    const failure = makeRpcError("BAD_GATEWAY", {
       data: { message: "down", service: "planning-center" },
     });
     const { queryClient, options, priorities } = setupQuery(async () => {

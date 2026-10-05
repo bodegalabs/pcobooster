@@ -1,3 +1,6 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
+import { callForQuery } from "@pcobooster/client/request-priority";
+import { computeMemberPaces } from "@pcobooster/client/team-health";
 import type {
   PeopleDashboardPersonDetail,
   PeopleDashboardRoster,
@@ -14,10 +17,7 @@ import {
 } from "@/lib/people-dashboard-cache";
 import { getCachedPeopleDashboardPersonDetail } from "@/lib/people-dashboard-person-placeholder";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
-import { queryKeys } from "@/lib/query-keys";
-import { callForQuery } from "@/lib/request-priority";
-import { computeMemberPaces } from "@/lib/team-health";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 export const createPeopleDashboardPersonQueryOptions = (
   personId: string,
@@ -28,7 +28,8 @@ export const createPeopleDashboardPersonQueryOptions = (
     const detail = await callForQuery(
       context,
       async (options) =>
-        await orpc.people.dashboardPerson(
+        await rpc(
+          "people.dashboardPerson",
           {
             personId,
             month: month !== null && month !== "" ? month : undefined,

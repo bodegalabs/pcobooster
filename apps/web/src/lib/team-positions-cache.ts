@@ -1,6 +1,6 @@
 import { teamPositionGroupSchema } from "@pcobooster/contracts/catalog";
 import type { TeamPositionGroup } from "@pcobooster/planning-center-models/types";
-import { z } from "zod";
+import { Schema, Result } from "effect";
 
 import { presentationCacheKey } from "@/lib/presentation-cache";
 
@@ -17,9 +17,9 @@ export interface TeamPositionsCacheEntry {
   data: TeamPositionGroup[];
 }
 
-const cachedPayloadSchema = z.object({
-  savedAt: z.number(),
-  data: z.array(teamPositionGroupSchema),
+const cachedPayloadSchema = Schema.Struct({
+  savedAt: Schema.Finite,
+  data: Schema.mutable(Schema.Array(teamPositionGroupSchema)),
 });
 
 const buildCacheKey = (
@@ -59,11 +59,13 @@ export const readCachedTeamPositions = (
     if (raw === null) {
       return undefined;
     }
-    const parsed = cachedPayloadSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success) {
+    const parsed = Schema.decodeUnknownResult(
+      Schema.toCodecJson(cachedPayloadSchema)
+    )(JSON.parse(raw));
+    if (Result.isFailure(parsed)) {
       return undefined;
     }
-    return parsed.data;
+    return parsed.success;
   } catch {
     return undefined;
   }

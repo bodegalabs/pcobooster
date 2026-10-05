@@ -1,3 +1,4 @@
+import { keyOptionLabelOf } from "@pcobooster/client/plan-overview";
 import type {
   ArrangementOption,
   KeyOption,
@@ -57,7 +58,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFeatureEnabled } from "@/hooks/use-feature-enabled";
 import { useSongOptions } from "@/hooks/use-song-options";
 import { appendNote } from "@/lib/key-transition-advice";
-import { keyOptionLabelOf } from "@/lib/plan-overview";
 import type { KeyTransition } from "@/lib/plan-set-insights";
 import { describeKeyChange, tempoLabel } from "@/lib/song-library";
 import type { PreviousSong } from "@/lib/song-library";

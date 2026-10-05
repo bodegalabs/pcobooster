@@ -36,11 +36,11 @@ import type {
   PCResource,
 } from "@pcobooster/planning-center-models/types";
 import { Clock, Duration, Effect, Exit, Option, Schedule } from "effect";
-import * as HttpClient from "effect/unstable/http/HttpClient";
-import type { HttpClientError } from "effect/unstable/http/HttpClientError";
-import * as HttpClientRequest from "effect/unstable/http/HttpClientRequest";
-import type { HttpClientResponse } from "effect/unstable/http/HttpClientResponse";
-import type { HttpMethod } from "effect/unstable/http/HttpMethod";
+import * as HttpClient from "effect/http/HttpClient";
+import type { HttpClientError } from "effect/http/HttpClientError";
+import * as HttpClientRequest from "effect/http/HttpClientRequest";
+import type { HttpClientResponse } from "effect/http/HttpClientResponse";
+import type { HttpMethod } from "effect/http/HttpMethod";
 import { z } from "zod";
 
 const log = moduleLog("planning-center/core");

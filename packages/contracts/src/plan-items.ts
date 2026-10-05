@@ -1,108 +1,109 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
+import { RpcError } from "@pcobooster/contracts/errors";
 import {
   planItemSchema,
   planItemServicePositionSchema,
 } from "@pcobooster/contracts/plan-item-schemas";
-import { z } from "zod";
+import { Schema, Struct } from "effect";
+import { Rpc, RpcGroup } from "effect/rpc";
 
-const requiredId = z.string().trim().min(1);
-const optionalText = z.string().trim().optional();
-const optionalNullableId = requiredId.nullish();
+const requiredId = Schema.Trim.check(Schema.isMinLength(1));
 
-export const planItemsListInputSchema = z.object({
+const optionalText = Schema.optional(Schema.Trim);
+
+const optionalNullableId = Schema.optional(Schema.NullOr(requiredId));
+
+export const planItemsListInputSchema = Schema.Struct({
   serviceTypeId: requiredId,
   planId: requiredId,
-});
+}).mapFields(Struct.map(Schema.mutableKey));
 
-const itemFieldsSchema = z.object({
+const itemFieldsSchema = Schema.Struct({
   title: optionalText,
-  servicePosition: planItemServicePositionSchema.optional(),
-  length: z.number().int().nonnegative().nullable().optional(),
+  servicePosition: Schema.optional(planItemServicePositionSchema),
+  length: Schema.optional(
+    Schema.NullOr(
+      Schema.Finite.check(Schema.isInt()).check(
+        Schema.isGreaterThanOrEqualTo(0)
+      )
+    )
+  ),
   description: optionalText,
   htmlDetails: optionalText,
   songId: optionalNullableId,
   arrangementId: optionalNullableId,
   keyId: optionalNullableId,
   selectedLayoutId: optionalNullableId,
-  customArrangementSequence: z.array(requiredId).optional(),
-});
+  customArrangementSequence: Schema.optional(
+    Schema.mutable(Schema.Array(requiredId))
+  ),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const planItemsCreateInputSchema = planItemsListInputSchema.extend({
-  ...itemFieldsSchema.shape,
-  itemType: z.enum(["header", "item"]).optional(),
-});
+export const planItemsCreateInputSchema = Schema.Struct({
+  ...planItemsListInputSchema.fields,
+  ...itemFieldsSchema.fields,
+  itemType: Schema.optional(Schema.Literals(["header", "item"])),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const planItemsUpdateInputSchema = planItemsListInputSchema.extend({
-  ...itemFieldsSchema.shape,
+export const planItemsUpdateInputSchema = Schema.Struct({
+  ...planItemsListInputSchema.fields,
+  ...itemFieldsSchema.fields,
   itemId: requiredId,
-});
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const planItemsDeleteInputSchema = planItemsListInputSchema.extend({
+export const planItemsDeleteInputSchema = Schema.Struct({
+  ...planItemsListInputSchema.fields,
   itemId: requiredId,
-});
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const planItemsReorderInputSchema = planItemsListInputSchema.extend({
-  sequence: z.array(requiredId).min(1),
-});
+export const planItemsReorderInputSchema = Schema.Struct({
+  ...planItemsListInputSchema.fields,
+  sequence: Schema.mutable(Schema.Array(requiredId)).check(
+    Schema.isMinLength(1)
+  ),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const planItemsListOutputSchema = z.array(planItemSchema);
-export const planItemsSuccessSchema = z.object({ success: z.literal(true) });
+export const planItemsListOutputSchema = Schema.mutable(
+  Schema.Array(planItemSchema)
+);
 
-const planItemsProcedure = oc.errors({
-  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-  FORBIDDEN: applicationErrorMap.FORBIDDEN,
-  TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-  BAD_REQUEST: applicationErrorMap.BAD_REQUEST,
-  BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
+export const planItemsSuccessSchema = Schema.Struct({
+  success: Schema.Literal(true),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const planItemsContract = {
-  list: planItemsProcedure
-    .route({
-      method: "GET",
-      path: "/plan-items",
-      summary: "List a plan's run-sheet items",
-    })
-    .input(planItemsListInputSchema)
-    .output(planItemsListOutputSchema),
-  create: planItemsProcedure
-    .route({
-      method: "POST",
-      path: "/plan-items",
-      summary: "Create a run-sheet item",
-    })
-    .input(planItemsCreateInputSchema)
-    .output(planItemSchema),
-  update: planItemsProcedure
-    .route({
-      method: "PATCH",
-      path: "/plan-items/{itemId}",
-      summary: "Update a run-sheet item",
-    })
-    .input(planItemsUpdateInputSchema)
-    .output(planItemSchema),
-  delete: planItemsProcedure
-    .route({
-      method: "DELETE",
-      path: "/plan-items/{itemId}",
-      summary: "Delete a run-sheet item",
-    })
-    .input(planItemsDeleteInputSchema)
-    .output(planItemsSuccessSchema),
-  reorder: planItemsProcedure
-    .route({
-      method: "POST",
-      path: "/plan-items/reorder",
-      summary: "Reorder a plan's run-sheet items",
-    })
-    .input(planItemsReorderInputSchema)
-    .output(planItemsSuccessSchema),
-};
+export const planItemsRpc = RpcGroup.make(
+  Rpc.make("planItems.list", {
+    payload: planItemsListInputSchema,
+    success: planItemsListOutputSchema,
+    error: RpcError,
+  }),
+  Rpc.make("planItems.create", {
+    payload: planItemsCreateInputSchema,
+    success: planItemSchema,
+    error: RpcError,
+  }),
+  Rpc.make("planItems.update", {
+    payload: planItemsUpdateInputSchema,
+    success: planItemSchema,
+    error: RpcError,
+  }),
+  Rpc.make("planItems.delete", {
+    payload: planItemsDeleteInputSchema,
+    success: planItemsSuccessSchema,
+    error: RpcError,
+  }),
+  Rpc.make("planItems.reorder", {
+    payload: planItemsReorderInputSchema,
+    success: planItemsSuccessSchema,
+    error: RpcError,
+  })
+);
 
-export type PlanItemsListInput = z.input<typeof planItemsListInputSchema>;
-export type PlanItemsCreateInput = z.input<typeof planItemsCreateInputSchema>;
-export type PlanItemsUpdateInput = z.input<typeof planItemsUpdateInputSchema>;
-export type PlanItemsDeleteInput = z.input<typeof planItemsDeleteInputSchema>;
-export type PlanItemsReorderInput = z.input<typeof planItemsReorderInputSchema>;
+export type PlanItemsListInput = typeof planItemsListInputSchema.Encoded;
+
+export type PlanItemsCreateInput = typeof planItemsCreateInputSchema.Encoded;
+
+export type PlanItemsUpdateInput = typeof planItemsUpdateInputSchema.Encoded;
+
+export type PlanItemsDeleteInput = typeof planItemsDeleteInputSchema.Encoded;
+
+export type PlanItemsReorderInput = typeof planItemsReorderInputSchema.Encoded;

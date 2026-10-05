@@ -1,3 +1,4 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
 import type { PlanTime } from "@pcobooster/planning-center-models/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { startTransition, useMemo, useState } from "react";
@@ -7,7 +8,6 @@ import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { usePlanTimes } from "@/hooks/use-plan-times";
 import { invalidateCandidateHistoryQueries } from "@/hooks/use-schedule-cache-optimism";
 import { useTeamPositions } from "@/hooks/use-team-positions";
-import { queryKeys } from "@/lib/query-keys";
 import {
   buildCreatePlanTimeRequest,
   buildDefaultNewPlanTimeEdit,
@@ -18,7 +18,7 @@ import {
   planTimeEditHasChanges,
 } from "@/lib/schedule/plan-time-edits";
 import type { EditablePlanTime } from "@/lib/schedule/plan-time-edits";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 interface UseTimesTabControllerProps {
   serviceTypeId: string | null;
@@ -109,7 +109,7 @@ export const useTimesTabController = ({
         timeZone,
         teamPositionsQuery.data
       );
-      await orpc.planTimes.update({
+      await rpc("planTimes.update", {
         planTimeId: planTime.id,
         serviceTypeId,
         planId,
@@ -149,7 +149,7 @@ export const useTimesTabController = ({
     try {
       await queryClient.cancelQueries({ queryKey: planTimesQueryKey });
       const request = buildCreatePlanTimeRequest(edit, timeZone);
-      const created = await orpc.planTimes.create({
+      const created = await rpc("planTimes.create", {
         serviceTypeId,
         planId,
         name: request.name,
@@ -195,7 +195,7 @@ export const useTimesTabController = ({
           current.filter((time) => time.id !== planTime.id)
       );
 
-      await orpc.planTimes.delete({
+      await rpc("planTimes.delete", {
         planTimeId: planTime.id,
         serviceTypeId,
         planId,

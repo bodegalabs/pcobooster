@@ -1,3 +1,9 @@
+import { openSlotCount } from "@pcobooster/client/open-positions";
+import {
+  getPositionNotificationStates,
+  getSchedulingNotificationState,
+} from "@pcobooster/client/scheduling-notifications";
+import type { SchedulingNotificationState } from "@pcobooster/client/scheduling-notifications";
 import type {
   FilledPositionPerson,
   PersonWithAvailability,
@@ -36,12 +42,6 @@ import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { useShowScheduleHistory } from "@/hooks/use-show-schedule-history";
 import { getInitials } from "@/lib/format/initials";
 import { partitionPeopleForRecommendationStrip } from "@/lib/people/recommendation-strip-order";
-import { openSlotCount } from "@/lib/schedule/open-positions";
-import {
-  getPositionNotificationStates,
-  getSchedulingNotificationState,
-} from "@/lib/schedule/scheduling-notifications";
-import type { SchedulingNotificationState } from "@/lib/schedule/scheduling-notifications";
 import { cn } from "@/lib/utils";
 
 interface ScheduleViewTabProps {

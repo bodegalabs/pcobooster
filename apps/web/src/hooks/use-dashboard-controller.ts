@@ -1,8 +1,17 @@
+import { addCustomLineupPosition } from "@pcobooster/client/custom-position";
+import {
+  findFirstPosition,
+  findNextOpenPosition,
+} from "@pcobooster/client/open-positions";
+import { queryKeys } from "@pcobooster/client/query-keys";
+import {
+  requestScheduler,
+  speculativeQuery,
+} from "@pcobooster/client/request-priority";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type {
   Plan,
   ServiceType,
-  TeamPosition,
   TeamPositionGroup,
 } from "@pcobooster/planning-center-models/types";
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,20 +40,11 @@ import {
 import type { CandidateSlot } from "@/hooks/use-position-candidates";
 import { useServiceTypes } from "@/hooks/use-service-types";
 import { useTeamPositions } from "@/hooks/use-team-positions";
-import { queryKeys } from "@/lib/query-keys";
-import { requestScheduler, speculativeQuery } from "@/lib/request-priority";
 import type {
   DashboardView,
   PlanSlotSelection,
 } from "@/lib/schedule-navigation";
-import {
-  buildPlanMemberPositionId,
-  planSlotLink,
-} from "@/lib/schedule-navigation";
-import {
-  findFirstPosition,
-  findNextOpenPosition,
-} from "@/lib/schedule/open-positions";
+import { planSlotLink } from "@/lib/schedule-navigation";
 
 interface RouteSelectionIds {
   teamId: string | null;
@@ -520,74 +520,35 @@ export const useDashboardController = ({
     if (!routeServiceTypeId || !routePlanId) {
       return null;
     }
-    const trimmedName = positionName.trim();
-    if (!trimmedName) {
+    const addition = addCustomLineupPosition(
+      teamPositionGroups ?? [],
+      team.teamId,
+      positionName
+    );
+    if (addition === null) {
       return null;
     }
-
-    const existingPosition = teamPositionGroups
-      ?.find((group) => group.teamId === team.teamId)
-      ?.positions.find(
-        (position) =>
-          position.name.trim().toLowerCase() === trimmedName.toLowerCase()
-      );
-    if (existingPosition) {
-      return {
-        teamId: team.teamId,
-        teamName: team.teamName,
-        positionId: existingPosition.id,
-        positionName: existingPosition.name,
-        source: existingPosition.source,
-      };
-    }
-
-    const positionId = buildPlanMemberPositionId(team.teamId, trimmedName);
-    const slot: SlotRef = {
-      teamId: team.teamId,
-      teamName: team.teamName,
-      positionId,
-      positionName: trimmedName,
-      source: "custom",
-    };
-
     queryClient.setQueryData<TeamPositionGroup[]>(
       queryKeys.teamPositions(routeServiceTypeId, routePlanId, null),
-      (groups) => {
-        if (!groups) {
-          return groups;
-        }
-        return groups.map((group) => {
-          if (group.teamId !== team.teamId) {
-            return group;
-          }
-          const duplicate = group.positions.some(
-            (position) =>
-              position.name.trim().toLowerCase() === trimmedName.toLowerCase()
-          );
-          if (duplicate) {
-            return group;
-          }
-
-          const position: TeamPosition = {
-            id: positionId,
-            name: trimmedName,
-            teamId: team.teamId,
-            teamName: team.teamName,
-            source: "custom",
-            neededCount: 0,
-          };
-
-          return {
-            ...group,
-            positions: [...group.positions, position].toSorted((a, b) =>
-              a.name.localeCompare(b.name)
-            ),
-          };
-        });
-      }
+      (groups) =>
+        groups === undefined
+          ? undefined
+          : (addCustomLineupPosition(groups, team.teamId, positionName)
+              ?.groups ?? groups)
     );
-
-    return slot;
+    const position = addition.groups
+      .find((group) => group.teamId === team.teamId)
+      ?.positions.find((item) => item.id === addition.positionId);
+    if (position === undefined) {
+      return null;
+    }
+    return {
+      teamId: team.teamId,
+      teamName: team.teamName,
+      positionId: position.id,
+      positionName: position.name,
+      source: position.source,
+    };
   };
 
   const toggleTeamCollapsed = (teamId: string) => {

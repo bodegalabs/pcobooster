@@ -1,22 +1,21 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
-import { z } from "zod";
+import { RpcError } from "@pcobooster/contracts/errors";
+import { Schema, Struct } from "effect";
+import { Rpc, RpcGroup } from "effect/rpc";
 
-export const sessionStatusInputSchema = z.object({});
-export const sessionStatusSchema = z.object({ authenticated: z.boolean() });
+export const sessionStatusInputSchema = Schema.Struct({}).mapFields(
+  Struct.map(Schema.mutableKey)
+);
 
-export const sessionContract = {
-  status: oc
-    .errors({
-      INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-    })
-    .route({
-      method: "GET",
-      path: "/session",
-      summary: "Report whether the current session is authenticated",
-    })
-    .input(sessionStatusInputSchema)
-    .output(sessionStatusSchema),
-};
+export const sessionStatusSchema = Schema.Struct({
+  authenticated: Schema.Boolean,
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export type SessionStatus = z.output<typeof sessionStatusSchema>;
+export const sessionRpc = RpcGroup.make(
+  Rpc.make("session.status", {
+    payload: sessionStatusInputSchema,
+    success: sessionStatusSchema,
+    error: RpcError,
+  })
+);
+
+export type SessionStatus = typeof sessionStatusSchema.Type;

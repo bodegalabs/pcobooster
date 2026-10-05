@@ -1,0 +1,80 @@
+{
+  "suite": "chordcharts.import.lyricsToChordChart",
+  "sourceCaseIndices": [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17
+  ],
+  "cases": [
+    {
+      "input": "Verse one line\nStill verse one\n\nChorus line\nSing it again\n\nVerse two line\n\nChorus line\nSing it again!\n\nBridge line\n\nTag line\n\nTag line",
+      "output": "VERSE 1\nVerse one line\nStill verse one\n\nCHORUS 1\nChorus line\nSing it again\n\nVERSE 2\nVerse two line\n\nVERSE 3\nBridge line\n\nCHORUS 2\nTag line\n"
+    },
+    {
+      "input": "Chorus\nSing it\n\nVerse 2\nMore",
+      "output": "CHORUS\nSing it\n\nVERSE 2\nMore\n"
+    },
+    {
+      "input": "One line\nAnother line",
+      "output": "One line\nAnother line\n"
+    },
+    {
+      "input": "A\r\nB\r\n\r\nC\r\nD\r\n\r\nA\r\nB",
+      "output": "CHORUS\nA\nB\n\nVERSE 1\nC\nD\n"
+    },
+    {
+      "input": "First\n  \nSecond\n\t\n\nFirst",
+      "output": "CHORUS\nFirst\n\nVERSE 1\nSecond\n"
+    },
+    {
+      "input": "First\n\u00a0\nSecond",
+      "output": "VERSE 1\nFirst\n\nVERSE 2\nSecond\n"
+    },
+    {
+      "input": "First\n\u2028\nSecond",
+      "output": "VERSE 1\nFirst\n\nVERSE 2\nSecond\n"
+    },
+    {
+      "input": "\u0391\u03a3 \u0392\u0391\nline\n\n\u0391\u03a3\u0392\u0391\nline",
+      "output": "VERSE 1\n\u0391\u03a3 \u0392\u0391\nline\n\nVERSE 2\n\u0391\u03a3\u0392\u0391\nline\n"
+    },
+    {
+      "input": "\u0391\u03a3\n\n\u0391\u03a3\n\n\u039f\u0394\u039f\u03a3 \u039c\u039f\u03a5\n\n\u03bf\u03b4\u03bf\u03c2 \u03bc\u03bf\u03c5",
+      "output": "CHORUS 1\n\u0391\u03a3\n\nCHORUS 2\n\u039f\u0394\u039f\u03a3 \u039c\u039f\u03a5\n"
+    },
+    {
+      "input": "Caf\u00e9\n\nCafe\u0301\n\nCAF\u00c9",
+      "output": "CHORUS\nCaf\u00e9\n\nVERSE 1\nCafe\u0301\n"
+    },
+    {
+      "input": "Hello \ud83d\ude4f\n\nhello\n\nHELLO!!!",
+      "output": "CHORUS\nHello \ud83d\ude4f\n"
+    },
+    {
+      "input": "One\n\nTwo\n\nOne\n\nTwo\n\nThree",
+      "output": "CHORUS 1\nOne\n\nCHORUS 2\nTwo\n\nVERSE 1\nThree\n"
+    },
+    {
+      "input": "\u00a9 2020 Someone\n\nVerse\n\nChorus",
+      "output": "VERSE\n\nCHORUS\n"
+    },
+    {
+      "input": "Only\n\n",
+      "output": "Only\n"
+    },
+    {
+      "input": "\n\n\n",
+      "output": "\n"
+    },
+    {
+      "input": "",
+      "output": "\n"
+    },
+    {
+      "input": "  Indented\n  lines  \n\n  Second  stanza  ",
+      "output": "VERSE 1\nIndented\nlines\n\nVERSE 2\nSecond  stanza\n"
+    },
+    {
+      "input": "A\n\nB\n\nC\n\nD\n\nA\n\nC",
+      "output": "CHORUS 1\nA\n\nVERSE 1\nB\n\nCHORUS 2\nC\n\nVERSE 2\nD\n"
+    }
+  ]
+}

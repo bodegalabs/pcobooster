@@ -1,5 +1,5 @@
-import { ORPCError } from "@orpc/client";
 import type { captureAnalyticsException } from "@pcobooster/analytics/client";
+import { makeRpcError } from "@pcobooster/client/testing";
 import { QueryClient, QueryObserver } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
 
@@ -32,7 +32,7 @@ describe("read error reporting", () => {
   it("reports once after retries, deduplicates observers, and sends no provider payload or IDs", async () => {
     const capture = vi.fn<typeof captureAnalyticsException>();
     const client = createClient(capture);
-    const error = new ORPCError("BAD_GATEWAY", {
+    const error = makeRpcError("BAD_GATEWAY", {
       message: "Private person data",
     });
     const queryKey = ["plan-items", "private-service", "private-plan"];
@@ -97,7 +97,7 @@ describe("read error reporting", () => {
     await Promise.all(
       ["UNAUTHORIZED", "FORBIDDEN", "NOT_FOUND", "TOO_MANY_REQUESTS"].map(
         async (code) =>
-          await failObservedRead(client, new ORPCError(code), {
+          await failObservedRead(client, makeRpcError(code), {
             queryKey: ["plans", code],
           })
       )

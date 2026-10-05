@@ -1,159 +1,171 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
-import { z } from "zod";
+import { RpcError } from "@pcobooster/contracts/errors";
+import { Schema, Struct } from "effect";
+import { Rpc, RpcGroup } from "effect/rpc";
 
-export const serviceTypeSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  sequence: z.number(),
-});
+export const serviceTypeSchema = Schema.Struct({
+  id: Schema.String,
+  name: Schema.String,
+  sequence: Schema.Finite,
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const planSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  seriesTitle: z.string().optional(),
-  seriesId: z.string().nullable().optional(),
-  planningCenterUrl: z.string().nullable().optional(),
-  createdAt: z.date(),
-  sortDate: z.date().optional(),
-});
+export const planSchema = Schema.Struct({
+  id: Schema.String,
+  title: Schema.String,
+  seriesTitle: Schema.optional(Schema.String),
+  seriesId: Schema.optional(Schema.NullOr(Schema.String)),
+  planningCenterUrl: Schema.optional(Schema.NullOr(Schema.String)),
+  createdAt: Schema.Date,
+  sortDate: Schema.optional(Schema.Date),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const planPersonNotificationSchema = z.object({
-  prepared: z.boolean(),
-  sentAt: z.string().nullable(),
-  senderName: z.string().nullable(),
-});
+export const planPersonNotificationSchema = Schema.Struct({
+  prepared: Schema.Boolean,
+  sentAt: Schema.NullOr(Schema.String),
+  senderName: Schema.NullOr(Schema.String),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const filledPositionPersonSchema = z.object({
-  id: z.string(),
-  planPersonId: z.string(),
-  personId: z.string().nullable().optional(),
-  name: z.string(),
-  status: z.enum(["pending", "confirmed"]),
-  rawStatus: z.string(),
-  photoThumbnailUrl: z.string().nullable().optional(),
-  assignedTimeIds: z.array(z.string()).optional(),
-  serviceTimeIds: z.array(z.string()).optional(),
-  notification: planPersonNotificationSchema.nullable(),
-});
+export const filledPositionPersonSchema = Schema.Struct({
+  id: Schema.String,
+  planPersonId: Schema.String,
+  personId: Schema.optional(Schema.NullOr(Schema.String)),
+  name: Schema.String,
+  status: Schema.Literals(["pending", "confirmed"]),
+  rawStatus: Schema.String,
+  photoThumbnailUrl: Schema.optional(Schema.NullOr(Schema.String)),
+  assignedTimeIds: Schema.optional(Schema.mutable(Schema.Array(Schema.String))),
+  serviceTimeIds: Schema.optional(Schema.mutable(Schema.Array(Schema.String))),
+  notification: Schema.NullOr(planPersonNotificationSchema),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const teamPositionSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  teamId: z.string(),
-  teamName: z.string().optional(),
-  source: z
-    .enum(["team_position", "needed_position", "plan_member", "custom"])
-    .optional(),
-  neededPositionId: z.string().optional(),
-  timeId: z.string().nullable().optional(),
-  timePreferenceOptionId: z.string().nullable().optional(),
-  neededCount: z.number().optional(),
-  filledPendingCount: z.number().optional(),
-  filledConfirmedCount: z.number().optional(),
-  filledPeople: z.array(filledPositionPersonSchema).optional(),
-});
+export const teamPositionSchema = Schema.Struct({
+  id: Schema.String,
+  name: Schema.String,
+  teamId: Schema.String,
+  teamName: Schema.optional(Schema.String),
+  source: Schema.optional(
+    Schema.Literals([
+      "team_position",
+      "needed_position",
+      "plan_member",
+      "custom",
+    ])
+  ),
+  neededPositionId: Schema.optional(Schema.String),
+  timeId: Schema.optional(Schema.NullOr(Schema.String)),
+  timePreferenceOptionId: Schema.optional(Schema.NullOr(Schema.String)),
+  neededCount: Schema.optional(Schema.Finite),
+  filledPendingCount: Schema.optional(Schema.Finite),
+  filledConfirmedCount: Schema.optional(Schema.Finite),
+  filledPeople: Schema.optional(
+    Schema.mutable(Schema.Array(filledPositionPersonSchema))
+  ),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const teamPositionGroupSchema = z.object({
-  teamId: z.string(),
-  teamName: z.string(),
-  positions: z.array(teamPositionSchema),
-});
+export const teamPositionGroupSchema = Schema.Struct({
+  teamId: Schema.String,
+  teamName: Schema.String,
+  positions: Schema.mutable(Schema.Array(teamPositionSchema)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const serviceTypesInputSchema = z.object({});
-export const plansInputSchema = z.object({
-  serviceTypeId: z.string().trim().min(1),
-});
-export const planInputSchema = plansInputSchema.extend({
-  planId: z.string().trim().min(1),
-});
-export const adjacentPlansInputSchema = planInputSchema.extend({
-  direction: z.enum(["previous", "next"]),
-});
-export const organizationInputSchema = z.object({});
-export const teamPositionsInputSchema = plansInputSchema.extend({
-  planId: z.string().trim().min(1),
-  seriesId: z.string().trim().min(1).optional(),
-});
+export const serviceTypesInputSchema = Schema.Struct({}).mapFields(
+  Struct.map(Schema.mutableKey)
+);
 
-export const serviceTypesOutputSchema = z.array(serviceTypeSchema);
-export const plansOutputSchema = z.array(planSchema);
+export const plansInputSchema = Schema.Struct({
+  serviceTypeId: Schema.Trim.check(Schema.isMinLength(1)),
+}).mapFields(Struct.map(Schema.mutableKey));
+
+export const planInputSchema = Schema.Struct({
+  ...plansInputSchema.fields,
+  planId: Schema.Trim.check(Schema.isMinLength(1)),
+}).mapFields(Struct.map(Schema.mutableKey));
+
+export const adjacentPlansInputSchema = Schema.Struct({
+  ...planInputSchema.fields,
+  direction: Schema.Literals(["previous", "next"]),
+}).mapFields(Struct.map(Schema.mutableKey));
+
+export const organizationInputSchema = Schema.Struct({}).mapFields(
+  Struct.map(Schema.mutableKey)
+);
+
+export const teamPositionsInputSchema = Schema.Struct({
+  ...plansInputSchema.fields,
+  planId: Schema.Trim.check(Schema.isMinLength(1)),
+  seriesId: Schema.optional(Schema.Trim.check(Schema.isMinLength(1))),
+}).mapFields(Struct.map(Schema.mutableKey));
+
+export const serviceTypesOutputSchema = Schema.mutable(
+  Schema.Array(serviceTypeSchema)
+);
+
+export const plansOutputSchema = Schema.mutable(Schema.Array(planSchema));
+
 /** Null when the plan doesn't exist. */
-export const planOutputSchema = planSchema.nullable();
+export const planOutputSchema = Schema.NullOr(planSchema);
+
 /** Nearest first; empty when the plan doesn't exist or nothing is on that side. */
-export const adjacentPlansOutputSchema = z.array(planSchema);
-export const organizationOutputSchema = z.object({ timeZone: z.string() });
-export const teamPositionsOutputSchema = z.array(teamPositionGroupSchema);
+export const adjacentPlansOutputSchema = Schema.mutable(
+  Schema.Array(planSchema)
+);
 
-const catalogProcedure = oc.errors({
-  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-  FORBIDDEN: applicationErrorMap.FORBIDDEN,
-  TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-  BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
+export const organizationOutputSchema = Schema.Struct({
+  timeZone: Schema.String,
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const catalogContract = {
-  serviceTypes: catalogProcedure
-    .route({
-      method: "GET",
-      path: "/catalog/service-types",
-      summary: "List active service types",
-    })
-    .input(serviceTypesInputSchema)
-    .output(serviceTypesOutputSchema),
-  plans: catalogProcedure
-    .route({
-      method: "GET",
-      path: "/catalog/plans",
-      summary: "List upcoming plans for a service type",
-    })
-    .input(plansInputSchema)
-    .output(plansOutputSchema),
-  plan: catalogProcedure
-    .route({
-      method: "GET",
-      path: "/catalog/plans/{planId}",
-      summary: "Get one plan's details, including past plans",
-    })
-    .input(planInputSchema)
-    .output(planOutputSchema),
-  adjacentPlans: catalogProcedure
-    .route({
-      method: "GET",
-      path: "/catalog/plans/{planId}/adjacent",
-      summary:
-        "List the nearest plans before or after a plan in its service type",
-    })
-    .input(adjacentPlansInputSchema)
-    .output(adjacentPlansOutputSchema),
-  organization: catalogProcedure
-    .route({
-      method: "GET",
-      path: "/catalog/organization",
-      summary: "Get the organization calendar time zone",
-    })
-    .input(organizationInputSchema)
-    .output(organizationOutputSchema),
-  teamPositions: catalogProcedure
-    .route({
-      method: "GET",
-      path: "/catalog/team-positions",
-      summary: "List plan positions and their scheduled people",
-    })
-    .input(teamPositionsInputSchema)
-    .output(teamPositionsOutputSchema),
-};
+export const teamPositionsOutputSchema = Schema.mutable(
+  Schema.Array(teamPositionGroupSchema)
+);
 
-export type ServiceType = z.output<typeof serviceTypeSchema>;
-export type Plan = z.output<typeof planSchema>;
-export type FilledPositionPerson = z.output<typeof filledPositionPersonSchema>;
-export type PlanPersonNotification = z.output<
-  typeof planPersonNotificationSchema
->;
-export type TeamPosition = z.output<typeof teamPositionSchema>;
-export type TeamPositionGroup = z.output<typeof teamPositionGroupSchema>;
-export type PlansInput = z.input<typeof plansInputSchema>;
-export type PlanInput = z.input<typeof planInputSchema>;
-export type AdjacentPlansInput = z.input<typeof adjacentPlansInputSchema>;
-export type TeamPositionsInput = z.input<typeof teamPositionsInputSchema>;
+export const catalogRpc = RpcGroup.make(
+  Rpc.make("catalog.serviceTypes", {
+    payload: serviceTypesInputSchema,
+    success: serviceTypesOutputSchema,
+    error: RpcError,
+  }),
+  Rpc.make("catalog.plans", {
+    payload: plansInputSchema,
+    success: plansOutputSchema,
+    error: RpcError,
+  }),
+  Rpc.make("catalog.plan", {
+    payload: planInputSchema,
+    success: planOutputSchema,
+    error: RpcError,
+  }),
+  Rpc.make("catalog.adjacentPlans", {
+    payload: adjacentPlansInputSchema,
+    success: adjacentPlansOutputSchema,
+    error: RpcError,
+  }),
+  Rpc.make("catalog.organization", {
+    payload: organizationInputSchema,
+    success: organizationOutputSchema,
+    error: RpcError,
+  }),
+  Rpc.make("catalog.teamPositions", {
+    payload: teamPositionsInputSchema,
+    success: teamPositionsOutputSchema,
+    error: RpcError,
+  })
+);
+
+export type ServiceType = typeof serviceTypeSchema.Type;
+
+export type Plan = typeof planSchema.Type;
+
+export type FilledPositionPerson = typeof filledPositionPersonSchema.Type;
+
+export type PlanPersonNotification = typeof planPersonNotificationSchema.Type;
+
+export type TeamPosition = typeof teamPositionSchema.Type;
+
+export type TeamPositionGroup = typeof teamPositionGroupSchema.Type;
+
+export type PlansInput = typeof plansInputSchema.Encoded;
+
+export type PlanInput = typeof planInputSchema.Encoded;
+
+export type AdjacentPlansInput = typeof adjacentPlansInputSchema.Encoded;
+
+export type TeamPositionsInput = typeof teamPositionsInputSchema.Encoded;

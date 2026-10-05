@@ -1,12 +1,12 @@
+import {
+  parsePeopleDashboardScope,
+  parsePeopleDashboardView,
+} from "@pcobooster/client/people-dashboard";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { PeoplePage } from "@/components/people/people-page";
 import { PeoplePageSkeleton } from "@/components/people/people-skeletons";
 import { featureGuard } from "@/lib/features";
-import {
-  parsePeopleDashboardScope,
-  parsePeopleDashboardView,
-} from "@/lib/people-dashboard";
 import { peopleSearchSchema } from "@/lib/route-search";
 
 const PeopleRoute = () => {

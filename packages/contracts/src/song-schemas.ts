@@ -1,46 +1,49 @@
 import { layoutOptionSchema } from "@pcobooster/contracts/plan-item-schemas";
-import { z } from "zod";
+import { Schema, Struct } from "effect";
 
-export const songCatalogEntrySchema = z.object({
-  lastScheduledAt: z.date().nullable(),
-  id: z.string(),
-  title: z.string(),
-  author: z.string(),
-  themes: z.string(),
-  hidden: z.boolean(),
-  matchScore: z.number().optional(),
-});
+export const songCatalogEntrySchema = Schema.Struct({
+  lastScheduledAt: Schema.NullOr(Schema.Date),
+  id: Schema.String,
+  title: Schema.String,
+  author: Schema.String,
+  themes: Schema.String,
+  hidden: Schema.Boolean,
+  matchScore: Schema.optional(Schema.Finite),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const keyOptionSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  startingKey: z.string().nullable(),
-  endingKey: z.string().nullable(),
-});
+export const keyOptionSchema = Schema.Struct({
+  id: Schema.String,
+  name: Schema.String,
+  startingKey: Schema.NullOr(Schema.String),
+  endingKey: Schema.NullOr(Schema.String),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const arrangementOptionSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  sequence: z.array(z.string()),
-  length: z.number().nullable(),
-  bpm: z.number().nullable(),
-  meter: z.string().nullable(),
-  archived: z.boolean(),
-  keys: z.array(keyOptionSchema),
-});
+export const arrangementOptionSchema = Schema.Struct({
+  id: Schema.String,
+  name: Schema.String,
+  sequence: Schema.mutable(Schema.Array(Schema.String)),
+  length: Schema.NullOr(Schema.Finite),
+  bpm: Schema.NullOr(Schema.Finite),
+  meter: Schema.NullOr(Schema.String),
+  archived: Schema.Boolean,
+  keys: Schema.mutable(Schema.Array(keyOptionSchema)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const songOptionSetSchema = z.object({
+export const songOptionSetSchema = Schema.Struct({
   song: songCatalogEntrySchema,
-  arrangements: z.array(arrangementOptionSchema),
-  layouts: z.array(layoutOptionSchema),
-  currentLayout: layoutOptionSchema.nullable(),
-  suggestedArrangementId: z.string().nullable(),
-  suggestedKeyId: z.string().nullable(),
-  suggestedLayoutId: z.string().nullable(),
-  layoutMode: z.enum(["unavailable", "existing-only", "editable"]),
-});
+  arrangements: Schema.mutable(Schema.Array(arrangementOptionSchema)),
+  layouts: Schema.mutable(Schema.Array(layoutOptionSchema)),
+  currentLayout: Schema.NullOr(layoutOptionSchema),
+  suggestedArrangementId: Schema.NullOr(Schema.String),
+  suggestedKeyId: Schema.NullOr(Schema.String),
+  suggestedLayoutId: Schema.NullOr(Schema.String),
+  layoutMode: Schema.Literals(["unavailable", "existing-only", "editable"]),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export type SongCatalogEntry = z.output<typeof songCatalogEntrySchema>;
-export type KeyOption = z.output<typeof keyOptionSchema>;
-export type ArrangementOption = z.output<typeof arrangementOptionSchema>;
-export type SongOptionSet = z.output<typeof songOptionSetSchema>;
+export type SongCatalogEntry = typeof songCatalogEntrySchema.Type;
+
+export type KeyOption = typeof keyOptionSchema.Type;
+
+export type ArrangementOption = typeof arrangementOptionSchema.Type;
+
+export type SongOptionSet = typeof songOptionSetSchema.Type;

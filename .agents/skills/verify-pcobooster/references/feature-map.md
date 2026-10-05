@@ -39,5 +39,14 @@ Use the smallest set of flows that covers the changed behavior. Record unsupport
 
 - Current surface: focused module, transport, and cache-optimism tests only.
 - Covered behavior: schedule assignment, plan-item create/update/delete/reorder, and associated cache updates.
-- Browser status: blocked until the repository has an isolated synthetic Planning Center adapter. Presentation mode is not that adapter.
+- Adapter: `apps/server/src/synthetic-schedule.test.ts` exercises the actual shared client, server and application against a synthetic Planning Center scheduling capability. Use its dependency injection for provider-write proof.
+- Browser/native UI status: fixture transport can prove rendering and query invalidation separately; do not claim it executes the actual application/provider adapter. Presentation mode still writes to the live provider.
 - Evidence: exact focused test commands and a limitation note. Never use a live provider write as verification evidence.
+
+## Expo native workflows
+
+- Start: matching source revision built with Expo prebuild/xcodebuild and installed on an iOS simulator; use the isolated fictional transport in `apps/mobile/scripts/synthetic-server.mts` for UI actions.
+- Actions: browser PKCE sign-in/cancel, Services search/date filters, plan views, Assign candidates, People/person, Songs/chart, account/demo switching, offline/reconnect and logout.
+- Assert: SecureStore restore works in the signed simulator app, cached Dates and string timestamps retain their contracts, completed progressive batches appear without waiting for all people, hidden screens pause new requests, and errors retain drafts/retry actions.
+- Boundaries: exact callback/state and stale-401 ownership, secure-storage write ordering, account/token/demo/origin cache isolation, congregation-day rules and real provider-write completion require focused tests as well as UI checks.
+- Evidence: fictional-data screenshots/video, native build command/log, export gate and exact focused test commands. Record Android build/emulator, release archive and real-device status separately. A simulator binary build alone does not establish Keychain or feature acceptance.

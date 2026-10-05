@@ -1,5 +1,5 @@
-import { ORPCError } from "@orpc/client";
 import type { captureAnalytics } from "@pcobooster/analytics/client";
+import { RpcError } from "@pcobooster/contracts/errors";
 import { z } from "zod";
 
 const OPERATIONS = new Set([
@@ -56,7 +56,7 @@ export const measureWorkflow = async <T>(
     return result;
   } catch (error) {
     const errorCode = errorCodeSchema.safeParse(
-      error instanceof ORPCError ? error.code : undefined
+      error instanceof RpcError ? error.code : undefined
     );
     capture("workflow failed", {
       operation,

@@ -1,55 +1,45 @@
-import { oc } from "@orpc/contract";
-import { accessContract } from "@pcobooster/contracts/access";
-import { accountsContract } from "@pcobooster/contracts/accounts";
-import { catalogContract } from "@pcobooster/contracts/catalog";
-import { chordChartsContract } from "@pcobooster/contracts/chord-charts";
-import { demoContract } from "@pcobooster/contracts/demo";
-import { featuresContract } from "@pcobooster/contracts/features";
-import { feedbackContract } from "@pcobooster/contracts/feedback";
-import { neededPositionsContract } from "@pcobooster/contracts/needed-positions";
-import { peopleContract } from "@pcobooster/contracts/people";
-import { planItemsContract } from "@pcobooster/contracts/plan-items";
-import { planPeopleContract } from "@pcobooster/contracts/plan-people";
-import { planTimesContract } from "@pcobooster/contracts/plan-times";
-import { scheduleContract } from "@pcobooster/contracts/schedule";
-import { sessionContract } from "@pcobooster/contracts/session";
-import { songsContract } from "@pcobooster/contracts/songs";
-import { z } from "zod";
+import { accessRpc } from "@pcobooster/contracts/access";
+import { accountsRpc } from "@pcobooster/contracts/accounts";
+import { catalogRpc } from "@pcobooster/contracts/catalog";
+import { chordChartsRpc } from "@pcobooster/contracts/chord-charts";
+import { demoRpc } from "@pcobooster/contracts/demo";
+import { featuresRpc } from "@pcobooster/contracts/features";
+import { feedbackRpc } from "@pcobooster/contracts/feedback";
+import { neededPositionsRpc } from "@pcobooster/contracts/needed-positions";
+import { peopleRpc } from "@pcobooster/contracts/people";
+import { planItemsRpc } from "@pcobooster/contracts/plan-items";
+import { planPeopleRpc } from "@pcobooster/contracts/plan-people";
+import { planTimesRpc } from "@pcobooster/contracts/plan-times";
+import { scheduleRpc } from "@pcobooster/contracts/schedule";
+import { sessionRpc } from "@pcobooster/contracts/session";
+import { songsRpc } from "@pcobooster/contracts/songs";
+import { Schema } from "effect";
+import { RpcGroup } from "effect/rpc";
 
-const healthInputSchema = z.object({});
-const healthOutputSchema = z.object({
-  status: z.literal("ok"),
-  version: z.string(),
+/** The 48 product operations shared by web, mobile and the API Worker. */
+export const ProductRpc = RpcGroup.make().merge(
+  accessRpc,
+  accountsRpc,
+  catalogRpc,
+  chordChartsRpc,
+  demoRpc,
+  featuresRpc,
+  feedbackRpc,
+  neededPositionsRpc,
+  peopleRpc,
+  planItemsRpc,
+  planPeopleRpc,
+  planTimesRpc,
+  scheduleRpc,
+  sessionRpc,
+  songsRpc
+);
+
+/** Health remains an ordinary HTTP surface. */
+export const healthInputSchema = Schema.Struct({});
+export const healthOutputSchema = Schema.Struct({
+  status: Schema.Literal("ok"),
+  version: Schema.String,
 });
-
-export const healthContract = oc
-  .route({
-    method: "GET",
-    path: "/health",
-    summary: "Report API health",
-  })
-  .input(healthInputSchema)
-  .output(healthOutputSchema);
-
-export const appContract = oc.router({
-  access: accessContract,
-  accounts: accountsContract,
-  catalog: catalogContract,
-  chordCharts: chordChartsContract,
-  demo: demoContract,
-  features: featuresContract,
-  feedback: feedbackContract,
-  health: healthContract,
-  neededPositions: neededPositionsContract,
-  people: peopleContract,
-  planItems: planItemsContract,
-  planPeople: planPeopleContract,
-  planTimes: planTimesContract,
-  schedule: scheduleContract,
-  session: sessionContract,
-  songs: songsContract,
-});
-
-export type AppContract = typeof appContract;
-export type HealthInput = z.input<typeof healthInputSchema>;
-export type HealthOutput = z.output<typeof healthOutputSchema>;
+export type HealthInput = typeof healthInputSchema.Type;
+export type HealthOutput = typeof healthOutputSchema.Type;

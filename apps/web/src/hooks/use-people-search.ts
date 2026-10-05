@@ -1,3 +1,4 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
 import type { PeopleSearchResult } from "@pcobooster/contracts/people-schemas";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
@@ -8,8 +9,7 @@ import {
   writeCachedPeopleSearch,
 } from "@/lib/people-search-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
-import { queryKeys } from "@/lib/query-keys";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 export type { PeopleSearchResult } from "@pcobooster/contracts/people-schemas";
 
@@ -25,7 +25,8 @@ export const usePeopleSearch = (query: string) => {
   return useQuery<PeopleSearchResult[]>({
     queryKey,
     queryFn: async ({ signal }) => {
-      const results = await orpc.people.search(
+      const results = await rpc(
+        "people.search",
         { query: normalizedQuery },
         { signal }
       );

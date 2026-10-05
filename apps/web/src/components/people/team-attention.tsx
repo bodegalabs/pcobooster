@@ -1,3 +1,14 @@
+import {
+  describeDue,
+  describePersonSignal,
+  formatWeekdayDayKey,
+} from "@pcobooster/client/team-health";
+import type {
+  CheckIn,
+  DueForSlot,
+  PersonSignal,
+  WaitingOnReply,
+} from "@pcobooster/client/team-health";
 import type { PeopleDashboardRosterPerson } from "@pcobooster/contracts/people-schemas";
 import { CalendarClock, HeartHandshake, MailQuestionMark } from "lucide-react";
 import { useState } from "react";
@@ -21,17 +32,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
-import {
-  describeDue,
-  describePersonSignal,
-  formatWeekdayDayKey,
-} from "@/lib/team-health";
-import type {
-  CheckIn,
-  DueForSlot,
-  PersonSignal,
-  WaitingOnReply,
-} from "@/lib/team-health";
 
 /** The due list's gap bars share one scale: the six months serving history covers. */
 const GAP_SCALE_DAYS = 180;

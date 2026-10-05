@@ -41,6 +41,32 @@ describe("proof classification", () => {
     ).toBeTruthy();
   });
 
+  it("classifies native credentials and shared transport as review boundaries", () => {
+    expect(
+      classifyChangedFiles(["apps/mobile/src/auth/session-store.ts"])
+    ).toBe("critical");
+    expect(classifyChangedFiles(["packages/client/src/rpc.ts"])).toBe("high");
+    expect(classifyChangedFiles(["apps/mobile/app.config.ts"])).toBe("high");
+    expect(classifyChangedFiles(["apps/mobile/src/features/lineup.tsx"])).toBe(
+      "medium"
+    );
+  });
+
+  it("requires screenshots for native screens and assets", () => {
+    expect(
+      requiresVisualEvidence(["apps/mobile/assets/icon.png"])
+    ).toBeTruthy();
+    expect(
+      requiresVisualEvidence(["apps/mobile/app/account.tsx"])
+    ).toBeTruthy();
+    expect(
+      requiresVisualEvidence(["apps/mobile/src/features/lineup.tsx"])
+    ).toBeTruthy();
+    expect(
+      requiresVisualEvidence(["apps/mobile/src/features/lineup.test.tsx"])
+    ).toBeFalsy();
+  });
+
   it("allows explicit risk only to raise automatic classification", () => {
     expect(maxRiskTier("high", "low")).toBe("high");
     expect(maxRiskTier("medium", "critical")).toBe("critical");

@@ -1,4 +1,5 @@
-import { ORPCError } from "@orpc/client";
+import { queryKeys } from "@pcobooster/client/query-keys";
+import { RpcError } from "@pcobooster/contracts/errors";
 import type {
   PlanWindowHistoryBatch,
   PositionCandidates,
@@ -22,7 +23,6 @@ import type {
 import { clearCachedMyScheduledPlans } from "@/lib/my-scheduled-plans-cache";
 import { clearCachedPeopleDashboards } from "@/lib/people-dashboard-cache";
 import { clearCachedCandidateSchedules } from "@/lib/position-candidates-cache";
-import { queryKeys } from "@/lib/query-keys";
 import { clearCachedTeamPositions } from "@/lib/team-positions-cache";
 
 export type OptimisticPlanPersonStatusCode = "C" | "U" | "D";
@@ -47,7 +47,7 @@ const OPTIMISTIC_PLAN_PERSON_ID_PREFIX = "optimistic:";
 
 /** Planning Center no longer has the plan person, so the lineup on screen is stale. */
 export const isMissingPlanPersonError = (error: Error): boolean =>
-  error instanceof ORPCError && error.code === "NOT_FOUND";
+  error instanceof RpcError && error.code === "NOT_FOUND";
 
 /** Stands in for the plan person an assign creates until Planning Center returns its ID. */
 export const createOptimisticPlanPersonId = (

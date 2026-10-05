@@ -1,5 +1,5 @@
-import { ORPCError } from "@orpc/client";
 import type { captureAnalyticsException } from "@pcobooster/analytics/client";
+import { RpcError } from "@pcobooster/contracts/errors";
 import { QueryCache } from "@tanstack/react-query";
 import { z } from "zod";
 
@@ -56,7 +56,7 @@ export const createReadErrorCache = (
     onError: (error, query) => {
       const operation = readOperationSchema.safeParse(query.queryKey[0]);
       const code = errorCodeSchema.safeParse(
-        error instanceof ORPCError ? error.code : undefined
+        error instanceof RpcError ? error.code : undefined
       );
       const operationName = operation.success ? operation.data : "unknown-read";
       const errorCode = code.success ? code.data : "UNKNOWN";

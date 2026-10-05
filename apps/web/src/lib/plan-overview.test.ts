@@ -1,10 +1,3 @@
-import type {
-  PlanItem,
-  PlanTime,
-  TeamPositionGroup,
-} from "@pcobooster/planning-center-models/types";
-import { describe, expect, it } from "vitest";
-
 import {
   buildReadinessChecks,
   formatDuration,
@@ -14,7 +7,13 @@ import {
   summarizeOrder,
   summarizeStaffing,
   summarizeTimes,
-} from "@/lib/plan-overview";
+} from "@pcobooster/client/plan-overview";
+import type {
+  PlanItem,
+  PlanTime,
+  TeamPositionGroup,
+} from "@pcobooster/planning-center-models/types";
+import { describe, expect, it } from "vitest";
 
 const band: TeamPositionGroup = {
   teamId: "band",

@@ -1,7 +1,24 @@
-import { z } from "zod";
+import { Schema } from "effect";
 
-export const jsonValueSchema = z.json();
-export type JsonValue = z.infer<typeof jsonValueSchema>;
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | JsonObject;
+
+/** Native recursive JSON validation preserves mutable provider payload arrays. */
+export const jsonValueSchema: Schema.Codec<JsonValue> = Schema.suspend(() =>
+  Schema.Union([
+    Schema.String,
+    Schema.Finite,
+    Schema.Boolean,
+    Schema.Null,
+    Schema.mutable(Schema.Array(jsonValueSchema)),
+    Schema.Record(Schema.String, Schema.mutableKey(jsonValueSchema)),
+  ])
+);
 export interface JsonObject {
   [key: string]: JsonValue;
 }

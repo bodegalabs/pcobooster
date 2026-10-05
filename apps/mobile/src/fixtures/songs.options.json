@@ -1,0 +1,1909 @@
+{
+  "default": {
+    "song": {
+      "lastScheduledAt": "2026-08-16T16:00:00.000Z",
+      "id": "5501",
+      "title": "Morning Light",
+      "author": "Maya Ellison and Theo Park",
+      "themes": "Praise, Morning, Resurrection",
+      "hidden": false
+    },
+    "arrangements": [
+      {
+        "id": "55011",
+        "name": "Default Arrangement",
+        "sequence": [
+          "Intro",
+          "Verse 1",
+          "Chorus",
+          "Verse 2",
+          "Chorus",
+          "Bridge",
+          "Chorus",
+          "Outro"
+        ],
+        "length": 300,
+        "bpm": 74,
+        "meter": "4/4",
+        "archived": false,
+        "keys": [
+          {
+            "id": "550111",
+            "name": "Original",
+            "startingKey": "G",
+            "endingKey": null
+          },
+          {
+            "id": "550112",
+            "name": "Jordan's key",
+            "startingKey": "A",
+            "endingKey": null
+          }
+        ]
+      },
+      {
+        "id": "55012",
+        "name": "2019 Arrangement",
+        "sequence": [
+          "Intro",
+          "Verse 1",
+          "Chorus",
+          "Verse 2",
+          "Chorus",
+          "Bridge",
+          "Chorus",
+          "Outro"
+        ],
+        "length": 330,
+        "bpm": 70,
+        "meter": "4/4",
+        "archived": true,
+        "keys": [
+          {
+            "id": "550121",
+            "name": "Original",
+            "startingKey": "F",
+            "endingKey": null
+          }
+        ]
+      }
+    ],
+    "layouts": [
+      { "id": "550101", "name": "Default Layout" },
+      { "id": "550102", "name": "Acoustic Set" }
+    ],
+    "currentLayout": null,
+    "suggestedArrangementId": "55011",
+    "suggestedKeyId": "550111",
+    "suggestedLayoutId": "550101",
+    "layoutMode": "editable"
+  },
+  "cases": [
+    {
+      "match": { "songId": "5501" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-08-16T16:00:00.000Z",
+          "id": "5501",
+          "title": "Morning Light",
+          "author": "Maya Ellison and Theo Park",
+          "themes": "Praise, Morning, Resurrection",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55011",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 300,
+            "bpm": 74,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "550111",
+                "name": "Original",
+                "startingKey": "G",
+                "endingKey": null
+              },
+              {
+                "id": "550112",
+                "name": "Jordan's key",
+                "startingKey": "A",
+                "endingKey": null
+              }
+            ]
+          },
+          {
+            "id": "55012",
+            "name": "2019 Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 330,
+            "bpm": 70,
+            "meter": "4/4",
+            "archived": true,
+            "keys": [
+              {
+                "id": "550121",
+                "name": "Original",
+                "startingKey": "F",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "550101", "name": "Default Layout" },
+          { "id": "550102", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55011",
+        "suggestedKeyId": "550111",
+        "suggestedLayoutId": "550101",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5502" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-20T16:00:00.000Z",
+          "id": "5502",
+          "title": "Steady Ground",
+          "author": "Grace Whitfield",
+          "themes": "Faith, Trust, Storms",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55021",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 360,
+            "bpm": 68,
+            "meter": "6/8",
+            "archived": false,
+            "keys": [
+              {
+                "id": "550211",
+                "name": "Original",
+                "startingKey": "D",
+                "endingKey": null
+              },
+              {
+                "id": "550212",
+                "name": "Low",
+                "startingKey": "C",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "550201", "name": "Default Layout" },
+          { "id": "550202", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55021",
+        "suggestedKeyId": "550211",
+        "suggestedLayoutId": "550201",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5503" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-06T16:00:00.000Z",
+          "id": "5503",
+          "title": "Open Doors",
+          "author": "Caleb Rhodes and Maya Ellison",
+          "themes": "Invitation, Mission, Hospitality",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55031",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 300,
+            "bpm": 128,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "550311",
+                "name": "Original",
+                "startingKey": "A",
+                "endingKey": "B"
+              },
+              {
+                "id": "550312",
+                "name": "Low",
+                "startingKey": "G",
+                "endingKey": "A"
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "550301", "name": "Default Layout" },
+          { "id": "550302", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55031",
+        "suggestedKeyId": "550311",
+        "suggestedLayoutId": "550301",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5504" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-06T16:00:00.000Z",
+          "id": "5504",
+          "title": "Here With Us",
+          "author": "Lena Ortiz",
+          "themes": "Presence, Communion",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55041",
+            "name": "Default Arrangement",
+            "sequence": ["Verse 1", "Chorus", "Verse 2", "Chorus"],
+            "length": 240,
+            "bpm": 64,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "550411",
+                "name": "Original",
+                "startingKey": "E",
+                "endingKey": null
+              },
+              {
+                "id": "550412",
+                "name": "Riley",
+                "startingKey": "D",
+                "endingKey": null
+              }
+            ]
+          },
+          {
+            "id": "55042",
+            "name": "Keys Only",
+            "sequence": ["Verse 1", "Chorus", "Verse 2", "Chorus"],
+            "length": 270,
+            "bpm": 60,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "550421",
+                "name": "Original",
+                "startingKey": "E",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "550401", "name": "Default Layout" },
+          { "id": "550402", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55041",
+        "suggestedKeyId": "550411",
+        "suggestedLayoutId": "550401",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5505" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-13T16:00:00.000Z",
+          "id": "5505",
+          "title": "Harbor of Mercy",
+          "author": "Samuel Achebe",
+          "themes": "Grace, Rest",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55051",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 330,
+            "bpm": 72,
+            "meter": "3/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "550511",
+                "name": "Original",
+                "startingKey": "C",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "550501", "name": "Default Layout" },
+          { "id": "550502", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55051",
+        "suggestedKeyId": "550511",
+        "suggestedLayoutId": "550501",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5506" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-13T16:00:00.000Z",
+          "id": "5506",
+          "title": "Wide as the Sky",
+          "author": "Theo Park",
+          "themes": "Love, Creation",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55061",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 285,
+            "bpm": 82,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "550611",
+                "name": "Original",
+                "startingKey": "Bb",
+                "endingKey": null
+              },
+              {
+                "id": "550612",
+                "name": "Jordan's key",
+                "startingKey": "C",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "550601", "name": "Default Layout" },
+          { "id": "550602", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55061",
+        "suggestedKeyId": "550612",
+        "suggestedLayoutId": "550601",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5507" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-13T16:00:00.000Z",
+          "id": "5507",
+          "title": "Lanterns",
+          "author": "Iris Calder",
+          "themes": "Hope, Light, Waiting",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55071",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 315,
+            "bpm": 70,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "550711",
+                "name": "Original",
+                "startingKey": "F",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "550701", "name": "Default Layout" },
+          { "id": "550702", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55071",
+        "suggestedKeyId": "550711",
+        "suggestedLayoutId": "550701",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5508" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-13T16:00:00.000Z",
+          "id": "5508",
+          "title": "Evergreen",
+          "author": "Noah Whitfield and Grace Whitfield",
+          "themes": "Faithfulness, Seasons",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55081",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 270,
+            "bpm": 76,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "550811",
+                "name": "Original",
+                "startingKey": "D",
+                "endingKey": null
+              },
+              {
+                "id": "550812",
+                "name": "Morgan",
+                "startingKey": "E",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "550801", "name": "Default Layout" },
+          { "id": "550802", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55081",
+        "suggestedKeyId": "550811",
+        "suggestedLayoutId": "550801",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5509" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-20T16:00:00.000Z",
+          "id": "5509",
+          "title": "Kingdom Come Slowly",
+          "author": "Ruth Okafor",
+          "themes": "Kingdom, Patience",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55091",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 370,
+            "bpm": 66,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "550911",
+                "name": "Original",
+                "startingKey": "E",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "550901", "name": "Default Layout" },
+          { "id": "550902", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55091",
+        "suggestedKeyId": "550911",
+        "suggestedLayoutId": "550901",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5510" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-10-01T02:00:00.000Z",
+          "id": "5510",
+          "title": "All the Way Home",
+          "author": "Caleb Rhodes",
+          "themes": "Hope, Journey",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55101",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 260,
+            "bpm": 118,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "551011",
+                "name": "Original",
+                "startingKey": "G",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "551001", "name": "Default Layout" },
+          { "id": "551002", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55101",
+        "suggestedKeyId": "551011",
+        "suggestedLayoutId": "551001",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5511" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-07-19T16:00:00.000Z",
+          "id": "5511",
+          "title": "River Song",
+          "author": "Lena Ortiz",
+          "themes": "Renewal, Baptism",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55111",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 290,
+            "bpm": 92,
+            "meter": "6/8",
+            "archived": false,
+            "keys": [
+              {
+                "id": "551111",
+                "name": "Original",
+                "startingKey": "A",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "551101", "name": "Default Layout" },
+          { "id": "551102", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55111",
+        "suggestedKeyId": "551111",
+        "suggestedLayoutId": "551101",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5512" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-08-23T16:00:00.000Z",
+          "id": "5512",
+          "title": "Table of Plenty",
+          "author": "Samuel Achebe and Iris Calder",
+          "themes": "Communion, Thanksgiving",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55121",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 300,
+            "bpm": 80,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "551211",
+                "name": "Original",
+                "startingKey": "C",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "551201", "name": "Default Layout" },
+          { "id": "551202", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55121",
+        "suggestedKeyId": "551211",
+        "suggestedLayoutId": "551201",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5513" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-10-01T02:00:00.000Z",
+          "id": "5513",
+          "title": "Every Breath",
+          "author": "Maya Ellison",
+          "themes": "Worship, Surrender",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55131",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 340,
+            "bpm": 72,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "551311",
+                "name": "Original",
+                "startingKey": "B",
+                "endingKey": null
+              },
+              {
+                "id": "551312",
+                "name": "Low",
+                "startingKey": "A",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "551301", "name": "Default Layout" },
+          { "id": "551302", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55131",
+        "suggestedKeyId": "551312",
+        "suggestedLayoutId": "551301",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5514" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-07-05T16:00:00.000Z",
+          "id": "5514",
+          "title": "Old Stone Hymn",
+          "author": "Traditional, arranged by Theo Park",
+          "themes": "Hymn, Faith",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55141",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 240,
+            "bpm": 88,
+            "meter": "3/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "551411",
+                "name": "Original",
+                "startingKey": "Eb",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "551401", "name": "Default Layout" },
+          { "id": "551402", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55141",
+        "suggestedKeyId": "551411",
+        "suggestedLayoutId": "551401",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5515" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-10-01T02:00:00.000Z",
+          "id": "5515",
+          "title": "Bright City",
+          "author": "Ruth Okafor",
+          "themes": "Heaven, Joy, Easter",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55151",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 230,
+            "bpm": 132,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "551511",
+                "name": "Original",
+                "startingKey": "A",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "551501", "name": "Default Layout" },
+          { "id": "551502", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55151",
+        "suggestedKeyId": "551511",
+        "suggestedLayoutId": "551501",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5516" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-27T16:00:00.000Z",
+          "id": "5516",
+          "title": "Shepherd of My Days",
+          "author": "Grace Whitfield",
+          "themes": "Guidance, Psalms",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55161",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 320,
+            "bpm": 62,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "551611",
+                "name": "Original",
+                "startingKey": "D",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "551601", "name": "Default Layout" },
+          { "id": "551602", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55161",
+        "suggestedKeyId": "551611",
+        "suggestedLayoutId": "551601",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5517" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2025-12-25T01:00:00.000Z",
+          "id": "5517",
+          "title": "Light the Way",
+          "author": "Noah Whitfield",
+          "themes": "Guidance, Advent",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55171",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 280,
+            "bpm": 74,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "551711",
+                "name": "Original",
+                "startingKey": "F",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "551701", "name": "Default Layout" },
+          { "id": "551702", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55171",
+        "suggestedKeyId": "551711",
+        "suggestedLayoutId": "551701",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5518" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2025-11-23T17:00:00.000Z",
+          "id": "5518",
+          "title": "Thankful Heart",
+          "author": "Iris Calder",
+          "themes": "Thanksgiving, Gratitude",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55181",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 225,
+            "bpm": 96,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "551811",
+                "name": "Original",
+                "startingKey": "G",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "551801", "name": "Default Layout" },
+          { "id": "551802", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55181",
+        "suggestedKeyId": "551811",
+        "suggestedLayoutId": "551801",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5519" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-07-12T16:00:00.000Z",
+          "id": "5519",
+          "title": "Rest for the Weary",
+          "author": "Traditional, arranged by Lena Ortiz",
+          "themes": "Hymn, Rest",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55191",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 250,
+            "bpm": 70,
+            "meter": "3/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "551911",
+                "name": "Original",
+                "startingKey": "E",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "551901", "name": "Default Layout" },
+          { "id": "551902", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55191",
+        "suggestedKeyId": "551911",
+        "suggestedLayoutId": "551901",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5520" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-27T16:00:00.000Z",
+          "id": "5520",
+          "title": "Unshaken",
+          "author": "Caleb Rhodes",
+          "themes": "Strength, Courage",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55201",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 245,
+            "bpm": 140,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "552011",
+                "name": "Original",
+                "startingKey": "B",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "552001", "name": "Default Layout" },
+          { "id": "552002", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55201",
+        "suggestedKeyId": "552011",
+        "suggestedLayoutId": "552001",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5521" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-08-09T16:00:00.000Z",
+          "id": "5521",
+          "title": "Still Small Voice",
+          "author": "Maya Ellison",
+          "themes": "Prayer, Listening",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55211",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 350,
+            "bpm": 60,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "552111",
+                "name": "Original",
+                "startingKey": "Db",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "552101", "name": "Default Layout" },
+          { "id": "552102", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55211",
+        "suggestedKeyId": "552111",
+        "suggestedLayoutId": "552101",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5522" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2025-12-25T01:00:00.000Z",
+          "id": "5522",
+          "title": "Waiting Season",
+          "author": "Theo Park",
+          "themes": "Advent, Hope",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55221",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 310,
+            "bpm": 68,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "552211",
+                "name": "Original",
+                "startingKey": "C",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "552201", "name": "Default Layout" },
+          { "id": "552202", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55221",
+        "suggestedKeyId": "552211",
+        "suggestedLayoutId": "552201",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5523" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-08-09T16:00:00.000Z",
+          "id": "5523",
+          "title": "Songs in the Night",
+          "author": "Ruth Okafor",
+          "themes": "Lament, Hope",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55231",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 270,
+            "bpm": 76,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "552311",
+                "name": "Original",
+                "startingKey": "G",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "552301", "name": "Default Layout" },
+          { "id": "552302", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55231",
+        "suggestedKeyId": "552311",
+        "suggestedLayoutId": "552301",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5524" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-24T02:00:00.000Z",
+          "id": "5524",
+          "title": "Glory Rising",
+          "author": "Samuel Achebe",
+          "themes": "Praise, Easter",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55241",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 255,
+            "bpm": 124,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "552411",
+                "name": "Original",
+                "startingKey": "A",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "552401", "name": "Default Layout" },
+          { "id": "552402", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55241",
+        "suggestedKeyId": "552411",
+        "suggestedLayoutId": "552401",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5525" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-20T16:00:00.000Z",
+          "id": "5525",
+          "title": "Gathered Here",
+          "author": "Lena Ortiz and Caleb Rhodes",
+          "themes": "Gathering, Call to Worship",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55251",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 210,
+            "bpm": 110,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "552511",
+                "name": "Original",
+                "startingKey": "G",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "552501", "name": "Default Layout" },
+          { "id": "552502", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55251",
+        "suggestedKeyId": "552511",
+        "suggestedLayoutId": "552501",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5526" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-27T16:00:00.000Z",
+          "id": "5526",
+          "title": "Benediction Song",
+          "author": "Grace Whitfield",
+          "themes": "Blessing, Sending",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55261",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 200,
+            "bpm": 72,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "552611",
+                "name": "Original",
+                "startingKey": "D",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "552601", "name": "Default Layout" },
+          { "id": "552602", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55261",
+        "suggestedKeyId": "552611",
+        "suggestedLayoutId": "552601",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5527" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-17T02:00:00.000Z",
+          "id": "5527",
+          "title": "Brighter",
+          "author": "Northbound Collective",
+          "themes": "Joy, Youth",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55271",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 220,
+            "bpm": 128,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "552711",
+                "name": "Original",
+                "startingKey": "E",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "552701", "name": "Default Layout" },
+          { "id": "552702", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55271",
+        "suggestedKeyId": "552711",
+        "suggestedLayoutId": "552701",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5528" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-09-24T02:00:00.000Z",
+          "id": "5528",
+          "title": "Undivided",
+          "author": "Northbound Collective",
+          "themes": "Unity, Youth",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55281",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 235,
+            "bpm": 120,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "552811",
+                "name": "Original",
+                "startingKey": "A",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "552801", "name": "Default Layout" },
+          { "id": "552802", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55281",
+        "suggestedKeyId": "552811",
+        "suggestedLayoutId": "552801",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5529" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2026-02-22T17:00:00.000Z",
+          "id": "5529",
+          "title": "Hallelujah Road",
+          "author": "Iris Calder",
+          "themes": "Journey, Praise",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55291",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 250,
+            "bpm": 100,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "552911",
+                "name": "Original",
+                "startingKey": "D",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "552901", "name": "Default Layout" },
+          { "id": "552902", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55291",
+        "suggestedKeyId": "552911",
+        "suggestedLayoutId": "552901",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5530" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2025-02-16T17:00:00.000Z",
+          "id": "5530",
+          "title": "Mountains Move",
+          "author": "Caleb Rhodes",
+          "themes": "Faith, Prayer",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55301",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 280,
+            "bpm": 84,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "553011",
+                "name": "Original",
+                "startingKey": "C",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "553001", "name": "Default Layout" },
+          { "id": "553002", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55301",
+        "suggestedKeyId": "553011",
+        "suggestedLayoutId": "553001",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5531" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2024-03-10T16:00:00.000Z",
+          "id": "5531",
+          "title": "Into the Quiet",
+          "author": "Iris Calder",
+          "themes": "Rest, Prayer",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55311",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 330,
+            "bpm": 58,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "553111",
+                "name": "Original",
+                "startingKey": "E",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "553101", "name": "Default Layout" },
+          { "id": "553102", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55311",
+        "suggestedKeyId": "553111",
+        "suggestedLayoutId": "553101",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5532" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2023-11-05T17:00:00.000Z",
+          "id": "5532",
+          "title": "Sound of Many Waters",
+          "author": "Ruth Okafor",
+          "themes": "Majesty, Revelation",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55321",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 300,
+            "bpm": 78,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "553211",
+                "name": "Original",
+                "startingKey": "D",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "553201", "name": "Default Layout" },
+          { "id": "553202", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55321",
+        "suggestedKeyId": "553211",
+        "suggestedLayoutId": "553201",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5533" },
+      "output": {
+        "song": {
+          "lastScheduledAt": null,
+          "id": "5533",
+          "title": "Morning Prayer Chant",
+          "author": "Traditional",
+          "themes": "Prayer, Liturgy",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55331",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 180,
+            "bpm": null,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "553311",
+                "name": "Original",
+                "startingKey": "D",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "553301", "name": "Default Layout" },
+          { "id": "553302", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55331",
+        "suggestedKeyId": "553311",
+        "suggestedLayoutId": "553301",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5534" },
+      "output": {
+        "song": {
+          "lastScheduledAt": null,
+          "id": "5534",
+          "title": "A New Morning",
+          "author": "Theo Park",
+          "themes": "Renewal",
+          "hidden": false
+        },
+        "arrangements": [
+          {
+            "id": "55341",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 240,
+            "bpm": 90,
+            "meter": "4/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "553411",
+                "name": "Original",
+                "startingKey": "G",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "553401", "name": "Default Layout" },
+          { "id": "553402", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55341",
+        "suggestedKeyId": "553411",
+        "suggestedLayoutId": "553401",
+        "layoutMode": "editable"
+      }
+    },
+    {
+      "match": { "songId": "5535" },
+      "output": {
+        "song": {
+          "lastScheduledAt": "2023-12-24T17:00:00.000Z",
+          "id": "5535",
+          "title": "Old Christmas Medley",
+          "author": "Traditional",
+          "themes": "Christmas",
+          "hidden": true
+        },
+        "arrangements": [
+          {
+            "id": "55351",
+            "name": "Default Arrangement",
+            "sequence": [
+              "Intro",
+              "Verse 1",
+              "Chorus",
+              "Verse 2",
+              "Chorus",
+              "Bridge",
+              "Chorus",
+              "Outro"
+            ],
+            "length": 420,
+            "bpm": 96,
+            "meter": "3/4",
+            "archived": false,
+            "keys": [
+              {
+                "id": "553511",
+                "name": "Original",
+                "startingKey": "G",
+                "endingKey": null
+              }
+            ]
+          }
+        ],
+        "layouts": [
+          { "id": "553501", "name": "Default Layout" },
+          { "id": "553502", "name": "Acoustic Set" }
+        ],
+        "currentLayout": null,
+        "suggestedArrangementId": "55351",
+        "suggestedKeyId": "553511",
+        "suggestedLayoutId": "553501",
+        "layoutMode": "editable"
+      }
+    }
+  ]
+}

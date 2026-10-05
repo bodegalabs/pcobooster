@@ -1,0 +1,177 @@
+{
+  "suite": "chordcharts.lyricsSearchQuery",
+  "sourceCaseIndices": [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    21, 22, 23
+  ],
+  "cases": [
+    {
+      "input": {
+        "title": "Amazing Grace",
+        "author": "John Newton"
+      },
+      "output": "Amazing Grace John Newton"
+    },
+    {
+      "input": {
+        "title": "Way Maker",
+        "author": "Sinach, Someone Else"
+      },
+      "output": "Way Maker Sinach"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "Chris Tomlin & Matt Redman"
+      },
+      "output": "Song Chris Tomlin"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "Brian Johnson and Jenn Johnson"
+      },
+      "output": "Song Brian Johnson"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "Alexander Andrews"
+      },
+      "output": "Song Alexander Andrews"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "Sandy"
+      },
+      "output": "Song Sandy"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "Rand and Band"
+      },
+      "output": "Song Rand"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "Tom\u00e1s and Ana"
+      },
+      "output": "Song Tom\u00e1s"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "\u00e9and friends"
+      },
+      "output": "Song \u00e9"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "and Someone"
+      },
+      "output": "Song"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "Someone and"
+      },
+      "output": "Song Someone"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "AND Caps"
+      },
+      "output": "Song AND Caps"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "x\u017fand y"
+      },
+      "output": "Song x\u017f"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "_and_ underscores and more"
+      },
+      "output": "Song _and_ underscores"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "1and2 and 3"
+      },
+      "output": "Song 1and2"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": ""
+      },
+      "output": "Song"
+    },
+    {
+      "input": {
+        "title": "",
+        "author": ""
+      },
+      "output": ""
+    },
+    {
+      "input": {
+        "title": "",
+        "author": "Only Author"
+      },
+      "output": "Only Author"
+    },
+    {
+      "input": {
+        "title": "  Spaced Title  ",
+        "author": "  Spaced\u00a0Author ,x"
+      },
+      "output": "Spaced Title   Spaced\u00a0Author"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "\ufeffBom Author"
+      },
+      "output": "Song Bom Author"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "Next\u0085Line"
+      },
+      "output": "Song Next\u0085Line"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": ", Leading comma"
+      },
+      "output": "Song"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "&"
+      },
+      "output": "Song"
+    },
+    {
+      "input": {
+        "title": "Song",
+        "author": "Hillsong Worship"
+      },
+      "output": "Song Hillsong Worship"
+    }
+  ]
+}

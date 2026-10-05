@@ -22,7 +22,7 @@ export const getSessionStatus = createServerFn({ method: "GET" }).handler(
       cookie: headers.get("cookie") ?? undefined,
       productOrigin: env.PRODUCT_ORIGIN,
     });
-    return await client.session.status({});
+    return await client.call("session.status", {});
   }
 );
 

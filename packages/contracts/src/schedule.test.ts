@@ -7,6 +7,7 @@ import {
   scheduleRemoveInputSchema,
   scheduleUpdateStatusInputSchema,
 } from "@pcobooster/contracts/schedule";
+import { Schema, Result } from "effect";
 import { describe, expect, it } from "vitest";
 
 const assignment = {
@@ -22,11 +23,11 @@ const assignment = {
 
 describe("schedule contracts", () => {
   it("preserves the browser-facing assignment input and defaults one-off scheduling", () => {
-    expect(scheduleAssignInputSchema.parse(assignment)).toStrictEqual(
-      assignment
-    );
     expect(
-      scheduleAssignInputSchema.parse({
+      Schema.decodeUnknownSync(scheduleAssignInputSchema)(assignment)
+    ).toStrictEqual(assignment);
+    expect(
+      Schema.decodeUnknownSync(scheduleAssignInputSchema)({
         serviceTypeId: "service-1",
         personId: "person-1",
         planId: "plan-1",
@@ -42,61 +43,85 @@ describe("schedule contracts", () => {
       oneOff: false,
     });
     expect(
-      scheduleAssignInputSchema.safeParse({
-        team_name: "Band",
-      }).success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(scheduleAssignInputSchema)({
+          team_name: "Band",
+        })
+      )
     ).toBeFalsy();
     expect(
-      scheduleAssignInputSchema.safeParse({ ...assignment, positionName: " " })
-        .success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(scheduleAssignInputSchema)({
+          ...assignment,
+          positionName: " ",
+        })
+      )
     ).toBeFalsy();
   });
 
   it("keeps remove and status context optional while requiring their route identity", () => {
     const remove = { planPersonId: "plan-person-1" };
-    expect(scheduleRemoveInputSchema.parse(remove)).toStrictEqual(remove);
+    expect(
+      Schema.decodeUnknownSync(scheduleRemoveInputSchema)(remove)
+    ).toStrictEqual(remove);
     const removeWithContext = {
       ...remove,
       serviceTypeId: "service-1",
       personId: "person-1",
       planId: "plan-1",
     };
-    expect(scheduleRemoveInputSchema.parse(removeWithContext)).toStrictEqual(
-      removeWithContext
-    );
+    expect(
+      Schema.decodeUnknownSync(scheduleRemoveInputSchema)(removeWithContext)
+    ).toStrictEqual(removeWithContext);
 
     const status = {
       ...removeWithContext,
       status: "D" as const,
     };
-    expect(scheduleUpdateStatusInputSchema.parse(status)).toStrictEqual(status);
     expect(
-      scheduleUpdateStatusInputSchema.safeParse({
-        ...status,
-        status: "declined",
-      }).success
+      Schema.decodeUnknownSync(scheduleUpdateStatusInputSchema)(status)
+    ).toStrictEqual(status);
+    expect(
+      Result.isSuccess(
+        Schema.decodeUnknownResult(scheduleUpdateStatusInputSchema)({
+          ...status,
+          status: "declined",
+        })
+      )
     ).toBeFalsy();
     expect(
-      scheduleRemoveInputSchema.safeParse({ planPersonId: " " }).success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(scheduleRemoveInputSchema)({
+          planPersonId: " ",
+        })
+      )
     ).toBeFalsy();
   });
 
   it("requires the assignment id and literal success outputs", () => {
     const assigned = { success: true, data: { id: "plan-person-1" } };
-    expect(scheduleAssignOutputSchema.parse(assigned)).toStrictEqual(assigned);
     expect(
-      scheduleAssignOutputSchema.safeParse({
-        success: true,
-        data: { id: "" },
-      }).success
+      Schema.decodeUnknownSync(scheduleAssignOutputSchema)(assigned)
+    ).toStrictEqual(assigned);
+    expect(
+      Result.isSuccess(
+        Schema.decodeUnknownResult(scheduleAssignOutputSchema)({
+          success: true,
+          data: { id: "" },
+        })
+      )
     ).toBeFalsy();
-    expect(scheduleMutationOutputSchema.parse({ success: true })).toStrictEqual(
-      {
-        success: true,
-      }
-    );
     expect(
-      scheduleMutationOutputSchema.safeParse({ success: false }).success
+      Schema.decodeUnknownSync(scheduleMutationOutputSchema)({ success: true })
+    ).toStrictEqual({
+      success: true,
+    });
+    expect(
+      Result.isSuccess(
+        Schema.decodeUnknownResult(scheduleMutationOutputSchema)({
+          success: false,
+        })
+      )
     ).toBeFalsy();
   });
 
@@ -106,18 +131,22 @@ describe("schedule contracts", () => {
       details: "Planning Center rejected the duplicate assignment",
     };
     expect(
-      scheduleAlreadyScheduledErrorDataSchema.parse(withDetails)
+      Schema.decodeUnknownSync(scheduleAlreadyScheduledErrorDataSchema)(
+        withDetails
+      )
     ).toStrictEqual(withDetails);
     expect(
-      scheduleAlreadyScheduledErrorDataSchema.parse({
+      Schema.decodeUnknownSync(scheduleAlreadyScheduledErrorDataSchema)({
         message: "Already scheduled",
       })
     ).toStrictEqual({ message: "Already scheduled" });
     expect(
-      scheduleAlreadyScheduledErrorDataSchema.safeParse({
-        message: "Already scheduled",
-        details: { code: "duplicate" },
-      }).success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(scheduleAlreadyScheduledErrorDataSchema)({
+          message: "Already scheduled",
+          details: { code: "duplicate" },
+        })
+      )
     ).toBeFalsy();
   });
 
@@ -138,16 +167,20 @@ describe("schedule contracts", () => {
       },
     };
     expect(
-      schedulePositionMismatchErrorDataSchema.parse(mismatch)
+      Schema.decodeUnknownSync(schedulePositionMismatchErrorDataSchema)(
+        mismatch
+      )
     ).toStrictEqual(mismatch);
     expect(
-      schedulePositionMismatchErrorDataSchema.safeParse({
-        ...mismatch,
-        details: {
-          ...mismatch.details,
-          created: { teamPositionName: "Band - Piano" },
-        },
-      }).success
+      Result.isSuccess(
+        Schema.decodeUnknownResult(schedulePositionMismatchErrorDataSchema)({
+          ...mismatch,
+          details: {
+            ...mismatch.details,
+            created: { teamPositionName: "Band - Piano" },
+          },
+        })
+      )
     ).toBeFalsy();
   });
 });

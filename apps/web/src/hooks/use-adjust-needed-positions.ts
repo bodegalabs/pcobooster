@@ -1,3 +1,4 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
 import type {
   TeamPosition,
   TeamPositionGroup,
@@ -5,8 +6,7 @@ import type {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { queryKeys } from "@/lib/query-keys";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 type NeededPositionChange = "add" | "remove";
 
@@ -57,7 +57,7 @@ export const useAdjustNeededPositions = (
       position: Pick<TeamPosition, "id" | "teamId" | "name">;
       change: NeededPositionChange;
     }) =>
-      await orpc.neededPositions.adjust({
+      await rpc("neededPositions.adjust", {
         serviceTypeId,
         planId,
         teamId: position.teamId,

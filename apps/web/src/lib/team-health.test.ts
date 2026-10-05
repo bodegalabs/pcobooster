@@ -1,9 +1,3 @@
-import type {
-  PeopleDashboardPerson,
-  ServingRhythm,
-} from "@pcobooster/contracts/people-schemas";
-import { describe, expect, it } from "vitest";
-
 import {
   checkInReasons,
   computeMemberPaces,
@@ -15,7 +9,12 @@ import {
   isRosterSignal,
   personSignals,
   waitingReply,
-} from "@/lib/team-health";
+} from "@pcobooster/client/team-health";
+import type {
+  PeopleDashboardPerson,
+  ServingRhythm,
+} from "@pcobooster/contracts/people-schemas";
+import { describe, expect, it } from "vitest";
 
 const TODAY = "2026-09-25";
 

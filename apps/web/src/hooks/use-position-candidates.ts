@@ -1,3 +1,24 @@
+import {
+  advancedBlockoutChecks,
+  assembleCandidateList,
+  CANDIDATE_DETAILS_BATCH_CONCURRENCY,
+  collectCandidateDetails,
+  expandWindowHistory,
+  needsScheduleHistory,
+  planCandidateDetailsBatches,
+  prefetchCandidateDetailBatches,
+  windowHistoryAdvanced,
+} from "@pcobooster/client/position-candidates";
+import type {
+  CandidateDetail,
+  CandidateListProgress,
+} from "@pcobooster/client/position-candidates";
+import { queryKeys } from "@pcobooster/client/query-keys";
+import {
+  callForQuery,
+  speculativeQuery,
+} from "@pcobooster/client/request-priority";
+import type { ProcedureInput } from "@pcobooster/client/rpc";
 import { PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE } from "@pcobooster/contracts/people";
 import type {
   CandidateDetailsBatch,
@@ -15,21 +36,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { isQueryFresh } from "@/lib/intent-prefetch";
 import {
-  advancedBlockoutChecks,
-  assembleCandidateList,
-  CANDIDATE_DETAILS_BATCH_CONCURRENCY,
-  collectCandidateDetails,
-  expandWindowHistory,
-  needsScheduleHistory,
-  planCandidateDetailsBatches,
-  prefetchCandidateDetailBatches,
-  windowHistoryAdvanced,
-} from "@/lib/position-candidates";
-import type {
-  CandidateDetail,
-  CandidateListProgress,
-} from "@/lib/position-candidates";
-import {
   readCachedCandidateAvailability,
   readCachedPlanWindowHistory,
   readCachedPositionCandidates,
@@ -41,9 +47,7 @@ import {
   hydrateQueryFromCache,
   useHydrateQueryFromCache,
 } from "@/lib/query-cache-hydration";
-import { queryKeys } from "@/lib/query-keys";
-import { callForQuery, speculativeQuery } from "@/lib/request-priority";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 /**
  * The selected plan's roster rarely changes behind the scheduler's back, and this app's
@@ -90,7 +94,8 @@ export const createPositionCandidatesQueryOptions = ({
     const candidates = await callForQuery(
       context,
       async (options) =>
-        await orpc.people.positionCandidates(
+        await rpc(
+          "people.positionCandidates",
           {
             serviceTypeId,
             positionId,
@@ -113,7 +118,7 @@ export const createPositionCandidatesQueryOptions = ({
 });
 
 type WindowContinuation = NonNullable<
-  Parameters<typeof orpc.people.planWindowHistory>[0]
+  ProcedureInput<"people.planWindowHistory">
 >["continuation"];
 
 /**
@@ -129,7 +134,8 @@ const fetchPlanWindowHistory = async (
   const batch = await callForQuery(
     context,
     async (options) =>
-      await orpc.people.planWindowHistory(
+      await rpc(
+        "people.planWindowHistory",
         { date: dateKey, continuation },
         options
       )
@@ -185,7 +191,8 @@ const fetchCandidateDetails = async (
   const batch = await callForQuery(
     context,
     async (options) =>
-      await orpc.people.candidateDetails(
+      await rpc(
+        "people.candidateDetails",
         {
           personIds: [...personIds],
           planId,

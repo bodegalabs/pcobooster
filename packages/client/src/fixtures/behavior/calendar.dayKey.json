@@ -1,0 +1,219 @@
+{
+  "suite": "calendar.dayKey",
+  "sourceCaseIndices": [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    21, 22, 23, 24, 25, 26, 27, 28, 29
+  ],
+  "cases": [
+    {
+      "input": {
+        "instant": "1970-01-01T00:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "1969-12-31"
+    },
+    {
+      "input": {
+        "instant": "2000-02-29T12:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2000-02-29"
+    },
+    {
+      "input": {
+        "instant": "2026-01-01T10:59:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-01-01"
+    },
+    {
+      "input": {
+        "instant": "2026-02-28T23:59:59.999Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-02-28"
+    },
+    {
+      "input": {
+        "instant": "2026-03-07T07:59:59.999Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-06"
+    },
+    {
+      "input": {
+        "instant": "2026-03-07T08:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-07"
+    },
+    {
+      "input": {
+        "instant": "2026-03-07T08:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-07"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T07:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-07"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T07:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-07"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T07:59:59.999Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-07"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T08:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T08:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T09:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T09:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T09:59:59.999Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T10:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T10:01:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T10:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T11:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T11:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T12:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T12:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08"
+    },
+    {
+      "input": {
+        "instant": "2026-03-08T13:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08"
+    },
+    {
+      "input": {
+        "instant": "2026-03-09T06:59:59.999Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08"
+    },
+    {
+      "input": {
+        "instant": "2026-03-09T07:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-09"
+    },
+    {
+      "input": {
+        "instant": "2026-03-09T07:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-09"
+    },
+    {
+      "input": {
+        "instant": "2026-04-13T07:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-04-13"
+    },
+    {
+      "input": {
+        "instant": "2026-05-24T16:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-05-24"
+    },
+    {
+      "input": {
+        "instant": "2026-06-30T18:30:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-06-30"
+    },
+    {
+      "input": {
+        "instant": "2026-07-01T00:00:00.000Z",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-06-30"
+    }
+  ]
+}

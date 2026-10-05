@@ -2,11 +2,12 @@ pre-commit:
   jobs:
     - run: bun run fix --max-warnings 0 --no-error-on-unmatched-pattern {staged_files}
       glob: "*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,css,md,yml,yaml}"
-      # Xcode, Icon Composer, and parity fixtures write these; oxfmt ignores them too.
+      # Retained behavior fixtures and Expo-generated projects are ignored by oxfmt too.
       exclude:
-        - "apps/ios/**/*.xcassets/**"
-        - "apps/ios/**/*.icon/**"
-        - "apps/ios/**/Fixtures/**"
+        - "apps/mobile/src/fixtures/**"
+        - "packages/client/src/fixtures/**"
+        - "apps/mobile/ios/**"
+        - "apps/mobile/android/**"
       stage_fixed: true
 
 pre-push:

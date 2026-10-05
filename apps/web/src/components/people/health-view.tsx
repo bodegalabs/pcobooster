@@ -1,3 +1,8 @@
+import type {
+  PeopleDashboardCoverage,
+  PeopleDashboardRow,
+} from "@pcobooster/client/people-dashboard";
+import type { PersonSignal, TeamHealth } from "@pcobooster/client/team-health";
 import type { PeopleDashboardRosterPerson } from "@pcobooster/contracts/people-schemas";
 
 import {
@@ -10,11 +15,6 @@ import { TeamHealthSummary } from "@/components/people/team-health-summary";
 import { TeamRoster } from "@/components/people/team-roster";
 import { Button } from "@/components/ui/button";
 import type { GetIntentPrefetchProps } from "@/hooks/use-intent-prefetch";
-import type {
-  PeopleDashboardCoverage,
-  PeopleDashboardRow,
-} from "@/lib/people-dashboard";
-import type { PersonSignal, TeamHealth } from "@/lib/team-health";
 
 interface PersonCallbacks {
   getPersonIntentProps: GetIntentPrefetchProps<PeopleDashboardRosterPerson>;

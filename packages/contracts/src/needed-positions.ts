@@ -1,42 +1,31 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
-import { z } from "zod";
+import { RpcError } from "@pcobooster/contracts/errors";
+import { Schema, Struct } from "effect";
+import { Rpc, RpcGroup } from "effect/rpc";
 
-const requiredId = z.string().trim().min(1);
+const requiredId = Schema.Trim.check(Schema.isMinLength(1));
 
-export const neededPositionsAdjustInputSchema = z.object({
+export const neededPositionsAdjustInputSchema = Schema.Struct({
   serviceTypeId: requiredId,
   planId: requiredId,
   teamId: requiredId,
-  positionName: z.string().trim().min(1),
-  change: z.enum(["add", "remove"]),
-});
+  positionName: Schema.Trim.check(Schema.isMinLength(1)),
+  change: Schema.Literals(["add", "remove"]),
+}).mapFields(Struct.map(Schema.mutableKey));
 
 /** The position's open slots after the change; unchanged when it had no open-slot record. */
-export const neededPositionsAdjustOutputSchema = z.object({
-  openCount: z.number().int().nonnegative(),
-});
+export const neededPositionsAdjustOutputSchema = Schema.Struct({
+  openCount: Schema.Finite.check(Schema.isInt()).check(
+    Schema.isGreaterThanOrEqualTo(0)
+  ),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-const neededPositionsProcedure = oc.errors({
-  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-  FORBIDDEN: applicationErrorMap.FORBIDDEN,
-  TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-  BAD_REQUEST: applicationErrorMap.BAD_REQUEST,
-  BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
+export const neededPositionsRpc = RpcGroup.make(
+  Rpc.make("neededPositions.adjust", {
+    payload: neededPositionsAdjustInputSchema,
+    success: neededPositionsAdjustOutputSchema,
+    error: RpcError,
+  })
+);
 
-export const neededPositionsContract = {
-  adjust: neededPositionsProcedure
-    .route({
-      method: "POST",
-      path: "/plans/{planId}/needed-positions/adjust",
-      summary: "Add or remove one open slot for a position on a plan",
-    })
-    .input(neededPositionsAdjustInputSchema)
-    .output(neededPositionsAdjustOutputSchema),
-};
-
-export type NeededPositionsAdjustInput = z.input<
-  typeof neededPositionsAdjustInputSchema
->;
+export type NeededPositionsAdjustInput =
+  typeof neededPositionsAdjustInputSchema.Encoded;

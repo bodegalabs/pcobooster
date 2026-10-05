@@ -1,368 +1,387 @@
-import { z } from "zod";
+import { Schema, Struct } from "effect";
 
-export const blockoutSchema = z.object({
-  id: z.string(),
-  reason: z.string(),
-  startsAt: z.date(),
-  endsAt: z.date(),
-  description: z.string(),
-  share: z.boolean(),
-  timeZone: z.string().nullable().optional(),
-});
+export const blockoutSchema = Schema.Struct({
+  id: Schema.String,
+  reason: Schema.String,
+  startsAt: Schema.Date,
+  endsAt: Schema.Date,
+  description: Schema.String,
+  share: Schema.Boolean,
+  timeZone: Schema.optional(Schema.NullOr(Schema.String)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const scheduleFrequencySchema = z.object({
-  recentServedDays: z.number(),
-  last60Days: z.number(),
-  last90Days: z.number(),
-  lastServedDate: z.date().optional(),
-  totalServed: z.number(),
-  recentRehearsalOnlyDays: z.number(),
-  rehearsalLast60Days: z.number(),
-  rehearsalLast90Days: z.number(),
-  lastRehearsalDate: z.date().optional(),
-  totalRehearsals: z.number(),
-  upcomingServices: z.number(),
-  nextUpcomingDate: z.date().optional(),
-  upcomingRehearsals: z.number(),
-  nextRehearsalDate: z.date().optional(),
-});
+export const scheduleFrequencySchema = Schema.Struct({
+  recentServedDays: Schema.Finite,
+  last60Days: Schema.Finite,
+  last90Days: Schema.Finite,
+  lastServedDate: Schema.optional(Schema.Date),
+  totalServed: Schema.Finite,
+  recentRehearsalOnlyDays: Schema.Finite,
+  rehearsalLast60Days: Schema.Finite,
+  rehearsalLast90Days: Schema.Finite,
+  lastRehearsalDate: Schema.optional(Schema.Date),
+  totalRehearsals: Schema.Finite,
+  upcomingServices: Schema.Finite,
+  nextUpcomingDate: Schema.optional(Schema.Date),
+  upcomingRehearsals: Schema.Finite,
+  nextRehearsalDate: Schema.optional(Schema.Date),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const serviceHistoryItemSchema = z.object({
-  id: z.string(),
-  sourceScheduleId: z.string(),
-  planId: z.string().optional(),
-  date: z.date(),
-  teamPositionName: z.string(),
-  teamName: z.string().optional(),
-  serviceTypeName: z.string().optional(),
-  planTitle: z.string().optional(),
-  status: z.string(),
-  timeType: z.enum(["service", "rehearsal", "other"]).optional(),
-});
+export const serviceHistoryItemSchema = Schema.Struct({
+  id: Schema.String,
+  sourceScheduleId: Schema.String,
+  planId: Schema.optional(Schema.String),
+  date: Schema.Date,
+  teamPositionName: Schema.String,
+  teamName: Schema.optional(Schema.String),
+  serviceTypeName: Schema.optional(Schema.String),
+  planTitle: Schema.optional(Schema.String),
+  status: Schema.String,
+  timeType: Schema.optional(Schema.Literals(["service", "rehearsal", "other"])),
+}).mapFields(Struct.map(Schema.mutableKey));
 
 /** A person's Planning Center scheduling preferences for the position. */
-export const schedulingPreferencesSchema = z.object({
-  schedulePreference: z.string().nullable(),
-  preferredWeeks: z.array(z.number().int()),
-  timePreferenceOptionIds: z.array(z.string()),
-  maxPlansPerDay: z.number().int().nullable(),
-  maxPlansPerMonth: z.number().int().nullable(),
-});
+export const schedulingPreferencesSchema = Schema.Struct({
+  schedulePreference: Schema.NullOr(Schema.String),
+  preferredWeeks: Schema.mutable(
+    Schema.Array(Schema.Finite.check(Schema.isInt()))
+  ),
+  timePreferenceOptionIds: Schema.mutable(Schema.Array(Schema.String)),
+  maxPlansPerDay: Schema.NullOr(Schema.Finite.check(Schema.isInt())),
+  maxPlansPerMonth: Schema.NullOr(Schema.Finite.check(Schema.isInt())),
+}).mapFields(Struct.map(Schema.mutableKey));
 
 /** The selected plan and slot candidates are matched against. */
-export const selectedPlanMatchSchema = z.object({
-  planId: z.string().optional(),
-  teamId: z.string().optional(),
-  selectedPositionName: z.string().optional(),
-  selectedTeamName: z.string().optional(),
-});
+export const selectedPlanMatchSchema = Schema.Struct({
+  planId: Schema.optional(Schema.String),
+  teamId: Schema.optional(Schema.String),
+  selectedPositionName: Schema.optional(Schema.String),
+  selectedTeamName: Schema.optional(Schema.String),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const selectedPlanSlotSchema = z.object({
-  planPersonId: z.string(),
-  status: z.enum(["confirmed", "pending", "declined"]),
-  declineReason: z.string().nullable(),
-});
+export const selectedPlanSlotSchema = Schema.Struct({
+  planPersonId: Schema.String,
+  status: Schema.Literals(["confirmed", "pending", "declined"]),
+  declineReason: Schema.NullOr(Schema.String),
+}).mapFields(Struct.map(Schema.mutableKey));
 
 /** A candidate with the selected plan's fresh roster applied; no history or availability. */
-export const positionCandidateSchema = z.object({
-  id: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  fullName: z.string(),
-  photoUrl: z.string().nullable(),
-  photoThumbnailUrl: z.string().nullable(),
-  archived: z.boolean(),
-  selectedPlanRosterLabels: z.array(z.string()),
-  selectedPlanSlot: selectedPlanSlotSchema.nullable(),
+export const positionCandidateSchema = Schema.Struct({
+  id: Schema.String,
+  firstName: Schema.String,
+  lastName: Schema.String,
+  fullName: Schema.String,
+  photoUrl: Schema.NullOr(Schema.String),
+  photoThumbnailUrl: Schema.NullOr(Schema.String),
+  archived: Schema.Boolean,
+  selectedPlanRosterLabels: Schema.mutable(Schema.Array(Schema.String)),
+  selectedPlanSlot: Schema.NullOr(selectedPlanSlotSchema),
   /** Null for people on the selected slot who are not assigned to the position. */
-  schedulingPreferences: schedulingPreferencesSchema.nullable(),
-});
+  schedulingPreferences: Schema.NullOr(schedulingPreferencesSchema),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const positionCandidatesSchema = z.object({
-  generatedAt: z.string(),
-  timeZone: z.string(),
+export const positionCandidatesSchema = Schema.Struct({
+  generatedAt: Schema.String,
+  timeZone: Schema.String,
   match: selectedPlanMatchSchema,
-  candidates: z.array(positionCandidateSchema),
-});
+  candidates: Schema.mutable(Schema.Array(positionCandidateSchema)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
 /** One of a person's selected-plan assignments as history saw it. */
-export const selectedPlanAssignmentSchema = z.object({
-  source: z.enum(["planPerson", "schedule"]),
-  id: z.string(),
-  planId: z.string().nullable(),
-  teamId: z.string().nullable(),
-  teamName: z.string().nullable(),
-  teamPositionName: z.string(),
-  status: z.string(),
-  planPersonId: z.string().nullable(),
-  declineReason: z.string().nullable(),
-});
+export const selectedPlanAssignmentSchema = Schema.Struct({
+  source: Schema.Literals(["planPerson", "schedule"]),
+  id: Schema.String,
+  planId: Schema.NullOr(Schema.String),
+  teamId: Schema.NullOr(Schema.String),
+  teamName: Schema.NullOr(Schema.String),
+  teamPositionName: Schema.String,
+  status: Schema.String,
+  planPersonId: Schema.NullOr(Schema.String),
+  declineReason: Schema.NullOr(Schema.String),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const candidateHistorySchema = z.object({
+export const candidateHistorySchema = Schema.Struct({
   /** Unsorted; the browser sorts, summarizes, and trims them. */
-  serviceHistory: z.array(serviceHistoryItemSchema),
-  selectedPlanAssignments: z.array(selectedPlanAssignmentSchema),
-});
+  serviceHistory: Schema.mutable(Schema.Array(serviceHistoryItemSchema)),
+  selectedPlanAssignments: Schema.mutable(
+    Schema.Array(selectedPlanAssignmentSchema)
+  ),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const windowPlanRefSchema = z.object({
-  serviceTypeId: z.string().trim().min(1),
-  planId: z.string().trim().min(1),
+export const windowPlanRefSchema = Schema.Struct({
+  serviceTypeId: Schema.Trim.check(Schema.isMinLength(1)),
+  planId: Schema.Trim.check(Schema.isMinLength(1)),
   /** Roster pages the plan needs; a follow-up call reserves them before locating plans. */
-  rosterRequests: z.number().int().min(0).max(100),
-});
+  rosterRequests: Schema.Finite.check(Schema.isInt())
+    .check(Schema.isGreaterThanOrEqualTo(0))
+    .check(Schema.isLessThanOrEqualTo(100)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const windowPlanSummarySchema = z.object({
-  id: z.string(),
-  title: z.string().nullable(),
-  sortDate: z.string().nullable(),
-  serviceTypeName: z.string().nullable(),
-});
+export const windowPlanSummarySchema = Schema.Struct({
+  id: Schema.String,
+  title: Schema.NullOr(Schema.String),
+  sortDate: Schema.NullOr(Schema.String),
+  serviceTypeName: Schema.NullOr(Schema.String),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const windowPlanTimeSchema = z.object({
-  id: z.string(),
-  startsAt: z.string().nullable(),
-  timeType: z.string().nullable(),
-});
+export const windowPlanTimeSchema = Schema.Struct({
+  id: Schema.String,
+  startsAt: Schema.NullOr(Schema.String),
+  timeType: Schema.NullOr(Schema.String),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const windowRosterRowSchema = z.object({
-  id: z.string(),
-  planId: z.string().nullable(),
-  teamId: z.string().nullable(),
-  teamPositionName: z.string(),
-  status: z.string(),
-  createdAt: z.string(),
-  timeIds: z.array(z.string()),
-  serviceTimeIds: z.array(z.string()),
-  declineReason: z.string().nullable(),
-});
+export const windowRosterRowSchema = Schema.Struct({
+  id: Schema.String,
+  planId: Schema.NullOr(Schema.String),
+  teamId: Schema.NullOr(Schema.String),
+  teamPositionName: Schema.String,
+  status: Schema.String,
+  createdAt: Schema.String,
+  timeIds: Schema.mutable(Schema.Array(Schema.String)),
+  serviceTimeIds: Schema.mutable(Schema.Array(Schema.String)),
+  declineReason: Schema.NullOr(Schema.String),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const planWindowHistoryBatchSchema = z.object({
-  generatedAt: z.string(),
+export const planWindowHistoryBatchSchema = Schema.Struct({
+  generatedAt: Schema.String,
   /** Rosters read by this call, including plans with no one scheduled. */
-  loadedPlanCount: z.number(),
+  loadedPlanCount: Schema.Finite,
   /** Plans and times the rows point at; the browser expands rows into history items. */
-  plans: z.array(windowPlanSummarySchema),
-  planTimes: z.array(windowPlanTimeSchema),
-  people: z.array(
-    z.object({ personId: z.string(), rows: z.array(windowRosterRowSchema) })
+  plans: Schema.mutable(Schema.Array(windowPlanSummarySchema)),
+  planTimes: Schema.mutable(Schema.Array(windowPlanTimeSchema)),
+  people: Schema.mutable(
+    Schema.Array(
+      Schema.Struct({
+        personId: Schema.String,
+        rows: Schema.mutable(Schema.Array(windowRosterRowSchema)),
+      }).mapFields(Struct.map(Schema.mutableKey))
+    )
   ),
   /** Listed plans left for a follow-up call, in window order. */
-  deferredPlans: z.array(windowPlanRefSchema),
+  deferredPlans: Schema.mutable(Schema.Array(windowPlanRefSchema)),
   /** Service types not listed yet; their plans follow `deferredPlans`. */
-  deferredServiceTypeIds: z.array(z.string()),
-  requestBudget: z.object({
-    limit: z.number(),
+  deferredServiceTypeIds: Schema.mutable(Schema.Array(Schema.String)),
+  requestBudget: Schema.Struct({
+    limit: Schema.Finite,
     /** Planning Center requests the call sent; cached reads cost none. */
-    planningCenterRequests: z.number(),
-    planRangeRequests: z.number(),
-    rosterRequests: z.number(),
-  }),
-});
+    planningCenterRequests: Schema.Finite,
+    planRangeRequests: Schema.Finite,
+    rosterRequests: Schema.Finite,
+  }).mapFields(Struct.map(Schema.mutableKey)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const candidateDetailSchema = z.object({
-  personId: z.string(),
-  isBlockedForDate: z.boolean(),
+export const candidateDetailSchema = Schema.Struct({
+  personId: Schema.String,
+  isBlockedForDate: Schema.Boolean,
   /** The person's own schedule history, only when it was asked for. */
-  history: candidateHistorySchema.optional(),
-});
+  history: Schema.optional(candidateHistorySchema),
+}).mapFields(Struct.map(Schema.mutableKey));
 
 /** Blockout checks a previous call already did for a person it left unfinished. */
-export const blockoutProgressSchema = z.object({
-  personId: z.string().trim().min(1),
+export const blockoutProgressSchema = Schema.Struct({
+  personId: Schema.Trim.check(Schema.isMinLength(1)),
   /** Repeating blockouts read and found not to cover the plan day. */
-  checkedBlockoutIds: z.array(z.string().trim().min(1)).max(1000),
+  checkedBlockoutIds: Schema.mutable(
+    Schema.Array(Schema.Trim.check(Schema.isMinLength(1)))
+  ).check(Schema.isMaxLength(1000)),
   /** A blockout was found to cover the plan day. */
-  blocked: z.boolean(),
-});
+  blocked: Schema.Boolean,
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const candidateDetailsBatchSchema = z.object({
-  generatedAt: z.string(),
-  people: z.array(candidateDetailSchema),
+export const candidateDetailsBatchSchema = Schema.Struct({
+  generatedAt: Schema.String,
+  people: Schema.mutable(Schema.Array(candidateDetailSchema)),
   /** Requested people left for a follow-up call to stay within the budget. */
-  deferredPersonIds: z.array(z.string()),
+  deferredPersonIds: Schema.mutable(Schema.Array(Schema.String)),
   /** Pass back with `deferredPersonIds`; the next call skips checks already done. */
-  blockoutProgress: z.array(blockoutProgressSchema),
-  requestBudget: z.object({
-    limit: z.number(),
+  blockoutProgress: Schema.mutable(Schema.Array(blockoutProgressSchema)),
+  requestBudget: Schema.Struct({
+    limit: Schema.Finite,
     /** Planning Center requests the call sent; cached reads cost none. */
-    planningCenterRequests: z.number(),
+    planningCenterRequests: Schema.Finite,
     /** Blockout lists and schedule pages. */
-    firstReadRequests: z.number(),
-    blockoutDateRequests: z.number(),
-    planTimeRequests: z.number(),
-  }),
-});
+    firstReadRequests: Schema.Finite,
+    blockoutDateRequests: Schema.Finite,
+    planTimeRequests: Schema.Finite,
+  }).mapFields(Struct.map(Schema.mutableKey)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const peopleDashboardDayKindSchema = z.enum(["service", "rehearsal"]);
+export const peopleDashboardDayKindSchema = Schema.Literals([
+  "service",
+  "rehearsal",
+]);
 
-export const peopleDashboardMonthSchema = z.object({
-  year: z.number(),
-  monthIndex: z.number(),
-  label: z.string(),
-  daysInMonth: z.number(),
-  startsOnWeekday: z.number(),
-});
+export const peopleDashboardMonthSchema = Schema.Struct({
+  year: Schema.Finite,
+  monthIndex: Schema.Finite,
+  label: Schema.String,
+  daysInMonth: Schema.Finite,
+  startsOnWeekday: Schema.Finite,
+}).mapFields(Struct.map(Schema.mutableKey));
 
 /** Who is on the roster: identity and teams, with no schedule reads behind it. */
-export const peopleDashboardRosterPersonSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  initials: z.string(),
-  photoThumbnailUrl: z.string().nullable(),
-  teams: z.array(z.string()),
-});
+export const peopleDashboardRosterPersonSchema = Schema.Struct({
+  id: Schema.String,
+  name: Schema.String,
+  initials: Schema.String,
+  photoThumbnailUrl: Schema.NullOr(Schema.String),
+  teams: Schema.mutable(Schema.Array(Schema.String)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-const calendarDayKeySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/u);
+const calendarDayKeySchema = Schema.String.check(
+  Schema.isPattern(/^\d{4}-\d{2}-\d{2}$/u)
+);
 
 /** How a person has been serving and responding; days are org `YYYY-MM-DD`. */
-export const servingRhythmSchema = z.object({
-  lastServedOn: calendarDayKeySchema.nullable(),
-  nextServingOn: calendarDayKeySchema.nullable(),
-  servedDays30: z.number(),
-  servedDays90: z.number(),
-  servedDays180: z.number(),
-  upcomingDays30: z.number(),
+export const servingRhythmSchema = Schema.Struct({
+  lastServedOn: Schema.NullOr(calendarDayKeySchema),
+  nextServingOn: Schema.NullOr(calendarDayKeySchema),
+  servedDays30: Schema.Finite,
+  servedDays90: Schema.Finite,
+  servedDays180: Schema.Finite,
+  upcomingDays30: Schema.Finite,
   /** Median days between served days in the last 180; null with too few. */
-  typicalGapDays: z.number().nullable(),
+  typicalGapDays: Schema.NullOr(Schema.Finite),
   /** Schedules dated in the last 180 days through today, declined included. */
-  requests180: z.number(),
-  declined180: z.number(),
+  requests180: Schema.Finite,
+  declined180: Schema.Finite,
   /** Upcoming schedules still unconfirmed. */
-  pendingUpcoming: z.number(),
-  nextPendingOn: calendarDayKeySchema.nullable(),
-});
+  pendingUpcoming: Schema.Finite,
+  nextPendingOn: Schema.NullOr(calendarDayKeySchema),
+}).mapFields(Struct.map(Schema.mutableKey));
 
 /** A service or rehearsal day in a person's month, one per position, service type, and status. */
-export const peopleDashboardMonthDaySchema = z.object({
-  day: z.number(),
+export const peopleDashboardMonthDaySchema = Schema.Struct({
+  day: Schema.Finite,
   kind: peopleDashboardDayKindSchema,
-  positionName: z.string().optional(),
-  serviceTypeName: z.string().optional(),
-  status: z.string().optional(),
-  planUrl: z.string().optional(),
-});
+  positionName: Schema.optional(Schema.String),
+  serviceTypeName: Schema.optional(Schema.String),
+  status: Schema.optional(Schema.String),
+  planUrl: Schema.optional(Schema.String),
+}).mapFields(Struct.map(Schema.mutableKey));
 
 /** How one roster person is serving, derived from their own schedules. */
-export const peopleDashboardActivitySchema = z.object({
-  id: z.string(),
+export const peopleDashboardActivitySchema = Schema.Struct({
+  id: Schema.String,
   rhythm: servingRhythmSchema,
   /** Their most common positions, most common first; empty without schedules. */
-  roles: z.array(z.string()),
+  roles: Schema.mutable(Schema.Array(Schema.String)),
   /** The month's services and rehearsals, by day. */
-  monthDays: z.array(peopleDashboardMonthDaySchema),
-});
+  monthDays: Schema.mutable(Schema.Array(peopleDashboardMonthDaySchema)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
 /** A roster person with their serving activity. */
-export const peopleDashboardPersonSchema =
-  peopleDashboardRosterPersonSchema.extend(
-    peopleDashboardActivitySchema.omit({ id: true }).shape
-  );
+export const peopleDashboardPersonSchema = Schema.Struct({
+  ...peopleDashboardRosterPersonSchema.fields,
+  ...peopleDashboardActivitySchema.mapFields(Struct.omit(["id"])).fields,
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const peopleDashboardTeamSchema = z.object({
-  id: z.string(),
-  name: z.string(),
+export const peopleDashboardTeamSchema = Schema.Struct({
+  id: Schema.String,
+  name: Schema.String,
   /** The team's service type, to tell same-named teams apart. */
-  serviceTypeName: z.string().nullable(),
-  personIds: z.array(z.string()),
-});
+  serviceTypeName: Schema.NullOr(Schema.String),
+  personIds: Schema.mutable(Schema.Array(Schema.String)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const peopleDashboardRosterSchema = z.object({
-  generatedAt: z.string(),
+export const peopleDashboardRosterSchema = Schema.Struct({
+  generatedAt: Schema.String,
   month: peopleDashboardMonthSchema,
   /** Sorted by last name, then first name. */
-  people: z.array(peopleDashboardRosterPersonSchema),
-  teams: z.array(peopleDashboardTeamSchema),
+  people: Schema.mutable(Schema.Array(peopleDashboardRosterPersonSchema)),
+  teams: Schema.mutable(Schema.Array(peopleDashboardTeamSchema)),
   /** Teams the signed-in person leads; empty when they lead none or are unknown. */
-  ledTeamIds: z.array(z.string()),
-});
+  ledTeamIds: Schema.mutable(Schema.Array(Schema.String)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const peopleDashboardActivityBatchSchema = z.object({
-  generatedAt: z.string(),
-  people: z.array(peopleDashboardActivitySchema),
+export const peopleDashboardActivityBatchSchema = Schema.Struct({
+  generatedAt: Schema.String,
+  people: Schema.mutable(Schema.Array(peopleDashboardActivitySchema)),
   /**
    * Requested people this call left for a follow-up call to stay within its
    * Planning Center request budget. Empty when the batch is complete.
    */
-  deferredPersonIds: z.array(z.string()),
-  requestBudget: z.object({
-    limit: z.number(),
+  deferredPersonIds: Schema.mutable(Schema.Array(Schema.String)),
+  requestBudget: Schema.Struct({
+    limit: Schema.Finite,
     /** Planning Center requests the call sent; cached reads cost none. */
-    planningCenterRequests: z.number(),
-    scheduleRequests: z.number(),
-    planTimeRequests: z.number(),
-  }),
-});
+    planningCenterRequests: Schema.Finite,
+    scheduleRequests: Schema.Finite,
+    planTimeRequests: Schema.Finite,
+  }).mapFields(Struct.map(Schema.mutableKey)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const peopleDashboardPersonDetailSchema = z.object({
-  generatedAt: z.string(),
+export const peopleDashboardPersonDetailSchema = Schema.Struct({
+  generatedAt: Schema.String,
   month: peopleDashboardMonthSchema,
-  previousMonth: z.string(),
-  nextMonth: z.string(),
+  previousMonth: Schema.String,
+  nextMonth: Schema.String,
   /**
    * The rhythm reads the same schedules the dashboard does; `teams` are the teams the person
    * served on lately, and `monthDays` cover the requested month.
    */
   person: peopleDashboardPersonSchema,
-  requestBudget: z.object({
-    limit: z.number(),
+  requestBudget: Schema.Struct({
+    limit: Schema.Finite,
     /** Planning Center requests the call sent; cached reads cost none. */
-    planningCenterRequests: z.number(),
+    planningCenterRequests: Schema.Finite,
     /**
      * Rehearsal (and other) times the budget left unread; their assignments show on their
      * plan's date. Zero when the detail is complete.
      */
-    unresolvedRehearsalTimes: z.number(),
-  }),
-});
+    unresolvedRehearsalTimes: Schema.Finite,
+  }).mapFields(Struct.map(Schema.mutableKey)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const peopleSearchResultSchema = z.object({
-  id: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  fullName: z.string(),
-  photoThumbnailUrl: z.string().nullable(),
-});
+export const peopleSearchResultSchema = Schema.Struct({
+  id: Schema.String,
+  firstName: Schema.String,
+  lastName: Schema.String,
+  fullName: Schema.String,
+  photoThumbnailUrl: Schema.NullOr(Schema.String),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const myScheduledPlansDataSchema = z.object({
-  planIds: z.array(z.string()),
-});
+export const myScheduledPlansDataSchema = Schema.Struct({
+  planIds: Schema.mutable(Schema.Array(Schema.String)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export type Blockout = z.output<typeof blockoutSchema>;
-export type ScheduleFrequency = z.output<typeof scheduleFrequencySchema>;
-export type ServiceHistoryItem = z.output<typeof serviceHistoryItemSchema>;
-export type PositionCandidates = z.output<typeof positionCandidatesSchema>;
-export type PlanWindowHistoryBatch = z.output<
-  typeof planWindowHistoryBatchSchema
->;
-export type CandidateDetailsBatch = z.output<
-  typeof candidateDetailsBatchSchema
->;
-export type PeopleDashboardDayKind = z.output<
-  typeof peopleDashboardDayKindSchema
->;
-export type PeopleDashboardMonth = z.output<typeof peopleDashboardMonthSchema>;
-export type PeopleDashboardMonthDay = z.output<
-  typeof peopleDashboardMonthDaySchema
->;
-export type PeopleDashboardRosterPerson = z.output<
-  typeof peopleDashboardRosterPersonSchema
->;
-export type ServingRhythm = z.output<typeof servingRhythmSchema>;
-export type PeopleDashboardTeam = z.output<typeof peopleDashboardTeamSchema>;
-export type PeopleDashboardActivity = z.output<
-  typeof peopleDashboardActivitySchema
->;
-export type PeopleDashboardPerson = z.output<
-  typeof peopleDashboardPersonSchema
->;
-export type PeopleDashboardRoster = z.output<
-  typeof peopleDashboardRosterSchema
->;
-export type PeopleDashboardActivityBatch = z.output<
-  typeof peopleDashboardActivityBatchSchema
->;
-export type PeopleDashboardPersonDetail = z.output<
-  typeof peopleDashboardPersonDetailSchema
->;
-export type PeopleSearchResult = z.output<typeof peopleSearchResultSchema>;
-export type MyScheduledPlansData = z.output<typeof myScheduledPlansDataSchema>;
+export type Blockout = typeof blockoutSchema.Type;
+
+export type ScheduleFrequency = typeof scheduleFrequencySchema.Type;
+
+export type ServiceHistoryItem = typeof serviceHistoryItemSchema.Type;
+
+export type PositionCandidates = typeof positionCandidatesSchema.Type;
+
+export type PlanWindowHistoryBatch = typeof planWindowHistoryBatchSchema.Type;
+
+export type CandidateDetailsBatch = typeof candidateDetailsBatchSchema.Type;
+
+export type PeopleDashboardDayKind = typeof peopleDashboardDayKindSchema.Type;
+
+export type PeopleDashboardMonth = typeof peopleDashboardMonthSchema.Type;
+
+export type PeopleDashboardMonthDay = typeof peopleDashboardMonthDaySchema.Type;
+
+export type PeopleDashboardRosterPerson =
+  typeof peopleDashboardRosterPersonSchema.Type;
+
+export type ServingRhythm = typeof servingRhythmSchema.Type;
+
+export type PeopleDashboardTeam = typeof peopleDashboardTeamSchema.Type;
+
+export type PeopleDashboardActivity = typeof peopleDashboardActivitySchema.Type;
+
+export type PeopleDashboardPerson = typeof peopleDashboardPersonSchema.Type;
+
+export type PeopleDashboardRoster = typeof peopleDashboardRosterSchema.Type;
+
+export type PeopleDashboardActivityBatch =
+  typeof peopleDashboardActivityBatchSchema.Type;
+
+export type PeopleDashboardPersonDetail =
+  typeof peopleDashboardPersonDetailSchema.Type;
+
+export type PeopleSearchResult = typeof peopleSearchResultSchema.Type;
+
+export type MyScheduledPlansData = typeof myScheduledPlansDataSchema.Type;

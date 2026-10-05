@@ -1,3 +1,9 @@
+import {
+  describeCadence,
+  describeDaysAgo,
+  formatWeekdayDayKey,
+} from "@pcobooster/client/team-health";
+import type { PersonSignal } from "@pcobooster/client/team-health";
 import type {
   PeopleDashboardMonth,
   PeopleDashboardMonthDay,
@@ -38,12 +44,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  describeCadence,
-  describeDaysAgo,
-  formatWeekdayDayKey,
-} from "@/lib/team-health";
-import type { PersonSignal } from "@/lib/team-health";
 import { cn } from "@/lib/utils";
 
 const SectionTitle = ({

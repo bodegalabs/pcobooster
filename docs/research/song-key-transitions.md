@@ -55,7 +55,7 @@ From the local export (`docs/planning-center-api/services/2018-11-01/vertices/ke
 - `ending_key` covers songs that modulate. Planning Center's help says to "Select Same from the End dropdown if there is no key change" ([Add or edit a key](https://help.planningcenter.com/en/139429-add-or-edit-a-key.html)). Keep the current fallback: ending key, else starting key.
 - `name` is free text, such as "Female Key" or a leader's preferred key (same help page).
 - **`alternate_keys` are capo charts, not other sounding keys.** "Add an alternate key to get Capo versions of chord charts" (same help page; also [Planning Center blog, 2015](https://www.planningcenter.com/blog/2015/03/add-arrangements-and-keys-ios-html)). The attribute is typed `string`, documented as an array of `{ name, key }`. Do not use it to find a different key for song B.
-- Items link one key through the `key` relationship (`include=key`) and also expose `key_name`. Item `item_type` is `song`, `header`, `media`, or `item`, and `length` is an integer that the app treats as seconds (`formatDuration` in `apps/web/src/lib/plan-overview.ts`).
+- Items link one key through the `key` relationship (`include=key`) and also expose `key_name`. Item `item_type` is `song`, `header`, `media`, or `item`, and `length` is an integer that the app treats as seconds (`formatDuration` in `packages/client/src/plan-overview.ts`).
 
 ## Recommended rule
 

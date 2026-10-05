@@ -1,13 +1,3 @@
-import { PEOPLE_DASHBOARD_ACTIVITY_BATCH_SIZE } from "@pcobooster/contracts/people";
-import type {
-  PeopleDashboardActivity,
-  PeopleDashboardRoster,
-} from "@pcobooster/contracts/people-schemas";
-import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { QueryClient, QueryFunctionContext } from "@tanstack/react-query";
-import { useCallback, useMemo, useState } from "react";
-
-import { useSettledValue } from "@/hooks/use-settled-value";
 import {
   assemblePeopleDashboard,
   chunkPersonIds,
@@ -21,11 +11,22 @@ import {
   planPeopleDashboardBatches,
   resolveScopePersonIds,
   unrequestedMatchIds,
-} from "@/lib/people-dashboard";
+} from "@pcobooster/client/people-dashboard";
 import type {
   PeopleDashboardData,
   PeopleDashboardScope,
-} from "@/lib/people-dashboard";
+} from "@pcobooster/client/people-dashboard";
+import { queryKeys } from "@pcobooster/client/query-keys";
+import { PEOPLE_DASHBOARD_ACTIVITY_BATCH_SIZE } from "@pcobooster/contracts/people";
+import type {
+  PeopleDashboardActivity,
+  PeopleDashboardRoster,
+} from "@pcobooster/contracts/people-schemas";
+import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { QueryClient, QueryFunctionContext } from "@tanstack/react-query";
+import { useCallback, useMemo, useState } from "react";
+
+import { useSettledValue } from "@/hooks/use-settled-value";
 import {
   readCachedPeopleDashboardActivity,
   readCachedPeopleDashboardRoster,
@@ -36,8 +37,7 @@ import {
   hydrateQueryFromCache,
   useHydrateQueryFromCache,
 } from "@/lib/query-cache-hydration";
-import { queryKeys } from "@/lib/query-keys";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 const ROSTER_STALE_TIME_MS = 5 * 60 * 1000;
 const ACTIVITY_STALE_TIME_MS = 2 * 60 * 1000;
@@ -48,7 +48,7 @@ const NO_BATCHES: readonly string[][] = [];
 const fetchRoster = async ({
   signal,
 }: QueryFunctionContext): Promise<PeopleDashboardRoster> => {
-  const roster = await orpc.people.dashboardRoster(undefined, { signal });
+  const roster = await rpc("people.dashboardRoster", {}, { signal });
   writeCachedPeopleDashboardRoster(roster);
   return roster;
 };
@@ -61,7 +61,8 @@ const fetchActivity = async (
   personIds: readonly string[],
   signal: AbortSignal
 ): Promise<PeopleDashboardActivity[]> => {
-  const batch = await orpc.people.dashboardActivity(
+  const batch = await rpc(
+    "people.dashboardActivity",
     { personIds: [...personIds] },
     { signal }
   );

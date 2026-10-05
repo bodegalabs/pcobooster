@@ -1,59 +1,57 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
+import { RpcError } from "@pcobooster/contracts/errors";
 import { SERVICES_PERMISSION_LEVELS } from "@pcobooster/planning-center-models/access";
-import { z } from "zod";
+import { Schema, Struct } from "effect";
+import { Rpc, RpcGroup } from "effect/rpc";
 
-const servicesLevelSchema = z.enum(SERVICES_PERMISSION_LEVELS).nullable();
+const servicesLevelSchema = Schema.NullOr(
+  Schema.Literals(SERVICES_PERMISSION_LEVELS)
+);
 
-export const servicesAccessSchema = z.discriminatedUnion("status", [
-  z.object({ status: z.literal("none") }),
-  z.object({
-    status: z.literal("granted"),
-    organizationAdministrator: z.boolean(),
+export const servicesAccessSchema = Schema.Union([
+  Schema.Struct({ status: Schema.Literal("none") }).mapFields(
+    Struct.map(Schema.mutableKey)
+  ),
+  Schema.Struct({
+    status: Schema.Literal("granted"),
+    organizationAdministrator: Schema.Boolean,
     planLevel: servicesLevelSchema,
     maxPlanLevel: servicesLevelSchema,
     songLevel: servicesLevelSchema,
-    canViewAllPeople: z.boolean(),
-    ledTeamCount: z.number().int().nonnegative(),
-    serviceTypes: z.array(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        level: servicesLevelSchema,
-      })
+    canViewAllPeople: Schema.Boolean,
+    ledTeamCount: Schema.Finite.check(Schema.isInt()).check(
+      Schema.isGreaterThanOrEqualTo(0)
     ),
-  }),
+    serviceTypes: Schema.mutable(
+      Schema.Array(
+        Schema.Struct({
+          id: Schema.String,
+          name: Schema.String,
+          level: servicesLevelSchema,
+        }).mapFields(Struct.map(Schema.mutableKey))
+      )
+    ),
+  }).mapFields(Struct.map(Schema.mutableKey)),
 ]);
 
-export const peopleAccessSchema = z.object({
-  status: z.enum(["none", "granted"]),
-});
+export const peopleAccessSchema = Schema.Struct({
+  status: Schema.Literals(["none", "granted"]),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const accessSnapshotSchema = z.object({
+export const accessSnapshotSchema = Schema.Struct({
   services: servicesAccessSchema,
   people: peopleAccessSchema,
-});
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const accessInputSchema = z.object({});
+export const accessInputSchema = Schema.Struct({}).mapFields(
+  Struct.map(Schema.mutableKey)
+);
 
-const accessProcedure = oc.errors({
-  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-  FORBIDDEN: applicationErrorMap.FORBIDDEN,
-  TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-  BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
+export const accessRpc = RpcGroup.make(
+  Rpc.make("access.me", {
+    payload: accessInputSchema,
+    success: accessSnapshotSchema,
+    error: RpcError,
+  })
+);
 
-export const accessContract = {
-  me: accessProcedure
-    .route({
-      method: "GET",
-      path: "/access",
-      summary:
-        "Read the signed-in person's Planning Center permissions in Services and People",
-    })
-    .input(accessInputSchema)
-    .output(accessSnapshotSchema),
-};
-
-export type AccessSnapshot = z.output<typeof accessSnapshotSchema>;
+export type AccessSnapshot = typeof accessSnapshotSchema.Type;

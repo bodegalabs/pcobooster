@@ -1,10 +1,10 @@
-import { ORPCError } from "@orpc/server";
 import {
   createPostHogExceptionReporter,
   isReportableRequestError,
   requestErrorSchema,
   toPostHogExceptionCapture,
 } from "@pcobooster/api/modules/analytics/posthog-exception";
+import { RpcError, applicationErrorMap } from "@pcobooster/contracts/errors";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
@@ -15,14 +15,37 @@ const request = {
   requestId: "request-1",
 };
 
-const planningCenterFailure = (): ORPCError<string, unknown> => {
+const expectedErrorData = (code: keyof typeof applicationErrorMap) => {
+  if (code === "NOT_FOUND") {
+    return { message: "Expected failure", resource: "test" };
+  }
+  if (code === "CONFLICT") {
+    return { message: "Expected failure", reason: "test" };
+  }
+  if (code === "TOO_MANY_REQUESTS") {
+    return { message: "Expected failure", service: "test" };
+  }
+  return { message: "Expected failure" };
+};
+
+const planningCenterFailure = (): RpcError => {
   const cause = new Error("Planning Center responded 503");
   cause.stack = [
     "Error: Planning Center responded 503",
     "    at createPlanItem (index.js:10:5)",
     "    at async run (index.js:20:7)",
   ].join("\n");
-  return new ORPCError("BAD_GATEWAY", { cause });
+  const error = new RpcError({
+    code: "BAD_GATEWAY",
+    status: 502,
+    message: "Planning Center request failed",
+    data: {
+      message: "Planning Center request failed",
+      service: "planning-center",
+    },
+  });
+  Object.defineProperty(error, "cause", { value: cause });
+  return error;
 };
 
 describe(isReportableRequestError, () => {
@@ -37,8 +60,17 @@ describe(isReportableRequestError, () => {
       "CONFLICT",
       "TOO_MANY_REQUESTS",
       "CLIENT_CLOSED_REQUEST",
-    ]) {
-      expect(isReportableRequestError(new ORPCError(code))).toBeFalsy();
+    ] as const) {
+      expect(
+        isReportableRequestError(
+          new RpcError({
+            code,
+            status: applicationErrorMap[code].status,
+            message: "Expected failure",
+            data: expectedErrorData(code),
+          })
+        )
+      ).toBeFalsy();
     }
   });
 });
@@ -64,7 +96,7 @@ describe(toPostHogExceptionCapture, () => {
           {
             type: "Error",
             value: "Planning Center responded 503",
-            mechanism: { handled: true, synthetic: false, type: "orpc" },
+            mechanism: { handled: true, synthetic: false, type: "effect-rpc" },
             stacktrace: {
               type: "raw",
               frames: [
@@ -97,7 +129,7 @@ describe(toPostHogExceptionCapture, () => {
     });
   });
 
-  it("labels errors thrown outside oRPC as unhandled", () => {
+  it("labels errors thrown outside Effect RPC as unhandled", () => {
     const capture = toPostHogExceptionCapture(
       "key",
       { ...request, error: requestErrorSchema.parse("plain string") },
@@ -131,7 +163,15 @@ describe(createPostHogExceptionReporter, () => {
       now: () => NOW,
     });
 
-    await report?.({ ...request, error: new ORPCError("FORBIDDEN") });
+    await report?.({
+      ...request,
+      error: new RpcError({
+        code: "FORBIDDEN",
+        status: 403,
+        message: "Forbidden",
+        data: { message: "Forbidden" },
+      }),
+    });
     await report?.({ ...request, error: planningCenterFailure() });
 
     expect(send).toHaveBeenCalledOnce();

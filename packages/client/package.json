@@ -1,0 +1,38 @@
+{
+  "name": "@pcobooster/client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./rpc": "./src/rpc.ts",
+    "./request-priority": "./src/request-priority.ts",
+    "./query-retry": "./src/query-retry.ts",
+    "./query-keys": "./src/query-keys.ts",
+    "./position-candidates": "./src/position-candidates.ts",
+    "./testing": "./src/testing.ts",
+    "./mutation-invalidation": "./src/mutation-invalidation.ts",
+    "./plan-overview": "./src/plan-overview.ts",
+    "./people-dashboard": "./src/people-dashboard.ts",
+    "./scheduling-notifications": "./src/scheduling-notifications.ts",
+    "./team-health": "./src/team-health.ts",
+    "./lineup-column-order": "./src/lineup-column-order.ts",
+    "./open-positions": "./src/open-positions.ts",
+    "./custom-position": "./src/custom-position.ts",
+    "./query-data-validation": "./src/query-data-validation.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --root ../.. packages/client/src"
+  },
+  "dependencies": {
+    "@pcobooster/contracts": "workspace:*",
+    "@pcobooster/planning-center-models": "workspace:*",
+    "@tanstack/react-query": "5.104.1",
+    "effect": "4.0.1"
+  },
+  "devDependencies": {
+    "@pcobooster/config": "workspace:*",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
+  }
+}

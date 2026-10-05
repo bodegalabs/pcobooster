@@ -1,6 +1,6 @@
 /**
- * Public marketing pages, their prerendered assets, and the deployed version, never product
- * APIs.
+ * Public marketing pages, assets, Apple app-link association and deployed version.
+ * Product operations keep their authentication boundary.
  */
 export const isPublicPath = (pathname: string): boolean =>
   pathname === "/" ||
@@ -13,4 +13,5 @@ export const isPublicPath = (pathname: string): boolean =>
   pathname === "/robots.txt" ||
   pathname === "/sitemap.xml" ||
   pathname === "/version" ||
+  pathname === "/.well-known/apple-app-site-association" ||
   pathname.startsWith("/marketing/");

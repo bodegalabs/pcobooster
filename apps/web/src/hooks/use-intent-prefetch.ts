@@ -1,3 +1,4 @@
+import { requestScheduler } from "@pcobooster/client/request-priority";
 import { useCallback, useEffect, useRef } from "react";
 
 import {
@@ -8,7 +9,6 @@ import type {
   IntentPrefetcher,
   IntentPrefetcherOptions,
 } from "@/lib/intent-prefetch";
-import { requestScheduler } from "@/lib/request-priority";
 
 /** Spread on the element whose hover or focus signals intent to open a target. */
 export interface IntentPrefetchProps {

@@ -22,7 +22,7 @@ import {
   Redacted,
   Schema,
 } from "effect";
-import { FetchHttpClient, HttpClient } from "effect/unstable/http";
+import { FetchHttpClient, HttpClient } from "effect/http";
 
 import { InfraApiError, sendJson, sendJsonRequired } from "./http";
 import type { HttpMethod } from "./http";

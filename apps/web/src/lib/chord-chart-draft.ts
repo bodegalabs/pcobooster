@@ -1,6 +1,6 @@
 import { chordChartLayoutSchema } from "@pcobooster/contracts/chord-charts";
 import type { ChordChartLayout } from "@pcobooster/contracts/chord-charts";
-import { z } from "zod";
+import { Schema, Result } from "effect";
 
 import { readBrowserStorage, writeBrowserStorage } from "@/lib/browser-storage";
 
@@ -11,25 +11,25 @@ export interface ChordChartDraft {
   readonly layout: ChordChartLayout;
 }
 
-const draftSchema = z.object({
-  chart: z.string(),
-  key: z.string().nullable(),
+const draftSchema = Schema.Struct({
+  chart: Schema.String,
+  key: Schema.NullOr(Schema.String),
   layout: chordChartLayoutSchema,
 });
 
 /** What this browser keeps of one arrangement's editing between visits. */
-const storedSessionSchema = z.object({
+const storedSessionSchema = Schema.Struct({
   /** When this browser last wrote it, in epoch milliseconds. */
-  savedAt: z.number(),
+  savedAt: Schema.Finite,
   /** The Planning Center version (`updated_at`) the edits build on. */
-  baseUpdatedAt: z.string().nullable(),
+  baseUpdatedAt: Schema.NullOr(Schema.String),
   /** Edits not yet saved to Planning Center, or null when everything is saved. */
-  draft: draftSchema.nullable(),
+  draft: Schema.NullOr(draftSchema),
   /** The chart as it was when editing began, so Revert all changes survives a reload. */
   opening: draftSchema,
 });
 
-export type StoredChordChartSession = z.output<typeof storedSessionSchema>;
+export type StoredChordChartSession = typeof storedSessionSchema.Type;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** A draft left alone this long is dropped rather than resurfacing over newer work. */
@@ -57,13 +57,15 @@ export const parseStoredChordChartSession = (
     return null;
   }
   try {
-    const parsed = storedSessionSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success) {
+    const parsed = Schema.decodeUnknownResult(storedSessionSchema)(
+      JSON.parse(raw)
+    );
+    if (Result.isFailure(parsed)) {
       return null;
     }
-    return now - parsed.data.savedAt > CHORD_CHART_DRAFT_LIFETIME_MS
+    return now - parsed.success.savedAt > CHORD_CHART_DRAFT_LIFETIME_MS
       ? null
-      : parsed.data;
+      : parsed.success;
   } catch {
     return null;
   }

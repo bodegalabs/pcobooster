@@ -1,7 +1,7 @@
+import { assemblePeopleDashboard } from "@pcobooster/client/people-dashboard";
 import type { PeopleDashboardRoster } from "@pcobooster/contracts/people-schemas";
 import { describe, expect, it } from "vitest";
 
-import { assemblePeopleDashboard } from "@/lib/people-dashboard";
 import { getCachedPeopleDashboardPersonDetail } from "@/lib/people-dashboard-person-placeholder";
 
 const rhythm = {

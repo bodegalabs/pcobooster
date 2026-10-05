@@ -1,5 +1,5 @@
-import { ORPCError } from "@orpc/client";
 import type { captureAnalytics } from "@pcobooster/analytics/client";
+import { makeRpcError } from "@pcobooster/client/testing";
 import { describe, expect, it, vi } from "vitest";
 
 import { measureWorkflow } from "./workflow-analytics";
@@ -24,7 +24,7 @@ describe("workflow analytics", () => {
 
   it("records a bounded error code, never a provider message, and rethrows the same error", async () => {
     const capture = vi.fn<typeof captureAnalytics>();
-    const error = new ORPCError("POSITION_MISMATCH", {
+    const error = makeRpcError("POSITION_MISMATCH", {
       message: "Private person and plan details",
     });
     await expect(

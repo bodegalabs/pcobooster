@@ -49,5 +49,16 @@ export default defineConfig({
     // Controls get their look from components/ui primitives, not call sites.
     "local/prefer-shared-controls": "error",
   },
+  overrides: [
+    {
+      files: ["apps/mobile/**/*.tsx", "apps/mobile/**/*.ts"],
+      rules: {
+        // React Native has no className; platform styles use StyleSheet and dynamic style objects.
+        "shadcn/no-inline-styles": "off",
+        // Expo Router dynamic parameter filenames retain camelCase to match route parameter names.
+        "unicorn/filename-case": "off",
+      },
+    },
+  ],
   settings: jsPluginSettings,
 });

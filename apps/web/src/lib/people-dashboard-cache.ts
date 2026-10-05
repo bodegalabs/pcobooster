@@ -8,7 +8,7 @@ import type {
   PeopleDashboardPersonDetail,
   PeopleDashboardRoster,
 } from "@pcobooster/contracts/people-schemas";
-import { z } from "zod";
+import { Schema, Result } from "effect";
 
 import { presentationCacheKey } from "@/lib/presentation-cache";
 
@@ -43,19 +43,24 @@ export interface PeopleDashboardPersonCacheEntry {
   data: PeopleDashboardPersonDetail;
 }
 
-const cachedRosterPayloadSchema = z.object({
-  savedAt: z.number(),
+const cachedRosterPayloadSchema = Schema.Struct({
+  savedAt: Schema.Finite,
   data: peopleDashboardRosterSchema,
 });
 
-const cachedActivityPayloadSchema = z.record(
-  z.string(),
-  z.object({ savedAt: z.number(), data: peopleDashboardActivitySchema })
+const cachedActivityPayloadSchema = Schema.Record(
+  Schema.String,
+  Schema.mutableKey(
+    Schema.Struct({
+      savedAt: Schema.Finite,
+      data: peopleDashboardActivitySchema,
+    })
+  )
 );
-type CachedActivityPayload = z.output<typeof cachedActivityPayloadSchema>;
+type CachedActivityPayload = typeof cachedActivityPayloadSchema.Type;
 
-const cachedPersonDetailPayloadSchema = z.object({
-  savedAt: z.number(),
+const cachedPersonDetailPayloadSchema = Schema.Struct({
+  savedAt: Schema.Finite,
   data: peopleDashboardPersonDetailSchema,
 });
 
@@ -68,18 +73,20 @@ const buildPersonDetailCacheKey = (
   );
 
 /** Reads and validates a stored entry; throws only on malformed JSON. */
-const readStorageEntry = <Entry>(
+const readStorageEntry = <S extends Schema.ConstraintDecoder<unknown>>(
   key: string,
-  schema: z.ZodType<Entry>
-): Entry | undefined => {
+  schema: S
+): S["Type"] | undefined => {
   const raw = globalThis.window?.localStorage.getItem(
     presentationCacheKey(key)
   );
   if (raw === null || raw === undefined) {
     return undefined;
   }
-  const parsed = schema.safeParse(JSON.parse(raw));
-  return parsed.success ? parsed.data : undefined;
+  const parsed = Schema.decodeUnknownResult(Schema.toCodecJson(schema))(
+    JSON.parse(raw)
+  );
+  return Result.isSuccess(parsed) ? parsed.success : undefined;
 };
 
 const writeStorageJson = (
@@ -171,11 +178,13 @@ export const readCachedPeopleDashboardPerson = (
     if (raw === null) {
       return undefined;
     }
-    const parsed = cachedPersonDetailPayloadSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success) {
+    const parsed = Schema.decodeUnknownResult(
+      Schema.toCodecJson(cachedPersonDetailPayloadSchema)
+    )(JSON.parse(raw));
+    if (Result.isFailure(parsed)) {
       return undefined;
     }
-    return parsed.data;
+    return parsed.success;
   } catch {
     return undefined;
   }

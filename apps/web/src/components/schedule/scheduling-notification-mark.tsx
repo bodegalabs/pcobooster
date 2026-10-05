@@ -1,9 +1,9 @@
+import { describeSchedulingNotification } from "@pcobooster/client/scheduling-notifications";
 import type { PlanPersonNotification } from "@pcobooster/planning-center-models/types";
 import { Mail } from "lucide-react";
 
 import { HoverLabel } from "@/components/ui/hover-card";
 import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
-import { describeSchedulingNotification } from "@/lib/schedule/scheduling-notifications";
 import { cn } from "@/lib/utils";
 
 const NOT_NOTIFIED_LABEL = "Not notified yet";

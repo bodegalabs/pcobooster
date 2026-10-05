@@ -77,6 +77,7 @@ describe(decideRequestGate, () => {
     "/api/auth/callback/planning-center?code=1",
     // A prefix match; the API rejects unknown auth routes.
     "/api/authz",
+    "/api/health",
     "/api/rpc",
     "/api/rpc/session/status",
     "/auth",
@@ -119,7 +120,7 @@ describe(decideRequestGate, () => {
     ["/admin", "/auth?next=%2Fadmin"],
     ["/admin/users/7", "/auth?next=%2Fadmin%2Fusers%2F7"],
     // Other API paths are gated, and API paths are never a return destination.
-    ["/api/health", "/auth"],
+    ["/api/private", "/auth"],
     ["/authors", "/auth?next=%2Fauthors"],
     ["/demo", "/auth?next=%2Fdemo"],
   ])("sends signed-out visitors from %s to sign-in", (path, location) => {

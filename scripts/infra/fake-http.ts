@@ -1,7 +1,7 @@
 /** A scripted `HttpClient` for provider tests: records each request and replays canned replies. */
 import { Effect, Layer, Option, Schema } from "effect";
-import { HttpClient, HttpClientResponse } from "effect/unstable/http";
-import type { HttpClientRequest } from "effect/unstable/http";
+import { HttpClient, HttpClientResponse } from "effect/http";
+import type { HttpClientRequest } from "effect/http";
 
 export interface RecordedRequest {
   readonly method: string;

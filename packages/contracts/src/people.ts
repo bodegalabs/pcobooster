@@ -1,5 +1,4 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
+import { RpcError } from "@pcobooster/contracts/errors";
 import {
   blockoutProgressSchema,
   blockoutSchema,
@@ -13,28 +12,33 @@ import {
   positionCandidatesSchema,
   windowPlanRefSchema,
 } from "@pcobooster/contracts/people-schemas";
-import { z } from "zod";
+import { isoInstantWithOffsetSchema } from "@pcobooster/contracts/schema";
+import { Schema, Struct } from "effect";
+import { Rpc, RpcGroup } from "effect/rpc";
 
-export const peoplePositionCandidatesInputSchema = z.object({
-  serviceTypeId: z.string().trim().min(1),
-  positionId: z.string().trim().min(1),
-  teamId: z.string().trim().min(1).optional(),
-  planId: z.string().trim().min(1),
-});
+export const peoplePositionCandidatesInputSchema = Schema.Struct({
+  serviceTypeId: Schema.Trim.check(Schema.isMinLength(1)),
+  positionId: Schema.Trim.check(Schema.isMinLength(1)),
+  teamId: Schema.optional(Schema.Trim.check(Schema.isMinLength(1))),
+  planId: Schema.Trim.check(Schema.isMinLength(1)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-/** The selected plan's sort instant, as an ISO date-time. */
-const planDateSchema = z.iso.datetime({ offset: true });
+const planDateSchema = isoInstantWithOffsetSchema;
 
-export const peoplePlanWindowHistoryInputSchema = z.object({
+export const peoplePlanWindowHistoryInputSchema = Schema.Struct({
   date: planDateSchema,
   /** Where the previous call stopped; omit on the first call. */
-  continuation: z
-    .object({
-      plans: z.array(windowPlanRefSchema).max(1000),
-      serviceTypeIds: z.array(z.string().trim().min(1)).max(200),
-    })
-    .optional(),
-});
+  continuation: Schema.optional(
+    Schema.Struct({
+      plans: Schema.mutable(Schema.Array(windowPlanRefSchema)).check(
+        Schema.isMaxLength(1000)
+      ),
+      serviceTypeIds: Schema.mutable(
+        Schema.Array(Schema.Trim.check(Schema.isMinLength(1)))
+      ).check(Schema.isMaxLength(200)),
+    }).mapFields(Struct.map(Schema.mutableKey))
+  ),
+}).mapFields(Struct.map(Schema.mutableKey));
 
 /**
  * Candidates per `people.candidateDetails` call. Each costs one blockout page
@@ -43,29 +47,31 @@ export const peoplePlanWindowHistoryInputSchema = z.object({
  */
 export const PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE = 16;
 
-export const peopleCandidateDetailsInputSchema = z.object({
-  personIds: z
-    .array(z.string().trim().min(1))
-    .min(1)
-    .max(PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE),
-  planId: z.string().trim().min(1),
+export const peopleCandidateDetailsInputSchema = Schema.Struct({
+  personIds: Schema.mutable(
+    Schema.Array(Schema.Trim.check(Schema.isMinLength(1)))
+  )
+    .check(Schema.isMinLength(1))
+    .check(Schema.isMaxLength(PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE)),
+  planId: Schema.Trim.check(Schema.isMinLength(1)),
   date: planDateSchema,
   /** Also read each person's own schedules; only when the plan window is empty. */
-  scheduleHistory: z.boolean(),
+  scheduleHistory: Schema.Boolean,
   /** From the previous call's `blockoutProgress`; omit on the first call. */
-  blockoutProgress: z
-    .array(blockoutProgressSchema)
-    .max(PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE)
-    .optional(),
-});
+  blockoutProgress: Schema.optional(
+    Schema.mutable(Schema.Array(blockoutProgressSchema)).check(
+      Schema.isMaxLength(PEOPLE_CANDIDATE_DETAILS_BATCH_SIZE)
+    )
+  ),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const peopleSearchInputSchema = z.object({
-  query: z.string().trim().min(2).max(80),
-});
+export const peopleSearchInputSchema = Schema.Struct({
+  query: Schema.Trim.check(Schema.isMinLength(2)).check(Schema.isMaxLength(80)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const peopleBlockoutsInputSchema = z.object({
-  personId: z.string().trim().min(1),
-});
+export const peopleBlockoutsInputSchema = Schema.Struct({
+  personId: Schema.Trim.check(Schema.isMinLength(1)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
 /**
  * People per `people.dashboardActivity` call. Each person costs one schedule
@@ -73,126 +79,96 @@ export const peopleBlockoutsInputSchema = z.object({
  */
 export const PEOPLE_DASHBOARD_ACTIVITY_BATCH_SIZE = 16;
 
-export const peopleDashboardActivityInputSchema = z.object({
-  personIds: z
-    .array(z.string().trim().min(1))
-    .min(1)
-    .max(PEOPLE_DASHBOARD_ACTIVITY_BATCH_SIZE),
-});
+export const peopleDashboardActivityInputSchema = Schema.Struct({
+  personIds: Schema.mutable(
+    Schema.Array(Schema.Trim.check(Schema.isMinLength(1)))
+  )
+    .check(Schema.isMinLength(1))
+    .check(Schema.isMaxLength(PEOPLE_DASHBOARD_ACTIVITY_BATCH_SIZE)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const peopleDashboardPersonInputSchema =
-  peopleBlockoutsInputSchema.extend({
-    month: z
-      .string()
-      .regex(/^\d{4}-\d{2}$/u)
-      .optional(),
-  });
+export const peopleDashboardPersonInputSchema = Schema.Struct({
+  ...peopleBlockoutsInputSchema.fields,
+  month: Schema.optional(
+    Schema.String.check(Schema.isPattern(/^\d{4}-\d{2}$/u))
+  ),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const peopleMyScheduledPlansInputSchema = z.object({});
+export const peopleMyScheduledPlansInputSchema = Schema.Struct({}).mapFields(
+  Struct.map(Schema.mutableKey)
+);
 
-export const peopleSearchOutputSchema = z.array(peopleSearchResultSchema);
-export const peopleBlockoutsOutputSchema = z.array(blockoutSchema);
+export const peopleSearchOutputSchema = Schema.mutable(
+  Schema.Array(peopleSearchResultSchema)
+);
 
-const peopleProcedure = oc.errors({
-  UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-  FORBIDDEN: applicationErrorMap.FORBIDDEN,
-  TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-  BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-  INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-});
+export const peopleBlockoutsOutputSchema = Schema.mutable(
+  Schema.Array(blockoutSchema)
+);
 
-const dashboardProcedure = peopleProcedure.errors({
-  NOT_FOUND: applicationErrorMap.NOT_FOUND,
-});
+export const peopleRpc = RpcGroup.make(
+  Rpc.make("people.positionCandidates", {
+    payload: peoplePositionCandidatesInputSchema,
+    success: positionCandidatesSchema,
+    error: RpcError,
+  }),
+  Rpc.make("people.planWindowHistory", {
+    payload: peoplePlanWindowHistoryInputSchema,
+    success: planWindowHistoryBatchSchema,
+    error: RpcError,
+  }),
+  Rpc.make("people.candidateDetails", {
+    payload: peopleCandidateDetailsInputSchema,
+    success: candidateDetailsBatchSchema,
+    error: RpcError,
+  }),
+  Rpc.make("people.search", {
+    payload: peopleSearchInputSchema,
+    success: peopleSearchOutputSchema,
+    error: RpcError,
+  }),
+  Rpc.make("people.blockouts", {
+    payload: peopleBlockoutsInputSchema,
+    success: peopleBlockoutsOutputSchema,
+    error: RpcError,
+  }),
+  Rpc.make("people.dashboardRoster", {
+    payload: Schema.Struct({}),
+    success: peopleDashboardRosterSchema,
+    error: RpcError,
+  }),
+  Rpc.make("people.dashboardActivity", {
+    payload: peopleDashboardActivityInputSchema,
+    success: peopleDashboardActivityBatchSchema,
+    error: RpcError,
+  }),
+  Rpc.make("people.dashboardPerson", {
+    payload: peopleDashboardPersonInputSchema,
+    success: peopleDashboardPersonDetailSchema,
+    error: RpcError,
+  }),
+  Rpc.make("people.myScheduledPlans", {
+    payload: peopleMyScheduledPlansInputSchema,
+    success: myScheduledPlansDataSchema,
+    error: RpcError,
+  })
+);
 
-export const peopleContract = {
-  positionCandidates: peopleProcedure
-    .route({
-      method: "GET",
-      path: "/people/position-candidates",
-      summary: "List candidates for a team position on a plan",
-    })
-    .input(peoplePositionCandidatesInputSchema)
-    .output(positionCandidatesSchema),
-  planWindowHistory: peopleProcedure
-    .route({
-      method: "POST",
-      path: "/people/plan-window-history",
-      summary: "Read serving history from rosters around a plan date",
-    })
-    .input(peoplePlanWindowHistoryInputSchema)
-    .output(planWindowHistoryBatchSchema),
-  candidateDetails: peopleProcedure
-    .route({
-      method: "POST",
-      path: "/people/candidate-details",
-      summary: "Read availability for a batch of candidates",
-    })
-    .input(peopleCandidateDetailsInputSchema)
-    .output(candidateDetailsBatchSchema),
-  search: peopleProcedure
-    .route({
-      method: "GET",
-      path: "/people/search",
-      summary: "Search the people directory",
-    })
-    .input(peopleSearchInputSchema)
-    .output(peopleSearchOutputSchema),
-  blockouts: peopleProcedure
-    .route({
-      method: "GET",
-      path: "/people/{personId}/blockouts",
-      summary: "List a person's future blockouts",
-    })
-    .input(peopleBlockoutsInputSchema)
-    .output(peopleBlockoutsOutputSchema),
-  dashboardRoster: dashboardProcedure
-    .route({
-      method: "GET",
-      path: "/people/dashboard-roster",
-      summary: "Read the People dashboard roster",
-    })
-    .output(peopleDashboardRosterSchema),
-  dashboardActivity: dashboardProcedure
-    .route({
-      method: "POST",
-      path: "/people/dashboard-activity",
-      summary: "Read serving activity for a batch of roster people",
-    })
-    .input(peopleDashboardActivityInputSchema)
-    .output(peopleDashboardActivityBatchSchema),
-  dashboardPerson: dashboardProcedure
-    .route({
-      method: "GET",
-      path: "/people/dashboard/{personId}",
-      summary: "Read a person's monthly activity",
-    })
-    .input(peopleDashboardPersonInputSchema)
-    .output(peopleDashboardPersonDetailSchema),
-  myScheduledPlans: peopleProcedure
-    .route({
-      method: "GET",
-      path: "/people/my-scheduled-plans",
-      summary: "List upcoming plans the current person is scheduled on",
-    })
-    .input(peopleMyScheduledPlansInputSchema)
-    .output(myScheduledPlansDataSchema),
-};
+export type PeoplePositionCandidatesInput =
+  typeof peoplePositionCandidatesInputSchema.Encoded;
 
-export type PeoplePositionCandidatesInput = z.input<
-  typeof peoplePositionCandidatesInputSchema
->;
-export type PeoplePlanWindowHistoryInput = z.input<
-  typeof peoplePlanWindowHistoryInputSchema
->;
-export type PeopleCandidateDetailsInput = z.input<
-  typeof peopleCandidateDetailsInputSchema
->;
-export type PeopleSearchInput = z.input<typeof peopleSearchInputSchema>;
-export type PeopleBlockoutsInput = z.input<typeof peopleBlockoutsInputSchema>;
-export type PeopleDashboardActivityInput = z.input<
-  typeof peopleDashboardActivityInputSchema
->;
-export type PeopleDashboardPersonInput = z.input<
-  typeof peopleDashboardPersonInputSchema
->;
+export type PeoplePlanWindowHistoryInput =
+  typeof peoplePlanWindowHistoryInputSchema.Encoded;
+
+export type PeopleCandidateDetailsInput =
+  typeof peopleCandidateDetailsInputSchema.Encoded;
+
+export type PeopleSearchInput = typeof peopleSearchInputSchema.Encoded;
+
+export type PeopleBlockoutsInput = typeof peopleBlockoutsInputSchema.Encoded;
+
+export type PeopleDashboardActivityInput =
+  typeof peopleDashboardActivityInputSchema.Encoded;
+
+export type PeopleDashboardPersonInput =
+  typeof peopleDashboardPersonInputSchema.Encoded;

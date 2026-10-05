@@ -1,7 +1,8 @@
+import type { CandidateListProgress as Progress } from "@pcobooster/client/position-candidates";
+
 import { Button } from "@/components/ui/button";
 import { HoverLabel } from "@/components/ui/hover-card";
 import { LoadingBar } from "@/components/ui/loading-bar";
-import type { CandidateListProgress as Progress } from "@/lib/position-candidates";
 
 interface CandidateListProgressProps {
   progress: Progress | undefined;

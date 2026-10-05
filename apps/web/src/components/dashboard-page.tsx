@@ -1,3 +1,4 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
 import type { Plan } from "@pcobooster/planning-center-models/types";
 import { useHotkey } from "@tanstack/react-hotkeys";
@@ -38,7 +39,6 @@ import {
   createAdjacentPlansQueryOptions,
 } from "@/hooks/use-plans";
 import { NEXT_PLAN_HOTKEY, PREVIOUS_PLAN_HOTKEY } from "@/lib/app-hotkeys";
-import { queryKeys } from "@/lib/query-keys";
 import type { DashboardView } from "@/lib/schedule-navigation";
 import { formatPlanDate } from "@/lib/service-plan-selection";
 

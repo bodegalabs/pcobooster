@@ -21,9 +21,9 @@ A proof receipt contains:
 | Tier | Typical change | Required proof |
 | --- | --- | --- |
 | low | docs and agent instructions | local CI |
-| medium | web, marketing, shared models, scripts | local CI, build, and visual evidence for a visible surface |
-| high | API behavior, contracts, server composition, dependency graph | medium proof plus an independent verifier |
-| critical | auth, database, migrations, proxy policy, CI workflows | high proof plus explicit rollback and focused boundary tests |
+| medium | web, native screens, marketing, shared models, scripts | local CI, build, and visual evidence for a visible surface |
+| high | API behavior, contracts, shared client transport, native app configuration, server composition, dependency graph | medium proof plus an independent verifier |
+| critical | web/native auth, database, migrations, proxy policy, CI workflows | high proof plus explicit rollback and focused boundary tests |
 
 Path classification is conservative. Raise the tier when behavior is riskier than its location suggests.
 
@@ -49,3 +49,5 @@ The Cloudflare merge gates are `ci` and `cloudflare-build` (see [merge gates](ci
 ## Current boundary
 
 Public routes, authentication boundaries, and read-only product views can be verified in a browser. Planning Center mutations remain test-only until an isolated synthetic adapter exists. Presentation mode masks live data but still uses live provider services, so it must not be treated as a mutation sandbox.
+
+Native evidence records Hermes export, signed simulator runtime, release archive and real-device status separately. Fictional native fixture transport proves UI and invalidation; actual scheduling application/provider behavior is verified through the isolated synthetic capability in `apps/server/src/synthetic-schedule.test.ts`. Keep missing platform or release evidence explicit in receipt notes.

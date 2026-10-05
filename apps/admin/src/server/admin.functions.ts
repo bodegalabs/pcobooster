@@ -12,6 +12,7 @@ import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { env } from "cloudflare:workers";
+import { Schema } from "effect";
 
 import { verifiedAccessEmail } from "@/server/access-identity";
 
@@ -49,7 +50,7 @@ export const getAdminAccounts = createServerFn({ method: "GET" }).handler(
 );
 
 export const getAdminUser = createServerFn({ method: "GET" })
-  .validator(adminUserInputSchema)
+  .validator(Schema.decodeUnknownSync(adminUserInputSchema))
   .handler(async ({ data }): Promise<AdminUserResponse> => {
     await requireViewer();
     return { user: await getUserAccountDetail(data.userId, database()) };

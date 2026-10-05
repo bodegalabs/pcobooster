@@ -1,3 +1,4 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
 import { useQuery } from "@tanstack/react-query";
 
 import {
@@ -6,8 +7,7 @@ import {
 } from "@/lib/my-scheduled-plans-cache";
 import type { MyScheduledPlansData } from "@/lib/my-scheduled-plans-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
-import { queryKeys } from "@/lib/query-keys";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 const queryKey = queryKeys.myScheduledPlans();
 
@@ -18,7 +18,11 @@ export const useMyScheduledPlans = () => {
   return useQuery<MyScheduledPlansData>({
     queryKey,
     queryFn: async ({ signal }) => {
-      const scheduledPlans = await orpc.people.myScheduledPlans({}, { signal });
+      const scheduledPlans = await rpc(
+        "people.myScheduledPlans",
+        {},
+        { signal }
+      );
       writeCachedMyScheduledPlans(scheduledPlans);
       return scheduledPlans;
     },

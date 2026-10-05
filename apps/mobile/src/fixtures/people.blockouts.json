@@ -1,0 +1,98 @@
+{
+  "default": [],
+  "cases": [
+    {
+      "match": { "personId": "4100102" },
+      "output": [
+        {
+          "id": "61000201",
+          "reason": "Vacation",
+          "startsAt": "2026-10-30T07:00:00.000Z",
+          "endsAt": "2026-11-03T07:59:00.000Z",
+          "description": "Camping at Lake Tahoe",
+          "share": true,
+          "timeZone": "America/Los_Angeles"
+        }
+      ]
+    },
+    {
+      "match": { "personId": "4100103" },
+      "output": [
+        {
+          "id": "61000301",
+          "reason": "Retreat",
+          "startsAt": "2026-10-23T07:00:00.000Z",
+          "endsAt": "2026-10-26T06:59:00.000Z",
+          "description": "Men's retreat",
+          "share": true,
+          "timeZone": "America/Los_Angeles"
+        }
+      ]
+    },
+    {
+      "match": { "personId": "4100104" },
+      "output": [
+        {
+          "id": "61000401",
+          "reason": "Family visit",
+          "startsAt": "2026-11-13T08:00:00.000Z",
+          "endsAt": "2026-11-17T07:59:00.000Z",
+          "description": "Grandparents in town",
+          "share": true,
+          "timeZone": "America/Los_Angeles"
+        },
+        {
+          "id": "61000402",
+          "reason": "Thanksgiving",
+          "startsAt": "2026-11-25T08:00:00.000Z",
+          "endsAt": "2026-11-30T07:59:00.000Z",
+          "description": "",
+          "share": true,
+          "timeZone": "America/Los_Angeles"
+        }
+      ]
+    },
+    {
+      "match": { "personId": "4100105" },
+      "output": [
+        {
+          "id": "61000501",
+          "reason": "Out of town",
+          "startsAt": "2026-10-02T07:00:00.000Z",
+          "endsAt": "2026-10-06T06:59:00.000Z",
+          "description": "Visiting my sister in Portland",
+          "share": true,
+          "timeZone": "America/Los_Angeles"
+        }
+      ]
+    },
+    {
+      "match": { "personId": "4100110" },
+      "output": [
+        {
+          "id": "61001001",
+          "reason": "Work trip",
+          "startsAt": "2026-10-16T07:00:00.000Z",
+          "endsAt": "2026-10-20T06:59:00.000Z",
+          "description": "Conference in Denver",
+          "share": true,
+          "timeZone": "America/Los_Angeles"
+        }
+      ]
+    },
+    {
+      "match": { "personId": "4100119" },
+      "output": [
+        {
+          "id": "61001901",
+          "reason": "Medical leave",
+          "startsAt": "2026-09-01T07:00:00.000Z",
+          "endsAt": "2027-01-01T07:59:00.000Z",
+          "description": "Recovering from surgery",
+          "share": true,
+          "timeZone": "America/Los_Angeles"
+        }
+      ]
+    }
+  ]
+}

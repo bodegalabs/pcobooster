@@ -1,0 +1,201 @@
+{
+  "suite": "calendar.utcInstant",
+  "sourceCaseIndices": [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    21, 22, 23
+  ],
+  "cases": [
+    {
+      "input": {
+        "dateKey": "2026-05-24",
+        "timeValue": "09:30",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-05-24T16:30:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-12-24",
+        "timeValue": "09:30",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-12-24T17:30:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "02:30",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T10:30:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-11-01",
+        "timeValue": "01:30",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-11-01T08:30:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "00:00",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T08:00:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "00:15",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T08:15:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "00:30",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T08:30:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "00:45",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T08:45:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "01:00",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T09:00:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "01:15",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T09:15:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "01:30",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T09:30:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "01:45",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T09:45:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "02:00",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T10:00:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "02:15",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T10:15:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "02:30",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T10:30:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "02:45",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T10:45:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "03:00",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T10:00:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "03:15",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T10:15:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "03:30",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T10:30:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "03:45",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T10:45:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "04:00",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T11:00:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "04:15",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T11:15:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "04:30",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T11:30:00.000Z"
+    },
+    {
+      "input": {
+        "dateKey": "2026-03-08",
+        "timeValue": "04:45",
+        "timeZone": "America/Los_Angeles"
+      },
+      "output": "2026-03-08T11:45:00.000Z"
+    }
+  ]
+}

@@ -18,14 +18,15 @@ const riskRank: Record<RiskTier, number> = {
 };
 
 const criticalPath =
-  /^(?:\.github\/workflows\/|apps\/web\/src\/proxy\.ts$|packages\/api\/(?:migrations\/|src\/(?:auth\/|db\/)))/u;
+  /^(?:\.github\/workflows\/|apps\/web\/src\/proxy\.ts$|packages\/api\/(?:migrations\/|src\/(?:auth\/|db\/))|apps\/mobile\/src\/auth\/)/u;
 const highPath =
-  /^(?:apps\/server\/|packages\/(?:api|contracts)\/|package\.json$|bun\.lock$|alchemy\.run\.ts$|patches\/|scripts\/(?:cloudflare|database)\/)/u;
+  /^(?:apps\/server\/|packages\/(?:api|contracts|client)\/|package\.json$|bun\.lock$|apps\/mobile\/app\.config\.ts$|alchemy\.run\.ts$|patches\/|scripts\/(?:cloudflare|database)\/)/u;
 const mediumPath =
-  /^(?:apps\/(?:web|marketing)\/|packages\/(?:planning-center-models|presentation-mode)\/|scripts\/|turbo\.json$|tsconfig\.json$)/u;
+  /^(?:apps\/(?:web|marketing|mobile)\/|packages\/(?:planning-center-models|presentation-mode)\/|scripts\/|turbo\.json$|tsconfig\.json$)/u;
 const visibleSourcePath =
-  /^apps\/(?:web|marketing)\/src\/.*\.(?:css|gif|ico|jpeg|jpg|png|svg|tsx|webmanifest|webp)$/u;
-const publicAssetPath = /^apps\/(?:web|marketing)\/public\//u;
+  /^apps\/(?:web|marketing|mobile)\/(?:src|app)\/.*\.(?:css|gif|ico|jpeg|jpg|png|svg|tsx|webmanifest|webp)$/u;
+const publicAssetPath =
+  /^apps\/(?:(?:web|marketing)\/public|mobile\/assets)\//u;
 const testPath = /(?:^|\/)\S+\.test\.[cm]?[jt]sx?$/u;
 
 export const classifyPath = (changedPath: string): RiskTier => {

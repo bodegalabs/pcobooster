@@ -3,7 +3,7 @@ import type { RequestPriority } from "@pcobooster/contracts/request-priority";
 import { Context, Effect, Option } from "effect";
 
 /**
- * The accounting for the current oRPC procedure. Transport provides it per
+ * The accounting for the current Effect RPC procedure. Transport provides it per
  * execution; code running outside a procedure (scripts, unit tests) has none
  * and is simply not counted.
  */

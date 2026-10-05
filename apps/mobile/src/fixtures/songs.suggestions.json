@@ -1,0 +1,264 @@
+{
+  "default": {
+    "recentlyPlayed": [
+      {
+        "lastScheduledAt": "2026-10-01T02:00:00.000Z",
+        "id": "5510",
+        "title": "All the Way Home",
+        "author": "Caleb Rhodes",
+        "themes": "Hope, Journey",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-10-01T02:00:00.000Z",
+        "id": "5513",
+        "title": "Every Breath",
+        "author": "Maya Ellison",
+        "themes": "Worship, Surrender",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-10-01T02:00:00.000Z",
+        "id": "5515",
+        "title": "Bright City",
+        "author": "Ruth Okafor",
+        "themes": "Heaven, Joy, Easter",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-27T16:00:00.000Z",
+        "id": "5516",
+        "title": "Shepherd of My Days",
+        "author": "Grace Whitfield",
+        "themes": "Guidance, Psalms",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-27T16:00:00.000Z",
+        "id": "5520",
+        "title": "Unshaken",
+        "author": "Caleb Rhodes",
+        "themes": "Strength, Courage",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-27T16:00:00.000Z",
+        "id": "5526",
+        "title": "Benediction Song",
+        "author": "Grace Whitfield",
+        "themes": "Blessing, Sending",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-24T02:00:00.000Z",
+        "id": "5524",
+        "title": "Glory Rising",
+        "author": "Samuel Achebe",
+        "themes": "Praise, Easter",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-24T02:00:00.000Z",
+        "id": "5528",
+        "title": "Undivided",
+        "author": "Northbound Collective",
+        "themes": "Unity, Youth",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-20T16:00:00.000Z",
+        "id": "5502",
+        "title": "Steady Ground",
+        "author": "Grace Whitfield",
+        "themes": "Faith, Trust, Storms",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-20T16:00:00.000Z",
+        "id": "5509",
+        "title": "Kingdom Come Slowly",
+        "author": "Ruth Okafor",
+        "themes": "Kingdom, Patience",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-20T16:00:00.000Z",
+        "id": "5525",
+        "title": "Gathered Here",
+        "author": "Lena Ortiz and Caleb Rhodes",
+        "themes": "Gathering, Call to Worship",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-17T02:00:00.000Z",
+        "id": "5527",
+        "title": "Brighter",
+        "author": "Northbound Collective",
+        "themes": "Joy, Youth",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-13T16:00:00.000Z",
+        "id": "5505",
+        "title": "Harbor of Mercy",
+        "author": "Samuel Achebe",
+        "themes": "Grace, Rest",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-13T16:00:00.000Z",
+        "id": "5506",
+        "title": "Wide as the Sky",
+        "author": "Theo Park",
+        "themes": "Love, Creation",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-13T16:00:00.000Z",
+        "id": "5507",
+        "title": "Lanterns",
+        "author": "Iris Calder",
+        "themes": "Hope, Light, Waiting",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-13T16:00:00.000Z",
+        "id": "5508",
+        "title": "Evergreen",
+        "author": "Noah Whitfield and Grace Whitfield",
+        "themes": "Faithfulness, Seasons",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-06T16:00:00.000Z",
+        "id": "5503",
+        "title": "Open Doors",
+        "author": "Caleb Rhodes and Maya Ellison",
+        "themes": "Invitation, Mission, Hospitality",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-09-06T16:00:00.000Z",
+        "id": "5504",
+        "title": "Here With Us",
+        "author": "Lena Ortiz",
+        "themes": "Presence, Communion",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-08-23T16:00:00.000Z",
+        "id": "5512",
+        "title": "Table of Plenty",
+        "author": "Samuel Achebe and Iris Calder",
+        "themes": "Communion, Thanksgiving",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-08-16T16:00:00.000Z",
+        "id": "5501",
+        "title": "Morning Light",
+        "author": "Maya Ellison and Theo Park",
+        "themes": "Praise, Morning, Resurrection",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-08-09T16:00:00.000Z",
+        "id": "5521",
+        "title": "Still Small Voice",
+        "author": "Maya Ellison",
+        "themes": "Prayer, Listening",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-08-09T16:00:00.000Z",
+        "id": "5523",
+        "title": "Songs in the Night",
+        "author": "Ruth Okafor",
+        "themes": "Lament, Hope",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-07-19T16:00:00.000Z",
+        "id": "5511",
+        "title": "River Song",
+        "author": "Lena Ortiz",
+        "themes": "Renewal, Baptism",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-07-12T16:00:00.000Z",
+        "id": "5519",
+        "title": "Rest for the Weary",
+        "author": "Traditional, arranged by Lena Ortiz",
+        "themes": "Hymn, Rest",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2026-07-05T16:00:00.000Z",
+        "id": "5514",
+        "title": "Old Stone Hymn",
+        "author": "Traditional, arranged by Theo Park",
+        "themes": "Hymn, Faith",
+        "hidden": false
+      }
+    ],
+    "resting": [
+      {
+        "lastScheduledAt": "2026-02-22T17:00:00.000Z",
+        "id": "5529",
+        "title": "Hallelujah Road",
+        "author": "Iris Calder",
+        "themes": "Journey, Praise",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2025-12-25T01:00:00.000Z",
+        "id": "5517",
+        "title": "Light the Way",
+        "author": "Noah Whitfield",
+        "themes": "Guidance, Advent",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2025-12-25T01:00:00.000Z",
+        "id": "5522",
+        "title": "Waiting Season",
+        "author": "Theo Park",
+        "themes": "Advent, Hope",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2025-11-23T17:00:00.000Z",
+        "id": "5518",
+        "title": "Thankful Heart",
+        "author": "Iris Calder",
+        "themes": "Thanksgiving, Gratitude",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2025-02-16T17:00:00.000Z",
+        "id": "5530",
+        "title": "Mountains Move",
+        "author": "Caleb Rhodes",
+        "themes": "Faith, Prayer",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2024-03-10T16:00:00.000Z",
+        "id": "5531",
+        "title": "Into the Quiet",
+        "author": "Iris Calder",
+        "themes": "Rest, Prayer",
+        "hidden": false
+      },
+      {
+        "lastScheduledAt": "2023-11-05T17:00:00.000Z",
+        "id": "5532",
+        "title": "Sound of Many Waters",
+        "author": "Ruth Okafor",
+        "themes": "Majesty, Revelation",
+        "hidden": false
+      }
+    ]
+  }
+}

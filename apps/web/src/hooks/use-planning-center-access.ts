@@ -1,3 +1,5 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
+import { callForQuery } from "@pcobooster/client/request-priority";
 import type { AccessSnapshot } from "@pcobooster/contracts/access";
 import {
   deriveFeatureAccess,
@@ -13,9 +15,7 @@ import { useMemo } from "react";
 import { useAccountsQuery } from "@/hooks/use-account-panel";
 import { featuresQueryOptions } from "@/lib/features";
 import { visibleFeatureAccess } from "@/lib/planning-center-access";
-import { queryKeys } from "@/lib/query-keys";
-import { callForQuery } from "@/lib/request-priority";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 const ACCESS_STALE_TIME_MS = 10 * 60 * 1000;
 
@@ -32,7 +32,7 @@ const usePlanningCenterAccessQuery = () => {
     queryFn: async (context) =>
       await callForQuery(
         context,
-        async (options) => await orpc.access.me({}, options)
+        async (options) => await rpc("access.me", {}, options)
       ),
     enabled: accounts !== undefined,
     staleTime: ACCESS_STALE_TIME_MS,

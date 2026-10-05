@@ -1,8 +1,8 @@
 import { messageErrorDataSchema } from "@pcobooster/contracts/errors";
 import type { UseQueryResult } from "@tanstack/react-query";
+import { Schema, Result } from "effect";
 import { CircleAlert } from "lucide-react";
 import type { ReactNode } from "react";
-import { z } from "zod";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ export type ReadQueryState<T> = Pick<
   "data" | "error" | "isFetching" | "refetch"
 >;
 
-const errorWithDataSchema = z.object({ data: messageErrorDataSchema });
+const errorWithDataSchema = Schema.Struct({ data: messageErrorDataSchema });
 
 /** A failed refresh keeps its last data visible; a failed first read never looks empty. */
 export const QueryDataBoundary = ({
@@ -30,9 +30,9 @@ export const QueryDataBoundary = ({
   if (query.error === null) {
     return children;
   }
-  const parsed = errorWithDataSchema.safeParse(query.error);
-  const message = parsed.success
-    ? parsed.data.data.message
+  const parsed = Schema.decodeUnknownResult(errorWithDataSchema)(query.error);
+  const message = Result.isSuccess(parsed)
+    ? parsed.success.data.message
     : "Couldn't load this data. Try again in a moment.";
   return (
     <div className={cn("flex min-w-0 flex-col gap-3", className)}>

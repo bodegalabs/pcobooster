@@ -1,16 +1,16 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
 import type { SongCatalogEntry } from "@pcobooster/planning-center-models/types";
 import { useQuery } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
 import { useCallback } from "react";
 
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
-import { queryKeys } from "@/lib/query-keys";
 import {
   normalizeSongSearchQuery,
   readCachedSongSearch,
   writeCachedSongSearch,
 } from "@/lib/song-search-cache";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 const SONG_SEARCH_STALE_TIME_MS = 5 * 60 * 1000;
 
@@ -30,7 +30,8 @@ export const useSongSearch = (query: string) => {
         return [];
       }
 
-      const songs = await orpc.songs.search(
+      const songs = await rpc(
+        "songs.search",
         { query: trimmedQuery },
         { signal }
       );

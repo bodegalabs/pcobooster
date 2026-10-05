@@ -1,3 +1,18 @@
+import type {
+  PlanOrder,
+  PlanSchedule,
+  PlanStaffing,
+  ReadinessCheck,
+} from "@pcobooster/client/plan-overview";
+import {
+  buildReadinessChecks,
+  formatDuration,
+  formatTimeOfDay,
+  summarizeOrder,
+  summarizeStaffing,
+  summarizeTimes,
+} from "@pcobooster/client/plan-overview";
+import { queryKeys } from "@pcobooster/client/query-keys";
 import type { Plan } from "@pcobooster/contracts/catalog";
 import { formatCalendarDateLabel } from "@pcobooster/planning-center-models/calendar";
 import { isNonEmptyString } from "@pcobooster/planning-center-models/json";
@@ -40,21 +55,6 @@ import { useOrganizationTimeZone } from "@/hooks/use-organization-timezone";
 import { usePlanItems } from "@/hooks/use-plan-items";
 import type { PlanView } from "@/lib/app-routes";
 import { getPlanViewLabel } from "@/lib/app-routes";
-import type {
-  PlanOrder,
-  PlanSchedule,
-  PlanStaffing,
-  ReadinessCheck,
-} from "@/lib/plan-overview";
-import {
-  buildReadinessChecks,
-  formatDuration,
-  formatTimeOfDay,
-  summarizeOrder,
-  summarizeStaffing,
-  summarizeTimes,
-} from "@/lib/plan-overview";
-import { queryKeys } from "@/lib/query-keys";
 import { planSlotLink } from "@/lib/schedule-navigation";
 import { cn } from "@/lib/utils";
 

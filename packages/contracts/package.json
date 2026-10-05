@@ -28,16 +28,16 @@
     "./schedule": "./src/schedule.ts",
     "./session": "./src/session.ts",
     "./song-schemas": "./src/song-schemas.ts",
-    "./songs": "./src/songs.ts"
+    "./songs": "./src/songs.ts",
+    "./schema": "./src/schema.ts"
   },
   "scripts": {
     "test": "vitest run --root ../.. packages/contracts/src",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@orpc/contract": "^1.15.0",
     "@pcobooster/planning-center-models": "workspace:*",
-    "zod": "^4.6.5"
+    "effect": "4.0.1"
   },
   "devDependencies": {
     "@pcobooster/config": "workspace:*",

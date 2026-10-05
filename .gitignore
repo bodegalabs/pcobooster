@@ -51,3 +51,13 @@ yarn-error.log*
 .alchemy/
 **/cloudflare-build-inputs.json
 .wrangler/
+
+# Expo generated projects and local build outputs
+/apps/mobile/ios/
+/apps/mobile/android/
+/apps/mobile/.expo/
+/apps/mobile/build/
+/apps/mobile/*.log
+
+# Local simulator evidence is published through revision-bound proof receipts.
+/apps/mobile/proof/

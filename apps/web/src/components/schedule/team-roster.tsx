@@ -15,6 +15,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import {
+  applyLineupColumnOrder,
+  reorderLineupColumnIds,
+} from "@pcobooster/client/lineup-column-order";
+import { openSlotCount } from "@pcobooster/client/open-positions";
+import { getSchedulingNotificationState } from "@pcobooster/client/scheduling-notifications";
 import type {
   FilledPositionPerson,
   PlanTime,
@@ -78,12 +84,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useRevealOnLoad } from "@/hooks/use-reveal-on-load";
 import { isSavedPlanPersonId } from "@/hooks/use-schedule-cache-optimism";
 import { getInitials } from "@/lib/format/initials";
-import {
-  applyLineupColumnOrder,
-  reorderLineupColumnIds,
-} from "@/lib/lineup-column-order";
-import { openSlotCount } from "@/lib/schedule/open-positions";
-import { getSchedulingNotificationState } from "@/lib/schedule/scheduling-notifications";
 import { cn } from "@/lib/utils";
 
 /**

@@ -1,40 +1,28 @@
-import { oc } from "@orpc/contract";
-import { applicationErrorMap } from "@pcobooster/contracts/errors";
-import { z } from "zod";
+import { RpcError } from "@pcobooster/contracts/errors";
+import { Schema, Struct } from "effect";
+import { Rpc, RpcGroup } from "effect/rpc";
 
-const requiredId = z.string().trim().min(1);
+const requiredId = Schema.Trim.check(Schema.isMinLength(1));
 
-export const planPeopleUpdateTimesInputSchema = z.object({
+export const planPeopleUpdateTimesInputSchema = Schema.Struct({
   serviceTypeId: requiredId,
   planId: requiredId,
   personId: requiredId,
   planPersonId: requiredId,
-  planTimeIds: z.array(requiredId),
-});
+  planTimeIds: Schema.mutable(Schema.Array(requiredId)),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const planPeopleUpdateTimesOutputSchema = z.object({
-  ok: z.literal(true),
-});
+export const planPeopleUpdateTimesOutputSchema = Schema.Struct({
+  ok: Schema.Literal(true),
+}).mapFields(Struct.map(Schema.mutableKey));
 
-export const planPeopleContract = {
-  updateTimes: oc
-    .errors({
-      UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
-      FORBIDDEN: applicationErrorMap.FORBIDDEN,
-      TOO_MANY_REQUESTS: applicationErrorMap.TOO_MANY_REQUESTS,
-      BAD_REQUEST: applicationErrorMap.BAD_REQUEST,
-      BAD_GATEWAY: applicationErrorMap.BAD_GATEWAY,
-      INTERNAL_SERVER_ERROR: applicationErrorMap.INTERNAL_SERVER_ERROR,
-    })
-    .route({
-      method: "PATCH",
-      path: "/plan-people/{planPersonId}/times",
-      summary: "Replace a person's assigned plan times",
-    })
-    .input(planPeopleUpdateTimesInputSchema)
-    .output(planPeopleUpdateTimesOutputSchema),
-};
+export const planPeopleRpc = RpcGroup.make(
+  Rpc.make("planPeople.updateTimes", {
+    payload: planPeopleUpdateTimesInputSchema,
+    success: planPeopleUpdateTimesOutputSchema,
+    error: RpcError,
+  })
+);
 
-export type PlanPeopleUpdateTimesInput = z.input<
-  typeof planPeopleUpdateTimesInputSchema
->;
+export type PlanPeopleUpdateTimesInput =
+  typeof planPeopleUpdateTimesInputSchema.Encoded;

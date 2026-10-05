@@ -1,11 +1,9 @@
-import { serviceTypeSchema } from "@pcobooster/contracts/catalog";
+import { serviceTypeSchema, planSchema } from "@pcobooster/contracts/catalog";
 import type {
   Plan,
   ServiceType,
 } from "@pcobooster/planning-center-models/types";
-import { z } from "zod";
-
-import { persistedPlanSchema } from "@/lib/persistence-schemas";
+import { Schema, Result } from "effect";
 
 const CACHE_VERSION = "v1";
 const CACHE_KEY_PREFIX = `pcobooster:schedule-catalog:${CACHE_VERSION}:`;
@@ -22,14 +20,14 @@ export interface ScheduleCatalogCacheEntry<T> {
   data: T;
 }
 
-const serviceTypesPayloadSchema = z.object({
-  savedAt: z.number(),
-  data: z.array(serviceTypeSchema),
+const serviceTypesPayloadSchema = Schema.Struct({
+  savedAt: Schema.Finite,
+  data: Schema.mutable(Schema.Array(serviceTypeSchema)),
 });
 
-const plansPayloadSchema = z.object({
-  savedAt: z.number(),
-  data: z.array(persistedPlanSchema),
+const plansPayloadSchema = Schema.Struct({
+  savedAt: Schema.Finite,
+  data: Schema.mutable(Schema.Array(planSchema)),
 });
 
 const buildPlansKey = (serviceTypeId: string): string =>
@@ -47,8 +45,10 @@ const readServiceTypesEntry = ():
     if (raw === null) {
       return undefined;
     }
-    const parsed = serviceTypesPayloadSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : undefined;
+    const parsed = Schema.decodeUnknownResult(
+      Schema.toCodecJson(serviceTypesPayloadSchema)
+    )(JSON.parse(raw));
+    return Result.isSuccess(parsed) ? parsed.success : undefined;
   } catch {
     return undefined;
   }
@@ -66,8 +66,10 @@ const readPlansEntry = (
     if (raw === null) {
       return undefined;
     }
-    const parsed = plansPayloadSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : undefined;
+    const parsed = Schema.decodeUnknownResult(
+      Schema.toCodecJson(plansPayloadSchema)
+    )(JSON.parse(raw));
+    return Result.isSuccess(parsed) ? parsed.success : undefined;
   } catch {
     return undefined;
   }

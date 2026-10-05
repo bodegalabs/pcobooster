@@ -7,7 +7,7 @@ import type { PlanningCenterCatalogService } from "@pcobooster/api/planning-cent
 import type { PlanningCenterPeopleService } from "@pcobooster/api/planning-center/services/people-service";
 import { scheduleAssignInputSchema as schedulePersonSchema } from "@pcobooster/contracts/schedule";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
 const team = (id: string, name: string): PCResource => ({
@@ -32,10 +32,8 @@ const assignment = (positionId: string): PCResource => ({
   },
 });
 
-const makeInput = (
-  overrides: Partial<Parameters<typeof schedulePersonSchema.parse>[0]> = {}
-) =>
-  schedulePersonSchema.parse({
+const makeInput = (overrides: Partial<typeof schedulePersonSchema.Type> = {}) =>
+  Schema.decodeUnknownSync(schedulePersonSchema)({
     serviceTypeId: "service-1",
     personId: "person-1",
     planId: "plan-1",

@@ -1,6 +1,6 @@
 /**
  * The API Worker as Alchemy runs it under `alchemy dev`: workerd, a migrated local D1, the KV
- * cache, the auth rate limit, and settings bound from `Config`. The unit tests build the Hono
+ * cache, the auth rate limit, and settings bound from `Config`. The unit tests build the fetch
  * app directly; this catches wiring they cannot, such as a binding that is not provided or a
  * migration that fails to apply. It runs in the `test` stage, so it never touches `local`'s
  * data or ports, and needs no secrets.
@@ -15,8 +15,8 @@ import * as Drizzle from "alchemy/Drizzle";
 import * as State from "alchemy/State";
 import * as Test from "alchemy/Test/Vitest";
 import { Effect, Layer } from "effect";
-import * as HttpClient from "effect/unstable/http/HttpClient";
-import * as HttpClientRequest from "effect/unstable/http/HttpClientRequest";
+import * as HttpClient from "effect/http/HttpClient";
+import * as HttpClientRequest from "effect/http/HttpClientRequest";
 
 import Api from "./worker";
 
@@ -95,22 +95,38 @@ const repeatedSignOuts = (url: string, clientIp: string, count: number) =>
   );
 
 test(
-  "serves health through oRPC with its bindings wired",
-  Effect.gen(function* serveHealth() {
+  "serves version and native Effect RPC through workerd with bindings wired",
+  Effect.gen(function* serveRpc() {
     const url = yield* apiUrl;
     const response = yield* Test.executeWhenReady(
-      HttpClientRequest.post(`${url}/api/rpc/health`).pipe(
-        HttpClientRequest.bodyJsonUnsafe({ json: {} })
-      )
+      HttpClientRequest.get(`${url}/api/health`)
     );
     assert.strictEqual(response.status, 200);
     assert.deepStrictEqual(yield* response.json, {
-      // The Worker binds the deploying commit (`GITHUB_SHA`, set in CI) as its release version.
-      json: {
-        status: "ok",
-        version: resolveReleaseVersion(process.env.GITHUB_SHA),
-      },
+      status: "ok",
+      version: resolveReleaseVersion(process.env.GITHUB_SHA),
     });
+    const rpc = yield* HttpClient.execute(
+      HttpClientRequest.post(`${url}/api/rpc`).pipe(
+        HttpClientRequest.bodyJsonUnsafe([
+          {
+            _tag: "Request",
+            id: "0",
+            tag: "demo.exit",
+            payload: {},
+            headers: [],
+          },
+        ])
+      )
+    );
+    assert.strictEqual(rpc.status, 200);
+    assert.deepStrictEqual(yield* rpc.json, [
+      {
+        _tag: "Exit",
+        requestId: "0",
+        exit: { _tag: "Success", value: { demo: false } },
+      },
+    ]);
   }),
   requestTimeout
 );

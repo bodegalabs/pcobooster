@@ -14,7 +14,7 @@ This app helps teams schedule people into open positions for specific plans by c
 
 The public marketing site lives at `/`, with the origin story at `/about`. The authenticated product starts at `/services`.
 
-This is a Bun/Turborepo monorepo. The product UI lives in `apps/web`, the API Worker (an Alchemy Effect-native Cloudflare Worker serving Hono) lives in `apps/server`, server implementation lives in `packages/api`, browser-safe oRPC contracts live in `packages/contracts`, Planning Center models and calendar rules live in `packages/planning-center-models`, and the static marketing site lives in `apps/marketing`. See [marketing development and deployment](docs/marketing.md).
+This is a Bun/Turborepo monorepo. The product UI lives in `apps/web`, the API Worker (an Alchemy Effect-native Cloudflare Worker serving Effect RPC) lives in `apps/server`, server implementation lives in `packages/api`, browser/native-safe Effect Schema contracts live in `packages/contracts`, Planning Center models and calendar rules live in `packages/planning-center-models`, and the static marketing site lives in `apps/marketing`. See [marketing development and deployment](docs/marketing.md).
 
 For parallel remote development, see [Codex cloud development](docs/codex-cloud.md).
 
@@ -88,7 +88,7 @@ This masks person fields for app presentations, not the underlying dataset: IDs,
 
 ## API Routes
 
-Product operations are served through the typed oRPC transport at `/api/rpc`; its OpenAPI reference is available at `/api/reference`. Better Auth keeps its protocol-owned `GET/POST /api/auth/*` handler. `/health` is the service liveness endpoint.
+Product operations are served through the typed Effect RPC transport at `/api/rpc`; product contracts are shared Effect Schema definitions. Better Auth keeps its protocol-owned `GET/POST /api/auth/*` handler. `/health` is the service liveness endpoint.
 
 ## Project Structure
 
@@ -96,11 +96,13 @@ Product operations are served through the typed oRPC transport at `/api/rpc`; it
 apps/
   web/                       # TanStack Start product UI
   admin/                     # TanStack Start admin app
-  server/                    # API Worker (Alchemy Effect-native) serving Hono and oRPC
+  server/                    # API Worker (Alchemy Effect-native) serving Effect RPC
+  mobile/                    # Expo / React Native product app
   marketing/                 # Prerendered TanStack Start marketing site
 packages/
-  api/                       # Server-side application, auth, DB, adapters, oRPC
-  contracts/                 # Browser-safe oRPC contracts and DTO schemas
+  api/                       # Server-side application, auth, DB, adapters, Effect RPC
+  contracts/                 # Browser/native-safe Effect Schema and RPC definitions
+  client/                    # Shared HTTP RPC, query keys and request priority
   planning-center-models/    # Shared Planning Center shapes and calendar rules
   presentation-mode/         # Shared server-side presentation configuration
   config/                    # Shared TypeScript configuration
@@ -125,7 +127,7 @@ bun run ci
 bun run build
 ```
 
-Tests are colocated under `packages/*/src` and `apps/*/src`. Feature modules accept narrow typed dependencies so tests can exercise behavior without replacing modules. oRPC inputs and outputs, provider responses, and persisted browser caches are validated with Zod at their respective boundaries.
+Tests are colocated under `packages/*/src` and `apps/*/src`. Feature modules accept narrow typed dependencies so tests exercise behavior without replacing modules. Effect RPC inputs/outputs and shared persisted values use Effect Schema. Provider adapters validate their own responses.
 
 Pull requests must pass the GitHub `ci` and `cloudflare-build` checks. See [CI/CD](docs/ci-cd.md) for the merge gates, deployment flow, dependency update policy, and rollback procedure.
 
@@ -162,3 +164,5 @@ When every layer is ready and GitHub checks pass, use `gh stack merge <stack-num
 ## Planning Center API Docs
 
 Local scraped API docs are in `docs/planning-center-api/`. See [docs/planning-center-api/README.md](docs/planning-center-api/README.md) for export details.
+
+Mobile development, local builds and release validation are described in [mobile development](docs/mobile.md).

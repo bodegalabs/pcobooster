@@ -1,10 +1,10 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
+import { callForQuery } from "@pcobooster/client/request-priority";
 import type { SongLibrary } from "@pcobooster/contracts/songs";
 import { useQuery } from "@tanstack/react-query";
 import type { QueryFunctionContext } from "@tanstack/react-query";
 
-import { queryKeys } from "@/lib/query-keys";
-import { callForQuery } from "@/lib/request-priority";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
 /** The API caches the catalog for an hour, so a refetch sooner rarely finds anything new. */
 const SONG_LIBRARY_STALE_TIME_MS = 10 * 60 * 1000;
@@ -14,7 +14,7 @@ export const songLibraryQueryOptions = {
   queryFn: async (context: QueryFunctionContext): Promise<SongLibrary> =>
     await callForQuery(
       context,
-      async (options) => await orpc.songs.library(undefined, options)
+      async (options) => await rpc("songs.library", {}, options)
     ),
   staleTime: SONG_LIBRARY_STALE_TIME_MS,
 };

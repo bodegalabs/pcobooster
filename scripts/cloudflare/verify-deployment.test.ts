@@ -13,20 +13,21 @@ const respondWith =
     await Promise.resolve(response);
 
 describe(readVersion, () => {
-  it("reads the version from a healthy oRPC reply", async () => {
+  it("reads the version from a healthy HTTP reply", async () => {
     await expect(
       readVersion(
         "https://example.test",
-        respondWith(
-          Response.json({ json: { status: "ok", version: "b57ca91" } })
-        )
+        respondWith(Response.json({ status: "ok", version: "b57ca91" }))
       )
     ).resolves.toBe("b57ca91");
   });
 
   it.each([
     ["an unversioned reply", Response.json({ json: { status: "ok" } })],
-    ["an unwrapped reply", Response.json({ status: "ok", version: "b57ca91" })],
+    [
+      "an obsolete wrapped reply",
+      Response.json({ json: { status: "ok", version: "b57ca91" } }),
+    ],
     ["an HTML page", new Response("<html>", { status: 200 })],
     ["a server error", new Response("down", { status: 503 })],
   ])("treats %s as not yet deployed", async (_label, response) => {
@@ -68,9 +69,9 @@ const deployedOrigin = (deployed: Deployed) => {
   const fetchImpl: typeof fetch = async (input) => {
     const url = input instanceof Request ? input.url : input.toString();
     requested.push(url);
-    if (url.endsWith("/api/rpc/health")) {
+    if (url.endsWith("/api/health")) {
       return await Promise.resolve(
-        Response.json({ json: { status: "ok", version: deployed.api } })
+        Response.json({ status: "ok", version: deployed.api })
       );
     }
     if (url.endsWith("/version")) {

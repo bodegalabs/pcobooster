@@ -1,3 +1,4 @@
+import { queryKeys } from "@pcobooster/client/query-keys";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
 
@@ -6,10 +7,9 @@ import {
   writeCachedOrganizationTimeZone,
 } from "@/lib/organization-time-zone-cache";
 import { useHydrateQueryFromCache } from "@/lib/query-cache-hydration";
-import { queryKeys } from "@/lib/query-keys";
-import { orpc } from "@/orpc-client";
+import { rpc } from "@/rpc-client";
 
-/** Client hook for the Planning Center Services organization time zone via oRPC. */
+/** Client hook for the Planning Center Services organization time zone via Effect RPC. */
 export const useOrganizationTimeZone = (): string => {
   const queryKey = queryKeys.organizationTimeZone();
   const readCachedTimeZone = useCallback(() => {
@@ -26,7 +26,7 @@ export const useOrganizationTimeZone = (): string => {
   const { data } = useQuery({
     queryKey,
     queryFn: async ({ signal }) => {
-      const response = await orpc.catalog.organization({}, { signal });
+      const response = await rpc("catalog.organization", {}, { signal });
       writeCachedOrganizationTimeZone(response.timeZone);
       return response;
     },
