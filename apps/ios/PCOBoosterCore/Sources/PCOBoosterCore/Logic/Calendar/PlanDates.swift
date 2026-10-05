@@ -87,9 +87,6 @@ public enum DateRangeFilter: String, CaseIterable, Codable, Sendable {
 
 /// Whether a plan falls between today and `range.days` organization calendar days from today,
 /// both ends included (`isInDateWindow`, which reads the clock itself; pass `now`).
-///
-/// The window's end comes from `OrgCalendar.addDays`, so it inherits that function's extra
-/// day in zones 12 or more hours ahead of UTC.
 public func isInDateWindow(
   _ date: Date, range: DateRangeFilter, timeZone: String, now: Date
 ) -> Bool {
@@ -97,7 +94,7 @@ public func isInDateWindow(
     return true
   }
   let nowKey = OrgCalendar.dayKey(now, timeZone: timeZone)
-  let maxKey = OrgCalendar.addDays(to: nowKey, days, timeZone: timeZone)
+  let maxKey = OrgCalendar.addDays(to: nowKey, days)
   let dateKey = OrgCalendar.dayKey(date, timeZone: timeZone)
   return dateKey >= nowKey && dateKey <= maxKey
 }

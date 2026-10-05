@@ -371,7 +371,6 @@ const utcInstantSuite = defineParitySuite<WallTimeInput, string | null>({
 interface AddDaysInput {
   dayKey: string;
   deltaDays: number;
-  timeZone: string;
 }
 
 const ADD_DAY_KEYS = [
@@ -389,20 +388,17 @@ const ADD_DELTAS = [-366, -28, -1, 0, 1, 2, 7, 28] as const;
 const addDaysSuite = defineParitySuite<AddDaysInput, string>({
   name: "calendar.addDays",
   cases: [
-    ...ALL_ZONES.flatMap((timeZone) =>
-      ADD_DAY_KEYS.flatMap((dayKey) =>
-        ADD_DELTAS.map((deltaDays) => ({ dayKey, deltaDays, timeZone }))
-      )
+    ...ADD_DAY_KEYS.flatMap((dayKey) =>
+      ADD_DELTAS.map((deltaDays) => ({ dayKey, deltaDays }))
     ),
     // Loose keys roll over like `Date.UTC`, and years 0 to 99 mean 1900 to 1999.
-    { dayKey: "2026-02-30", deltaDays: 0, timeZone: "UTC" },
-    { dayKey: "2026-13-01", deltaDays: 0, timeZone: "UTC" },
-    { dayKey: "0099-01-01", deltaDays: 0, timeZone: "UTC" },
-    { dayKey: "2026-05-24-extra", deltaDays: 1, timeZone: "UTC" },
-    { dayKey: "2026-01-31", deltaDays: 400, timeZone: "America/Los_Angeles" },
+    { dayKey: "2026-02-30", deltaDays: 0 },
+    { dayKey: "2026-13-01", deltaDays: 0 },
+    { dayKey: "0099-01-01", deltaDays: 0 },
+    { dayKey: "2026-05-24-extra", deltaDays: 1 },
+    { dayKey: "2026-01-31", deltaDays: 400 },
   ],
-  run: ({ dayKey, deltaDays, timeZone }) =>
-    addCalendarDaysToDayKey(dayKey, deltaDays, timeZone),
+  run: ({ dayKey, deltaDays }) => addCalendarDaysToDayKey(dayKey, deltaDays),
 });
 
 interface DayKeyPairInput {

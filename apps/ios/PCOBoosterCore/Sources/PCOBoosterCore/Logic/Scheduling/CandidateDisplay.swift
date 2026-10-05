@@ -168,7 +168,7 @@ public func buildScheduleDays(
     return ScheduleDay(
       offset: offset,
       // Day keys are civil dates, so rolling them in UTC cannot cross a DST change.
-      dayKey: OrgCalendar.addDays(to: planDay, offset, timeZone: "UTC"),
+      dayKey: OrgCalendar.addDays(to: planDay, offset),
       kind: kind,
       status: status,
       items: items)

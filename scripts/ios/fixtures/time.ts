@@ -33,7 +33,7 @@ export const at = (dayKey: string, time: string): Date =>
   new Date(zonedWallTimeToUtcIso(dayKey, time, ORG_TIME_ZONE));
 
 export const addDays = (dayKey: string, days: number): string =>
-  addCalendarDaysToDayKey(dayKey, days, ORG_TIME_ZONE);
+  addCalendarDaysToDayKey(dayKey, days);
 
 export const dayOf = (instant: Date): string =>
   formatCalendarDayInTimeZone(instant, ORG_TIME_ZONE);
