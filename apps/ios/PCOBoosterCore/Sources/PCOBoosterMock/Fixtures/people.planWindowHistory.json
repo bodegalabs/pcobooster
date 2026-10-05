@@ -1,0 +1,1300 @@
+{
+  "default": {
+    "generatedAt": "2026-10-01T17:00:00.000Z",
+    "loadedPlanCount": 18,
+    "plans": [
+      {"id": "881260906", "title": "Good Soil", "sortDate": "2026-09-06T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+      {"id": "882260909", "title": "Why Church?", "sortDate": "2026-09-10T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+      {"id": "881260913", "title": "Through Dry Seasons", "sortDate": "2026-09-13T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+      {"id": "882260916", "title": "Prayer 101", "sortDate": "2026-09-17T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+      {"id": "881260920", "title": "Branches", "sortDate": "2026-09-20T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+      {"id": "882260923", "title": "Reading the Bible", "sortDate": "2026-09-24T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+      {"id": "881260927", "title": "Fruit That Lasts", "sortDate": "2026-09-27T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+      {"id": "882260930", "title": "Is God Real?", "sortDate": "2026-10-01T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+      {"id": "881261004", "title": "Deep Roots", "sortDate": "2026-10-04T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+      {"id": "882261007", "title": "Is God Good?", "sortDate": "2026-10-08T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+      {"id": "881261011", "title": "Rooted Together", "sortDate": "2026-10-11T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+      {"id": "882261014", "title": "Why Does It Hurt?", "sortDate": "2026-10-15T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+      {"id": "881261018", "title": "A Seat for Everyone", "sortDate": "2026-10-18T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+      {"id": "883261018", "title": "Baptism Night", "sortDate": "2026-10-19T01:00:00.000Z", "serviceTypeName": "Special Events"},
+      {"id": "882261021", "title": "Can I Start Over?", "sortDate": "2026-10-22T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+      {"id": "881261025", "title": "Bread for the Journey", "sortDate": "2026-10-25T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+      {"id": "882261028", "title": "Does Prayer Work?", "sortDate": "2026-10-29T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+      {"id": "881261101", "title": "Strangers and Neighbors", "sortDate": "2026-11-01T17:00:00.000Z", "serviceTypeName": "Sunday Gathering"}
+    ],
+    "planTimes": [
+      {"id": "8812609061", "startsAt": "2026-09-04T02:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8812609062", "startsAt": "2026-09-06T16:00:00.000Z", "timeType": "service"},
+      {"id": "8812609063", "startsAt": "2026-09-06T18:00:00.000Z", "timeType": "service"},
+      {"id": "8822609091", "startsAt": "2026-09-10T01:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8822609092", "startsAt": "2026-09-10T02:00:00.000Z", "timeType": "service"},
+      {"id": "8812609131", "startsAt": "2026-09-11T02:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8812609132", "startsAt": "2026-09-13T16:00:00.000Z", "timeType": "service"},
+      {"id": "8812609133", "startsAt": "2026-09-13T18:00:00.000Z", "timeType": "service"},
+      {"id": "8822609161", "startsAt": "2026-09-17T01:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8822609162", "startsAt": "2026-09-17T02:00:00.000Z", "timeType": "service"},
+      {"id": "8812609201", "startsAt": "2026-09-18T02:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8812609202", "startsAt": "2026-09-20T16:00:00.000Z", "timeType": "service"},
+      {"id": "8812609203", "startsAt": "2026-09-20T18:00:00.000Z", "timeType": "service"},
+      {"id": "8822609231", "startsAt": "2026-09-24T01:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8822609232", "startsAt": "2026-09-24T02:00:00.000Z", "timeType": "service"},
+      {"id": "8812609271", "startsAt": "2026-09-25T02:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8812609272", "startsAt": "2026-09-27T16:00:00.000Z", "timeType": "service"},
+      {"id": "8812609273", "startsAt": "2026-09-27T18:00:00.000Z", "timeType": "service"},
+      {"id": "8822609301", "startsAt": "2026-10-01T01:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8822609302", "startsAt": "2026-10-01T02:00:00.000Z", "timeType": "service"},
+      {"id": "8812610041", "startsAt": "2026-10-02T02:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8812610042", "startsAt": "2026-10-04T16:00:00.000Z", "timeType": "service"},
+      {"id": "8812610043", "startsAt": "2026-10-04T18:00:00.000Z", "timeType": "service"},
+      {"id": "8822610071", "startsAt": "2026-10-08T01:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8822610072", "startsAt": "2026-10-08T02:00:00.000Z", "timeType": "service"},
+      {"id": "8812610111", "startsAt": "2026-10-09T02:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8812610112", "startsAt": "2026-10-11T16:00:00.000Z", "timeType": "service"},
+      {"id": "8812610113", "startsAt": "2026-10-11T18:00:00.000Z", "timeType": "service"},
+      {"id": "8822610141", "startsAt": "2026-10-15T01:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8822610142", "startsAt": "2026-10-15T02:00:00.000Z", "timeType": "service"},
+      {"id": "8812610181", "startsAt": "2026-10-16T02:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8812610182", "startsAt": "2026-10-18T16:00:00.000Z", "timeType": "service"},
+      {"id": "8812610183", "startsAt": "2026-10-18T18:00:00.000Z", "timeType": "service"},
+      {"id": "8832610181", "startsAt": "2026-10-18T23:30:00.000Z", "timeType": "rehearsal"},
+      {"id": "8832610182", "startsAt": "2026-10-19T01:00:00.000Z", "timeType": "service"},
+      {"id": "8822610211", "startsAt": "2026-10-22T01:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8822610212", "startsAt": "2026-10-22T02:00:00.000Z", "timeType": "service"},
+      {"id": "8812610251", "startsAt": "2026-10-23T02:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8812610252", "startsAt": "2026-10-25T16:00:00.000Z", "timeType": "service"},
+      {"id": "8812610253", "startsAt": "2026-10-25T18:00:00.000Z", "timeType": "service"},
+      {"id": "8822610281", "startsAt": "2026-10-29T01:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8822610282", "startsAt": "2026-10-29T02:00:00.000Z", "timeType": "service"},
+      {"id": "8812611011", "startsAt": "2026-10-30T02:00:00.000Z", "timeType": "rehearsal"},
+      {"id": "8812611012", "startsAt": "2026-11-01T17:00:00.000Z", "timeType": "service"},
+      {"id": "8812611013", "startsAt": "2026-11-01T19:00:00.000Z", "timeType": "service"}
+    ],
+    "people": [
+      {
+        "personId": "4100102",
+        "rows": [
+          {"id": "881260906001", "planId": "881260906", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-17T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881260927002", "planId": "881260927", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-05T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261018001", "planId": "881261018", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "D", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610181", "8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": "Visiting family that weekend"},
+          {"id": "883261018001", "planId": "883261018", "teamId": "2221", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-30T01:36:00.000Z", "timeIds": ["8832610181", "8832610182"], "serviceTimeIds": ["8832610182"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100149",
+        "rows": [
+          {"id": "881260906002", "planId": "881260906", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-18T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881261011001", "planId": "881261011", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-19T16:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null},
+          {"id": "881261025001", "planId": "881261025", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-29T16:36:00.000Z", "timeIds": ["8812610251", "8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100106",
+        "rows": [
+          {"id": "881260906003", "planId": "881260906", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "C", "createdAt": "2026-08-19T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881260913003", "planId": "881260913", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "C", "createdAt": "2026-08-18T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881261011003", "planId": "881261011", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null},
+          {"id": "883261018002", "planId": "883261018", "teamId": "2221", "teamPositionName": "Bass Guitar", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8832610181", "8832610182"], "serviceTimeIds": ["8832610182"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100108",
+        "rows": [
+          {"id": "881260906004", "planId": "881260906", "teamId": "2201", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-08-11T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881260920004", "planId": "881260920", "teamId": "2201", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-08-27T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881261004003", "planId": "881261004", "teamId": "2201", "teamPositionName": "Drums", "status": "U", "createdAt": "2026-09-25T16:36:00.000Z", "timeIds": ["8812610041", "8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "883261018003", "planId": "883261018", "teamId": "2221", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-09-22T01:36:00.000Z", "timeIds": ["8832610181", "8832610182"], "serviceTimeIds": ["8832610182"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100110",
+        "rows": [
+          {"id": "881260906005", "planId": "881260906", "teamId": "2201", "teamPositionName": "Electric Guitar", "status": "C", "createdAt": "2026-08-12T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881261011005", "planId": "881261011", "teamId": "2201", "teamPositionName": "Electric Guitar", "status": "C", "createdAt": "2026-09-14T16:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100105",
+        "rows": [
+          {"id": "881260906006", "planId": "881260906", "teamId": "2201", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-08-13T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881260913007", "planId": "881260913", "teamId": "2201", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-08-22T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881261011002", "planId": "881261011", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-20T16:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null},
+          {"id": "881261101002", "planId": "881261101", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812611011", "8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100114",
+        "rows": [
+          {"id": "881260906007", "planId": "881260906", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-08-14T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881260920006", "planId": "881260920", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-08-30T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881261004006", "planId": "881261004", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-09-16T16:36:00.000Z", "timeIds": ["8812610041", "8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "881261018006", "planId": "881261018", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-09-26T16:36:00.000Z", "timeIds": ["8812610181", "8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null},
+          {"id": "883261018005", "planId": "883261018", "teamId": "2222", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-09-24T01:36:00.000Z", "timeIds": ["8832610181", "8832610182"], "serviceTimeIds": ["8832610182"], "declineReason": null},
+          {"id": "881261101004", "planId": "881261101", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812611011", "8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100104",
+        "rows": [
+          {"id": "881260906008", "planId": "881260906", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-08-15T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881260913001", "planId": "881260913", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-26T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881260920002", "planId": "881260920", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-25T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881260927001", "planId": "881260927", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-04T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261004001", "planId": "881261004", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-11T16:36:00.000Z", "timeIds": ["8812610041", "8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "881261011007", "planId": "881261011", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-09-16T16:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null},
+          {"id": "881261101001", "planId": "881261101", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812611011", "8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100150",
+        "rows": [
+          {"id": "881260906009", "planId": "881260906", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-08-16T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881261011008", "planId": "881261011", "teamId": "2202", "teamPositionName": "Alto", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null},
+          {"id": "881261101005", "planId": "881261101", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812611011", "8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100121",
+        "rows": [
+          {"id": "881260906010", "planId": "881260906", "teamId": "2202", "teamPositionName": "Tenor", "status": "C", "createdAt": "2026-08-17T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881260920008", "planId": "881260920", "teamId": "2202", "teamPositionName": "Tenor", "status": "C", "createdAt": "2026-09-01T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881260927010", "planId": "881260927", "teamId": "2202", "teamPositionName": "Tenor", "status": "C", "createdAt": "2026-09-03T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261011006", "planId": "881261011", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-09-15T16:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100109",
+        "rows": [
+          {"id": "881260906011", "planId": "881260906", "teamId": "2203", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-08-18T16:36:00.000Z", "timeIds": ["8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "882260923003", "planId": "882260923", "teamId": "2211", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-08-29T02:36:00.000Z", "timeIds": ["8822609231", "8822609232"], "serviceTimeIds": ["8822609232"], "declineReason": null},
+          {"id": "882261014003", "planId": "882261014", "teamId": "2211", "teamPositionName": "Drums", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8822610141", "8822610142"], "serviceTimeIds": ["8822610142"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100117",
+        "rows": [
+          {"id": "881260906012", "planId": "881260906", "teamId": "2203", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-08-19T16:36:00.000Z", "timeIds": ["8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881260913012", "planId": "881260913", "teamId": "2203", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-08-17T16:36:00.000Z", "timeIds": ["8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881260920010", "planId": "881260920", "teamId": "2203", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-02T16:36:00.000Z", "timeIds": ["8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881260927009", "planId": "881260927", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-09-03T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261018009", "planId": "881261018", "teamId": "2203", "teamPositionName": "Lyrics", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100123",
+        "rows": [
+          {"id": "881260906013", "planId": "881260906", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-08-10T16:36:00.000Z", "timeIds": ["8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "882260916006", "planId": "882260916", "teamId": "2212", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-08-24T02:36:00.000Z", "timeIds": ["8822609162"], "serviceTimeIds": ["8822609162"], "declineReason": null},
+          {"id": "882260930006", "planId": "882260930", "teamId": "2212", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-09-10T02:36:00.000Z", "timeIds": ["8822609302"], "serviceTimeIds": ["8822609302"], "declineReason": null},
+          {"id": "881261004090", "planId": "881261004", "teamId": "2203", "teamPositionName": "Stage Manager", "status": "C", "createdAt": "2026-09-26T17:00:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "882261014005", "planId": "882261014", "teamId": "2212", "teamPositionName": "Sound", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8822610142"], "serviceTimeIds": ["8822610142"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100125",
+        "rows": [
+          {"id": "881260906014", "planId": "881260906", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-08-11T16:36:00.000Z", "timeIds": ["8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881260913013", "planId": "881260913", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-08-18T16:36:00.000Z", "timeIds": ["8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881260927012", "planId": "881260927", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-06T16:36:00.000Z", "timeIds": ["8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261004010", "planId": "881261004", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-10T16:36:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "881261018012", "planId": "881261018", "teamId": "2203", "teamPositionName": "Livestream", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100127",
+        "rows": [
+          {"id": "881260906015", "planId": "881260906", "teamId": "2203", "teamPositionName": "Livestream", "status": "C", "createdAt": "2026-08-12T16:36:00.000Z", "timeIds": ["8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881260927013", "planId": "881260927", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-07T16:36:00.000Z", "timeIds": ["8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261004012", "planId": "881261004", "teamId": "2203", "teamPositionName": "Livestream", "status": "C", "createdAt": "2026-09-12T16:36:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "881261018010", "planId": "881261018", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-29T16:36:00.000Z", "timeIds": ["8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100128",
+        "rows": [
+          {"id": "881260906016", "planId": "881260906", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-08-13T16:36:00.000Z", "timeIds": ["8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881260920014", "planId": "881260920", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-08-28T16:36:00.000Z", "timeIds": ["8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881261004013", "planId": "881261004", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-09-13T16:36:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "881261018014", "planId": "881261018", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-09-24T16:36:00.000Z", "timeIds": ["8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100154",
+        "rows": [
+          {"id": "881260906017", "planId": "881260906", "teamId": "2204", "teamPositionName": "Greeter", "status": "C", "createdAt": "2026-08-14T16:36:00.000Z", "timeIds": ["8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+          {"id": "881260927016", "planId": "881260927", "teamId": "2204", "teamPositionName": "Greeter", "status": "C", "createdAt": "2026-08-31T16:36:00.000Z", "timeIds": ["8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261011016", "planId": "881261011", "teamId": "2204", "teamPositionName": "Greeter", "status": "C", "createdAt": "2026-09-15T16:36:00.000Z", "timeIds": ["8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null},
+          {"id": "881261025005", "planId": "881261025", "teamId": "2202", "teamPositionName": "Alto", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610251", "8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100145",
+        "rows": [
+          {"id": "882260909001", "planId": "882260909", "teamId": "2211", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-20T02:36:00.000Z", "timeIds": ["8822609091", "8822609092"], "serviceTimeIds": ["8822609092"], "declineReason": null},
+          {"id": "882260923001", "planId": "882260923", "teamId": "2211", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-06T02:36:00.000Z", "timeIds": ["8822609231", "8822609232"], "serviceTimeIds": ["8822609232"], "declineReason": null},
+          {"id": "882261007004", "planId": "882261007", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-09-17T02:36:00.000Z", "timeIds": ["8822610071", "8822610072"], "serviceTimeIds": ["8822610072"], "declineReason": null},
+          {"id": "882261028001", "planId": "882261028", "teamId": "2211", "teamPositionName": "Acoustic Guitar", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8822610281", "8822610282"], "serviceTimeIds": ["8822610282"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100146",
+        "rows": [
+          {"id": "882260909002", "planId": "882260909", "teamId": "2211", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-08-21T02:36:00.000Z", "timeIds": ["8822609091", "8822609092"], "serviceTimeIds": ["8822609092"], "declineReason": null},
+          {"id": "882260923002", "planId": "882260923", "teamId": "2211", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-08-28T02:36:00.000Z", "timeIds": ["8822609231", "8822609232"], "serviceTimeIds": ["8822609232"], "declineReason": null},
+          {"id": "882261007001", "planId": "882261007", "teamId": "2211", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-09-14T02:36:00.000Z", "timeIds": ["8822610071", "8822610072"], "serviceTimeIds": ["8822610072"], "declineReason": null},
+          {"id": "882261021002", "planId": "882261021", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8822610211", "8822610212"], "serviceTimeIds": ["8822610212"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100135",
+        "rows": [
+          {"id": "882260909003", "planId": "882260909", "teamId": "2211", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-08-22T02:36:00.000Z", "timeIds": ["8822609091", "8822609092"], "serviceTimeIds": ["8822609092"], "declineReason": null},
+          {"id": "882260930003", "planId": "882260930", "teamId": "2211", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-09-07T02:36:00.000Z", "timeIds": ["8822609301", "8822609302"], "serviceTimeIds": ["8822609302"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100136",
+        "rows": [
+          {"id": "882260909004", "planId": "882260909", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-08-23T02:36:00.000Z", "timeIds": ["8822609091", "8822609092"], "serviceTimeIds": ["8822609092"], "declineReason": null},
+          {"id": "882260923004", "planId": "882260923", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-08-30T02:36:00.000Z", "timeIds": ["8822609231", "8822609232"], "serviceTimeIds": ["8822609232"], "declineReason": null},
+          {"id": "882261007003", "planId": "882261007", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-09-16T02:36:00.000Z", "timeIds": ["8822610071", "8822610072"], "serviceTimeIds": ["8822610072"], "declineReason": null},
+          {"id": "882261021003", "planId": "882261021", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8822610211", "8822610212"], "serviceTimeIds": ["8822610212"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100138",
+        "rows": [
+          {"id": "882260909005", "planId": "882260909", "teamId": "2212", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-08-14T02:36:00.000Z", "timeIds": ["8822609092"], "serviceTimeIds": ["8822609092"], "declineReason": null},
+          {"id": "882260923005", "planId": "882260923", "teamId": "2212", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-08-31T02:36:00.000Z", "timeIds": ["8822609232"], "serviceTimeIds": ["8822609232"], "declineReason": null},
+          {"id": "882261007005", "planId": "882261007", "teamId": "2212", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-09-18T02:36:00.000Z", "timeIds": ["8822610072"], "serviceTimeIds": ["8822610072"], "declineReason": null},
+          {"id": "882261021004", "planId": "882261021", "teamId": "2212", "teamPositionName": "Sound", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8822610212"], "serviceTimeIds": ["8822610212"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100126",
+        "rows": [
+          {"id": "882260909006", "planId": "882260909", "teamId": "2212", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-08-15T02:36:00.000Z", "timeIds": ["8822609092"], "serviceTimeIds": ["8822609092"], "declineReason": null},
+          {"id": "882260923006", "planId": "882260923", "teamId": "2212", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-01T02:36:00.000Z", "timeIds": ["8822609232"], "serviceTimeIds": ["8822609232"], "declineReason": null},
+          {"id": "881261004011", "planId": "881261004", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-11T16:36:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "881261018011", "planId": "881261018", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-21T16:36:00.000Z", "timeIds": ["8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100103",
+        "rows": [
+          {"id": "881260913002", "planId": "881260913", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-17T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881260920001", "planId": "881260920", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-24T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881261018002", "planId": "881261018", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-21T16:36:00.000Z", "timeIds": ["8812610181", "8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100161",
+        "rows": [
+          {"id": "881260913004", "planId": "881260913", "teamId": "2201", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-08-19T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881261011004", "planId": "881261011", "teamId": "2201", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-09-23T16:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null},
+          {"id": "881261025002", "planId": "881261025", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610251", "8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100111",
+        "rows": [
+          {"id": "881260913005", "planId": "881260913", "teamId": "2201", "teamPositionName": "Electric Guitar", "status": "D", "createdAt": "2026-09-04T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": "Out of town"},
+          {"id": "881260927005", "planId": "881260927", "teamId": "2201", "teamPositionName": "Electric Guitar", "status": "C", "createdAt": "2026-09-09T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261004004", "planId": "881261004", "teamId": "2201", "teamPositionName": "Electric Guitar", "status": "D", "createdAt": "2026-09-25T16:36:00.000Z", "timeIds": ["8812610041", "8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": "Traveling for a family wedding that weekend."}
+        ]
+      },
+      {
+        "personId": "4100107",
+        "rows": [
+          {"id": "881260913006", "planId": "881260913", "teamId": "2201", "teamPositionName": "Electric Guitar", "status": "C", "createdAt": "2026-08-21T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881260920003", "planId": "881260920", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "C", "createdAt": "2026-08-26T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881260927003", "planId": "881260927", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "C", "createdAt": "2026-09-06T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261004002", "planId": "881261004", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "C", "createdAt": "2026-09-12T16:36:00.000Z", "timeIds": ["8812610041", "8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "881261018004", "planId": "881261018", "teamId": "2201", "teamPositionName": "Electric Guitar", "status": "C", "createdAt": "2026-09-23T16:36:00.000Z", "timeIds": ["8812610181", "8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100115",
+        "rows": [
+          {"id": "881260913008", "planId": "881260913", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-08-23T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881261025003", "planId": "881261025", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610251", "8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100113",
+        "rows": [
+          {"id": "881260913009", "planId": "881260913", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-08-24T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881260927008", "planId": "881260927", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-09-02T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "882261014002", "planId": "882261014", "teamId": "2211", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-09-23T02:36:00.000Z", "timeIds": ["8822610141", "8822610142"], "serviceTimeIds": ["8822610142"], "declineReason": null},
+          {"id": "881261101006", "planId": "881261101", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812611011", "8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100120",
+        "rows": [
+          {"id": "881260913010", "planId": "881260913", "teamId": "2202", "teamPositionName": "Tenor", "status": "C", "createdAt": "2026-08-25T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881261011009", "planId": "881261011", "teamId": "2202", "teamPositionName": "Tenor", "status": "C", "createdAt": "2026-09-18T16:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null},
+          {"id": "881261025006", "planId": "881261025", "teamId": "2202", "teamPositionName": "Tenor", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610251", "8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100153",
+        "rows": [
+          {"id": "881260913011", "planId": "881260913", "teamId": "2203", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-08-26T16:36:00.000Z", "timeIds": ["8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881261011010", "planId": "881261011", "teamId": "2203", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-09-19T16:36:00.000Z", "timeIds": ["8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100158",
+        "rows": [
+          {"id": "881260913014", "planId": "881260913", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-08-19T16:36:00.000Z", "timeIds": ["8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881261011014", "planId": "881261011", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-09-23T16:36:00.000Z", "timeIds": ["8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null},
+          {"id": "881261101008", "planId": "881261101", "teamId": "2204", "teamPositionName": "Greeter", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100160",
+        "rows": [
+          {"id": "881260913015", "planId": "881260913", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-08-20T16:36:00.000Z", "timeIds": ["8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881260927015", "planId": "881260927", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-09-09T16:36:00.000Z", "timeIds": ["8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261011015", "planId": "881261011", "teamId": "2204", "teamPositionName": "Greeter", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null},
+          {"id": "881261101007", "planId": "881261101", "teamId": "2204", "teamPositionName": "Coffee", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100131",
+        "rows": [
+          {"id": "881260913016", "planId": "881260913", "teamId": "2204", "teamPositionName": "Greeter", "status": "C", "createdAt": "2026-08-21T16:36:00.000Z", "timeIds": ["8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881261004015", "planId": "881261004", "teamId": "2204", "teamPositionName": "Greeter", "status": "C", "createdAt": "2026-09-15T16:36:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "881261025010", "planId": "881261025", "teamId": "2204", "teamPositionName": "Greeter", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100129",
+        "rows": [
+          {"id": "881260913017", "planId": "881260913", "teamId": "2204", "teamPositionName": "Greeter", "status": "C", "createdAt": "2026-08-23T16:36:00.000Z", "timeIds": ["8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+          {"id": "881260927014", "planId": "881260927", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-09-08T16:36:00.000Z", "timeIds": ["8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261004014", "planId": "881261004", "teamId": "2204", "teamPositionName": "Coffee", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "881261018013", "planId": "881261018", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-09-23T16:36:00.000Z", "timeIds": ["8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null},
+          {"id": "881261101009", "planId": "881261101", "teamId": "2204", "teamPositionName": "Greeter", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100101",
+        "rows": [
+          {"id": "882260916001", "planId": "882260916", "teamId": "2211", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-28T02:36:00.000Z", "timeIds": ["8822609161", "8822609162"], "serviceTimeIds": ["8822609162"], "declineReason": null},
+          {"id": "882261014001", "planId": "882261014", "teamId": "2211", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-22T02:36:00.000Z", "timeIds": ["8822610141", "8822610142"], "serviceTimeIds": ["8822610142"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100134",
+        "rows": [
+          {"id": "882260916002", "planId": "882260916", "teamId": "2211", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-08-30T02:36:00.000Z", "timeIds": ["8822609161", "8822609162"], "serviceTimeIds": ["8822609162"], "declineReason": null},
+          {"id": "882260930002", "planId": "882260930", "teamId": "2211", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-09-05T02:36:00.000Z", "timeIds": ["8822609301", "8822609302"], "serviceTimeIds": ["8822609302"], "declineReason": null},
+          {"id": "882261028002", "planId": "882261028", "teamId": "2211", "teamPositionName": "Keys", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8822610281", "8822610282"], "serviceTimeIds": ["8822610282"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100147",
+        "rows": [
+          {"id": "882260916003", "planId": "882260916", "teamId": "2211", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-08-21T02:36:00.000Z", "timeIds": ["8822609161", "8822609162"], "serviceTimeIds": ["8822609162"], "declineReason": null},
+          {"id": "882261007002", "planId": "882261007", "teamId": "2211", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-09-15T02:36:00.000Z", "timeIds": ["8822610071", "8822610072"], "serviceTimeIds": ["8822610072"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100133",
+        "rows": [
+          {"id": "882260916004", "planId": "882260916", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-08-22T02:36:00.000Z", "timeIds": ["8822609161", "8822609162"], "serviceTimeIds": ["8822609162"], "declineReason": null},
+          {"id": "882260930001", "planId": "882260930", "teamId": "2211", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-04T02:36:00.000Z", "timeIds": ["8822609301", "8822609302"], "serviceTimeIds": ["8822609302"], "declineReason": null},
+          {"id": "882261021001", "planId": "882261021", "teamId": "2211", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-30T02:36:00.000Z", "timeIds": ["8822610211", "8822610212"], "serviceTimeIds": ["8822610212"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100148",
+        "rows": [
+          {"id": "882260916005", "planId": "882260916", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-08-23T02:36:00.000Z", "timeIds": ["8822609161", "8822609162"], "serviceTimeIds": ["8822609162"], "declineReason": null},
+          {"id": "882260930004", "planId": "882260930", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-09-08T02:36:00.000Z", "timeIds": ["8822609301", "8822609302"], "serviceTimeIds": ["8822609302"], "declineReason": null},
+          {"id": "882261014006", "planId": "882261014", "teamId": "2212", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-27T02:36:00.000Z", "timeIds": ["8822610142"], "serviceTimeIds": ["8822610142"], "declineReason": null},
+          {"id": "882261028003", "planId": "882261028", "teamId": "2212", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8822610282"], "serviceTimeIds": ["8822610282"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100137",
+        "rows": [
+          {"id": "882260916007", "planId": "882260916", "teamId": "2212", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-08-25T02:36:00.000Z", "timeIds": ["8822609162"], "serviceTimeIds": ["8822609162"], "declineReason": null},
+          {"id": "882260930005", "planId": "882260930", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-09-09T02:36:00.000Z", "timeIds": ["8822609301", "8822609302"], "serviceTimeIds": ["8822609302"], "declineReason": null},
+          {"id": "882261014004", "planId": "882261014", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-09-25T02:36:00.000Z", "timeIds": ["8822610141", "8822610142"], "serviceTimeIds": ["8822610142"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100152",
+        "rows": [
+          {"id": "881260920005", "planId": "881260920", "teamId": "2201", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-08-29T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881261018005", "planId": "881261018", "teamId": "2201", "teamPositionName": "Keys", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610181", "8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100116",
+        "rows": [
+          {"id": "881260920007", "planId": "881260920", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-08-31T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881261004007", "planId": "881261004", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-09-07T16:36:00.000Z", "timeIds": ["8812610041", "8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "881261025004", "planId": "881261025", "teamId": "2202", "teamPositionName": "Alto", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610251", "8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100122",
+        "rows": [
+          {"id": "881260920009", "planId": "881260920", "teamId": "2203", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-09-02T16:36:00.000Z", "timeIds": ["8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881261004008", "planId": "881261004", "teamId": "2203", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-09-08T16:36:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "881261018008", "planId": "881261018", "teamId": "2203", "teamPositionName": "Sound", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100157",
+        "rows": [
+          {"id": "881260920011", "planId": "881260920", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-08-25T16:36:00.000Z", "timeIds": ["8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881261011013", "planId": "881261011", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-22T16:36:00.000Z", "timeIds": ["8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null},
+          {"id": "881261025008", "planId": "881261025", "teamId": "2203", "teamPositionName": "Camera", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100159",
+        "rows": [
+          {"id": "881260920012", "planId": "881260920", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-08-26T16:36:00.000Z", "timeIds": ["8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881261011012", "planId": "881261011", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-21T16:36:00.000Z", "timeIds": ["8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100156",
+        "rows": [
+          {"id": "881260920013", "planId": "881260920", "teamId": "2203", "teamPositionName": "Livestream", "status": "C", "createdAt": "2026-08-27T16:36:00.000Z", "timeIds": ["8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881261011011", "planId": "881261011", "teamId": "2203", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-20T16:36:00.000Z", "timeIds": ["8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null},
+          {"id": "881261025007", "planId": "881261025", "teamId": "2203", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100132",
+        "rows": [
+          {"id": "881260920015", "planId": "881260920", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-08-29T16:36:00.000Z", "timeIds": ["8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+          {"id": "881261004016", "planId": "881261004", "teamId": "2204", "teamPositionName": "Greeter", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "881261025009", "planId": "881261025", "teamId": "2204", "teamPositionName": "Greeter", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100151",
+        "rows": [
+          {"id": "881260927004", "planId": "881260927", "teamId": "2201", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-09-07T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261018003", "planId": "881261018", "teamId": "2201", "teamPositionName": "Drums", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610181", "8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null},
+          {"id": "881261101003", "planId": "881261101", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812611011", "8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100112",
+        "rows": [
+          {"id": "881260927006", "planId": "881260927", "teamId": "2201", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-08-31T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261004005", "planId": "881261004", "teamId": "2201", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-09-15T16:36:00.000Z", "timeIds": ["8812610041", "8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "883261018004", "planId": "883261018", "teamId": "2221", "teamPositionName": "Keys", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8832610181", "8832610182"], "serviceTimeIds": ["8832610182"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100155",
+        "rows": [
+          {"id": "881260927007", "planId": "881260927", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-09-01T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261018007", "planId": "881261018", "teamId": "2202", "teamPositionName": "Tenor", "status": "C", "createdAt": "2026-09-27T16:36:00.000Z", "timeIds": ["8812610181", "8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+        ]
+      },
+      {
+        "personId": "4100124",
+        "rows": [
+          {"id": "881260927011", "planId": "881260927", "teamId": "2203", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-04T16:36:00.000Z", "timeIds": ["8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+          {"id": "881261004009", "planId": "881261004", "teamId": "2203", "teamPositionName": "Lyrics", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+          {"id": "883261018006", "planId": "883261018", "teamId": "2223", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-25T01:36:00.000Z", "timeIds": ["8832610181", "8832610182"], "serviceTimeIds": ["8832610182"], "declineReason": null}
+        ]
+      }
+    ],
+    "deferredPlans": [],
+    "deferredServiceTypeIds": [],
+    "requestBudget": {"limit": 36, "planningCenterRequests": 20, "planRangeRequests": 2, "rosterRequests": 18}
+  },
+  "cases": [
+    {
+      "match": {
+        "date": "2026-10-04T16:00:00.000Z",
+        "continuation": {
+          "plans": [
+            {"serviceTypeId": "1102", "planId": "882261014", "rosterRequests": 1},
+            {"serviceTypeId": "1101", "planId": "881261018", "rosterRequests": 1},
+            {"serviceTypeId": "1102", "planId": "882261021", "rosterRequests": 1},
+            {"serviceTypeId": "1101", "planId": "881261025", "rosterRequests": 1},
+            {"serviceTypeId": "1102", "planId": "882261028", "rosterRequests": 1},
+            {"serviceTypeId": "1101", "planId": "881261101", "rosterRequests": 1}
+          ],
+          "serviceTypeIds": ["1103"]
+        }
+      },
+      "output": {
+        "generatedAt": "2026-10-01T17:00:00.000Z",
+        "loadedPlanCount": 7,
+        "plans": [
+          {"id": "882261014", "title": "Why Does It Hurt?", "sortDate": "2026-10-15T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+          {"id": "881261018", "title": "A Seat for Everyone", "sortDate": "2026-10-18T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+          {"id": "882261021", "title": "Can I Start Over?", "sortDate": "2026-10-22T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+          {"id": "881261025", "title": "Bread for the Journey", "sortDate": "2026-10-25T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+          {"id": "882261028", "title": "Does Prayer Work?", "sortDate": "2026-10-29T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+          {"id": "881261101", "title": "Strangers and Neighbors", "sortDate": "2026-11-01T17:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+          {"id": "883261018", "title": "Baptism Night", "sortDate": "2026-10-19T01:00:00.000Z", "serviceTypeName": "Special Events"}
+        ],
+        "planTimes": [
+          {"id": "8822610141", "startsAt": "2026-10-15T01:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8822610142", "startsAt": "2026-10-15T02:00:00.000Z", "timeType": "service"},
+          {"id": "8812610181", "startsAt": "2026-10-16T02:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8812610182", "startsAt": "2026-10-18T16:00:00.000Z", "timeType": "service"},
+          {"id": "8812610183", "startsAt": "2026-10-18T18:00:00.000Z", "timeType": "service"},
+          {"id": "8822610211", "startsAt": "2026-10-22T01:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8822610212", "startsAt": "2026-10-22T02:00:00.000Z", "timeType": "service"},
+          {"id": "8812610251", "startsAt": "2026-10-23T02:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8812610252", "startsAt": "2026-10-25T16:00:00.000Z", "timeType": "service"},
+          {"id": "8812610253", "startsAt": "2026-10-25T18:00:00.000Z", "timeType": "service"},
+          {"id": "8822610281", "startsAt": "2026-10-29T01:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8822610282", "startsAt": "2026-10-29T02:00:00.000Z", "timeType": "service"},
+          {"id": "8812611011", "startsAt": "2026-10-30T02:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8812611012", "startsAt": "2026-11-01T17:00:00.000Z", "timeType": "service"},
+          {"id": "8812611013", "startsAt": "2026-11-01T19:00:00.000Z", "timeType": "service"},
+          {"id": "8832610181", "startsAt": "2026-10-18T23:30:00.000Z", "timeType": "rehearsal"},
+          {"id": "8832610182", "startsAt": "2026-10-19T01:00:00.000Z", "timeType": "service"}
+        ],
+        "people": [
+          {
+            "personId": "4100101",
+            "rows": [
+              {"id": "882261014001", "planId": "882261014", "teamId": "2211", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-22T02:36:00.000Z", "timeIds": ["8822610141", "8822610142"], "serviceTimeIds": ["8822610142"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100113",
+            "rows": [
+              {"id": "882261014002", "planId": "882261014", "teamId": "2211", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-09-23T02:36:00.000Z", "timeIds": ["8822610141", "8822610142"], "serviceTimeIds": ["8822610142"], "declineReason": null},
+              {"id": "881261101006", "planId": "881261101", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812611011", "8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100109",
+            "rows": [
+              {"id": "882261014003", "planId": "882261014", "teamId": "2211", "teamPositionName": "Drums", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8822610141", "8822610142"], "serviceTimeIds": ["8822610142"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100137",
+            "rows": [
+              {"id": "882261014004", "planId": "882261014", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-09-25T02:36:00.000Z", "timeIds": ["8822610141", "8822610142"], "serviceTimeIds": ["8822610142"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100123",
+            "rows": [
+              {"id": "882261014005", "planId": "882261014", "teamId": "2212", "teamPositionName": "Sound", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8822610142"], "serviceTimeIds": ["8822610142"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100148",
+            "rows": [
+              {"id": "882261014006", "planId": "882261014", "teamId": "2212", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-27T02:36:00.000Z", "timeIds": ["8822610142"], "serviceTimeIds": ["8822610142"], "declineReason": null},
+              {"id": "882261028003", "planId": "882261028", "teamId": "2212", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8822610282"], "serviceTimeIds": ["8822610282"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100102",
+            "rows": [
+              {"id": "881261018001", "planId": "881261018", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "D", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610181", "8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": "Visiting family that weekend"},
+              {"id": "883261018001", "planId": "883261018", "teamId": "2221", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-30T01:36:00.000Z", "timeIds": ["8832610181", "8832610182"], "serviceTimeIds": ["8832610182"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100103",
+            "rows": [
+              {"id": "881261018002", "planId": "881261018", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-21T16:36:00.000Z", "timeIds": ["8812610181", "8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100151",
+            "rows": [
+              {"id": "881261018003", "planId": "881261018", "teamId": "2201", "teamPositionName": "Drums", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610181", "8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null},
+              {"id": "881261101003", "planId": "881261101", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812611011", "8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100107",
+            "rows": [
+              {"id": "881261018004", "planId": "881261018", "teamId": "2201", "teamPositionName": "Electric Guitar", "status": "C", "createdAt": "2026-09-23T16:36:00.000Z", "timeIds": ["8812610181", "8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100152",
+            "rows": [
+              {"id": "881261018005", "planId": "881261018", "teamId": "2201", "teamPositionName": "Keys", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610181", "8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100114",
+            "rows": [
+              {"id": "881261018006", "planId": "881261018", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-09-26T16:36:00.000Z", "timeIds": ["8812610181", "8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null},
+              {"id": "881261101004", "planId": "881261101", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812611011", "8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null},
+              {"id": "883261018005", "planId": "883261018", "teamId": "2222", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-09-24T01:36:00.000Z", "timeIds": ["8832610181", "8832610182"], "serviceTimeIds": ["8832610182"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100155",
+            "rows": [
+              {"id": "881261018007", "planId": "881261018", "teamId": "2202", "teamPositionName": "Tenor", "status": "C", "createdAt": "2026-09-27T16:36:00.000Z", "timeIds": ["8812610181", "8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100122",
+            "rows": [
+              {"id": "881261018008", "planId": "881261018", "teamId": "2203", "teamPositionName": "Sound", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100117",
+            "rows": [
+              {"id": "881261018009", "planId": "881261018", "teamId": "2203", "teamPositionName": "Lyrics", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100127",
+            "rows": [
+              {"id": "881261018010", "planId": "881261018", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-29T16:36:00.000Z", "timeIds": ["8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100126",
+            "rows": [
+              {"id": "881261018011", "planId": "881261018", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-21T16:36:00.000Z", "timeIds": ["8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100125",
+            "rows": [
+              {"id": "881261018012", "planId": "881261018", "teamId": "2203", "teamPositionName": "Livestream", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100129",
+            "rows": [
+              {"id": "881261018013", "planId": "881261018", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-09-23T16:36:00.000Z", "timeIds": ["8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null},
+              {"id": "881261101009", "planId": "881261101", "teamId": "2204", "teamPositionName": "Greeter", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100128",
+            "rows": [
+              {"id": "881261018014", "planId": "881261018", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-09-24T16:36:00.000Z", "timeIds": ["8812610182", "8812610183"], "serviceTimeIds": ["8812610182", "8812610183"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100133",
+            "rows": [
+              {"id": "882261021001", "planId": "882261021", "teamId": "2211", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-30T02:36:00.000Z", "timeIds": ["8822610211", "8822610212"], "serviceTimeIds": ["8822610212"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100146",
+            "rows": [
+              {"id": "882261021002", "planId": "882261021", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8822610211", "8822610212"], "serviceTimeIds": ["8822610212"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100136",
+            "rows": [
+              {"id": "882261021003", "planId": "882261021", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8822610211", "8822610212"], "serviceTimeIds": ["8822610212"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100138",
+            "rows": [
+              {"id": "882261021004", "planId": "882261021", "teamId": "2212", "teamPositionName": "Sound", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8822610212"], "serviceTimeIds": ["8822610212"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100149",
+            "rows": [
+              {"id": "881261025001", "planId": "881261025", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-29T16:36:00.000Z", "timeIds": ["8812610251", "8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100161",
+            "rows": [
+              {"id": "881261025002", "planId": "881261025", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610251", "8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100115",
+            "rows": [
+              {"id": "881261025003", "planId": "881261025", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610251", "8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100116",
+            "rows": [
+              {"id": "881261025004", "planId": "881261025", "teamId": "2202", "teamPositionName": "Alto", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610251", "8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100154",
+            "rows": [
+              {"id": "881261025005", "planId": "881261025", "teamId": "2202", "teamPositionName": "Alto", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610251", "8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100120",
+            "rows": [
+              {"id": "881261025006", "planId": "881261025", "teamId": "2202", "teamPositionName": "Tenor", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610251", "8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100156",
+            "rows": [
+              {"id": "881261025007", "planId": "881261025", "teamId": "2203", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100157",
+            "rows": [
+              {"id": "881261025008", "planId": "881261025", "teamId": "2203", "teamPositionName": "Camera", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100132",
+            "rows": [
+              {"id": "881261025009", "planId": "881261025", "teamId": "2204", "teamPositionName": "Greeter", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100131",
+            "rows": [
+              {"id": "881261025010", "planId": "881261025", "teamId": "2204", "teamPositionName": "Greeter", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610252", "8812610253"], "serviceTimeIds": ["8812610252", "8812610253"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100145",
+            "rows": [
+              {"id": "882261028001", "planId": "882261028", "teamId": "2211", "teamPositionName": "Acoustic Guitar", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8822610281", "8822610282"], "serviceTimeIds": ["8822610282"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100134",
+            "rows": [
+              {"id": "882261028002", "planId": "882261028", "teamId": "2211", "teamPositionName": "Keys", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8822610281", "8822610282"], "serviceTimeIds": ["8822610282"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100104",
+            "rows": [
+              {"id": "881261101001", "planId": "881261101", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812611011", "8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100105",
+            "rows": [
+              {"id": "881261101002", "planId": "881261101", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812611011", "8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100150",
+            "rows": [
+              {"id": "881261101005", "planId": "881261101", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812611011", "8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100160",
+            "rows": [
+              {"id": "881261101007", "planId": "881261101", "teamId": "2204", "teamPositionName": "Coffee", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100158",
+            "rows": [
+              {"id": "881261101008", "planId": "881261101", "teamId": "2204", "teamPositionName": "Greeter", "status": "C", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812611012", "8812611013"], "serviceTimeIds": ["8812611012", "8812611013"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100106",
+            "rows": [
+              {"id": "883261018002", "planId": "883261018", "teamId": "2221", "teamPositionName": "Bass Guitar", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8832610181", "8832610182"], "serviceTimeIds": ["8832610182"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100108",
+            "rows": [
+              {"id": "883261018003", "planId": "883261018", "teamId": "2221", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-09-22T01:36:00.000Z", "timeIds": ["8832610181", "8832610182"], "serviceTimeIds": ["8832610182"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100112",
+            "rows": [
+              {"id": "883261018004", "planId": "883261018", "teamId": "2221", "teamPositionName": "Keys", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8832610181", "8832610182"], "serviceTimeIds": ["8832610182"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100124",
+            "rows": [
+              {"id": "883261018006", "planId": "883261018", "teamId": "2223", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-25T01:36:00.000Z", "timeIds": ["8832610181", "8832610182"], "serviceTimeIds": ["8832610182"], "declineReason": null}
+            ]
+          }
+        ],
+        "deferredPlans": [],
+        "deferredServiceTypeIds": [],
+        "requestBudget": {"limit": 36, "planningCenterRequests": 9, "planRangeRequests": 2, "rosterRequests": 7}
+      }
+    },
+    {
+      "match": {"date": "2026-10-04T16:00:00.000Z"},
+      "output": {
+        "generatedAt": "2026-10-01T17:00:00.000Z",
+        "loadedPlanCount": 11,
+        "plans": [
+          {"id": "881260906", "title": "Good Soil", "sortDate": "2026-09-06T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+          {"id": "882260909", "title": "Why Church?", "sortDate": "2026-09-10T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+          {"id": "881260913", "title": "Through Dry Seasons", "sortDate": "2026-09-13T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+          {"id": "882260916", "title": "Prayer 101", "sortDate": "2026-09-17T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+          {"id": "881260920", "title": "Branches", "sortDate": "2026-09-20T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+          {"id": "882260923", "title": "Reading the Bible", "sortDate": "2026-09-24T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+          {"id": "881260927", "title": "Fruit That Lasts", "sortDate": "2026-09-27T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+          {"id": "882260930", "title": "Is God Real?", "sortDate": "2026-10-01T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+          {"id": "881261004", "title": "Deep Roots", "sortDate": "2026-10-04T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"},
+          {"id": "882261007", "title": "Is God Good?", "sortDate": "2026-10-08T02:00:00.000Z", "serviceTypeName": "Youth Night"},
+          {"id": "881261011", "title": "Rooted Together", "sortDate": "2026-10-11T16:00:00.000Z", "serviceTypeName": "Sunday Gathering"}
+        ],
+        "planTimes": [
+          {"id": "8812609061", "startsAt": "2026-09-04T02:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8812609062", "startsAt": "2026-09-06T16:00:00.000Z", "timeType": "service"},
+          {"id": "8812609063", "startsAt": "2026-09-06T18:00:00.000Z", "timeType": "service"},
+          {"id": "8822609091", "startsAt": "2026-09-10T01:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8822609092", "startsAt": "2026-09-10T02:00:00.000Z", "timeType": "service"},
+          {"id": "8812609131", "startsAt": "2026-09-11T02:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8812609132", "startsAt": "2026-09-13T16:00:00.000Z", "timeType": "service"},
+          {"id": "8812609133", "startsAt": "2026-09-13T18:00:00.000Z", "timeType": "service"},
+          {"id": "8822609161", "startsAt": "2026-09-17T01:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8822609162", "startsAt": "2026-09-17T02:00:00.000Z", "timeType": "service"},
+          {"id": "8812609201", "startsAt": "2026-09-18T02:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8812609202", "startsAt": "2026-09-20T16:00:00.000Z", "timeType": "service"},
+          {"id": "8812609203", "startsAt": "2026-09-20T18:00:00.000Z", "timeType": "service"},
+          {"id": "8822609231", "startsAt": "2026-09-24T01:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8822609232", "startsAt": "2026-09-24T02:00:00.000Z", "timeType": "service"},
+          {"id": "8812609271", "startsAt": "2026-09-25T02:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8812609272", "startsAt": "2026-09-27T16:00:00.000Z", "timeType": "service"},
+          {"id": "8812609273", "startsAt": "2026-09-27T18:00:00.000Z", "timeType": "service"},
+          {"id": "8822609301", "startsAt": "2026-10-01T01:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8822609302", "startsAt": "2026-10-01T02:00:00.000Z", "timeType": "service"},
+          {"id": "8812610041", "startsAt": "2026-10-02T02:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8812610042", "startsAt": "2026-10-04T16:00:00.000Z", "timeType": "service"},
+          {"id": "8812610043", "startsAt": "2026-10-04T18:00:00.000Z", "timeType": "service"},
+          {"id": "8822610071", "startsAt": "2026-10-08T01:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8822610072", "startsAt": "2026-10-08T02:00:00.000Z", "timeType": "service"},
+          {"id": "8812610111", "startsAt": "2026-10-09T02:00:00.000Z", "timeType": "rehearsal"},
+          {"id": "8812610112", "startsAt": "2026-10-11T16:00:00.000Z", "timeType": "service"},
+          {"id": "8812610113", "startsAt": "2026-10-11T18:00:00.000Z", "timeType": "service"}
+        ],
+        "people": [
+          {
+            "personId": "4100102",
+            "rows": [
+              {"id": "881260906001", "planId": "881260906", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-17T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881260927002", "planId": "881260927", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-05T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100149",
+            "rows": [
+              {"id": "881260906002", "planId": "881260906", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-18T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881261011001", "planId": "881261011", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-19T16:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100106",
+            "rows": [
+              {"id": "881260906003", "planId": "881260906", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "C", "createdAt": "2026-08-19T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881260913003", "planId": "881260913", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "C", "createdAt": "2026-08-18T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881261011003", "planId": "881261011", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100108",
+            "rows": [
+              {"id": "881260906004", "planId": "881260906", "teamId": "2201", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-08-11T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881260920004", "planId": "881260920", "teamId": "2201", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-08-27T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+              {"id": "881261004003", "planId": "881261004", "teamId": "2201", "teamPositionName": "Drums", "status": "U", "createdAt": "2026-09-25T16:36:00.000Z", "timeIds": ["8812610041", "8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100110",
+            "rows": [
+              {"id": "881260906005", "planId": "881260906", "teamId": "2201", "teamPositionName": "Electric Guitar", "status": "C", "createdAt": "2026-08-12T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881261011005", "planId": "881261011", "teamId": "2201", "teamPositionName": "Electric Guitar", "status": "C", "createdAt": "2026-09-14T16:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100105",
+            "rows": [
+              {"id": "881260906006", "planId": "881260906", "teamId": "2201", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-08-13T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881260913007", "planId": "881260913", "teamId": "2201", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-08-22T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881261011002", "planId": "881261011", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-20T16:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100114",
+            "rows": [
+              {"id": "881260906007", "planId": "881260906", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-08-14T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881260920006", "planId": "881260920", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-08-30T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+              {"id": "881261004006", "planId": "881261004", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-09-16T16:36:00.000Z", "timeIds": ["8812610041", "8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100104",
+            "rows": [
+              {"id": "881260906008", "planId": "881260906", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-08-15T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881260913001", "planId": "881260913", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-26T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881260920002", "planId": "881260920", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-25T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+              {"id": "881260927001", "planId": "881260927", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-04T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+              {"id": "881261004001", "planId": "881261004", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-11T16:36:00.000Z", "timeIds": ["8812610041", "8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null},
+              {"id": "881261011007", "planId": "881261011", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-09-16T16:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100150",
+            "rows": [
+              {"id": "881260906009", "planId": "881260906", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-08-16T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881261011008", "planId": "881261011", "teamId": "2202", "teamPositionName": "Alto", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100121",
+            "rows": [
+              {"id": "881260906010", "planId": "881260906", "teamId": "2202", "teamPositionName": "Tenor", "status": "C", "createdAt": "2026-08-17T16:36:00.000Z", "timeIds": ["8812609061", "8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881260920008", "planId": "881260920", "teamId": "2202", "teamPositionName": "Tenor", "status": "C", "createdAt": "2026-09-01T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+              {"id": "881260927010", "planId": "881260927", "teamId": "2202", "teamPositionName": "Tenor", "status": "C", "createdAt": "2026-09-03T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+              {"id": "881261011006", "planId": "881261011", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-09-15T16:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100109",
+            "rows": [
+              {"id": "881260906011", "planId": "881260906", "teamId": "2203", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-08-18T16:36:00.000Z", "timeIds": ["8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "882260923003", "planId": "882260923", "teamId": "2211", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-08-29T02:36:00.000Z", "timeIds": ["8822609231", "8822609232"], "serviceTimeIds": ["8822609232"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100117",
+            "rows": [
+              {"id": "881260906012", "planId": "881260906", "teamId": "2203", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-08-19T16:36:00.000Z", "timeIds": ["8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881260913012", "planId": "881260913", "teamId": "2203", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-08-17T16:36:00.000Z", "timeIds": ["8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881260920010", "planId": "881260920", "teamId": "2203", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-02T16:36:00.000Z", "timeIds": ["8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+              {"id": "881260927009", "planId": "881260927", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-09-03T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100123",
+            "rows": [
+              {"id": "881260906013", "planId": "881260906", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-08-10T16:36:00.000Z", "timeIds": ["8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "882260916006", "planId": "882260916", "teamId": "2212", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-08-24T02:36:00.000Z", "timeIds": ["8822609162"], "serviceTimeIds": ["8822609162"], "declineReason": null},
+              {"id": "882260930006", "planId": "882260930", "teamId": "2212", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-09-10T02:36:00.000Z", "timeIds": ["8822609302"], "serviceTimeIds": ["8822609302"], "declineReason": null},
+              {"id": "881261004090", "planId": "881261004", "teamId": "2203", "teamPositionName": "Stage Manager", "status": "C", "createdAt": "2026-09-26T17:00:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100125",
+            "rows": [
+              {"id": "881260906014", "planId": "881260906", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-08-11T16:36:00.000Z", "timeIds": ["8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881260913013", "planId": "881260913", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-08-18T16:36:00.000Z", "timeIds": ["8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881260927012", "planId": "881260927", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-06T16:36:00.000Z", "timeIds": ["8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+              {"id": "881261004010", "planId": "881261004", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-10T16:36:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100127",
+            "rows": [
+              {"id": "881260906015", "planId": "881260906", "teamId": "2203", "teamPositionName": "Livestream", "status": "C", "createdAt": "2026-08-12T16:36:00.000Z", "timeIds": ["8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881260927013", "planId": "881260927", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-07T16:36:00.000Z", "timeIds": ["8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+              {"id": "881261004012", "planId": "881261004", "teamId": "2203", "teamPositionName": "Livestream", "status": "C", "createdAt": "2026-09-12T16:36:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100128",
+            "rows": [
+              {"id": "881260906016", "planId": "881260906", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-08-13T16:36:00.000Z", "timeIds": ["8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881260920014", "planId": "881260920", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-08-28T16:36:00.000Z", "timeIds": ["8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+              {"id": "881261004013", "planId": "881261004", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-09-13T16:36:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100154",
+            "rows": [
+              {"id": "881260906017", "planId": "881260906", "teamId": "2204", "teamPositionName": "Greeter", "status": "C", "createdAt": "2026-08-14T16:36:00.000Z", "timeIds": ["8812609062", "8812609063"], "serviceTimeIds": ["8812609062", "8812609063"], "declineReason": null},
+              {"id": "881260927016", "planId": "881260927", "teamId": "2204", "teamPositionName": "Greeter", "status": "C", "createdAt": "2026-08-31T16:36:00.000Z", "timeIds": ["8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+              {"id": "881261011016", "planId": "881261011", "teamId": "2204", "teamPositionName": "Greeter", "status": "C", "createdAt": "2026-09-15T16:36:00.000Z", "timeIds": ["8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100145",
+            "rows": [
+              {"id": "882260909001", "planId": "882260909", "teamId": "2211", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-20T02:36:00.000Z", "timeIds": ["8822609091", "8822609092"], "serviceTimeIds": ["8822609092"], "declineReason": null},
+              {"id": "882260923001", "planId": "882260923", "teamId": "2211", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-06T02:36:00.000Z", "timeIds": ["8822609231", "8822609232"], "serviceTimeIds": ["8822609232"], "declineReason": null},
+              {"id": "882261007004", "planId": "882261007", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-09-17T02:36:00.000Z", "timeIds": ["8822610071", "8822610072"], "serviceTimeIds": ["8822610072"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100146",
+            "rows": [
+              {"id": "882260909002", "planId": "882260909", "teamId": "2211", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-08-21T02:36:00.000Z", "timeIds": ["8822609091", "8822609092"], "serviceTimeIds": ["8822609092"], "declineReason": null},
+              {"id": "882260923002", "planId": "882260923", "teamId": "2211", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-08-28T02:36:00.000Z", "timeIds": ["8822609231", "8822609232"], "serviceTimeIds": ["8822609232"], "declineReason": null},
+              {"id": "882261007001", "planId": "882261007", "teamId": "2211", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-09-14T02:36:00.000Z", "timeIds": ["8822610071", "8822610072"], "serviceTimeIds": ["8822610072"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100135",
+            "rows": [
+              {"id": "882260909003", "planId": "882260909", "teamId": "2211", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-08-22T02:36:00.000Z", "timeIds": ["8822609091", "8822609092"], "serviceTimeIds": ["8822609092"], "declineReason": null},
+              {"id": "882260930003", "planId": "882260930", "teamId": "2211", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-09-07T02:36:00.000Z", "timeIds": ["8822609301", "8822609302"], "serviceTimeIds": ["8822609302"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100136",
+            "rows": [
+              {"id": "882260909004", "planId": "882260909", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-08-23T02:36:00.000Z", "timeIds": ["8822609091", "8822609092"], "serviceTimeIds": ["8822609092"], "declineReason": null},
+              {"id": "882260923004", "planId": "882260923", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-08-30T02:36:00.000Z", "timeIds": ["8822609231", "8822609232"], "serviceTimeIds": ["8822609232"], "declineReason": null},
+              {"id": "882261007003", "planId": "882261007", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-09-16T02:36:00.000Z", "timeIds": ["8822610071", "8822610072"], "serviceTimeIds": ["8822610072"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100138",
+            "rows": [
+              {"id": "882260909005", "planId": "882260909", "teamId": "2212", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-08-14T02:36:00.000Z", "timeIds": ["8822609092"], "serviceTimeIds": ["8822609092"], "declineReason": null},
+              {"id": "882260923005", "planId": "882260923", "teamId": "2212", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-08-31T02:36:00.000Z", "timeIds": ["8822609232"], "serviceTimeIds": ["8822609232"], "declineReason": null},
+              {"id": "882261007005", "planId": "882261007", "teamId": "2212", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-09-18T02:36:00.000Z", "timeIds": ["8822610072"], "serviceTimeIds": ["8822610072"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100126",
+            "rows": [
+              {"id": "882260909006", "planId": "882260909", "teamId": "2212", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-08-15T02:36:00.000Z", "timeIds": ["8822609092"], "serviceTimeIds": ["8822609092"], "declineReason": null},
+              {"id": "882260923006", "planId": "882260923", "teamId": "2212", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-01T02:36:00.000Z", "timeIds": ["8822609232"], "serviceTimeIds": ["8822609232"], "declineReason": null},
+              {"id": "881261004011", "planId": "881261004", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-11T16:36:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100103",
+            "rows": [
+              {"id": "881260913002", "planId": "881260913", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-17T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881260920001", "planId": "881260920", "teamId": "2201", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-24T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100161",
+            "rows": [
+              {"id": "881260913004", "planId": "881260913", "teamId": "2201", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-08-19T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881261011004", "planId": "881261011", "teamId": "2201", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-09-23T16:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100111",
+            "rows": [
+              {"id": "881260913005", "planId": "881260913", "teamId": "2201", "teamPositionName": "Electric Guitar", "status": "D", "createdAt": "2026-09-04T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": "Out of town"},
+              {"id": "881260927005", "planId": "881260927", "teamId": "2201", "teamPositionName": "Electric Guitar", "status": "C", "createdAt": "2026-09-09T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+              {"id": "881261004004", "planId": "881261004", "teamId": "2201", "teamPositionName": "Electric Guitar", "status": "D", "createdAt": "2026-09-25T16:36:00.000Z", "timeIds": ["8812610041", "8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": "Traveling for a family wedding that weekend."}
+            ]
+          },
+          {
+            "personId": "4100107",
+            "rows": [
+              {"id": "881260913006", "planId": "881260913", "teamId": "2201", "teamPositionName": "Electric Guitar", "status": "C", "createdAt": "2026-08-21T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881260920003", "planId": "881260920", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "C", "createdAt": "2026-08-26T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+              {"id": "881260927003", "planId": "881260927", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "C", "createdAt": "2026-09-06T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+              {"id": "881261004002", "planId": "881261004", "teamId": "2201", "teamPositionName": "Bass Guitar", "status": "C", "createdAt": "2026-09-12T16:36:00.000Z", "timeIds": ["8812610041", "8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100115",
+            "rows": [
+              {"id": "881260913008", "planId": "881260913", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-08-23T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100113",
+            "rows": [
+              {"id": "881260913009", "planId": "881260913", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-08-24T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881260927008", "planId": "881260927", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-09-02T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100120",
+            "rows": [
+              {"id": "881260913010", "planId": "881260913", "teamId": "2202", "teamPositionName": "Tenor", "status": "C", "createdAt": "2026-08-25T16:36:00.000Z", "timeIds": ["8812609131", "8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881261011009", "planId": "881261011", "teamId": "2202", "teamPositionName": "Tenor", "status": "C", "createdAt": "2026-09-18T16:36:00.000Z", "timeIds": ["8812610111", "8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100153",
+            "rows": [
+              {"id": "881260913011", "planId": "881260913", "teamId": "2203", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-08-26T16:36:00.000Z", "timeIds": ["8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881261011010", "planId": "881261011", "teamId": "2203", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-09-19T16:36:00.000Z", "timeIds": ["8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100158",
+            "rows": [
+              {"id": "881260913014", "planId": "881260913", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-08-19T16:36:00.000Z", "timeIds": ["8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881261011014", "planId": "881261011", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-09-23T16:36:00.000Z", "timeIds": ["8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100160",
+            "rows": [
+              {"id": "881260913015", "planId": "881260913", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-08-20T16:36:00.000Z", "timeIds": ["8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881260927015", "planId": "881260927", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-09-09T16:36:00.000Z", "timeIds": ["8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+              {"id": "881261011015", "planId": "881261011", "teamId": "2204", "teamPositionName": "Greeter", "status": "U", "createdAt": "2026-09-29T14:36:00.000Z", "timeIds": ["8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100131",
+            "rows": [
+              {"id": "881260913016", "planId": "881260913", "teamId": "2204", "teamPositionName": "Greeter", "status": "C", "createdAt": "2026-08-21T16:36:00.000Z", "timeIds": ["8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881261004015", "planId": "881261004", "teamId": "2204", "teamPositionName": "Greeter", "status": "C", "createdAt": "2026-09-15T16:36:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100129",
+            "rows": [
+              {"id": "881260913017", "planId": "881260913", "teamId": "2204", "teamPositionName": "Greeter", "status": "C", "createdAt": "2026-08-23T16:36:00.000Z", "timeIds": ["8812609132", "8812609133"], "serviceTimeIds": ["8812609132", "8812609133"], "declineReason": null},
+              {"id": "881260927014", "planId": "881260927", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-09-08T16:36:00.000Z", "timeIds": ["8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+              {"id": "881261004014", "planId": "881261004", "teamId": "2204", "teamPositionName": "Coffee", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100101",
+            "rows": [
+              {"id": "882260916001", "planId": "882260916", "teamId": "2211", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-08-28T02:36:00.000Z", "timeIds": ["8822609161", "8822609162"], "serviceTimeIds": ["8822609162"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100134",
+            "rows": [
+              {"id": "882260916002", "planId": "882260916", "teamId": "2211", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-08-30T02:36:00.000Z", "timeIds": ["8822609161", "8822609162"], "serviceTimeIds": ["8822609162"], "declineReason": null},
+              {"id": "882260930002", "planId": "882260930", "teamId": "2211", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-09-05T02:36:00.000Z", "timeIds": ["8822609301", "8822609302"], "serviceTimeIds": ["8822609302"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100147",
+            "rows": [
+              {"id": "882260916003", "planId": "882260916", "teamId": "2211", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-08-21T02:36:00.000Z", "timeIds": ["8822609161", "8822609162"], "serviceTimeIds": ["8822609162"], "declineReason": null},
+              {"id": "882261007002", "planId": "882261007", "teamId": "2211", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-09-15T02:36:00.000Z", "timeIds": ["8822610071", "8822610072"], "serviceTimeIds": ["8822610072"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100133",
+            "rows": [
+              {"id": "882260916004", "planId": "882260916", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-08-22T02:36:00.000Z", "timeIds": ["8822609161", "8822609162"], "serviceTimeIds": ["8822609162"], "declineReason": null},
+              {"id": "882260930001", "planId": "882260930", "teamId": "2211", "teamPositionName": "Acoustic Guitar", "status": "C", "createdAt": "2026-09-04T02:36:00.000Z", "timeIds": ["8822609301", "8822609302"], "serviceTimeIds": ["8822609302"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100148",
+            "rows": [
+              {"id": "882260916005", "planId": "882260916", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-08-23T02:36:00.000Z", "timeIds": ["8822609161", "8822609162"], "serviceTimeIds": ["8822609162"], "declineReason": null},
+              {"id": "882260930004", "planId": "882260930", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-09-08T02:36:00.000Z", "timeIds": ["8822609301", "8822609302"], "serviceTimeIds": ["8822609302"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100137",
+            "rows": [
+              {"id": "882260916007", "planId": "882260916", "teamId": "2212", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-08-25T02:36:00.000Z", "timeIds": ["8822609162"], "serviceTimeIds": ["8822609162"], "declineReason": null},
+              {"id": "882260930005", "planId": "882260930", "teamId": "2211", "teamPositionName": "Vocals", "status": "C", "createdAt": "2026-09-09T02:36:00.000Z", "timeIds": ["8822609301", "8822609302"], "serviceTimeIds": ["8822609302"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100152",
+            "rows": [
+              {"id": "881260920005", "planId": "881260920", "teamId": "2201", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-08-29T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100116",
+            "rows": [
+              {"id": "881260920007", "planId": "881260920", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-08-31T16:36:00.000Z", "timeIds": ["8812609201", "8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+              {"id": "881261004007", "planId": "881261004", "teamId": "2202", "teamPositionName": "Alto", "status": "C", "createdAt": "2026-09-07T16:36:00.000Z", "timeIds": ["8812610041", "8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100122",
+            "rows": [
+              {"id": "881260920009", "planId": "881260920", "teamId": "2203", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-09-02T16:36:00.000Z", "timeIds": ["8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+              {"id": "881261004008", "planId": "881261004", "teamId": "2203", "teamPositionName": "Sound", "status": "C", "createdAt": "2026-09-08T16:36:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100157",
+            "rows": [
+              {"id": "881260920011", "planId": "881260920", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-08-25T16:36:00.000Z", "timeIds": ["8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+              {"id": "881261011013", "planId": "881261011", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-22T16:36:00.000Z", "timeIds": ["8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100159",
+            "rows": [
+              {"id": "881260920012", "planId": "881260920", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-08-26T16:36:00.000Z", "timeIds": ["8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+              {"id": "881261011012", "planId": "881261011", "teamId": "2203", "teamPositionName": "Camera", "status": "C", "createdAt": "2026-09-21T16:36:00.000Z", "timeIds": ["8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100156",
+            "rows": [
+              {"id": "881260920013", "planId": "881260920", "teamId": "2203", "teamPositionName": "Livestream", "status": "C", "createdAt": "2026-08-27T16:36:00.000Z", "timeIds": ["8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+              {"id": "881261011011", "planId": "881261011", "teamId": "2203", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-20T16:36:00.000Z", "timeIds": ["8812610112", "8812610113"], "serviceTimeIds": ["8812610112", "8812610113"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100132",
+            "rows": [
+              {"id": "881260920015", "planId": "881260920", "teamId": "2204", "teamPositionName": "Coffee", "status": "C", "createdAt": "2026-08-29T16:36:00.000Z", "timeIds": ["8812609202", "8812609203"], "serviceTimeIds": ["8812609202", "8812609203"], "declineReason": null},
+              {"id": "881261004016", "planId": "881261004", "teamId": "2204", "teamPositionName": "Greeter", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100151",
+            "rows": [
+              {"id": "881260927004", "planId": "881260927", "teamId": "2201", "teamPositionName": "Drums", "status": "C", "createdAt": "2026-09-07T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100112",
+            "rows": [
+              {"id": "881260927006", "planId": "881260927", "teamId": "2201", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-08-31T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+              {"id": "881261004005", "planId": "881261004", "teamId": "2201", "teamPositionName": "Keys", "status": "C", "createdAt": "2026-09-15T16:36:00.000Z", "timeIds": ["8812610041", "8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100155",
+            "rows": [
+              {"id": "881260927007", "planId": "881260927", "teamId": "2202", "teamPositionName": "Worship Leader", "status": "C", "createdAt": "2026-09-01T16:36:00.000Z", "timeIds": ["8812609271", "8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null}
+            ]
+          },
+          {
+            "personId": "4100124",
+            "rows": [
+              {"id": "881260927011", "planId": "881260927", "teamId": "2203", "teamPositionName": "Lyrics", "status": "C", "createdAt": "2026-09-04T16:36:00.000Z", "timeIds": ["8812609272", "8812609273"], "serviceTimeIds": ["8812609272", "8812609273"], "declineReason": null},
+              {"id": "881261004009", "planId": "881261004", "teamId": "2203", "teamPositionName": "Lyrics", "status": "U", "createdAt": "2026-09-28T17:00:00.000Z", "timeIds": ["8812610042", "8812610043"], "serviceTimeIds": ["8812610042", "8812610043"], "declineReason": null}
+            ]
+          }
+        ],
+        "deferredPlans": [
+          {"serviceTypeId": "1102", "planId": "882261014", "rosterRequests": 1},
+          {"serviceTypeId": "1101", "planId": "881261018", "rosterRequests": 1},
+          {"serviceTypeId": "1102", "planId": "882261021", "rosterRequests": 1},
+          {"serviceTypeId": "1101", "planId": "881261025", "rosterRequests": 1},
+          {"serviceTypeId": "1102", "planId": "882261028", "rosterRequests": 1},
+          {"serviceTypeId": "1101", "planId": "881261101", "rosterRequests": 1}
+        ],
+        "deferredServiceTypeIds": ["1103"],
+        "requestBudget": {"limit": 36, "planningCenterRequests": 13, "planRangeRequests": 2, "rosterRequests": 11}
+      }
+    }
+  ]
+}

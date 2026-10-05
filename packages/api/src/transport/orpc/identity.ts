@@ -5,10 +5,7 @@ import {
   selectPlanningCenterAccount,
 } from "@pcobooster/api/application/identity";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
-import {
-  applicationRuntime,
-  rpc,
-} from "@pcobooster/api/transport/orpc/implementation";
+import { rpc } from "@pcobooster/api/transport/orpc/implementation";
 import {
   appendSelectedPlanningCenterAccountCookie,
   applyPrivateNoStore,
@@ -17,19 +14,13 @@ import {
 const sessionStatus = rpc.session.status.handler(
   async ({ context, signal }) => {
     applyPrivateNoStore(context.resHeaders);
-    return await executeApplicationEffect(
-      applicationRuntime,
-      getSessionStatus(),
-      context,
-      signal
-    );
+    return await executeApplicationEffect(getSessionStatus(), context, signal);
   }
 );
 
 const accountsList = rpc.accounts.list.handler(async ({ context, signal }) => {
   applyPrivateNoStore(context.resHeaders);
   return await executeApplicationEffect(
-    applicationRuntime,
     getPlanningCenterAccounts(),
     context,
     signal
@@ -40,7 +31,6 @@ const accountsSelect = rpc.accounts.select.handler(
   async ({ input, context, signal }) => {
     applyPrivateNoStore(context.resHeaders);
     const result = await executeApplicationEffect(
-      applicationRuntime,
       selectPlanningCenterAccount(input),
       context,
       signal
@@ -59,7 +49,6 @@ const featuresStatus = rpc.features.status.handler(
   async ({ context, signal }) => {
     applyPrivateNoStore(context.resHeaders);
     return await executeApplicationEffect(
-      applicationRuntime,
       getEnabledFeatures(),
       context,
       signal

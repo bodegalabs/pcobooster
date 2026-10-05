@@ -1,3 +1,4 @@
+import { ORPCError } from "@orpc/client";
 import type {
   PlanWindowHistoryBatch,
   PositionCandidates,
@@ -41,6 +42,29 @@ export interface OptimisticScheduleSlot {
   teamId: string;
   positionId: string;
 }
+
+const OPTIMISTIC_PLAN_PERSON_ID_PREFIX = "optimistic:";
+
+/** Planning Center no longer has the plan person, so the lineup on screen is stale. */
+export const isMissingPlanPersonError = (error: Error): boolean =>
+  error instanceof ORPCError && error.code === "NOT_FOUND";
+
+/** Stands in for the plan person an assign creates until Planning Center returns its ID. */
+export const createOptimisticPlanPersonId = (
+  slot: Omit<OptimisticScheduleSlot, "serviceTypeId">,
+  personId: string
+): string =>
+  `${OPTIMISTIC_PLAN_PERSON_ID_PREFIX}${slot.planId}:${slot.teamId}:${slot.positionId}:${personId}`;
+
+/**
+ * A plan person Planning Center has saved. A stand-in can't change status or come off the
+ * plan until its assign lands; Planning Center would answer 404.
+ */
+export const isSavedPlanPersonId = (
+  planPersonId: string | null | undefined
+): planPersonId is string =>
+  isNonEmptyString(planPersonId) &&
+  !planPersonId.startsWith(OPTIMISTIC_PLAN_PERSON_ID_PREFIX);
 
 export interface ScheduleMutationInvalidateContext {
   serviceTypeId?: string | null;

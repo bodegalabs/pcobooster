@@ -1,0 +1,5149 @@
+{
+  "suite": "scheduling.expandWindowHistory",
+  "cases": [
+    {
+      "input": {
+        "windowCalls": null,
+        "planId": "plan-1"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "windowCalls": [
+          {
+            "generatedAt": "2026-09-27T17:00:00.000Z",
+            "loadedPlanCount": 0,
+            "plans": [
+              {
+                "id": "plan-0",
+                "title": "Two weeks ago",
+                "sortDate": "2026-09-13T17:00:00.000Z",
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [],
+            "people": [
+              {
+                "personId": "p-busy",
+                "rows": [
+                  {
+                    "id": "pp-0",
+                    "planId": "plan-0",
+                    "teamId": "team-1",
+                    "teamPositionName": "Keys",
+                    "status": "C",
+                    "createdAt": "2026-09-27T17:00:00.000Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "planId": "plan-1"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "windowCalls": [
+          {
+            "generatedAt": "2026-09-27T17:00:00.000Z",
+            "loadedPlanCount": 1,
+            "plans": [
+              {
+                "id": "plan-0",
+                "title": "Two weeks ago",
+                "sortDate": "2026-09-13T17:00:00.000Z",
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [],
+            "people": [
+              {
+                "personId": "p-busy",
+                "rows": [
+                  {
+                    "id": "pp-0",
+                    "planId": "plan-0",
+                    "teamId": "team-1",
+                    "teamPositionName": "Keys",
+                    "status": "C",
+                    "createdAt": "2026-09-27T17:00:00.000Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "planId": "plan-1"
+      },
+      "output": [
+        {
+          "key": "p-busy",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-0",
+                "sourceScheduleId": "pp-0",
+                "planId": "plan-0",
+                "date": "2026-09-13T17:00:00.000Z",
+                "teamPositionName": "Keys",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Two weeks ago",
+                "status": "C",
+                "timeType": "service"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        }
+      ]
+    },
+    {
+      "input": {
+        "windowCalls": [
+          {
+            "generatedAt": "2026-09-27T17:00:00.000Z",
+            "loadedPlanCount": 0,
+            "plans": [
+              {
+                "id": "plan-0",
+                "title": "Two weeks ago",
+                "sortDate": "2026-09-13T17:00:00.000Z",
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [],
+            "people": [
+              {
+                "personId": "p-busy",
+                "rows": [
+                  {
+                    "id": "pp-0",
+                    "planId": "plan-0",
+                    "teamId": "team-1",
+                    "teamPositionName": "Keys",
+                    "status": "C",
+                    "createdAt": "2026-09-27T17:00:00.000Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-27T17:00:00.000Z",
+            "loadedPlanCount": 1,
+            "plans": [
+              {
+                "id": "plan-0",
+                "title": "Two weeks ago",
+                "sortDate": "2026-09-13T17:00:00.000Z",
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [],
+            "people": [
+              {
+                "personId": "p-busy",
+                "rows": [
+                  {
+                    "id": "pp-0",
+                    "planId": "plan-0",
+                    "teamId": "team-1",
+                    "teamPositionName": "Keys",
+                    "status": "C",
+                    "createdAt": "2026-09-27T17:00:00.000Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "planId": "plan-0"
+      },
+      "output": [
+        {
+          "key": "p-busy",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-0",
+                "sourceScheduleId": "pp-0",
+                "planId": "plan-0",
+                "date": "2026-09-13T17:00:00.000Z",
+                "teamPositionName": "Keys",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Two weeks ago",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0",
+                "sourceScheduleId": "pp-0",
+                "planId": "plan-0",
+                "date": "2026-09-13T17:00:00.000Z",
+                "teamPositionName": "Keys",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Two weeks ago",
+                "status": "C",
+                "timeType": "service"
+              }
+            ],
+            "selectedPlanAssignments": [
+              {
+                "source": "planPerson",
+                "id": "pp-0",
+                "planId": "plan-0",
+                "teamId": "team-1",
+                "teamName": null,
+                "teamPositionName": "Keys",
+                "status": "C",
+                "planPersonId": null,
+                "declineReason": null
+              },
+              {
+                "source": "planPerson",
+                "id": "pp-0",
+                "planId": "plan-0",
+                "teamId": "team-1",
+                "teamName": null,
+                "teamPositionName": "Keys",
+                "status": "C",
+                "planPersonId": null,
+                "declineReason": null
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "input": {
+        "windowCalls": [
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 0,
+            "plans": [
+              {
+                "id": "plan-1",
+                "title": "Plan 0.0",
+                "sortDate": "2026-10-11T02:00:00.123456Z",
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-2",
+                "title": null,
+                "sortDate": null,
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-6",
+                "startsAt": null,
+                "timeType": "other"
+              },
+              {
+                "id": "t-4",
+                "startsAt": "2026-08-26T13:00:00.000Z",
+                "timeType": "Rehearsal"
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-4",
+                "rows": [
+                  {
+                    "id": "pp-0-24",
+                    "planId": "plan-5",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band -Keys",
+                    "status": "Declined",
+                    "createdAt": "2026-08-18T17:00:00.5Z",
+                    "timeIds": [
+                      "t-2",
+                      "t-4",
+                      "t-5",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-4",
+                      "t-5",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-0-32",
+                    "planId": "plan-5",
+                    "teamId": "team-vox",
+                    "teamPositionName": "Band - Bass - Left",
+                    "status": "C",
+                    "createdAt": "2026-07-09T17:00:00.000Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-5",
+                      "t-6",
+                      "t-9",
+                      "t-1",
+                      "t-5",
+                      "t-6",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-5",
+                      "t-9"
+                    ],
+                    "declineReason": "  Busy  "
+                  },
+                  {
+                    "id": "pp-0-25",
+                    "planId": "",
+                    "teamId": null,
+                    "teamPositionName": "Band - Bass - Left",
+                    "status": "C",
+                    "createdAt": "2026-07-11T17:00:00Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-4",
+                      "t-9",
+                      "t-1",
+                      "t-4",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-4",
+                      "t-6"
+                    ],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "person-1",
+                "rows": [
+                  {
+                    "id": "pp-0-28",
+                    "planId": null,
+                    "teamId": null,
+                    "teamPositionName": " - Keys",
+                    "status": "C",
+                    "createdAt": "2026-09-01T17:00:00.000Z",
+                    "timeIds": [
+                      "t-3",
+                      "t-6",
+                      "t-9",
+                      "t-3",
+                      "t-6",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "person-4",
+                "rows": []
+              },
+              {
+                "personId": "person-2",
+                "rows": [
+                  {
+                    "id": "pp-0-21",
+                    "planId": "",
+                    "teamId": null,
+                    "teamPositionName": "Band - Bass - Left",
+                    "status": "D﻿",
+                    "createdAt": "2026-08-20",
+                    "timeIds": [
+                      "t-2",
+                      "t-4",
+                      "t-6",
+                      "t-2",
+                      "t-4",
+                      "t-6"
+                    ],
+                    "serviceTimeIds": [
+                      "t-4"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-0-29",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band - Bass - Left",
+                    "status": "Decline",
+                    "createdAt": "2026-09-06T17:00:00+05:30",
+                    "timeIds": [
+                      "t-1",
+                      "t-5",
+                      "t-7",
+                      "t-1",
+                      "t-5",
+                      "t-7"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-7"
+                    ],
+                    "declineReason": "  Busy  "
+                  },
+                  {
+                    "id": "pp-0-20",
+                    "planId": "plan-2",
+                    "teamId": null,
+                    "teamPositionName": "Band - Electric Guitar",
+                    "status": "C",
+                    "createdAt": "2026-09-01T17:00:00.123456Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-5",
+                      "t-9",
+                      "t-1",
+                      "t-5",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 2,
+            "plans": [
+              {
+                "id": "plan-1",
+                "title": "Plan 1.0",
+                "sortDate": "",
+                "serviceTypeName": null
+              },
+              {
+                "id": "plan-5",
+                "title": "Plan 1.1",
+                "sortDate": "",
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-5",
+                "startsAt": "2026-09-25T14:00:00.000Z",
+                "timeType": null
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-4",
+                "rows": [
+                  {
+                    "id": "pp-1-21",
+                    "planId": null,
+                    "teamId": "team-vox",
+                    "teamPositionName": "Band - Vocals",
+                    "status": "U",
+                    "createdAt": "2026-07-05T17:00:00-08:00",
+                    "timeIds": [
+                      "t-1",
+                      "t-4",
+                      "t-5",
+                      "t-7"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-7"
+                    ],
+                    "declineReason": "  Busy  "
+                  },
+                  {
+                    "id": "pp-1-35",
+                    "planId": "plan-4",
+                    "teamId": null,
+                    "teamPositionName": "A - B - C",
+                    "status": "DECLINED",
+                    "createdAt": "2026-09-01T17:00Z",
+                    "timeIds": [
+                      "t-5",
+                      "t-9",
+                      "t-5",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-5"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-1-8",
+                    "planId": "",
+                    "teamId": null,
+                    "teamPositionName": "Band - ",
+                    "status": "C",
+                    "createdAt": "2026-08-22T17:00:00-08:00",
+                    "timeIds": [
+                      "t-2",
+                      "t-3",
+                      "t-6",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-2",
+                      "t-9"
+                    ],
+                    "declineReason": "  Busy  "
+                  }
+                ]
+              },
+              {
+                "personId": "person-4",
+                "rows": [
+                  {
+                    "id": "pp-1-18",
+                    "planId": "plan-2",
+                    "teamId": null,
+                    "teamPositionName": "Vocals",
+                    "status": "C",
+                    "createdAt": "2026-08-17T17:00:00.5Z",
+                    "timeIds": [
+                      "t-2",
+                      "t-4",
+                      "t-5",
+                      "t-6"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-7"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-1-20",
+                    "planId": "",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band - Electric Guitar",
+                    "status": "C",
+                    "createdAt": "2026-07-20T17:00:00.5Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-7"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-4",
+                      "t-5",
+                      "t-8"
+                    ],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              },
+              {
+                "personId": "person-5",
+                "rows": [
+                  {
+                    "id": "pp-1-6",
+                    "planId": null,
+                    "teamId": "team-band",
+                    "teamPositionName": "A - B - C",
+                    "status": "DECLINED",
+                    "createdAt": "2026-08-06T17:00:00.000Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-5",
+                      "t-6",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-5",
+                      "t-6",
+                      "t-9"
+                    ],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "planId": "plan-1"
+      },
+      "output": [
+        {
+          "key": "person-4",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-0-32:t-5",
+                "sourceScheduleId": "pp-0-32",
+                "planId": "plan-5",
+                "date": "2026-09-25T14:00:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan 1.1",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-32:t-9",
+                "sourceScheduleId": "pp-0-32",
+                "planId": "plan-5",
+                "date": "2026-07-09T17:00:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan 1.1",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-32:t-1",
+                "sourceScheduleId": "pp-0-32",
+                "planId": "plan-5",
+                "date": "2026-07-09T17:00:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan 1.1",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-0-25:t-1",
+                "sourceScheduleId": "pp-0-25",
+                "planId": "",
+                "date": "2026-07-11T17:00:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-25:t-3",
+                "sourceScheduleId": "pp-0-25",
+                "planId": "",
+                "date": "2026-07-11T17:00:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-25:t-4",
+                "sourceScheduleId": "pp-0-25",
+                "planId": "",
+                "date": "2026-08-26T13:00:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-25:t-6",
+                "sourceScheduleId": "pp-0-25",
+                "planId": "",
+                "date": "2026-07-11T17:00:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-25:t-9",
+                "sourceScheduleId": "pp-0-25",
+                "planId": "",
+                "date": "2026-07-11T17:00:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-21:t-1",
+                "sourceScheduleId": "pp-1-21",
+                "date": "2026-07-06T01:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-21:t-7",
+                "sourceScheduleId": "pp-1-21",
+                "date": "2026-07-06T01:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-21:t-4",
+                "sourceScheduleId": "pp-1-21",
+                "date": "2026-08-26T13:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "U",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-21:t-5",
+                "sourceScheduleId": "pp-1-21",
+                "date": "2026-09-25T14:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "U",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-8:t-2",
+                "sourceScheduleId": "pp-1-8",
+                "planId": "",
+                "date": "2026-08-23T01:00:00.000Z",
+                "teamPositionName": "",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-8:t-9",
+                "sourceScheduleId": "pp-1-8",
+                "planId": "",
+                "date": "2026-08-23T01:00:00.000Z",
+                "teamPositionName": "",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-8:t-3",
+                "sourceScheduleId": "pp-1-8",
+                "planId": "",
+                "date": "2026-08-23T01:00:00.000Z",
+                "teamPositionName": "",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-18:t-1",
+                "sourceScheduleId": "pp-1-18",
+                "planId": "plan-2",
+                "date": "2026-08-17T17:00:00.500Z",
+                "teamPositionName": "Vocals",
+                "serviceTypeName": "Sunday",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-18:t-2",
+                "sourceScheduleId": "pp-1-18",
+                "planId": "plan-2",
+                "date": "2026-08-17T17:00:00.500Z",
+                "teamPositionName": "Vocals",
+                "serviceTypeName": "Sunday",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-18:t-7",
+                "sourceScheduleId": "pp-1-18",
+                "planId": "plan-2",
+                "date": "2026-08-17T17:00:00.500Z",
+                "teamPositionName": "Vocals",
+                "serviceTypeName": "Sunday",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-18:t-4",
+                "sourceScheduleId": "pp-1-18",
+                "planId": "plan-2",
+                "date": "2026-08-26T13:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "serviceTypeName": "Sunday",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-18:t-5",
+                "sourceScheduleId": "pp-1-18",
+                "planId": "plan-2",
+                "date": "2026-09-25T14:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "serviceTypeName": "Sunday",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-20:t-1",
+                "sourceScheduleId": "pp-1-20",
+                "planId": "",
+                "date": "2026-07-20T17:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-20:t-3",
+                "sourceScheduleId": "pp-1-20",
+                "planId": "",
+                "date": "2026-07-20T17:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-20:t-4",
+                "sourceScheduleId": "pp-1-20",
+                "planId": "",
+                "date": "2026-08-26T13:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-20:t-5",
+                "sourceScheduleId": "pp-1-20",
+                "planId": "",
+                "date": "2026-09-25T14:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-20:t-8",
+                "sourceScheduleId": "pp-1-20",
+                "planId": "",
+                "date": "2026-07-20T17:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-20:t-2",
+                "sourceScheduleId": "pp-1-20",
+                "planId": "",
+                "date": "2026-07-20T17:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-20:t-7",
+                "sourceScheduleId": "pp-1-20",
+                "planId": "",
+                "date": "2026-07-20T17:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-1",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-0-28:t-3",
+                "sourceScheduleId": "pp-0-28",
+                "date": "2026-09-01T17:00:00.000Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-0-28:t-9",
+                "sourceScheduleId": "pp-0-28",
+                "date": "2026-09-01T17:00:00.000Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-2",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-0-29:t-1",
+                "sourceScheduleId": "pp-0-29",
+                "planId": "plan-sel",
+                "date": "2026-09-06T11:30:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "Decline",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-29:t-7",
+                "sourceScheduleId": "pp-0-29",
+                "planId": "plan-sel",
+                "date": "2026-09-06T11:30:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "Decline",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-29:t-5",
+                "sourceScheduleId": "pp-0-29",
+                "planId": "plan-sel",
+                "date": "2026-09-25T14:00:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "Decline",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-0-20:t-1",
+                "sourceScheduleId": "pp-0-20",
+                "planId": "plan-2",
+                "date": "2026-09-01T17:00:00.123Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "serviceTypeName": "Sunday",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-0-20:t-5",
+                "sourceScheduleId": "pp-0-20",
+                "planId": "plan-2",
+                "date": "2026-09-25T14:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "serviceTypeName": "Sunday",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-0-20:t-9",
+                "sourceScheduleId": "pp-0-20",
+                "planId": "plan-2",
+                "date": "2026-09-01T17:00:00.123Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "serviceTypeName": "Sunday",
+                "status": "C",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-5",
+          "value": {
+            "serviceHistory": [],
+            "selectedPlanAssignments": []
+          }
+        }
+      ]
+    },
+    {
+      "input": {
+        "windowCalls": [
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 2,
+            "plans": [
+              {
+                "id": "plan-5",
+                "title": null,
+                "sortDate": "2026-12-24T22:15:00+05:30",
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-2",
+                "title": "Plan 0.1",
+                "sortDate": null,
+                "serviceTypeName": null
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-7",
+                "startsAt": null,
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-6",
+                "startsAt": "",
+                "timeType": "service"
+              },
+              {
+                "id": "t-3",
+                "startsAt": null,
+                "timeType": "Rehearsal"
+              },
+              {
+                "id": "t-2",
+                "startsAt": "2027-01-20T05:15Z",
+                "timeType": "service"
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-5",
+                "rows": [
+                  {
+                    "id": "pp-0-31",
+                    "planId": null,
+                    "teamId": "team-band",
+                    "teamPositionName": "Band - Bass - Left",
+                    "status": "D",
+                    "createdAt": "2026-12-03T00:15:00.123456Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-3",
+                      "t-6",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "declineReason": "  Busy  "
+                  }
+                ]
+              },
+              {
+                "personId": "person-1",
+                "rows": [
+                  {
+                    "id": "pp-0-24",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamPositionName": "A - B - C",
+                    "status": "C",
+                    "createdAt": "2026-10-13",
+                    "timeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-3",
+                      "t-6",
+                      "t-7",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-3"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-0-29",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band -Keys",
+                    "status": "U",
+                    "createdAt": "2026-10-14T00:15:00-08:00",
+                    "timeIds": [
+                      "t-2",
+                      "t-6"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-8"
+                    ],
+                    "declineReason": null
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 0,
+            "plans": [
+              {
+                "id": "plan-6",
+                "title": "Plan 1.0",
+                "sortDate": null,
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-3",
+                "startsAt": null,
+                "timeType": "Rehearsal"
+              },
+              {
+                "id": "t-5",
+                "startsAt": "2026-12-25T03:15:00.123456Z",
+                "timeType": "other"
+              },
+              {
+                "id": "t-3",
+                "startsAt": "",
+                "timeType": "Rehearsal"
+              },
+              {
+                "id": "t-1",
+                "startsAt": "2027-01-02T02:15:00.000Z",
+                "timeType": "rehearsal"
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-3",
+                "rows": [
+                  {
+                    "id": "pp-1-23",
+                    "planId": "plan-4",
+                    "teamId": null,
+                    "teamPositionName": "A - B - C",
+                    "status": "D﻿",
+                    "createdAt": "2026-11-01T00:15:00.5Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-4",
+                      "t-6",
+                      "t-7",
+                      "t-1",
+                      "t-3",
+                      "t-4",
+                      "t-6",
+                      "t-7"
+                    ],
+                    "serviceTimeIds": [
+                      "t-6"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-1-31",
+                    "planId": null,
+                    "teamId": "team-vox",
+                    "teamPositionName": "Band - Vocals",
+                    "status": "C",
+                    "createdAt": "2026-11-20T00:15:00Z",
+                    "timeIds": [
+                      "t-2",
+                      "t-3",
+                      "t-6",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-2"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-1-24",
+                    "planId": "plan-sel",
+                    "teamId": "team-vox",
+                    "teamPositionName": "Band  -  Keys",
+                    "status": "Confirmed",
+                    "createdAt": "2026-10-05T00:15:00+05:30",
+                    "timeIds": [
+                      "t-2",
+                      "t-4",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-3",
+                      "t-4",
+                      "t-5"
+                    ],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              },
+              {
+                "personId": "person-3",
+                "rows": [
+                  {
+                    "id": "pp-1-7",
+                    "planId": "plan-sel",
+                    "teamId": "team-vox",
+                    "teamPositionName": "Band - Bass - Left",
+                    "status": "C",
+                    "createdAt": "2026-12-08",
+                    "timeIds": [
+                      "t-2",
+                      "t-3",
+                      "t-6",
+                      "t-7",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-5",
+                      "t-8"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-1-39",
+                    "planId": "plan-2",
+                    "teamId": "team-band",
+                    "teamPositionName": "",
+                    "status": "C",
+                    "createdAt": "2026-11-27T00:15:00+05:30",
+                    "timeIds": [
+                      "t-2",
+                      "t-6",
+                      "t-7",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-6",
+                      "t-8"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-1-9",
+                    "planId": null,
+                    "teamId": "team-vox",
+                    "teamPositionName": "",
+                    "status": "",
+                    "createdAt": "2026-10-05T00:15Z",
+                    "timeIds": [
+                      "t-2",
+                      "t-3",
+                      "t-2",
+                      "t-3"
+                    ],
+                    "serviceTimeIds": [],
+                    "declineReason": "  Busy  "
+                  }
+                ]
+              },
+              {
+                "personId": "person-5",
+                "rows": [
+                  {
+                    "id": "pp-1-11",
+                    "planId": null,
+                    "teamId": "team-band",
+                    "teamPositionName": "Vocals",
+                    "status": "Confirmed",
+                    "createdAt": "2026-11-05T00:15Z",
+                    "timeIds": [
+                      "t-2",
+                      "t-6",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-6",
+                      "t-9"
+                    ],
+                    "declineReason": "  Busy  "
+                  },
+                  {
+                    "id": "pp-1-10",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band  -  Keys",
+                    "status": "Decline",
+                    "createdAt": "2026-12-05T00:15Z",
+                    "timeIds": [
+                      "t-3",
+                      "t-4",
+                      "t-5",
+                      "t-6",
+                      "t-3",
+                      "t-4",
+                      "t-5",
+                      "t-6"
+                    ],
+                    "serviceTimeIds": [
+                      "t-4",
+                      "t-5",
+                      "t-6"
+                    ],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "person-3",
+                "rows": []
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 1,
+            "plans": [],
+            "planTimes": [
+              {
+                "id": "t-6",
+                "startsAt": "2026-12-02T07:15:00.000Z",
+                "timeType": null
+              }
+            ],
+            "people": [],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "planId": "plan-1"
+      },
+      "output": [
+        {
+          "key": "person-5",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-1-11:t-6",
+                "sourceScheduleId": "pp-1-11",
+                "date": "2026-12-02T07:15:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "Confirmed",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-11:t-9",
+                "sourceScheduleId": "pp-1-11",
+                "date": "2026-11-05T00:15:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "Confirmed",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-11:t-2",
+                "sourceScheduleId": "pp-1-11",
+                "date": "2027-01-20T05:15:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "Confirmed",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-10:t-4",
+                "sourceScheduleId": "pp-1-10",
+                "planId": "plan-sel",
+                "date": "2026-12-05T00:15:00.000Z",
+                "teamPositionName": " Keys",
+                "teamName": "Band ",
+                "status": "Decline",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-10:t-5",
+                "sourceScheduleId": "pp-1-10",
+                "planId": "plan-sel",
+                "date": "2026-12-25T03:15:00.123Z",
+                "teamPositionName": " Keys",
+                "teamName": "Band ",
+                "status": "Decline",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-10:t-6",
+                "sourceScheduleId": "pp-1-10",
+                "planId": "plan-sel",
+                "date": "2026-12-02T07:15:00.000Z",
+                "teamPositionName": " Keys",
+                "teamName": "Band ",
+                "status": "Decline",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-10:t-3",
+                "sourceScheduleId": "pp-1-10",
+                "planId": "plan-sel",
+                "date": "2026-12-05T00:15:00.000Z",
+                "teamPositionName": " Keys",
+                "teamName": "Band ",
+                "status": "Decline",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-1",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-0-24:t-3",
+                "sourceScheduleId": "pp-0-24",
+                "planId": "plan-sel",
+                "date": "2026-10-13T00:00:00.000Z",
+                "teamPositionName": "B - C",
+                "teamName": "A",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-24:t-1",
+                "sourceScheduleId": "pp-0-24",
+                "planId": "plan-sel",
+                "date": "2027-01-02T02:15:00.000Z",
+                "teamPositionName": "B - C",
+                "teamName": "A",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-0-24:t-2",
+                "sourceScheduleId": "pp-0-24",
+                "planId": "plan-sel",
+                "date": "2027-01-20T05:15:00.000Z",
+                "teamPositionName": "B - C",
+                "teamName": "A",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-24:t-6",
+                "sourceScheduleId": "pp-0-24",
+                "planId": "plan-sel",
+                "date": "2026-12-02T07:15:00.000Z",
+                "teamPositionName": "B - C",
+                "teamName": "A",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-0-24:t-7",
+                "sourceScheduleId": "pp-0-24",
+                "planId": "plan-sel",
+                "date": "2026-10-13T00:00:00.000Z",
+                "teamPositionName": "B - C",
+                "teamName": "A",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-0-24:t-8",
+                "sourceScheduleId": "pp-0-24",
+                "planId": "plan-sel",
+                "date": "2026-10-13T00:00:00.000Z",
+                "teamPositionName": "B - C",
+                "teamName": "A",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-0-29:t-1",
+                "sourceScheduleId": "pp-0-29",
+                "planId": "plan-sel",
+                "date": "2027-01-02T02:15:00.000Z",
+                "teamPositionName": "Band -Keys",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-29:t-2",
+                "sourceScheduleId": "pp-0-29",
+                "planId": "plan-sel",
+                "date": "2027-01-20T05:15:00.000Z",
+                "teamPositionName": "Band -Keys",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-29:t-8",
+                "sourceScheduleId": "pp-0-29",
+                "planId": "plan-sel",
+                "date": "2026-10-14T08:15:00.000Z",
+                "teamPositionName": "Band -Keys",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-29:t-6",
+                "sourceScheduleId": "pp-0-29",
+                "planId": "plan-sel",
+                "date": "2026-12-02T07:15:00.000Z",
+                "teamPositionName": "Band -Keys",
+                "status": "U",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-3",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-1-31:t-2",
+                "sourceScheduleId": "pp-1-31",
+                "date": "2027-01-20T05:15:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-31:t-3",
+                "sourceScheduleId": "pp-1-31",
+                "date": "2026-11-20T00:15:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-31:t-6",
+                "sourceScheduleId": "pp-1-31",
+                "date": "2026-12-02T07:15:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-31:t-9",
+                "sourceScheduleId": "pp-1-31",
+                "date": "2026-11-20T00:15:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-24:t-3",
+                "sourceScheduleId": "pp-1-24",
+                "planId": "plan-sel",
+                "date": "2026-10-04T18:45:00.000Z",
+                "teamPositionName": " Keys",
+                "teamName": "Band ",
+                "status": "Confirmed",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-24:t-4",
+                "sourceScheduleId": "pp-1-24",
+                "planId": "plan-sel",
+                "date": "2026-10-04T18:45:00.000Z",
+                "teamPositionName": " Keys",
+                "teamName": "Band ",
+                "status": "Confirmed",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-24:t-5",
+                "sourceScheduleId": "pp-1-24",
+                "planId": "plan-sel",
+                "date": "2026-12-25T03:15:00.123Z",
+                "teamPositionName": " Keys",
+                "teamName": "Band ",
+                "status": "Confirmed",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-24:t-2",
+                "sourceScheduleId": "pp-1-24",
+                "planId": "plan-sel",
+                "date": "2027-01-20T05:15:00.000Z",
+                "teamPositionName": " Keys",
+                "teamName": "Band ",
+                "status": "Confirmed",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-24:t-8",
+                "sourceScheduleId": "pp-1-24",
+                "planId": "plan-sel",
+                "date": "2026-10-04T18:45:00.000Z",
+                "teamPositionName": " Keys",
+                "teamName": "Band ",
+                "status": "Confirmed",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-24:t-9",
+                "sourceScheduleId": "pp-1-24",
+                "planId": "plan-sel",
+                "date": "2026-10-04T18:45:00.000Z",
+                "teamPositionName": " Keys",
+                "teamName": "Band ",
+                "status": "Confirmed",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-7:t-1",
+                "sourceScheduleId": "pp-1-7",
+                "planId": "plan-sel",
+                "date": "2027-01-02T02:15:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-7:t-3",
+                "sourceScheduleId": "pp-1-7",
+                "planId": "plan-sel",
+                "date": "2026-12-08T00:00:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-7:t-5",
+                "sourceScheduleId": "pp-1-7",
+                "planId": "plan-sel",
+                "date": "2026-12-25T03:15:00.123Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-7:t-8",
+                "sourceScheduleId": "pp-1-7",
+                "planId": "plan-sel",
+                "date": "2026-12-08T00:00:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-7:t-2",
+                "sourceScheduleId": "pp-1-7",
+                "planId": "plan-sel",
+                "date": "2027-01-20T05:15:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-7:t-6",
+                "sourceScheduleId": "pp-1-7",
+                "planId": "plan-sel",
+                "date": "2026-12-02T07:15:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-7:t-7",
+                "sourceScheduleId": "pp-1-7",
+                "planId": "plan-sel",
+                "date": "2026-12-08T00:00:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-39:t-6",
+                "sourceScheduleId": "pp-1-39",
+                "planId": "plan-2",
+                "date": "2026-12-02T07:15:00.000Z",
+                "teamPositionName": "",
+                "planTitle": "Plan 0.1",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-39:t-8",
+                "sourceScheduleId": "pp-1-39",
+                "planId": "plan-2",
+                "date": "2026-11-26T18:45:00.000Z",
+                "teamPositionName": "",
+                "planTitle": "Plan 0.1",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-39:t-2",
+                "sourceScheduleId": "pp-1-39",
+                "planId": "plan-2",
+                "date": "2027-01-20T05:15:00.000Z",
+                "teamPositionName": "",
+                "planTitle": "Plan 0.1",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-39:t-7",
+                "sourceScheduleId": "pp-1-39",
+                "planId": "plan-2",
+                "date": "2026-11-26T18:45:00.000Z",
+                "teamPositionName": "",
+                "planTitle": "Plan 0.1",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-9:t-2",
+                "sourceScheduleId": "pp-1-9",
+                "date": "2027-01-20T05:15:00.000Z",
+                "teamPositionName": "",
+                "status": "",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-9:t-3",
+                "sourceScheduleId": "pp-1-9",
+                "date": "2026-10-05T00:15:00.000Z",
+                "teamPositionName": "",
+                "status": "",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        }
+      ]
+    },
+    {
+      "input": {
+        "windowCalls": [
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 3,
+            "plans": [
+              {
+                "id": "plan-5",
+                "title": "Plan 0.0",
+                "sortDate": "2026-04-13",
+                "serviceTypeName": "Sunday"
+              },
+              {
+                "id": "plan-4",
+                "title": "Plan 0.1",
+                "sortDate": null,
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [],
+            "people": [],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "planId": "plan-1"
+      },
+      "output": []
+    },
+    {
+      "input": {
+        "windowCalls": [
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 1,
+            "plans": [
+              {
+                "id": "plan-5",
+                "title": null,
+                "sortDate": null,
+                "serviceTypeName": null
+              },
+              {
+                "id": "plan-4",
+                "title": "Plan 0.1",
+                "sortDate": null,
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-1",
+                "title": "Plan 0.2",
+                "sortDate": null,
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-5",
+                "startsAt": "2026-03-17T04:30:00.000Z",
+                "timeType": "Rehearsal"
+              },
+              {
+                "id": "t-8",
+                "startsAt": null,
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-6",
+                "startsAt": "",
+                "timeType": null
+              },
+              {
+                "id": "t-5",
+                "startsAt": "",
+                "timeType": "rehearsal"
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-1",
+                "rows": [
+                  {
+                    "id": "pp-0-32",
+                    "planId": "plan-sel",
+                    "teamId": "team-vox",
+                    "teamPositionName": "",
+                    "status": "Declined",
+                    "createdAt": "2026-01-15T10:30:00.5Z",
+                    "timeIds": [
+                      "t-4",
+                      "t-5",
+                      "t-6"
+                    ],
+                    "serviceTimeIds": [
+                      "t-3",
+                      "t-6"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-0-4",
+                    "planId": "plan-sel",
+                    "teamId": null,
+                    "teamPositionName": "Band - Vocals",
+                    "status": "D﻿",
+                    "createdAt": "2026-01-29T10:30:00.5Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "person-2",
+                "rows": [
+                  {
+                    "id": "pp-0-1",
+                    "planId": "plan-sel",
+                    "teamId": null,
+                    "teamPositionName": "Band -Keys",
+                    "status": "d",
+                    "createdAt": "2025-12-16T10:30:00.000Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-4",
+                      "t-5",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-3",
+                      "t-8"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-0-28",
+                    "planId": "plan-2",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band - ",
+                    "status": "DECLINED",
+                    "createdAt": "2026-02-05",
+                    "timeIds": [
+                      "t-4",
+                      "t-5"
+                    ],
+                    "serviceTimeIds": [],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 3,
+            "plans": [
+              {
+                "id": "plan-3",
+                "title": null,
+                "sortDate": "2026-04-08T11:30:00.000Z",
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-1",
+                "title": "Plan 1.1",
+                "sortDate": "2026-03-15",
+                "serviceTypeName": "Sunday"
+              },
+              {
+                "id": "plan-2",
+                "title": "Plan 1.2",
+                "sortDate": "2026-03-12T12:30:00-08:00",
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-1",
+                "title": "Plan 1.3",
+                "sortDate": "2026-02-03T04:30:00Z",
+                "serviceTypeName": "Youth"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-7",
+                "startsAt": "",
+                "timeType": null
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-4",
+                "rows": [
+                  {
+                    "id": "pp-1-6",
+                    "planId": "plan-4",
+                    "teamId": "team-vox",
+                    "teamPositionName": " - Keys",
+                    "status": "Declined",
+                    "createdAt": "2025-12-25T10:30Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-4",
+                      "t-6",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-6",
+                      "t-9"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-1-10",
+                    "planId": null,
+                    "teamId": "team-band",
+                    "teamPositionName": "Band - Electric Guitar",
+                    "status": " D",
+                    "createdAt": "2025-12-31T10:30:00.5Z",
+                    "timeIds": [
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-7"
+                    ],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              },
+              {
+                "personId": "person-2",
+                "rows": []
+              },
+              {
+                "personId": "person-5",
+                "rows": [
+                  {
+                    "id": "pp-1-11",
+                    "planId": "plan-sel",
+                    "teamId": "team-vox",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "d",
+                    "createdAt": "2025-12-10T10:30:00+05:30",
+                    "timeIds": [
+                      "t-6",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-4",
+                      "t-6"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-1-4",
+                    "planId": null,
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "Confirmed",
+                    "createdAt": "2026-02-07T10:30:00Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-6"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1"
+                    ],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              },
+              {
+                "personId": "person-2",
+                "rows": [
+                  {
+                    "id": "pp-1-22",
+                    "planId": null,
+                    "teamId": null,
+                    "teamPositionName": "Vocals",
+                    "status": "U",
+                    "createdAt": "2026-01-24T10:30:00-08:00",
+                    "timeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-3",
+                      "t-4",
+                      "t-6",
+                      "t-7",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-2",
+                      "t-8"
+                    ],
+                    "declineReason": "  Busy  "
+                  },
+                  {
+                    "id": "pp-1-5",
+                    "planId": "",
+                    "teamId": null,
+                    "teamPositionName": "Band - Electric Guitar",
+                    "status": "declined",
+                    "createdAt": "2026-02-13",
+                    "timeIds": [
+                      "t-2",
+                      "t-3",
+                      "t-6",
+                      "t-7"
+                    ],
+                    "serviceTimeIds": [
+                      "t-3",
+                      "t-7"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-1-8",
+                    "planId": null,
+                    "teamId": null,
+                    "teamPositionName": "",
+                    "status": "D﻿",
+                    "createdAt": "2026-01-15",
+                    "timeIds": [
+                      "t-1",
+                      "t-4",
+                      "t-5",
+                      "t-8",
+                      "t-9",
+                      "t-1",
+                      "t-4",
+                      "t-5",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-4"
+                    ],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 0,
+            "plans": [
+              {
+                "id": "plan-2",
+                "title": "Plan 2.0",
+                "sortDate": "",
+                "serviceTypeName": "Sunday"
+              },
+              {
+                "id": "plan-1",
+                "title": "Plan 2.1",
+                "sortDate": "2026-02-03T01:30:00.000Z",
+                "serviceTypeName": "Sunday"
+              },
+              {
+                "id": "plan-6",
+                "title": "Plan 2.2",
+                "sortDate": "2026-04-12T04:30:00-08:00",
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-6",
+                "title": null,
+                "sortDate": "2026-04-04T03:30:00Z",
+                "serviceTypeName": "Youth"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-7",
+                "startsAt": "2026-04-04",
+                "timeType": "Rehearsal"
+              },
+              {
+                "id": "t-1",
+                "startsAt": "2026-02-12T00:30:00.123456Z",
+                "timeType": "service"
+              },
+              {
+                "id": "t-8",
+                "startsAt": null,
+                "timeType": "other"
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-3",
+                "rows": []
+              },
+              {
+                "personId": "person-1",
+                "rows": [
+                  {
+                    "id": "pp-2-1",
+                    "planId": "",
+                    "teamId": null,
+                    "teamPositionName": "Band  -  Keys",
+                    "status": "declined",
+                    "createdAt": "2026-01-22T10:30:00.000Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-4",
+                      "t-5",
+                      "t-7",
+                      "t-1",
+                      "t-3",
+                      "t-4",
+                      "t-5",
+                      "t-7"
+                    ],
+                    "serviceTimeIds": [
+                      "t-5",
+                      "t-6",
+                      "t-7"
+                    ],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              },
+              {
+                "personId": "person-2",
+                "rows": [
+                  {
+                    "id": "pp-2-32",
+                    "planId": "plan-6",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band  -  Keys",
+                    "status": " D ",
+                    "createdAt": "2026-01-20T10:30:00+05:30",
+                    "timeIds": [
+                      "t-2",
+                      "t-7",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-2"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-2-30",
+                    "planId": null,
+                    "teamId": "team-vox",
+                    "teamPositionName": "Electric Guitar",
+                    "status": " D",
+                    "createdAt": "2026-02-02T10:30:00.123456Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-4",
+                      "t-6",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-8"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-2-40",
+                    "planId": "plan-sel",
+                    "teamId": null,
+                    "teamPositionName": "Vocals",
+                    "status": "Declined",
+                    "createdAt": "2026-01-06T10:30:00.123456Z",
+                    "timeIds": [
+                      "t-2",
+                      "t-6",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-3",
+                      "t-6",
+                      "t-7"
+                    ],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "person-4",
+                "rows": [
+                  {
+                    "id": "pp-2-32",
+                    "planId": null,
+                    "teamId": "team-vox",
+                    "teamPositionName": "Vocals",
+                    "status": "C",
+                    "createdAt": "2026-02-16T10:30:00.5Z",
+                    "timeIds": [
+                      "t-6",
+                      "t-7",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-2",
+                      "t-3",
+                      "t-6",
+                      "t-7",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-2-12",
+                    "planId": null,
+                    "teamId": null,
+                    "teamPositionName": " - Keys",
+                    "status": "C",
+                    "createdAt": "2026-01-16T10:30:00.5Z",
+                    "timeIds": [
+                      "t-2",
+                      "t-4",
+                      "t-5",
+                      "t-6",
+                      "t-2",
+                      "t-4",
+                      "t-5",
+                      "t-6"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-2-28",
+                    "planId": "plan-sel",
+                    "teamId": "team-vox",
+                    "teamPositionName": " - Keys",
+                    "status": " D",
+                    "createdAt": "2026-01-25T10:30:00-08:00",
+                    "timeIds": [
+                      "t-3",
+                      "t-4",
+                      "t-6",
+                      "t-8",
+                      "t-3",
+                      "t-4",
+                      "t-6",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-3",
+                      "t-4",
+                      "t-6"
+                    ],
+                    "declineReason": "  Busy  "
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "planId": "plan-sel"
+      },
+      "output": [
+        {
+          "key": "person-1",
+          "value": {
+            "serviceHistory": [],
+            "selectedPlanAssignments": [
+              {
+                "source": "planPerson",
+                "id": "pp-0-32",
+                "planId": "plan-sel",
+                "teamId": "team-vox",
+                "teamName": null,
+                "teamPositionName": "",
+                "status": "Declined",
+                "planPersonId": null,
+                "declineReason": null
+              },
+              {
+                "source": "planPerson",
+                "id": "pp-0-4",
+                "planId": "plan-sel",
+                "teamId": null,
+                "teamName": null,
+                "teamPositionName": "Band - Vocals",
+                "status": "D﻿",
+                "planPersonId": null,
+                "declineReason": null
+              }
+            ]
+          }
+        },
+        {
+          "key": "person-2",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-0-1:t-3",
+                "sourceScheduleId": "pp-0-1",
+                "planId": "plan-sel",
+                "date": "2025-12-16T10:30:00.000Z",
+                "teamPositionName": "Band -Keys",
+                "status": "d",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-1:t-8",
+                "sourceScheduleId": "pp-0-1",
+                "planId": "plan-sel",
+                "date": "2025-12-16T10:30:00.000Z",
+                "teamPositionName": "Band -Keys",
+                "status": "d",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-1:t-1",
+                "sourceScheduleId": "pp-0-1",
+                "planId": "plan-sel",
+                "date": "2026-02-12T00:30:00.123Z",
+                "teamPositionName": "Band -Keys",
+                "status": "d",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-1:t-4",
+                "sourceScheduleId": "pp-0-1",
+                "planId": "plan-sel",
+                "date": "2025-12-16T10:30:00.000Z",
+                "teamPositionName": "Band -Keys",
+                "status": "d",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-0-1:t-5",
+                "sourceScheduleId": "pp-0-1",
+                "planId": "plan-sel",
+                "date": "2025-12-16T10:30:00.000Z",
+                "teamPositionName": "Band -Keys",
+                "status": "d",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-22:t-2",
+                "sourceScheduleId": "pp-1-22",
+                "date": "2026-01-24T18:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-22:t-8",
+                "sourceScheduleId": "pp-1-22",
+                "date": "2026-01-24T18:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-22:t-1",
+                "sourceScheduleId": "pp-1-22",
+                "date": "2026-02-12T00:30:00.123Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-22:t-3",
+                "sourceScheduleId": "pp-1-22",
+                "date": "2026-01-24T18:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-22:t-4",
+                "sourceScheduleId": "pp-1-22",
+                "date": "2026-01-24T18:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-22:t-6",
+                "sourceScheduleId": "pp-1-22",
+                "date": "2026-01-24T18:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-22:t-7",
+                "sourceScheduleId": "pp-1-22",
+                "date": "2026-04-04T00:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-22:t-9",
+                "sourceScheduleId": "pp-1-22",
+                "date": "2026-01-24T18:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": [
+              {
+                "source": "planPerson",
+                "id": "pp-0-1",
+                "planId": "plan-sel",
+                "teamId": null,
+                "teamName": null,
+                "teamPositionName": "Band -Keys",
+                "status": "d",
+                "planPersonId": null,
+                "declineReason": "Out of town"
+              },
+              {
+                "source": "planPerson",
+                "id": "pp-2-40",
+                "planId": "plan-sel",
+                "teamId": null,
+                "teamName": null,
+                "teamPositionName": "Vocals",
+                "status": "Declined",
+                "planPersonId": null,
+                "declineReason": null
+              }
+            ]
+          }
+        },
+        {
+          "key": "person-4",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-2-32:t-2",
+                "sourceScheduleId": "pp-2-32",
+                "date": "2026-02-16T10:30:00.500Z",
+                "teamPositionName": "Vocals",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-32:t-3",
+                "sourceScheduleId": "pp-2-32",
+                "date": "2026-02-16T10:30:00.500Z",
+                "teamPositionName": "Vocals",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-32:t-6",
+                "sourceScheduleId": "pp-2-32",
+                "date": "2026-02-16T10:30:00.500Z",
+                "teamPositionName": "Vocals",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-32:t-7",
+                "sourceScheduleId": "pp-2-32",
+                "date": "2026-04-04T00:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-32:t-8",
+                "sourceScheduleId": "pp-2-32",
+                "date": "2026-02-16T10:30:00.500Z",
+                "teamPositionName": "Vocals",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-32:t-9",
+                "sourceScheduleId": "pp-2-32",
+                "date": "2026-02-16T10:30:00.500Z",
+                "teamPositionName": "Vocals",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-12:t-1",
+                "sourceScheduleId": "pp-2-12",
+                "date": "2026-02-12T00:30:00.123Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-12:t-3",
+                "sourceScheduleId": "pp-2-12",
+                "date": "2026-01-16T10:30:00.500Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-12:t-8",
+                "sourceScheduleId": "pp-2-12",
+                "date": "2026-01-16T10:30:00.500Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-12:t-9",
+                "sourceScheduleId": "pp-2-12",
+                "date": "2026-01-16T10:30:00.500Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-12:t-2",
+                "sourceScheduleId": "pp-2-12",
+                "date": "2026-01-16T10:30:00.500Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-2-12:t-4",
+                "sourceScheduleId": "pp-2-12",
+                "date": "2026-01-16T10:30:00.500Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-2-12:t-5",
+                "sourceScheduleId": "pp-2-12",
+                "date": "2026-01-16T10:30:00.500Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-2-12:t-6",
+                "sourceScheduleId": "pp-2-12",
+                "date": "2026-01-16T10:30:00.500Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "C",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": [
+              {
+                "source": "planPerson",
+                "id": "pp-2-28",
+                "planId": "plan-sel",
+                "teamId": "team-vox",
+                "teamName": null,
+                "teamPositionName": " - Keys",
+                "status": " D",
+                "planPersonId": null,
+                "declineReason": "  Busy  "
+              }
+            ]
+          }
+        },
+        {
+          "key": "person-5",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-1-11:t-4",
+                "sourceScheduleId": "pp-1-11",
+                "planId": "plan-sel",
+                "date": "2025-12-10T05:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "d",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-11:t-6",
+                "sourceScheduleId": "pp-1-11",
+                "planId": "plan-sel",
+                "date": "2025-12-10T05:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "d",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-11:t-9",
+                "sourceScheduleId": "pp-1-11",
+                "planId": "plan-sel",
+                "date": "2025-12-10T05:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "d",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-4:t-1",
+                "sourceScheduleId": "pp-1-4",
+                "date": "2026-02-12T00:30:00.123Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "Confirmed",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-4:t-3",
+                "sourceScheduleId": "pp-1-4",
+                "date": "2026-02-07T10:30:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "Confirmed",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-4:t-6",
+                "sourceScheduleId": "pp-1-4",
+                "date": "2026-02-07T10:30:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "Confirmed",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": [
+              {
+                "source": "planPerson",
+                "id": "pp-1-11",
+                "planId": "plan-sel",
+                "teamId": "team-vox",
+                "teamName": null,
+                "teamPositionName": "Electric Guitar",
+                "status": "d",
+                "planPersonId": null,
+                "declineReason": "Out of town"
+              }
+            ]
+          }
+        },
+        {
+          "key": "person-3",
+          "value": {
+            "serviceHistory": [],
+            "selectedPlanAssignments": []
+          }
+        }
+      ]
+    },
+    {
+      "input": {
+        "windowCalls": [
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 1,
+            "plans": [
+              {
+                "id": "plan-4",
+                "title": "Plan 0.0",
+                "sortDate": null,
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-2",
+                "title": "Plan 0.1",
+                "sortDate": "2028-03-30T21:00:00Z",
+                "serviceTypeName": null
+              },
+              {
+                "id": "plan-2",
+                "title": null,
+                "sortDate": null,
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-1",
+                "startsAt": "",
+                "timeType": "service"
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-1",
+                "rows": []
+              },
+              {
+                "personId": "person-3",
+                "rows": [
+                  {
+                    "id": "pp-0-29",
+                    "planId": null,
+                    "teamId": "team-vox",
+                    "teamPositionName": "Band - Electric Guitar",
+                    "status": "",
+                    "createdAt": "2027-12-23T18:00:00.000Z",
+                    "timeIds": [
+                      "t-2",
+                      "t-3",
+                      "t-5",
+                      "t-2",
+                      "t-3",
+                      "t-5"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-4",
+                      "t-5",
+                      "t-6",
+                      "t-7",
+                      "t-8"
+                    ],
+                    "declineReason": "  Busy  "
+                  },
+                  {
+                    "id": "pp-0-40",
+                    "planId": "plan-2",
+                    "teamId": "team-band",
+                    "teamPositionName": "A - B - C",
+                    "status": " D",
+                    "createdAt": "2027-12-14T18:00:00-08:00",
+                    "timeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-4",
+                      "t-6",
+                      "t-7",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-3",
+                      "t-8"
+                    ],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              },
+              {
+                "personId": "person-1",
+                "rows": [
+                  {
+                    "id": "pp-0-1",
+                    "planId": null,
+                    "teamId": null,
+                    "teamPositionName": "Vocals",
+                    "status": "U",
+                    "createdAt": "2028-01-07T18:00:00Z",
+                    "timeIds": [
+                      "t-6",
+                      "t-7"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-6",
+                      "t-8"
+                    ],
+                    "declineReason": null
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 2,
+            "plans": [],
+            "planTimes": [
+              {
+                "id": "t-8",
+                "startsAt": "2028-01-25T15:00:00-08:00",
+                "timeType": "service"
+              },
+              {
+                "id": "t-2",
+                "startsAt": "2028-03-08T09:00:00.5Z",
+                "timeType": "service"
+              },
+              {
+                "id": "t-4",
+                "startsAt": "2028-03-14T04:00:00Z",
+                "timeType": "service"
+              },
+              {
+                "id": "t-3",
+                "startsAt": "2028-01-26T03:00:00Z",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-3",
+                "startsAt": "",
+                "timeType": "Rehearsal"
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-2",
+                "rows": []
+              },
+              {
+                "personId": "person-1",
+                "rows": [
+                  {
+                    "id": "pp-1-18",
+                    "planId": "plan-4",
+                    "teamId": "team-vox",
+                    "teamPositionName": "Band -Keys",
+                    "status": " D",
+                    "createdAt": "2027-12-16T18:00:00.123456Z",
+                    "timeIds": [
+                      "t-2",
+                      "t-7",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-8"
+                    ],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "person-2",
+                "rows": [
+                  {
+                    "id": "pp-1-5",
+                    "planId": "",
+                    "teamId": null,
+                    "teamPositionName": "Band - Electric Guitar",
+                    "status": "C",
+                    "createdAt": "2027-12-01T18:00:00Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-5",
+                      "t-6",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1"
+                    ],
+                    "declineReason": "  Busy  "
+                  },
+                  {
+                    "id": "pp-1-19",
+                    "planId": null,
+                    "teamId": "team-band",
+                    "teamPositionName": "Band - Bass - Left",
+                    "status": " D ",
+                    "createdAt": "2027-12-31T18:00:00.000Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-8"
+                    ],
+                    "declineReason": "  Busy  "
+                  },
+                  {
+                    "id": "pp-1-30",
+                    "planId": "",
+                    "teamId": "team-vox",
+                    "teamPositionName": "Band - Electric Guitar",
+                    "status": "D﻿",
+                    "createdAt": "2028-01-20",
+                    "timeIds": [
+                      "t-3",
+                      "t-6",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [],
+                    "declineReason": "  Busy  "
+                  }
+                ]
+              },
+              {
+                "personId": "person-2",
+                "rows": []
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 3,
+            "plans": [
+              {
+                "id": "plan-2",
+                "title": null,
+                "sortDate": "",
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-1",
+                "title": "Plan 2.1",
+                "sortDate": "2028-03-09T02:00:00-08:00",
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-4",
+                "title": "Plan 2.2",
+                "sortDate": null,
+                "serviceTypeName": null
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-4",
+                "startsAt": "",
+                "timeType": "other"
+              },
+              {
+                "id": "t-7",
+                "startsAt": "",
+                "timeType": "other"
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-2",
+                "rows": [
+                  {
+                    "id": "pp-2-32",
+                    "planId": "plan-sel",
+                    "teamId": null,
+                    "teamPositionName": "Vocals",
+                    "status": "U",
+                    "createdAt": "2028-01-10T18:00:00Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-6"
+                    ],
+                    "serviceTimeIds": [
+                      "t-6"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-2-29",
+                    "planId": null,
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "C",
+                    "createdAt": "2028-02-07T18:00Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-6",
+                      "t-7"
+                    ],
+                    "serviceTimeIds": [
+                      "t-3",
+                      "t-4",
+                      "t-7",
+                      "t-9"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-2-31",
+                    "planId": "plan-4",
+                    "teamId": "team-vox",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "C",
+                    "createdAt": "2027-12-06T18:00:00.5Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-5",
+                      "t-6",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-4",
+                      "t-5",
+                      "t-6",
+                      "t-7"
+                    ],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "person-5",
+                "rows": []
+              },
+              {
+                "personId": "person-5",
+                "rows": [
+                  {
+                    "id": "pp-2-2",
+                    "planId": "",
+                    "teamId": "team-vox",
+                    "teamPositionName": "Vocals",
+                    "status": "DECLINED",
+                    "createdAt": "2027-12-04T18:00:00-08:00",
+                    "timeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-5",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-8"
+                    ],
+                    "declineReason": "  Busy  "
+                  },
+                  {
+                    "id": "pp-2-24",
+                    "planId": "plan-sel",
+                    "teamId": null,
+                    "teamPositionName": "Band  -  Keys",
+                    "status": "D",
+                    "createdAt": "2028-02-07T18:00:00Z",
+                    "timeIds": [
+                      "t-3",
+                      "t-4",
+                      "t-9",
+                      "t-3",
+                      "t-4",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-9"
+                    ],
+                    "declineReason": "  Busy  "
+                  },
+                  {
+                    "id": "pp-2-13",
+                    "planId": "plan-sel",
+                    "teamId": "team-vox",
+                    "teamPositionName": "Band - Vocals",
+                    "status": "Confirmed",
+                    "createdAt": "2027-12-13T18:00:00.000Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-5",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-2",
+                      "t-4",
+                      "t-6",
+                      "t-8"
+                    ],
+                    "declineReason": "  Busy  "
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "planId": "plan-1"
+      },
+      "output": [
+        {
+          "key": "person-1",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-0-1:t-1",
+                "sourceScheduleId": "pp-0-1",
+                "date": "2028-01-07T18:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-1:t-3",
+                "sourceScheduleId": "pp-0-1",
+                "date": "2028-01-07T18:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-1:t-6",
+                "sourceScheduleId": "pp-0-1",
+                "date": "2028-01-07T18:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-1:t-8",
+                "sourceScheduleId": "pp-0-1",
+                "date": "2028-01-25T23:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "service"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-3",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-0-29:t-1",
+                "sourceScheduleId": "pp-0-29",
+                "date": "2027-12-23T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-29:t-2",
+                "sourceScheduleId": "pp-0-29",
+                "date": "2028-03-08T09:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-29:t-4",
+                "sourceScheduleId": "pp-0-29",
+                "date": "2027-12-23T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-29:t-5",
+                "sourceScheduleId": "pp-0-29",
+                "date": "2027-12-23T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-29:t-6",
+                "sourceScheduleId": "pp-0-29",
+                "date": "2027-12-23T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-29:t-7",
+                "sourceScheduleId": "pp-0-29",
+                "date": "2027-12-23T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-29:t-8",
+                "sourceScheduleId": "pp-0-29",
+                "date": "2028-01-25T23:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-29:t-3",
+                "sourceScheduleId": "pp-0-29",
+                "date": "2027-12-23T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-2",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-1-5:t-1",
+                "sourceScheduleId": "pp-1-5",
+                "planId": "",
+                "date": "2027-12-01T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-5:t-3",
+                "sourceScheduleId": "pp-1-5",
+                "planId": "",
+                "date": "2027-12-01T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-5:t-5",
+                "sourceScheduleId": "pp-1-5",
+                "planId": "",
+                "date": "2027-12-01T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-5:t-6",
+                "sourceScheduleId": "pp-1-5",
+                "planId": "",
+                "date": "2027-12-01T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-5:t-9",
+                "sourceScheduleId": "pp-1-5",
+                "planId": "",
+                "date": "2027-12-01T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-2-32:t-6",
+                "sourceScheduleId": "pp-2-32",
+                "planId": "plan-sel",
+                "date": "2028-01-10T18:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-32:t-1",
+                "sourceScheduleId": "pp-2-32",
+                "planId": "plan-sel",
+                "date": "2028-01-10T18:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-32:t-3",
+                "sourceScheduleId": "pp-2-32",
+                "planId": "plan-sel",
+                "date": "2028-01-10T18:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "status": "U",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-2-29:t-3",
+                "sourceScheduleId": "pp-2-29",
+                "date": "2028-02-07T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-29:t-4",
+                "sourceScheduleId": "pp-2-29",
+                "date": "2028-02-07T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-29:t-7",
+                "sourceScheduleId": "pp-2-29",
+                "date": "2028-02-07T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-29:t-9",
+                "sourceScheduleId": "pp-2-29",
+                "date": "2028-02-07T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-29:t-1",
+                "sourceScheduleId": "pp-2-29",
+                "date": "2028-02-07T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-29:t-2",
+                "sourceScheduleId": "pp-2-29",
+                "date": "2028-03-08T09:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-29:t-6",
+                "sourceScheduleId": "pp-2-29",
+                "date": "2028-02-07T18:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-2-31:t-1",
+                "sourceScheduleId": "pp-2-31",
+                "planId": "plan-4",
+                "date": "2027-12-06T18:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.0",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-31:t-3",
+                "sourceScheduleId": "pp-2-31",
+                "planId": "plan-4",
+                "date": "2027-12-06T18:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.0",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-31:t-4",
+                "sourceScheduleId": "pp-2-31",
+                "planId": "plan-4",
+                "date": "2027-12-06T18:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.0",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-31:t-5",
+                "sourceScheduleId": "pp-2-31",
+                "planId": "plan-4",
+                "date": "2027-12-06T18:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.0",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-31:t-6",
+                "sourceScheduleId": "pp-2-31",
+                "planId": "plan-4",
+                "date": "2027-12-06T18:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.0",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-31:t-7",
+                "sourceScheduleId": "pp-2-31",
+                "planId": "plan-4",
+                "date": "2027-12-06T18:00:00.500Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.0",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-31:t-8",
+                "sourceScheduleId": "pp-2-31",
+                "planId": "plan-4",
+                "date": "2028-01-25T23:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.0",
+                "status": "C",
+                "timeType": "service"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-5",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-2-13:t-2",
+                "sourceScheduleId": "pp-2-13",
+                "planId": "plan-sel",
+                "date": "2028-03-08T09:00:00.500Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "Confirmed",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-13:t-4",
+                "sourceScheduleId": "pp-2-13",
+                "planId": "plan-sel",
+                "date": "2027-12-13T18:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "Confirmed",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-13:t-6",
+                "sourceScheduleId": "pp-2-13",
+                "planId": "plan-sel",
+                "date": "2027-12-13T18:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "Confirmed",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-13:t-8",
+                "sourceScheduleId": "pp-2-13",
+                "planId": "plan-sel",
+                "date": "2028-01-25T23:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "Confirmed",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-13:t-1",
+                "sourceScheduleId": "pp-2-13",
+                "planId": "plan-sel",
+                "date": "2027-12-13T18:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "Confirmed",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-13:t-5",
+                "sourceScheduleId": "pp-2-13",
+                "planId": "plan-sel",
+                "date": "2027-12-13T18:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "Confirmed",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-2-13:t-9",
+                "sourceScheduleId": "pp-2-13",
+                "planId": "plan-sel",
+                "date": "2027-12-13T18:00:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "Confirmed",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        }
+      ]
+    },
+    {
+      "input": {
+        "windowCalls": [
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 1,
+            "plans": [
+              {
+                "id": "plan-3",
+                "title": "Plan 0.0",
+                "sortDate": "2026-03-11T01:30:00Z",
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-1",
+                "title": "Plan 0.1",
+                "sortDate": null,
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-2",
+                "title": "Plan 0.2",
+                "sortDate": "2026-03-24T15:30:00.000Z",
+                "serviceTypeName": "Youth"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-1",
+                "startsAt": "",
+                "timeType": "Rehearsal"
+              },
+              {
+                "id": "t-5",
+                "startsAt": "",
+                "timeType": "service"
+              },
+              {
+                "id": "t-6",
+                "startsAt": "",
+                "timeType": "Rehearsal"
+              },
+              {
+                "id": "t-3",
+                "startsAt": "2026-02-18T19:30:00+05:30",
+                "timeType": "Rehearsal"
+              }
+            ],
+            "people": [],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 3,
+            "plans": [
+              {
+                "id": "plan-4",
+                "title": null,
+                "sortDate": "2026-02-18T20:30:00-08:00",
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-1",
+                "title": null,
+                "sortDate": null,
+                "serviceTypeName": null
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-2",
+                "startsAt": "2026-02-05T10:30:00+05:30",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-5",
+                "startsAt": "",
+                "timeType": "service"
+              },
+              {
+                "id": "t-4",
+                "startsAt": "2026-03-09T09:30:00.5Z",
+                "timeType": "service"
+              },
+              {
+                "id": "t-5",
+                "startsAt": null,
+                "timeType": null
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-5",
+                "rows": [
+                  {
+                    "id": "pp-1-31",
+                    "planId": "plan-2",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band - Vocals",
+                    "status": "d",
+                    "createdAt": "2026-01-31T10:30:00.123456Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-5",
+                      "t-6",
+                      "t-7",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-7",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "declineReason": "  Busy  "
+                  }
+                ]
+              },
+              {
+                "personId": "person-3",
+                "rows": [
+                  {
+                    "id": "pp-1-29",
+                    "planId": null,
+                    "teamId": "team-vox",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "declined",
+                    "createdAt": "2026-01-30T10:30:00Z",
+                    "timeIds": [
+                      "t-3",
+                      "t-6",
+                      "t-9",
+                      "t-3",
+                      "t-6",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-6",
+                      "t-9"
+                    ],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              },
+              {
+                "personId": "person-2",
+                "rows": [
+                  {
+                    "id": "pp-1-21",
+                    "planId": null,
+                    "teamId": "team-vox",
+                    "teamPositionName": "",
+                    "status": "C",
+                    "createdAt": "2026-01-14T10:30:00-08:00",
+                    "timeIds": [
+                      "t-1",
+                      "t-8",
+                      "t-1",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-3",
+                      "t-7"
+                    ],
+                    "declineReason": "  Busy  "
+                  },
+                  {
+                    "id": "pp-1-34",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band - Vocals",
+                    "status": "",
+                    "createdAt": "2026-01-30T10:30:00.000Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-6",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-6"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-1-11",
+                    "planId": "",
+                    "teamId": null,
+                    "teamPositionName": " - Keys",
+                    "status": "",
+                    "createdAt": "2026-01-21T10:30:00+05:30",
+                    "timeIds": [
+                      "t-2"
+                    ],
+                    "serviceTimeIds": [],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              },
+              {
+                "personId": "person-5",
+                "rows": [
+                  {
+                    "id": "pp-1-6",
+                    "planId": null,
+                    "teamId": "team-vox",
+                    "teamPositionName": "Band - Bass - Left",
+                    "status": "Decline",
+                    "createdAt": "2025-12-21T10:30:00.5Z",
+                    "timeIds": [
+                      "t-3",
+                      "t-4",
+                      "t-6",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-2",
+                      "t-7",
+                      "t-9"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-1-19",
+                    "planId": "plan-5",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band - Bass - Left",
+                    "status": "D",
+                    "createdAt": "2025-12-20T10:30Z",
+                    "timeIds": [
+                      "t-3",
+                      "t-4",
+                      "t-7",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-3",
+                      "t-7",
+                      "t-9"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-1-31",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band -Keys",
+                    "status": "C",
+                    "createdAt": "2026-01-06T10:30:00.5Z",
+                    "timeIds": [
+                      "t-3",
+                      "t-7"
+                    ],
+                    "serviceTimeIds": [
+                      "t-7"
+                    ],
+                    "declineReason": "  Busy  "
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 1,
+            "plans": [],
+            "planTimes": [
+              {
+                "id": "t-1",
+                "startsAt": "2026-02-23T14:30:00Z",
+                "timeType": null
+              },
+              {
+                "id": "t-3",
+                "startsAt": "2026-03-01T13:30:00.000Z",
+                "timeType": "other"
+              },
+              {
+                "id": "t-2",
+                "startsAt": "2026-02-18T09:30:00.000Z",
+                "timeType": null
+              }
+            ],
+            "people": [],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "planId": "plan-2"
+      },
+      "output": [
+        {
+          "key": "person-5",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-1-31:t-7",
+                "sourceScheduleId": "pp-1-31",
+                "planId": "plan-2",
+                "date": "2026-03-24T15:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.2",
+                "status": "d",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-31:t-8",
+                "sourceScheduleId": "pp-1-31",
+                "planId": "plan-2",
+                "date": "2026-03-24T15:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.2",
+                "status": "d",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-31:t-9",
+                "sourceScheduleId": "pp-1-31",
+                "planId": "plan-2",
+                "date": "2026-03-24T15:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.2",
+                "status": "d",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-31:t-1",
+                "sourceScheduleId": "pp-1-31",
+                "planId": "plan-2",
+                "date": "2026-02-23T14:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.2",
+                "status": "d",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-31:t-2",
+                "sourceScheduleId": "pp-1-31",
+                "planId": "plan-2",
+                "date": "2026-02-18T09:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.2",
+                "status": "d",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-31:t-5",
+                "sourceScheduleId": "pp-1-31",
+                "planId": "plan-2",
+                "date": "2026-03-24T15:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.2",
+                "status": "d",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-31:t-6",
+                "sourceScheduleId": "pp-1-31",
+                "planId": "plan-2",
+                "date": "2026-03-24T15:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.2",
+                "status": "d",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-6:t-2",
+                "sourceScheduleId": "pp-1-6",
+                "date": "2026-02-18T09:30:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "Decline",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-6:t-7",
+                "sourceScheduleId": "pp-1-6",
+                "date": "2025-12-21T10:30:00.500Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "Decline",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-6:t-9",
+                "sourceScheduleId": "pp-1-6",
+                "date": "2025-12-21T10:30:00.500Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "Decline",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-6:t-4",
+                "sourceScheduleId": "pp-1-6",
+                "date": "2026-03-09T09:30:00.500Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "Decline",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-6:t-6",
+                "sourceScheduleId": "pp-1-6",
+                "date": "2025-12-21T10:30:00.500Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "Decline",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-6:t-8",
+                "sourceScheduleId": "pp-1-6",
+                "date": "2025-12-21T10:30:00.500Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "status": "Decline",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-31:t-7",
+                "sourceScheduleId": "pp-1-31",
+                "planId": "plan-sel",
+                "date": "2026-01-06T10:30:00.500Z",
+                "teamPositionName": "Band -Keys",
+                "status": "C",
+                "timeType": "service"
+              }
+            ],
+            "selectedPlanAssignments": [
+              {
+                "source": "planPerson",
+                "id": "pp-1-31",
+                "planId": "plan-2",
+                "teamId": "team-band",
+                "teamName": null,
+                "teamPositionName": "Band - Vocals",
+                "status": "d",
+                "planPersonId": null,
+                "declineReason": "  Busy  "
+              }
+            ]
+          }
+        },
+        {
+          "key": "person-3",
+          "value": {
+            "serviceHistory": [],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-2",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-1-21:t-1",
+                "sourceScheduleId": "pp-1-21",
+                "date": "2026-02-23T14:30:00.000Z",
+                "teamPositionName": "",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-21:t-2",
+                "sourceScheduleId": "pp-1-21",
+                "date": "2026-02-18T09:30:00.000Z",
+                "teamPositionName": "",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-21:t-3",
+                "sourceScheduleId": "pp-1-21",
+                "date": "2026-03-01T13:30:00.000Z",
+                "teamPositionName": "",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-21:t-7",
+                "sourceScheduleId": "pp-1-21",
+                "date": "2026-01-14T18:30:00.000Z",
+                "teamPositionName": "",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-21:t-8",
+                "sourceScheduleId": "pp-1-21",
+                "date": "2026-01-14T18:30:00.000Z",
+                "teamPositionName": "",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-34:t-1",
+                "sourceScheduleId": "pp-1-34",
+                "planId": "plan-sel",
+                "date": "2026-02-23T14:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-34:t-2",
+                "sourceScheduleId": "pp-1-34",
+                "planId": "plan-sel",
+                "date": "2026-02-18T09:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-34:t-6",
+                "sourceScheduleId": "pp-1-34",
+                "planId": "plan-sel",
+                "date": "2026-01-30T10:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-34:t-8",
+                "sourceScheduleId": "pp-1-34",
+                "planId": "plan-sel",
+                "date": "2026-01-30T10:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-34:t-9",
+                "sourceScheduleId": "pp-1-34",
+                "planId": "plan-sel",
+                "date": "2026-01-30T10:30:00.000Z",
+                "teamPositionName": "Vocals",
+                "teamName": "Band",
+                "status": "",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-11:t-2",
+                "sourceScheduleId": "pp-1-11",
+                "planId": "",
+                "date": "2026-02-18T09:30:00.000Z",
+                "teamPositionName": "Keys",
+                "teamName": "",
+                "status": "",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        }
+      ]
+    },
+    {
+      "input": {
+        "windowCalls": [
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 1,
+            "plans": [
+              {
+                "id": "plan-5",
+                "title": "Plan 0.0",
+                "sortDate": null,
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-6",
+                "title": "Plan 0.1",
+                "sortDate": "2026-09-28T14:00:00+05:30",
+                "serviceTypeName": "Youth"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-1",
+                "startsAt": "2026-09-30T03:00:00+05:30",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-2",
+                "startsAt": "",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-8",
+                "startsAt": "",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-1",
+                "startsAt": "",
+                "timeType": "rehearsal"
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-1",
+                "rows": [
+                  {
+                    "id": "pp-0-31",
+                    "planId": "plan-sel",
+                    "teamId": null,
+                    "teamPositionName": "Band - Electric Guitar",
+                    "status": " D ",
+                    "createdAt": "2026-07-09T17:00:00.000Z",
+                    "timeIds": [
+                      "t-2",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-8"
+                    ],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              },
+              {
+                "personId": "person-3",
+                "rows": [
+                  {
+                    "id": "pp-0-18",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": " D ",
+                    "createdAt": "2026-07-21T17:00:00.123456Z",
+                    "timeIds": [
+                      "t-7",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-5",
+                      "t-6",
+                      "t-7"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-0-7",
+                    "planId": "plan-sel",
+                    "teamId": null,
+                    "teamPositionName": " - Keys",
+                    "status": "DECLINED",
+                    "createdAt": "2026-08-17T17:00:00.123456Z",
+                    "timeIds": [
+                      "t-2",
+                      "t-5"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1"
+                    ],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 1,
+            "plans": [
+              {
+                "id": "plan-5",
+                "title": "Plan 1.0",
+                "sortDate": "2026-10-11T12:00:00Z",
+                "serviceTypeName": null
+              }
+            ],
+            "planTimes": [],
+            "people": [
+              {
+                "personId": "person-3",
+                "rows": [
+                  {
+                    "id": "pp-1-2",
+                    "planId": "plan-5",
+                    "teamId": "team-vox",
+                    "teamPositionName": "Band - Bass - Left",
+                    "status": "C",
+                    "createdAt": "2026-08-19T17:00:00.000Z",
+                    "timeIds": [
+                      "t-6"
+                    ],
+                    "serviceTimeIds": [
+                      "t-6"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-1-14",
+                    "planId": "",
+                    "teamId": null,
+                    "teamPositionName": "Band  -  Keys",
+                    "status": "D",
+                    "createdAt": "2026-08-06T17:00:00.123456Z",
+                    "timeIds": [
+                      "t-2",
+                      "t-3",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-7"
+                    ],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "person-4",
+                "rows": []
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 0,
+            "plans": [
+              {
+                "id": "plan-5",
+                "title": "Plan 2.0",
+                "sortDate": "2026-09-01",
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-5",
+                "title": "Plan 2.1",
+                "sortDate": "2026-08-25T17:00:00.123456Z",
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-6",
+                "title": "Plan 2.2",
+                "sortDate": null,
+                "serviceTypeName": "Sunday"
+              },
+              {
+                "id": "plan-2",
+                "title": "Plan 2.3",
+                "sortDate": "",
+                "serviceTypeName": null
+              }
+            ],
+            "planTimes": [],
+            "people": [
+              {
+                "personId": "person-3",
+                "rows": [
+                  {
+                    "id": "pp-2-16",
+                    "planId": "",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band -Keys",
+                    "status": "C",
+                    "createdAt": "2026-07-18T17:00:00Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-5",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-9"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-2-10",
+                    "planId": "plan-7",
+                    "teamId": "team-vox",
+                    "teamPositionName": "A - B - C",
+                    "status": "U",
+                    "createdAt": "2026-07-19T17:00:00+05:30",
+                    "timeIds": [
+                      "t-5",
+                      "t-7"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-3",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-2-1",
+                    "planId": null,
+                    "teamId": "team-band",
+                    "teamPositionName": "Band -Keys",
+                    "status": "declined",
+                    "createdAt": "2026-07-30T17:00:00.000Z",
+                    "timeIds": [
+                      "t-3",
+                      "t-4",
+                      "t-7",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-4",
+                      "t-5",
+                      "t-6",
+                      "t-8"
+                    ],
+                    "declineReason": "Out of town"
+                  }
+                ]
+              },
+              {
+                "personId": "person-1",
+                "rows": []
+              },
+              {
+                "personId": "person-4",
+                "rows": []
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "planId": "plan-1"
+      },
+      "output": [
+        {
+          "key": "person-1",
+          "value": {
+            "serviceHistory": [],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-3",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-1-2:t-6",
+                "sourceScheduleId": "pp-1-2",
+                "planId": "plan-5",
+                "date": "2026-08-19T17:00:00.000Z",
+                "teamPositionName": "Bass - Left",
+                "teamName": "Band",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan 0.0",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-16:t-1",
+                "sourceScheduleId": "pp-2-16",
+                "planId": "",
+                "date": "2026-07-18T17:00:00.000Z",
+                "teamPositionName": "Band -Keys",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-16:t-9",
+                "sourceScheduleId": "pp-2-16",
+                "planId": "",
+                "date": "2026-07-18T17:00:00.000Z",
+                "teamPositionName": "Band -Keys",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-16:t-5",
+                "sourceScheduleId": "pp-2-16",
+                "planId": "",
+                "date": "2026-07-18T17:00:00.000Z",
+                "teamPositionName": "Band -Keys",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-2-10:t-1",
+                "sourceScheduleId": "pp-2-10",
+                "planId": "plan-7",
+                "date": "2026-07-19T11:30:00.000Z",
+                "teamPositionName": "B - C",
+                "teamName": "A",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-10:t-3",
+                "sourceScheduleId": "pp-2-10",
+                "planId": "plan-7",
+                "date": "2026-07-19T11:30:00.000Z",
+                "teamPositionName": "B - C",
+                "teamName": "A",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-10:t-8",
+                "sourceScheduleId": "pp-2-10",
+                "planId": "plan-7",
+                "date": "2026-07-19T11:30:00.000Z",
+                "teamPositionName": "B - C",
+                "teamName": "A",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-10:t-9",
+                "sourceScheduleId": "pp-2-10",
+                "planId": "plan-7",
+                "date": "2026-07-19T11:30:00.000Z",
+                "teamPositionName": "B - C",
+                "teamName": "A",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-2-10:t-5",
+                "sourceScheduleId": "pp-2-10",
+                "planId": "plan-7",
+                "date": "2026-07-19T11:30:00.000Z",
+                "teamPositionName": "B - C",
+                "teamName": "A",
+                "status": "U",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-2-10:t-7",
+                "sourceScheduleId": "pp-2-10",
+                "planId": "plan-7",
+                "date": "2026-07-19T11:30:00.000Z",
+                "teamPositionName": "B - C",
+                "teamName": "A",
+                "status": "U",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-4",
+          "value": {
+            "serviceHistory": [],
+            "selectedPlanAssignments": []
+          }
+        }
+      ]
+    },
+    {
+      "input": {
+        "windowCalls": [
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 3,
+            "plans": [
+              {
+                "id": "plan-5",
+                "title": "Plan 0.0",
+                "sortDate": null,
+                "serviceTypeName": "Youth"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-6",
+                "startsAt": "2026-02-03",
+                "timeType": "service"
+              },
+              {
+                "id": "t-5",
+                "startsAt": "",
+                "timeType": "Rehearsal"
+              },
+              {
+                "id": "t-4",
+                "startsAt": null,
+                "timeType": "service"
+              },
+              {
+                "id": "t-5",
+                "startsAt": "2026-04-09T03:30:00.5Z",
+                "timeType": "service"
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-2",
+                "rows": [
+                  {
+                    "id": "pp-0-6",
+                    "planId": "",
+                    "teamId": null,
+                    "teamPositionName": "Band  -  Keys",
+                    "status": "D",
+                    "createdAt": "2026-02-15T10:30:00+05:30",
+                    "timeIds": [
+                      "t-4",
+                      "t-6",
+                      "t-4",
+                      "t-6"
+                    ],
+                    "serviceTimeIds": [
+                      "t-6"
+                    ],
+                    "declineReason": "  Busy  "
+                  },
+                  {
+                    "id": "pp-0-6",
+                    "planId": null,
+                    "teamId": null,
+                    "teamPositionName": "Electric Guitar",
+                    "status": "D",
+                    "createdAt": "2026-01-24T10:30:00-08:00",
+                    "timeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-4",
+                      "t-5",
+                      "t-7",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-8"
+                    ],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "person-5",
+                "rows": [
+                  {
+                    "id": "pp-0-36",
+                    "planId": null,
+                    "teamId": "team-band",
+                    "teamPositionName": "",
+                    "status": "DECLINED",
+                    "createdAt": "2026-01-06",
+                    "timeIds": [
+                      "t-2",
+                      "t-5",
+                      "t-9"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-4",
+                      "t-7",
+                      "t-8"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-0-28",
+                    "planId": "",
+                    "teamId": null,
+                    "teamPositionName": "Electric Guitar",
+                    "status": "U",
+                    "createdAt": "2026-02-10T10:30:00Z",
+                    "timeIds": [
+                      "t-2"
+                    ],
+                    "serviceTimeIds": [
+                      "t-6",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-0-27",
+                    "planId": "plan-3",
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": " D ",
+                    "createdAt": "2025-12-10T10:30Z",
+                    "timeIds": [
+                      "t-2",
+                      "t-3",
+                      "t-4",
+                      "t-5",
+                      "t-7"
+                    ],
+                    "serviceTimeIds": [
+                      "t-2",
+                      "t-3",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "declineReason": "  Busy  "
+                  }
+                ]
+              },
+              {
+                "personId": "person-2",
+                "rows": []
+              },
+              {
+                "personId": "person-2",
+                "rows": []
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-20T00:00:00.000Z",
+            "loadedPlanCount": 2,
+            "plans": [
+              {
+                "id": "plan-2",
+                "title": "Plan 1.0",
+                "sortDate": "2026-02-05",
+                "serviceTypeName": "Sunday"
+              },
+              {
+                "id": "plan-2",
+                "title": "Plan 1.1",
+                "sortDate": null,
+                "serviceTypeName": "Youth"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-5",
+                "startsAt": "2026-03-02",
+                "timeType": "service"
+              },
+              {
+                "id": "t-5",
+                "startsAt": null,
+                "timeType": "service"
+              },
+              {
+                "id": "t-8",
+                "startsAt": null,
+                "timeType": "other"
+              },
+              {
+                "id": "t-1",
+                "startsAt": null,
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-4",
+                "startsAt": null,
+                "timeType": "service"
+              }
+            ],
+            "people": [
+              {
+                "personId": "person-4",
+                "rows": []
+              },
+              {
+                "personId": "person-3",
+                "rows": [
+                  {
+                    "id": "pp-1-31",
+                    "planId": "plan-3",
+                    "teamId": null,
+                    "teamPositionName": " - Keys",
+                    "status": "declined",
+                    "createdAt": "2025-12-15T10:30:00.000Z",
+                    "timeIds": [
+                      "t-6"
+                    ],
+                    "serviceTimeIds": [
+                      "t-3",
+                      "t-5",
+                      "t-8",
+                      "t-9"
+                    ],
+                    "declineReason": "  Busy  "
+                  },
+                  {
+                    "id": "pp-1-20",
+                    "planId": null,
+                    "teamId": "team-band",
+                    "teamPositionName": "Band - ",
+                    "status": "Decline",
+                    "createdAt": "2026-01-05T10:30:00.123456Z",
+                    "timeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-6",
+                      "t-8"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-2",
+                      "t-3",
+                      "t-5",
+                      "t-6"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-1-30",
+                    "planId": "plan-7",
+                    "teamId": "team-band",
+                    "teamPositionName": "",
+                    "status": "U",
+                    "createdAt": "2026-01-08T10:30:00Z",
+                    "timeIds": [
+                      "t-2",
+                      "t-3",
+                      "t-4",
+                      "t-6"
+                    ],
+                    "serviceTimeIds": [
+                      "t-1",
+                      "t-4",
+                      "t-5",
+                      "t-6"
+                    ],
+                    "declineReason": null
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "planId": "plan-2"
+      },
+      "output": [
+        {
+          "key": "person-2",
+          "value": {
+            "serviceHistory": [],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-5",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-0-28:t-6",
+                "sourceScheduleId": "pp-0-28",
+                "planId": "",
+                "date": "2026-02-03T00:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-28:t-8",
+                "sourceScheduleId": "pp-0-28",
+                "planId": "",
+                "date": "2026-02-10T10:30:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-28:t-9",
+                "sourceScheduleId": "pp-0-28",
+                "planId": "",
+                "date": "2026-02-10T10:30:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-0-28:t-2",
+                "sourceScheduleId": "pp-0-28",
+                "planId": "",
+                "date": "2026-02-10T10:30:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "status": "U",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-4",
+          "value": {
+            "serviceHistory": [],
+            "selectedPlanAssignments": []
+          }
+        },
+        {
+          "key": "person-3",
+          "value": {
+            "serviceHistory": [
+              {
+                "id": "pp-1-20:t-1",
+                "sourceScheduleId": "pp-1-20",
+                "date": "2026-01-05T10:30:00.123Z",
+                "teamPositionName": "",
+                "teamName": "Band",
+                "status": "Decline",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-20:t-2",
+                "sourceScheduleId": "pp-1-20",
+                "date": "2026-01-05T10:30:00.123Z",
+                "teamPositionName": "",
+                "teamName": "Band",
+                "status": "Decline",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-20:t-3",
+                "sourceScheduleId": "pp-1-20",
+                "date": "2026-01-05T10:30:00.123Z",
+                "teamPositionName": "",
+                "teamName": "Band",
+                "status": "Decline",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-20:t-5",
+                "sourceScheduleId": "pp-1-20",
+                "date": "2026-01-05T10:30:00.123Z",
+                "teamPositionName": "",
+                "teamName": "Band",
+                "status": "Decline",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-20:t-6",
+                "sourceScheduleId": "pp-1-20",
+                "date": "2026-02-03T00:00:00.000Z",
+                "teamPositionName": "",
+                "teamName": "Band",
+                "status": "Decline",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-30:t-1",
+                "sourceScheduleId": "pp-1-30",
+                "planId": "plan-7",
+                "date": "2026-01-08T10:30:00.000Z",
+                "teamPositionName": "",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-30:t-4",
+                "sourceScheduleId": "pp-1-30",
+                "planId": "plan-7",
+                "date": "2026-01-08T10:30:00.000Z",
+                "teamPositionName": "",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-30:t-5",
+                "sourceScheduleId": "pp-1-30",
+                "planId": "plan-7",
+                "date": "2026-01-08T10:30:00.000Z",
+                "teamPositionName": "",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-30:t-6",
+                "sourceScheduleId": "pp-1-30",
+                "planId": "plan-7",
+                "date": "2026-02-03T00:00:00.000Z",
+                "teamPositionName": "",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-1-30:t-2",
+                "sourceScheduleId": "pp-1-30",
+                "planId": "plan-7",
+                "date": "2026-01-08T10:30:00.000Z",
+                "teamPositionName": "",
+                "status": "U",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-1-30:t-3",
+                "sourceScheduleId": "pp-1-30",
+                "planId": "plan-7",
+                "date": "2026-01-08T10:30:00.000Z",
+                "teamPositionName": "",
+                "status": "U",
+                "timeType": "rehearsal"
+              }
+            ],
+            "selectedPlanAssignments": []
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -15,7 +15,7 @@ import {
 } from "@pcobooster/api/db/activity-events";
 import type { Db } from "@pcobooster/api/db/client";
 import * as schema from "@pcobooster/api/db/schema";
-import { logger } from "@pcobooster/api/logger";
+import { boundaryLog } from "@pcobooster/api/logging";
 import { upsertPlanningCenterAccountIdentity } from "@pcobooster/api/modules/admin/planning-center-account-identities";
 import type { PostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-capture";
 import { getPostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-person";
@@ -68,7 +68,7 @@ const localhostAlias = (origin: string): string => {
 };
 
 export const createAuth = (config: ServerConfig, database: Db) => {
-  const authEventLog = logger.for("auth/events");
+  const authEventLog = boundaryLog("auth/events");
   const { planningCenter, previewOriginPattern, proxy } = config.auth;
 
   const trustedOrigins = [
@@ -116,8 +116,9 @@ export const createAuth = (config: ServerConfig, database: Db) => {
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       authEventLog.warn(
-        { err, eventType },
-        "Failed to record auth activity event"
+        "Failed to record auth activity event",
+        { eventType },
+        err
       );
     }
   };
@@ -129,7 +130,7 @@ export const createAuth = (config: ServerConfig, database: Db) => {
       return await getPostHogPersonProperties(userId, database);
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
-      authEventLog.warn({ err }, "Failed to load PostHog person properties");
+      authEventLog.warn("Failed to load PostHog person properties", {}, err);
       return null;
     }
   };
@@ -181,8 +182,9 @@ export const createAuth = (config: ServerConfig, database: Db) => {
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       authEventLog.warn(
-        { err, accountId: account.id },
-        "Failed to record Planning Center account identity"
+        "Failed to record Planning Center account identity",
+        { accountId: account.id },
+        err
       );
       return null;
     }
@@ -286,14 +288,11 @@ export const createAuth = (config: ServerConfig, database: Db) => {
         if (failure === null) {
           return;
         }
-        authEventLog.warn(
-          {
-            code: failure.code,
-            receivedCode: failure.receivedCode,
-            description: failure.description,
-          },
-          "Planning Center sign-in failed"
-        );
+        authEventLog.warn("Planning Center sign-in failed", {
+          code: failure.code,
+          receivedCode: failure.receivedCode,
+          description: failure.description,
+        });
         await recordAuthEventSafely("auth_sign_in_failed", {
           errorCode: failure.receivedCode,
           metadata: { code: failure.code },

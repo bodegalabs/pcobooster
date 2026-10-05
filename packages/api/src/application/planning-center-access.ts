@@ -5,10 +5,16 @@ import { Forbidden } from "@pcobooster/api/application/errors/forbidden";
 import { InvalidInput } from "@pcobooster/api/application/errors/invalid-input";
 import { RateLimited } from "@pcobooster/api/application/errors/rate-limited";
 import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
+import { planningCenterServicesContext } from "@pcobooster/api/application/planning-center/services";
+import type { PlanningCenterServices } from "@pcobooster/api/application/planning-center/services";
 import { resolveDemoSession } from "@pcobooster/api/auth/demo-access";
 import { requirePlanningCenterAccessToken } from "@pcobooster/api/auth/planning-center-session";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
-import { isPlanningCenterError } from "@pcobooster/api/planning-center/core-client";
+import {
+  isPlanningCenterError,
+  listedErrorDetails,
+  listedErrorDetailsSchema,
+} from "@pcobooster/api/planning-center/core-client";
 import type {
   PlanningCenterError,
   PlanningCenterPersonalAccessToken,
@@ -136,12 +142,24 @@ export const createPlanningCenterAccessDependencies = (
 
 const PLANNING_CENTER_FORBIDDEN_STATUS = 403;
 const PLANNING_CENTER_UNAUTHORIZED_STATUS = 401;
+const PLANNING_CENTER_VALIDATION_STATUS = 422;
+/** Planning Center's rate window; a caller that waits this long starts a fresh one. */
+const PLANNING_CENTER_RATE_WINDOW_SECONDS = 20;
 /** Planning Center's code for a person with no access to the product they called. */
 const PLANNING_CENTER_NO_APP_ACCESS_CODE = "TRASH_PANDA";
 const PERMISSION_DENIED_MESSAGE =
   "Your Planning Center permissions don't allow this. A Planning Center admin can give you more access.";
 const NO_APP_ACCESS_MESSAGE =
   "Your Planning Center account doesn't have access to this Planning Center app. A Planning Center admin can add it.";
+
+/** Planning Center's own reason for rejecting a change, written for people. */
+const rejectedChangeMessage = (error: PlanningCenterApiError): string => {
+  const listed = listedErrorDetailsSchema.safeParse(error.details);
+  const details = listed.success ? listedErrorDetails(listed.data) : [];
+  return details.length > 0
+    ? `Planning Center didn't accept that change: ${details.join("; ")}`
+    : "Planning Center didn't accept that change.";
+};
 
 /**
  * The fault reported for each expected Planning Center failure. Tokens act with the person's
@@ -174,6 +192,9 @@ export const planningCenterFault = (
       ) {
         return new Forbidden({ message: NO_APP_ACCESS_MESSAGE });
       }
+      if (error.status === PLANNING_CENTER_VALIDATION_STATUS) {
+        return new InvalidInput({ message: rejectedChangeMessage(error) });
+      }
       return new ExternalServiceFailure({
         message: "Planning Center request failed.",
         service: "planning-center",
@@ -189,6 +210,14 @@ export const planningCenterFault = (
       });
     }
     case "PlanningCenterSubrequestLimitError": {
+      if (error.source === "budget" && (error.rateLimitedResponses ?? 0) > 0) {
+        return new RateLimited({
+          message:
+            "Planning Center rate limit exceeded. Please wait and try again.",
+          service: "planning-center",
+          retryAfterSeconds: PLANNING_CENTER_RATE_WINDOW_SECONDS,
+        });
+      }
       return new ExternalServiceFailure({
         message:
           "This request needed more Planning Center calls than one request allows.",
@@ -297,20 +326,41 @@ export const resolvePlanningCenterAccess = (
     };
   });
 
+/** The request's Planning Center access and each capability bound to its credential. */
+export type PlanningCenterRequest =
+  | PlanningCenterAccess
+  | PlanningCenterServices;
+
+/** `Requirements` once `provideAccess` has supplied the request. */
+type WithoutPlanningCenterRequest<Requirements> = Exclude<
+  Exclude<Requirements, PlanningCenterServices>,
+  PlanningCenterAccess
+>;
+
+/** Gives `program` one resolved access: its credential and every capability bound to it. */
+export const provideAccess = <Value, Failure, Requirements>(
+  program: Effect.Effect<Value, Failure, Requirements>,
+  access: PlanningCenterRequestAccess
+): Effect.Effect<Value, Failure, WithoutPlanningCenterRequest<Requirements>> =>
+  program.pipe(
+    Effect.provideContext(planningCenterServicesContext(access.services)),
+    Effect.provideService(PlanningCenterAccess, access)
+  );
+
 export const withPlanningCenterAccess = <Value, Failure, Requirements>(
-  program: Effect.Effect<Value, Failure, Requirements | PlanningCenterAccess>,
+  program: Effect.Effect<Value, Failure, Requirements>,
   dependencies?: PlanningCenterAccessDependencies
 ): Effect.Effect<
   Value,
   Failure | ApplicationFault,
-  | Exclude<Requirements, PlanningCenterAccess>
+  | WithoutPlanningCenterRequest<Requirements>
   | RequestContext
   | Server
   | HttpClient.HttpClient
 > =>
   Effect.acquireUseRelease(
     resolvePlanningCenterAccess(dependencies),
-    (access) => Effect.provideService(program, PlanningCenterAccess, access),
+    (access) => provideAccess(program, access),
     // Shared read-cache writes must finish inside the request that started them.
     (access) => access.services.settleReadCaches
   );

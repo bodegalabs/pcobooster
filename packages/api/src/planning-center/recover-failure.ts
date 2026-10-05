@@ -1,9 +1,9 @@
-import { logger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
 import { PlanningCenterNetworkError } from "@pcobooster/api/planning-center/network-error";
 import { Cause, Effect } from "effect";
 
-const log = logger.for("planning-center/recover-failure");
+const log = moduleLog("planning-center/recover-failure");
 
 const HTTP_UNAUTHORIZED = 401;
 const HTTP_FORBIDDEN = 403;
@@ -161,10 +161,8 @@ export const recoverPlanningCenterFailure =
       const expected = [...found].every(
         (kind) => kind === "not-found" || kind === "permission-denied"
       );
-      if (expected) {
-        log.info(fields, reason);
-      } else {
-        log.warn(fields, reason);
-      }
-      return Effect.sync(fallback);
+      return Effect.andThen(
+        expected ? log.info(reason, fields) : log.warn(reason, fields),
+        Effect.sync(fallback)
+      );
     });

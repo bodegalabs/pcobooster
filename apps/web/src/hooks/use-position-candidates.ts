@@ -22,6 +22,7 @@ import {
   expandWindowHistory,
   needsScheduleHistory,
   planCandidateDetailsBatches,
+  prefetchCandidateDetailBatches,
   windowHistoryAdvanced,
 } from "@/lib/position-candidates";
 import type {
@@ -250,20 +251,20 @@ export const prefetchPositionCandidates = async (
     speculativeQuery(createPositionCandidatesQueryOptions(slot))
   );
   const detailsFor = async (scheduleHistory: boolean) => {
-    await Promise.all(
-      detailBatchesFor(candidates).map(
-        async (personIds) =>
-          await queryClient.query(
-            speculativeQuery(
-              createCandidateDetailsQueryOptions({
-                personIds,
-                planId: slot.planId,
-                dateKey: slot.dateKey,
-                scheduleHistory,
-              })
-            )
+    await prefetchCandidateDetailBatches(
+      detailBatchesFor(candidates),
+      async (personIds) => {
+        await queryClient.query(
+          speculativeQuery(
+            createCandidateDetailsQueryOptions({
+              personIds,
+              planId: slot.planId,
+              dateKey: slot.dateKey,
+              scheduleHistory,
+            })
           )
-      )
+        );
+      }
     );
   };
   const [windowCalls] = await Promise.all([

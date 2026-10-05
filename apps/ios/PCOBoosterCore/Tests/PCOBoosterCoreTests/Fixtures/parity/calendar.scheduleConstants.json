@@ -1,0 +1,13 @@
+{
+  "suite": "calendar.scheduleConstants",
+  "cases": [
+    {
+      "input": "values",
+      "output": {
+        "planHistoryHalfRangeDays": 28,
+        "planHistoryHalfRangeWeeks": 4,
+        "rehearsalWindowMarginDays": 7
+      }
+    }
+  ]
+}

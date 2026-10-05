@@ -1,16 +1,21 @@
 import { ensureRequestIsOpen } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
 import { AlreadyScheduled } from "@pcobooster/api/application/errors/already-scheduled";
+import { NotFound } from "@pcobooster/api/application/errors/not-found";
 import { PositionMismatch } from "@pcobooster/api/application/errors/position-mismatch";
 import {
   PlanningCenterAccess,
   planningCenterFault,
   withPlanningCenterFaults,
 } from "@pcobooster/api/application/planning-center-access";
+import { PlanningCenterCatalog } from "@pcobooster/api/application/planning-center/catalog";
+import { PlanningCenterPeople } from "@pcobooster/api/application/planning-center/people";
 import {
   matchesScheduleTarget,
   resolveScheduleTarget,
 } from "@pcobooster/api/modules/planning-center/schedule-person";
+import { PlanningCenterApiError } from "@pcobooster/api/planning-center/api-error";
+import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type {
   ScheduleAssignInput,
   ScheduleRemoveInput,
@@ -34,14 +39,15 @@ export const prepareScheduledPerson = (
 ): Effect.Effect<
   ScheduleAssignmentPreparation,
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterCatalog | PlanningCenterPeople
 > =>
   Effect.gen(function* preparePerson() {
-    const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
+    const catalogService = yield* PlanningCenterCatalog;
     const normalizedInput = { ...input, oneOff: input.oneOff ?? false };
     const target = yield* resolveScheduleTarget(normalizedInput, {
-      catalog: access.services.catalog,
-      people: access.services.people,
+      catalog: catalogService,
+      people: peopleService,
     });
     return { target };
   }).pipe(withPlanningCenterFaults);
@@ -56,14 +62,15 @@ export const commitScheduledPerson = (
 ): Effect.Effect<
   { readonly success: true; readonly data: { readonly id: string } },
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterAccess | PlanningCenterPeople | RequestContext
 > =>
   Effect.gen(function* commitPerson() {
     const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
     yield* ensureRequestIsOpen;
     // The scheduling transport does not interrupt this provider mutation,
     // so its outcome is audited accurately.
-    const created = yield* access.services.people
+    const created = yield* peopleService
       .createPlanPerson(
         input.serviceTypeId,
         input.personId,
@@ -78,8 +85,8 @@ export const commitScheduledPerson = (
               "has already been scheduled for this position"
             )
           ) {
-            access.services.people.invalidateScheduleReadCaches(input);
-            access.services.people.invalidatePlanWindowRosters();
+            peopleService.invalidateScheduleReadCaches(input);
+            peopleService.invalidatePlanWindowRosters();
             return Effect.fail(
               new AlreadyScheduled({
                 message:
@@ -92,8 +99,8 @@ export const commitScheduledPerson = (
         })
       );
 
-    access.services.people.invalidateScheduleReadCaches(input);
-    access.services.people.invalidatePlanWindowRosters();
+    peopleService.invalidateScheduleReadCaches(input);
+    peopleService.invalidatePlanWindowRosters();
     const name = created.attributes.team_position_name;
     const createdPositionName = isString(name) ? name : "";
 
@@ -121,18 +128,40 @@ export const commitScheduledPerson = (
     return { success: true as const, data: { id: created.id } };
   });
 
+const PLANNING_CENTER_NOT_FOUND_STATUS = 404;
+
+/**
+ * Someone else may have removed the plan person in Planning Center since the lineup loaded.
+ * That is a stale lineup, not a provider outage.
+ */
+const reportMissingPlanPerson = <Value, Requirements>(
+  effect: Effect.Effect<Value, PlanningCenterError, Requirements>
+): Effect.Effect<Value, PlanningCenterError | NotFound, Requirements> =>
+  Effect.mapError(effect, (failure) =>
+    failure instanceof PlanningCenterApiError &&
+    failure.status === PLANNING_CENTER_NOT_FOUND_STATUS
+      ? new NotFound({
+          message:
+            "This person is no longer on the plan in Planning Center. Refresh to see the current lineup.",
+          resource: "plan-person",
+        })
+      : failure
+  );
+
 export const removeScheduledPerson = (
   input: ScheduleRemoveInput
 ): Effect.Effect<
   { readonly success: true },
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterPeople | RequestContext
 > =>
   Effect.gen(function* removePerson() {
-    const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
     yield* ensureRequestIsOpen;
-    yield* access.services.people.deletePlanPerson(input.planPersonId, input);
-    access.services.people.invalidatePlanWindowRosters();
+    yield* reportMissingPlanPerson(
+      peopleService.deletePlanPerson(input.planPersonId, input)
+    );
+    peopleService.invalidatePlanWindowRosters();
     return { success: true as const };
   }).pipe(withPlanningCenterFaults);
 
@@ -141,16 +170,18 @@ export const updateScheduledPersonStatus = (
 ): Effect.Effect<
   { readonly success: true },
   ApplicationFault,
-  PlanningCenterAccess | RequestContext
+  PlanningCenterPeople | RequestContext
 > =>
   Effect.gen(function* updateStatus() {
-    const access = yield* PlanningCenterAccess;
+    const peopleService = yield* PlanningCenterPeople;
     yield* ensureRequestIsOpen;
-    yield* access.services.people.updatePlanPersonStatus(
-      input.planPersonId,
-      input.status,
-      input
+    yield* reportMissingPlanPerson(
+      peopleService.updatePlanPersonStatus(
+        input.planPersonId,
+        input.status,
+        input
+      )
     );
-    access.services.people.invalidatePlanWindowRosters();
+    peopleService.invalidatePlanWindowRosters();
     return { success: true as const };
   }).pipe(withPlanningCenterFaults);

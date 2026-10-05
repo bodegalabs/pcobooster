@@ -1,4 +1,4 @@
-import { logger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import type {
   PlanningCenterCoreClient,
   PlanningCenterError,
@@ -10,7 +10,7 @@ import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
-const log = logger.for("planning-center/plan-items");
+const log = moduleLog("planning-center/plan-items");
 const PLAN_ITEMS_CACHE_TTL_MS = 30 * 1000;
 const PLAN_ITEM_INCLUDES = "song,arrangement,key,item_notes,item_times";
 
@@ -73,11 +73,10 @@ export class PlanningCenterPlanItemsService {
         )
         .pipe(
           Effect.tap((result) =>
-            Effect.sync(() => {
-              log.info(
-                { serviceTypeId, planId, itemCount: result.data.length },
-                "Plan items fetched"
-              );
+            log.info("Plan items fetched", {
+              serviceTypeId,
+              planId,
+              itemCount: result.data.length,
             })
           )
         );

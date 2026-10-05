@@ -1,11 +1,11 @@
 import { ExternalServiceFailure } from "@pcobooster/api/application/errors/external-service-failure";
 import { RateLimited } from "@pcobooster/api/application/errors/rate-limited";
-import { logger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import type { LyricsSearchResult } from "@pcobooster/contracts/chord-charts";
 import { Effect } from "effect";
 import { z } from "zod";
 
-const log = logger.for("lyrics/lrclib");
+const log = moduleLog("lyrics/lrclib");
 
 /**
  * LRCLIB is a free, keyless community lyrics database (https://lrclib.net/docs). It asks
@@ -110,9 +110,9 @@ export const searchLyrics = (
       );
     }
     const results = toLyricsSearchResults(parsed.data);
-    log.info(
-      { records: parsed.data.length, results: results.length },
-      "Lyrics search finished"
-    );
+    yield* log.info("Lyrics search finished", {
+      records: parsed.data.length,
+      results: results.length,
+    });
     return results;
   });

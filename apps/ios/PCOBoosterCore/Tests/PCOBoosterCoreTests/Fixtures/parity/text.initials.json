@@ -1,0 +1,101 @@
+{
+  "suite": "text.initials",
+  "cases": [
+    {
+      "input": "Jake Bodea",
+      "output": "JB"
+    },
+    {
+      "input": "jake",
+      "output": "JA"
+    },
+    {
+      "input": "J",
+      "output": "J"
+    },
+    {
+      "input": "",
+      "output": "?"
+    },
+    {
+      "input": "   ",
+      "output": "?"
+    },
+    {
+      "input": "Mary Ann Smith",
+      "output": "MA"
+    },
+    {
+      "input": "  ana   maría ",
+      "output": "AM"
+    },
+    {
+      "input": "Émile Zola",
+      "output": "ÉZ"
+    },
+    {
+      "input": "Émile Zola",
+      "output": "EZ"
+    },
+    {
+      "input": "Émile",
+      "output": "É"
+    },
+    {
+      "input": "ßaa",
+      "output": "SSA"
+    },
+    {
+      "input": "straße",
+      "output": "ST"
+    },
+    {
+      "input": "ǆemal",
+      "output": "ǄE"
+    },
+    {
+      "input": "Ωmega Point",
+      "output": "ΩP"
+    },
+    {
+      "input": "李小龙",
+      "output": "李小"
+    },
+    {
+      "input": "李 小龙",
+      "output": "李小"
+    },
+    {
+      "input": "o'brien",
+      "output": "O'"
+    },
+    {
+      "input": "x y",
+      "output": "XY"
+    },
+    {
+      "input": "﻿Zoe Lee",
+      "output": "ZL"
+    },
+    {
+      "input": "ab",
+      "output": "A"
+    },
+    {
+      "input": "Ana Lucia",
+      "output": "AL"
+    },
+    {
+      "input": "line\nbreak",
+      "output": "LB"
+    },
+    {
+      "input": "😀",
+      "output": "😀"
+    },
+    {
+      "input": "😀x",
+      "output": "😀"
+    }
+  ]
+}

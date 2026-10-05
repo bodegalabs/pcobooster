@@ -1,4 +1,4 @@
-import { PlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
+import { provideAccess } from "@pcobooster/api/application/planning-center-access";
 import {
   commitRunSheetItemCreate,
   prepareRunSheetItemCreate,
@@ -10,9 +10,9 @@ import {
 } from "@pcobooster/api/planning-center/services/factory";
 import type { SuccessOf } from "@pcobooster/api/testing/effect";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
+import { testRuntime } from "@pcobooster/api/testing/runtime";
 import { testServer } from "@pcobooster/api/testing/server";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
-import { applicationRuntime } from "@pcobooster/api/transport/orpc/implementation";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 
@@ -22,6 +22,7 @@ const context = {
   }),
   requestId: "run-sheet-request",
   resHeaders: new Headers(),
+  runtime: testRuntime(),
   server: testServer(),
 };
 
@@ -49,11 +50,6 @@ const setup = () => {
   return { access, services };
 };
 
-const provideAccess = <Value, Failure, Requirements>(
-  program: Effect.Effect<Value, Failure, Requirements>,
-  access: ReturnType<typeof setup>["access"]
-) => Effect.provideService(program, PlanningCenterAccess, access);
-
 describe("run-sheet mutation cancellation", () => {
   it("does not start a create after an aborted song-default preflight", async () => {
     const { access, services } = setup();
@@ -72,7 +68,6 @@ describe("run-sheet mutation cancellation", () => {
     const create = vi.spyOn(services.planItems, "createPlanItem");
 
     const pending = executeApplicationEffect(
-      applicationRuntime,
       provideAccess(
         prepareRunSheetItemCreate({
           serviceTypeId: "service-1",
@@ -123,7 +118,6 @@ describe("run-sheet mutation cancellation", () => {
       );
 
     const pending = executeApplicationEffect(
-      applicationRuntime,
       provideAccess(
         commitRunSheetItemCreate({
           serviceTypeId: "service-1",
@@ -184,7 +178,6 @@ describe("run-sheet mutation cancellation", () => {
       );
 
     const pending = executeApplicationEffect(
-      applicationRuntime,
       provideAccess(
         updateRunSheetTime({
           serviceTypeId: "service-1",

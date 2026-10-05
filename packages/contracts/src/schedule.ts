@@ -68,6 +68,7 @@ const scheduleProcedure = oc.errors({
   UNAUTHORIZED: applicationErrorMap.UNAUTHORIZED,
   FORBIDDEN: applicationErrorMap.FORBIDDEN,
   BAD_REQUEST: applicationErrorMap.BAD_REQUEST,
+  NOT_FOUND: applicationErrorMap.NOT_FOUND,
   CONFLICT: {
     status: 409,
     data: conflictErrorDataSchema,

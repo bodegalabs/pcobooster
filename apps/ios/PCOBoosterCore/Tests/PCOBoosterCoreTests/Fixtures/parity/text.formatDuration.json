@@ -1,0 +1,93 @@
+{
+  "suite": "text.formatDuration",
+  "cases": [
+    {
+      "input": 0,
+      "output": null
+    },
+    {
+      "input": 0.4,
+      "output": null
+    },
+    {
+      "input": 0.999,
+      "output": null
+    },
+    {
+      "input": 1,
+      "output": "0:01"
+    },
+    {
+      "input": 59,
+      "output": "0:59"
+    },
+    {
+      "input": 59.9,
+      "output": "0:59"
+    },
+    {
+      "input": 60,
+      "output": "1:00"
+    },
+    {
+      "input": 61,
+      "output": "1:01"
+    },
+    {
+      "input": 65,
+      "output": "1:05"
+    },
+    {
+      "input": 599,
+      "output": "9:59"
+    },
+    {
+      "input": 3599,
+      "output": "59:59"
+    },
+    {
+      "input": 3600,
+      "output": "1:00:00"
+    },
+    {
+      "input": 3605,
+      "output": "1:00:05"
+    },
+    {
+      "input": 3905,
+      "output": "1:05:05"
+    },
+    {
+      "input": 35999,
+      "output": "9:59:59"
+    },
+    {
+      "input": 36000,
+      "output": "10:00:00"
+    },
+    {
+      "input": 86399,
+      "output": "23:59:59"
+    },
+    {
+      "input": 86400,
+      "output": "24:00:00"
+    },
+    {
+      "input": 360000,
+      "output": "100:00:00"
+    },
+    {
+      "input": 1000000000,
+      "output": "277777:46:40"
+    },
+    {
+      "input": -0.5,
+      "output": null
+    },
+    {
+      "input": -5,
+      "output": null
+    }
+  ]
+}

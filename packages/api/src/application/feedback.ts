@@ -5,7 +5,7 @@ import { PersistenceFailure } from "@pcobooster/api/application/errors/persisten
 import { Unauthenticated } from "@pcobooster/api/application/errors/unauthenticated";
 import { resolveDemoSession } from "@pcobooster/api/auth/demo-access";
 import { getDevBypassSession } from "@pcobooster/api/auth/dev-bypass";
-import { logger } from "@pcobooster/api/logger";
+import { boundaryLog } from "@pcobooster/api/logging";
 import { createPostHogFeedbackForwarder } from "@pcobooster/api/modules/analytics/posthog-feedback";
 import { getPostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-person";
 import { saveFeedback } from "@pcobooster/api/modules/feedback/save-feedback";
@@ -16,7 +16,7 @@ import type { ServerDependencies } from "@pcobooster/api/server";
 import type { FeedbackSubmitInput } from "@pcobooster/contracts/feedback";
 import { Effect } from "effect";
 
-const feedbackLog = logger.for("feedback");
+const feedbackLog = boundaryLog("feedback");
 
 type FeedbackAuthor = { kind: "user"; userId: string } | { kind: "demo" };
 
@@ -48,8 +48,9 @@ export const createSubmitFeedbackDependencies = ({
   }),
   onForwardFailure: (error, feedbackId) => {
     feedbackLog.warn(
-      { err: error, feedbackId },
-      "Failed to forward feedback to PostHog"
+      "Failed to forward feedback to PostHog",
+      { feedbackId },
+      error
     );
   },
 });

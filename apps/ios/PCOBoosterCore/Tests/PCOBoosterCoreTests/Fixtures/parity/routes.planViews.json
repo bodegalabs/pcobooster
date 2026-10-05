@@ -1,0 +1,30 @@
+{
+  "suite": "routes.planViews",
+  "cases": [
+    {
+      "input": "inOrder",
+      "output": [
+        {
+          "label": "Overview",
+          "view": "overview"
+        },
+        {
+          "label": "Assign",
+          "view": "assign"
+        },
+        {
+          "label": "Lineup",
+          "view": "lineup"
+        },
+        {
+          "label": "Plan",
+          "view": "plan"
+        },
+        {
+          "label": "Times",
+          "view": "times"
+        }
+      ]
+    }
+  ]
+}

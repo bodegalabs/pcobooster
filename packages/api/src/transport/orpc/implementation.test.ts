@@ -1,5 +1,6 @@
 import { call } from "@orpc/server";
 import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
+import { testRuntime } from "@pcobooster/api/testing/runtime";
 import { testServer } from "@pcobooster/api/testing/server";
 import { rpc } from "@pcobooster/api/transport/orpc/implementation";
 import { describe, expect, it } from "vitest";
@@ -7,6 +8,7 @@ import { describe, expect, it } from "vitest";
 const context = () => ({
   request: new Request("https://pcobooster.com/api/rpc/health"),
   requestId: "request-1",
+  runtime: testRuntime(),
   server: testServer(),
 });
 

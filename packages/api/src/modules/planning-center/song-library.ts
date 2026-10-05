@@ -1,4 +1,4 @@
-import { logger } from "@pcobooster/api/logger";
+import { moduleLog } from "@pcobooster/api/logging";
 import { normalizeSongCatalogEntry } from "@pcobooster/api/modules/planning-center/plan-items-shared";
 import type { PlanningCenterError } from "@pcobooster/api/planning-center/core-client";
 import type { PlanningCenterSongsService } from "@pcobooster/api/planning-center/services/songs-service";
@@ -12,7 +12,7 @@ import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import type { PCResource } from "@pcobooster/planning-center-models/types";
 import { Effect } from "effect";
 
-const log = logger.for("planning-center/song-library");
+const log = moduleLog("planning-center/song-library");
 
 /** Planning Center pages hold 100 records. */
 const CATALOG_PAGE_SIZE = 100;
@@ -64,9 +64,10 @@ export const getSongLibrary = ({
     const songs = toSongLibraryEntries(catalog);
     const truncated =
       catalog.length >= DEFAULT_CATALOG_MAX_PAGES * CATALOG_PAGE_SIZE;
-    log.info(
-      { catalogCount: catalog.length, songCount: songs.length, truncated },
-      "Song library read"
-    );
+    yield* log.info("Song library read", {
+      catalogCount: catalog.length,
+      songCount: songs.length,
+      truncated,
+    });
     return { songs, truncated };
   });

@@ -4,7 +4,7 @@ import {
   RequestContext,
 } from "@pcobooster/api/application/context";
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
-import { PlanningCenterAccess } from "@pcobooster/api/application/planning-center-access";
+import { provideAccess } from "@pcobooster/api/application/planning-center-access";
 import {
   commitScheduledPerson,
   prepareScheduledPerson,
@@ -19,6 +19,7 @@ import {
 } from "@pcobooster/api/planning-center/services/factory";
 import type { SuccessOf } from "@pcobooster/api/testing/effect";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
+import { testRuntime } from "@pcobooster/api/testing/runtime";
 import { testServer } from "@pcobooster/api/testing/server";
 import { createScheduleRouter } from "@pcobooster/api/transport/orpc/schedule";
 import type { ScheduleAssignInput } from "@pcobooster/contracts/schedule";
@@ -121,6 +122,7 @@ const setup = () => {
     }),
     requestId: "request-1",
     resHeaders: new Headers(),
+    runtime: testRuntime(),
     server: testServer(),
   };
   return {
@@ -136,6 +138,9 @@ const setup = () => {
     authorize,
   };
 };
+
+const missingPlanPerson = () =>
+  Effect.fail(new PlanningCenterApiError({ status: 404, message: "" }));
 
 describe("scheduling oRPC transport", () => {
   it("uses the request cache scope for each mutation and hides duplicate details in presentation mode", async () => {
@@ -162,24 +167,14 @@ describe("scheduling oRPC transport", () => {
       );
     const prepareAssignment = async () =>
       await Effect.runPromise(
-        withRequestContext(
-          Effect.provideService(
-            prepareScheduledPerson(input),
-            PlanningCenterAccess,
-            access
-          )
-        )
+        withRequestContext(provideAccess(prepareScheduledPerson(input), access))
       );
     const commitAssignment = async (
       preparation: Awaited<ReturnType<typeof prepareAssignment>>
     ) =>
       await Effect.runPromise(
         withRequestContext(
-          Effect.provideService(
-            commitScheduledPerson(input, preparation),
-            PlanningCenterAccess,
-            access
-          )
+          provideAccess(commitScheduledPerson(input, preparation), access)
         )
       );
     const assign = async () =>
@@ -193,18 +188,13 @@ describe("scheduling oRPC transport", () => {
     };
     await Effect.runPromise(
       withRequestContext(
-        Effect.provideService(
-          removeScheduledPerson(existingInput),
-          PlanningCenterAccess,
-          access
-        )
+        provideAccess(removeScheduledPerson(existingInput), access)
       )
     );
     await Effect.runPromise(
       withRequestContext(
-        Effect.provideService(
+        provideAccess(
           updateScheduledPersonStatus({ ...existingInput, status: "C" }),
-          PlanningCenterAccess,
           access
         )
       )
@@ -221,9 +211,8 @@ describe("scheduling oRPC transport", () => {
     const duplicate = await Effect.runPromise(
       Effect.result(
         withRequestContext(
-          Effect.provideService(
+          provideAccess(
             commitScheduledPerson(input, duplicatePreparation),
-            PlanningCenterAccess,
             access
           )
         )
@@ -407,6 +396,28 @@ describe("scheduling oRPC transport", () => {
         success: true,
         metadata: { ...removalInput, status: "D" },
       })
+    );
+  });
+
+  it("reports a plan person Planning Center no longer has as not found", async () => {
+    const { router, context, recordActivity, remove, update } = setup();
+    remove.mockReturnValueOnce(missingPlanPerson());
+    update.mockReturnValueOnce(missingPlanPerson());
+    const target = { planPersonId: "plan-person-1", planId: "plan-1" };
+    const notFound = {
+      code: "NOT_FOUND",
+      status: 404,
+      data: { resource: "plan-person" },
+    };
+
+    await expect(
+      call(router.remove, target, { context })
+    ).rejects.toMatchObject(notFound);
+    await expect(
+      call(router.updateStatus, { ...target, status: "C" }, { context })
+    ).rejects.toMatchObject(notFound);
+    expect(recordActivity).toHaveBeenCalledWith(
+      expect.objectContaining({ success: false, errorCode: "NOT_FOUND" })
     );
   });
 

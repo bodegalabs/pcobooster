@@ -1,27 +1,35 @@
-import { CalendarPlus, Info, Loader2, Search } from "lucide-react";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
+import PlusSignIcon from "@hugeicons/core-free-icons/PlusSignIcon";
+import { CalendarPlus, Loader2, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { DemoButton, DemoSearchInput } from "../ui/demo-control";
+import { DemoButton, DemoSearchInput, DemoSwitch } from "../ui/demo-control";
+import { DayBars } from "./day-bars";
 import {
   addAssignment,
+  adjustOpenSlots,
   candidatesFor,
   findPosition,
   fullName,
+  historyDays,
   removeAssignment,
+  scheduleFacts,
   setAssignmentStatus,
+  slotSummary,
   useAssignments,
-  weeksAgoLabel,
+  useSlotTotals,
 } from "./demo-model";
 import type { Candidate } from "./demo-model";
 import {
-  Avatar,
+  AvatarStatus,
+  DemoIcon,
+  FitMeter,
   Panel,
   PositionGlyph,
-  ScoreMeter,
   StatusDot,
   useDismiss,
 } from "./demo-parts";
-import { plan, teams } from "./fixtures";
+import { teams } from "./fixtures";
 import { TeamRoster } from "./team-roster";
 
 import styles from "./product-demo.module.css";
@@ -54,70 +62,6 @@ const PositionPills = ({
     )}
   </nav>
 );
-
-const HistoryButton = ({
-  candidate,
-  defaultOpen,
-}: {
-  candidate: Candidate;
-  defaultOpen: boolean;
-}) => {
-  const [open, setOpen] = useState(defaultOpen);
-  // A showcase opens this on load; it stays pinned until the visitor toggles it.
-  const [pinned, setPinned] = useState(defaultOpen);
-  const ref = useRef<HTMLSpanElement>(null);
-  useDismiss(ref, open && !pinned, () => {
-    setOpen(false);
-  });
-  const history = candidate.person.served.toSorted(
-    (a, b) => b.weeksAgo - a.weeksAgo
-  );
-
-  return (
-    <span className={styles["popover-anchor"]} ref={ref}>
-      <DemoButton
-        variant="icon"
-        aria-label={`Recent serving for ${fullName(candidate.person)}`}
-        aria-expanded={open}
-        onClick={() => {
-          setPinned(false);
-          setOpen((value) => !value);
-        }}
-      >
-        <Info aria-hidden size={15} />
-      </DemoButton>
-      {open ? (
-        <Panel label="Recent serving">
-          <p className={styles["panel-title"]}>Recent serving</p>
-          <ol className={styles.timeline}>
-            {history.map((item) => (
-              <li key={`${item.weeksAgo}-${item.positionId}`}>
-                <StatusDot tone="confirmed" />
-                <span>
-                  <strong>{weeksAgoLabel(item.weeksAgo)}</strong>
-                  {plan.serviceType}
-                </span>
-                <em>{findPosition(item.positionId)?.position.name}</em>
-              </li>
-            ))}
-            <li data-current="">
-              <StatusDot tone="pending" />
-              <span>
-                <strong>{plan.when}</strong>
-                The plan you’re building
-              </span>
-            </li>
-          </ol>
-          {history.length === 0 ? (
-            <p className={styles["panel-note"]}>
-              Hasn’t served in the last few months.
-            </p>
-          ) : null}
-        </Panel>
-      ) : null}
-    </span>
-  );
-};
 
 const StatusMenu = ({
   candidate,
@@ -227,121 +171,260 @@ const AddButton = ({
 
 const unavailableLabel = { blocked: "Blocked", declined: "Declined" } as const;
 
+/** One muted line under a name: other positions on this plan, then when they last and next serve. */
+const CandidateFacts = ({ candidate }: { candidate: Candidate }) => {
+  const parts = [
+    ...candidate.alsoOnPlan.map((position) => ({
+      text: `Also on ${position}`,
+      alsoOn: true,
+    })),
+    ...scheduleFacts(candidate.person).map((text) => ({
+      text,
+      alsoOn: false,
+    })),
+  ];
+  return (
+    <p className={styles["candidate-facts"]}>
+      {parts.map((part, index) => (
+        <span key={part.text} data-also-on={part.alsoOn ? "" : undefined}>
+          {index > 0 ? " · " : null}
+          {part.text}
+        </span>
+      ))}
+    </p>
+  );
+};
+
 const CandidateRow = ({
   candidate,
   positionId,
-  historyOpen,
+  showHistory,
+  openDayOffset,
 }: {
   candidate: Candidate;
   positionId: string;
-  historyOpen: boolean;
+  showHistory: boolean;
+  openDayOffset?: number;
 }) => {
   const { person, state } = candidate;
+  const assignments = useAssignments();
   const isOnSlot = state === "confirmed" || state === "pending";
   const isUnavailable = state === "blocked" || state === "declined";
-  const ring = isOnSlot ? state : undefined;
 
   return (
     <li
       className={styles.candidate}
       data-unavailable={isUnavailable || undefined}
     >
-      <Avatar
-        person={person}
-        ring={ring}
-        dashed={!isOnSlot && candidate.alsoOnPlan.length > 0}
-        muted={isUnavailable}
-      />
-      <span className={styles["candidate-name"]}>
-        <span className={styles.truncate}>{fullName(person)}</span>
-        {isUnavailable ? (
-          <span className={styles["state-label"]} data-state={state}>
-            {unavailableLabel[state]}
+      <div className={styles["candidate-main"]}>
+        <AvatarStatus
+          person={person}
+          status={isOnSlot ? state : undefined}
+          alsoScheduled={candidate.alsoOnPlan.length > 0}
+          muted={state === "blocked"}
+        />
+        <span className={styles["candidate-identity"]}>
+          <span className={styles["candidate-name"]}>
+            <span className={styles.truncate}>{fullName(person)}</span>
+            {isUnavailable ? (
+              <span className={styles["state-label"]} data-state={state}>
+                {unavailableLabel[state]}
+              </span>
+            ) : null}
           </span>
-        ) : null}
-        <HistoryButton candidate={candidate} defaultOpen={historyOpen} />
-      </span>
-      <ScoreMeter score={candidate.score} reasons={candidate.reasons} />
-      <span className={styles["candidate-action"]}>
-        {isOnSlot ? (
-          <StatusMenu candidate={candidate} positionId={positionId} />
-        ) : (
-          <AddButton
-            key={`${positionId}-${person.id}`}
-            candidate={candidate}
-            positionId={positionId}
-          />
+          <CandidateFacts candidate={candidate} />
+        </span>
+        {candidate.score === null ? null : (
+          <FitMeter score={candidate.score} reasons={candidate.reasons} />
         )}
-      </span>
+        <span className={styles["candidate-action"]}>
+          {isOnSlot ? (
+            <StatusMenu candidate={candidate} positionId={positionId} />
+          ) : (
+            <AddButton
+              key={`${positionId}-${person.id}`}
+              candidate={candidate}
+              positionId={positionId}
+            />
+          )}
+        </span>
+      </div>
+      <div
+        className={styles["history-collapse"]}
+        data-open={showHistory}
+        inert={!showHistory}
+      >
+        <div>
+          <div className={styles["history-inner"]}>
+            <DayBars
+              days={historyDays(person, assignments)}
+              openOffset={openDayOffset}
+            />
+          </div>
+        </div>
+      </div>
     </li>
   );
 };
 
+const SectionLabel = ({
+  title,
+  count,
+}: {
+  title: string;
+  count: string | number;
+}) => (
+  <h4 className={styles["section-label"]}>
+    {title} <span>{count}</span>
+  </h4>
+);
+
+const OpenSlotsRow = ({ open }: { open: number }) => (
+  <li className={styles["open-slots"]}>
+    <span className={styles["open-ring"]} aria-hidden />
+    {open === 0 ? "No open slots" : `${open} open slot${open === 1 ? "" : "s"}`}
+  </li>
+);
+
 export const CandidateList = ({
   positionId,
+  filter = "",
+  showHistory = true,
   limit,
-  showFilter = true,
+  compact = false,
   openHistoryFor,
 }: {
   positionId: string;
+  filter?: string;
+  showHistory?: boolean;
   limit?: number;
-  showFilter?: boolean;
-  openHistoryFor?: string;
+  /** Only the "Add someone" list, for showcases beside page copy. */
+  compact?: boolean;
+  /** A person whose busiest recent day starts open, for showcases. */
+  openHistoryFor?: { personId: string; offset: number };
 }) => {
   const assignments = useAssignments();
-  const [query, setQuery] = useState("");
-  const normalized = query.trim().toLowerCase();
+  const totals = useSlotTotals();
+  const normalized = filter.trim().toLowerCase();
   const matching = candidatesFor(positionId, assignments).filter((candidate) =>
     fullName(candidate.person).toLowerCase().includes(normalized)
   );
-  const shown = limit === undefined ? matching : matching.slice(0, limit);
-  const available = shown.filter(
+  const onSlot = matching.filter(
     (candidate) =>
-      candidate.state !== "blocked" && candidate.state !== "declined"
+      candidate.state === "confirmed" || candidate.state === "pending"
   );
-  const unavailable = shown.filter(
+  const unavailable = matching.filter(
     (candidate) =>
       candidate.state === "blocked" || candidate.state === "declined"
   );
+  const available = matching.filter(
+    (candidate) => candidate.state === "available"
+  );
+  const shownAvailable =
+    limit === undefined ? available : available.slice(0, limit);
+  const found = findPosition(positionId);
+  const open =
+    found === undefined
+      ? 0
+      : slotSummary(found.position, assignments, totals).open;
+  const filledCount = (assignments[positionId] ?? []).length;
   const renderRow = (candidate: Candidate) => (
     <CandidateRow
       key={candidate.person.id}
       candidate={candidate}
       positionId={positionId}
-      historyOpen={candidate.person.id === openHistoryFor}
+      showHistory={showHistory}
+      openDayOffset={
+        candidate.person.id === openHistoryFor?.personId
+          ? openHistoryFor.offset
+          : undefined
+      }
     />
   );
 
   return (
     <div className={styles.candidates}>
-      {showFilter ? (
-        <DemoSearchInput
-          icon={<Search aria-hidden size={15} />}
-          placeholder="Filter"
-          aria-label="Filter people"
-          value={query}
-          onChange={(event) => {
-            setQuery(event.target.value);
-          }}
-        />
-      ) : null}
-      <ul className={styles["candidate-card"]}>
-        {available.map(renderRow)}
-        {available.length === 0 ? (
-          <li className={styles.empty}>No one matches “{query}”.</li>
-        ) : null}
-      </ul>
-      {unavailable.length > 0 ? (
-        <>
-          <p className={styles["section-label"]}>
-            Unavailable <span>{unavailable.length}</span>
-          </p>
+      {compact ? null : (
+        <section className={styles["candidate-section"]}>
+          <SectionLabel
+            title="Scheduled"
+            count={`${filledCount}/${filledCount + open}`}
+          />
           <ul className={styles["candidate-card"]}>
+            {onSlot.map(renderRow)}
+            {open > 0 || filledCount === 0 ? (
+              <OpenSlotsRow open={open} />
+            ) : null}
+          </ul>
+        </section>
+      )}
+      <section className={styles["candidate-section"]}>
+        <SectionLabel title="Add someone" count={available.length} />
+        <ul className={styles["candidate-card"]}>
+          {shownAvailable.map(renderRow)}
+          {shownAvailable.length === 0 ? (
+            <li className={styles.empty}>
+              {normalized === ""
+                ? "No one else is on this roster."
+                : `No one matches “${filter.trim()}”.`}
+            </li>
+          ) : null}
+        </ul>
+      </section>
+      {compact || unavailable.length === 0 ? null : (
+        <section className={styles["candidate-section"]}>
+          <SectionLabel title="Unavailable" count={unavailable.length} />
+          <ul className={styles["candidate-card"]} data-dimmed="">
             {unavailable.map(renderRow)}
           </ul>
-        </>
-      ) : null}
+        </section>
+      )}
     </div>
+  );
+};
+
+/** Filled over total slots, with one more or one fewer open slot a click away. */
+const SlotStepper = ({ positionId }: { positionId: string }) => {
+  const assignments = useAssignments();
+  const totals = useSlotTotals();
+  const found = findPosition(positionId);
+  if (found === undefined) {
+    return null;
+  }
+  const { filled, open, total } = slotSummary(
+    found.position,
+    assignments,
+    totals
+  );
+
+  return (
+    <fieldset className={styles.stepper} aria-label="Open slots">
+      <DemoButton
+        variant="stepper"
+        aria-label={`Remove an open ${found.position.name} slot`}
+        disabled={open === 0}
+        onClick={() => {
+          adjustOpenSlots(found.position, "remove");
+        }}
+      >
+        <DemoIcon icon={MinusSignIcon} className={styles["stepper-icon"]} />
+      </DemoButton>
+      <span
+        className={styles["stepper-count"]}
+        aria-label={`${filled} of ${total} filled`}
+      >
+        {filled}/{total}
+      </span>
+      <DemoButton
+        variant="stepper"
+        aria-label={`Add an open ${found.position.name} slot`}
+        onClick={() => {
+          adjustOpenSlots(found.position, "add");
+        }}
+      >
+        <DemoIcon icon={PlusSignIcon} className={styles["stepper-icon"]} />
+      </DemoButton>
+    </fieldset>
   );
 };
 
@@ -353,6 +436,8 @@ export const AssignView = ({
   onSelectPosition: (positionId: string) => void;
 }) => {
   const selected = findPosition(positionId);
+  const [filter, setFilter] = useState("");
+  const [showHistory, setShowHistory] = useState(true);
   return (
     <div className={styles.assign}>
       <nav className={styles["assign-roster"]} aria-label="Positions">
@@ -364,11 +449,33 @@ export const AssignView = ({
       </nav>
       <PositionPills selectedId={positionId} onSelect={onSelectPosition} />
       <section className={styles["assign-main"]} aria-live="polite">
-        <h3 className={styles["position-heading"]}>
-          {selected?.position.name}
-          <span>{selected?.team.name}</span>
-        </h3>
-        <CandidateList key={positionId} positionId={positionId} />
+        <div className={styles["assign-head"]}>
+          <h3 className={styles["position-heading"]}>
+            {selected?.position.name}
+            <span className={styles["sr-only"]}> on {selected?.team.name}</span>
+          </h3>
+          <SlotStepper positionId={positionId} />
+        </div>
+        <div className={styles["assign-controls"]}>
+          <DemoSearchInput
+            icon={<Search aria-hidden size={15} />}
+            placeholder="Filter people"
+            aria-label="Filter people"
+            value={filter}
+            onChange={(event) => {
+              setFilter(event.target.value);
+            }}
+          />
+          <DemoSwitch checked={showHistory} onCheckedChange={setShowHistory}>
+            Show history
+          </DemoSwitch>
+        </div>
+        <CandidateList
+          key={positionId}
+          positionId={positionId}
+          filter={filter}
+          showHistory={showHistory}
+        />
       </section>
     </div>
   );

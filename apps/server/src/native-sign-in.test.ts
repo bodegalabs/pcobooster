@@ -12,18 +12,20 @@ import type { PlanningCenterProfile } from "@pcobooster/api/auth/native-sign-in.
 import { PLANNING_CENTER_SELECTED_ACCOUNT_HEADER } from "@pcobooster/api/auth/planning-center-session";
 import { createDatabase } from "@pcobooster/api/db/client";
 import { account } from "@pcobooster/api/db/schema";
+import type { BoundaryLog } from "@pcobooster/api/logging";
 import { appRouter } from "@pcobooster/api/orpc";
 import type { ServerDependencies } from "@pcobooster/api/server";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { eq } from "drizzle-orm";
-import type { Hono } from "hono";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { createLocalD1 } from "../../../scripts/database/local-d1";
 import { createServerApp } from "./app";
+import { serveForTest } from "./test-app";
+import type { TestServerApp } from "./test-app";
 
-type TestErrorLogger = (bindings: { err: unknown }, message: string) => void;
+type TestErrorLogger = BoundaryLog["error"];
 
 const { runtime, binding } = await createLocalD1("native-sign-in-app");
 const database = createDatabase(binding);
@@ -55,7 +57,7 @@ const accountsSchema = z.object({
   }),
 });
 
-let app: Hono;
+let app: TestServerApp;
 let server: ServerDependencies;
 const handler = async (request: Request): Promise<Response> =>
   await app.request(request);
@@ -108,13 +110,15 @@ describe("native sign-in through the API Worker", () => {
     const auth = createAuth(config, database);
     await auth.$context;
     server = testServer({ config, database, auth });
-    app = createServerApp({
-      server,
-      enableRequestLogging: false,
-      log: { error: vi.fn<TestErrorLogger>() },
-      reportError: null,
-      router: appRouter,
-    });
+    app = serveForTest(
+      createServerApp({
+        server,
+        enableRequestLogging: false,
+        log: { error: vi.fn<TestErrorLogger>() },
+        reportError: null,
+        router: appRouter,
+      })
+    );
   });
 
   afterAll(async () => {
@@ -200,14 +204,16 @@ describe("native sign-in through the API Worker", () => {
   });
 
   it("limits the native start on every path Better Auth would serve it", async () => {
-    const limitedApp = createServerApp({
-      server,
-      allowAuthWrite: async () => await Promise.resolve(false),
-      enableRequestLogging: false,
-      log: { error: vi.fn<TestErrorLogger>() },
-      reportError: null,
-      router: appRouter,
-    });
+    const limitedApp = serveForTest(
+      createServerApp({
+        server,
+        allowAuthWrite: async () => await Promise.resolve(false),
+        enableRequestLogging: false,
+        log: { error: vi.fn<TestErrorLogger>() },
+        reportError: null,
+        router: appRouter,
+      })
+    );
     const query = new URLSearchParams({
       code_challenge: createPkcePair().challenge,
       code_challenge_method: "S256",

@@ -8,8 +8,9 @@ import {
   slotSummary,
   teamOpenCount,
   useAssignments,
+  useSlotTotals,
 } from "./demo-model";
-import type { Assignments } from "./demo-model";
+import type { Assignments, SlotTotals } from "./demo-model";
 import { Avatar, PositionGlyph, StatusDot } from "./demo-parts";
 import { teams } from "./fixtures";
 import type { DemoPosition, DemoTeam } from "./fixtures";
@@ -26,17 +27,19 @@ const PositionRows = ({
   team,
   position,
   assignments,
+  totals,
   active,
   onSelect,
 }: {
   team: DemoTeam;
   position: DemoPosition;
   assignments: Assignments;
+  totals: SlotTotals;
   active: boolean;
   onSelect: (positionId: string) => void;
 }) => {
   const slots = assignments[position.id] ?? [];
-  const { open } = slotSummary(position, assignments);
+  const { open } = slotSummary(position, assignments, totals);
   const select = () => {
     onSelect(position.id);
   };
@@ -103,16 +106,18 @@ const PositionRows = ({
 const TeamPanel = ({
   team,
   assignments,
+  totals,
   selectedId,
   onSelect,
 }: {
   team: DemoTeam;
   assignments: Assignments;
+  totals: SlotTotals;
   selectedId?: string;
   onSelect: (positionId: string) => void;
 }) => {
   const [open, setOpen] = useState(true);
-  const openCount = teamOpenCount(team, assignments);
+  const openCount = teamOpenCount(team, assignments, totals);
   // A collapsed team still shows its selected position, as in the product.
   const shown = open
     ? team.positions
@@ -147,6 +152,7 @@ const TeamPanel = ({
               team={team}
               position={position}
               assignments={assignments}
+              totals={totals}
               active={position.id === selectedId}
               onSelect={onSelect}
             />
@@ -168,6 +174,7 @@ export const TeamRoster = ({
   onSelect: (positionId: string) => void;
 }) => {
   const assignments = useAssignments();
+  const totals = useSlotTotals();
   return (
     <div className={styles["team-roster"]} data-layout={layout}>
       {teams.map((team) => (
@@ -175,6 +182,7 @@ export const TeamRoster = ({
           key={team.id}
           team={team}
           assignments={assignments}
+          totals={totals}
           selectedId={selectedId}
           onSelect={onSelect}
         />

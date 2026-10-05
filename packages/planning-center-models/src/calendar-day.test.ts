@@ -3,7 +3,7 @@ import {
   zonedWallTimeToUtcIso,
 } from "@pcobooster/planning-center-models/calendar";
 import { blockoutCoversPlanSortInstant } from "@pcobooster/planning-center-models/calendar-day";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 describe(blockoutCoversPlanSortInstant, () => {
   it("does not block Apr 13 plan when blockout is only Apr 12 in America/Los_Angeles", () => {
@@ -67,5 +67,32 @@ describe("org timezone wall-clock helpers", () => {
     expect(
       zonedWallTimeToUtcIso("2026-12-24", "09:30", "America/Los_Angeles")
     ).toBe("2026-12-24T17:30:00.000Z");
+  });
+});
+
+describe("calendar formatter reuse", () => {
+  it("reuses calendar formatters across a batch of blockout checks without mixing zones", async () => {
+    vi.resetModules();
+    const { blockoutCoversPlanSortInstant: covers } =
+      await import("@pcobooster/planning-center-models/calendar-day");
+    const constructors = vi.spyOn(Intl, "DateTimeFormat");
+    const instant = new Date("2026-04-13T07:30:00Z");
+    const blockout = {
+      startsAt: new Date("2026-04-12T07:00:00Z"),
+      endsAt: new Date("2026-04-13T06:59:59Z"),
+    };
+    try {
+      for (let person = 0; person < 100; person += 1) {
+        expect(
+          covers(instant, { ...blockout, timeZone: "America/Los_Angeles" })
+        ).toBeFalsy();
+        expect(
+          covers(instant, { ...blockout, timeZone: "Asia/Tokyo" })
+        ).toBeTruthy();
+      }
+      expect(constructors).toHaveBeenCalledTimes(2);
+    } finally {
+      constructors.mockRestore();
+    }
   });
 });

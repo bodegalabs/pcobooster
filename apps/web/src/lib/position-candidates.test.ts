@@ -2,19 +2,51 @@ import type {
   PlanWindowHistoryBatch,
   PositionCandidates,
 } from "@pcobooster/contracts/people-schemas";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   advancedBlockoutChecks,
   assembleCandidateList,
+  CANDIDATE_DETAILS_BATCH_CONCURRENCY,
   expandWindowHistory,
   needsScheduleHistory,
   planCandidateDetailsBatches,
+  prefetchCandidateDetailBatches,
   windowHistoryAdvanced,
 } from "@/lib/position-candidates";
 import type { CandidateDetail } from "@/lib/position-candidates";
 
 const DATE = "2026-09-27T17:00:00.000Z";
+
+describe(prefetchCandidateDetailBatches, () => {
+  it("bounds speculative calls and fetches every batch once", async () => {
+    const batches = [["a"], ["b"], ["c"], ["d"], ["e"]];
+    const requested: string[][] = [];
+    const release = Promise.withResolvers<null>();
+    let active = 0;
+    let maximumActive = 0;
+    const fetching = prefetchCandidateDetailBatches(
+      batches,
+      async (personIds) => {
+        requested.push(personIds);
+        active += 1;
+        maximumActive = Math.max(maximumActive, active);
+        await release.promise;
+        active -= 1;
+      }
+    );
+    try {
+      await vi.waitFor(() => {
+        expect(requested).toHaveLength(CANDIDATE_DETAILS_BATCH_CONCURRENCY);
+      });
+    } finally {
+      release.resolve(null);
+      await fetching;
+    }
+    expect(maximumActive).toBe(CANDIDATE_DETAILS_BATCH_CONCURRENCY);
+    expect(requested).toStrictEqual(batches);
+  });
+});
 
 const candidate = (id: string, fullName: string) => ({
   id,

@@ -1,12 +1,12 @@
 import type { ServerConfig } from "@pcobooster/api/config/server-config";
 import type { Db } from "@pcobooster/api/db/client";
 import { activityEvents } from "@pcobooster/api/db/schema";
-import { logger } from "@pcobooster/api/logger";
+import { boundaryLog } from "@pcobooster/api/logging";
 import { createPostHogActivityForwarder } from "@pcobooster/api/modules/analytics/posthog-activity";
 import type { PostHogPersonProperties } from "@pcobooster/api/modules/analytics/posthog-capture";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 
-const analyticsLog = logger.for("analytics/posthog");
+const analyticsLog = boundaryLog("analytics/posthog");
 
 export type ActivityEventType =
   | "schedule_attempt"
@@ -137,8 +137,9 @@ export const recordActivityEvent = async (
     })(input, person);
   } catch (error) {
     analyticsLog.warn(
-      { err: error, eventType: input.eventType },
-      "Failed to forward activity event to PostHog"
+      "Failed to forward activity event to PostHog",
+      { eventType: input.eventType },
+      error instanceof Error ? error : new Error(String(error))
     );
   }
 };

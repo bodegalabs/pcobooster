@@ -45,7 +45,11 @@
     "posthog:deploy": "infisical run --env=prod --path=/ --path=/posthog --projectId=2eca20e1-20ac-4f06-a086-99ea5c590483 -- env CLOUDFLARE_ACCOUNT_ID=984b82870acd18daf8bda97bad966b38 bun alchemy deploy alchemy.posthog.ts --stage prod",
     "db:rehearse": "infisical run --env=prod --path=/ -- bun run scripts/database/migrate-from-postgres.ts --local",
     "alchemy": "node --import ./node_modules/alchemy/bin/register-oxc.js ./node_modules/alchemy/bin/alchemy.js",
-    "build:cloudflare": "turbo run build --filter=@pcobooster/web --filter=@pcobooster/admin"
+    "build:cloudflare": "turbo run build --filter=@pcobooster/web --filter=@pcobooster/admin",
+    "ios:models": "bun run scripts/ios/generate-swift-models.ts",
+    "ios:test": "bash apps/ios/scripts/test.sh",
+    "ios:release": "bash apps/ios/scripts/release.sh",
+    "parity:update": "vitest run scripts/parity -u"
   },
   "dependencies": {
     "drizzle-orm": "1.0.0-rc.5-ab785fc",

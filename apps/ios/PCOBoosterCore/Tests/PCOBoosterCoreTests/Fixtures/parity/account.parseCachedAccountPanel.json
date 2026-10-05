@@ -1,0 +1,789 @@
+{
+  "suite": "account.parseCachedAccountPanel",
+  "cases": [
+    {
+      "input": null,
+      "output": null
+    },
+    {
+      "input": "{}",
+      "output": null
+    },
+    {
+      "input": "{bad json",
+      "output": null
+    },
+    {
+      "input": "",
+      "output": null
+    },
+    {
+      "input": "null",
+      "output": null
+    },
+    {
+      "input": "[]",
+      "output": null
+    },
+    {
+      "input": "\"Agape\"",
+      "output": null
+    },
+    {
+      "input": "42",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Agape Christian Church\",\"avatarName\":\"Jake\",\"image\":null}",
+      "output": {
+        "organizationName": "Agape Christian Church",
+        "avatarName": "Jake",
+        "image": null
+      }
+    },
+    {
+      "input": "{\"organizationName\":\"Agape\"}",
+      "output": {
+        "organizationName": "Agape",
+        "avatarName": null,
+        "image": null
+      }
+    },
+    {
+      "input": "{\"organizationName\":\"Agape\",\"avatarName\":null}",
+      "output": {
+        "organizationName": "Agape",
+        "avatarName": null,
+        "image": null
+      }
+    },
+    {
+      "input": "{\"organizationName\":\"Agape\",\"avatarName\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Agape\",\"avatarName\":\" \"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Agape\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Agape\",\"image\":3}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Agape\",\"avatarName\":true}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\" \"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\" ﻿\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"\"}",
+      "output": {
+        "organizationName": "",
+        "avatarName": null,
+        "image": null
+      }
+    },
+    {
+      "input": "{\"organizationName\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":1}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":[\"Agape\"]}",
+      "output": null
+    },
+    {
+      "input": "{\"avatarName\":\"Jake\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Agape\",\"extra\":{\"nested\":true}}",
+      "output": {
+        "organizationName": "Agape",
+        "avatarName": null,
+        "image": null
+      }
+    },
+    {
+      "input": " {\"organizationName\":\"Agape\"}\n",
+      "output": {
+        "organizationName": "Agape",
+        "avatarName": null,
+        "image": null
+      }
+    },
+    {
+      "input": "{\"organizationName\":\"Agape\"}x",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Ag\\u0061pe\",\"avatarName\":\"\\u00e9\",\"image\":\"https:\\/\\/x\"}",
+      "output": {
+        "organizationName": "Agape",
+        "avatarName": "é",
+        "image": "https://x"
+      }
+    },
+    {
+      "input": "{\"organizationName\":\"Agape Christian Church\",\"avatarName\":\"Planning Center Jake\",\"image\":\"https://example.com/avatar.jpg\"}",
+      "output": {
+        "organizationName": "Agape Christian Church",
+        "avatarName": "Planning Center Jake",
+        "image": "https://example.com/avatar.jpg"
+      }
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Jake Bodea\",\"image\":\"https://example.com/avatar.jpg\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Jake\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"\",\"avatarName\":\"Zoë\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"　Ana\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"　Ana\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Agape Christian Church\",\"avatarName\":\"　Ana\",\"image\":null}",
+      "output": {
+        "organizationName": "Agape Christian Church",
+        "avatarName": "　Ana",
+        "image": null
+      }
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Zoë\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\" \",\"avatarName\":null,\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"\",\"avatarName\":\"Jake\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"\",\"avatarName\":null,\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"jake@example.com\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\" \",\"avatarName\":\"Zoë\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"jake@example.com\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Zoë\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Jake\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Zoë\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Agape Christian Church\",\"avatarName\":\"Zoë\",\"image\":\"https://example.com/a.png\"}",
+      "output": {
+        "organizationName": "Agape Christian Church",
+        "avatarName": "Zoë",
+        "image": "https://example.com/a.png"
+      }
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Zoë\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"jake@example.com\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"　Ana\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Jake\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"　Ana\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Zoë\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Agape Christian Church\",\"avatarName\":\"Jake\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"jake@example.com\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\" \",\"avatarName\":\"Jake\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\" \",\"avatarName\":null,\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"jake@example.com\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Jake\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\" \",\"avatarName\":\"　Ana\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"\",\"avatarName\":\"Zoë\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\" \",\"avatarName\":\"\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"　Ana\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"　Ana\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Zoë\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"\",\"avatarName\":null,\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Jake\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"jake@example.com\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"jake@example.com\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Jake\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Jake\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Zoë\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Jake\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Jake\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"　Ana\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"　Ana\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"　Ana\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Zoë\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Zoë\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Jake\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"\",\"avatarName\":\"Jake\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"jake@example.com\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Jake\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"　Ana\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Agape Christian Church\",\"avatarName\":\"jake@example.com\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"\",\"avatarName\":\"　Ana\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Agape Christian Church\",\"avatarName\":\"Jake\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Agape Christian Church\",\"avatarName\":\"jake@example.com\",\"image\":null}",
+      "output": {
+        "organizationName": "Agape Christian Church",
+        "avatarName": "jake@example.com",
+        "image": null
+      }
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"　Ana\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Zoë\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"　Ana\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Jake\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Zoë\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Zoë\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"\",\"avatarName\":\"jake@example.com\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"\",\"avatarName\":null,\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"\",\"avatarName\":\"　Ana\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Jake\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Église Grâce\",\"avatarName\":null,\"image\":null}",
+      "output": {
+        "organizationName": "Église Grâce",
+        "avatarName": null,
+        "image": null
+      }
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\" \",\"avatarName\":\"李\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"　Ana\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"　Ana\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Agape Christian Church\",\"avatarName\":\"jake@example.com\",\"image\":null}",
+      "output": {
+        "organizationName": "Agape Christian Church",
+        "avatarName": "jake@example.com",
+        "image": null
+      }
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Zoë\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Église Grâce\",\"avatarName\":\"　Ana\",\"image\":\"https://example.com/a.png\"}",
+      "output": {
+        "organizationName": "Église Grâce",
+        "avatarName": "　Ana",
+        "image": "https://example.com/a.png"
+      }
+    },
+    {
+      "input": "{\"organizationName\":\" \",\"avatarName\":\"Jake\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Église Grâce\",\"avatarName\":null,\"image\":null}",
+      "output": {
+        "organizationName": "Église Grâce",
+        "avatarName": null,
+        "image": null
+      }
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"jake@example.com\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"Zoë\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"jake@example.com\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"jake@example.com\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Agape Christian Church\",\"avatarName\":\"李\",\"image\":null}",
+      "output": {
+        "organizationName": "Agape Christian Church",
+        "avatarName": "李",
+        "image": null
+      }
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":null,\"image\":null}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"\",\"avatarName\":null,\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":\"Église Grâce\",\"avatarName\":\"jake@example.com\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"李\",\"image\":\"\"}",
+      "output": null
+    },
+    {
+      "input": "{\"organizationName\":null,\"avatarName\":\"\",\"image\":\"https://example.com/a.png\"}",
+      "output": null
+    }
+  ]
+}

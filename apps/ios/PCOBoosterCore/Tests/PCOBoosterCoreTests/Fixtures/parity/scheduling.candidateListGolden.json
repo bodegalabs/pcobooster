@@ -1,0 +1,1828 @@
+{
+  "suite": "scheduling.candidateListGolden",
+  "cases": [
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-sel",
+            "teamId": "team-band",
+            "selectedPositionName": "Electric Guitar",
+            "selectedTeamName": "Band"
+          },
+          "candidates": [
+            {
+              "id": "p-ana",
+              "firstName": "Ana",
+              "lastName": "Alvarez",
+              "fullName": "Ana Alvarez",
+              "photoUrl": "https://example.test/p-ana.jpg",
+              "photoThumbnailUrl": "https://example.test/p-ana-thumb.jpg",
+              "archived": false,
+              "selectedPlanRosterLabels": [
+                "Band - Electric Guitar"
+              ],
+              "selectedPlanSlot": {
+                "planPersonId": "pp-ana-sel",
+                "status": "confirmed",
+                "declineReason": null
+              },
+              "schedulingPreferences": {
+                "schedulePreference": null,
+                "preferredWeeks": [],
+                "timePreferenceOptionIds": [],
+                "maxPlansPerDay": null,
+                "maxPlansPerMonth": null
+              }
+            },
+            {
+              "id": "p-ben",
+              "firstName": "Ben",
+              "lastName": "Brooks",
+              "fullName": "Ben Brooks",
+              "photoUrl": "https://example.test/p-ben.jpg",
+              "photoThumbnailUrl": "https://example.test/p-ben-thumb.jpg",
+              "archived": false,
+              "selectedPlanRosterLabels": [
+                "Band - Electric Guitar"
+              ],
+              "selectedPlanSlot": {
+                "planPersonId": "pp-ben-sel",
+                "status": "pending",
+                "declineReason": null
+              },
+              "schedulingPreferences": {
+                "schedulePreference": null,
+                "preferredWeeks": [],
+                "timePreferenceOptionIds": [],
+                "maxPlansPerDay": null,
+                "maxPlansPerMonth": null
+              }
+            },
+            {
+              "id": "p-cy",
+              "firstName": "Cy",
+              "lastName": "Chen",
+              "fullName": "Cy Chen",
+              "photoUrl": "https://example.test/p-cy.jpg",
+              "photoThumbnailUrl": "https://example.test/p-cy-thumb.jpg",
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": {
+                "planPersonId": "pp-cy-sel",
+                "status": "declined",
+                "declineReason": "Out of town"
+              },
+              "schedulingPreferences": {
+                "schedulePreference": null,
+                "preferredWeeks": [],
+                "timePreferenceOptionIds": [],
+                "maxPlansPerDay": null,
+                "maxPlansPerMonth": null
+              }
+            },
+            {
+              "id": "p-dee",
+              "firstName": "Dee",
+              "lastName": "Diaz",
+              "fullName": "Dee Diaz",
+              "photoUrl": "https://example.test/p-dee.jpg",
+              "photoThumbnailUrl": "https://example.test/p-dee-thumb.jpg",
+              "archived": false,
+              "selectedPlanRosterLabels": [
+                "Vocals - Harmony"
+              ],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": {
+                "schedulePreference": null,
+                "preferredWeeks": [],
+                "timePreferenceOptionIds": [],
+                "maxPlansPerDay": null,
+                "maxPlansPerMonth": null
+              }
+            },
+            {
+              "id": "p-eve",
+              "firstName": "Eve",
+              "lastName": "Evans",
+              "fullName": "Eve Evans",
+              "photoUrl": "https://example.test/p-eve.jpg",
+              "photoThumbnailUrl": "https://example.test/p-eve-thumb.jpg",
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": {
+                "schedulePreference": null,
+                "preferredWeeks": [],
+                "timePreferenceOptionIds": [],
+                "maxPlansPerDay": null,
+                "maxPlansPerMonth": null
+              }
+            },
+            {
+              "id": "p-gus",
+              "firstName": "Gus",
+              "lastName": "Gray",
+              "fullName": "Gus Gray",
+              "photoUrl": "https://example.test/p-gus.jpg",
+              "photoThumbnailUrl": "https://example.test/p-gus-thumb.jpg",
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": {
+                "schedulePreference": null,
+                "preferredWeeks": [],
+                "timePreferenceOptionIds": [],
+                "maxPlansPerDay": null,
+                "maxPlansPerMonth": null
+              }
+            },
+            {
+              "id": "p-hal",
+              "firstName": "Hal",
+              "lastName": "Hill",
+              "fullName": "Hal Hill",
+              "photoUrl": "https://example.test/p-hal.jpg",
+              "photoThumbnailUrl": "https://example.test/p-hal-thumb.jpg",
+              "archived": false,
+              "selectedPlanRosterLabels": [
+                "Band - Electric Guitar"
+              ],
+              "selectedPlanSlot": {
+                "planPersonId": "pp-hal-sel",
+                "status": "pending",
+                "declineReason": null
+              },
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "planId": "plan-sel",
+        "windowCalls": [
+          {
+            "generatedAt": "2026-09-27T17:00:00.000Z",
+            "loadedPlanCount": 5,
+            "plans": [
+              {
+                "id": "plan-aug30",
+                "title": "Plan plan-aug30",
+                "sortDate": "2026-08-30T17:00:00Z",
+                "serviceTypeName": "Sunday"
+              },
+              {
+                "id": "plan-sep13",
+                "title": "Plan plan-sep13",
+                "sortDate": "2026-09-13T17:00:00Z",
+                "serviceTypeName": "Sunday"
+              },
+              {
+                "id": "plan-sel",
+                "title": "Plan plan-sel",
+                "sortDate": "2026-09-27T17:00:00.000Z",
+                "serviceTypeName": "Sunday"
+              },
+              {
+                "id": "plan-oct11",
+                "title": "Plan plan-oct11",
+                "sortDate": "2026-10-11T17:00:00Z",
+                "serviceTypeName": "Sunday"
+              },
+              {
+                "id": "plan-oct18-empty",
+                "title": "Plan plan-oct18-empty",
+                "sortDate": "2026-10-18T17:00:00Z",
+                "serviceTypeName": "Sunday"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-aug30",
+                "startsAt": "2026-08-30T17:00:00Z",
+                "timeType": "service"
+              },
+              {
+                "id": "t-sep13",
+                "startsAt": "2026-09-13T17:00:00Z",
+                "timeType": "service"
+              },
+              {
+                "id": "t-sep10-reh",
+                "startsAt": "2026-09-11T02:00:00Z",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-sel",
+                "startsAt": "2026-09-27T17:00:00.000Z",
+                "timeType": "service"
+              },
+              {
+                "id": "t-sel-reh",
+                "startsAt": "2026-09-26T01:00:00Z",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "t-oct11",
+                "startsAt": "2026-10-11T17:00:00Z",
+                "timeType": "service"
+              }
+            ],
+            "people": [
+              {
+                "personId": "p-ana",
+                "rows": [
+                  {
+                    "id": "pp-ana-aug30",
+                    "planId": "plan-aug30",
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "C",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [
+                      "t-aug30"
+                    ],
+                    "serviceTimeIds": [
+                      "t-aug30"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-ana-sep13",
+                    "planId": "plan-sep13",
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "C",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [
+                      "t-sep13",
+                      "t-sep10-reh"
+                    ],
+                    "serviceTimeIds": [
+                      "t-sep13"
+                    ],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-ana-sel",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "C",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [
+                      "t-sel",
+                      "t-sel-reh"
+                    ],
+                    "serviceTimeIds": [
+                      "t-sel"
+                    ],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "p-ben",
+                "rows": [
+                  {
+                    "id": "pp-ben-aug30",
+                    "planId": "plan-aug30",
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "D",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-ben-sel",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "U",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "p-gus",
+                "rows": [
+                  {
+                    "id": "pp-gus-aug30",
+                    "planId": "plan-aug30",
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "U",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-gus-sel",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band - Electric Guitar",
+                    "status": "U",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-gus-oct11",
+                    "planId": "plan-oct11",
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "C",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "p-dee",
+                "rows": [
+                  {
+                    "id": "pp-dee-sep13",
+                    "planId": "plan-sep13",
+                    "teamId": "team-vox",
+                    "teamPositionName": "Harmony",
+                    "status": "C",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [
+                      "t-sep10-reh"
+                    ],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  },
+                  {
+                    "id": "pp-dee-sel",
+                    "planId": "plan-sel",
+                    "teamId": "team-vox",
+                    "teamPositionName": "Harmony",
+                    "status": "U",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "p-cy",
+                "rows": [
+                  {
+                    "id": "pp-cy-sel",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band - Electric Guitar",
+                    "status": "D",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": "Out of town"
+                  },
+                  {
+                    "id": "pp-cy-oct11",
+                    "planId": "plan-oct11",
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "U",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [
+                      "t-oct11"
+                    ],
+                    "serviceTimeIds": [
+                      "t-oct11"
+                    ],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "p-eve",
+                "rows": [
+                  {
+                    "id": "pp-eve-sel",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamPositionName": "Keys",
+                    "status": "Declined",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "p-hal",
+                "rows": [
+                  {
+                    "id": "pp-hal-sel",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "U",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [
+              "st-youth"
+            ],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          },
+          {
+            "generatedAt": "2026-09-27T17:00:00.000Z",
+            "loadedPlanCount": 2,
+            "plans": [
+              {
+                "id": "plan-y-sep25",
+                "title": "Plan plan-y-sep25",
+                "sortDate": "2026-09-26T02:00:00Z",
+                "serviceTypeName": "Youth"
+              },
+              {
+                "id": "plan-y-oct2",
+                "title": "Plan plan-y-oct2",
+                "sortDate": "2026-10-03T02:30:00Z",
+                "serviceTypeName": "Youth"
+              }
+            ],
+            "planTimes": [
+              {
+                "id": "t-y-sep25",
+                "startsAt": "2026-09-26T02:00:00Z",
+                "timeType": "service"
+              },
+              {
+                "id": "t-y-oct2",
+                "startsAt": "2026-10-03T02:30:00Z",
+                "timeType": "service"
+              },
+              {
+                "id": "t-y-oct2-other",
+                "startsAt": "2026-10-03T01:00:00Z",
+                "timeType": "other"
+              }
+            ],
+            "people": [
+              {
+                "personId": "p-ben",
+                "rows": [
+                  {
+                    "id": "pp-ben-ysep25",
+                    "planId": "plan-y-sep25",
+                    "teamId": "team-band",
+                    "teamPositionName": "Band - Bass",
+                    "status": "C",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "p-eve",
+                "rows": [
+                  {
+                    "id": "pp-eve-ysep25",
+                    "planId": "plan-y-sep25",
+                    "teamId": "team-band",
+                    "teamPositionName": "Keys",
+                    "status": "U",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "p-ana",
+                "rows": [
+                  {
+                    "id": "pp-ana-yoct2",
+                    "planId": "plan-y-oct2",
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "U",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [
+                      "t-y-oct2-other"
+                    ],
+                    "serviceTimeIds": [],
+                    "declineReason": null
+                  }
+                ]
+              },
+              {
+                "personId": "p-ivy",
+                "rows": [
+                  {
+                    "id": "pp-ivy-yoct2",
+                    "planId": "plan-y-oct2",
+                    "teamId": "team-band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "C",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "timeIds": [
+                      "t-y-oct2"
+                    ],
+                    "serviceTimeIds": [
+                      "t-y-oct2"
+                    ],
+                    "declineReason": null
+                  }
+                ]
+              }
+            ],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "detailBatches": [
+          [
+            {
+              "personId": "p-ana",
+              "isBlockedForDate": false
+            },
+            {
+              "personId": "p-ben",
+              "isBlockedForDate": false
+            },
+            {
+              "personId": "p-cy",
+              "isBlockedForDate": false
+            }
+          ],
+          [
+            {
+              "personId": "p-dee",
+              "isBlockedForDate": true
+            },
+            {
+              "personId": "p-eve",
+              "isBlockedForDate": false
+            },
+            {
+              "personId": "p-gus",
+              "isBlockedForDate": true
+            },
+            {
+              "personId": "p-hal",
+              "isBlockedForDate": true
+            }
+          ]
+        ]
+      },
+      "output": {
+        "people": [
+          {
+            "id": "p-ana",
+            "firstName": "Ana",
+            "lastName": "Alvarez",
+            "fullName": "Ana Alvarez",
+            "photoUrl": "https://example.test/p-ana.jpg",
+            "photoThumbnailUrl": "https://example.test/p-ana-thumb.jpg",
+            "archived": false,
+            "availability": "available",
+            "frequency": {
+              "recentServedDays": 3,
+              "last60Days": 3,
+              "last90Days": 3,
+              "lastServedDate": "2026-09-27T17:00:00.000Z",
+              "totalServed": 3,
+              "recentRehearsalOnlyDays": 2,
+              "rehearsalLast60Days": 2,
+              "rehearsalLast90Days": 2,
+              "lastRehearsalDate": "2026-09-26T01:00:00.000Z",
+              "totalRehearsals": 2,
+              "upcomingServices": 1,
+              "nextUpcomingDate": "2026-10-03T02:30:00.000Z",
+              "upcomingRehearsals": 0
+            },
+            "serviceHistory": [
+              {
+                "id": "pp-ana-aug30:t-aug30",
+                "sourceScheduleId": "pp-ana-aug30",
+                "planId": "plan-aug30",
+                "date": "2026-08-30T17:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-aug30",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-ana-sep13:t-sep10-reh",
+                "sourceScheduleId": "pp-ana-sep13",
+                "planId": "plan-sep13",
+                "date": "2026-09-11T02:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-sep13",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-ana-sep13:t-sep13",
+                "sourceScheduleId": "pp-ana-sep13",
+                "planId": "plan-sep13",
+                "date": "2026-09-13T17:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-sep13",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-ana-sel:t-sel-reh",
+                "sourceScheduleId": "pp-ana-sel",
+                "planId": "plan-sel",
+                "date": "2026-09-26T01:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-sel",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-ana-sel:t-sel",
+                "sourceScheduleId": "pp-ana-sel",
+                "planId": "plan-sel",
+                "date": "2026-09-27T17:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-sel",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-ana-yoct2",
+                "sourceScheduleId": "pp-ana-yoct2",
+                "planId": "plan-y-oct2",
+                "date": "2026-10-03T02:30:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan plan-y-oct2",
+                "status": "U",
+                "timeType": "service"
+              }
+            ],
+            "isBlockedForDate": false,
+            "isScheduledForSelectedPlanPosition": true,
+            "isConfirmedForSelectedPlanPosition": true,
+            "isDeclinedForSelectedPlanPosition": false,
+            "selectedPlanAssignmentLabels": [
+              "Band - Electric Guitar",
+              "Electric Guitar"
+            ],
+            "scheduledPlanPersonId": "pp-ana-sel",
+            "schedulingPreferences": {
+              "schedulePreference": null,
+              "preferredWeeks": [],
+              "timePreferenceOptionIds": [],
+              "maxPlansPerDay": null,
+              "maxPlansPerMonth": null
+            },
+            "recommendationScore": 0,
+            "recommendationReasoning": [
+              "Last served on the same date (Sun, Sep 27, 2026)",
+              "Upcoming: 5 days after on Fri, Oct 2, 2026",
+              "Ranked lower: scheduled 5 days after",
+              "Ranked lower: on the schedule 5 distinct days in the 4 weeks before this plan",
+              "Light penalty: rehearsed 2 days in the 4 weeks before this plan"
+            ]
+          },
+          {
+            "id": "p-cy",
+            "firstName": "Cy",
+            "lastName": "Chen",
+            "fullName": "Cy Chen",
+            "photoUrl": "https://example.test/p-cy.jpg",
+            "photoThumbnailUrl": "https://example.test/p-cy-thumb.jpg",
+            "archived": false,
+            "availability": "available",
+            "frequency": {
+              "recentServedDays": 0,
+              "last60Days": 0,
+              "last90Days": 0,
+              "totalServed": 0,
+              "recentRehearsalOnlyDays": 0,
+              "rehearsalLast60Days": 0,
+              "rehearsalLast90Days": 0,
+              "totalRehearsals": 0,
+              "upcomingServices": 1,
+              "nextUpcomingDate": "2026-10-11T17:00:00.000Z",
+              "upcomingRehearsals": 0
+            },
+            "serviceHistory": [
+              {
+                "id": "pp-cy-oct11:t-oct11",
+                "sourceScheduleId": "pp-cy-oct11",
+                "planId": "plan-oct11",
+                "date": "2026-10-11T17:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-oct11",
+                "status": "U",
+                "timeType": "service"
+              }
+            ],
+            "isBlockedForDate": false,
+            "isScheduledForSelectedPlanPosition": true,
+            "isConfirmedForSelectedPlanPosition": false,
+            "isDeclinedForSelectedPlanPosition": true,
+            "selectedPlanDeclineReason": "Out of town",
+            "selectedPlanAssignmentLabels": [],
+            "scheduledPlanPersonId": "pp-cy-sel",
+            "schedulingPreferences": {
+              "schedulePreference": null,
+              "preferredWeeks": [],
+              "timePreferenceOptionIds": [],
+              "maxPlansPerDay": null,
+              "maxPlansPerMonth": null
+            },
+            "recommendationScore": 100,
+            "recommendationReasoning": [
+              "No past services scheduled",
+              "Upcoming: 14 days after on Sun, Oct 11, 2026",
+              "Ranked slightly lower: scheduled 14 days after"
+            ]
+          },
+          {
+            "id": "p-ben",
+            "firstName": "Ben",
+            "lastName": "Brooks",
+            "fullName": "Ben Brooks",
+            "photoUrl": "https://example.test/p-ben.jpg",
+            "photoThumbnailUrl": "https://example.test/p-ben-thumb.jpg",
+            "archived": false,
+            "availability": "available",
+            "frequency": {
+              "recentServedDays": 2,
+              "last60Days": 2,
+              "last90Days": 2,
+              "lastServedDate": "2026-09-27T17:00:00.000Z",
+              "totalServed": 2,
+              "recentRehearsalOnlyDays": 0,
+              "rehearsalLast60Days": 0,
+              "rehearsalLast90Days": 0,
+              "totalRehearsals": 0,
+              "upcomingServices": 0,
+              "upcomingRehearsals": 0
+            },
+            "serviceHistory": [
+              {
+                "id": "pp-ben-ysep25",
+                "sourceScheduleId": "pp-ben-ysep25",
+                "planId": "plan-y-sep25",
+                "date": "2026-09-26T02:00:00.000Z",
+                "teamPositionName": "Bass",
+                "teamName": "Band",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan plan-y-sep25",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-ben-sel",
+                "sourceScheduleId": "pp-ben-sel",
+                "planId": "plan-sel",
+                "date": "2026-09-27T17:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-sel",
+                "status": "U",
+                "timeType": "service"
+              }
+            ],
+            "isBlockedForDate": false,
+            "isScheduledForSelectedPlanPosition": true,
+            "isConfirmedForSelectedPlanPosition": false,
+            "isDeclinedForSelectedPlanPosition": false,
+            "selectedPlanAssignmentLabels": [
+              "Band - Electric Guitar",
+              "Electric Guitar"
+            ],
+            "scheduledPlanPersonId": "pp-ben-sel",
+            "schedulingPreferences": {
+              "schedulePreference": null,
+              "preferredWeeks": [],
+              "timePreferenceOptionIds": [],
+              "maxPlansPerDay": null,
+              "maxPlansPerMonth": null
+            },
+            "recommendationScore": 81.93,
+            "recommendationReasoning": [
+              "Last served on the same date (Sun, Sep 27, 2026)"
+            ]
+          },
+          {
+            "id": "p-hal",
+            "firstName": "Hal",
+            "lastName": "Hill",
+            "fullName": "Hal Hill",
+            "photoUrl": "https://example.test/p-hal.jpg",
+            "photoThumbnailUrl": "https://example.test/p-hal-thumb.jpg",
+            "archived": false,
+            "availability": "blocked",
+            "frequency": {
+              "recentServedDays": 1,
+              "last60Days": 1,
+              "last90Days": 1,
+              "lastServedDate": "2026-09-27T17:00:00.000Z",
+              "totalServed": 1,
+              "recentRehearsalOnlyDays": 0,
+              "rehearsalLast60Days": 0,
+              "rehearsalLast90Days": 0,
+              "totalRehearsals": 0,
+              "upcomingServices": 0,
+              "upcomingRehearsals": 0
+            },
+            "serviceHistory": [
+              {
+                "id": "pp-hal-sel",
+                "sourceScheduleId": "pp-hal-sel",
+                "planId": "plan-sel",
+                "date": "2026-09-27T17:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-sel",
+                "status": "U",
+                "timeType": "service"
+              }
+            ],
+            "isBlockedForDate": true,
+            "isScheduledForSelectedPlanPosition": true,
+            "isConfirmedForSelectedPlanPosition": false,
+            "isDeclinedForSelectedPlanPosition": false,
+            "selectedPlanAssignmentLabels": [
+              "Band - Electric Guitar",
+              "Electric Guitar"
+            ],
+            "scheduledPlanPersonId": "pp-hal-sel",
+            "recommendationScore": 90,
+            "recommendationReasoning": [
+              "Last served on the same date (Sun, Sep 27, 2026)"
+            ]
+          },
+          {
+            "id": "p-gus",
+            "firstName": "Gus",
+            "lastName": "Gray",
+            "fullName": "Gus Gray",
+            "photoUrl": "https://example.test/p-gus.jpg",
+            "photoThumbnailUrl": "https://example.test/p-gus-thumb.jpg",
+            "archived": false,
+            "availability": "blocked",
+            "frequency": {
+              "recentServedDays": 2,
+              "last60Days": 2,
+              "last90Days": 2,
+              "lastServedDate": "2026-09-27T17:00:00.000Z",
+              "totalServed": 2,
+              "recentRehearsalOnlyDays": 0,
+              "rehearsalLast60Days": 0,
+              "rehearsalLast90Days": 0,
+              "totalRehearsals": 0,
+              "upcomingServices": 1,
+              "nextUpcomingDate": "2026-10-11T17:00:00.000Z",
+              "upcomingRehearsals": 0
+            },
+            "serviceHistory": [
+              {
+                "id": "pp-gus-aug30",
+                "sourceScheduleId": "pp-gus-aug30",
+                "planId": "plan-aug30",
+                "date": "2026-08-30T17:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-aug30",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-gus-sel",
+                "sourceScheduleId": "pp-gus-sel",
+                "planId": "plan-sel",
+                "date": "2026-09-27T17:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-sel",
+                "status": "U",
+                "timeType": "service"
+              },
+              {
+                "id": "pp-gus-oct11",
+                "sourceScheduleId": "pp-gus-oct11",
+                "planId": "plan-oct11",
+                "date": "2026-10-11T17:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-oct11",
+                "status": "C",
+                "timeType": "service"
+              }
+            ],
+            "isBlockedForDate": true,
+            "isScheduledForSelectedPlanPosition": true,
+            "isConfirmedForSelectedPlanPosition": false,
+            "isDeclinedForSelectedPlanPosition": false,
+            "selectedPlanAssignmentLabels": [
+              "Band - Electric Guitar"
+            ],
+            "scheduledPlanPersonId": "pp-gus-sel",
+            "schedulingPreferences": {
+              "schedulePreference": null,
+              "preferredWeeks": [],
+              "timePreferenceOptionIds": [],
+              "maxPlansPerDay": null,
+              "maxPlansPerMonth": null
+            },
+            "recommendationScore": 45,
+            "recommendationReasoning": [
+              "Last served on the same date (Sun, Sep 27, 2026)",
+              "Upcoming: 14 days after on Sun, Oct 11, 2026",
+              "Ranked slightly lower: scheduled 14 days after"
+            ]
+          },
+          {
+            "id": "p-eve",
+            "firstName": "Eve",
+            "lastName": "Evans",
+            "fullName": "Eve Evans",
+            "photoUrl": "https://example.test/p-eve.jpg",
+            "photoThumbnailUrl": "https://example.test/p-eve-thumb.jpg",
+            "archived": false,
+            "availability": "available",
+            "frequency": {
+              "recentServedDays": 1,
+              "last60Days": 1,
+              "last90Days": 1,
+              "lastServedDate": "2026-09-26T02:00:00.000Z",
+              "totalServed": 1,
+              "recentRehearsalOnlyDays": 0,
+              "rehearsalLast60Days": 0,
+              "rehearsalLast90Days": 0,
+              "totalRehearsals": 0,
+              "upcomingServices": 0,
+              "upcomingRehearsals": 0
+            },
+            "serviceHistory": [
+              {
+                "id": "pp-eve-ysep25",
+                "sourceScheduleId": "pp-eve-ysep25",
+                "planId": "plan-y-sep25",
+                "date": "2026-09-26T02:00:00.000Z",
+                "teamPositionName": "Keys",
+                "serviceTypeName": "Youth",
+                "planTitle": "Plan plan-y-sep25",
+                "status": "U",
+                "timeType": "service"
+              }
+            ],
+            "isBlockedForDate": false,
+            "isScheduledForSelectedPlanPosition": false,
+            "isConfirmedForSelectedPlanPosition": false,
+            "isDeclinedForSelectedPlanPosition": false,
+            "selectedPlanAssignmentLabels": [],
+            "schedulingPreferences": {
+              "schedulePreference": null,
+              "preferredWeeks": [],
+              "timePreferenceOptionIds": [],
+              "maxPlansPerDay": null,
+              "maxPlansPerMonth": null
+            },
+            "recommendationScore": 96.39,
+            "recommendationReasoning": [
+              "Last served 2 days before on Fri, Sep 25, 2026"
+            ]
+          },
+          {
+            "id": "p-dee",
+            "firstName": "Dee",
+            "lastName": "Diaz",
+            "fullName": "Dee Diaz",
+            "photoUrl": "https://example.test/p-dee.jpg",
+            "photoThumbnailUrl": "https://example.test/p-dee-thumb.jpg",
+            "archived": false,
+            "availability": "blocked",
+            "frequency": {
+              "recentServedDays": 1,
+              "last60Days": 1,
+              "last90Days": 1,
+              "lastServedDate": "2026-09-27T17:00:00.000Z",
+              "totalServed": 1,
+              "recentRehearsalOnlyDays": 1,
+              "rehearsalLast60Days": 1,
+              "rehearsalLast90Days": 1,
+              "lastRehearsalDate": "2026-09-11T02:00:00.000Z",
+              "totalRehearsals": 1,
+              "upcomingServices": 0,
+              "upcomingRehearsals": 0
+            },
+            "serviceHistory": [
+              {
+                "id": "pp-dee-sep13:t-sep10-reh",
+                "sourceScheduleId": "pp-dee-sep13",
+                "planId": "plan-sep13",
+                "date": "2026-09-11T02:00:00.000Z",
+                "teamPositionName": "Harmony",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-sep13",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "pp-dee-sel",
+                "sourceScheduleId": "pp-dee-sel",
+                "planId": "plan-sel",
+                "date": "2026-09-27T17:00:00.000Z",
+                "teamPositionName": "Harmony",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-sel",
+                "status": "U",
+                "timeType": "service"
+              }
+            ],
+            "isBlockedForDate": true,
+            "isScheduledForSelectedPlanPosition": false,
+            "isConfirmedForSelectedPlanPosition": false,
+            "isDeclinedForSelectedPlanPosition": false,
+            "selectedPlanAssignmentLabels": [
+              "Vocals - Harmony",
+              "Harmony"
+            ],
+            "schedulingPreferences": {
+              "schedulePreference": null,
+              "preferredWeeks": [],
+              "timePreferenceOptionIds": [],
+              "maxPlansPerDay": null,
+              "maxPlansPerMonth": null
+            },
+            "recommendationScore": 86,
+            "recommendationReasoning": [
+              "Last served on the same date (Sun, Sep 27, 2026)"
+            ]
+          }
+        ],
+        "complete": true,
+        "progress": {
+          "candidateCount": 7,
+          "detailedCount": 7,
+          "historyLoaded": true
+        }
+      }
+    },
+    {
+      "input": {
+        "candidates": {
+          "generatedAt": "2026-09-27T17:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "match": {
+            "planId": "plan-sel",
+            "teamId": "team-band",
+            "selectedPositionName": "Electric Guitar",
+            "selectedTeamName": "Band"
+          },
+          "candidates": [
+            {
+              "id": "p-ana",
+              "firstName": "Ana",
+              "lastName": "Alvarez",
+              "fullName": "Ana Alvarez",
+              "photoUrl": "https://example.test/p-ana.jpg",
+              "photoThumbnailUrl": "https://example.test/p-ana-thumb.jpg",
+              "archived": false,
+              "selectedPlanRosterLabels": [
+                "Band - Electric Guitar"
+              ],
+              "selectedPlanSlot": {
+                "planPersonId": "pp-ana-sel",
+                "status": "confirmed",
+                "declineReason": null
+              },
+              "schedulingPreferences": {
+                "schedulePreference": null,
+                "preferredWeeks": [],
+                "timePreferenceOptionIds": [],
+                "maxPlansPerDay": null,
+                "maxPlansPerMonth": null
+              }
+            },
+            {
+              "id": "p-ben",
+              "firstName": "Ben",
+              "lastName": "Brooks",
+              "fullName": "Ben Brooks",
+              "photoUrl": "https://example.test/p-ben.jpg",
+              "photoThumbnailUrl": "https://example.test/p-ben-thumb.jpg",
+              "archived": false,
+              "selectedPlanRosterLabels": [
+                "Band - Electric Guitar"
+              ],
+              "selectedPlanSlot": {
+                "planPersonId": "pp-ben-sel",
+                "status": "pending",
+                "declineReason": null
+              },
+              "schedulingPreferences": {
+                "schedulePreference": null,
+                "preferredWeeks": [],
+                "timePreferenceOptionIds": [],
+                "maxPlansPerDay": null,
+                "maxPlansPerMonth": null
+              }
+            },
+            {
+              "id": "p-cy",
+              "firstName": "Cy",
+              "lastName": "Chen",
+              "fullName": "Cy Chen",
+              "photoUrl": "https://example.test/p-cy.jpg",
+              "photoThumbnailUrl": "https://example.test/p-cy-thumb.jpg",
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": {
+                "planPersonId": "pp-cy-sel",
+                "status": "declined",
+                "declineReason": "Out of town"
+              },
+              "schedulingPreferences": {
+                "schedulePreference": null,
+                "preferredWeeks": [],
+                "timePreferenceOptionIds": [],
+                "maxPlansPerDay": null,
+                "maxPlansPerMonth": null
+              }
+            },
+            {
+              "id": "p-dee",
+              "firstName": "Dee",
+              "lastName": "Diaz",
+              "fullName": "Dee Diaz",
+              "photoUrl": "https://example.test/p-dee.jpg",
+              "photoThumbnailUrl": "https://example.test/p-dee-thumb.jpg",
+              "archived": false,
+              "selectedPlanRosterLabels": [
+                "Vocals - Harmony"
+              ],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": {
+                "schedulePreference": null,
+                "preferredWeeks": [],
+                "timePreferenceOptionIds": [],
+                "maxPlansPerDay": null,
+                "maxPlansPerMonth": null
+              }
+            },
+            {
+              "id": "p-eve",
+              "firstName": "Eve",
+              "lastName": "Evans",
+              "fullName": "Eve Evans",
+              "photoUrl": "https://example.test/p-eve.jpg",
+              "photoThumbnailUrl": "https://example.test/p-eve-thumb.jpg",
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": {
+                "schedulePreference": null,
+                "preferredWeeks": [],
+                "timePreferenceOptionIds": [],
+                "maxPlansPerDay": null,
+                "maxPlansPerMonth": null
+              }
+            },
+            {
+              "id": "p-gus",
+              "firstName": "Gus",
+              "lastName": "Gray",
+              "fullName": "Gus Gray",
+              "photoUrl": "https://example.test/p-gus.jpg",
+              "photoThumbnailUrl": "https://example.test/p-gus-thumb.jpg",
+              "archived": false,
+              "selectedPlanRosterLabels": [],
+              "selectedPlanSlot": null,
+              "schedulingPreferences": {
+                "schedulePreference": null,
+                "preferredWeeks": [],
+                "timePreferenceOptionIds": [],
+                "maxPlansPerDay": null,
+                "maxPlansPerMonth": null
+              }
+            },
+            {
+              "id": "p-hal",
+              "firstName": "Hal",
+              "lastName": "Hill",
+              "fullName": "Hal Hill",
+              "photoUrl": "https://example.test/p-hal.jpg",
+              "photoThumbnailUrl": "https://example.test/p-hal-thumb.jpg",
+              "archived": false,
+              "selectedPlanRosterLabels": [
+                "Band - Electric Guitar"
+              ],
+              "selectedPlanSlot": {
+                "planPersonId": "pp-hal-sel",
+                "status": "pending",
+                "declineReason": null
+              },
+              "schedulingPreferences": null
+            }
+          ]
+        },
+        "planId": "plan-sel",
+        "windowCalls": [
+          {
+            "generatedAt": "2026-09-27T17:00:00.000Z",
+            "loadedPlanCount": 0,
+            "plans": [],
+            "planTimes": [],
+            "people": [],
+            "deferredPlans": [],
+            "deferredServiceTypeIds": [],
+            "requestBudget": {
+              "limit": 36,
+              "planningCenterRequests": 3,
+              "planRangeRequests": 1,
+              "rosterRequests": 1
+            }
+          }
+        ],
+        "detailBatches": [
+          [
+            {
+              "personId": "p-ana",
+              "isBlockedForDate": false,
+              "history": {
+                "serviceHistory": [
+                  {
+                    "id": "s-ana-sep13:t-sep10-reh",
+                    "sourceScheduleId": "s-ana-sep13",
+                    "planId": "plan-sep13",
+                    "date": "2026-09-11T02:00:00.000Z",
+                    "teamPositionName": "Electric Guitar",
+                    "teamName": "Band",
+                    "serviceTypeName": "Sunday",
+                    "planTitle": "Plan plan-sep13",
+                    "status": "C",
+                    "timeType": "rehearsal"
+                  },
+                  {
+                    "id": "s-ana-sep13:t-sep13",
+                    "sourceScheduleId": "s-ana-sep13",
+                    "planId": "plan-sep13",
+                    "date": "2026-09-13T17:00:00.000Z",
+                    "teamPositionName": "Electric Guitar",
+                    "teamName": "Band",
+                    "serviceTypeName": "Sunday",
+                    "planTitle": "Plan plan-sep13",
+                    "status": "C",
+                    "timeType": "service"
+                  },
+                  {
+                    "id": "s-ana-sel:t-sel",
+                    "sourceScheduleId": "s-ana-sel",
+                    "planId": "plan-sel",
+                    "date": "2026-09-27T17:00:00.000Z",
+                    "teamPositionName": "Electric Guitar",
+                    "teamName": "Band",
+                    "serviceTypeName": "Sunday",
+                    "planTitle": "Plan plan-sel",
+                    "status": "C",
+                    "timeType": "service"
+                  }
+                ],
+                "selectedPlanAssignments": [
+                  {
+                    "source": "schedule",
+                    "id": "s-ana-sel",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamName": "Band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "C",
+                    "planPersonId": "pp-ana-sel",
+                    "declineReason": null
+                  }
+                ]
+              }
+            },
+            {
+              "personId": "p-ben",
+              "isBlockedForDate": false,
+              "history": {
+                "serviceHistory": [],
+                "selectedPlanAssignments": []
+              }
+            },
+            {
+              "personId": "p-cy",
+              "isBlockedForDate": false,
+              "history": {
+                "serviceHistory": [
+                  {
+                    "id": "s-cy-oct11",
+                    "sourceScheduleId": "s-cy-oct11",
+                    "planId": "plan-oct11",
+                    "date": "2026-10-11T17:00:00.000Z",
+                    "teamPositionName": "Electric Guitar",
+                    "serviceTypeName": "Sunday",
+                    "planTitle": "Plan plan-oct11",
+                    "status": "U"
+                  }
+                ],
+                "selectedPlanAssignments": [
+                  {
+                    "source": "schedule",
+                    "id": "s-cy-sel",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamName": null,
+                    "teamPositionName": "Band - Electric Guitar",
+                    "status": "D",
+                    "planPersonId": "pp-cy-sel",
+                    "declineReason": "Out of town"
+                  }
+                ]
+              }
+            }
+          ],
+          [
+            {
+              "personId": "p-dee",
+              "isBlockedForDate": true,
+              "history": {
+                "serviceHistory": [
+                  {
+                    "id": "s-dee-sep13:t-sep10-reh",
+                    "sourceScheduleId": "s-dee-sep13",
+                    "planId": "plan-sep13",
+                    "date": "2026-09-11T02:00:00.000Z",
+                    "teamPositionName": "Harmony",
+                    "teamName": "Vocals",
+                    "serviceTypeName": "Sunday",
+                    "planTitle": "Plan plan-sep13",
+                    "status": "C",
+                    "timeType": "rehearsal"
+                  }
+                ],
+                "selectedPlanAssignments": []
+              }
+            },
+            {
+              "personId": "p-eve",
+              "isBlockedForDate": false,
+              "history": {
+                "serviceHistory": [],
+                "selectedPlanAssignments": []
+              }
+            },
+            {
+              "personId": "p-gus",
+              "isBlockedForDate": true,
+              "history": {
+                "serviceHistory": [
+                  {
+                    "id": "s-gus-sel",
+                    "sourceScheduleId": "s-gus-sel",
+                    "planId": "plan-sel",
+                    "date": "2026-09-27T17:00:00.000Z",
+                    "teamPositionName": "Electric Guitar",
+                    "teamName": "Band",
+                    "serviceTypeName": "Sunday",
+                    "planTitle": "Plan plan-sel",
+                    "status": "U"
+                  }
+                ],
+                "selectedPlanAssignments": [
+                  {
+                    "source": "schedule",
+                    "id": "s-gus-sel",
+                    "planId": "plan-sel",
+                    "teamId": "team-band",
+                    "teamName": "Band",
+                    "teamPositionName": "Electric Guitar",
+                    "status": "U",
+                    "planPersonId": "pp-gus-sel",
+                    "declineReason": null
+                  }
+                ]
+              }
+            },
+            {
+              "personId": "p-hal",
+              "isBlockedForDate": true,
+              "history": {
+                "serviceHistory": [],
+                "selectedPlanAssignments": []
+              }
+            }
+          ]
+        ]
+      },
+      "output": {
+        "people": [
+          {
+            "id": "p-ana",
+            "firstName": "Ana",
+            "lastName": "Alvarez",
+            "fullName": "Ana Alvarez",
+            "photoUrl": "https://example.test/p-ana.jpg",
+            "photoThumbnailUrl": "https://example.test/p-ana-thumb.jpg",
+            "archived": false,
+            "availability": "available",
+            "frequency": {
+              "recentServedDays": 2,
+              "last60Days": 2,
+              "last90Days": 2,
+              "lastServedDate": "2026-09-27T17:00:00.000Z",
+              "totalServed": 2,
+              "recentRehearsalOnlyDays": 1,
+              "rehearsalLast60Days": 1,
+              "rehearsalLast90Days": 1,
+              "lastRehearsalDate": "2026-09-11T02:00:00.000Z",
+              "totalRehearsals": 1,
+              "upcomingServices": 0,
+              "upcomingRehearsals": 0
+            },
+            "serviceHistory": [
+              {
+                "id": "s-ana-sep13:t-sep10-reh",
+                "sourceScheduleId": "s-ana-sep13",
+                "planId": "plan-sep13",
+                "date": "2026-09-11T02:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-sep13",
+                "status": "C",
+                "timeType": "rehearsal"
+              },
+              {
+                "id": "s-ana-sep13:t-sep13",
+                "sourceScheduleId": "s-ana-sep13",
+                "planId": "plan-sep13",
+                "date": "2026-09-13T17:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-sep13",
+                "status": "C",
+                "timeType": "service"
+              },
+              {
+                "id": "s-ana-sel:t-sel",
+                "sourceScheduleId": "s-ana-sel",
+                "planId": "plan-sel",
+                "date": "2026-09-27T17:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-sel",
+                "status": "C",
+                "timeType": "service"
+              }
+            ],
+            "isBlockedForDate": false,
+            "isScheduledForSelectedPlanPosition": true,
+            "isConfirmedForSelectedPlanPosition": true,
+            "isDeclinedForSelectedPlanPosition": false,
+            "selectedPlanAssignmentLabels": [
+              "Band - Electric Guitar"
+            ],
+            "scheduledPlanPersonId": "pp-ana-sel",
+            "schedulingPreferences": {
+              "schedulePreference": null,
+              "preferredWeeks": [],
+              "timePreferenceOptionIds": [],
+              "maxPlansPerDay": null,
+              "maxPlansPerMonth": null
+            },
+            "recommendationScore": 0,
+            "recommendationReasoning": [
+              "Last served on the same date (Sun, Sep 27, 2026)",
+              "Ranked lower: on the schedule 3 distinct days in the 4 weeks before this plan"
+            ]
+          },
+          {
+            "id": "p-ben",
+            "firstName": "Ben",
+            "lastName": "Brooks",
+            "fullName": "Ben Brooks",
+            "photoUrl": "https://example.test/p-ben.jpg",
+            "photoThumbnailUrl": "https://example.test/p-ben-thumb.jpg",
+            "archived": false,
+            "availability": "available",
+            "frequency": {
+              "recentServedDays": 0,
+              "last60Days": 0,
+              "last90Days": 0,
+              "totalServed": 0,
+              "recentRehearsalOnlyDays": 0,
+              "rehearsalLast60Days": 0,
+              "rehearsalLast90Days": 0,
+              "totalRehearsals": 0,
+              "upcomingServices": 0,
+              "upcomingRehearsals": 0
+            },
+            "serviceHistory": [],
+            "isBlockedForDate": false,
+            "isScheduledForSelectedPlanPosition": true,
+            "isConfirmedForSelectedPlanPosition": false,
+            "isDeclinedForSelectedPlanPosition": false,
+            "selectedPlanAssignmentLabels": [
+              "Band - Electric Guitar"
+            ],
+            "scheduledPlanPersonId": "pp-ben-sel",
+            "schedulingPreferences": {
+              "schedulePreference": null,
+              "preferredWeeks": [],
+              "timePreferenceOptionIds": [],
+              "maxPlansPerDay": null,
+              "maxPlansPerMonth": null
+            },
+            "recommendationScore": 100,
+            "recommendationReasoning": [
+              "No past services scheduled"
+            ]
+          },
+          {
+            "id": "p-cy",
+            "firstName": "Cy",
+            "lastName": "Chen",
+            "fullName": "Cy Chen",
+            "photoUrl": "https://example.test/p-cy.jpg",
+            "photoThumbnailUrl": "https://example.test/p-cy-thumb.jpg",
+            "archived": false,
+            "availability": "available",
+            "frequency": {
+              "recentServedDays": 0,
+              "last60Days": 0,
+              "last90Days": 0,
+              "totalServed": 0,
+              "recentRehearsalOnlyDays": 0,
+              "rehearsalLast60Days": 0,
+              "rehearsalLast90Days": 0,
+              "totalRehearsals": 0,
+              "upcomingServices": 1,
+              "nextUpcomingDate": "2026-10-11T17:00:00.000Z",
+              "upcomingRehearsals": 0
+            },
+            "serviceHistory": [
+              {
+                "id": "s-cy-oct11",
+                "sourceScheduleId": "s-cy-oct11",
+                "planId": "plan-oct11",
+                "date": "2026-10-11T17:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-oct11",
+                "status": "U"
+              }
+            ],
+            "isBlockedForDate": false,
+            "isScheduledForSelectedPlanPosition": true,
+            "isConfirmedForSelectedPlanPosition": false,
+            "isDeclinedForSelectedPlanPosition": true,
+            "selectedPlanDeclineReason": "Out of town",
+            "selectedPlanAssignmentLabels": [],
+            "scheduledPlanPersonId": "pp-cy-sel",
+            "schedulingPreferences": {
+              "schedulePreference": null,
+              "preferredWeeks": [],
+              "timePreferenceOptionIds": [],
+              "maxPlansPerDay": null,
+              "maxPlansPerMonth": null
+            },
+            "recommendationScore": 35.19,
+            "recommendationReasoning": [
+              "No past services scheduled",
+              "Upcoming: 14 days after on Sun, Oct 11, 2026",
+              "Ranked slightly lower: scheduled 14 days after"
+            ]
+          },
+          {
+            "id": "p-hal",
+            "firstName": "Hal",
+            "lastName": "Hill",
+            "fullName": "Hal Hill",
+            "photoUrl": "https://example.test/p-hal.jpg",
+            "photoThumbnailUrl": "https://example.test/p-hal-thumb.jpg",
+            "archived": false,
+            "availability": "blocked",
+            "frequency": {
+              "recentServedDays": 0,
+              "last60Days": 0,
+              "last90Days": 0,
+              "totalServed": 0,
+              "recentRehearsalOnlyDays": 0,
+              "rehearsalLast60Days": 0,
+              "rehearsalLast90Days": 0,
+              "totalRehearsals": 0,
+              "upcomingServices": 0,
+              "upcomingRehearsals": 0
+            },
+            "serviceHistory": [],
+            "isBlockedForDate": true,
+            "isScheduledForSelectedPlanPosition": true,
+            "isConfirmedForSelectedPlanPosition": false,
+            "isDeclinedForSelectedPlanPosition": false,
+            "selectedPlanAssignmentLabels": [
+              "Band - Electric Guitar"
+            ],
+            "scheduledPlanPersonId": "pp-hal-sel",
+            "recommendationScore": 130,
+            "recommendationReasoning": [
+              "No past services scheduled"
+            ]
+          },
+          {
+            "id": "p-gus",
+            "firstName": "Gus",
+            "lastName": "Gray",
+            "fullName": "Gus Gray",
+            "photoUrl": "https://example.test/p-gus.jpg",
+            "photoThumbnailUrl": "https://example.test/p-gus-thumb.jpg",
+            "archived": false,
+            "availability": "blocked",
+            "frequency": {
+              "recentServedDays": 1,
+              "last60Days": 1,
+              "last90Days": 1,
+              "lastServedDate": "2026-09-27T17:00:00.000Z",
+              "totalServed": 1,
+              "recentRehearsalOnlyDays": 0,
+              "rehearsalLast60Days": 0,
+              "rehearsalLast90Days": 0,
+              "totalRehearsals": 0,
+              "upcomingServices": 0,
+              "upcomingRehearsals": 0
+            },
+            "serviceHistory": [
+              {
+                "id": "s-gus-sel",
+                "sourceScheduleId": "s-gus-sel",
+                "planId": "plan-sel",
+                "date": "2026-09-27T17:00:00.000Z",
+                "teamPositionName": "Electric Guitar",
+                "teamName": "Band",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-sel",
+                "status": "U"
+              }
+            ],
+            "isBlockedForDate": true,
+            "isScheduledForSelectedPlanPosition": true,
+            "isConfirmedForSelectedPlanPosition": false,
+            "isDeclinedForSelectedPlanPosition": false,
+            "selectedPlanAssignmentLabels": [
+              "Band - Electric Guitar"
+            ],
+            "scheduledPlanPersonId": "pp-gus-sel",
+            "schedulingPreferences": {
+              "schedulePreference": null,
+              "preferredWeeks": [],
+              "timePreferenceOptionIds": [],
+              "maxPlansPerDay": null,
+              "maxPlansPerMonth": null
+            },
+            "recommendationScore": 90,
+            "recommendationReasoning": [
+              "Last served on the same date (Sun, Sep 27, 2026)"
+            ]
+          },
+          {
+            "id": "p-eve",
+            "firstName": "Eve",
+            "lastName": "Evans",
+            "fullName": "Eve Evans",
+            "photoUrl": "https://example.test/p-eve.jpg",
+            "photoThumbnailUrl": "https://example.test/p-eve-thumb.jpg",
+            "archived": false,
+            "availability": "available",
+            "frequency": {
+              "recentServedDays": 0,
+              "last60Days": 0,
+              "last90Days": 0,
+              "totalServed": 0,
+              "recentRehearsalOnlyDays": 0,
+              "rehearsalLast60Days": 0,
+              "rehearsalLast90Days": 0,
+              "totalRehearsals": 0,
+              "upcomingServices": 0,
+              "upcomingRehearsals": 0
+            },
+            "serviceHistory": [],
+            "isBlockedForDate": false,
+            "isScheduledForSelectedPlanPosition": false,
+            "isConfirmedForSelectedPlanPosition": false,
+            "isDeclinedForSelectedPlanPosition": false,
+            "selectedPlanAssignmentLabels": [],
+            "schedulingPreferences": {
+              "schedulePreference": null,
+              "preferredWeeks": [],
+              "timePreferenceOptionIds": [],
+              "maxPlansPerDay": null,
+              "maxPlansPerMonth": null
+            },
+            "recommendationScore": 100,
+            "recommendationReasoning": [
+              "No past services scheduled"
+            ]
+          },
+          {
+            "id": "p-dee",
+            "firstName": "Dee",
+            "lastName": "Diaz",
+            "fullName": "Dee Diaz",
+            "photoUrl": "https://example.test/p-dee.jpg",
+            "photoThumbnailUrl": "https://example.test/p-dee-thumb.jpg",
+            "archived": false,
+            "availability": "blocked",
+            "frequency": {
+              "recentServedDays": 0,
+              "last60Days": 0,
+              "last90Days": 0,
+              "totalServed": 0,
+              "recentRehearsalOnlyDays": 1,
+              "rehearsalLast60Days": 1,
+              "rehearsalLast90Days": 1,
+              "lastRehearsalDate": "2026-09-11T02:00:00.000Z",
+              "totalRehearsals": 1,
+              "upcomingServices": 0,
+              "upcomingRehearsals": 0
+            },
+            "serviceHistory": [
+              {
+                "id": "s-dee-sep13:t-sep10-reh",
+                "sourceScheduleId": "s-dee-sep13",
+                "planId": "plan-sep13",
+                "date": "2026-09-11T02:00:00.000Z",
+                "teamPositionName": "Harmony",
+                "teamName": "Vocals",
+                "serviceTypeName": "Sunday",
+                "planTitle": "Plan plan-sep13",
+                "status": "C",
+                "timeType": "rehearsal"
+              }
+            ],
+            "isBlockedForDate": true,
+            "isScheduledForSelectedPlanPosition": false,
+            "isConfirmedForSelectedPlanPosition": false,
+            "isDeclinedForSelectedPlanPosition": false,
+            "selectedPlanAssignmentLabels": [
+              "Vocals - Harmony"
+            ],
+            "schedulingPreferences": {
+              "schedulePreference": null,
+              "preferredWeeks": [],
+              "timePreferenceOptionIds": [],
+              "maxPlansPerDay": null,
+              "maxPlansPerMonth": null
+            },
+            "recommendationScore": 126,
+            "recommendationReasoning": [
+              "No past services scheduled"
+            ]
+          }
+        ],
+        "complete": true,
+        "progress": {
+          "candidateCount": 7,
+          "detailedCount": 7,
+          "historyLoaded": true
+        }
+      }
+    }
+  ]
+}

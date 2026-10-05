@@ -13,7 +13,8 @@ import { appendFile } from "node:fs/promises";
 import * as Alchemist from "alchemy/Alchemist";
 import { Effect } from "effect";
 
-import { driftReport } from "./drift-report";
+import { differingFields, driftReport, driftValueSchema } from "./drift-report";
+import type { DriftValue } from "./drift-report";
 
 const [stage, entrypoint = "alchemy.run.ts"] = process.argv.slice(2);
 if (stage === undefined) {
@@ -26,7 +27,35 @@ const snapshot = await Effect.runPromise(
     Effect.scoped
   )
 );
-const report = driftReport(entrypoint, stage, snapshot.resources);
+/** Attributes as JSON: values that do not survive a round trip read as null. */
+const asDriftValue = (json: string): DriftValue => {
+  const parsed = driftValueSchema.safeParse(JSON.parse(json));
+  return parsed.success ? parsed.data : null;
+};
+
+const jsonFieldsOf = (expected: string, actual: string): readonly string[] =>
+  differingFields(asDriftValue(expected), asDriftValue(actual));
+
+const fieldsByResource = new Map<string, readonly string[]>();
+for (const [fqn, node] of Object.entries(
+  snapshot.repairPlan.native.resources
+)) {
+  if (node.drift !== undefined) {
+    fieldsByResource.set(
+      fqn,
+      jsonFieldsOf(
+        JSON.stringify(node.drift.expected ?? null),
+        JSON.stringify(node.drift.actual ?? null)
+      )
+    );
+  }
+}
+const report = driftReport(
+  entrypoint,
+  stage,
+  snapshot.resources,
+  fieldsByResource
+);
 process.stdout.write(`${report.markdown}\n`);
 const summaryFile = process.env.GITHUB_STEP_SUMMARY;
 if (summaryFile !== undefined && summaryFile !== "") {

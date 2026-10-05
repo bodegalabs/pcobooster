@@ -1,0 +1,111 @@
+{
+  "suite": "people.scope.parse",
+  "cases": [
+    {
+      "input": {
+        "value": "mine"
+      },
+      "output": "mine"
+    },
+    {
+      "input": {
+        "value": "all"
+      },
+      "output": "all"
+    },
+    {
+      "input": {
+        "value": "team:42"
+      },
+      "output": "team:42"
+    },
+    {
+      "input": {
+        "value": "team:band"
+      },
+      "output": "team:band"
+    },
+    {
+      "input": {
+        "value": "team:"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "value": "team"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "value": "team:team:1"
+      },
+      "output": "team:team:1"
+    },
+    {
+      "input": {
+        "value": "team: spaced"
+      },
+      "output": "team: spaced"
+    },
+    {
+      "input": {
+        "value": "team:🙏"
+      },
+      "output": "team:🙏"
+    },
+    {
+      "input": {
+        "value": "team:́x"
+      },
+      "output": "team:́x"
+    },
+    {
+      "input": {
+        "value": "Team:1"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "value": "MINE"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "value": " mine"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "value": "mine "
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "value": "All"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "value": "elsewhere"
+      },
+      "output": null
+    },
+    {
+      "input": {
+        "value": ""
+      },
+      "output": null
+    },
+    {
+      "input": {},
+      "output": null
+    }
+  ]
+}

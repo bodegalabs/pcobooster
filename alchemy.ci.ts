@@ -102,12 +102,18 @@ const preview: DeployTarget = {
   ],
 };
 
+/**
+ * Production also ships the iOS app: the `testflight` job releases the same verified `main`
+ * revision the production deploy just served, so it shares production's trust level and secrets
+ * (the PostHog key built into the app and the App Store Connect API key).
+ */
 const production: DeployTarget = {
   key: "Production",
   projectId: "2eca20e1-20ac-4f06-a086-99ea5c590483",
   envSlug: "prod",
   identityId: "8018b3d8-bf89-4d3f-a4a5-98ac80ca343c",
-  boundSubject: githubOidcSubject("cloudflare-production"),
+  // Infisical glob: exactly `cloudflare-production` and `testflight`.
+  boundSubject: githubOidcSubject("{cloudflare-production,testflight}"),
   // The environment already only accepts `main`; the claim makes Infisical check it too.
   boundClaims: { ref: "refs/heads/main" },
   policies: [
@@ -197,6 +203,15 @@ const environments: readonly DeployEnvironment[] = [
     reviewers: undefined,
     branches: { customBranchPolicies: ["main"] },
     variables: { CLOUDFLARE_CUSTOM_DOMAINS: "1" },
+  },
+  {
+    id: "TestFlightEnvironment",
+    name: "testflight",
+    target: production,
+    // Merging iOS changes to `main` is the approval, as for production.
+    reviewers: undefined,
+    branches: { customBranchPolicies: ["main"] },
+    variables: {},
   },
 ];
 
@@ -356,6 +371,14 @@ export default Alchemy.Stack(
         }).pipe(RemovalPolicy.retain());
       }
     }
+
+    // Turns on the `testflight` CI job. Deploy it only once the App Store Connect key is in
+    // Infisical Production (docs/ci-cd.md, iOS releases).
+    yield* GitHub.Variable("TestFlightReleases", {
+      ...target,
+      name: "TESTFLIGHT_RELEASES",
+      value: "enabled",
+    });
 
     const previewTokenId = yield* deployTarget(preview);
     const stagingServiceTokenId = yield* stagingAccessServiceToken;

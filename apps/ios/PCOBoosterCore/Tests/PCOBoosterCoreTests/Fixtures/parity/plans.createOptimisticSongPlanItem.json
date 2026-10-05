@@ -1,0 +1,76 @@
+{
+  "suite": "plans.createOptimisticSongPlanItem",
+  "cases": [
+    {
+      "input": {
+        "id": "temp-song",
+        "sequence": 3,
+        "song": {
+          "lastScheduledAt": null,
+          "id": "song-1",
+          "title": "Grace Alone",
+          "author": "The Modern Post",
+          "themes": "Grace",
+          "hidden": false
+        }
+      },
+      "output": {
+        "id": "temp-song",
+        "title": "Grace Alone",
+        "itemType": "song",
+        "sequence": 3,
+        "servicePosition": "during",
+        "length": null,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "song": {
+          "id": "song-1",
+          "title": "Grace Alone",
+          "author": "The Modern Post",
+          "themes": "Grace",
+          "lastScheduledAt": null
+        },
+        "arrangement": null,
+        "key": null,
+        "layout": null
+      }
+    },
+    {
+      "input": {
+        "id": "optimistic-song-2",
+        "sequence": 7,
+        "song": {
+          "lastScheduledAt": "2026-05-17T16:00:00.000Z",
+          "id": "song-2",
+          "title": "Build My Life",
+          "author": "Pat Barrett",
+          "themes": "Worship",
+          "hidden": true,
+          "matchScore": 120
+        }
+      },
+      "output": {
+        "id": "optimistic-song-2",
+        "title": "Build My Life",
+        "itemType": "song",
+        "sequence": 7,
+        "servicePosition": "during",
+        "length": null,
+        "description": "",
+        "htmlDetails": "",
+        "customArrangementSequence": [],
+        "song": {
+          "id": "song-2",
+          "title": "Build My Life",
+          "author": "Pat Barrett",
+          "themes": "Worship",
+          "lastScheduledAt": "2026-05-17T16:00:00.000Z"
+        },
+        "arrangement": null,
+        "key": null,
+        "layout": null
+      }
+    }
+  ]
+}

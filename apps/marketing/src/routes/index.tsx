@@ -102,8 +102,8 @@ const plans = [
 
 const checks = [
   "Availability for the plan you’re building",
-  "Recent scheduling context in one place",
-  "People matched to the position you need",
+  "Four weeks of history and what’s coming next",
+  "People ranked by fit for the position you need",
 ];
 
 const SectionHeading = ({
@@ -247,9 +247,9 @@ const History = () => (
         <em>A better decision.</em>
       </h2>
       <p className="text-muted-foreground mt-6">
-        Look beyond an open calendar. See recent serving activity alongside
-        availability, blockouts, and scheduling conflicts before you choose
-        someone.
+        Look beyond an open calendar. See each person’s last four weeks and next
+        four beside their fit, availability, and scheduling conflicts before you
+        choose someone.
       </p>
       <ul className="border-border mt-7 grid gap-3 border-t pt-6">
         {checks.map((check) => (

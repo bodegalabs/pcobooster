@@ -2,7 +2,6 @@ import { ORPCError } from "@orpc/server";
 import { createRequestContext } from "@pcobooster/api/application/context";
 import type { RequestContext } from "@pcobooster/api/application/context";
 import type { ApplicationFault } from "@pcobooster/api/application/errors";
-import type { ApplicationRuntime } from "@pcobooster/api/application/runtime";
 import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
 import { Server } from "@pcobooster/api/server";
 import type { RpcContext } from "@pcobooster/api/transport/orpc/context";
@@ -92,7 +91,6 @@ export const toORPCError = (
 };
 
 export const executeApplicationEffect = async <Value>(
-  runtime: ApplicationRuntime<HttpClient>,
   program: Effect.Effect<
     Value,
     ApplicationFault,
@@ -109,15 +107,22 @@ export const executeApplicationEffect = async <Value>(
       ? new AbortController().signal
       : requestSignal;
   const withServer = Effect.provideService(program, Server, rpcContext.server);
-  const { planningCenterAccounting } = rpcContext;
-  const result = await runtime.execute(
+  const { planningCenterAccounting, procedure, requestId } = rpcContext;
+  const accounted =
     planningCenterAccounting === undefined
       ? withServer
       : Effect.provideService(
           withServer,
           PlanningCenterAccounting,
           planningCenterAccounting
-        ),
+        );
+  const result = await rpcContext.runtime.execute(
+    accounted.pipe(
+      Effect.withSpan(procedure ?? "rpc", {
+        attributes: { "rpc.procedure": procedure, "request.id": requestId },
+      }),
+      Effect.annotateLogs({ procedure, requestId })
+    ),
     {
       ...baseContext,
       requestId: rpcContext.requestId,

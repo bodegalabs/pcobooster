@@ -1,0 +1,11 @@
+{
+  "suite": "account.constants",
+  "cases": [
+    {
+      "input": null,
+      "output": {
+        "accountPanelCacheKey": "pcobooster:account-panel"
+      }
+    }
+  ]
+}

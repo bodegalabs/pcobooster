@@ -1,0 +1,2032 @@
+{
+  "suite": "scheduling.preferenceConflicts",
+  "cases": [
+    {
+      "input": [
+        "Ranked lower: first line"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Something",
+        "Ranked slightly lower: y"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Something",
+        "Minor penalty: x"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Something",
+        "Light penalty: x"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Something",
+        "Slight rehearsal penalty: x"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Something",
+        "Minor rehearsal penalty: x"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Something",
+        "Big_1 penalty: x"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Something",
+        "Ünder penalty: x"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Something",
+        "penalty: x"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Something",
+        "Two words penalty: x"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Something",
+        "Ranked lower:"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Something",
+        "Ranked  lower: x"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Something",
+        "ranked lower: x"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "x before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Upcoming: 1 day after",
+        "Ranked lower: rehearsed before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No service history"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No services"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Rehearsal upcoming: soon"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Rehearsals upcoming: 2"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve monthly",
+        "Ranked lower: x",
+        "Ranked lower: y"
+      ],
+      "output": [
+        "Prefers monthly"
+      ]
+    },
+    {
+      "input": [
+        "Prefers"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "At most 2 plans a day"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Marked Unavailable for this position in Planning Center"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Marked Unavailable for this position in Planning Center!"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve x in Planning Center",
+        "Ranked lower: z"
+      ],
+      "output": [
+        "Prefers x"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve Prefers to serve x",
+        "Ranked lower: z"
+      ],
+      "output": [
+        "Prefers Prefers to serve x"
+      ]
+    },
+    {
+      "input": [
+        "Upcoming:"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Upcoming :"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "last served"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        ""
+      ],
+      "output": []
+    },
+    {
+      "input": [],
+      "output": []
+    },
+    {
+      "input": [
+        "Something new"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 7 days before on Sun, Sep 20, 2026",
+        "Prefers to serve every other week",
+        "Ranked lower: served 7 days before",
+        "At most 2 plans a month; this plan fits",
+        "Marked Unavailable for this position in Planning Center",
+        "Ranked lower: asked not to be scheduled here"
+      ],
+      "output": [
+        "Prefers every other week",
+        "Marked Unavailable for this position"
+      ]
+    },
+    {
+      "input": [
+        "Last served 52 days before on Thu, Jan 1, 2026",
+        "Rehearsal upcoming: 3 days after on Wed, Feb 25, 2026",
+        "Slight rehearsal penalty: rehearsal 3 days after"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 52 days before on Thu, Jan 1, 2026",
+        "Upcoming: 3 days after on Wed, Feb 25, 2026",
+        "Ranked lower: scheduled 3 days after"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No service history available (treated as no recent/upcoming load)"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 21 days before on Sun, Feb 1, 2026",
+        "Ranked lower: on the schedule 3 distinct days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 2 days before on Fri, Sep 25, 2026",
+        "Upcoming: 5 days after on Fri, Oct 2, 2026",
+        "Ranked lower: scheduled 5 days after",
+        "Rehearsal upcoming: 3 days after on Wed, Sep 30, 2026",
+        "Slight rehearsal penalty: rehearsal 3 days after"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 14 days before on Sun, Sep 13, 2026",
+        "Prefers to serve once a month",
+        "Ranked lower: already serving 1 other day in September 2026"
+      ],
+      "output": [
+        "Prefers once a month"
+      ]
+    },
+    {
+      "input": [
+        "Last served 14 days before on Sun, Sep 13, 2026"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 7 days before on Sun, Sep 20, 2026",
+        "Upcoming: 7 days after on Sun, Oct 4, 2026",
+        "Ranked lower: scheduled 7 days after",
+        "Rehearsal upcoming: 3 days after on Wed, Sep 30, 2026",
+        "Slight rehearsal penalty: rehearsal 3 days after",
+        "Ranked lower: on the schedule 5 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 2 days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 33 days before on Tue, Aug 25, 2026",
+        "Prefers weeks 1, 2, 3 and 4 of the month; this plan is in week 4",
+        "At most 1 plan a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 39 days before on Wed, Aug 19, 2026"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 17 days before on Thu, Sep 10, 2026",
+        "Ranked lower: on the schedule 8 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 3 days in the 4 weeks before this plan",
+        "At most 2 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 30 days before on Fri, Aug 28, 2026",
+        "Upcoming: 3 days scheduled (3 days after on Wed, Sep 30, 2026)",
+        "Ranked lower: scheduled 3 days after",
+        "Rehearsals upcoming: 2 scheduled (3 days after on Wed, Sep 30, 2026)",
+        "Slight rehearsal penalty: rehearsal 3 days after",
+        "Ranked lower: on the schedule 7 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 2 days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 40 days before on Tue, Sep 22, 2026"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Prefers to serve every 7th week; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No service history available (treated as no recent/upcoming load)",
+        "Prefers to serve three times a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 1 day before on Sun, Mar 8, 2026",
+        "Rehearsal upcoming: 12 days after on Sat, Mar 21, 2026",
+        "Minor rehearsal penalty: rehearsal 12 days after"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 35 days before on Mon, Feb 2, 2026",
+        "Ranked lower: on the schedule 8 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 3 days in the 4 weeks before this plan",
+        "Prefers to serve every 8th week; this plan fits",
+        "At most 3 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Upcoming: 2 days scheduled (16 days after on Sat, Jan 16, 2027)",
+        "Minor penalty: scheduled 16 days after",
+        "Ranked lower: on the schedule 7 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 2 days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Rehearsal upcoming: 10 days after on Wed, Nov 11, 2026",
+        "Minor rehearsal penalty: rehearsal 10 days after",
+        "Prefers to serve every 3rd week; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Last served 32 days before on Wed, Sep 30, 2026",
+        "Upcoming: 1 day after on Mon, Nov 2, 2026",
+        "Ranked lower: scheduled 1 day after",
+        "Ranked lower: on the schedule 3 distinct days in the 4 weeks before this plan",
+        "Prefers week 1 of the month; this plan is in week 1",
+        "At most 6 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Upcoming: 5 days after on Fri, Oct 2, 2026",
+        "Ranked lower: scheduled 5 days after"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 13 days before on Tue, Mar 24, 2026",
+        "Rehearsals upcoming: 2 scheduled (16 days after on Wed, Apr 22, 2026)",
+        "Ranked lower: on the schedule 5 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 3 days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Upcoming: 3 days scheduled (26 days after on Sat, May 2, 2026)"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 58 days before on Wed, Nov 4, 2026",
+        "At most 3 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Rehearsal upcoming: 28 days after on Fri, Jan 29, 2027"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 14 days before on Fri, Dec 18, 2026"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Prefers to serve every 8th week; this plan fits",
+        "At most 2 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 16 days before on Fri, May 15, 2026",
+        "Upcoming: 3 days scheduled (27 days after on Sat, Jun 27, 2026)",
+        "Rehearsals upcoming: 2 scheduled (9 days after on Tue, Jun 9, 2026)",
+        "Minor rehearsal penalty: rehearsal 9 days after",
+        "Ranked lower: on the schedule 5 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 2 days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 21 days before on Tue, Feb 8, 2028"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Upcoming: 2 days scheduled (28 days after on Sun, Mar 22, 2026)",
+        "Prefers to serve twice a month; this plan fits",
+        "At most 6 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 28 days before on Sun, Jan 25, 2026",
+        "Upcoming: 2 days scheduled (27 days after on Sat, Mar 21, 2026)",
+        "Rehearsal upcoming: 19 days after on Fri, Mar 13, 2026",
+        "Ranked lower: on the schedule 6 distinct days in the 4 weeks before this plan",
+        "Prefers to serve every 3rd week; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 59 days before on Thu, Dec 25, 2025",
+        "Prefers weeks 2, 3 and 5 of the month",
+        "Ranked lower: this plan is in week 4"
+      ],
+      "output": [
+        "Prefers weeks 2, 3 and 5 of the month"
+      ]
+    },
+    {
+      "input": [
+        "Last served 27 days before on Mon, Jan 26, 2026"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Upcoming: 26 days after on Fri, Nov 27, 2026",
+        "Prefers to serve every 100000000000000000000th week",
+        "Ranked lower: serving 26 days after",
+        "At most 6 plans a month; this plan fits"
+      ],
+      "output": [
+        "Prefers every 100000000000000000000th week"
+      ]
+    },
+    {
+      "input": [
+        "Last served 9 days before on Wed, Dec 23, 2026",
+        "Upcoming: 3 days scheduled (9 days after on Sun, Jan 10, 2027)",
+        "Ranked slightly lower: scheduled 9 days after",
+        "Rehearsal upcoming: 4 days after on Tue, Jan 5, 2027",
+        "Slight rehearsal penalty: rehearsal 4 days after",
+        "Light penalty: rehearsed 2 days in the 4 weeks before this plan",
+        "Prefers to serve every 3rd week; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served on the same date (Fri, Jan 1, 2027)",
+        "Upcoming: 21 days after on Fri, Jan 22, 2027",
+        "Minor penalty: scheduled 21 days after",
+        "Ranked lower: on the schedule 3 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 2 days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Ranked lower: on the schedule 3 distinct days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Rehearsal upcoming: 20 days after on Fri, Nov 13, 2026",
+        "Prefers weeks 0, 4 and 5 of the month; this plan is in week 4"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Upcoming: 3 days scheduled (13 days after on Fri, Nov 6, 2026)",
+        "Ranked slightly lower: scheduled 13 days after",
+        "Rehearsal upcoming: 9 days after on Mon, Nov 2, 2026",
+        "Minor rehearsal penalty: rehearsal 9 days after",
+        "Ranked lower: on the schedule 3 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 2 days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Prefers to serve every 3rd week; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No service history available (treated as no recent/upcoming load)",
+        "At most 3 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Prefers to serve every 8th week; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Upcoming: 21 days after on Thu, Jan 21, 2027",
+        "Minor penalty: scheduled 21 days after"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Light penalty: rehearsed 2 days in the 4 weeks before this plan",
+        "Prefers weeks 2 and 3 of the month; this plan is in week 2",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "No service history available (treated as no recent/upcoming load)",
+        "Prefers to serve every 100000000000000000000th week; this plan fits",
+        "At most 2 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Prefers to serve once a month; this plan fits",
+        "At most 4 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Rehearsal upcoming: 20 days after on Sun, Apr 26, 2026",
+        "Ranked lower: on the schedule 7 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 2 days in the 4 weeks before this plan",
+        "Prefers to serve every 4th week; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Upcoming: 28 days after on Mon, May 4, 2026"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Upcoming: 3 days scheduled (0 days after on Sun, May 31, 2026)",
+        "Ranked lower: scheduled 0 days after",
+        "Ranked lower: on the schedule 4 distinct days in the 4 weeks before this plan",
+        "Prefers to serve every 100000000000000000000th week",
+        "Ranked lower: served 24 days before"
+      ],
+      "output": [
+        "Prefers every 100000000000000000000th week"
+      ]
+    },
+    {
+      "input": [
+        "Ranked lower: on the schedule 7 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 3 days in the 4 weeks before this plan",
+        "Prefers weeks 1 and 4 of the month",
+        "Ranked lower: this plan is in week 5"
+      ],
+      "output": [
+        "Prefers weeks 1 and 4 of the month"
+      ]
+    },
+    {
+      "input": [
+        "Last served 8 days before on Thu, Dec 24, 2026",
+        "At most 4 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 18 days before on Mon, Dec 14, 2026",
+        "Upcoming: 3 days scheduled (2 days after on Sun, Jan 3, 2027)",
+        "Ranked lower: scheduled 2 days after",
+        "Ranked lower: on the schedule 4 distinct days in the 4 weeks before this plan",
+        "Prefers to serve every 3rd week; this plan fits",
+        "At most 2 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 2 days before on Wed, Dec 30, 2026"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 42 days before on Wed, Jan 19, 2028"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 25 days before on Sat, Feb 5, 2028",
+        "At most 1 plan a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served on the same date (Wed, Sep 30, 2026)",
+        "Upcoming: 2 days scheduled (28 days after on Wed, Oct 28, 2026)",
+        "Ranked lower: on the schedule 7 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 3 days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 56 days before on Wed, Aug 5, 2026",
+        "Upcoming: 3 days after on Sat, Oct 3, 2026",
+        "Ranked lower: scheduled 3 days after",
+        "At most 3 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Upcoming: 5 days after on Mon, Oct 5, 2026",
+        "Ranked lower: scheduled 5 days after",
+        "Rehearsals upcoming: 2 scheduled (21 days after on Wed, Oct 21, 2026)",
+        "Ranked lower: on the schedule 6 distinct days in the 4 weeks before this plan",
+        "Prefers to serve every 8th week; this plan fits",
+        "At most 1 plan a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Prefers to serve every 7th week; this plan fits",
+        "At most 1 plan a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [],
+      "output": []
+    },
+    {
+      "input": [
+        "Upcoming: 3 days scheduled (4 days after on Tue, Oct 27, 2026)",
+        "Ranked lower: scheduled 4 days after",
+        "Rehearsal upcoming: 20 days after on Thu, Nov 12, 2026"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Ranked lower: on the schedule 3 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 3 days in the 4 weeks before this plan",
+        "Prefers to serve every other week; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 17 days before on Thu, Feb 5, 2026",
+        "Upcoming: 28 days after on Sun, Mar 22, 2026",
+        "Rehearsal upcoming: 30 days after on Tue, Mar 24, 2026",
+        "Ranked lower: on the schedule 4 distinct days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 30 days before on Fri, Jan 23, 2026",
+        "Prefers to serve twice a month; this plan fits",
+        "At most 1 plan a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No service history available (treated as no recent/upcoming load)",
+        "At most 1 plan a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 19 days before on Tue, Feb 3, 2026",
+        "Upcoming: 3 days scheduled (18 days after on Thu, Mar 12, 2026)",
+        "Minor penalty: scheduled 18 days after",
+        "Ranked lower: on the schedule 4 distinct days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No service history available (treated as no recent/upcoming load)",
+        "Prefers to serve every 4th week; this plan fits",
+        "At most 2 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 23 days before on Wed, Dec 9, 2026",
+        "Ranked lower: on the schedule 4 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 2 days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 19 days before on Sun, Dec 13, 2026",
+        "Upcoming: 2 days scheduled (5 days after on Wed, Jan 6, 2027)",
+        "Ranked lower: scheduled 5 days after"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Rehearsal upcoming: 4 days after on Mon, Oct 12, 2026",
+        "Slight rehearsal penalty: rehearsal 4 days after",
+        "Light penalty: rehearsed 2 days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 45 days before on Mon, Aug 24, 2026",
+        "Rehearsal upcoming: 13 days after on Wed, Oct 21, 2026",
+        "Minor rehearsal penalty: rehearsal 13 days after",
+        "Prefers to serve every 7th week; this plan fits",
+        "At most 4 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 15 days before on Wed, Sep 23, 2026",
+        "Ranked lower: on the schedule 5 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 3 days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No service history available (treated as no recent/upcoming load)",
+        "Marked Unavailable for this position in Planning Center",
+        "Ranked lower: asked not to be scheduled here"
+      ],
+      "output": [
+        "Marked Unavailable for this position"
+      ]
+    },
+    {
+      "input": [
+        "Last served 44 days before on Fri, Jan 23, 2026"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Ranked lower: on the schedule 4 distinct days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 51 days before on Fri, Jan 16, 2026",
+        "Upcoming: 2 days after on Tue, Mar 10, 2026",
+        "Ranked lower: scheduled 2 days after"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 25 days before on Wed, Feb 11, 2026",
+        "Prefers to serve once a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 23 days before on Fri, Feb 13, 2026",
+        "Upcoming: 20 days after on Sat, Mar 28, 2026",
+        "Minor penalty: scheduled 20 days after",
+        "Rehearsal upcoming: 23 days after on Tue, Mar 31, 2026",
+        "Ranked lower: on the schedule 5 distinct days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 8 days before on Sat, Feb 28, 2026",
+        "Upcoming: 3 days scheduled (0 days after on Sun, Mar 8, 2026)",
+        "Ranked lower: scheduled 0 days after",
+        "Rehearsals upcoming: 2 scheduled (23 days after on Tue, Mar 31, 2026)",
+        "Ranked lower: on the schedule 3 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 2 days in the 4 weeks before this plan",
+        "Prefers to serve every 3rd week",
+        "Ranked lower: served 14 days before",
+        "At most 3 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers every 3rd week",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Prefers to serve every 4th week; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Last served 16 days before on Fri, May 15, 2026",
+        "Rehearsal upcoming: 9 days after on Tue, Jun 9, 2026",
+        "Minor rehearsal penalty: rehearsal 9 days after",
+        "Ranked lower: on the schedule 4 distinct days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No service history available (treated as no recent/upcoming load)",
+        "Prefers weeks 1 and 4 of the month; this plan is in week 1",
+        "At most 4 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 1 day before on Sat, Oct 31, 2026",
+        "Upcoming: 3 days scheduled (18 days after on Thu, Nov 19, 2026)",
+        "Minor penalty: scheduled 18 days after",
+        "Rehearsals upcoming: 2 scheduled (7 days after on Sun, Nov 8, 2026)",
+        "Slight rehearsal penalty: rehearsal 7 days after",
+        "Marked Unavailable for this position in Planning Center",
+        "Ranked lower: asked not to be scheduled here"
+      ],
+      "output": [
+        "Marked Unavailable for this position"
+      ]
+    },
+    {
+      "input": [
+        "Last served 16 days before on Sat, Sep 12, 2026",
+        "Ranked lower: on the schedule 5 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 3 days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 1 day before on Sun, Sep 27, 2026",
+        "Rehearsal upcoming: 26 days after on Sat, Oct 24, 2026",
+        "Ranked lower: on the schedule 3 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 3 days in the 4 weeks before this plan",
+        "Prefers to serve every 8th week; this plan fits",
+        "At most 2 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No service history available (treated as no recent/upcoming load)",
+        "Prefers week 4 of the month",
+        "Ranked lower: this plan is in week 1",
+        "At most 1 plan a month; this plan fits"
+      ],
+      "output": [
+        "Prefers week 4 of the month"
+      ]
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Upcoming: 9 days after on Tue, Apr 14, 2026",
+        "Ranked slightly lower: scheduled 9 days after",
+        "Prefers weeks 1, 4 and 5 of the month; this plan is in week 1",
+        "At most 6 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 3 days before on Wed, Oct 21, 2026",
+        "Rehearsal upcoming: 26 days after on Thu, Nov 19, 2026",
+        "Ranked lower: on the schedule 5 distinct days in the 4 weeks before this plan",
+        "At most 1 plan a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Upcoming: 26 days after on Thu, Nov 19, 2026"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Rehearsals upcoming: 2 scheduled (20 days after on Fri, Nov 13, 2026)",
+        "Ranked lower: on the schedule 8 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 3 days in the 4 weeks before this plan",
+        "Prefers to serve every 21th week; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 14 days before on Sat, Oct 10, 2026",
+        "Upcoming: 2 days scheduled (6 days after on Fri, Oct 30, 2026)",
+        "Ranked lower: scheduled 6 days after",
+        "Rehearsal upcoming: 11 days after on Wed, Nov 4, 2026",
+        "Minor rehearsal penalty: rehearsal 11 days after",
+        "Ranked lower: on the schedule 5 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 3 days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 42 days before on Sun, Apr 19, 2026"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "No past services scheduled",
+        "Upcoming: 23 days after on Sat, Jan 23, 2027"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 19 days before on Sat, Dec 12, 2026",
+        "Upcoming: 2 days scheduled (1 days after on Fri, Jan 1, 2027)",
+        "Ranked lower: scheduled 1 day after",
+        "Rehearsal upcoming: 23 days after on Sat, Jan 23, 2027"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Rehearsals upcoming: 2 scheduled (13 days after on Wed, Oct 14, 2026)",
+        "Minor rehearsal penalty: rehearsal 13 days after",
+        "Ranked lower: on the schedule 3 distinct days in the 4 weeks before this plan"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Last served 40 days before on Sat, Aug 22, 2026",
+        "Rehearsals upcoming: 2 scheduled (10 days after on Sun, Oct 11, 2026)",
+        "Minor rehearsal penalty: rehearsal 10 days after",
+        "Ranked lower: on the schedule 6 distinct days in the 4 weeks before this plan",
+        "Light penalty: rehearsed 3 days in the 4 weeks before this plan",
+        "Prefers to serve every 6th week; this plan fits",
+        "At most 4 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Marked Unavailable for this position in Planning Center",
+        "Ranked lower: asked not to be scheduled here"
+      ],
+      "output": [
+        "Marked Unavailable for this position"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every other week",
+        "Ranked lower: served 7 days before",
+        "Ranked lower: serving 7 days after"
+      ],
+      "output": [
+        "Prefers every other week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every other week; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every 3rd week",
+        "Ranked lower: served 14 days before"
+      ],
+      "output": [
+        "Prefers every 3rd week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve once a month",
+        "Ranked lower: already serving 1 other day in September 2026"
+      ],
+      "output": [
+        "Prefers once a month"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve twice a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers weeks 1 and 3 of the month; this plan is in week 1"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers week 2 of the month",
+        "Ranked lower: this plan is in week 1"
+      ],
+      "output": [
+        "Prefers week 2 of the month"
+      ]
+    },
+    {
+      "input": [
+        "At most 2 plans a month",
+        "Ranked lower: already on 2 other plans in September 2026"
+      ],
+      "output": [
+        "At most 2 plans a month"
+      ]
+    },
+    {
+      "input": [
+        "At most 3 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "At most 1 plan a day",
+        "Ranked lower: already on 1 other plan that day"
+      ],
+      "output": [
+        "At most 1 plan a day"
+      ]
+    },
+    {
+      "input": [
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve once a month",
+        "Ranked lower: already serving 1 other day in September 2026",
+        "At most 1 plan a month",
+        "Ranked lower: already on 1 other plan in September 2026",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers once a month",
+        "At most 1 plan a month",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "At most 2 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every other week",
+        "Ranked lower: served 11 days before",
+        "At most 3 plans a month; this plan fits"
+      ],
+      "output": [
+        "Prefers every other week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 11th week; this plan fits",
+        "At most 3 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 5th week; this plan fits",
+        "At most 4 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every other week; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "At most 4 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every other week",
+        "Ranked lower: serving 4 days after",
+        "At most 1 plan a month",
+        "Ranked lower: already on 1 other plan in September 2026"
+      ],
+      "output": [
+        "Prefers every other week",
+        "At most 1 plan a month"
+      ]
+    },
+    {
+      "input": [
+        "At most 3 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "At most 1 plan a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every 21th week",
+        "Ranked lower: served 39 days before",
+        "Ranked lower: serving 10 days after",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers every 21th week",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 1e+21th week",
+        "Ranked lower: served 49 days before",
+        "Ranked lower: serving 34 days after",
+        "At most 4 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers every 1e+21th week",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "At most 2 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 7th week; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "At most 4 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve once a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 6th week; this plan fits",
+        "At most 6 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve twice a month; this plan fits",
+        "At most 3 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every 100000000000000000000th week",
+        "Ranked lower: served 9 days before",
+        "Ranked lower: serving 7 days after",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers every 100000000000000000000th week",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "At most 6 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve three times a month; this plan fits",
+        "At most 2 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 3rd week",
+        "Ranked lower: serving 7 days after"
+      ],
+      "output": [
+        "Prefers every 3rd week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 6th week; this plan fits",
+        "At most 1 plan a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers weeks 1, 2, 3 and 5 of the month; this plan is in week 1",
+        "At most 6 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every 4th week; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every 5th week",
+        "Ranked lower: served 7 days before"
+      ],
+      "output": [
+        "Prefers every 5th week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 1e+21th week",
+        "Ranked lower: served 19 days before",
+        "Ranked lower: serving 9 days after"
+      ],
+      "output": [
+        "Prefers every 1e+21th week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 21th week",
+        "Ranked lower: serving 57 days after",
+        "At most 3 plans a month; this plan fits"
+      ],
+      "output": [
+        "Prefers every 21th week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 3rd week; this plan fits",
+        "At most 4 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve three times a month; this plan fits",
+        "At most 3 plans a month",
+        "Ranked lower: already on 3 other plans in September 2026"
+      ],
+      "output": [
+        "At most 3 plans a month"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve three times a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every 3rd week; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 7th week",
+        "Ranked lower: served 36 days before",
+        "At most 4 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers every 7th week",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Marked Unavailable for this position in Planning Center",
+        "Ranked lower: asked not to be scheduled here",
+        "At most 1 plan a month; this plan fits"
+      ],
+      "output": [
+        "Marked Unavailable for this position"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 100000000000000000000th week",
+        "Ranked lower: served 52 days before",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers every 100000000000000000000th week",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every other week; this plan fits",
+        "At most 3 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every 100000000000000000000th week; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 4th week; this plan fits",
+        "At most 1 plan a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve three times a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 1e+21th week",
+        "Ranked lower: served 10 days before",
+        "Ranked lower: serving 19 days after"
+      ],
+      "output": [
+        "Prefers every 1e+21th week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 5th week; this plan fits",
+        "At most 1 plan a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every 21th week; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 5th week; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every 3rd week; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every 3rd week",
+        "Ranked lower: served 4 days before",
+        "At most 1 plan a month",
+        "Ranked lower: already on 2 other plans in February 2026",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers every 3rd week",
+        "At most 1 plan a month",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 1e+21th week",
+        "Ranked lower: served 9 days before",
+        "Ranked lower: serving 18 days after",
+        "At most 6 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers every 1e+21th week",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Marked Unavailable for this position in Planning Center",
+        "Ranked lower: asked not to be scheduled here",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Marked Unavailable for this position",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers weeks 3 and 4 of the month",
+        "Ranked lower: this plan is in week 1"
+      ],
+      "output": [
+        "Prefers weeks 3 and 4 of the month"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 7th week",
+        "Ranked lower: served 42 days before"
+      ],
+      "output": [
+        "Prefers every 7th week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 7th week",
+        "Ranked lower: serving 4 days after"
+      ],
+      "output": [
+        "Prefers every 7th week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 100000000000000000000th week; this plan fits",
+        "At most 3 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every other week; this plan fits",
+        "At most 6 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers weeks 1 and 2 of the month; this plan is in week 2",
+        "At most 4 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve once a month; this plan fits",
+        "At most 6 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every 3rd week; this plan fits",
+        "At most 3 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers weeks 1, 3 and 4 of the month; this plan is in week 4",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 11th week",
+        "Ranked lower: served 55 days before",
+        "Ranked lower: serving 65 days after",
+        "At most 4 plans a month; this plan fits"
+      ],
+      "output": [
+        "Prefers every 11th week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 3rd week",
+        "Ranked lower: serving 6 days after"
+      ],
+      "output": [
+        "Prefers every 3rd week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 100000000000000000000th week",
+        "Ranked lower: served 13 days before"
+      ],
+      "output": [
+        "Prefers every 100000000000000000000th week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 5th week",
+        "Ranked lower: serving 25 days after",
+        "At most 1 plan a month",
+        "Ranked lower: already on 2 other plans in April 2026"
+      ],
+      "output": [
+        "Prefers every 5th week",
+        "At most 1 plan a month"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 3rd week",
+        "Ranked lower: serving 12 days after"
+      ],
+      "output": [
+        "Prefers every 3rd week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 3rd week",
+        "Ranked lower: serving 16 days after",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers every 3rd week",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers week 3 of the month",
+        "Ranked lower: this plan is in week 4"
+      ],
+      "output": [
+        "Prefers week 3 of the month"
+      ]
+    },
+    {
+      "input": [
+        "Prefers weeks 1 and 5 of the month",
+        "Ranked lower: this plan is in week 4",
+        "At most 2 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers weeks 1 and 5 of the month",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 1e+21th week; this plan fits",
+        "At most 2 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every other week; this plan fits",
+        "At most 4 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every 6th week",
+        "Ranked lower: serving 7 days after",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers every 6th week",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "At most 1 plan a month",
+        "Ranked lower: already on 1 other plan in January 2027"
+      ],
+      "output": [
+        "At most 1 plan a month"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 3rd week; this plan fits",
+        "At most 1 plan a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers to serve every 1e+21th week",
+        "Ranked lower: served 13 days before"
+      ],
+      "output": [
+        "Prefers every 1e+21th week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 4th week",
+        "Ranked lower: served 15 days before",
+        "At most 4 plans a month; this plan fits"
+      ],
+      "output": [
+        "Prefers every 4th week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 3rd week",
+        "Ranked lower: served 6 days before",
+        "At most 6 plans a month; this plan fits"
+      ],
+      "output": [
+        "Prefers every 3rd week"
+      ]
+    },
+    {
+      "input": [
+        "Marked Unavailable for this position in Planning Center",
+        "Ranked lower: asked not to be scheduled here",
+        "At most 3 plans a month; this plan fits"
+      ],
+      "output": [
+        "Marked Unavailable for this position"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 3rd week; this plan fits",
+        "At most 2 plans a month; this plan fits"
+      ],
+      "output": []
+    },
+    {
+      "input": [
+        "Prefers week 1 of the month",
+        "Ranked lower: this plan is in week 2",
+        "At most 1 plan a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers week 1 of the month",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve three times a month; this plan fits",
+        "At most 4 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "At most 1 plan a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 11th week; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "At most 1 plan a month",
+        "Ranked lower: already on 1 other plan in May 2026"
+      ],
+      "output": [
+        "At most 1 plan a month"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every other week",
+        "Ranked lower: served 9 days before",
+        "Ranked lower: serving 6 days after"
+      ],
+      "output": [
+        "Prefers every other week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve three times a month; this plan fits",
+        "At most 3 plans a month; this plan fits",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 8th week",
+        "Ranked lower: serving 26 days after",
+        "At most 1 plan a month; this plan fits"
+      ],
+      "output": [
+        "Prefers every 8th week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 8th week",
+        "Ranked lower: serving 17 days after",
+        "At most 2 plans a month",
+        "Ranked lower: already on 4 other plans in March 2026"
+      ],
+      "output": [
+        "Prefers every 8th week",
+        "At most 2 plans a month"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 6th week",
+        "Ranked lower: serving 37 days after",
+        "At most 2 plans a month; this plan fits"
+      ],
+      "output": [
+        "Prefers every 6th week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 21th week",
+        "Ranked lower: served 5 days before"
+      ],
+      "output": [
+        "Prefers every 21th week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve every 21th week",
+        "Ranked lower: served 25 days before"
+      ],
+      "output": [
+        "Prefers every 21th week"
+      ]
+    },
+    {
+      "input": [
+        "Prefers weeks 2, 3, 4 and 5 of the month",
+        "Ranked lower: this plan is in week 1",
+        "Prefers other service times",
+        "Ranked lower: not this slot's service time"
+      ],
+      "output": [
+        "Prefers weeks 2, 3, 4 and 5 of the month",
+        "Prefers other service times"
+      ]
+    },
+    {
+      "input": [
+        "Prefers to serve three times a month; this plan fits",
+        "At most 2 plans a month; this plan fits"
+      ],
+      "output": []
+    }
+  ]
+}

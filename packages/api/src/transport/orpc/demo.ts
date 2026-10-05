@@ -1,9 +1,6 @@
 import { startDemoSession } from "@pcobooster/api/application/demo";
 import { executeApplicationEffect } from "@pcobooster/api/transport/orpc/execute";
-import {
-  applicationRuntime,
-  rpc,
-} from "@pcobooster/api/transport/orpc/implementation";
+import { rpc } from "@pcobooster/api/transport/orpc/implementation";
 import {
   appendDemoSessionCookie,
   applyPrivateNoStore,
@@ -12,7 +9,6 @@ import {
 const start = rpc.demo.start.handler(async ({ input, context, signal }) => {
   applyPrivateNoStore(context.resHeaders);
   const { sessionToken } = await executeApplicationEffect(
-    applicationRuntime,
     startDemoSession(input),
     context,
     signal
