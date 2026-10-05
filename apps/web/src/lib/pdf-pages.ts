@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 /**
  * Draws a PDF's pages onto canvases with pdf.js, sized to a width, so a preview can swap in
  * a new render without the flash and scroll reset of reloading the browser's PDF viewer.
@@ -20,6 +22,13 @@ let pdfjsLoading: ReturnType<typeof loadPdfjs> | null = null;
 
 export const base64ToBytes = (data: string): Uint8Array =>
   Uint8Array.from(atob(data), (character) => character.codePointAt(0) ?? 0);
+
+/** A reader can retain one document and render only its visible page. */
+export const loadPdfDocument = async (data: string) => {
+  pdfjsLoading ??= loadPdfjs();
+  const pdfjs = await pdfjsLoading;
+  return pdfjs.getDocument({ data: base64ToBytes(data) });
+};
 
 /** One canvas per page, `width` CSS pixels wide and sharp on high-density screens. */
 export const renderPdfPages = async (
@@ -54,5 +63,34 @@ export const renderPdfPages = async (
     );
   } finally {
     await loading.destroy();
+  }
+};
+
+const pdfTextChunk = z.object({
+  items: z.array(z.object({ str: z.string().optional() })),
+});
+
+/** Safari lacks async iteration on ReadableStream; consume PDF text with a reader. */
+export const readPdfText = async (
+  stream: ReadableStream<unknown>
+): Promise<string> => {
+  const reader = stream.getReader();
+  const parts: string[] = [];
+  try {
+    while (true) {
+      // oxlint-disable-next-line no-await-in-loop -- Stream reads must consume chunks sequentially.
+      const chunk = await reader.read();
+      if (chunk.done) {
+        return parts.join(" ");
+      }
+      const value = pdfTextChunk.parse(chunk.value);
+      for (const item of value.items) {
+        if (item.str !== undefined) {
+          parts.push(item.str);
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
   }
 };

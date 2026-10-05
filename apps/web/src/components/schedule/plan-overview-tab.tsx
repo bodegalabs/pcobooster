@@ -22,6 +22,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { PageScrollArea } from "@/components/page-shell";
 import { QueryDataBoundary } from "@/components/query-data-boundary";
 import type { ReadQueryState } from "@/components/query-data-boundary";
+import { PlanFilesBrowser } from "@/components/schedule/plan-files-browser";
 import type { SlotRef } from "@/components/schedule/types";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button-variants";
@@ -698,6 +699,12 @@ export const PlanOverviewTab = ({
           planningCenterUrl={planningCenterUrl}
           onOpenPlanningCenter={armRosterRecheck}
         />
+        <PlanFilesBrowser
+          key={`${serviceTypeId}:${planId}`}
+          serviceTypeId={serviceTypeId}
+          planId={planId}
+          items={planItems ?? []}
+        />
         <QueryDataBoundary
           query={teamPositionsQuery}
           title="Couldn't load people"
@@ -712,6 +719,7 @@ export const PlanOverviewTab = ({
         <QueryDataBoundary query={planItemsQuery} title="Couldn't load songs">
           <SongsCard plan={plan} order={order} />
         </QueryDataBoundary>
+
         <QueryDataBoundary query={planTimesQuery} title="Couldn't load times">
           <TimesCard plan={plan} schedule={schedule} />
         </QueryDataBoundary>

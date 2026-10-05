@@ -8,6 +8,7 @@ import { featuresContract } from "@pcobooster/contracts/features";
 import { feedbackContract } from "@pcobooster/contracts/feedback";
 import { neededPositionsContract } from "@pcobooster/contracts/needed-positions";
 import { peopleContract } from "@pcobooster/contracts/people";
+import { planFilesContract } from "@pcobooster/contracts/plan-files";
 import { planItemsContract } from "@pcobooster/contracts/plan-items";
 import { planPeopleContract } from "@pcobooster/contracts/plan-people";
 import { planTimesContract } from "@pcobooster/contracts/plan-times";
@@ -42,6 +43,7 @@ export const appContract = oc.router({
   health: healthContract,
   neededPositions: neededPositionsContract,
   people: peopleContract,
+  planFiles: planFilesContract,
   planItems: planItemsContract,
   planPeople: planPeopleContract,
   planTimes: planTimesContract,

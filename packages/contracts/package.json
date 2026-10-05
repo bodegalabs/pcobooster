@@ -18,6 +18,7 @@
     "./people": "./src/people.ts",
     "./people-schemas": "./src/people-schemas.ts",
     "./plan-item-schemas": "./src/plan-item-schemas.ts",
+    "./plan-files": "./src/plan-files.ts",
     "./plan-items": "./src/plan-items.ts",
     "./plan-people": "./src/plan-people.ts",
     "./plan-time-schemas": "./src/plan-time-schemas.ts",
