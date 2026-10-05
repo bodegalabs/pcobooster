@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 /**
  * Draws a PDF's pages onto canvases with pdf.js, sized to a width, so a preview can swap in
  * a new render without the flash and scroll reset of reloading the browser's PDF viewer.
@@ -61,5 +63,34 @@ export const renderPdfPages = async (
     );
   } finally {
     await loading.destroy();
+  }
+};
+
+const pdfTextChunk = z.object({
+  items: z.array(z.object({ str: z.string().optional() })),
+});
+
+/** Safari lacks async iteration on ReadableStream; consume PDF text with a reader. */
+export const readPdfText = async (
+  stream: ReadableStream<unknown>
+): Promise<string> => {
+  const reader = stream.getReader();
+  const parts: string[] = [];
+  try {
+    while (true) {
+      // oxlint-disable-next-line no-await-in-loop -- Stream reads must consume chunks sequentially.
+      const chunk = await reader.read();
+      if (chunk.done) {
+        return parts.join(" ");
+      }
+      const value = pdfTextChunk.parse(chunk.value);
+      for (const item of value.items) {
+        if (item.str !== undefined) {
+          parts.push(item.str);
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
   }
 };

@@ -57,3 +57,7 @@ These are product recommendations based on the evidence above:
 ## Verification targets
 
 Use the existing Agape plan without modifying it. Verify pagination includes the last page, a generated chart renders with its key, uploaded PDF rendering, MP3 play/pause/seek, linked video handling, and the legacy Word fallback. Exercise desktop and phone viewport, keyboard close/focus restoration, loading/error/retry, and signed URL expiry behavior. Public PR proof should use fictional/presentation data and must exclude credentials, signed URLs, and private file contents.
+
+## Safari text extraction
+
+iPhone Safari simulator verification exposed a PDF.js text-extraction failure: `getTextContent` uses `ReadableStream` async iteration, which Safari does not implement. Consume `streamTextContent()` with `getReader()` so the accessible page text works alongside canvas rendering. A regression test explicitly removes the async iterator. Sources: [PDF.js upstream report](https://github.com/mozilla/pdf.js/issues/21557), [PDFPageProxy API](https://mozilla.github.io/pdf.js/api/draft/module-pdfjsLib-PDFPageProxy.html#streamTextContent).

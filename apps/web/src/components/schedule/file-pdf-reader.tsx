@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { loadPdfDocument } from "@/lib/pdf-pages";
+import { loadPdfDocument, readPdfText } from "@/lib/pdf-pages";
 
 export const FilePdfReader = ({ data }: { data: string }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -80,7 +80,7 @@ export const FilePdfReader = ({ data }: { data: string }) => {
         }
         rendering = pdfPage.render({ canvas, viewport });
         await rendering.promise;
-        const content = await pdfPage.getTextContent();
+        const content = await readPdfText(pdfPage.streamTextContent());
         if (current) {
           const visible = canvasRef.current;
           if (visible !== null) {
@@ -88,11 +88,7 @@ export const FilePdfReader = ({ data }: { data: string }) => {
             visible.height = canvas.height;
             visible.getContext("2d")?.drawImage(canvas, 0, 0);
           }
-          setText(
-            content.items
-              .flatMap((item) => ("str" in item ? [item.str] : []))
-              .join(" ")
-          );
+          setText(content);
           setState("ready");
         }
       } catch {
