@@ -26,8 +26,8 @@ struct OrgCalendarTests {
   }
 
   @Test func malformedKeysAnswerInsteadOfThrowing() {
-    #expect(OrgCalendar.addDays(to: "not-a-day", 3, timeZone: "UTC") == "not-a-day")
-    #expect(OrgCalendar.addDays(to: "2026-05", 3, timeZone: "UTC") == "2026-05")
+    #expect(OrgCalendar.addDays(to: "not-a-day", 3) == "not-a-day")
+    #expect(OrgCalendar.addDays(to: "2026-05", 3) == "2026-05")
     #expect(OrgCalendar.daysRefMinusItem(itemDayKey: "garbage", refDayKey: "2026-09-25") == 0)
     #expect(
       OrgCalendar.utcInstant(dateKey: "2026-05-24", timeValue: "nine", timeZone: "UTC") == nil)
@@ -37,9 +37,9 @@ struct OrgCalendarTests {
   }
 
   @Test func shiftsBeyondTheDateRangeLeaveTheKeyAlone() {
-    #expect(OrgCalendar.addDays(to: "2026-09-25", .max, timeZone: "UTC") == "2026-09-25")
-    #expect(OrgCalendar.addDays(to: "2026-09-25", .min, timeZone: "UTC") == "2026-09-25")
-    #expect(OrgCalendar.addDays(to: "2026-09-25", 100_000_000, timeZone: "UTC") == "2026-09-25")
+    #expect(OrgCalendar.addDays(to: "2026-09-25", .max) == "2026-09-25")
+    #expect(OrgCalendar.addDays(to: "2026-09-25", .min) == "2026-09-25")
+    #expect(OrgCalendar.addDays(to: "2026-09-25", 100_000_000) == "2026-09-25")
   }
 
   @Test func instantsBefore1970() throws {
@@ -109,6 +109,19 @@ struct PlanDatesTests {
       DateRangeFilter.allCases.map(\.label)
         == ["All dates", "Next 14 days", "Next 30 days", "Next 60 days"])
     #expect(DateRangeFilter.allCases.map(\.days) == [nil, 14, 30, 60])
+  }
+
+  @Test func aucklandWindowEndsOnTheLastOrgDay() throws {
+    let now = try #require(JSONCoding.parseISODate("2026-12-16T20:00:00.000Z"))
+    let lastDay = try #require(JSONCoding.parseISODate("2026-12-31T06:00:00.000Z"))
+    let followingDay = try #require(JSONCoding.parseISODate("2026-12-31T21:00:00.000Z"))
+    #expect(
+      isInDateWindow(
+        lastDay, range: .next14Days, timeZone: "Pacific/Auckland", now: now))
+    #expect(
+      !isInDateWindow(
+        followingDay, range: .next14Days, timeZone: "Pacific/Auckland",
+        now: now))
   }
 
   @Test func groupingKeepsRowsAndOrder() throws {

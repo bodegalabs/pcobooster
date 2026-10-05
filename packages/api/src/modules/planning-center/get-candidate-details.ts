@@ -227,13 +227,11 @@ export const getCandidateDetails = (
     const planDayKey = formatCalendarDayInTimeZone(planSortAt, orgTimeZone);
     const windowStartDayKey = addCalendarDaysToDayKey(
       planDayKey,
-      -PLAN_HISTORY_HALF_RANGE_DAYS,
-      orgTimeZone
+      -PLAN_HISTORY_HALF_RANGE_DAYS
     );
     const rehearsalLastDayKey = addCalendarDaysToDayKey(
       planDayKey,
-      PLAN_HISTORY_HALF_RANGE_DAYS + REHEARSAL_WINDOW_MARGIN_DAYS,
-      orgTimeZone
+      PLAN_HISTORY_HALF_RANGE_DAYS + REHEARSAL_WINDOW_MARGIN_DAYS
     );
     const progressByPersonId = new Map(
       blockoutProgress.map((progress) => [progress.personId, progress])

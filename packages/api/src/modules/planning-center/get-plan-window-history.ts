@@ -397,18 +397,15 @@ export const getPlanWindowHistory = (
     const refDayKey = formatCalendarDayInTimeZone(new Date(date), orgTimeZone);
     const afterDayKey = addCalendarDaysToDayKey(
       refDayKey,
-      -PLAN_HISTORY_HALF_RANGE_DAYS,
-      orgTimeZone
+      -PLAN_HISTORY_HALF_RANGE_DAYS
     );
     const beforeDayKey = addCalendarDaysToDayKey(
       refDayKey,
-      PLAN_HISTORY_HALF_RANGE_DAYS,
-      orgTimeZone
+      PLAN_HISTORY_HALF_RANGE_DAYS
     );
     const rangeEndDayKey = addCalendarDaysToDayKey(
       beforeDayKey,
-      REHEARSAL_WINDOW_MARGIN_DAYS,
-      orgTimeZone
+      REHEARSAL_WINDOW_MARGIN_DAYS
     );
     const activeServiceTypes = (yield* catalog.getServiceTypesCached()).filter(
       (resource) => !isNonEmptyString(resource.attributes.archived_at)

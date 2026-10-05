@@ -72,11 +72,11 @@ export const getAdjacentPlans = (
       direction === "previous"
         ? {
             filter: "before",
-            before: addCalendarDaysToDayKey(dayKey, 1, timeZone),
+            before: addCalendarDaysToDayKey(dayKey, 1),
           }
         : {
             filter: "after",
-            after: addCalendarDaysToDayKey(dayKey, -1, timeZone),
+            after: addCalendarDaysToDayKey(dayKey, -1),
           },
       direction === "previous" ? "-sort_date" : "sort_date",
       ADJACENT_PLANS_PAGE_SIZE

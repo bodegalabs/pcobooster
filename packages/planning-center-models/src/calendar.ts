@@ -9,15 +9,19 @@ const utcCivilMidnight = (dayKey: string): number => {
   return Date.UTC(y, m - 1, d);
 };
 
-/** Add civil calendar days to a YYYY-MM-DD key; result formatted in `timeZone`. */
+/**
+ * Add calendar days to a YYYY-MM-DD key. The key is already a civil date (take an org day from
+ * `formatCalendarDayInTimeZone`), so the arithmetic needs no zone and no DST handling.
+ */
 export const addCalendarDaysToDayKey = (
   dayKey: string,
-  deltaDays: number,
-  timeZone: string
+  deltaDays: number
 ): string => {
   const [y, m, d] = dayKey.split("-").map(Number);
+  // A civil-date carrier at UTC noon, so it is read in UTC. Read in the org zone, it is already
+  // the next day in zones 12 or more hours ahead of UTC (Pacific/Auckland, Pacific/Kiritimati).
   const rolled = new Date(Date.UTC(y, m - 1, d + deltaDays, 12, 0, 0));
-  return formatCalendarDayInTimeZone(rolled, timeZone);
+  return formatCalendarDayInTimeZone(rolled, "UTC");
 };
 
 /**

@@ -13,9 +13,7 @@ describe("browser-safe Planning Center model exports", () => {
         "America/Los_Angeles"
       )
     ).toBe("2026-05-24");
-    expect(
-      addCalendarDaysToDayKey("2026-05-24", 1, "America/Los_Angeles")
-    ).toBe("2026-05-25");
+    expect(addCalendarDaysToDayKey("2026-05-24", 1)).toBe("2026-05-25");
     expect(formatPlanHistoryHalfRangeWeeksLabel()).toBe("4 weeks");
   });
 });

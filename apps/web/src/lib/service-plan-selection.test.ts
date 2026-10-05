@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   formatPlanDate,
@@ -6,6 +6,7 @@ import {
   formatPlanMonthHeading,
   formatPlanRelativeDay,
   groupPlansByMonthAndDay,
+  isInDateWindow,
 } from "./service-plan-selection";
 import type { ServicePlanRow } from "./service-plan-selection";
 
@@ -123,5 +124,45 @@ describe(formatPlanRelativeDay, () => {
         ORG_TIME_ZONE
       )
     ).toBeNull();
+  });
+});
+
+describe(isInDateWindow, () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("ends the window on the last org day in Pacific/Auckland, across the new year", () => {
+    vi.useFakeTimers();
+    // 9:00 AM on Thursday, December 17, 2026 in Auckland (UTC+13); the 14-day window ends
+    // December 31.
+    vi.setSystemTime(new Date("2026-12-16T20:00:00.000Z"));
+    const zone = "Pacific/Auckland";
+
+    // 7:00 PM on New Year's Eve in Auckland.
+    expect(
+      isInDateWindow(new Date("2026-12-31T06:00:00.000Z"), "14", zone)
+    ).toBeTruthy();
+    // 10:00 AM on New Year's Day 2027 in Auckland; still December 31 in UTC.
+    expect(
+      isInDateWindow(new Date("2026-12-31T21:00:00.000Z"), "14", zone)
+    ).toBeFalsy();
+  });
+
+  it("ends the window on the last org day in Pacific/Kiritimati, across a month", () => {
+    vi.useFakeTimers();
+    // 8:00 AM on Monday, January 18, 2027 in Kiritimati (UTC+14); the 14-day window ends
+    // February 1.
+    vi.setSystemTime(new Date("2027-01-17T18:00:00.000Z"));
+    const zone = "Pacific/Kiritimati";
+
+    // 8:00 PM on February 1 in Kiritimati.
+    expect(
+      isInDateWindow(new Date("2027-02-01T06:00:00.000Z"), "14", zone)
+    ).toBeTruthy();
+    // 9:00 AM on February 2 in Kiritimati; still February 1 in UTC.
+    expect(
+      isInDateWindow(new Date("2027-02-01T19:00:00.000Z"), "14", zone)
+    ).toBeFalsy();
   });
 });

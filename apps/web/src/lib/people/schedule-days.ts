@@ -82,8 +82,7 @@ export const buildScheduleDays = (
     const items = byOffset.get(offset) ?? [];
     days.push({
       offset,
-      // Day keys are civil dates, so rolling them in UTC can't cross a DST change.
-      dayKey: addCalendarDaysToDayKey(planDay, offset, "UTC"),
+      dayKey: addCalendarDaysToDayKey(planDay, offset),
       kind: dayKind(items),
       status: serviceStatus(items),
       items,

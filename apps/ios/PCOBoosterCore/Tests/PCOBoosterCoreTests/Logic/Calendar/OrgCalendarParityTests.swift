@@ -20,7 +20,6 @@ struct OrgCalendarParityTests {
   struct AddDaysInput: Decodable, Sendable {
     let dayKey: String
     let deltaDays: Int
-    let timeZone: String
   }
 
   struct DayKeyPairInput: Decodable, Sendable {
@@ -80,7 +79,7 @@ struct OrgCalendarParityTests {
   func addDays(_ parity: ParityCase<AddDaysInput, String>) {
     let input = parity.input
     #expect(
-      OrgCalendar.addDays(to: input.dayKey, input.deltaDays, timeZone: input.timeZone)
+      OrgCalendar.addDays(to: input.dayKey, input.deltaDays)
         == parity.output)
   }
 

@@ -60,11 +60,9 @@ public enum OrgCalendar {
 
   /// The day key `deltaDays` calendar days after `dayKey` (`addCalendarDaysToDayKey`).
   ///
-  /// Like the TypeScript, it rolls to UTC noon on the shifted day and reads that instant in
-  /// `timeZone`, so in zones 12 or more hours ahead of UTC (New Zealand all year, Fiji,
-  /// Chatham, Kiribati) the result is one day later than plain day arithmetic gives. A
-  /// malformed key comes back unchanged, where the TypeScript throws.
-  public static func addDays(to dayKey: String, _ deltaDays: Int, timeZone: String) -> String {
+  /// The key is already a civil date, so the shifted UTC-noon carrier is read in UTC.
+  /// A malformed key comes back unchanged, where the TypeScript throws.
+  public static func addDays(to dayKey: String, _ deltaDays: Int) -> String {
     guard let parts = integerComponents(dayKey, separator: "-", count: 3) else {
       return dayKey
     }
@@ -76,7 +74,7 @@ public enum OrgCalendar {
     guard abs(noon) <= JSParity.maxTime else {
       return dayKey
     }
-    return self.dayKey(localFields(time: noon, in: zone(timeZone)))
+    return self.dayKey(localFields(time: noon, in: zone("UTC")))
   }
 
   /// Calendar days from `itemDayKey` to `refDayKey` (ref minus item); positive when the
