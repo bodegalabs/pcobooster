@@ -48,15 +48,70 @@ export const fileBelongsToItem = (file: PlanFile, item: PlanItem): boolean =>
   (file.ownerType === "Song" && file.ownerId === item.song?.id) ||
   (file.ownerType === "Arrangement" && file.ownerId === item.arrangement?.id) ||
   (file.ownerType === "Key" && file.ownerId === item.key?.id);
+export const PLAN_LEVEL_GROUP = "Plan files";
 export const fileGroupLabel = (file: PlanFile, items: PlanItem[]): string =>
-  items.find((item) => fileBelongsToItem(file, item))?.title ?? "Plan files";
+  items.find((item) => fileBelongsToItem(file, item))?.title ??
+  PLAN_LEVEL_GROUP;
+
+export interface PlanFileGroup {
+  label: string;
+  files: PlanFile[];
+}
+/** Plan-wide files first, then each item's files in order-of-service order. */
+export const groupPlanFiles = (
+  files: PlanFile[],
+  items: PlanItem[]
+): PlanFileGroup[] => {
+  const groups = new Map<string, PlanFile[]>([[PLAN_LEVEL_GROUP, []]]);
+  for (const item of items) {
+    groups.set(item.title, groups.get(item.title) ?? []);
+  }
+  for (const file of files) {
+    const label = fileGroupLabel(file, items);
+    groups.set(label, [...(groups.get(label) ?? []), file]);
+  }
+  const nonEmpty: PlanFileGroup[] = [];
+  for (const [label, grouped] of groups) {
+    if (grouped.length > 0) {
+      nonEmpty.push({ label, files: grouped });
+    }
+  }
+  return nonEmpty;
+};
+
 export const fileKindLabel: Record<FileKind, string> = {
-  pdf: "PDF / chart",
+  pdf: "Chart / PDF",
   audio: "Audio",
   video: "Video",
   image: "Image",
   document: "Document",
   link: "Link",
+};
+/** Filter chip labels, in the order the chips appear. */
+export const fileKindFilterLabel: Record<FileKind, string> = {
+  pdf: "Charts",
+  audio: "Audio",
+  video: "Video",
+  image: "Images",
+  document: "Docs",
+  link: "Links",
+};
+
+const BYTES_PER_KILOBYTE = 1024;
+/** A short size label such as `2.4 MB`, or null when the provider reports none. */
+export const formatFileSize = (bytes: number): string | null => {
+  if (bytes <= 0) {
+    return null;
+  }
+  const units = ["B", "KB", "MB", "GB"];
+  let value = bytes;
+  let unit = 0;
+  while (value >= BYTES_PER_KILOBYTE && unit < units.length - 1) {
+    value /= BYTES_PER_KILOBYTE;
+    unit += 1;
+  }
+  const digits = value < 10 && unit > 0 ? 1 : 0;
+  return `${value.toFixed(digits)} ${units[unit] ?? "B"}`;
 };
 
 /** Embed only recognized YouTube video IDs, never an arbitrary attachment URL. */
