@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { loadPdfDocument, readPdfText } from "@/lib/pdf-pages";
+import { cn } from "@/lib/utils";
 
 export const FilePdfReader = ({ data }: { data: string }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -106,84 +107,98 @@ export const FilePdfReader = ({ data }: { data: string }) => {
   const pageStyle: CSSProperties & { "--pdf-width": string } = {
     "--pdf-width": `${String(Math.min(width, 1000) * zoom)}px`,
   };
+  const pageCount = document?.numPages ?? null;
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2">
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        <Button
-          variant="outline"
-          size="icon-sm"
-          aria-label="Previous PDF page"
-          disabled={page === 1}
-          onClick={() => {
-            setPage((value) => value - 1);
-          }}
-        >
-          <ChevronLeft />
-        </Button>
-        <span className="text-muted-foreground text-xs tabular-nums">
-          Page {page} of {document?.numPages ?? "…"}
-        </span>
-        <Button
-          variant="outline"
-          size="icon-sm"
-          aria-label="Next PDF page"
-          disabled={document === null || page >= document.numPages}
-          onClick={() => {
-            setPage((value) => value + 1);
-          }}
-        >
-          <ChevronRight />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon-sm"
-          aria-label="Zoom out"
-          disabled={zoom <= 1}
-          onClick={() => {
-            setZoom((value) => Math.max(1, value - 0.25));
-          }}
-        >
-          <Minus />
-        </Button>
-        <span className="text-muted-foreground text-xs tabular-nums">
-          {Math.round(zoom * 100)}%
-        </span>
-        <Button
-          variant="outline"
-          size="icon-sm"
-          aria-label="Zoom in"
-          disabled={zoom >= 2}
-          onClick={() => {
-            setZoom((value) => Math.min(2, value + 0.25));
-          }}
-        >
-          <Plus />
-        </Button>
-      </div>
+    <div className="relative flex min-h-0 flex-1 flex-col">
       <div
         ref={container}
-        className="min-h-0 flex-1 overflow-auto overscroll-contain p-2"
+        className="min-h-0 flex-1 overflow-auto overscroll-contain px-3 pt-4 pb-20 sm:px-6"
       >
-        {state === "loading" ? <Spinner aria-label="Rendering PDF" /> : null}
+        {state === "loading" ? (
+          <div className="text-muted-foreground flex justify-center gap-2 py-12 text-sm">
+            <Spinner aria-label="Rendering PDF" /> Rendering…
+          </div>
+        ) : null}
         {state === "error" ? (
-          <p role="alert">
+          <p role="alert" className="py-12 text-center text-sm">
             This PDF couldn’t be rendered. Try refreshing the file link.
           </p>
         ) : null}
         <canvas
           ref={canvasRef}
           aria-label={`PDF page ${String(page)}`}
-          className="mx-auto block h-auto w-(--pdf-width)"
+          className={cn(
+            "mx-auto block h-auto w-(--pdf-width) rounded-sm bg-white shadow-md ring-1 ring-black/5",
+            state !== "ready" && "hidden"
+          )}
           style={pageStyle}
         />
         {text === "" ? null : (
-          <details className="mt-3">
+          <details
+            className="mx-auto mt-4 w-(--pdf-width) max-w-full"
+            style={pageStyle}
+          >
             <summary className="text-muted-foreground cursor-pointer text-xs">
               Page text
             </summary>
             <p className="py-3 text-sm whitespace-pre-wrap">{text}</p>
           </details>
         )}
+      </div>
+      <div className="pointer-events-none absolute inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom))] flex justify-center px-3">
+        <div className="bg-popover pointer-events-auto flex items-center gap-0.5 rounded-full border p-1 shadow-lg">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Previous page"
+            disabled={page === 1}
+            onClick={() => {
+              setPage((value) => value - 1);
+            }}
+          >
+            <ChevronLeft />
+          </Button>
+          <span className="min-w-14 text-center text-xs tabular-nums">
+            {page} / {pageCount ?? "…"}
+          </span>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Next page"
+            disabled={pageCount === null || page >= pageCount}
+            onClick={() => {
+              setPage((value) => value + 1);
+            }}
+          >
+            <ChevronRight />
+          </Button>
+          <span className="bg-border mx-1 h-5 w-px" aria-hidden />
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Zoom out"
+            disabled={zoom <= 1}
+            onClick={() => {
+              setZoom((value) => Math.max(1, value - 0.25));
+            }}
+          >
+            <Minus />
+          </Button>
+          <span className="min-w-10 text-center text-xs tabular-nums">
+            {Math.round(zoom * 100)}%
+          </span>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Zoom in"
+            disabled={zoom >= 2}
+            onClick={() => {
+              setZoom((value) => Math.min(2, value + 0.25));
+            }}
+          >
+            <Plus />
+          </Button>
+        </div>
       </div>
     </div>
   );

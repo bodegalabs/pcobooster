@@ -357,7 +357,7 @@ const PeopleCard = ({
   staffing: PlanStaffing | null;
   getSlotIntentProps: GetIntentPrefetchProps<SlotRef>;
 }) => (
-  <Card size="sm" className="md:row-span-2">
+  <Card size="sm" className="md:row-span-3">
     <CardHeader>
       <SectionTitle icon={<Users className="size-4" />}>People</SectionTitle>
       <CardDescription>
@@ -699,16 +699,10 @@ export const PlanOverviewTab = ({
           planningCenterUrl={planningCenterUrl}
           onOpenPlanningCenter={armRosterRecheck}
         />
-        <PlanFilesBrowser
-          key={`${serviceTypeId}:${planId}`}
-          serviceTypeId={serviceTypeId}
-          planId={planId}
-          items={planItems ?? []}
-        />
         <QueryDataBoundary
           query={teamPositionsQuery}
           title="Couldn't load people"
-          className="md:row-span-2"
+          className="md:row-span-3"
         >
           <PeopleCard
             plan={plan}
@@ -719,10 +713,15 @@ export const PlanOverviewTab = ({
         <QueryDataBoundary query={planItemsQuery} title="Couldn't load songs">
           <SongsCard plan={plan} order={order} />
         </QueryDataBoundary>
-
         <QueryDataBoundary query={planTimesQuery} title="Couldn't load times">
           <TimesCard plan={plan} schedule={schedule} />
         </QueryDataBoundary>
+        <PlanFilesBrowser
+          key={`${serviceTypeId}:${planId}`}
+          serviceTypeId={serviceTypeId}
+          planId={planId}
+          items={planItems ?? []}
+        />
       </div>
     </PageScrollArea>
   );

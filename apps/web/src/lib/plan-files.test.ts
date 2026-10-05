@@ -1,7 +1,13 @@
 import type { PlanFile } from "@pcobooster/contracts/plan-files";
+import type { PlanItem } from "@pcobooster/planning-center-models/types";
 import { describe, expect, it } from "vitest";
 
-import { planFileKind, youtubeEmbedUrl } from "@/lib/plan-files";
+import {
+  formatFileSize,
+  groupPlanFiles,
+  planFileKind,
+  youtubeEmbedUrl,
+} from "@/lib/plan-files";
 
 const file: PlanFile = {
   id: "1",
@@ -45,5 +51,64 @@ describe("Plan file types", () => {
       youtubeEmbedUrl("https://youtube.com.evil.example/watch?v=abcdefghijk")
     ).toBeNull();
     expect(youtubeEmbedUrl("https://www.youtube.com/watch?v=bad")).toBeNull();
+  });
+});
+
+const planItem = (id: string, title: string, songId: string): PlanItem => ({
+  id,
+  title,
+  itemType: "song",
+  sequence: Number(id),
+  servicePosition: "during",
+  length: null,
+  description: "",
+  htmlDetails: "",
+  customArrangementSequence: [],
+  song: { id: songId, title, author: "", themes: "", lastScheduledAt: null },
+  arrangement: null,
+  key: null,
+  layout: null,
+});
+
+describe("Plan file groups", () => {
+  it("lists plan-wide files first, then items in service order", () => {
+    const items = [
+      planItem("1", "Opener", "s1"),
+      planItem("2", "Closer", "s2"),
+    ];
+    const groups = groupPlanFiles(
+      [
+        { ...file, id: "a", ownerType: "Song", ownerId: "s2" },
+        { ...file, id: "b", ownerType: "Item", ownerId: "1" },
+        { ...file, id: "c" },
+      ],
+      items
+    );
+    expect(groups.map((group) => group.label)).toStrictEqual([
+      "Plan files",
+      "Opener",
+      "Closer",
+    ]);
+    expect(
+      groups.map((group) => group.files.map(({ id }) => id))
+    ).toStrictEqual([["c"], ["b"], ["a"]]);
+  });
+
+  it("leaves out empty groups", () => {
+    expect(
+      groupPlanFiles(
+        [{ ...file, ownerType: "Item", ownerId: "1" }],
+        [planItem("1", "Opener", "s1")]
+      ).map((group) => group.label)
+    ).toStrictEqual(["Opener"]);
+  });
+});
+
+describe("File sizes", () => {
+  it("labels sizes and omits unknown ones", () => {
+    expect(formatFileSize(0)).toBeNull();
+    expect(formatFileSize(512)).toBe("512 B");
+    expect(formatFileSize(2_516_582)).toBe("2.4 MB");
+    expect(formatFileSize(48_000_000)).toBe("46 MB");
   });
 });

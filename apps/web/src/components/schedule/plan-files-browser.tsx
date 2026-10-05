@@ -1,14 +1,9 @@
 import type { PlanFile } from "@pcobooster/contracts/plan-files";
 import type { PlanItem } from "@pcobooster/planning-center-models/types";
-import {
-  ArrowLeft,
-  ChevronRight,
-  FileMusic,
-  Files,
-  Headphones,
-} from "lucide-react";
+import { Files, Search, X } from "lucide-react";
 import { useState } from "react";
 
+import { PlanFileIconTile } from "@/components/schedule/plan-file-icon";
 import { PlanFileViewer } from "@/components/schedule/plan-file-viewer";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,30 +15,44 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import {
   Item,
   ItemContent,
   ItemDescription,
   ItemTitle,
 } from "@/components/ui/item";
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { usePlanFiles } from "@/hooks/use-plan-files";
 import {
   fileBelongsToItem,
   fileGroupLabel,
+  fileKindFilterLabel,
   fileKindLabel,
+  formatFileSize,
+  groupPlanFiles,
   planFileKind,
 } from "@/lib/plan-files";
+import type { FileKind, PlanFileGroup } from "@/lib/plan-files";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -52,50 +61,247 @@ interface Props {
   items: PlanItem[];
   item?: PlanItem;
 }
-const FileRows = ({
-  files,
-  items,
+
+type KindFilter = FileKind | "all";
+
+const fileKinds = Object.keys(fileKindFilterLabel).filter(
+  (kind): kind is FileKind => kind in fileKindFilterLabel
+);
+
+const fileMeta = (file: PlanFile): string =>
+  [fileKindLabel[planFileKind(file)], formatFileSize(file.size)]
+    .filter((part) => part !== null)
+    .join(" · ");
+
+const FileGroups = ({
+  groups,
+  showGroupLabels,
   selected,
   onSelect,
 }: {
-  files: PlanFile[];
-  items: PlanItem[];
+  groups: PlanFileGroup[];
+  showGroupLabels: boolean;
   selected: PlanFile | null;
   onSelect: (file: PlanFile) => void;
 }) => (
-  <ul className="flex flex-col gap-1">
-    {files.map((file) => (
-      <li key={file.id}>
-        <Item
+  <div className="flex flex-col gap-3">
+    {groups.map((group) => (
+      <section key={group.label} aria-label={group.label}>
+        {showGroupLabels ? (
+          <h3 className="text-muted-foreground truncate px-3 pb-1 text-xs font-medium">
+            {group.label}
+          </h3>
+        ) : null}
+        <ul className="flex flex-col gap-0.5">
+          {group.files.map((file) => (
+            <li key={file.id}>
+              <Item
+                size="xs"
+                variant={selected?.id === file.id ? "muted" : "default"}
+                render={<button type="button" aria-label={file.name} />}
+                aria-current={selected?.id === file.id ? "true" : undefined}
+                onClick={() => {
+                  onSelect(file);
+                }}
+              >
+                <PlanFileIconTile file={file} />
+                <ItemContent className="min-w-0">
+                  <ItemTitle className="w-full min-w-0">
+                    <span className="truncate">{file.name}</span>
+                  </ItemTitle>
+                  <ItemDescription>{fileMeta(file)}</ItemDescription>
+                </ItemContent>
+              </Item>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+);
+
+const CloseButton = ({ className }: { className?: string }) => (
+  <DialogClose
+    render={<Button variant="ghost" size="icon-sm" className={className} />}
+    aria-label="Close"
+  >
+    <X />
+  </DialogClose>
+);
+
+const ListSkeleton = () => (
+  <div className="flex flex-col gap-2 px-3 py-1" aria-hidden>
+    {["a", "b", "c", "d", "e"].map((key) => (
+      <div key={key} className="flex items-center gap-2.5 py-1">
+        <Skeleton variant="control" className="size-8" />
+        <div className="flex flex-1 flex-col gap-1.5">
+          <Skeleton variant="text" className="h-3.5 w-3/4" />
+          <Skeleton variant="text" className="h-3 w-1/3" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+const KindChips = ({
+  counts,
+  kind,
+  onKindChange,
+}: {
+  counts: Map<FileKind, number>;
+  kind: KindFilter;
+  onKindChange: (kind: KindFilter) => void;
+}) => {
+  const present = fileKinds.filter((value) => (counts.get(value) ?? 0) > 0);
+  // One kind of file needs no filter.
+  if (present.length < 2) {
+    return null;
+  }
+  const chips: { value: KindFilter; label: string }[] = [
+    { value: "all", label: "All" },
+    ...present.map((value) => ({ value, label: fileKindFilterLabel[value] })),
+  ];
+  return (
+    <fieldset className="flex flex-wrap gap-1">
+      <legend className="sr-only">File type</legend>
+      {chips.map((chip) => (
+        <Button
+          key={chip.value}
           size="xs"
-          render={<button type="button" aria-label={`Preview ${file.name}`} />}
-          aria-current={selected?.id === file.id ? "true" : undefined}
+          variant={kind === chip.value ? "secondary" : "ghost"}
+          aria-pressed={kind === chip.value}
           onClick={() => {
-            onSelect(file);
+            onKindChange(chip.value);
           }}
         >
-          {planFileKind(file) === "audio" ? (
-            <Headphones className="text-muted-foreground size-4 shrink-0" />
-          ) : (
-            <FileMusic className="text-muted-foreground size-4 shrink-0" />
-          )}
-          <ItemContent className="min-w-0">
-            <ItemTitle className="min-w-0">
-              <span className="truncate">{file.name}</span>
-            </ItemTitle>
-            <ItemDescription>
-              <span className="block truncate">
-                {fileGroupLabel(file, items)} ·{" "}
-                {fileKindLabel[planFileKind(file)]}
-              </span>
-            </ItemDescription>
-          </ItemContent>
-          <ChevronRight className="text-muted-foreground size-4 shrink-0" />
-        </Item>
-      </li>
-    ))}
-  </ul>
-);
+          {chip.label}
+        </Button>
+      ))}
+    </fieldset>
+  );
+};
+
+const FileListPane = ({
+  serviceTypeId,
+  planId,
+  items,
+  item,
+  selected,
+  onSelect,
+}: Props & {
+  selected: PlanFile | null;
+  onSelect: (file: PlanFile) => void;
+}) => {
+  const [search, setSearch] = useState("");
+  const [kind, setKind] = useState<KindFilter>("all");
+  const query = usePlanFiles(serviceTypeId, planId, true);
+  const loaded = query.data?.pages.flatMap((page) => page.files) ?? [];
+  const files = item
+    ? loaded.filter((file) => fileBelongsToItem(file, item))
+    : loaded;
+  const counts = new Map<FileKind, number>();
+  for (const file of files) {
+    const fileKind = planFileKind(file);
+    counts.set(fileKind, (counts.get(fileKind) ?? 0) + 1);
+  }
+  const needle = search.trim().toLowerCase();
+  const visible = files.filter(
+    (file) =>
+      (kind === "all" || planFileKind(file) === kind) &&
+      `${file.name} ${fileGroupLabel(file, items)}`
+        .toLowerCase()
+        .includes(needle)
+  );
+  const isFiltered = needle !== "" || kind !== "all";
+  return (
+    <>
+      <div className="flex flex-col gap-2 p-3">
+        <InputGroup>
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+          <InputGroupInput
+            aria-label="Search files"
+            placeholder={item ? "Search files" : "Search files or songs"}
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+            }}
+          />
+        </InputGroup>
+        <KindChips counts={counts} kind={kind} onKindChange={setKind} />
+      </div>
+      <div className="pb-safe-3 min-h-0 flex-1 overflow-y-auto overscroll-contain px-2">
+        {query.isPending ? <ListSkeleton /> : null}
+        {query.isError ? (
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>Couldn’t load files</EmptyTitle>
+              <EmptyDescription>
+                Planning Center didn’t respond. Try again in a moment.
+              </EmptyDescription>
+            </EmptyHeader>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                void query.refetch();
+              }}
+            >
+              Try again
+            </Button>
+          </Empty>
+        ) : null}
+        {query.isSuccess ? (
+          <FileGroups
+            groups={groupPlanFiles(visible, items)}
+            showGroupLabels={item === undefined}
+            selected={selected}
+            onSelect={onSelect}
+          />
+        ) : null}
+        {query.isSuccess && visible.length === 0 ? (
+          <p className="text-muted-foreground px-3 py-6 text-center text-sm">
+            {isFiltered ? "No matching files" : "No files yet"}
+            {query.hasNextPage ? " in what’s loaded so far." : "."}
+          </p>
+        ) : null}
+        {query.hasNextPage ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-2 w-full"
+            disabled={query.isFetchingNextPage}
+            onClick={() => {
+              void query.fetchNextPage();
+            }}
+          >
+            {query.isFetchingNextPage ? <Spinner /> : null}
+            Load more files
+          </Button>
+        ) : null}
+      </div>
+    </>
+  );
+};
+
+const FileCountLabel = ({
+  serviceTypeId,
+  planId,
+}: {
+  serviceTypeId: string;
+  planId: string;
+}) => {
+  const query = usePlanFiles(serviceTypeId, planId, true);
+  if (!query.isSuccess) {
+    return "Charts, documents, and rehearsal media";
+  }
+  const count = query.data.pages.reduce(
+    (total, page) => total + page.files.length,
+    0
+  );
+  return `${String(count)}${query.hasNextPage ? "+" : ""} ${count === 1 ? "file" : "files"}`;
+};
 
 export const PlanFilesBrowser = ({
   serviceTypeId,
@@ -103,180 +309,116 @@ export const PlanFilesBrowser = ({
   items,
   item,
 }: Props) => {
-  const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<PlanFile | null>(null);
-  const [search, setSearch] = useState("");
-  const [kind, setKind] = useState("all");
-  const query = usePlanFiles(serviceTypeId, planId, open);
-  const files = query.data?.pages.flatMap((page) => page.files) ?? [];
-  const visible = files.filter(
-    (file) =>
-      (!item || fileBelongsToItem(file, item)) &&
-      (kind === "all" || planFileKind(file) === kind) &&
-      `${file.name} ${fileGroupLabel(file, items)}`
-        .toLowerCase()
-        .includes(search.toLowerCase())
-  );
-  const title = item ? `${item.title} files` : "Plan files";
   const launch = () => {
     setSelected(null);
   };
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog>
       {item ? (
-        <DialogTrigger render={<Button variant="outline" />} onClick={launch}>
+        <DialogTrigger
+          render={<Button variant="outline" size="sm" className="self-start" />}
+          onClick={launch}
+        >
           <Files /> Files & charts
         </DialogTrigger>
       ) : (
-        <Card size="sm" className="md:col-span-2">
+        <Card size="sm">
           <CardHeader>
             <CardTitle>
               <span className="flex items-center gap-2">
-                <Files className="size-4" /> Files & charts
+                <span className="text-muted-foreground" aria-hidden>
+                  <Files className="size-4" />
+                </span>
+                Files & charts
               </span>
             </CardTitle>
             <CardDescription>
-              Documents, song charts, and rehearsal audio in one place.
+              Charts, documents, and rehearsal media
             </CardDescription>
             <CardAction>
               <DialogTrigger
-                render={<Button variant="outline" />}
+                render={<Button variant="outline" size="sm" />}
                 onClick={launch}
               >
-                <Files /> Browse plan files
+                Browse
               </DialogTrigger>
             </CardAction>
           </CardHeader>
         </Card>
       )}
-      <DialogContent variant="viewer">
-        <div className="flex min-h-0 flex-1 flex-col gap-3">
-          <div className="pr-10">
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>
-              Read and listen here. Your plan stays in place.
-            </DialogDescription>
-          </div>
-          <div className="flex min-h-0 flex-1 gap-4">
-            <div
-              className={cn(
-                "flex min-h-0 w-full flex-col gap-3 sm:w-80 sm:shrink-0",
-                selected && "max-sm:hidden"
-              )}
-            >
-              <Input
-                aria-label="Search plan files"
-                placeholder="Search files or songs…"
-                value={search}
-                onChange={(event) => {
-                  setSearch(event.target.value);
-                }}
-              />
-              <NativeSelect
-                aria-label="File type"
-                value={kind}
-                onChange={(event) => {
-                  setKind(event.target.value);
-                }}
-              >
-                <NativeSelectOption value="all">
-                  All file types
-                </NativeSelectOption>
-                {Object.entries(fileKindLabel).map(([value, label]) => (
-                  <NativeSelectOption key={value} value={value}>
-                    {label}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1">
-                {query.isPending ? (
-                  <div className="flex gap-2 p-3">
-                    <Spinner /> Loading files…
-                  </div>
-                ) : null}
-                {query.isError ? (
-                  <div className="flex flex-col gap-2 p-3">
-                    <p role="alert">Couldn’t load plan files.</p>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        void query.refetch();
-                      }}
-                    >
-                      Try again
-                    </Button>
-                  </div>
-                ) : null}
-                <FileRows
-                  files={visible}
-                  items={items}
-                  selected={selected}
-                  onSelect={setSelected}
-                />
-                {visible.length === 0 && !query.isPending && !query.isError ? (
-                  <p className="text-muted-foreground p-3 text-sm">
-                    {query.hasNextPage
-                      ? "No matching files in the loaded pages. Load more to keep looking."
-                      : "No matching files."}
-                  </p>
-                ) : null}
-                {query.hasNextPage ? (
-                  <Button
-                    variant="outline"
-                    className="mt-3 w-full"
-                    disabled={query.isFetchingNextPage}
-                    onClick={() => {
-                      void query.fetchNextPage();
-                    }}
-                  >
-                    {query.isFetchingNextPage ? <Spinner /> : null} Load more
-                    files
-                  </Button>
-                ) : null}
-              </div>
-              <p className="text-muted-foreground text-xs">
-                {files.length} files loaded
-                {query.hasNextPage ? " · more available" : ""}
-              </p>
-            </div>
-            <div
-              className={cn(
-                "flex min-h-0 min-w-0 flex-1 flex-col gap-3",
-                !selected && "max-sm:hidden"
-              )}
-            >
-              {selected ? (
-                <>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      className="sm:hidden"
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label="Back to files"
-                      onClick={() => {
-                        setSelected(null);
-                      }}
-                    >
-                      <ArrowLeft />
-                    </Button>
-                    <h3 className="min-w-0 flex-1 truncate font-medium">
-                      {selected.name}
-                    </h3>
-                  </div>
-                  <PlanFileViewer
-                    key={selected.id}
+      <DialogContent variant="viewer" showCloseButton={false}>
+        {/* Phones show one file at a time; the reader's own bar takes over. */}
+        <div className={cn(selected && "max-sm:hidden")}>
+          <header className="pt-safe-3 flex items-center gap-3 px-4 pb-3">
+            <div className="min-w-0 flex-1">
+              <DialogTitle>{item ? item.title : "Files & charts"}</DialogTitle>
+              <DialogDescription>
+                {item ? (
+                  "Files for this item"
+                ) : (
+                  <FileCountLabel
                     serviceTypeId={serviceTypeId}
                     planId={planId}
-                    file={selected}
                   />
-                </>
-              ) : (
-                <div className="text-muted-foreground flex flex-1 flex-col items-center justify-center gap-3">
-                  <Files className="size-10" />
-                  <p>Choose a file to preview</p>
-                </div>
-              )}
+                )}
+              </DialogDescription>
             </div>
+            <CloseButton />
+          </header>
+          <Separator />
+        </div>
+        <div className="flex min-h-0 flex-1">
+          <aside
+            aria-label="Files"
+            className={cn(
+              "flex min-h-0 w-full flex-col sm:w-80 sm:shrink-0 sm:border-r",
+              selected && "max-sm:hidden"
+            )}
+          >
+            <FileListPane
+              serviceTypeId={serviceTypeId}
+              planId={planId}
+              items={items}
+              item={item}
+              selected={selected}
+              onSelect={setSelected}
+            />
+          </aside>
+          <div
+            className={cn(
+              "flex min-h-0 min-w-0 flex-1 flex-col",
+              !selected && "max-sm:hidden"
+            )}
+          >
+            {selected ? (
+              <PlanFileViewer
+                key={selected.id}
+                serviceTypeId={serviceTypeId}
+                planId={planId}
+                file={selected}
+                groupLabel={fileGroupLabel(selected, items)}
+                onBack={() => {
+                  setSelected(null);
+                }}
+                trailing={<CloseButton className="sm:hidden" />}
+              />
+            ) : (
+              <div className="bg-muted/40 flex flex-1">
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <Files />
+                    </EmptyMedia>
+                    <EmptyTitle>Pick a file</EmptyTitle>
+                    <EmptyDescription>
+                      Charts and PDFs open here with page and zoom controls;
+                      audio and video play in place.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>
