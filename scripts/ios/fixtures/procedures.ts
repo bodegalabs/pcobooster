@@ -1400,6 +1400,10 @@ export const fixtures = {
   health: { default: { status: "ok", version: "mock" } },
   neededPositions: { adjust: { default: { openCount: 1 } } },
   people: peopleFixtures,
+  planFiles: {
+    list: { default: { files: [], nextOffset: null } },
+    open: { default: { url: "https://example.com/file.pdf", preview: false } },
+  },
   planItems,
   planPeople: { updateTimes: { default: { ok: true } } },
   planTimes,

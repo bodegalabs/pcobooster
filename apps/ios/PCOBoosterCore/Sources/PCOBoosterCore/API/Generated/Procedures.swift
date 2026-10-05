@@ -251,6 +251,22 @@ public enum RPC {
       Procedure<EmptyInput, MyScheduledPlansData>("people/myScheduledPlans")
   }
 
+  public enum PlanFiles {
+    /// Read a page of plan and song files.
+    ///
+    /// Contract `planFiles.list` in `packages/contracts/src/plan-files.ts`, REST `GET /plan-files`.
+    /// Errors: `UNAUTHORIZED`, `FORBIDDEN`, `TOO_MANY_REQUESTS`, `BAD_REQUEST`, `BAD_GATEWAY`,
+    /// `INTERNAL_SERVER_ERROR`.
+    public static let list = Procedure<PlanFilesInput, PlanFilesListOutput>("planFiles/list")
+
+    /// Resolve a short-lived Planning Center file link.
+    ///
+    /// Contract `planFiles.open` in `packages/contracts/src/plan-files.ts`, REST
+    /// `POST /plan-files/open`. Errors: `UNAUTHORIZED`, `FORBIDDEN`, `TOO_MANY_REQUESTS`,
+    /// `BAD_REQUEST`, `BAD_GATEWAY`, `INTERNAL_SERVER_ERROR`.
+    public static let `open` = Procedure<PlanFileOpenInput, PlanFilesOpenOutput>("planFiles/open")
+  }
+
   public enum PlanItems {
     /// List a plan's run-sheet items.
     ///
@@ -439,6 +455,8 @@ public enum RPC {
     "people/dashboardActivity",
     "people/dashboardPerson",
     "people/myScheduledPlans",
+    "planFiles/list",
+    "planFiles/open",
     "planItems/list",
     "planItems/create",
     "planItems/update",
