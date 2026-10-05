@@ -11,6 +11,7 @@ import path from "node:path";
 
 import { z } from "zod";
 
+import { calculatePatchId } from "./patch-id";
 import {
   artifactKindForPath,
   classifyChangedFiles,
@@ -150,27 +151,6 @@ const parseFocusedCheck = (value: string): FocusedCheck => {
   return { command, name };
 };
 
-const calculatePatchId = (baseSha: string, headSha: string): string => {
-  const diff = execFileSync(
-    "git",
-    ["diff", "--binary", `${baseSha}...${headSha}`],
-    {
-      cwd: repositoryRoot,
-    }
-  );
-  if (diff.length === 0) {
-    return fail("The proof range has no changes");
-  }
-  const result = execFileSync("git", ["patch-id", "--stable"], {
-    cwd: repositoryRoot,
-    encoding: "utf-8",
-    input: diff,
-  }).trim();
-  return (
-    result.split(/\s+/u)[0] ?? fail("Could not calculate a stable patch ID")
-  );
-};
-
 const parseArtifact = (
   value: string,
   proofDirectory: string
@@ -217,7 +197,7 @@ const readReceipt = (receiptPath: string): LoadedReceipt => {
   };
 };
 
-const verifyReceipt = (receiptPath: string): ProofReceipt => {
+const verifyReceipt = async (receiptPath: string): Promise<ProofReceipt> => {
   const { directory, receipt } = readReceipt(receiptPath);
   const currentHead = git(["rev-parse", "HEAD"]);
   if (receipt.headSha !== currentHead) {
@@ -225,7 +205,11 @@ const verifyReceipt = (receiptPath: string): ProofReceipt => {
       `Receipt head ${receipt.headSha} does not match current HEAD ${currentHead}`
     );
   }
-  const currentPatchId = calculatePatchId(receipt.base.sha, currentHead);
+  const currentPatchId = await calculatePatchId({
+    baseSha: receipt.base.sha,
+    headSha: currentHead,
+    repositoryRoot,
+  });
   if (receipt.patchId !== currentPatchId) {
     return fail("Receipt patch ID no longer matches the checked-out change");
   }
@@ -367,7 +351,7 @@ const runProof = async (args: readonly string[]): Promise<void> => {
     headSha,
     independentVerification,
     notes,
-    patchId: calculatePatchId(baseSha, headSha),
+    patchId: await calculatePatchId({ baseSha, headSha, repositoryRoot }),
     requiresVisualEvidence: visualEvidenceRequired,
     riskTier,
     rollback,
@@ -419,10 +403,10 @@ const doctor = (): void => {
   }
 };
 
-const publish = (args: readonly string[]): void => {
+const publish = async (args: readonly string[]): Promise<void> => {
   const pr = flagValue(args, "--pr");
   const receiptPath = flagValue(args, "--receipt");
-  const receipt = verifyReceipt(receiptPath);
+  const receipt = await verifyReceipt(receiptPath);
   if (receipt.verdict !== "PASS" && receipt.verdict !== "PASS_WITH_NOTES") {
     fail(`Only passing proof can be published; receipt is ${receipt.verdict}`);
   }
@@ -488,12 +472,12 @@ const main = async (): Promise<void> => {
     return;
   }
   if (command === "verify") {
-    const receipt = verifyReceipt(flagValue(args, "--receipt"));
+    const receipt = await verifyReceipt(flagValue(args, "--receipt"));
     process.stdout.write(`PASS proof matches ${receipt.headSha}\n`);
     return;
   }
   if (command === "publish") {
-    publish(args);
+    await publish(args);
     return;
   }
   process.stdout.write(usage);
