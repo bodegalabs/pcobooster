@@ -8,5 +8,11 @@ export default defineConfig({
     ".artifacts/**",
     "docs/planning-center-api/**",
     "packages/api/migrations/**",
+    // Asset catalog JSON, copied fixtures, and generated tokens are written by tools.
+    "apps/mobile/assets/**",
+    "apps/mobile/src/harness/fixtures/**",
+    "apps/mobile/src/design/colors.generated.ts",
+    "apps/mobile/ios/**",
+    "apps/mobile/.expo/**",
   ],
 });

@@ -49,5 +49,17 @@ export default defineConfig({
     // Controls get their look from components/ui primitives, not call sites.
     "local/prefer-shared-controls": "error",
   },
+  overrides: [
+    {
+      // The Expo app (React Native). Each rule here assumes the DOM or CSS classes.
+      files: ["apps/mobile/**"],
+      rules: {
+        // React Native styles are objects passed through `style`; there are no CSS classes.
+        "shadcn/no-inline-styles": "off",
+        // React Native has no semantic HTML tags; `accessibilityRole` is how a role is named.
+        "jsx-a11y/prefer-tag-over-role": "off",
+      },
+    },
+  ],
   settings: jsPluginSettings,
 });
