@@ -1,5 +1,5 @@
 /**
- * The D1 audit of schedule writes over Effect RPC: the port of the oRPC transport's audited
+ * The D1 audit of schedule writes over Effect RPC: the port of the previous transport's audited
  * middleware and `schedule-activity.ts`. A handler combinator, not middleware, because it needs
  * each procedure's own input and answer.
  */
@@ -53,7 +53,7 @@ export interface ScheduleAuditDependencies {
 }
 
 /**
- * The row's `path` names the procedure, as main's per-procedure oRPC URLs did
+ * The row's `path` names the procedure, as the previous transport's per-procedure URLs did
  * (`/api/rpc/schedule/assign`); every Effect RPC call shares one URL, which says nothing.
  */
 const procedurePath = (operation: ScheduleOperation): string =>

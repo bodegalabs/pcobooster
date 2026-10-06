@@ -22,4 +22,4 @@ export const demoExit = write("demo.exit", {
 });
 
 export const demoProcedures = [demoStart, demoExit] as const;
-export const demoRpc = plainGroup(...demoProcedures);
+export const demoSessionRpc = plainGroup(...demoProcedures);

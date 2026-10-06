@@ -77,7 +77,7 @@ describe(createRequestScheduler, () => {
     expect(started).toStrictEqual(["first", "second"]);
   });
 
-  it("does not hold speculative calls back behind each other's oRPC traffic", async () => {
+  it("does not hold speculative calls back behind each other's RPC traffic", async () => {
     const scheduler = createRequestScheduler({ quietMs: QUIET_MS });
     const started: string[] = [];
     const prefetchCall = deferred();

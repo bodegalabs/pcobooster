@@ -1,6 +1,6 @@
 /**
- * Schedule writes over the Effect RPC route: main's oRPC schedule transport tests
- * (`packages/api/src/transport/orpc/schedule.test.ts`), with the same services and assertions.
+ * Schedule writes over the Effect RPC route: the previous transport's schedule tests, ported
+ * with the same services and assertions.
  */
 import {
   createRequestContext,

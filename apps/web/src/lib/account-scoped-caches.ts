@@ -37,7 +37,7 @@ export const clearAccountScopedCaches = (): void => {
 
 /**
  * Raise when the API's answers change shape or transport, so answers saved by an older build
- * are dropped instead of shown. 2: Effect RPC replaced oRPC.
+ * are dropped instead of shown. 2: answers come from the Effect RPC client.
  */
 const API_CACHE_GENERATION = "2";
 const API_CACHE_GENERATION_KEY = "pcobooster:api-cache-generation";

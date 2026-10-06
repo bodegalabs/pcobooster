@@ -17,7 +17,7 @@ export class ResponseCookies extends Context.Service<
 const SESSION_COOKIE_MAX_AGE = Duration.days(30);
 
 /**
- * A session cookie as main's oRPC transport wrote it: HttpOnly, SameSite=Lax, the whole site,
+ * A session cookie as the previous transport wrote it: HttpOnly, SameSite=Lax, the whole site,
  * 30 days (or expired now for null), and Secure everywhere except plain-HTTP local development.
  */
 const sessionCookie = (

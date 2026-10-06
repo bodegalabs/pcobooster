@@ -69,7 +69,7 @@ describe(readVersion, () => {
 
   it.each([
     [
-      "an oRPC reply",
+      "a JSON reply that is not an RPC message",
       Response.json({ json: { status: "ok", version: "b57ca91" } }),
     ],
     ["an HTML page", new Response("<html>", { status: 200 })],

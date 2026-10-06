@@ -3,10 +3,10 @@ import {
   demoSessionCookie,
   setResponseCookie,
 } from "@pcobooster/api/rpc/response-cookies";
-import { demoRpc } from "@pcobooster/contracts/rpc/demo";
+import { demoSessionRpc } from "@pcobooster/contracts/rpc/demo";
 import { Effect } from "effect";
 
-export const DemoHandlers = demoRpc.toLayer({
+export const DemoHandlers = demoSessionRpc.toLayer({
   "demo.start": (input) =>
     Effect.gen(function* startDemo() {
       const { sessionToken } = yield* startDemoSession(input);

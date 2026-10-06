@@ -1,7 +1,7 @@
 /**
- * What every procedure gets from the Effect RPC transport: main's oRPC transport tests
- * (`packages/api/src/transport/orpc/execute.test.ts`, `implementation.test.ts`,
- * `planning-center-accounting.test.ts`) and the RPC half of `app.test.ts`, against the route.
+ * What every procedure gets from the Effect RPC transport: the previous transport's tests
+ * (fault mapping, procedure wiring, Planning Center accounting) and the RPC half of
+ * `app.test.ts`, ported to run against the route.
  */
 import type {
   PlanningCenterAccessDependencies,

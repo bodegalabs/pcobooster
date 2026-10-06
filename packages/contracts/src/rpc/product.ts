@@ -17,7 +17,7 @@ import {
   chordChartsProcedures,
   chordChartsRpc,
 } from "@pcobooster/contracts/rpc/chord-charts";
-import { demoProcedures, demoRpc } from "@pcobooster/contracts/rpc/demo";
+import { demoProcedures, demoSessionRpc } from "@pcobooster/contracts/rpc/demo";
 import {
   featuresProcedures,
   featuresRpc,
@@ -76,7 +76,7 @@ export const ProductRpc = RpcGroup.make().merge(
   sessionRpc,
   accountsRpc,
   featuresRpc,
-  demoRpc,
+  demoSessionRpc,
   feedbackRpc,
   accessRpc,
   catalogRpc,
