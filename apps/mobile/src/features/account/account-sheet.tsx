@@ -1,33 +1,44 @@
+import { Button, ContextMenu, Host, RNHostView } from "@expo/ui/swift-ui";
 import { useQuery } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
-import { Fragment } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Fragment, useState } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { SHEET_DISMISS_MS } from "../../app-shell/app-providers";
 import {
   accountDisplayName,
   formatUsedAgo,
 } from "../../app-shell/device-accounts";
-import type { DeviceAccount } from "../../app-shell/device-accounts";
 import { sharedReads, useProductClient } from "../../app-shell/queries";
 import { useSession } from "../../app-shell/session";
 import { BottomActionBar } from "../../components/bottom-action-bar";
+import { ConfirmationSheet } from "../../components/confirmation-sheet";
 import { Glyph } from "../../components/glyph";
 import { Hairline } from "../../components/hairline";
 import { PersonAvatar } from "../../components/person-avatar";
-import { SectionHeader } from "../../components/section-header";
+import { RocketMark } from "../../components/rocket-mark";
 import { SurfaceCard } from "../../components/surface-card";
 import { AppText } from "../../design/app-text";
 import { colors } from "../../design/colors";
-import { Metrics, Spacing } from "../../design/metrics";
+import { Spacing } from "../../design/metrics";
 import { useClock } from "../../lib/environment";
-import { useToasts } from "../../lib/toasts";
+import { MAX_DEVICE_ACCOUNTS } from "../../session/device-session";
+import type { DeviceAccount } from "../../session/device-session";
+import type { AccountsListing } from "../../session/session-store";
+import { AccountRow, AccountSection, AVATAR_LARGE } from "./account-rows";
+import {
+  AboutSection,
+  AppearanceSection,
+  FeedbackSection,
+  PlanningCenterSection,
+} from "./account-sections";
 
-const AVATAR_LARGE = 40;
+const destructiveRole = "destructive";
 const LIST_TOP_MARGIN = 35;
 const SECTION_GAP = 27;
-/** List rows are a little taller than the 12 pt card rows elsewhere. */
-const LIST_ROW_PADDING = 15;
+const DEMO_MARK = 64;
+const DEMO_ROCKET = 44;
 /** Device rows inset their divider past the avatar. */
 const ROW_DIVIDER_INSET = Spacing.lg + AVATAR_LARGE + Spacing.md;
 
@@ -46,38 +57,80 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: LIST_TOP_MARGIN,
   },
-  deviceRow: {
+  demoMark: {
     alignItems: "center",
-    flexDirection: "row",
-    gap: Spacing.md,
-    minHeight: Metrics.minimumTapTarget,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: LIST_ROW_PADDING,
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: DEMO_MARK / 2,
+    height: DEMO_MARK,
+    justifyContent: "center",
+    width: DEMO_MARK,
   },
   deviceText: { flex: 1, gap: Spacing.xxs },
   identity: { alignItems: "center", flexDirection: "row", gap: Spacing.lg },
   identityPadding: { paddingVertical: Spacing.lg + 3 },
   identityText: { flex: 1, gap: Spacing.xxs },
-  // List section headers and footers align with the row content.
-  later: { paddingHorizontal: Spacing.lg },
   root: { backgroundColor: colors.surfaceCanvas, flex: 1 },
-  section: { gap: Spacing.sm },
-  sectionHeader: { paddingHorizontal: Spacing.lg },
 });
 
-/** Who is signed in: `accounts.list`, or the remembered device account until it answers. */
-const IdentityCard = ({ account }: { account: DeviceAccount }) => {
+/** The bottom action's words, with the web's pending copy (`signOutLabel`). */
+const signOutLabel = (demo: boolean, pending: boolean): string => {
+  if (demo) {
+    return pending ? "Leaving demo\u2026" : "Exit Demo";
+  }
+  return pending ? "Signing out\u2026" : "Sign Out";
+};
+
+/** Who is signed in: `accounts.list` once it answers, else the remembered account. */
+const identityOf = (
+  listed: AccountsListing | null,
+  active: DeviceAccount | null
+) => {
+  const selected =
+    listed?.accounts.find(
+      (candidate) => candidate.id === listed.selectedAccountId
+    ) ?? listed?.accounts[0];
+  const email = listed?.session.email ?? active?.email ?? "";
+  const listedName = listed?.session.name.trim() ?? "";
+  const name =
+    listedName || (active === null ? email : accountDisplayName(active));
+  return {
+    name,
+    email,
+    image: listed?.session.image ?? active?.image,
+    organization:
+      selected?.identity?.organizationName ?? active?.organizationName ?? null,
+  };
+};
+
+const IdentityCard = () => {
+  const session = useSession();
   const accounts = useQuery(sharedReads.accounts(useProductClient())).data;
-  const selected = accounts?.accounts.find(
-    (candidate) => candidate.id === accounts.selectedAccountId
+  if (session.isDemo) {
+    return (
+      <SurfaceCard contentStyle={[styles.identity, styles.identityPadding]}>
+        <View style={styles.demoMark}>
+          <RocketMark size={DEMO_ROCKET} />
+        </View>
+        <View style={styles.identityText}>
+          <AppText font="cardTitle">Read-only demo</AppText>
+          <AppText color={colors.inkSecondary} font="rowDetail">
+            Explore freely. Changes aren&apos;t saved.
+          </AppText>
+        </View>
+      </SurfaceCard>
+    );
+  }
+  const listed = accounts === undefined || accounts.demo ? null : accounts;
+  const { name, email, image, organization } = identityOf(
+    listed,
+    session.active
   );
-  const name = accounts?.session.name ?? accountDisplayName(account);
-  const email = accounts?.session.email ?? account.email;
-  const organization =
-    selected?.identity?.organizationName ?? account.organizationName;
+  if (name === "") {
+    return null;
+  }
   return (
     <SurfaceCard contentStyle={[styles.identity, styles.identityPadding]}>
-      <PersonAvatar name={name} size="hero" />
+      <PersonAvatar name={name} photoUrl={image} size="hero" />
       <View style={styles.identityText}>
         <AppText font="pageTitle" numberOfLines={2}>
           {name}
@@ -104,131 +157,238 @@ const IdentityCard = ({ account }: { account: DeviceAccount }) => {
   );
 };
 
-/** "On this device": tapping another person closes the sheet, then switches. */
-const DeviceAccounts = () => {
-  const session = useSession();
-  const toasts = useToasts();
-  const router = useRouter();
+const DeviceAccountRow = ({
+  account,
+  isActive,
+  isPending,
+  onSelect,
+  onRemove,
+}: {
+  account: DeviceAccount;
+  isActive: boolean;
+  isPending: boolean;
+  onSelect: () => void;
+  onRemove: () => void;
+}) => {
   const now = useClock().now();
-  return (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <SectionHeader title="On this device" />
-      </View>
-      <SurfaceCard padding="none">
-        {session.accounts.map((account, index) => {
-          const isActive = account.userId === session.active?.userId;
-          const detail = [
-            account.organizationName,
-            isActive ? null : formatUsedAgo(account.lastUsedAt, now),
-          ]
-            .filter((part) => part !== null)
-            .join(" · ");
-          return (
-            <Fragment key={account.userId}>
-              {index > 0 ? (
-                <Hairline
-                  color={colors.hairlineSubtle}
-                  inset={ROW_DIVIDER_INSET}
-                  trailing={Spacing.lg}
-                />
-              ) : null}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ selected: isActive }}
-                onPress={() => {
-                  if (!isActive) {
-                    router.back();
-                    session.continueAs(account);
-                  }
-                }}
-                style={({ pressed }) => [
-                  styles.deviceRow,
-                  pressed && !isActive
-                    ? { backgroundColor: colors.surfaceHighlight }
-                    : null,
-                ]}
-              >
-                <PersonAvatar name={accountDisplayName(account)} size="large" />
-                <View style={styles.deviceText}>
-                  <AppText font="rowTitle" numberOfLines={1}>
-                    {accountDisplayName(account)}
-                  </AppText>
-                  <AppText
-                    color={colors.inkSecondary}
-                    font="meta"
-                    numberOfLines={1}
-                  >
-                    {detail}
-                  </AppText>
-                </View>
-                {isActive ? (
-                  <Glyph
-                    accessibilityLabel="Signed in"
-                    color={colors.ink}
-                    size={20}
-                    symbol="checkmark"
-                    weight="semibold"
-                  />
-                ) : null}
-              </Pressable>
-            </Fragment>
-          );
-        })}
-        <Hairline
-          color={colors.hairlineSubtle}
-          inset={ROW_DIVIDER_INSET}
-          trailing={Spacing.lg}
-        />
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => {
-            toasts.showError("Adding accounts arrives with native sign-in.");
-          }}
-          style={({ pressed }) => [
-            styles.deviceRow,
-            pressed ? { backgroundColor: colors.surfaceHighlight } : null,
-          ]}
-        >
-          <View style={styles.addCircle}>
-            <Glyph color={colors.ink} size={20} symbol="add" weight="medium" />
-          </View>
-          <AppText font="rowTitle" numberOfLines={1}>
-            Add another account
-          </AppText>
-        </Pressable>
-      </SurfaceCard>
-      <View style={styles.later}>
-        <AppText color={colors.inkSecondary} font="meta">
-          People you switch away from stay signed in on this device.
+  const name = accountDisplayName(account);
+  const detail = account.needsSignIn
+    ? "Sign in again"
+    : [
+        account.organizationName,
+        isActive ? null : formatUsedAgo(account.lastUsedAt, now),
+      ]
+        .filter((part) => part !== null)
+        .join(" · ");
+  let hint = "Switches to this account";
+  if (isActive) {
+    hint = "Signed in now";
+  } else if (account.needsSignIn) {
+    hint = "Signs in again with Planning Center";
+  }
+  const row = (
+    <AccountRow
+      accessibilityHint={hint}
+      accessibilityLabel={`${name}, ${detail}`}
+      onPress={isActive ? undefined : onSelect}
+      selected={isActive}
+      testID={`device-account-${account.userId}`}
+    >
+      <PersonAvatar name={name} photoUrl={account.image} size="large" />
+      <View style={styles.deviceText}>
+        <AppText font="rowTitle" numberOfLines={1}>
+          {name}
         </AppText>
+        {detail === "" ? null : (
+          <AppText
+            color={
+              account.needsSignIn
+                ? colors.statusPendingText
+                : colors.inkSecondary
+            }
+            font="meta"
+            numberOfLines={1}
+          >
+            {detail}
+          </AppText>
+        )}
       </View>
-    </View>
+      {isPending ? <ActivityIndicator /> : null}
+      {!isPending && isActive ? (
+        <Glyph
+          color={colors.ink}
+          size={20}
+          symbol="checkmark"
+          weight="semibold"
+        />
+      ) : null}
+    </AccountRow>
+  );
+  if (isActive) {
+    return row;
+  }
+  return (
+    <Host matchContents>
+      <ContextMenu>
+        <ContextMenu.Trigger>
+          <RNHostView matchContents>{row}</RNHostView>
+        </ContextMenu.Trigger>
+        <ContextMenu.Items>
+          <Button
+            label="Switch to This Account"
+            systemImage="arrow.left.arrow.right"
+            onPress={onSelect}
+          />
+          <Button
+            label="Remove from This Device"
+            systemImage="person.badge.minus"
+            role={destructiveRole}
+            onPress={onRemove}
+          />
+        </ContextMenu.Items>
+      </ContextMenu>
+    </Host>
   );
 };
 
 /**
- * The account sheet shell (Swift `AccountSheet`), opened from the avatar on every tab root: who
- * is signed in and the people on this device, with Sign Out as the full-width bottom action.
- * Planning Center organizations, appearance, feedback, and about arrive in a later layer.
+ * "On this device": tapping another person closes the sheet, then switches, so the app rebuilds
+ * behind the sheet instead of under it. Long press another person for switching and removal actions. "Add another account" signs in with Planning Center.
+ */
+const DeviceAccounts = () => {
+  const session = useSession();
+  const router = useRouter();
+  const [switchingUserId, setSwitchingUserId] = useState<string | null>(null);
+  const activeUserId = session.active?.userId ?? null;
+  const [removing, setRemoving] = useState<DeviceAccount | null>(null);
+  const select = (account: DeviceAccount) => {
+    if (switchingUserId !== null) {
+      return;
+    }
+    if (account.needsSignIn) {
+      void session.signIn({ resuming: account, addingAccount: true });
+      return;
+    }
+    setSwitchingUserId(account.userId);
+    router.back();
+    setTimeout(() => {
+      session.switchAccount(account.userId);
+    }, SHEET_DISMISS_MS);
+  };
+  const isAddingAccount =
+    session.signInActivity.kind === "authenticating" &&
+    session.signInActivity.userId === null;
+  let footer = "People you switch away from stay signed in on this device.";
+  if (session.accounts.length === 0) {
+    footer = "Signed in by the local API.";
+  } else if (session.accounts.length >= MAX_DEVICE_ACCOUNTS) {
+    footer = `This device remembers up to ${MAX_DEVICE_ACCOUNTS} accounts. Remove one to add another.`;
+  }
+  return (
+    <>
+      <AccountSection footer={footer} title="On this device">
+        {session.accounts.map((account, index) => (
+          <Fragment key={account.userId}>
+            {index > 0 ? (
+              <Hairline
+                color={colors.hairlineSubtle}
+                inset={ROW_DIVIDER_INSET}
+                trailing={Spacing.lg}
+              />
+            ) : null}
+            <DeviceAccountRow
+              account={account}
+              isActive={account.userId === activeUserId}
+              isPending={
+                switchingUserId === account.userId ||
+                (session.signInActivity.kind === "authenticating" &&
+                  session.signInActivity.userId === account.userId)
+              }
+              onRemove={() => {
+                setRemoving(account);
+              }}
+              onSelect={() => {
+                select(account);
+              }}
+            />
+          </Fragment>
+        ))}
+        {session.accounts.length < MAX_DEVICE_ACCOUNTS ? (
+          <>
+            {session.accounts.length > 0 ? (
+              <Hairline
+                color={colors.hairlineSubtle}
+                inset={ROW_DIVIDER_INSET}
+                trailing={Spacing.lg}
+              />
+            ) : null}
+            <AccountRow
+              disabled={session.signInActivity.kind !== "idle"}
+              onPress={() => {
+                void session.signIn({ addingAccount: true });
+              }}
+              testID="add-account-button"
+            >
+              <View style={styles.addCircle}>
+                <Glyph
+                  color={colors.ink}
+                  size={20}
+                  symbol="add"
+                  weight="medium"
+                />
+              </View>
+              <AppText
+                font="rowTitle"
+                numberOfLines={1}
+                style={styles.deviceText}
+              >
+                Add another account
+              </AppText>
+              {isAddingAccount ? <ActivityIndicator /> : null}
+            </AccountRow>
+          </>
+        ) : null}
+      </AccountSection>
+      <ConfirmationSheet
+        visible={removing !== null}
+        title={`Remove ${removing === null ? "account" : accountDisplayName(removing)} from this device?`}
+        message="You'll need to sign in with Planning Center to use this account here again."
+        action="Remove"
+        onCancel={() => {
+          setRemoving(null);
+        }}
+        onConfirm={() => {
+          if (removing !== null) {
+            void session.forget(removing);
+          }
+          setRemoving(null);
+        }}
+      />
+    </>
+  );
+};
+
+/**
+ * The account sheet (Swift `AccountSheet`), opened from the avatar on every tab root: who is
+ * signed in, the people on this device, the Planning Center organization and "Your access",
+ * appearance, feedback, and about. Sign Out (or Exit Demo) is the full-width bottom action,
+ * confirmed in an action sheet.
  */
 export const AccountSheet = () => {
   const session = useSession();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { active } = session;
-  const confirmSignOut = () => {
-    Alert.alert(
-      "Sign out of PCOBooster?",
-      session.accounts.length > 1
-        ? "This device forgets this account. Other remembered accounts stay signed in."
-        : "This device forgets this account. You can sign in again with Planning Center anytime.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Sign Out", style: "destructive", onPress: session.signOut },
-      ]
-    );
-  };
+  const { isDemo } = session;
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false);
+  let signOutMessage =
+    "This device forgets this account. You can sign in again with Planning Center anytime.";
+  if (isDemo) {
+    signOutMessage =
+      "You'll go back to the sign-in screen, or to the account you were using.";
+  } else if (session.accounts.length > 1) {
+    signOutMessage =
+      "This device forgets this account. Other remembered accounts stay signed in.";
+  }
   return (
     <View style={styles.root}>
       <Stack.Screen
@@ -247,21 +407,42 @@ export const AccountSheet = () => {
         }}
       />
       <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={[
           styles.content,
           { paddingBottom: insets.bottom + Spacing.huge * 2 },
         ]}
+        contentInsetAdjustmentBehavior="automatic"
+        testID="account-sheet"
       >
-        {active === null ? null : <IdentityCard account={active} />}
-        <DeviceAccounts />
+        <IdentityCard />
+        {isDemo ? null : <DeviceAccounts />}
+        {isDemo ? null : <PlanningCenterSection />}
+        <AppearanceSection />
+        {isDemo ? null : <FeedbackSection />}
+        <AboutSection />
       </ScrollView>
+      <ConfirmationSheet
+        visible={confirmingSignOut}
+        title={isDemo ? "Exit the demo?" : "Sign out of pcobooster.com?"}
+        message={signOutMessage}
+        action={isDemo ? "Exit Demo" : "Sign Out"}
+        onCancel={() => {
+          setConfirmingSignOut(false);
+        }}
+        onConfirm={() => {
+          setConfirmingSignOut(false);
+          void session.signOut();
+        }}
+      />
       <BottomActionBar
         actions={[
           {
-            title: "Sign Out",
+            title: signOutLabel(isDemo, session.isSigningOut),
             role: "destructive",
-            onPress: confirmSignOut,
+            isBusy: session.isSigningOut,
+            onPress: () => {
+              setConfirmingSignOut(true);
+            },
             testID: "sign-out-button",
           },
         ]}

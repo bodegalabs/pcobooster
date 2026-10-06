@@ -26,13 +26,14 @@ describe(parseLaunchOptions, () => {
       features: "all",
       fixedNow: true,
       route: "/account",
+      serviceTypeId: null,
       tab: "people",
       showsGallery: false,
     });
   });
 
   it("falls back to the defaults for missing or unknown values", () => {
-    expect(parse({ PCOBMockSession: "demo", PCOBTab: "home" })).toStrictEqual(
+    expect(parse({ PCOBMockSession: "guest", PCOBTab: "home" })).toStrictEqual(
       noLaunchOptions
     );
   });

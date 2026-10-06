@@ -1,54 +1,51 @@
-import { makeProductClient } from "@pcobooster/client/product-client";
 import type { ProductClient } from "@pcobooster/client/product-client";
-import type { Json } from "effect/Schema";
+import type { RequestScheduler } from "@pcobooster/client/request-scheduler";
+import { Unauthenticated } from "@pcobooster/contracts/faults/unauthenticated";
 
-import { makeFixtureFetch } from "../harness/fixture-transport";
-import type { FeatureOverride, LaunchOptions } from "../harness/launch-options";
+import { credentialHeaders } from "../session/session-store";
+import type { SessionStore } from "../session/session-store";
 
-/**
- * The API outside fixture mode: pcobooster.com in Release, the local `bun run dev` product origin
- * in development builds (as the Swift app's Debug default).
- */
-export const API_ORIGIN = __DEV__
-  ? "http://127.0.0.1:3001"
-  : "https://pcobooster.com";
-
-const featureOverrides: Record<FeatureOverride, Json> = {
-  all: { people: true, chordCharts: true },
-  none: { people: false, chordCharts: false },
-  people: { people: true, chordCharts: false },
-  songs: { people: false, chordCharts: true },
-};
+/** The product client screens use: every call scheduled, and 401s reported to the session. */
+export type AppClient = Pick<ProductClient, "run">;
 
 /**
- * The product client: the fixture transport behind `-PCOBMock YES` (development builds only),
- * else the API at `API_ORIGIN` with the session's bearer token. Screens see only the client's
- * typed HTTP API either way.
+ * Wraps the product client for screens. Every call goes through the scheduler, so interactive
+ * calls hold speculative work back. A call records the credentials in use when it starts; an
+ * `Unauthenticated` answer is reported with them, so a late answer for an account the person has
+ * already left never signs out the current one. Per-call headers pin that same snapshot over
+ * the live header getter, including empty headers that remove an older credential.
  */
 export const makeAppClient = (
-  options: LaunchOptions,
-  /** The signed-in person's bearer token. */
-  token: string | null
-): ProductClient => {
-  if (options.mock) {
-    return makeProductClient({
-      url: "https://fixtures.invalid",
-      client: "expo",
-      credentials: "omit",
-      fetch: makeFixtureFetch({
-        latencyMs: options.mockLatencyMs,
-        overrides:
-          options.features === null
-            ? {}
-            : { "features.status": featureOverrides[options.features] },
-      }),
-    });
-  }
-  return makeProductClient({
-    url: API_ORIGIN,
-    client: "expo",
-    credentials: "omit",
-    httpHeaders: (): Record<string, string> =>
-      token === null ? {} : { authorization: `Bearer ${token}` },
-  });
-};
+  client: ProductClient,
+  session: Pick<SessionStore, "credentials" | "handleUnauthorized">,
+  scheduler: RequestScheduler
+): AppClient => ({
+  run: async (call, options) =>
+    await scheduler.track(options?.priority ?? "interactive", async () => {
+      const sent = session.credentials();
+      try {
+        const pinnedOptions = {
+          ...options,
+          httpHeaders: {
+            authorization: "",
+            "x-pcobooster-account": "",
+            "x-pcobooster-demo": "",
+            ...credentialHeaders(sent),
+            ...Object.fromEntries(new Headers(options?.httpHeaders)),
+          },
+        };
+        return await client.run(call, pinnedOptions);
+      } catch (error) {
+        if (error instanceof Unauthenticated) {
+          session.handleUnauthorized(sent);
+        }
+        throw error;
+      }
+    }),
+});
+
+/** A demo link that did not start a demo (the server answered, but with no demo token). */
+export class DemoLinkFailureError extends Error {
+  override readonly name = "DemoLinkFailureError";
+  override readonly message = "That demo link isn't valid anymore.";
+}

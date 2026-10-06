@@ -1,12 +1,18 @@
 import { TransportFailure } from "@pcobooster/client/product-client";
-import type { ProductClient } from "@pcobooster/client/product-client";
 import { callForQuery } from "@pcobooster/client/query";
+import type { RequestScheduler } from "@pcobooster/client/request-scheduler";
 import { isProductFault } from "@pcobooster/contracts/faults";
 import { queryOptions } from "@tanstack/react-query";
 import { createContext, useContext } from "react";
 
+import { SignInFailure } from "../session/native-sign-in";
+import { DemoLinkFailureError } from "./app-client";
+import type { AppClient } from "./app-client";
+
 export interface ProductClientContextValue {
-  readonly client: ProductClient;
+  readonly client: AppClient;
+  /** Speculative work (warm-ups, prefetches) waits behind what the person is waiting on. */
+  readonly scheduler: RequestScheduler;
   /** The account context queries belong to, so nothing is shared across accounts. */
   readonly scope: string;
 }
@@ -21,6 +27,9 @@ export const useProductClient = (): ProductClientContextValue => {
   }
   return value;
 };
+
+/** Permissions change rarely (the web keeps them 10 minutes). */
+const ACCESS_STALE_MS = 600_000;
 
 /** Query options for the reads every screen shares, keyed by account scope. */
 export const sharedReads = {
@@ -45,11 +54,23 @@ export const sharedReads = {
       queryFn: async (context) =>
         await callForQuery(context, client, (api) => api.accounts.list()),
     }),
+  /** `access.me`: what this person's Planning Center permissions allow. */
+  access: ({ client, scope }: ProductClientContextValue) =>
+    queryOptions({
+      queryKey: [scope, "access.me"] as const,
+      queryFn: async (context) =>
+        await callForQuery(context, client, (api) => api.access.me()),
+      staleTime: ACCESS_STALE_MS,
+    }),
 };
 
-/** What a failed read shows: the fault's own message, or a network line. */
+/** What a failure shows: a message written for people, or a calm generic line. */
 export const failureMessage = (error: Error): string => {
-  if (isProductFault(error)) {
+  if (
+    isProductFault(error) ||
+    error instanceof SignInFailure ||
+    error instanceof DemoLinkFailureError
+  ) {
     return error.message;
   }
   if (error instanceof TransportFailure) {

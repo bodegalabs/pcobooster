@@ -8,6 +8,7 @@ import {
   VStack,
 } from "@expo/ui/swift-ui";
 import {
+  accessibilityIdentifier,
   buttonStyle,
   controlSize,
   disabled as disabledModifier,
@@ -104,6 +105,10 @@ const GlassActionButton = ({
         controlSize(size),
         tint(isProminent ? resolvedTokenColor("inkFill", variant) : label),
         disabledModifier(action.disabled === true || action.isBusy === true),
+        // UI tests find the button itself, also inside a stack sharing one host.
+        ...(action.testID === undefined
+          ? []
+          : [accessibilityIdentifier(action.testID)]),
       ]}
       onPress={handlePress}
       role={buttonRoles[role]}

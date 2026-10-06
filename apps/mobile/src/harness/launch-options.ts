@@ -7,7 +7,7 @@
  * | Argument | Effect |
  * | --- | --- |
  * | `-PCOBMock YES` | Fixtures through the fixture transport, signed in as Jordan Hale. |
- * | `-PCOBMockSession signedIn\|signedOut` | The mock session to start in (default `signedIn`). |
+ * | `-PCOBMockSession signedIn\|signedOut\|expired\|demo` | The mock session (default `signedIn`). |
  * | `-PCOBMockLatency <ms>` | Fixture reply delay (default 250). |
  * | `-PCOBFeatures all\|none\|people\|songs` | Overrides `features.status` in mock mode. |
  * | `-PCOBFixedNow YES` | Pins the app clock to the fixtures' anchor (Thu Oct 1 2026, 10 AM Pacific). |
@@ -20,7 +20,7 @@ export const FIXTURE_ANCHOR_NOW = new Date("2026-10-01T17:00:00.000Z");
 
 const DEFAULT_LATENCY_MS = 250;
 
-export type MockSession = "signedIn" | "signedOut";
+export type MockSession = "signedIn" | "signedOut" | "expired" | "demo";
 export type LaunchTab = "services" | "people" | "songs" | "search";
 export type FeatureOverride = "all" | "none" | "people" | "songs";
 
@@ -31,6 +31,7 @@ export interface LaunchOptions {
   readonly features: FeatureOverride | null;
   readonly fixedNow: boolean;
   readonly route: string | null;
+  readonly serviceTypeId: string | null;
   readonly tab: LaunchTab | null;
   readonly showsGallery: boolean;
 }
@@ -42,6 +43,7 @@ export const noLaunchOptions: LaunchOptions = {
   features: null,
   fixedNow: false,
   route: null,
+  serviceTypeId: null,
   tab: null,
   showsGallery: false,
 };
@@ -74,6 +76,8 @@ export const parseLaunchOptions = (read: ArgumentReader): LaunchOptions => {
       pick(readString(read, "PCOBMockSession"), [
         "signedIn",
         "signedOut",
+        "expired",
+        "demo",
       ] as const) ?? "signedIn",
     mockLatencyMs:
       Number.isFinite(latency) && readString(read, "PCOBMockLatency") !== null
@@ -87,6 +91,7 @@ export const parseLaunchOptions = (read: ArgumentReader): LaunchOptions => {
     ] as const),
     fixedNow: readFlag(read, "PCOBFixedNow"),
     route: readString(read, "PCOBRoute"),
+    serviceTypeId: readString(read, "PCOBServiceType"),
     tab: pick(readString(read, "PCOBTab"), [
       "services",
       "people",

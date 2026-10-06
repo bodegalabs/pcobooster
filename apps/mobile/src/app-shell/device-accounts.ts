@@ -1,12 +1,6 @@
-/** A person signed in on this device (Swift `DeviceAccount`). */
-export interface DeviceAccount {
-  readonly userId: string;
-  readonly name: string;
-  readonly email: string;
-  readonly organizationName: string | null;
-  readonly lastUsedAt: Date;
-  readonly token: string;
-}
+import type { MockSession } from "../harness/launch-options";
+import type { DeviceAccount, StoredSession } from "../session/device-session";
+import type { NativeSignInResult } from "../session/native-sign-in";
 
 const HOUR_MS = 3_600_000;
 const DAY_MS = 86_400_000;
@@ -22,19 +16,73 @@ export const mockDeviceAccounts = (now: Date): DeviceAccount[] => [
     userId: "usr_9f3c2a7d1e",
     name: "Jordan Hale",
     email: "jordan.hale@cedargrove.example",
+    image: null,
     organizationName: "Cedar Grove Church",
+    selectedAccountId: "acct_cedargrove",
     lastUsedAt: new Date(now.getTime() - JORDAN_LAST_USED_HOURS * HOUR_MS),
     token: "mock-session-jordan",
+    needsSignIn: false,
   },
   {
     userId: "usr_4b81d0c2aa",
     name: "Riley Brooks",
     email: "riley@northside.example",
+    image: null,
     organizationName: "Northside Fellowship",
+    selectedAccountId: "acct_northside_riley",
     lastUsedAt: new Date(now.getTime() - RILEY_LAST_USED_DAYS * DAY_MS),
     token: "mock-session-riley",
+    needsSignIn: false,
   },
 ];
+
+/** The session `-PCOBMockSession` starts in: Jordan active, signed out, expired, or the demo. */
+export const mockStoredSession = (
+  mock: MockSession,
+  now: Date
+): StoredSession => {
+  const accounts = mockDeviceAccounts(now);
+  const [jordan] = accounts;
+  switch (mock) {
+    case "signedOut": {
+      return { accounts, activeUserId: null, demo: null };
+    }
+    case "expired": {
+      return {
+        accounts: accounts.map((account) =>
+          account === jordan ? { ...account, needsSignIn: true } : account
+        ),
+        activeUserId: jordan?.userId ?? null,
+        demo: null,
+      };
+    }
+    case "demo": {
+      return {
+        accounts: [],
+        activeUserId: null,
+        demo: { token: "fixture-demo-session", startedAt: now },
+      };
+    }
+    case "signedIn": {
+      return { accounts, activeUserId: jordan?.userId ?? null, demo: null };
+    }
+    default: {
+      throw new Error("Unknown fixture session");
+    }
+  }
+};
+
+/** What a mock sign-in returns: Jordan Hale at Cedar Grove Church. */
+export const mockSignInResult = (): NativeSignInResult => ({
+  token: "mock-session-jordan-2",
+  user: {
+    id: "usr_9f3c2a7d1e",
+    name: "Jordan Hale",
+    email: "jordan.hale@cedargrove.example",
+    image: null,
+  },
+  selectedAccountId: "acct_cedargrove",
+});
 
 /** The name to show, or the email when the name is blank. */
 export const accountDisplayName = (account: DeviceAccount): string => {
@@ -100,3 +148,7 @@ export const formatUsedAgo = (lastUsedAt: Date, now: Date): string => {
   }
   return `Used ${Math.floor(days / DAYS_PER_YEAR)}y ago`;
 };
+
+/** The short name used in welcome and expired-session copy. */
+export const accountFirstName = (account: DeviceAccount): string =>
+  accountDisplayName(account).split(/\s+/u)[0] ?? accountDisplayName(account);

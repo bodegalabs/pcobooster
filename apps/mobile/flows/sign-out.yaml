@@ -1,0 +1,18 @@
+appId: com.pcobooster.ios
+---
+- tapOn:
+    id: "account-button"
+- tapOn:
+    id: "sign-out-button"
+- assertVisible: "Sign out of pcobooster.com?"
+- tapOn:
+    id: "cancel-destructive"
+- assertVisible:
+    id: "account-sheet"
+- tapOn:
+    id: "sign-out-button"
+- tapOn:
+    id: "confirm-destructive"
+- assertVisible: "Sign in with Planning Center"
+- assertVisible: ".*Riley Brooks.*"
+- takeScreenshot: sign-out

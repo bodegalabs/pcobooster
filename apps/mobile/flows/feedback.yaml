@@ -1,0 +1,20 @@
+appId: com.pcobooster.ios
+---
+- tapOn:
+    id: "account-button"
+- scrollUntilVisible:
+    element:
+      id: "send-feedback-row"
+    direction: DOWN
+- tapOn:
+    id: "send-feedback-row"
+- tapOn:
+    id: "feedback-editor"
+- inputText: "Fixture feedback confirmation test"
+- tapOn:
+    id: "feedback-send-button"
+- assertVisible: ".*Sent.*"
+- takeScreenshot: feedback-sent
+- extendedWaitUntil:
+    notVisible: ".*Sent.*"
+    timeout: 6000

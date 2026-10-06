@@ -1,0 +1,5 @@
+appId: com.pcobooster.ios
+---
+- tapOn: "Filter plans"
+- assertVisible: "Service types"
+- takeScreenshot: services-filter
