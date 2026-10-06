@@ -65,18 +65,14 @@ const clientOutdated = new ClientOutdated({
 });
 
 /**
- * The outermost middleware of every procedure. In order:
- * 1. marks the request id dispatched in the exchange (graft 2: a later defect for it is an
- *    encode failure, not a rejected request);
- * 2. builds the request context from the workerd request only, fresh Planning Center
- *    accounting with the call's priority, and the per-request server view;
- * 3. answers `ClientOutdated` without running the procedure when the caller's
- *    `x-pcobooster-client` is below the supported protocol (or unreadable);
- * 4. runs writes uninterruptibly (their kind comes from the contract), so a disconnect cannot
- *    cut a provider write or its audit short; `preparedWrite` reopens the prepare step;
- * 5. on exit, records the outcome for its one log line;
- * 6. answers anything that is not a ProductFault or an interrupt with InternalError, so no
- *    defect from a handler reaches the wire.
+ * The outermost middleware of every procedure: its context, accounting, outcome line, and
+ * `ClientOutdated` gate. The non-obvious parts:
+ * - It marks the request id dispatched, so the protocol can tell a later defect for it (an
+ *   encode failure, 500) from a request that never reached a handler (400).
+ * - Identity comes from the workerd request only, never RPC message headers: those ride in the
+ *   body, so a cross-site body could otherwise override the browser's cookie.
+ * - Writes run uninterruptibly, so a disconnect cannot cut a provider write or its audit short;
+ *   `preparedWrite` reopens the interruptible prepare step.
  */
 export const ProcedureScopeLive = (
   options: ProcedureScopeOptions

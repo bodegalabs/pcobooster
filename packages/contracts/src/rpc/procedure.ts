@@ -28,7 +28,7 @@ export interface ProcedureSchemas<
   Payload extends Schema.Top,
   Success extends Schema.Top,
 > {
-  /** `Schema.Void` for a procedure that takes no input (main's `.output` without `.input`). */
+  /** `Schema.Void` for a procedure that takes no input. */
   readonly payload: Payload;
   readonly success: Success;
   readonly feature?: FeatureFlagName;
@@ -53,8 +53,8 @@ export type Procedure<
   readonly kind: Kind;
   /**
    * The same procedure as clients send it: the payload schema reduced to its encoded side, so a
-   * client sends what the caller passed and the server's decode (trimming, checks) runs on the
-   * server, as main's did. Untrimmed or invalid input is the server's to accept or reject.
+   * client sends what the caller passed and the payload's decode (trimming, checks) runs only on
+   * the server. Untrimmed or invalid input is the server's to accept or reject.
    */
   readonly wire: Rpc.Rpc<
     Tag,

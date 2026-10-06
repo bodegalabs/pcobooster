@@ -63,7 +63,7 @@ const decodeAssignOutput = Schema.decodeUnknownOption(
   scheduleAssignOutputSchema
 );
 
-/** Main's metadata, field for field: the target, the status, and what an assignment made. */
+/** The audit row's metadata: the target, the status, and what an assignment made. */
 const activityMetadata = ({
   operation,
   input,
@@ -99,7 +99,7 @@ const activityMetadata = ({
 
 /**
  * The D1 row for one attempt. Status and code come from `procedureOutcome`, so an interrupted
- * prepare records 499 and a defect 500, as on main.
+ * prepare records 499 and a defect 500, as the procedure's outcome line does.
  */
 export const scheduleActivityEvent = (
   attempt: ScheduleAttempt,

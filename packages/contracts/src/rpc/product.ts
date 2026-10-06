@@ -2,7 +2,8 @@
  * Every product procedure over Effect RPC. Web, SSR, Expo, the deploy check, and the API Worker
  * all use this one value. Each namespace is declared with `planningCenterGroup` or `plainGroup`,
  * so `ProcedureScope` wraps every other middleware. A namespace merged here without its handler
- * layer on the server is a type error; `parity.test.ts` checks the procedures against main's.
+ * layer on the server is a type error; `parity.test.ts` pins each procedure's name, kind, flag,
+ * and Planning Center access.
  */
 import { accessProcedures, accessRpc } from "@pcobooster/contracts/rpc/access";
 import {

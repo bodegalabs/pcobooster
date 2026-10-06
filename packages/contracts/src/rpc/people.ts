@@ -123,7 +123,7 @@ export const peopleBlockouts = read("people.blockouts", {
   success: mutableArray(blockoutSchema),
 });
 
-/** Main's contract takes no input (`.output` only). */
+/** Takes no input. */
 export const peopleDashboardRoster = read("people.dashboardRoster", {
   payload: Schema.Void,
   success: peopleDashboardRosterSchema,

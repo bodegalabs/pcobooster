@@ -47,7 +47,7 @@ describe("faults on the wire", () => {
     expect(persistence).not.toHaveProperty("detail");
   });
 
-  it("keeps main's status and code for every fault main had, and 426 for an outdated client", () => {
+  it("pins each fault's status and code", () => {
     expect(faultOutcome).toStrictEqual({
       Unauthenticated: { status: 401, code: "UNAUTHORIZED" },
       Forbidden: { status: 403, code: "FORBIDDEN" },

@@ -67,7 +67,7 @@ export const songsSuggestions = read("songs.suggestions", {
 
 /**
  * The Songs page's library: behind the `chordCharts` flag, though it lives in this namespace.
- * Partial without a cursor (`truncated`). Main's contract takes no input (`.output` only).
+ * Partial without a cursor (`truncated`). Takes no input.
  */
 export const songsLibrary = read("songs.library", {
   payload: Schema.Void,

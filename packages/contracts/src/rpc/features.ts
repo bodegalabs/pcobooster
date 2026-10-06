@@ -13,7 +13,7 @@ export const enabledFeaturesSchema = Schema.Struct({
   chordCharts: Schema.Boolean,
 } satisfies Record<FeatureFlagName, typeof Schema.Boolean>);
 
-/** Main's contract takes no input (`.output` only). */
+/** Takes no input. */
 export const featuresStatus = read("features.status", {
   payload: Schema.Void,
   success: enabledFeaturesSchema,

@@ -41,7 +41,7 @@ type ProcedureOf<Tag extends ProcedureTag> = Rpc.ExtractTag<
 >;
 /**
  * The payload's encoded form: what the server decodes. Untrimmed text is accepted here and
- * trimmed (or rejected) by the server, so the client never refuses input main's server took.
+ * trimmed (or rejected) by the server, so input rules live in one place: the server's decode.
  */
 export type ProcedureInput<Tag extends ProcedureTag> = Rpc.PayloadConstructor<
   ProcedureOf<Tag>
@@ -128,9 +128,9 @@ const callFailureOutcome = (
 };
 
 /**
- * The HTTP status a failed call stands for (main's table, `faultOutcome`), or undefined for
- * anything that is not a call failure (an abort, a bug in the caller). The one status read for
- * retries and navigation.
+ * The HTTP status a failed call stands for (`faultOutcome`, the status table the server logs),
+ * or undefined for anything that is not a call failure (an abort, a bug in the caller). The one
+ * status read for retries and navigation.
  */
 export const failureStatus = (error: Error): number | undefined =>
   callFailureOutcome(error)?.status;

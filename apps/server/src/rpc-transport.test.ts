@@ -151,7 +151,7 @@ describe("faults on the Effect RPC route", () => {
     vi.unstubAllGlobals();
   });
 
-  it("answers a product fault with main's status and code, logs it at info, and never reports it", async () => {
+  it("answers a product fault with its status and code, logs it at info, and never reports it", async () => {
     const { reports, report } = recordingReporter();
     const route = serve({
       access: accessWith(async () => {
@@ -280,7 +280,7 @@ describe("faults on the Effect RPC route", () => {
 });
 
 describe("payload decoding", () => {
-  it("sends input as the caller wrote it, so the server trims a people search as main's did", async () => {
+  it("sends input as the caller wrote it, so the server trims a people search", async () => {
     const { searches, httpClient } = peopleDirectory();
     const route = serve({ httpClient });
 

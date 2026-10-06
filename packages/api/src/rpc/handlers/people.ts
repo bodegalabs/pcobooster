@@ -13,7 +13,6 @@ import { peopleRpc } from "@pcobooster/contracts/rpc/people";
 
 export const PeopleHandlers = peopleRpc.toLayer({
   "people.positionCandidates": getPeoplePositionCandidates,
-  // Reads `continuation` and answers the next one, unchanged by the transport.
   "people.planWindowHistory": getPeoplePlanWindowHistory,
   "people.candidateDetails": getPeopleCandidateDetails,
   "people.search": getPeopleSearch,

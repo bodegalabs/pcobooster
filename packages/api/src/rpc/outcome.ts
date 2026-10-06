@@ -117,7 +117,7 @@ export interface ProcedureLogFields {
   readonly priority: RequestPriority;
   readonly client: string | null;
   readonly kind: ProcedureKindValue | null;
-  /** Main's Planning Center summary line, folded into this one. */
+  /** Planning Center requests the procedure sent, retries included. */
   readonly planningCenterRequests: number;
   /** Requests the pacer held back, and for how long in total. */
   readonly rateLimitPauses: number;

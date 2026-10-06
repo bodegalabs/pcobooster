@@ -40,7 +40,8 @@ export type ProductFaultTag = ProductFault["_tag"];
 /**
  * HTTP status and code per fault: the one table behind server logs, the schedule audit's
  * status and error code columns, error reporting (5xx only), and client retry and navigation.
- * Codes keep main's strings so audit rows and dashboards stay comparable.
+ * Codes are stable strings: audit rows and dashboards compare them across releases, so never
+ * rename one.
  */
 export const faultOutcome = {
   Unauthenticated: { status: 401, code: "UNAUTHORIZED" },

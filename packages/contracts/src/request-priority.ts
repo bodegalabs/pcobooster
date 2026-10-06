@@ -6,7 +6,10 @@
  */
 export type RequestPriority = "interactive" | "speculative";
 
-/** Request header the browser sets on speculative calls; absent means interactive. */
+/**
+ * RPC message header with each call's priority, which every client sends on every call (it rides
+ * in the message, not the HTTP request). Absent reads as interactive.
+ */
 export const REQUEST_PRIORITY_HEADER = "x-pcobooster-priority";
 
 /** Unknown or missing values are interactive, so a stray header never demotes a call. */
