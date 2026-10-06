@@ -21,9 +21,9 @@ describe(rewriteCallSites, () => {
       'client.run((api) => api.catalog.adjacentPlans({ params: { serviceTypeId, planId }, query: { direction: "next" } }))',
     ],
     [
-      "a body, with a spread that goes to every part",
-      'productClient.call("schedule.updateStatus", { ...target, status: "C" })',
-      'productClient.run((api) => api.schedule.updateStatus({ params: { ...target }, payload: { ...target, status: "C" } }))',
+      "a body with path params",
+      'productClient.call("schedule.updateStatus", { planPersonId, planId, status: "C" })',
+      'productClient.run((api) => api.schedule.updateStatus({ params: { planPersonId }, payload: { planId, status: "C" } }))',
     ],
     [
       "an input that is not a literal, whole to every part",
@@ -54,17 +54,39 @@ describe(rewriteCallSites, () => {
     expect(rewrite(source)).toMatchObject({ source: expected, skipped: [] });
   });
 
-  it("preserves spread precedence and avoids shadowing an input variable", () => {
-    expect(
-      rewrite(
-        'client.call("schedule.updateStatus", { status: "C", ...target })'
-      ).source
-    ).toBe(
-      'client.run((api) => api.schedule.updateStatus({ params: { ...target }, payload: { status: "C", ...target } }))'
-    );
+  it("avoids shadowing an input variable", () => {
     expect(rewrite('client.call("people.search", api)').source).toBe(
       "client.run((api1) => api1.people.search({ query: api }))"
     );
+  });
+
+  it.each([
+    '{ ...nextTarget(), status: "C" }',
+    '{ ...target, status: "C" }',
+    '{ status: "C", ...target }',
+    '{ planId: nextPlan(), planPersonId: nextPerson(), status: "C" }',
+    '{ planPersonId: target.planPersonId, planId: target.planId, status: "C" }',
+    '{ get planPersonId() { return nextPerson(); }, planId, status: "C" }',
+    '{ [nextKey()]: nextPerson(), planId, status: "C" }',
+  ])("leaves unsafe input evaluation unchanged: %s", (input) => {
+    const source = `client.call("schedule.updateStatus", ${input})`;
+    const result = rewrite(source);
+    expect(result.source).toBe(source);
+    expect(result.rewritten).toBe(0);
+    expect(result.skipped).toHaveLength(1);
+    expect(result.skipped[0]).toMatchObject({ file: "site.ts", line: 1 });
+    expect(rewrite(result.source)).toStrictEqual(result);
+  });
+
+  it("keeps a spread in a request with only one input part", () => {
+    expect(
+      rewrite('client.call("people.search", { ...nextSearch() })')
+    ).toMatchObject({
+      source:
+        "client.run((api) => api.people.search({ query: { ...nextSearch() } }))",
+      rewritten: 1,
+      skipped: [],
+    });
   });
 
   it("leaves what it cannot place, and says why", () => {

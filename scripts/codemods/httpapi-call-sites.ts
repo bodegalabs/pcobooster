@@ -5,10 +5,10 @@
  *   client.run((api) => api.catalog.plan({ params: { serviceTypeId, planId } }), options)
  *
  * Each input property goes to the part its route names: path params to `params`, the rest to
- * `query` (GET, DELETE) or `payload` (POST, PUT, PATCH). A spread goes to every part (each
- * part's schema keeps only its own fields), and an input that is not an object literal is passed
- * whole to every part for the same reason. Calls the route table cannot place (a tag that is not
- * a string literal, an unknown tag, a computed key) are left as they are and reported.
+ * `query` (GET, DELETE) or `payload` (POST, PUT, PATCH). An input variable is passed whole
+ * to every part, whose schema keeps only its own fields. Splitting an object with spreads or
+ * effectful property values could duplicate getters or reorder evaluations, so these inputs
+ * are left for a hand edit, along with computed keys, unknown tags, and variable tags.
  *
  *   bun scripts/codemods/httpapi-call-sites.ts <file or directory>...
  *
@@ -64,6 +64,32 @@ const isEmptyInput = (input: Argument | undefined): boolean =>
 const literal = (members: readonly string[]): string =>
   `{ ${members.join(", ")} }`;
 
+/** Reject operations whose order or count would change when path params are split out. */
+const unsafeObjectProblem = (
+  input: ObjectExpression,
+  split: boolean
+): string | undefined => {
+  for (const property of input.properties) {
+    if (property.type === "SpreadElement") {
+      if (split) {
+        return "a spread input needs a single evaluation before splitting";
+      }
+      continue;
+    }
+    if (property.kind !== "init" || property.method) {
+      return "an accessor or method in the input";
+    }
+    if (
+      split &&
+      property.value.type !== "Identifier" &&
+      property.value.type !== "Literal"
+    ) {
+      return "an input property needs its original evaluation order before splitting";
+    }
+  }
+  return undefined;
+};
+
 /** The request object for `route`, or why the input cannot be placed. */
 const requestFor = (
   route: ProcedureRoute,
@@ -97,6 +123,10 @@ const requestFor = (
       parts.push(`${restKey}: ${whole}`);
     }
     return { request: literal(parts) };
+  }
+  const problem = unsafeObjectProblem(input, takesParams && takesRest);
+  if (problem !== undefined) {
+    return { problem };
   }
   const params: string[] = [];
   const rest: string[] = [];
