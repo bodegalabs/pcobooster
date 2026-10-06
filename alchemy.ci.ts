@@ -103,9 +103,9 @@ const preview: DeployTarget = {
 };
 
 /**
- * Production also ships the iOS app: the `testflight` job releases the same verified `main`
- * revision the production deploy just served, so it shares production's trust level and secrets
- * (the PostHog key built into the app and the App Store Connect API key).
+ * Production also ships the iOS app: a `testflight` job (the Expo app's, once it lands) releases
+ * the same verified `main` revision the production deploy just served, so it shares production's
+ * trust level and secrets (the PostHog key built into the app and the App Store Connect API key).
  */
 const production: DeployTarget = {
   key: "Production",
@@ -372,8 +372,9 @@ export default Alchemy.Stack(
       }
     }
 
-    // Turns on the `testflight` CI job. Deploy it only once the App Store Connect key is in
-    // Infisical Production (docs/ci-cd.md, iOS releases).
+    // Turns on the `testflight` CI job, which the Expo app will bring back (the Swift app's is
+    // gone). Deploy it only once the App Store Connect key is in Infisical Production
+    // (docs/ci-cd.md, iOS releases).
     yield* GitHub.Variable("TestFlightReleases", {
       ...target,
       name: "TESTFLIGHT_RELEASES",
