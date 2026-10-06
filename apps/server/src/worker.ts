@@ -11,7 +11,7 @@ import { createServerDependencies } from "@pcobooster/api/server";
 import type { FeatureFlagSource } from "@pcobooster/api/server";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
-import { Config, Context, Effect, Layer, Redacted } from "effect";
+import { Config, Context, Effect, Layer, Redacted, Scope } from "effect";
 import type * as HttpClient from "effect/unstable/http/HttpClient";
 import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 import * as HttpServerResponse from "effect/unstable/http/HttpServerResponse";
@@ -21,6 +21,7 @@ import { Database } from "./database";
 import { FeatureFlagApp } from "./feature-flags";
 import { apiWorkerObservability, apiWorkerTelemetry } from "./observability";
 import { PlanningCenterCache } from "./planning-center-cache";
+import { isRpcPath, makeRpcRoute, postHogProcedureReporter } from "./rpc-route";
 import { cachedAcrossRequests } from "./shared-initialization";
 import { currentStageSettings } from "./stage";
 
@@ -121,7 +122,10 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
   );
 });
 
-/** Hono serves Better Auth, oRPC, and the OpenAPI reference; see `app.ts`. */
+/**
+ * Hono serves Better Auth, oRPC, and the OpenAPI reference (`app.ts`); `POST /api/rpc` is the
+ * Effect RPC route (`rpc-route.ts`).
+ */
 export default class Api extends Cloudflare.Worker<Api>()(
   "Api",
   Effect.gen(function* apiProps() {
@@ -163,6 +167,8 @@ export default class Api extends Cloudflare.Worker<Api>()(
     const resolveEnvironment = yield* readEnvironment;
     // One pacer per isolate shares each credential's Planning Center budget across requests.
     const pacer = new PlanningCenterRatePacer();
+    // The Effect RPC server lives as long as the isolate, so this scope is never closed.
+    const isolateScope = Scope.makeUnsafe();
     // The D1, KV, and Flagship bindings and a runtime-minted secret are only readable inside a
     // request, so the app is built by the first one and shared by the rest of the isolate's
     // lifetime. Not `Effect.cached`: requests that arrive while the first one builds must not
@@ -195,7 +201,13 @@ export default class Api extends Cloudflare.Worker<Api>()(
         yield* Effect.promise(async () => {
           await server.auth.$context;
         });
-        return createServerApp({
+        const rpc = yield* makeRpcRoute({
+          server,
+          pacer,
+          report: postHogProcedureReporter(config.postHogProjectKey),
+          releaseVersion: config.releaseVersion,
+        }).pipe(Scope.provide(isolateScope));
+        const hono = createServerApp({
           allowAuthWrite: async (clientIp) => {
             const outcome = await rateLimit.limit({ key: clientIp });
             return outcome.success;
@@ -204,14 +216,23 @@ export default class Api extends Cloudflare.Worker<Api>()(
           log: boundaryLog("server"),
           router: appRouter,
         });
+        return { hono, rpc };
       })
     );
     return {
       fetch: Effect.gen(function* fetch() {
-        const request = yield* HttpServerRequest.toWeb(
-          yield* HttpServerRequest.HttpServerRequest
-        ).pipe(Effect.orDie);
-        const handler = yield* app;
+        const httpRequest = yield* HttpServerRequest.HttpServerRequest;
+        const { hono: handler, rpc } = yield* app;
+        if (
+          httpRequest.method !== "OPTIONS" &&
+          isRpcPath(new URL(httpRequest.url, "http://api").pathname)
+        ) {
+          // Effect RPC; oRPC keeps `/api/rpc/<procedure>` until every procedure is ported.
+          return yield* rpc(httpRequest);
+        }
+        const request = yield* HttpServerRequest.toWeb(httpRequest).pipe(
+          Effect.orDie
+        );
         // Procedures run on this request's fiber context (Alchemy's HTTP client, logger, and
         // per-event tracer), so their spans land in this invocation's Workers trace.
         const services = yield* Effect.context<HttpClient.HttpClient>();
