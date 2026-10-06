@@ -3,6 +3,7 @@ import {
   INTERNAL_SERVER_ERROR_MESSAGE,
   serverOnly,
 } from "@pcobooster/contracts/faults/fault-class";
+import { faultStatus } from "@pcobooster/contracts/faults/outcome";
 import { Effect, Schema } from "effect";
 
 /**
@@ -20,5 +21,6 @@ export class PersistenceFailure extends faultClass<PersistenceFailure>()(
     detail: serverOnly(Schema.String),
     operation: serverOnly(Schema.String),
     cause: serverOnly(Schema.Unknown),
-  }
+  },
+  faultStatus("PersistenceFailure")
 ) {}

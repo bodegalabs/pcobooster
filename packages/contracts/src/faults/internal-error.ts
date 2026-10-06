@@ -2,6 +2,7 @@ import {
   faultClass,
   INTERNAL_SERVER_ERROR_MESSAGE,
 } from "@pcobooster/contracts/faults/fault-class";
+import { faultStatus } from "@pcobooster/contracts/faults/outcome";
 import { Effect, Schema } from "effect";
 
 /**
@@ -16,5 +17,6 @@ export class InternalError extends faultClass<InternalError>()(
         Effect.succeed(INTERNAL_SERVER_ERROR_MESSAGE)
       )
     ),
-  }
+  },
+  faultStatus("InternalError")
 ) {}

@@ -1,9 +1,10 @@
 import { faultOutcome, productFaultSchema } from "@pcobooster/contracts/faults";
+import type { ProductFaultTag } from "@pcobooster/contracts/faults";
 import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { PersistenceFailure } from "@pcobooster/contracts/faults/persistence-failure";
 import { Schema } from "effect";
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 
 const wire = Schema.toCodecJson(productFaultSchema);
 const encode = Schema.encodeSync(wire);
@@ -45,6 +46,18 @@ describe("faults on the wire", () => {
     expect(persistence).toBeInstanceOf(PersistenceFailure);
     expect(persistence.message).toBe("Internal server error");
     expect(persistence).not.toHaveProperty("detail");
+  });
+
+  it("gives every fault, and only those, a status its class carries", () => {
+    expectTypeOf<keyof typeof faultOutcome>().toEqualTypeOf<ProductFaultTag>();
+    expect(
+      productFaultSchema.members.map((fault) => [
+        fault.identifier,
+        fault.ast.annotations?.httpApiStatus,
+      ])
+    ).toStrictEqual(
+      Object.entries(faultOutcome).map(([tag, { status }]) => [tag, status])
+    );
   });
 
   it("pins each fault's status and code", () => {

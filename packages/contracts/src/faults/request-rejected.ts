@@ -1,4 +1,5 @@
 import { faultClass } from "@pcobooster/contracts/faults/fault-class";
+import { faultStatus } from "@pcobooster/contracts/faults/outcome";
 import { Schema } from "effect";
 
 /**
@@ -15,5 +16,6 @@ export class RequestRejected extends faultClass<RequestRejected>()(
       "invalid-payload",
       "malformed-request",
     ]),
-  }
+  },
+  faultStatus("RequestRejected")
 ) {}

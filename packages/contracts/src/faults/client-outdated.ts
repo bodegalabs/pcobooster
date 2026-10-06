@@ -1,4 +1,5 @@
 import { faultClass } from "@pcobooster/contracts/faults/fault-class";
+import { faultStatus } from "@pcobooster/contracts/faults/outcome";
 import { Schema } from "effect";
 
 /**
@@ -11,5 +12,6 @@ export class ClientOutdated extends faultClass<ClientOutdated>()(
     message: Schema.String,
     /** The oldest protocol version the server still answers. */
     minimumProtocolVersion: Schema.Int,
-  }
+  },
+  faultStatus("ClientOutdated")
 ) {}

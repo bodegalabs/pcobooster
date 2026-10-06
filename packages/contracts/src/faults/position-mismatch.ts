@@ -1,4 +1,5 @@
 import { faultClass } from "@pcobooster/contracts/faults/fault-class";
+import { faultStatus } from "@pcobooster/contracts/faults/outcome";
 import { Schema } from "effect";
 
 export class PositionMismatch extends faultClass<PositionMismatch>()(
@@ -17,5 +18,6 @@ export class PositionMismatch extends faultClass<PositionMismatch>()(
         teamPositionName: Schema.String,
       }),
     }),
-  }
+  },
+  faultStatus("PositionMismatch")
 ) {}
