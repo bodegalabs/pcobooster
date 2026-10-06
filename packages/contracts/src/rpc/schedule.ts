@@ -29,4 +29,5 @@ export const scheduleAssign = write("schedule.assign", {
   success: scheduleAssignOutputSchema,
 });
 
-export const scheduleRpc = planningCenterGroup(scheduleAssign);
+export const scheduleProcedures = [scheduleAssign] as const;
+export const scheduleRpc = planningCenterGroup(...scheduleProcedures);

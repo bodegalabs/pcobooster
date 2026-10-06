@@ -11,6 +11,7 @@ import { FeedbackHandlers } from "@pcobooster/api/rpc/handlers/feedback";
 import { HealthHandlers } from "@pcobooster/api/rpc/handlers/health";
 import { IdentityHandlers } from "@pcobooster/api/rpc/handlers/identity";
 import { PeopleHandlers } from "@pcobooster/api/rpc/handlers/people";
+import { RunSheetHandlers } from "@pcobooster/api/rpc/handlers/run-sheet";
 import { scheduleHandlers } from "@pcobooster/api/rpc/handlers/schedule";
 import { SongHandlers } from "@pcobooster/api/rpc/handlers/songs";
 import { PlanningCenterSessionLive } from "@pcobooster/api/rpc/planning-center-session";
@@ -44,6 +45,7 @@ export const productHandlers = (options: ProductRpcServerOptions) =>
     CatalogHandlers,
     PeopleHandlers,
     SongHandlers,
+    RunSheetHandlers,
     scheduleHandlers(options.scheduleAudit)
   );
 
