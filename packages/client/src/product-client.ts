@@ -1,20 +1,29 @@
 /**
- * The one product RPC client for web, SSR, Expo, and the deploy check. Each client builds one
- * `ManagedRuntime` holding `RpcClient.make(ProductWireRpc)`; every call is a lookup by tag on that
- * client, so a new procedure needs no client edit.
+ * The one product client for web, SSR, Expo, and the deploy check. Each client builds one
+ * `ManagedRuntime` holding `HttpApiClient.make(ProductWireApi)`. Wire groups are top level, so
+ * that client names each endpoint by its tag; a call is a lookup by tag, and a new endpoint needs
+ * no client edit.
+ *
+ * A call hands the whole input to each part of the request: the path params, query, and body
+ * schemas each keep only their own fields when they encode (`endpoint.ts` declares a part only
+ * when it has fields), so the route table's param placement is the only split there is.
  */
 import { faultOutcome, isProductFault } from "@pcobooster/contracts/faults";
-import type { ProductFault } from "@pcobooster/contracts/faults";
-import type { RequestPriority } from "@pcobooster/contracts/request-priority";
-import { formatClientHeader } from "@pcobooster/contracts/rpc/client-version";
-import type { ClientName } from "@pcobooster/contracts/rpc/client-version";
-import { RPC_HEADERS } from "@pcobooster/contracts/rpc/procedure";
-import { ProductWireRpc } from "@pcobooster/contracts/rpc/product";
+import {
+  procedureRoutes,
+  ProductWireApi,
+} from "@pcobooster/contracts/http/api";
 import type {
   ProcedureTag,
-  ProductWireRpcs,
   ReadProcedureTag,
-} from "@pcobooster/contracts/rpc/product";
+} from "@pcobooster/contracts/http/api";
+import {
+  CLIENT_HEADER,
+  formatClientHeader,
+} from "@pcobooster/contracts/http/client-version";
+import type { ClientName } from "@pcobooster/contracts/http/client-version";
+import { REQUEST_PRIORITY_HEADER } from "@pcobooster/contracts/request-priority";
+import type { RequestPriority } from "@pcobooster/contracts/request-priority";
 import {
   Cause,
   Context,
@@ -25,35 +34,52 @@ import {
   ManagedRuntime,
   Option,
 } from "effect";
+import type { Schema } from "effect";
+import type { Simplify } from "effect/Types";
 import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
 import * as HttpClient from "effect/unstable/http/HttpClient";
+import * as HttpClientError from "effect/unstable/http/HttpClientError";
 import * as HttpClientRequest from "effect/unstable/http/HttpClientRequest";
-import {
-  RpcClient,
-  RpcClientError,
-  RpcSerialization,
-} from "effect/unstable/rpc";
-import type { Rpc } from "effect/unstable/rpc";
+import { HttpApiClient } from "effect/unstable/httpapi";
+import type { HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi";
 
-type ProcedureOf<Tag extends ProcedureTag> = Rpc.ExtractTag<
-  ProductWireRpcs,
+export type {
+  ProcedureTag,
+  ReadProcedureTag,
+} from "@pcobooster/contracts/http/api";
+
+type WireClient = HttpApiClient.ForApi<typeof ProductWireApi>;
+
+type WireEndpoint<Tag extends ProcedureTag> = HttpApiEndpoint.WithIdentifier<
+  HttpApiGroup.Endpoints<
+    (typeof ProductWireApi)["groups"][keyof (typeof ProductWireApi)["groups"]]
+  >,
   Tag
 >;
+
+/** One request part's fields, or none when the endpoint has no such part. */
+type Part<Fields extends Schema.Top> = [Fields["Type"]] extends [never]
+  ? Record<never, never>
+  : NonNullable<Fields["Type"]>;
+
 /**
- * The payload's encoded form: what the server decodes. Untrimmed text is accepted here and
+ * The input's encoded form: what the server decodes. Untrimmed text is accepted here and
  * trimmed (or rejected) by the server, so input rules live in one place: the server's decode.
  */
-export type ProcedureInput<Tag extends ProcedureTag> = Rpc.PayloadConstructor<
-  ProcedureOf<Tag>
+export type ProcedureInput<Tag extends ProcedureTag> = Simplify<
+  Part<HttpApiEndpoint.Params<WireEndpoint<Tag>>> &
+    Part<HttpApiEndpoint.Query<WireEndpoint<Tag>>> &
+    Part<HttpApiEndpoint.Payload<WireEndpoint<Tag>>>
 >;
-export type ProcedureOutput<Tag extends ProcedureTag> = Rpc.Success<
-  ProcedureOf<Tag>
+
+export type ProcedureOutput<Tag extends ProcedureTag> = Effect.Success<
+  ReturnType<WireClient[Tag]>
 >;
 
 export interface ProductClientConfig {
-  /** Absolute URL of `/api/rpc`. */
+  /** The API's origin; every path starts `/api/v1`. */
   readonly url: string;
-  /** Sent as `x-pcobooster-client` with the RPC protocol version. */
+  /** Sent as `x-pcobooster-client` with the API version. */
   readonly client: ClientName;
   /**
    * Web: "include" (cookies). Expo and the deploy check: "omit". SSR leaves it unset: workerd
@@ -67,7 +93,7 @@ export interface ProductClientConfig {
   ) => Promise<Response>;
   /**
    * HTTP headers read when each call is sent, for credentials that change while the client
-   * lives (Expo: bearer token, account, demo). The server reads identity from HTTP headers only.
+   * lives (Expo: bearer token, account, demo).
    */
   readonly httpHeaders?: () => HeadersInit;
 }
@@ -83,9 +109,9 @@ export interface CallOptions<Tag extends ProcedureTag> {
   readonly httpHeaders?: HeadersInit;
 }
 
-/** A procedure that takes no input (`Schema.Void`) may be called without one. */
+/** A procedure that takes no input may be called without one. */
 export type CallArguments<Tag extends ProcedureTag> =
-  undefined extends ProcedureInput<Tag>
+  keyof ProcedureInput<Tag> extends never
     ? [input?: ProcedureInput<Tag>, options?: CallOptions<Tag>]
     : [input: ProcedureInput<Tag>, options?: CallOptions<Tag>];
 
@@ -94,8 +120,9 @@ export const TRANSPORT_FAILURE_MESSAGE =
   "Couldn't reach pcobooster. Check your connection and try again.";
 
 /**
- * The call never produced a product answer: the network failed, or the response was not an RPC
- * response (a gateway's HTML page, a body that did not decode). Client-only; never on the wire.
+ * The call never produced a product answer: the network failed, or the response was not one the
+ * API declares (a gateway's HTML page, a body that did not decode, a status the endpoint does not
+ * answer). Client-only; never on the wire.
  * Its message is written for people, as a fault's is, so a failed write's toast is never blank.
  */
 export class TransportFailure extends Data.TaggedError("TransportFailure")<{
@@ -161,19 +188,22 @@ export interface ProductClient {
   readonly dispose: () => Promise<void>;
 }
 
-/** One sender per procedure, keyed by tag, so a call by tag keeps its own types. */
+/** The input, handed to every part of the request; each part keeps its own fields. */
+interface WholeInput<Tag extends ProcedureTag> {
+  readonly params: CallArguments<Tag>[0];
+  readonly query: CallArguments<Tag>[0];
+  readonly payload: CallArguments<Tag>[0];
+}
+
+/** The client's endpoint methods, keyed by tag, so a call by tag keeps its own types. */
 type Senders = {
   readonly [Tag in ProcedureTag]: (
-    input: CallArguments<Tag>[0],
-    options: { readonly headers: Record<string, string> }
-  ) => Effect.Effect<
-    ProcedureOutput<Tag>,
-    ProductFault | RpcClientError.RpcClientError
-  >;
+    request: WholeInput<Tag>
+  ) => Effect.Effect<ProcedureOutput<Tag>, unknown>;
 };
 
-const ProductRpcClient = Context.Service<Senders>(
-  "@pcobooster/client/ProductRpcClient"
+const ProductApiClient = Context.Service<Senders>(
+  "@pcobooster/client/ProductApiClient"
 );
 
 /** Per-call HTTP headers, read by the HTTP client inside the call's fiber. */
@@ -186,7 +216,7 @@ const withCallHeaders =
   (request: HttpClientRequest.HttpClientRequest) =>
     Effect.map(Effect.serviceOption(CallHttpHeaders), (perCall) => {
       const headers = new Headers(config.httpHeaders?.());
-      headers.set(RPC_HEADERS.client, formatClientHeader(config.client));
+      headers.set(CLIENT_HEADER, formatClientHeader(config.client));
       if (Option.isSome(perCall)) {
         for (const [name, value] of perCall.value) {
           headers.set(name, value);
@@ -206,16 +236,12 @@ const fetchFor = ({ fetch }: ProductClientConfig): typeof globalThis.fetch => {
 };
 
 const clientLayer = (config: ProductClientConfig) =>
-  Layer.effect(ProductRpcClient)(
-    RpcClient.make(ProductWireRpc).pipe(Effect.map((client): Senders => client))
+  Layer.effect(ProductApiClient)(
+    HttpApiClient.make(ProductWireApi, {
+      baseUrl: config.url,
+      transformClient: HttpClient.mapRequestEffect(withCallHeaders(config)),
+    }).pipe(Effect.map((client: WireClient): Senders => client))
   ).pipe(
-    Layer.provide(
-      RpcClient.layerProtocolHttp({
-        url: config.url,
-        transformClient: HttpClient.mapRequestEffect(withCallHeaders(config)),
-      })
-    ),
-    Layer.provide(RpcSerialization.layerJson),
     Layer.provide(FetchHttpClient.layer),
     Layer.provide(
       Layer.succeed(FetchHttpClient.RequestInit)(
@@ -248,13 +274,21 @@ const settle = <Value>(
   throw new TransportFailure({
     tag,
     reason:
-      failure instanceof RpcClientError.RpcClientError &&
-      failure.reason._tag !== "RpcClientDefect"
+      HttpClientError.isHttpClientError(failure) &&
+      failure.reason._tag === "TransportError"
         ? "network"
         : "undecodable",
     cause: failure ?? Cause.squash(exit.cause),
   });
 };
+
+/** Reads, by tag: the only calls the client lets out at speculative priority. */
+const readTags = new Set<string>();
+for (const { tag, kind } of procedureRoutes) {
+  if (kind === "read") {
+    readTags.add(tag);
+  }
+}
 
 export const makeProductClient = (
   config: ProductClientConfig
@@ -265,19 +299,17 @@ export const makeProductClient = (
       if (options.signal?.aborted === true) {
         throw abortError();
       }
+      const headers = new Headers(options.httpHeaders);
+      headers.set(
+        REQUEST_PRIORITY_HEADER,
+        readTags.has(tag) ? (options.priority ?? "interactive") : "interactive"
+      );
       const exit = await runtime.runPromiseExit(
-        ProductRpcClient.pipe(
+        ProductApiClient.pipe(
           Effect.flatMap((senders) =>
-            senders[tag](input, {
-              headers: {
-                [RPC_HEADERS.priority]: options.priority ?? "interactive",
-              },
-            })
+            senders[tag]({ params: input, query: input, payload: input })
           ),
-          Effect.provideService(
-            CallHttpHeaders,
-            new Headers(options.httpHeaders)
-          )
+          Effect.provideService(CallHttpHeaders, headers)
         ),
         { signal: options.signal }
       );

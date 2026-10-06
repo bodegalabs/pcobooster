@@ -4,7 +4,7 @@
  * fixture transports, and the contract test all read it instead of repeating paths.
  */
 import type { FeatureFlagName } from "@pcobooster/contracts/features";
-import type { ProcedureKindValue } from "@pcobooster/contracts/rpc/procedure";
+import type { ProcedureKindValue } from "@pcobooster/contracts/http/procedure-kind";
 
 /** Every product path starts here; the `v1` is the breaking version. */
 export const API_PREFIX = "/api/v1";

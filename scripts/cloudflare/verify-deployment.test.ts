@@ -12,28 +12,16 @@ const respondWith =
   async () =>
     await Promise.resolve(response.clone());
 
-const hasRequestId = (body: unknown): body is { readonly id: unknown } =>
-  typeof body === "object" && body !== null && "id" in body;
-
-/** The API's RPC answer to a `health` call, echoing the call's request id. */
+/** The API's answer to `GET /api/v1/health`. */
 interface HealthValue {
   readonly status: string;
   readonly version?: string;
 }
 
 const healthReply = async (
-  request: Request,
+  _request: Request,
   value: HealthValue
-): Promise<Response> => {
-  const body: unknown = await request.json();
-  return Response.json([
-    {
-      _tag: "Exit",
-      requestId: hasRequestId(body) ? body.id : null,
-      exit: { _tag: "Success", value },
-    },
-  ]);
-};
+): Promise<Response> => await Promise.resolve(Response.json(value));
 
 const answeringHealth =
   (value: HealthValue): typeof fetch =>
@@ -56,8 +44,8 @@ describe(readVersion, () => {
       url: seen[0]?.url,
       client: seen[0]?.headers.get("x-pcobooster-client"),
     }).toStrictEqual({
-      url: "https://example.test/api/rpc/",
-      client: "deploy;rpc=1",
+      url: "https://example.test/api/v1/health",
+      client: "deploy;api=1",
     });
   });
 
@@ -69,7 +57,7 @@ describe(readVersion, () => {
 
   it.each([
     [
-      "a JSON reply that is not an RPC message",
+      "a JSON reply of another shape",
       Response.json({ json: { status: "ok", version: "b57ca91" } }),
     ],
     ["an HTML page", new Response("<html>", { status: 200 })],
@@ -113,7 +101,7 @@ const deployedOrigin = (deployed: Deployed) => {
   const fetchImpl: typeof fetch = async (input, init) => {
     const url = input instanceof Request ? input.url : input.toString();
     requested.push(url);
-    if (url.endsWith("/api/rpc/")) {
+    if (url.endsWith("/api/v1/health")) {
       return await healthReply(new Request(input, init), {
         status: "ok",
         version: deployed.api,

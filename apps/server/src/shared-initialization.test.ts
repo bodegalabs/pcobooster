@@ -28,7 +28,7 @@ const coldStartBodies = async (share: string): Promise<string[]> => {
       Array.from({ length: CONCURRENT_REQUESTS }, async (_, index) => {
         const response = worker
           .dispatchFetch(
-            `http://localhost/api/rpc/catalog/plans?share=${share}`,
+            `http://localhost/api/v1/service-types/st-1/plans?share=${share}`,
             {
               method: "POST",
               body: `body-${index}`,

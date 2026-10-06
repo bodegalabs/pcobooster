@@ -27,7 +27,10 @@ describe(decideRequestGate, () => {
       "https://pcobooster.com/services/1/plans/2/lineup?teamId=3",
     ],
     ["http://www.pcobooster.com/", "https://pcobooster.com/"],
-    ["https://www.pcobooster.com/api/rpc/", "https://pcobooster.com/api/rpc/"],
+    [
+      "https://www.pcobooster.com/api/v1/session",
+      "https://pcobooster.com/api/v1/session",
+    ],
   ])("permanently redirects %s to the apex", (url, location) => {
     expect(
       decideRequestGate(signedOut(url, { hasSessionCookie: true }))
@@ -74,8 +77,11 @@ describe(decideRequestGate, () => {
     "/api/auth/callback/planning-center?code=1",
     // A prefix match; the API rejects unknown auth routes.
     "/api/authz",
-    "/api/rpc",
-    "/api/rpc/",
+    "/api/v1/session",
+    "/api/v1/features",
+    "/api/v1/demo/session",
+    "/api/v1/accounts",
+    "/api/v1/service-types/1/plans/2/items/order",
     "/auth",
     "/auth?next=%2Fpeople",
     "/robots.txt",

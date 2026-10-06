@@ -1,8 +1,9 @@
 /**
  * Wait until a deployed origin serves the expected commit from both Workers that CI redeploys
  * on every commit: the web Worker at `/version`, and the API through the web -> API binding with
- * the product RPC client's `health` call. Then check the public home page. Workers roll out gradually, so the old
- * version may answer briefly after `alchemy deploy` returns.
+ * the product client's `health` call (`GET /api/v1/health`). Then check the public home page.
+ * Workers roll out gradually, so the old version may answer briefly after `alchemy deploy`
+ * returns.
  *
  *   bun scripts/cloudflare/verify-deployment.ts <origin> <commit-sha>
  *
@@ -22,21 +23,21 @@ const webVersionResponse = z.object({ version: z.string() });
 type Fetch = typeof fetch;
 
 /**
- * The API's deployed version, or undefined until it answers `health` through the whole RPC
- * stack (the product Worker's gate and binding, the RPC route, the client's decoding).
+ * The API's deployed version, or undefined until it answers `health` through the whole product
+ * API (the product Worker's gate and binding, the API's router, the client's decoding).
  */
 export const readVersion = async (
   origin: string,
   fetchImpl: Fetch = fetch
 ): Promise<string | undefined> => {
   const client = makeProductClient({
-    url: `${origin}/api/rpc`,
+    url: origin,
     client: "deploy",
     credentials: "omit",
     fetch: fetchImpl,
   });
   try {
-    const { version } = await client.call("health", {});
+    const { version } = await client.call("health");
     return version;
   } catch {
     return undefined;

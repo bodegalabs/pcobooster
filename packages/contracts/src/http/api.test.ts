@@ -9,9 +9,9 @@ import {
   ProductApi,
   ProductWireApi,
 } from "@pcobooster/contracts/http/api";
+import { procedureKindOf } from "@pcobooster/contracts/http/procedure-kind";
+import { requiredFeatureOf } from "@pcobooster/contracts/http/required-feature";
 import { matchRoute } from "@pcobooster/contracts/http/route";
-import { procedureKindOf } from "@pcobooster/contracts/rpc/procedure";
-import { requiredFeatureOf } from "@pcobooster/contracts/rpc/required-feature";
 import { Function, Schema } from "effect";
 import { HttpApi } from "effect/unstable/httpapi";
 import type { HttpApiEndpoint, HttpApiGroup } from "effect/unstable/httpapi";

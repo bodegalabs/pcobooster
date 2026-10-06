@@ -6,11 +6,11 @@ import type {
   PlanningCenterAccessDependencies,
   RequestAuthentication,
 } from "@pcobooster/api/application/planning-center-access";
+import type { ReportProcedureFailure } from "@pcobooster/api/http/outcome";
 import {
   createPlanningCenterReadCaches,
   createPlanningCenterServices,
 } from "@pcobooster/api/planning-center/services/factory";
-import type { ReportProcedureFailure } from "@pcobooster/api/rpc/outcome";
 import { httpClientFor } from "@pcobooster/api/testing/http-client";
 import { testServer } from "@pcobooster/api/testing/server";
 import { Forbidden } from "@pcobooster/contracts/faults/forbidden";

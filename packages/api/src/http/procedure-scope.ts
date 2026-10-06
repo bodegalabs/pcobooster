@@ -3,30 +3,30 @@
  * Planning Center accounting and priority, the outcome line, and fault encoding, around
  * HttpApi's own decode, handler, and encode.
  */
-import "@pcobooster/api/rpc/services";
+import "@pcobooster/api/http/services";
 import {
   createRequestContext,
   RequestContext,
 } from "@pcobooster/api/application/context";
-import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
-import { PlanningCenterPacing } from "@pcobooster/api/planning-center/pacing";
-import type { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
-import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
-import { PLANNING_CENTER_REQUEST_CAP } from "@pcobooster/api/planning-center/request-budget";
 import {
   isReportable,
   logProcedureOutcome,
   procedureLogFields,
   procedureOutcome,
   reportedError,
-} from "@pcobooster/api/rpc/outcome";
+} from "@pcobooster/api/http/outcome";
 import type {
   ProcedureCall,
   ProcedureLogFields,
   ProcedureOutcome,
   ReportProcedureFailure,
-} from "@pcobooster/api/rpc/outcome";
-import { ResponseCookies } from "@pcobooster/api/rpc/response-cookies";
+} from "@pcobooster/api/http/outcome";
+import { ResponseCookies } from "@pcobooster/api/http/response-cookies";
+import { PlanningCenterAccounting } from "@pcobooster/api/planning-center/accounting";
+import { PlanningCenterPacing } from "@pcobooster/api/planning-center/pacing";
+import type { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
+import { PlanningCenterRequestAccounting } from "@pcobooster/api/planning-center/request-accounting";
+import { PLANNING_CENTER_REQUEST_CAP } from "@pcobooster/api/planning-center/request-budget";
 import { Server, serverDependenciesForRequest } from "@pcobooster/api/server";
 import type { ServerDependencies } from "@pcobooster/api/server";
 import { ClientOutdated } from "@pcobooster/contracts/faults/client-outdated";
@@ -34,15 +34,15 @@ import { InternalError } from "@pcobooster/contracts/faults/internal-error";
 import { RequestRejected } from "@pcobooster/contracts/faults/request-rejected";
 import {
   CLIENT_HEADER,
-  isSupportedApiClient,
+  isSupportedClient,
   MINIMUM_API_VERSION,
 } from "@pcobooster/contracts/http/client-version";
+import { procedureKindOf } from "@pcobooster/contracts/http/procedure-kind";
 import { ProcedureScope } from "@pcobooster/contracts/http/procedure-scope";
 import {
   parseRequestPriority,
   REQUEST_PRIORITY_HEADER,
 } from "@pcobooster/contracts/request-priority";
-import { procedureKindOf } from "@pcobooster/contracts/rpc/procedure";
 import { Context, Effect, Exit, Layer, Option } from "effect";
 import * as Cookies from "effect/unstable/http/Cookies";
 import * as HttpClient from "effect/unstable/http/HttpClient";
@@ -246,7 +246,7 @@ export const ProcedureScopeLive = (
       const cookies: Cookies.Cookie[] = [];
       let retryAfter: number | undefined;
       yield* responseExtras(cookies, () => retryAfter);
-      const gate = isSupportedApiClient(client)
+      const gate = isSupportedClient(client)
         ? Effect.void
         : Effect.fail(clientOutdated);
       const program = Effect.andThen(

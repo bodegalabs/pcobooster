@@ -10,7 +10,6 @@ import type { FeatureFlagSource } from "@pcobooster/api/server";
 import * as Alchemy from "alchemy";
 import * as Cloudflare from "alchemy/Cloudflare";
 import { Config, Effect, Layer, Redacted, Scope } from "effect";
-import * as HttpServerRequest from "effect/unstable/http/HttpServerRequest";
 
 import { Database } from "./database";
 import { waitUntilAfterDisconnect } from "./disconnect";
@@ -24,7 +23,6 @@ import type { AuthWriteLimiter } from "./http-app";
 import { apiWorkerObservability, apiWorkerTelemetry } from "./observability";
 import { PlanningCenterCache } from "./planning-center-cache";
 import { postHogProcedureReporter } from "./procedure-reporting";
-import { isRpcPath, makeRpcRoute } from "./rpc-route";
 import { cachedAcrossRequests } from "./shared-initialization";
 import { currentStageSettings } from "./stage";
 
@@ -126,8 +124,8 @@ const readEnvironment = Effect.gen(function* readEnvironment() {
 });
 
 /**
- * `POST /api/rpc` is the product's Effect RPC route (`rpc-route.ts`); one Effect router serves
- * everything else (`http-app.ts`): the HttpApi product API, Better Auth, and liveness.
+ * The API Worker: one Effect router (`http-app.ts`) serves the product API (`/api/v1`), Better
+ * Auth, and liveness.
  */
 export default class Api extends Cloudflare.Worker<Api>()(
   "Api",
@@ -171,7 +169,7 @@ export default class Api extends Cloudflare.Worker<Api>()(
     const { publicOrigin } = yield* currentStageSettings;
     // One pacer per isolate shares each credential's Planning Center budget across requests.
     const pacer = new PlanningCenterRatePacer();
-    // The RPC server and the router live as long as the isolate, so this scope is never closed.
+    // The router lives as long as the isolate, so this scope is never closed.
     const isolateScope = Scope.makeUnsafe();
     // Built once, here, before any request: nothing request-scoped can reach it.
     const http = yield* makeHttpApp({
@@ -212,30 +210,16 @@ export default class Api extends Cloudflare.Worker<Api>()(
           await server.auth.$context;
         });
         const report = postHogProcedureReporter(config.postHogProjectKey);
-        const rpc = yield* makeRpcRoute({
-          server,
-          pacer,
-          report,
-          releaseVersion: config.releaseVersion,
-          afterDisconnect: waitUntilAfterDisconnect,
-        }).pipe(Scope.provide(isolateScope));
         const allowAuthWrite: AuthWriteLimiter = async (clientIp) => {
           const outcome = await rateLimit.limit({ key: clientIp });
           return outcome.success;
         };
-        return { server, report, allowAuthWrite, rpc };
+        return { server, report, allowAuthWrite };
       })
     );
     return {
       fetch: Effect.gen(function* fetch() {
-        const httpRequest = yield* HttpServerRequest.HttpServerRequest;
-        const { server, report, allowAuthWrite, rpc } = yield* isolate;
-        if (
-          httpRequest.method !== "OPTIONS" &&
-          isRpcPath(new URL(httpRequest.url, "http://api").pathname)
-        ) {
-          return yield* rpc(httpRequest);
-        }
+        const { server, report, allowAuthWrite } = yield* isolate;
         return yield* http.pipe(
           Effect.provideService(IsolateServer, { server, report }),
           Effect.provideService(AuthWriteLimit, allowAuthWrite)

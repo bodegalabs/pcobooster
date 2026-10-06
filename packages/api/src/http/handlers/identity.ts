@@ -7,7 +7,7 @@ import {
 import {
   selectedAccountCookie,
   setResponseCookie,
-} from "@pcobooster/api/rpc/response-cookies";
+} from "@pcobooster/api/http/response-cookies";
 import { Server } from "@pcobooster/api/server";
 import { ProductApi } from "@pcobooster/contracts/http/api";
 import { Effect, Layer } from "effect";

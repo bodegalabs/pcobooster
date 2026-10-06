@@ -5,8 +5,8 @@ import {
 import type {
   CallArguments,
   ProcedureOutput,
+  ProcedureTag,
 } from "@pcobooster/client/product-client";
-import type { ProcedureTag } from "@pcobooster/contracts/rpc/product";
 import { notFound, redirect } from "@tanstack/react-router";
 
 /** A Worker service binding, or a test double. */
@@ -14,11 +14,11 @@ export interface ServiceFetcher {
   fetch: (request: Request) => Promise<Response>;
 }
 
-export interface ServerRpcOptions {
+export interface ServerApiOptions {
   api: ServiceFetcher;
   /** Incoming `Cookie` header; the session cookie authorizes the API call. */
   cookie: string | undefined;
-  /** RPC URLs use the product origin the API expects, not the binding's. */
+  /** Calls use the product origin the API expects, not the binding's. */
   productOrigin: string;
 }
 
@@ -46,12 +46,12 @@ const navigateOnFault = (failure: Error): void => {
  * cookie travels as an HTTP header, the only place the API reads identity from.
  */
 export const serverCall = async <Tag extends ProcedureTag>(
-  { api, cookie, productOrigin }: ServerRpcOptions,
+  { api, cookie, productOrigin }: ServerApiOptions,
   tag: Tag,
   ...args: CallArguments<Tag>
 ): Promise<ProcedureOutput<Tag>> => {
   const client = makeProductClient({
-    url: `${productOrigin}/api/rpc`,
+    url: productOrigin,
     client: "ssr",
     fetch: async (input, init) =>
       await api.fetch(new Request(input, { ...init, redirect: "manual" })),

@@ -5,7 +5,7 @@
  * implements it (`packages/api/src/http/planning-center-session.ts`).
  */
 import { productFaults } from "@pcobooster/contracts/http/procedure-scope";
-import type { ProvidedBy } from "@pcobooster/contracts/rpc/server-services";
+import type { ProvidedBy } from "@pcobooster/contracts/http/server-services";
 import { HttpApiMiddleware } from "effect/unstable/httpapi";
 
 export class PlanningCenterSession extends HttpApiMiddleware.Service<

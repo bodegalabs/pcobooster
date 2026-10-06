@@ -4,9 +4,11 @@
  */
 import { DEMO_SESSION_HEADER } from "@pcobooster/api/auth/demo-access";
 import { PLANNING_CENTER_SELECTED_ACCOUNT_HEADER } from "@pcobooster/api/auth/planning-center-session";
-import { CLIENT_HEADER } from "@pcobooster/contracts/http/client-version";
+import {
+  CLIENT_HEADER,
+  SERVER_VERSION_HEADER,
+} from "@pcobooster/contracts/http/client-version";
 import { REQUEST_PRIORITY_HEADER } from "@pcobooster/contracts/request-priority";
-import { SERVER_VERSION_HEADER } from "@pcobooster/contracts/rpc/procedure";
 
 export interface CorsPolicy {
   readonly origin: string;
@@ -34,21 +36,3 @@ export const corsPolicy = (origin: string): CorsPolicy => ({
   // What a browser on the product origin may read: when to retry, and which release answered.
   exposeHeaders: ["Retry-After", SERVER_VERSION_HEADER],
 });
-
-/**
- * The headers the router's CORS middleware puts on a response that is not a preflight, for the
- * RPC route: the origin only when it is the product's, credentials always, and `Vary: Origin`.
- */
-export const corsResponseHeaders = (
-  policy: CorsPolicy,
-  requestOrigin: string | null
-): Headers => {
-  const headers = new Headers({
-    "access-control-allow-credentials": "true",
-    vary: "Origin",
-  });
-  if (requestOrigin === policy.origin) {
-    headers.set("access-control-allow-origin", policy.origin);
-  }
-  return headers;
-};

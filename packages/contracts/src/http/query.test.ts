@@ -1,6 +1,6 @@
+import { peoplePlanWindowHistoryInputSchema } from "@pcobooster/contracts/http/people";
 import { urlQuery } from "@pcobooster/contracts/http/query";
-import { peoplePlanWindowHistoryInputSchema } from "@pcobooster/contracts/rpc/people";
-import { requiredId } from "@pcobooster/contracts/rpc/schema";
+import { requiredId } from "@pcobooster/contracts/http/schema";
 import { Exit, Predicate, Schema } from "effect";
 import { describe, expect, it } from "vitest";
 

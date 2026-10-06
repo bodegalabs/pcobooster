@@ -1,17 +1,65 @@
 /** The run sheet's items. */
 import { read, write } from "@pcobooster/contracts/http/endpoint";
 import { planningCenterGroup } from "@pcobooster/contracts/http/group";
-import { planItemSchema } from "@pcobooster/contracts/rpc/plan-item-schemas";
 import {
-  planItemsCreateInputSchema,
-  planItemsDeleteInputSchema,
-  planItemsListInputSchema,
-  planItemsReorderInputSchema,
-  planItemsSuccessSchema,
-  planItemsUpdateInputSchema,
-} from "@pcobooster/contracts/rpc/plan-items";
-import { mutableArray } from "@pcobooster/contracts/rpc/schema";
-import { Struct } from "effect";
+  planItemSchema,
+  planItemServicePositionSchema,
+} from "@pcobooster/contracts/http/plan-item-schemas";
+import {
+  mutableArray,
+  nonNegativeInteger,
+  requiredId,
+} from "@pcobooster/contracts/http/schema";
+import { Struct, Schema } from "effect";
+
+/** `z.string().trim().optional()`. */
+const optionalText = Schema.optional(Schema.Trim);
+/** `requiredId.nullish()`. */
+const optionalNullableId = Schema.optional(Schema.NullOr(requiredId));
+
+export const planItemsListInputSchema = Schema.Struct({
+  serviceTypeId: requiredId,
+  planId: requiredId,
+});
+
+const itemFields = {
+  title: optionalText,
+  servicePosition: Schema.optional(planItemServicePositionSchema),
+  length: Schema.optional(Schema.NullOr(nonNegativeInteger)),
+  description: optionalText,
+  htmlDetails: optionalText,
+  songId: optionalNullableId,
+  arrangementId: optionalNullableId,
+  keyId: optionalNullableId,
+  selectedLayoutId: optionalNullableId,
+  customArrangementSequence: Schema.optional(mutableArray(requiredId)),
+};
+
+export const planItemsCreateInputSchema = Schema.Struct({
+  ...planItemsListInputSchema.fields,
+  ...itemFields,
+  itemType: Schema.optional(Schema.Literals(["header", "item"])),
+});
+
+export const planItemsUpdateInputSchema = Schema.Struct({
+  ...planItemsListInputSchema.fields,
+  ...itemFields,
+  itemId: requiredId,
+});
+
+export const planItemsDeleteInputSchema = Schema.Struct({
+  ...planItemsListInputSchema.fields,
+  itemId: requiredId,
+});
+
+export const planItemsReorderInputSchema = Schema.Struct({
+  ...planItemsListInputSchema.fields,
+  sequence: mutableArray(requiredId).check(Schema.isMinLength(1)),
+});
+
+export const planItemsSuccessSchema = Schema.Struct({
+  success: Schema.Literal(true),
+});
 
 const ITEMS = "/service-types/:serviceTypeId/plans/:planId/items";
 const PLAN = ["serviceTypeId", "planId"] as const;

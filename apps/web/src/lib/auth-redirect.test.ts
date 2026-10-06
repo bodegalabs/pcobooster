@@ -22,7 +22,7 @@ describe(sanitizeReturnPath, () => {
     "/\\evil.example",
     "/auth",
     "/auth?next=/services",
-    "/api/rpc",
+    "/api/v1/session",
   ])("falls back to the default for %j", (value) => {
     expect(sanitizeReturnPath(value)).toBe(DEFAULT_SIGN_IN_RETURN_PATH);
   });

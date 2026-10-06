@@ -1,4 +1,4 @@
-import { procedureOutcome } from "@pcobooster/api/rpc/outcome";
+import { procedureOutcome } from "@pcobooster/api/http/outcome";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { Cause, Exit } from "effect";
 import { describe, expect, it } from "vitest";

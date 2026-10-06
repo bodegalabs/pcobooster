@@ -1,8 +1,16 @@
 /** Which of the plan's times each scheduled person serves. */
 import { write } from "@pcobooster/contracts/http/endpoint";
 import { planningCenterGroup } from "@pcobooster/contracts/http/group";
-import { planPeopleUpdateTimesInputSchema } from "@pcobooster/contracts/rpc/plan-people";
+import { mutableArray, requiredId } from "@pcobooster/contracts/http/schema";
 import { Schema, Struct } from "effect";
+
+export const planPeopleUpdateTimesInputSchema = Schema.Struct({
+  serviceTypeId: requiredId,
+  planId: requiredId,
+  personId: requiredId,
+  planPersonId: requiredId,
+  planTimeIds: mutableArray(requiredId),
+});
 
 const PLAN_PERSON = ["serviceTypeId", "planId", "planPersonId"] as const;
 

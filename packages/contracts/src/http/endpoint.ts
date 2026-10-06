@@ -13,15 +13,15 @@
  * `undefined`, which is what a call that takes no input sends.
  */
 import type { FeatureFlagName } from "@pcobooster/contracts/features";
+import { ProcedureKind } from "@pcobooster/contracts/http/procedure-kind";
+import type { ProcedureKindValue } from "@pcobooster/contracts/http/procedure-kind";
 import { urlQuery } from "@pcobooster/contracts/http/query";
+import { RequiredFeature } from "@pcobooster/contracts/http/required-feature";
 import { API_PREFIX } from "@pcobooster/contracts/http/route";
 import type {
   ProcedureMethod,
   ProcedureRoute,
 } from "@pcobooster/contracts/http/route";
-import { ProcedureKind } from "@pcobooster/contracts/rpc/procedure";
-import type { ProcedureKindValue } from "@pcobooster/contracts/rpc/procedure";
-import { RequiredFeature } from "@pcobooster/contracts/rpc/required-feature";
 import { Context, Schema } from "effect";
 import { HttpApiEndpoint } from "effect/unstable/httpapi";
 

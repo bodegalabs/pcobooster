@@ -27,7 +27,7 @@ import { AlreadyScheduled } from "@pcobooster/contracts/faults/already-scheduled
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import { PositionMismatch } from "@pcobooster/contracts/faults/position-mismatch";
 import { RateLimited } from "@pcobooster/contracts/faults/rate-limited";
-import type { ScheduleAssignInput } from "@pcobooster/contracts/rpc/schedule";
+import type { ScheduleAssignInput } from "@pcobooster/contracts/http/schedule";
 import type { JsonValue } from "@pcobooster/planning-center-models/json";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";

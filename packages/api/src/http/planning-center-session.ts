@@ -5,7 +5,7 @@ import {
 } from "@pcobooster/api/application/planning-center-access";
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
 import { PlanningCenterSession } from "@pcobooster/contracts/http/planning-center-session";
-import { requiredFeatureOf } from "@pcobooster/contracts/rpc/required-feature";
+import { requiredFeatureOf } from "@pcobooster/contracts/http/required-feature";
 import { Effect, Layer } from "effect";
 
 /**

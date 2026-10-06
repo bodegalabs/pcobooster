@@ -8,14 +8,14 @@
  */
 import { createRequestContext } from "@pcobooster/api/application/context";
 import {
+  faultOutcomeOf,
+  procedureLogFields,
+} from "@pcobooster/api/http/outcome";
+import type { ProcedureOutcome } from "@pcobooster/api/http/outcome";
+import {
   writeOutcome,
   REJECTED_MESSAGE,
 } from "@pcobooster/api/http/procedure-scope";
-import {
-  faultOutcomeOf,
-  procedureLogFields,
-} from "@pcobooster/api/rpc/outcome";
-import type { ProcedureOutcome } from "@pcobooster/api/rpc/outcome";
 import { RequestRejected } from "@pcobooster/contracts/faults/request-rejected";
 import { procedureRoutes } from "@pcobooster/contracts/http/api";
 import { CLIENT_HEADER } from "@pcobooster/contracts/http/client-version";

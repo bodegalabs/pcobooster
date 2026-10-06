@@ -1,16 +1,16 @@
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
+import type { ReportProcedureFailure } from "@pcobooster/api/http/outcome";
 import { IsolateServer } from "@pcobooster/api/http/procedure-scope";
+import type { ScheduleAuditDependencies } from "@pcobooster/api/http/schedule-audit";
 import { PlanningCenterRatePacer } from "@pcobooster/api/planning-center/rate-pacer";
-import type { ReportProcedureFailure } from "@pcobooster/api/rpc/outcome";
-import type { ScheduleAuditDependencies } from "@pcobooster/api/rpc/schedule-audit";
 import type { ServerDependencies } from "@pcobooster/api/server";
 import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { recordLogs } from "@pcobooster/api/testing/logs";
-import { makeProductClient } from "@pcobooster/client/product-http-client";
+import { makeProductClient } from "@pcobooster/client/product-client";
 import type {
   ProductClient,
   ProductClientConfig,
-} from "@pcobooster/client/product-http-client";
+} from "@pcobooster/client/product-client";
 import { Effect, Scope } from "effect";
 import type { Tracer } from "effect";
 import * as HttpClient from "effect/unstable/http/HttpClient";

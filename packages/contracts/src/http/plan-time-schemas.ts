@@ -1,5 +1,5 @@
 /** Plan time answers over Effect RPC. Ported from the zod schemas in `../plan-time-schemas.ts`. */
-import { mutableArray } from "@pcobooster/contracts/rpc/schema";
+import { mutableArray } from "@pcobooster/contracts/http/schema";
 import { Schema } from "effect";
 
 export const planTimeTypeSchema = Schema.Literals([

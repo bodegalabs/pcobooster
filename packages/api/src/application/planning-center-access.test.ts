@@ -35,7 +35,9 @@ import * as HttpClient from "effect/unstable/http/HttpClient";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const requestFor = (accountId: string): Request =>
-  new Request(`https://pcobooster.com/api/rpc/catalog/${accountId}`);
+  new Request(
+    `https://pcobooster.com/api/v1/service-types?account=${accountId}`
+  );
 
 const dependenciesFor = (
   accountId: string
@@ -121,11 +123,14 @@ describe("PlanningCenterAccess", () => {
       throw new Error("Expected a demo configuration");
     }
     const fetchMock = vi.fn<typeof globalThis.fetch>();
-    const request = new Request("https://pcobooster.com/api/rpc/schedule", {
-      headers: {
-        cookie: `${DEMO_SESSION_COOKIE}=${demoSessionToken(configuration)}`,
-      },
-    });
+    const request = new Request(
+      "https://pcobooster.com/api/v1/plan-people/plan-person-1",
+      {
+        headers: {
+          cookie: `${DEMO_SESSION_COOKIE}=${demoSessionToken(configuration)}`,
+        },
+      }
+    );
 
     const access = await Effect.runPromise(
       resolvePlanningCenterAccess().pipe(

@@ -1,6 +1,6 @@
 /** Song answers over Effect RPC. Ported from the zod schemas in `../song-schemas.ts`. */
-import { layoutOptionSchema } from "@pcobooster/contracts/rpc/plan-item-schemas";
-import { finiteNumber, mutableArray } from "@pcobooster/contracts/rpc/schema";
+import { layoutOptionSchema } from "@pcobooster/contracts/http/plan-item-schemas";
+import { finiteNumber, mutableArray } from "@pcobooster/contracts/http/schema";
 import { Schema } from "effect";
 
 export const songCatalogEntrySchema = Schema.Struct({

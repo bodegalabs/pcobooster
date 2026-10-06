@@ -2,10 +2,23 @@
 import { write } from "@pcobooster/contracts/http/endpoint";
 import { planningCenterGroup } from "@pcobooster/contracts/http/group";
 import {
-  neededPositionsAdjustInputSchema,
-  neededPositionsAdjustOutputSchema,
-} from "@pcobooster/contracts/rpc/needed-positions";
-import { Struct } from "effect";
+  nonNegativeInteger,
+  requiredId,
+} from "@pcobooster/contracts/http/schema";
+import { Struct, Schema } from "effect";
+
+export const neededPositionsAdjustInputSchema = Schema.Struct({
+  serviceTypeId: requiredId,
+  planId: requiredId,
+  teamId: requiredId,
+  positionName: requiredId,
+  change: Schema.Literals(["add", "remove"]),
+});
+
+/** The position's open slots after the change; unchanged when it had no open-slot record. */
+export const neededPositionsAdjustOutputSchema = Schema.Struct({
+  openCount: nonNegativeInteger,
+});
 
 const PLAN = ["serviceTypeId", "planId"] as const;
 

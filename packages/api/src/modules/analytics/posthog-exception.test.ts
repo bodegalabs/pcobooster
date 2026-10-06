@@ -9,7 +9,7 @@ import { z } from "zod";
 const NOW = new Date("2026-09-28T17:00:00.000Z");
 const request = {
   code: "BAD_GATEWAY",
-  path: "/api/rpc/planItems/create",
+  path: "/api/v1/service-types/:serviceTypeId/plans/:planId/items",
   method: "POST",
   requestId: "request-1",
 };
@@ -73,9 +73,10 @@ describe(toPostHogExceptionCapture, () => {
             },
           },
         ],
-        $exception_fingerprint: "api:/api/rpc/planItems/create:BAD_GATEWAY",
+        $exception_fingerprint:
+          "api:/api/v1/service-types/:serviceTypeId/plans/:planId/items:BAD_GATEWAY",
         error_code: "BAD_GATEWAY",
-        path: "/api/rpc/planItems/create",
+        path: "/api/v1/service-types/:serviceTypeId/plans/:planId/items",
         method: "POST",
         request_id: "request-1",
       },
@@ -89,7 +90,8 @@ describe(toPostHogExceptionCapture, () => {
       NOW
     );
     expect(capture.properties).toMatchObject({
-      $exception_fingerprint: "api:/api/rpc/planItems/create:UNHANDLED",
+      $exception_fingerprint:
+        "api:/api/v1/service-types/:serviceTypeId/plans/:planId/items:UNHANDLED",
       $exception_list: [{ type: "TypeError", value: "plain defect" }],
     });
   });

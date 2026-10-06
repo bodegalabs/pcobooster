@@ -6,8 +6,7 @@
   "exports": {
     "./product-client": "./src/product-client.ts",
     "./query": "./src/query.ts",
-    "./request-scheduler": "./src/request-scheduler.ts",
-    "./product-http-client": "./src/product-http-client.ts"
+    "./request-scheduler": "./src/request-scheduler.ts"
   },
   "scripts": {
     "test": "vitest run --root ../.. packages/client/src",

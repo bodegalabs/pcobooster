@@ -13,7 +13,7 @@ import { unreachableHttpClient } from "@pcobooster/api/testing/http-client";
 import { testServer, testServerConfig } from "@pcobooster/api/testing/server";
 import { ClientOutdated } from "@pcobooster/contracts/faults/client-outdated";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
-import { SERVER_VERSION_HEADER } from "@pcobooster/contracts/rpc/procedure";
+import { SERVER_VERSION_HEADER } from "@pcobooster/contracts/http/client-version";
 import { Effect } from "effect";
 import { describe, expect, it, vi } from "vitest";
 

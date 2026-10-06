@@ -4,7 +4,7 @@ import {
   integer,
   mutableArray,
   requiredId,
-} from "@pcobooster/contracts/rpc/schema";
+} from "@pcobooster/contracts/http/schema";
 import { Schema } from "effect";
 
 const MAX_ROSTER_REQUESTS = 100;

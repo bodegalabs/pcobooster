@@ -1,7 +1,7 @@
 /**
- * The D1 audit of schedule writes over Effect RPC: the port of the previous transport's audited
- * middleware and `schedule-activity.ts`. A handler combinator, not middleware, because it needs
- * each procedure's own input and answer.
+ * The D1 audit of schedule writes. A handler combinator, not middleware, because it needs each
+ * procedure's own input and answer. The row names the request's own method and path
+ * (`PATCH /api/v1/plan-people/<id>`).
  */
 import { RequestContext } from "@pcobooster/api/application/context";
 import type { RequestContextValue } from "@pcobooster/api/application/context";
@@ -12,10 +12,10 @@ import {
   recordActivityEvent,
 } from "@pcobooster/api/db/activity-events";
 import type { ActivityEventInput } from "@pcobooster/api/db/activity-events";
+import { causeError, procedureOutcome } from "@pcobooster/api/http/outcome";
 import { moduleLog } from "@pcobooster/api/logging";
-import { causeError, procedureOutcome } from "@pcobooster/api/rpc/outcome";
 import { Server } from "@pcobooster/api/server";
-import { scheduleAssignOutputSchema } from "@pcobooster/contracts/rpc/schedule";
+import { scheduleAssignOutputSchema } from "@pcobooster/contracts/http/schedule";
 import type { JsonObject } from "@pcobooster/planning-center-models/json";
 import { Effect, Exit, Option, Schema } from "effect";
 
@@ -50,19 +50,7 @@ export interface ScheduleAttempt {
 export interface ScheduleAuditDependencies {
   /** Writes one activity row; D1 through the request's server by default. */
   readonly recordActivity?: (event: ActivityEventInput) => Promise<void>;
-  /**
-   * The path the row names. HttpApi endpoints pass their real path; RPC calls, which all share
-   * one URL, default to a synthetic per-procedure path.
-   */
-  readonly path?: string;
 }
-
-/**
- * The row's `path` names the procedure, as the previous transport's per-procedure URLs did
- * (`/api/rpc/schedule/assign`); every Effect RPC call shares one URL, which says nothing.
- */
-const procedurePath = (operation: ScheduleOperation): string =>
-  `/api/rpc/schedule/${operation}`;
 
 const decodeAssignOutput = Schema.decodeUnknownOption(
   scheduleAssignOutputSchema
@@ -109,14 +97,12 @@ const activityMetadata = ({
 export const scheduleActivityEvent = (
   attempt: ScheduleAttempt,
   authentication: AccountAuthentication,
-  request: RequestContextValue,
-  path: string = procedurePath(attempt.operation)
+  request: RequestContextValue
 ): ActivityEventInput => {
   const outcome = procedureOutcome(attempt.exit);
   const { input } = attempt;
   return {
     ...getActivityRequestContext(request.request),
-    path,
     requestId: request.requestId,
     eventType: eventTypes[attempt.operation],
     actorUserId: authentication.userId,
@@ -153,7 +139,6 @@ export const auditSchedule = <Value, Failure, Services>(
     const { authentication } = yield* PlanningCenterAccess;
     const request = yield* RequestContext;
     const server = yield* Server;
-    const path = dependencies.path ?? procedurePath(operation);
     const recordActivity =
       dependencies.recordActivity ??
       (async (event: ActivityEventInput) => {
@@ -166,8 +151,7 @@ export const auditSchedule = <Value, Failure, Services>(
       const event = scheduleActivityEvent(
         { operation, input, exit },
         authentication,
-        request,
-        path
+        request
       );
       return Effect.tryPromise({
         try: async () => {
@@ -180,7 +164,7 @@ export const auditSchedule = <Value, Failure, Services>(
           scheduleLog.warn("Failed to record scheduling activity event", {
             requestId: request.requestId,
             method: request.method,
-            path,
+            path: event.path,
             error: causeError(cause).message,
           })
         )

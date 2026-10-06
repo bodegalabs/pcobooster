@@ -2,7 +2,7 @@ import { startDemoSession } from "@pcobooster/api/application/demo";
 import {
   demoSessionCookie,
   setResponseCookie,
-} from "@pcobooster/api/rpc/response-cookies";
+} from "@pcobooster/api/http/response-cookies";
 import { ProductApi } from "@pcobooster/contracts/http/api";
 import { Effect } from "effect";
 import { HttpApiBuilder } from "effect/unstable/httpapi";

@@ -11,8 +11,8 @@ import {
   isProductFault,
 } from "@pcobooster/contracts/faults";
 import type { ProductFault } from "@pcobooster/contracts/faults";
+import type { ProcedureKindValue } from "@pcobooster/contracts/http/procedure-kind";
 import type { RequestPriority } from "@pcobooster/contracts/request-priority";
-import type { ProcedureKindValue } from "@pcobooster/contracts/rpc/procedure";
 import type { Effect } from "effect";
 import { Cause, Exit } from "effect";
 

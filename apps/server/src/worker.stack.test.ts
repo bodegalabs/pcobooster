@@ -16,9 +16,11 @@ import { assert } from "@effect/vitest";
 import { demoSessionToken } from "@pcobooster/api/auth/demo-access";
 import { resolveReleaseVersion } from "@pcobooster/api/config/release";
 import { testServerConfig } from "@pcobooster/api/testing/server";
-import { failureStatus } from "@pcobooster/client/product-client";
-import { makeProductClient } from "@pcobooster/client/product-http-client";
-import type { ProcedureInput } from "@pcobooster/client/product-http-client";
+import {
+  failureStatus,
+  makeProductClient,
+} from "@pcobooster/client/product-client";
+import type { ProcedureInput } from "@pcobooster/client/product-client";
 import { ExternalServiceFailure } from "@pcobooster/contracts/faults/external-service-failure";
 import { Forbidden } from "@pcobooster/contracts/faults/forbidden";
 import { InternalError } from "@pcobooster/contracts/faults/internal-error";

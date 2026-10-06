@@ -8,12 +8,13 @@ import { measureWorkflow } from "@/lib/workflow-analytics";
 let tabClient: ProductClient | undefined;
 
 /**
- * The tab's one RPC client, built on first call: route modules also load during SSR, where
- * there is no `window` and SSR has its own client (`server/server-rpc.ts`).
+ * The tab's one API client, built on first call: route modules also load during SSR, where
+ * there is no `window` and SSR has its own client (`server/server-api.ts`). The API is on this
+ * origin: the product Worker forwards `/api/*` to it.
  */
 const sharedClient = (): ProductClient => {
   tabClient ??= makeProductClient({
-    url: new URL("/api/rpc", window.location.origin).href,
+    url: window.location.origin,
     client: "web",
     credentials: "include",
   });

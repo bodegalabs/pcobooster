@@ -39,7 +39,12 @@ const run = async <Value, Failure>(
     Effect.provideService(
       RequestContext,
       createRequestContext(
-        new Request("https://pcobooster.com/api/rpc", { method: "POST" })
+        new Request(
+          "https://pcobooster.com/api/v1/service-types/st-1/plans/plan-1/items",
+          {
+            method: "POST",
+          }
+        )
       )
     ),
     Effect.provideService(Server, testServer())

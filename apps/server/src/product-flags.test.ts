@@ -11,7 +11,7 @@ import {
   testPlanningCenterToken,
   testServer,
 } from "@pcobooster/api/testing/server";
-import type { ProductClient } from "@pcobooster/client/product-http-client";
+import type { ProductClient } from "@pcobooster/client/product-client";
 import { NotFound } from "@pcobooster/contracts/faults/not-found";
 import type { FeatureFlagName } from "@pcobooster/contracts/features";
 import { describe, expect, it } from "vitest";

@@ -6,7 +6,7 @@
  * HttpApi merges into every endpoint it is declared on.
  */
 import { productFaultSchema } from "@pcobooster/contracts/faults";
-import type { ProvidedBy } from "@pcobooster/contracts/rpc/server-services";
+import type { ProvidedBy } from "@pcobooster/contracts/http/server-services";
 import { HttpApiMiddleware } from "effect/unstable/httpapi";
 
 /** Each fault on its own, so every one is encoded and decoded with its own status. */

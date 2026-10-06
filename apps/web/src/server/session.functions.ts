@@ -4,7 +4,7 @@ import { getSessionCookie } from "better-auth/cookies";
 import { env } from "cloudflare:workers";
 import { z } from "zod";
 
-import { serverCall } from "@/server/server-rpc";
+import { serverCall } from "@/server/server-api";
 
 /**
  * Whether the visitor's session is still valid. Signed-out visitors have no session cookie,

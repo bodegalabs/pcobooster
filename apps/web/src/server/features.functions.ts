@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
 import { env } from "cloudflare:workers";
 
-import { serverCall } from "@/server/server-rpc";
+import { serverCall } from "@/server/server-api";
 
 /**
  * Whether each flag is on for this visitor. The API evaluates every flag for the signed-in user

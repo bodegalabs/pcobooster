@@ -5,7 +5,7 @@
  * Nothing here is per request: the server and error reporter arrive with each request
  * (`IsolateServer`).
  */
-import "@pcobooster/api/rpc/services";
+import "@pcobooster/api/http/services";
 import type { PlanningCenterAccessDependencies } from "@pcobooster/api/application/planning-center-access";
 import { CatalogHandlers } from "@pcobooster/api/http/handlers/catalog";
 import { DemoHandlers } from "@pcobooster/api/http/handlers/demo";
@@ -19,7 +19,7 @@ import { SongHandlers } from "@pcobooster/api/http/handlers/songs";
 import { PlanningCenterSessionLive } from "@pcobooster/api/http/planning-center-session";
 import { ProcedureScopeLive } from "@pcobooster/api/http/procedure-scope";
 import type { ProcedureScopeOptions } from "@pcobooster/api/http/procedure-scope";
-import type { ScheduleAuditDependencies } from "@pcobooster/api/rpc/schedule-audit";
+import type { ScheduleAuditDependencies } from "@pcobooster/api/http/schedule-audit";
 import { ProductApi } from "@pcobooster/contracts/http/api";
 import { Layer } from "effect";
 import { HttpApiBuilder } from "effect/unstable/httpapi";
